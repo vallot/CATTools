@@ -1,0 +1,39 @@
+
+#############################
+# To run the code        ###
+############################
+
+Change booleans & input files if needed in TopTreeProducer.py
+cmsRun TopTreeProducer.py
+
+#############################
+# To run Macro            ###
+############################
+
+root -l 
+.X rootlogon.C
+.L Macro.C++
+Macro()
+
+
+#############################
+# To run code compiled    ###
+############################
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:.
+cp ../src/libToto.so .
+g++  -L `pwd` -l Toto -I `root-config --incdir` `root-config --libs` Code.C -o Code
+./Code
+
+
+#############################
+# To submit on grid    ###
+############################
+use launch.sh script - cf usage
+Example:
+./launch
+./launch -makeJDL Code MacroOutput.root 
+./launch -test test.jdl
+./launch -test test.jdl toto
+./launch -status toto
+./launch -getoutput toto
+output stored in ./toto/

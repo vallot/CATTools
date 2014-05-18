@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+
+<inputdatasets>
+<!-- <i file="../test/cat_CRAFT09_test.root"/> -->
+<!-- <i file="TTbar_Summer09_7TeV_cat_1.root"/> -->
+<i file="DYToMuMu_Spring11_TOPTREE.root"/>
+</inputdatasets>
+
+<outputfilename>
+<!-- <o file="cat_CRAFT09_Skimmed_test.root"/> -->
+<!-- <o file="TTbar_Summer09_7TeV_cat_Skimmed.root"/> -->
+<o file="DYToMuMu_Spring11_Skimmed_TOPTREE.root"/>
+</outputfilename>
+
+<options>
+<!-- if HLTApplyAnd="1", 'AND' of the 2 trigger bits will be taken, otherwise the 'OR' -->
+<o skimOnHLT="0" HLTPath1="HLT_L2Mu5" HLTPath2="HLT_L2Mu3" HLTApplyAnd="0" TriggerMenu="TriggerResults__HLT" useJSON="0" JSONFile="/user/blyweert/catDevelopment/CMSSW_3_6_1_patch3/src/CATTools/CatProducer/skimmer/JSON.txt"/>
+</options>
+
+<keepbranches>
+<!-- Branches which need to be kept
+<k type="cat::CatMHT" name="MHT" minPt="15" maxEta="2.4" skipObjects="0" minNObjects="0"/>
+skipObjects:  1 = True | 0 = False
+-->
+<k type="cat::CatMuon" name="Muons_selectedPatMuons" minPt="15" maxEta="2.4" skipObjects="0" minNObjects="0"/>
+<k type="cat::CatCaloJet" name="CaloJets_selectedPatJetsAK5Calo" minPt="15" maxEta="2.4" skipObjects="0" minNObjects="0"/>
+<k type="cat::CatPFJet" name="PFJets_selectedPatJetsAK5PF" minPt="15" maxEta="2.4" skipObjects="0" minNObjects="0"/>
+<k type="cat::CatVertex" name="PrimaryVertex" minPt="0" maxEta="9999" skipObjects="0" minNObjects="0"/>
+<k type="cat::CatPFMET" name="PFMET" minPt="0" maxEta="2.4" skipObjects="0" minNObjects="0"/>
+</keepbranches>

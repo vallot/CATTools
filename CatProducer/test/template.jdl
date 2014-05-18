@@ -1,0 +1,8 @@
+Executable="test.sh";
+StdOutput="test.out";
+StdError="test.err";
+InputSandbox={"test.sh","EXECUTABLE","libToto.so"};
+OutputSandbox={"test.out","test.err","OUTPUT"};
+VirtualOrganisation="cms";
+RetryCount=0;
+Requirements = other.GlueCEPolicyMaxWallClockTime > 1200 && RegExp("gridce.iihe.ac.be", other.GlueCEUniqueId) 
