@@ -429,22 +429,23 @@ void ObjectProducer::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 	}
 	
 	//fastjet density rho
-	edm::Handle<double> rho;
-	iEvent.getByLabel("kt6PFJets","rho",rho);
-	rootEvent->setKt6PFJets_rho(*rho);
+        //FIX ME
+	//edm::Handle<double> rho;
+	//iEvent.getByLabel("ak5PFJets","rho",rho);
+	//rootEvent->setKt6PFJets_rho(*rho);
   
 	//density rho for electron isolation (effective area stuff)
   	//edm::Handle<double> rhoIso;
   	//iEvent.getByLabel("kt6PFJetsForIsolation","rho",rhoIso);
   	//rootEvent->setKt6PFJetsForIsolation_rho(*rhoIso);
 	
-	if(!isRealData_)
-	{
+	//if(!isRealData_)
+	//{
 		//flavorHistory path
-		edm::Handle<unsigned int> flavHist;
-		iEvent.getByLabel("flavorHistoryFilter","",flavHist);
-		rootEvent->setflavorHistoryPath(*flavHist);
-	}
+		//edm::Handle<unsigned int> flavHist;
+		//iEvent.getByLabel("flavorHistoryFilter","",flavHist);
+		//rootEvent->setflavorHistoryPath(*flavHist);
+	//}
 	
 	if(runGeneralTracks) // Calculate and fill number of tracks and number of high purity tracks
 	{

@@ -49,30 +49,30 @@ PhotonAnalyzer::Process (const edm::Event & iEvent, TClonesArray * rootPhotons, 
   iEvent.getByLabel("allConversions", hConversions);
 
   edm::Handle<reco::GsfElectronCollection> hElectrons;
-  iEvent.getByLabel("gsfElectrons", hElectrons);
+  iEvent.getByLabel("gedGsfElectrons", hElectrons);
 
   // get the iso deposits. 4 (charged hadrons, pileup charged hadrons, photons, neutral hadrons)
   // currently it is hardcoded ---> need to make it configurable for the future
-  inputTagIsoDepPhotons_.push_back( edm::InputTag("phPFIsoDepositChargedPFIso") );
-  inputTagIsoDepPhotons_.push_back( edm::InputTag("phPFIsoDepositGammaPFIso") );
-  inputTagIsoDepPhotons_.push_back( edm::InputTag("phPFIsoDepositNeutralPFIso") );
-  inputTagIsoDepPhotons_.push_back( edm::InputTag("phPFIsoDepositPUPFIso") );
+  //inputTagIsoDepPhotons_.push_back( edm::InputTag("phPFIsoDepositChargedPFIso") );
+  //inputTagIsoDepPhotons_.push_back( edm::InputTag("phPFIsoDepositGammaPFIso") );
+  //inputTagIsoDepPhotons_.push_back( edm::InputTag("phPFIsoDepositNeutralPFIso") );
+  //inputTagIsoDepPhotons_.push_back( edm::InputTag("phPFIsoDepositPUPFIso") );
   // there is no difference between PFId and NoPFId so just take PFId iso-value
-  inputTagIsoValPhotons_.push_back( edm::InputTag("phPFIsoValueCharged03PFIdPFIso") );
-  inputTagIsoValPhotons_.push_back( edm::InputTag("phPFIsoValueGamma03PFIdPFIso") );
-  inputTagIsoValPhotons_.push_back( edm::InputTag("phPFIsoValueNeutral03PFIdPFIso") );
-  inputTagIsoValPhotons_.push_back( edm::InputTag("phPFIsoValuePU03PFIdPFIso") );
+  //inputTagIsoValPhotons_.push_back( edm::InputTag("phPFIsoValueCharged03PFIdPFIso") );
+  //inputTagIsoValPhotons_.push_back( edm::InputTag("phPFIsoValueGamma03PFIdPFIso") );
+  //inputTagIsoValPhotons_.push_back( edm::InputTag("phPFIsoValueNeutral03PFIdPFIso") );
+  //inputTagIsoValPhotons_.push_back( edm::InputTag("phPFIsoValuePU03PFIdPFIso") );
   
-  unsigned nTypes=4;
-  IsoDepositMaps photonIsoDep(nTypes);
-  for (size_t j = 0; j<inputTagIsoDepPhotons_.size(); ++j) {
-    iEvent.getByLabel(inputTagIsoDepPhotons_[j], photonIsoDep[j]);
-  }
-  IsoDepositVals photonIsoValPFId(nTypes);
-  for (size_t j = 0; j<inputTagIsoValPhotons_.size(); ++j) {
-    iEvent.getByLabel(inputTagIsoValPhotons_[j], photonIsoValPFId[j]);
-  }
-  const IsoDepositVals * photonIsoVals = &photonIsoValPFId;
+  //unsigned nTypes=4;
+  //IsoDepositMaps photonIsoDep(nTypes);
+  //for (size_t j = 0; j<inputTagIsoDepPhotons_.size(); ++j) {
+  //  iEvent.getByLabel(inputTagIsoDepPhotons_[j], photonIsoDep[j]);
+  //}
+  //IsoDepositVals photonIsoValPFId(nTypes);
+  //for (size_t j = 0; j<inputTagIsoValPhotons_.size(); ++j) {
+  //  iEvent.getByLabel(inputTagIsoValPhotons_[j], photonIsoValPFId[j]);
+  //}
+  //const IsoDepositVals * photonIsoVals = &photonIsoValPFId;
 
   edm::Handle < std::vector < pat::Photon > >patPhotons;
   iEvent.getByLabel (photonProducer_, patPhotons);
@@ -99,10 +99,15 @@ PhotonAnalyzer::Process (const edm::Event & iEvent, TClonesArray * rootPhotons, 
       //currently PF isolation is directly from RECO, which is empty. need to change it (Taejeong) 
       pat::PhotonRef myPhotonRef(patPhotons,j);
       
-      double chIso =  (*(*photonIsoVals)[0])[myPhotonRef];
-      double phIso = (*(*photonIsoVals)[1])[myPhotonRef];
-      double nhIso = (*(*photonIsoVals)[2])[myPhotonRef];
-      double puChIso = (*(*photonIsoVals)[3])[myPhotonRef];
+      //double chIso =  (*(*photonIsoVals)[0])[myPhotonRef];
+      //double phIso = (*(*photonIsoVals)[1])[myPhotonRef];
+      //double nhIso = (*(*photonIsoVals)[2])[myPhotonRef];
+      //double puChIso = (*(*photonIsoVals)[3])[myPhotonRef];
+
+      double chIso = patPhoton->chargedHadronIso();
+      double phIso = patPhoton->photonIso();
+      double nhIso = patPhoton->neutralHadronIso();
+      double puChIso = patPhoton->puChargedHadronIso();
 
       localPhoton.setIsoR03_ChargedHadronIso( chIso );
       localPhoton.setIsoR03_PhotonIso( phIso );

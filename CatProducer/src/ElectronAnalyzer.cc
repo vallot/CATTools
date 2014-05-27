@@ -250,8 +250,9 @@ void ElectronAnalyzer::Process(const edm::Event& iEvent, TClonesArray* rootElect
     localElectron.setSigmaIphiIphi( patElectron->sigmaIphiIphi() );
     localElectron.setSigmaIetaIphi( patElectron->sigmaIetaIphi() );
     localElectron.setR9( patElectron->r9() );
-    localElectron.setMvaTrigId( patElectron->electronID("mvaTrigV0") );
-    localElectron.setMvaNonTrigId( patElectron->electronID("mvaNonTrigV0") );
+    //FIX ME at PAT
+    //localElectron.setMvaTrigId( patElectron->electronID("mvaTrigV0") );
+    //localElectron.setMvaNonTrigId( patElectron->electronID("mvaNonTrigV0") );
     
     new( (*rootElectrons)[j] ) CatElectron(localElectron);
     if(verbosity_>2) cout << "   ["<< setw(3) << j << "] " << localElectron << endl;
