@@ -55,7 +55,6 @@ process.analysis = cms.EDAnalyzer("ObjectProducer",
                 doPhoton = cms.untracked.bool(True),
                 runSuperCluster = cms.untracked.bool(True),#true only if SuperCluster are stored
                 doPFMET = cms.untracked.bool(True),
-                doTCMET = cms.untracked.bool(False),
                 doGenEvent = cms.untracked.bool(False),#put on False when running non-ttbar or when running toptree from reco
                 doNPGenEvent = cms.untracked.bool(False),#put on True when running New Physics sample
                 doSpinCorrGen = cms.untracked.bool(False),#put on True only if you need SpinCorrelation Variables
@@ -101,7 +100,6 @@ process.analysis = cms.EDAnalyzer("ObjectProducer",
                 velectronProducer = cms.untracked.vstring("selectedPatElectrons"),
                 vphotonProducer = cms.untracked.vstring("selectedPatPhotons"),
                 vpfmetProducer = cms.untracked.vstring("patMETs"),
-                TCmetProducer = cms.InputTag("patMETsTC"),
                 genEventProducer = cms.InputTag("genEvt"),
                 generalTrackLabel = cms.InputTag("generalTracks")
         )
