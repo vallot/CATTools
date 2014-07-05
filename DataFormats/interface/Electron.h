@@ -1,5 +1,5 @@
-#ifndef Electron_h
-#define Electron_h
+#ifndef CATTools_DataFormats_Electron_h
+#define CATTools_DataFormats_Electron_h
 
 #include <map>
 #include <iostream>

@@ -1,5 +1,5 @@
-#ifndef Event_h
-#define Event_h
+#ifndef CATTools_DataFormats_Event_h
+#define CATTools_DataFormats_Event_h
 
 #include <string>
 #include <iostream>

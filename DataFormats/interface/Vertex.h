@@ -1,5 +1,5 @@
-#ifndef Vertex_h
-#define Vertex_h
+#ifndef CATTools_DataFormats_Vertex_h
+#define CATTools_DataFormats_Vertex_h
 
 #include <string>
 #include <iostream>

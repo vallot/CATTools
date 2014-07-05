@@ -1,5 +1,5 @@
-#ifndef HLTInfo_h
-#define HLTInfo_h
+#ifndef CATTools_DataFormats_HLTInfo_h
+#define CATTools_DataFormats_HLTInfo_h
 
 #include <string>
 #include <iostream>

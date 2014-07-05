@@ -22,7 +22,7 @@ LIBS		= $(ROOTLIBS) -lEG
 GLIBS		= $(ROOTGLIBS)
 #------------------------------------------------------------------------------
 SOURCES 	= $(wildcard *.cc)
-HEADERS 	= $(wildcard ../interface/Cat*.h)
+HEADERS 	= $(wildcard ../interface/*.h)
 OBJECTS 	= $(SOURCES:.$(SrcSuf)=.$(ObjSuf))
 DEPENDS 	= $(SOURCES:.$(SrcSuf)=.d)
 SOBJECTS	= $(SOURCES:.$(SrcSuf)=.$(DllSuf))

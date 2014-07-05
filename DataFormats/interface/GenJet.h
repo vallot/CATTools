@@ -1,5 +1,5 @@
-#ifndef GenJet_h
-#define GenJet_h
+#ifndef CATTools_DataFormats_GenJet_h
+#define CATTools_DataFormats_GenJet_h
 
 #include "../interface/Particle.h"
 #include "../interface/MCParticle.h"

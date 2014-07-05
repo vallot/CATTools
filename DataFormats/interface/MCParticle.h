@@ -1,5 +1,5 @@
-#ifndef MCParticle_h
-#define MCParticle_h
+#ifndef CATTools_DataFormats_MCParticle_h
+#define CATTools_DataFormats_MCParticle_h
 
 #include <string>
 #include <iostream>

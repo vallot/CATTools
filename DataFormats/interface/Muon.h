@@ -1,5 +1,5 @@
-#ifndef Muon_h
-#define Muon_h
+#ifndef CATTools_DataFormats_Muon_h
+#define CATTools_DataFormats_Muon_h
 
 #include "../interface/Lepton.h"
 

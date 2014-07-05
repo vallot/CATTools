@@ -1,5 +1,5 @@
-#ifndef Lepton_h
-#define Lepton_h
+#ifndef CATTools_DataFormats_Lepton_h
+#define CATTools_DataFormats_Lepton_h
 
 #include <map>
 #include <iostream>

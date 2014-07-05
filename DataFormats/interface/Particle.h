@@ -1,5 +1,5 @@
-#ifndef Particle_h
-#define Particle_h
+#ifndef CATTools_DataFormats_Particle_h
+#define CATTools_DataFormats_Particle_h
 
 #include <string>
 #include <iostream>

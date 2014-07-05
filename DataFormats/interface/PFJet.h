@@ -1,5 +1,5 @@
-#ifndef PFJet_h
-#define PFJet_h
+#ifndef CATTools_DataFormats_PFJet_h
+#define CATTools_DataFormats_PFJet_h
 
 #include "../interface/Particle.h"
 #include "../interface/Jet.h"

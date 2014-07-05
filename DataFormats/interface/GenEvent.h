@@ -1,5 +1,5 @@
-#ifndef GenEvent_h
-#define GenEvent_h
+#ifndef CATTools_DataFormats_GenEvent_h
+#define CATTools_DataFormats_GenEvent_h
 
 #include "../interface/Particle.h"
 

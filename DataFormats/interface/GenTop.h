@@ -1,5 +1,5 @@
-#ifndef GenTop_h
-#define GenTop_h
+#ifndef CATTools_DataFormats_GenTop_h
+#define CATTools_DataFormats_GenTop_h
 #include "MCParticle.h"
 
 #include <Math/VectorUtil.h>

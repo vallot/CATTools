@@ -1,5 +1,5 @@
-#ifndef Run_h
-#define Run_h
+#ifndef CATTools_DataFormats_Run_h
+#define CATTools_DataFormats_Run_h
 
 #include <string>
 #include <iostream>

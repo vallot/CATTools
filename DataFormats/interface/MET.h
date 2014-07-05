@@ -1,5 +1,5 @@
-#ifndef MET_h
-#define MET_h
+#ifndef CATTools_DataFormats_MET_h
+#define CATTools_DataFormats_MET_h
 
 #include "../interface/Particle.h"
 

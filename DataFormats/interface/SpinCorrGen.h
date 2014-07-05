@@ -1,5 +1,5 @@
-#ifndef SpinCorrGen_h
-#define SpinCorrGen_h
+#ifndef CATTools_DataFormats_SpinCorrGen_h
+#define CATTools_DataFormats_SpinCorrGen_h
 
 #include "../interface/Particle.h"
 

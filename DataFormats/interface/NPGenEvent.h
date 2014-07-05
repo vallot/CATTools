@@ -1,5 +1,5 @@
-#ifndef NPGenEvent_h
-#define NPGenEvent_h
+#ifndef CATTools_DataFormats_NPGenEvent_h
+#define CATTools_DataFormats_NPGenEvent_h
 #include <iostream>
 #include <iomanip>
 #include <vector>

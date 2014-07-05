@@ -1,5 +1,5 @@
-#ifndef Photon_h
-#define Photon_h
+#ifndef CATTools_DataFormats_Photon_h
+#define CATTools_DataFormats_Photon_h
 
 #include <map>
 #include <iostream>
