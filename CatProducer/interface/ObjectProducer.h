@@ -30,18 +30,13 @@
 #include "../interface/MCAssociator.h"
 #include "../interface/VertexAnalyzer.h"
 #include "../interface/JetAnalyzer.h"
-#include "../interface/JPTJetAnalyzer.h"
-#include "../interface/CaloJetAnalyzer.h"
 #include "../interface/GenJetAnalyzer.h"
 #include "../interface/PFJetAnalyzer.h"
 #include "../interface/MuonAnalyzer.h"
 #include "../interface/ElectronAnalyzer.h"
 #include "../interface/PhotonAnalyzer.h"
 #include "../interface/METAnalyzer.h"
-#include "../interface/CaloMETAnalyzer.h"
 #include "../interface/PFMETAnalyzer.h"
-#include "../interface/TrackMETAnalyzer.h"
-#include "../interface/TCMETAnalyzer.h"
 #include "../interface/GenEventAnalyzer.h"
 #include "../interface/NPGenEventAnalyzer.h"
 #include "../interface/SpinCorrGenAnalyzer.h"
@@ -51,16 +46,13 @@
 #include "../interface/CatParticle.h"
 #include "../interface/CatMCParticle.h"
 #include "../interface/CatJet.h"
-#include "../interface/CatCaloJet.h"
 #include "../interface/CatGenJet.h"
 #include "../interface/CatPFJet.h"
 #include "../interface/CatLepton.h"
 #include "../interface/CatMuon.h"
 #include "../interface/CatElectron.h"
 #include "../interface/CatMET.h"
-#include "../interface/CatCaloMET.h"
 #include "../interface/CatPFMET.h"
-#include "../interface/CatTrackMET.h"
 #include "../interface/CatGenEvent.h"
 #include "../interface/CatNPGenEvent.h"
 #include "../interface/CatSpinCorrGen.h"
@@ -101,25 +93,18 @@ private:
 	bool doSignalTopTop;
 	bool doPrimaryVertex;
 	bool runGeneralTracks;
-	bool doCaloJet;
 	bool doGenJet;
 	bool doPFJet;
-	bool doJPTJet;
 	bool doMuon;
 	bool doElectron;
 	bool doPhoton;
-	bool doCaloMET;
 	bool doPFMET;
-	bool doTrackMET;
-	bool doTCMET;
 	bool doGenEvent;
 	bool doNPGenEvent;
 	bool doSpinCorrGen;
 	bool drawMCTree;
 	std::vector<std::string> vGenJetProducer;
-	std::vector<std::string> vCaloJetProducer;
 	std::vector<std::string> vPFJetProducer;
-	std::vector<std::string> vJPTJetProducer;
 	std::vector<std::string> vMuonProducer;
 	std::vector<std::string> vElectronProducer;
 	std::vector<std::string> vPhotonProducer;

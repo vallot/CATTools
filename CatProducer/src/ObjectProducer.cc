@@ -34,13 +34,10 @@ void ObjectProducer::beginJob()
 	runGeneralTracks = myConfig_.getUntrackedParameter<bool>("runGeneralTracks",false);
 	doGenJet = myConfig_.getUntrackedParameter<bool>("doGenJet",false);
 	doPFJet = myConfig_.getUntrackedParameter<bool>("doPFJet",false);
-	doJPTJet = myConfig_.getUntrackedParameter<bool>("doJPTJet",false);
 	doMuon = myConfig_.getUntrackedParameter<bool>("doMuon",false);
 	doElectron = myConfig_.getUntrackedParameter<bool>("doElectron",false);	
 	doPhoton = myConfig_.getUntrackedParameter<bool>("doPhoton",false);	
 	doPFMET = myConfig_.getUntrackedParameter<bool>("doPFMET",false);
-	doTrackMET = myConfig_.getUntrackedParameter<bool>("doTrackMET",false);
-	doTCMET = myConfig_.getUntrackedParameter<bool>("doTCMET",false);
 	drawMCTree = myConfig_.getUntrackedParameter<bool>("drawMCTree",false);
 	doGenEvent = myConfig_.getUntrackedParameter<bool>("doGenEvent",false);
 	doNPGenEvent = myConfig_.getUntrackedParameter<bool>("doNPGenEvent",false);
@@ -50,7 +47,6 @@ void ObjectProducer::beginJob()
 	vector<string> defaultVec;
 	vGenJetProducer = producersNames_.getUntrackedParameter<vector<string> >("vgenJetProducer",defaultVec);
 	vPFJetProducer = producersNames_.getUntrackedParameter<vector<string> >("vpfJetProducer",defaultVec);
-	vJPTJetProducer = producersNames_.getUntrackedParameter<vector<string> >("vJPTJetProducer",defaultVec);
 	vMuonProducer = producersNames_.getUntrackedParameter<vector<string> >("vmuonProducer",defaultVec);
 	vElectronProducer = producersNames_.getUntrackedParameter<vector<string> >("velectronProducer",defaultVec);
 	vPhotonProducer = producersNames_.getUntrackedParameter<vector<string> >("vphotonProducer",defaultVec);
@@ -65,11 +61,6 @@ void ObjectProducer::beginJob()
 	for(unsigned int s=0;s<vPFJetProducer.size();s++){
 		TClonesArray* a;
 		vpfJets.push_back(a);
-	}
-
-	for(unsigned int s=0;s<vJPTJetProducer.size();s++){
-		TClonesArray* a;
-		vjptJets.push_back(a);
 	}
 
 	for(unsigned int s=0;s<vMuonProducer.size();s++){
@@ -155,18 +146,6 @@ void ObjectProducer::beginJob()
 		}
 	}
 
-	if(doJPTJet)
-	{
-		if(verbosity>0) cout << "JPT Jets info will be added to rootuple" << endl;
-		for(unsigned int s=0;s<vJPTJetProducer.size();s++)
-		{
-			vjptJets[s] = new TClonesArray("cat::CatJPTJet", 1000);
-			char name[100];
-			sprintf(name,"JPTJets_%s",vJPTJetProducer[s].c_str());
-			eventTree_->Branch (name, "TClonesArray", &vjptJets[s]);
-		}
-	}
-	
 	if(doGenEvent)
 	{
 		if(verbosity>0) cout << "GenEvent info will be added to rootuple" << endl;
@@ -233,25 +212,6 @@ void ObjectProducer::beginJob()
   }
 
 
-    if(doTrackMET)
-        {
-                if(verbosity>0) cout << "Track MET info will be added to rootuple" << endl;
-    for(unsigned int s=0; s<vTrackmetProducer.size(); s++) {
-                  vTrackmets[s] = new TClonesArray("cat::CatTrackMET", 1000);
-      char name[100];
-                        sprintf(name,"TrackMET_%s",vTrackmetProducer[s].c_str());
-                eventTree_->Branch (name, "TClonesArray", &vTrackmets[s]);
-          }
-  }
-
-
-	if(doTCMET)
-	{
-		if(verbosity>0) cout << "Track Corrected MET info will be added to rootuple" << endl;
-		TCmet = new TClonesArray("cat::CatMET", 1000);
-		eventTree_->Branch ("TCMET", "TClonesArray", &TCmet);
-	}
-	
 	if(doPrimaryVertex)
 	{
 		if(verbosity>0) cout << "Primary Vertex info will be added to rootuple" << endl;
@@ -498,17 +458,6 @@ void ObjectProducer::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 		}
 	}
 
-	// JPT Jets
-	if(doJPTJet)
-	{
-		if(verbosity>1) cout << endl << "Analysing JPT jets collection..." << endl;
-		for(unsigned int s=0;s<vJPTJetProducer.size();s++){
-			JPTJetAnalyzer* myJPTJetAnalyzer = new JPTJetAnalyzer(producersNames_, s,  myConfig_, verbosity);
-			myJPTJetAnalyzer->Process(iEvent, vjptJets[s], iSetup);
-			delete myJPTJetAnalyzer;
-		}
-	}
-
 	// GenEvent
 	if(doGenEvent)
 	{
@@ -581,26 +530,6 @@ void ObjectProducer::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
     }
 	}
 
- if(doTrackMET)
-        {
-                if(verbosity>1) cout << endl << "Analysing Track Missing Et..." << endl;
-    for(unsigned int s=0; s<vTrackmetProducer.size(); s++) {
-      TrackMETAnalyzer* myTrackMETAnalyzer = new TrackMETAnalyzer(producersNames_, s, myConfig_, verbosity);
-      myTrackMETAnalyzer->Process(iEvent, vTrackmets[s]);
-      delete myTrackMETAnalyzer;
-    }
-        }
-
-
-
-	if(doTCMET)
-	{
-		if(verbosity>1) cout << endl << "Analysing Track Corrected Missing Et..." << endl;
-		TCMETAnalyzer* myMETAnalyzer = new TCMETAnalyzer(producersNames_, myConfig_, verbosity);
-		myMETAnalyzer->Process(iEvent, TCmet);
-		delete myMETAnalyzer;
-	}
-	
 	// Associate recoParticles to mcParticles
 	if(!isRealData_)
 	{
@@ -633,11 +562,6 @@ void ObjectProducer::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 			(*vpfJets[s]).Delete();
 		}
 	}
-	if(doJPTJet){
-		for(unsigned int s=0;s<vJPTJetProducer.size();s++){
-			(*vjptJets[s]).Delete();
-		}
-	}
 	if(doMuon){
 		for(unsigned int s=0;s<vMuonProducer.size();s++){
 			(*vmuons[s]).Delete();
@@ -658,13 +582,7 @@ void ObjectProducer::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
       (*vPFmets[s]).Delete();
     }
   }
- if(doTrackMET) {
-    for(unsigned int s=0; s<vTrackmetProducer.size(); s++) {
-      (*vTrackmets[s]).Delete();
-    }
-  }
 
-	if(doTCMET) (*TCmet).Delete();
 	if(doGenEvent) (*genEvent).Delete();
 	if(doNPGenEvent) (*NPgenEvent).Delete();
 	if(doSpinCorrGen) (*spinCorrGen).Delete();
