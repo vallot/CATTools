@@ -35,9 +35,9 @@ void GenEventAnalyzer::Process(const edm::Event& iEvent, TClonesArray* rootGenEv
 
 	if(verbosity_>1) std::cout << "   GenEvent  "  << "   Label: " << genEventProducer_.label() << "   Instance: " << genEventProducer_.instance() << std::endl;
 
-        CatGenEvent CatgenEvt;
-	CatgenEvt.SetBoolean(genEvent->isTtBar(), genEvent->isFullHadronic(), genEvent->isSemiLeptonic(), genEvent->isFullLeptonic());
-	CatgenEvt.SetSemiLeptonicChannel((CatGenEvent::LeptonType) genEvent->semiLeptonicChannel());
+        cat::CatGenEvent genEvt;
+	genEvt.SetBoolean(genEvent->isTtBar(), genEvent->isFullHadronic(), genEvent->isSemiLeptonic(), genEvent->isFullLeptonic());
+	genEvt.SetSemiLeptonicChannel((cat::CatGenEvent::LeptonType) genEvent->semiLeptonicChannel());
 	TLorentzVector neutrino;
 	TLorentzVector lepton;
 	TLorentzVector leptonicDecayW, leptonicDecayB, leptonicDecayTop;
@@ -60,7 +60,7 @@ void GenEventAnalyzer::Process(const edm::Event& iEvent, TClonesArray* rootGenEv
 	  if(genEvent->hadronicDecayQuark()) hadronicDecayQuark = P4toTLV(genEvent->hadronicDecayQuark()->p4());
 	  if(genEvent->hadronicDecayQuarkBar()) hadronicDecayQuarkBar = P4toTLV(genEvent->hadronicDecayQuarkBar()->p4());
 	}
-	CatgenEvt.SetTLorentzVector(lepton, neutrino, leptonicDecayW, leptonicDecayB, leptonicDecayTop, hadronicDecayW, hadronicDecayB, hadronicDecayTop, hadronicDecayQuark, hadronicDecayQuarkBar);
+	genEvt.SetTLorentzVector(lepton, neutrino, leptonicDecayW, leptonicDecayB, leptonicDecayTop, hadronicDecayW, hadronicDecayB, hadronicDecayTop, hadronicDecayQuark, hadronicDecayQuarkBar);
 	std::vector<TLorentzVector> ISR, leptonicDecayTopRadiation, hadronicDecayTopRadiation;
 	for(unsigned int i=0;i<genEvent->topSisters().size();i++) 
 	 if(genEvent->topSisters()[i]) 
@@ -73,6 +73,6 @@ void GenEventAnalyzer::Process(const edm::Event& iEvent, TClonesArray* rootGenEv
 	  if(genEvent->radiatedGluons(genEvent->hadronicDecayTop()->pdgId())[i])
 	    hadronicDecayTopRadiation.push_back(P4toTLV(genEvent->radiatedGluons(genEvent->hadronicDecayTop()->pdgId())[i]->p4())); 
 	}
-	CatgenEvt.SetRadiation(leptonicDecayTopRadiation, hadronicDecayTopRadiation, ISR);
-	new( (*rootGenEvent)[0] ) CatGenEvent(CatgenEvt);
+	genEvt.SetRadiation(leptonicDecayTopRadiation, hadronicDecayTopRadiation, ISR);
+	new( (*rootGenEvent)[0] ) cat::CatGenEvent(genEvt);
 }

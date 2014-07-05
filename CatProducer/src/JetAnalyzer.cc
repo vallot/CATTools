@@ -28,9 +28,9 @@ bool Rsortrule (std::pair <double,double> p1, std::pair <double,double> p2 )
 	return p1.second<p2.second; 
 }
 
-CatJet JetAnalyzer::Process(const reco::Jet* jet, const edm::EventSetup& iSetup)
+cat::CatJet JetAnalyzer::Process(const reco::Jet* jet, const edm::EventSetup& iSetup)
 {
-	CatJet localJet(
+	cat::CatJet localJet(
 		jet->px()
 		,jet->py()
 		,jet->pz()

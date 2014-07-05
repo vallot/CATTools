@@ -27,8 +27,8 @@ void MCAssociator::init(const edm::Event& iEvent, TClonesArray* mcParticles)
 	for (int imc=0; imc<nMC_; imc++)
 	{
 		// TODO - remove indexInList in CatMCParticle
-		//igen = ( (CatParticle*)mcParticles_->At(imc))->genParticleIndex_();
-		igen = ( (CatMCParticle*)mcParticles_->At(imc))->genParticleIndex();
+		//igen = ( (cat::CatParticle*)mcParticles_->At(imc))->genParticleIndex_();
+		igen = ( (cat::CatMCParticle*)mcParticles_->At(imc))->genParticleIndex();
 		mcParticlesMap_[igen]=imc;
 	}
 }
@@ -41,7 +41,7 @@ void MCAssociator::process(TClonesArray* recoParticles)
 
 	for (int ipart=0; ipart<recoParticles->GetEntriesFast(); ipart++)
 	{
-		CatParticle* recoParticle = (CatParticle*)recoParticles->At(ipart);
+		cat::CatParticle* recoParticle = (cat::CatParticle*)recoParticles->At(ipart);
 		igen = recoParticle->genParticleIndex();
 		if(igen<=0)
 		{
@@ -52,7 +52,7 @@ void MCAssociator::process(TClonesArray* recoParticles)
 		it=mcParticlesMap_.find(igen);
 		if(it==mcParticlesMap_.end())
 		{
-			if(verbosity_>2) cout <<"   "<< recoParticle->typeName() << "[" << ipart << "] not matched (at TotoAna level)... add new CatMCParticle..." << endl;
+			if(verbosity_>2) cout <<"   "<< recoParticle->typeName() << "[" << ipart << "] not matched (at TotoAna level)... add new cat::CatMCParticle..." << endl;
 			// if igen not found in mcParticles[], add genParticle in mcParticles[]
 			const reco::GenParticle & p = (*genParticles_)[igen];
 			//find the mother ID
@@ -75,14 +75,14 @@ void MCAssociator::process(TClonesArray* recoParticles)
 				}
 			}
 
-			CatMCParticle localMCParticle( p.px(), p.py(), p.pz(), p.energy(), p.vx(), p.vy(), p.vz(), p.pdgId(), p.charge(), p.status(), p.numberOfDaughters(), motherID, grannyID, 0, 0, 0, 0, igen );
-			new( (*mcParticles_)[nMC_] ) CatMCParticle(localMCParticle);
+			cat::CatMCParticle localMCParticle( p.px(), p.py(), p.pz(), p.energy(), p.vx(), p.vy(), p.vz(), p.pdgId(), p.charge(), p.status(), p.numberOfDaughters(), motherID, grannyID, 0, 0, 0, 0, igen );
+			new( (*mcParticles_)[nMC_] ) cat::CatMCParticle(localMCParticle);
 			if(verbosity_>2) cout <<"      ===> now matched to mcParticle["<< nMC_<<"] "<< localMCParticle << endl;
 			nMC_++;
 		}
 		else
 		{
-			if(verbosity_>2) cout <<"   "<< ( (CatParticle*)recoParticles->At(ipart))->typeName() << "[" << ipart << "] matched to mcParticles[" << it->second << "]" << endl;
+			if(verbosity_>2) cout <<"   "<< ( (cat::CatParticle*)recoParticles->At(ipart))->typeName() << "[" << ipart << "] matched to mcParticles[" << it->second << "]" << endl;
 		}
 	}
 }
@@ -92,20 +92,20 @@ void MCAssociator::printParticleAssociation(TClonesArray* recoParticles)
 {
 	for (Int_t imc=0; imc<nMC_; imc++) // reindexing to take into account matches that were not inserted with MCAssociator::Init
 	{
-		Int_t igen = ( (CatMCParticle*)mcParticles_->At(imc))->genParticleIndex();
+		Int_t igen = ( (cat::CatMCParticle*)mcParticles_->At(imc))->genParticleIndex();
 		mcParticlesMap_[igen]=imc;
 	}
 	std::map<int,int>::iterator it;
 	for (int ipart=0; ipart<recoParticles->GetEntriesFast(); ipart++)
 	{
 		if (ipart==0) cout << endl;
-		CatParticle* localParticle = (CatParticle*)recoParticles->At(ipart);
+		cat::CatParticle* localParticle = (cat::CatParticle*)recoParticles->At(ipart);
     Int_t indexRECO = localParticle->genParticleIndex();
 		it=mcParticlesMap_.find(indexRECO);
 		if(it!=mcParticlesMap_.end())
 		{
 			cout <<"   "<< localParticle->typeName() <<"["<< ipart << "] " << *localParticle<< endl;
-			cout <<"       ===> matched to mcParticles: " << *((CatMCParticle*)mcParticles_->At(it->second)) << endl;
+			cout <<"       ===> matched to mcParticles: " << *((cat::CatMCParticle*)mcParticles_->At(it->second)) << endl;
 
 		} else {
 			cout <<"   "<< localParticle->typeName() <<"["<< ipart << "] " << *localParticle<< endl;

@@ -127,14 +127,14 @@ void SpinCorrGenAnalyzer::Process(const edm::Event& iEvent, TClonesArray* rootSp
 	    
 	
 	    //set the variable in the cat
-	    CatSpinCorrGen localSSG;
+	    cat::CatSpinCorrGen localSSG;
 	    localSSG.setcosThetaTLHel(cosThetaTLHel); 
 	    localSSG.setcosThetaTBHel(cosThetaTBHel);
 	    localSSG.setcosThetaTQHel(cosThetaTQHel);
 	    localSSG.setcosPhi(cosPhi);
 	    localSSG.settopsZMFMass(topsZMFMass);
 	    
-	    new( (*rootSpinCorrGen)[0] ) CatSpinCorrGen(localSSG);
+	    new( (*rootSpinCorrGen)[0] ) cat::CatSpinCorrGen(localSSG);
 	    
 	  }// close if 
 	}//close if semilep

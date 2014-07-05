@@ -51,9 +51,9 @@ void GenJetAnalyzer::Process(const edm::Event& iEvent, TClonesArray* rootGenJets
 		if( jetType=="CALO" ) genJet = (const reco::GenJet*) ( & ((*recoGenJets)[j]) );
 			
 		// Call JetAnalyzer to fill the basic Jet Properties
-//		CatJet tempJet = (CatJet) myJetAnalyzer->Process( &( *(genJet) ));
+//		cat::CatJet tempJet = (cat::CatJet) myJetAnalyzer->Process( &( *(genJet) ));
 
-		CatGenJet localGenJet(
+		cat::CatGenJet localGenJet(
 			genJet->px()
 			,genJet->py()
 			,genJet->pz()
@@ -77,8 +77,8 @@ void GenJetAnalyzer::Process(const edm::Event& iEvent, TClonesArray* rootGenJets
 
                 bool isBHadron = false;
                 bool isCHadron = false;
-                CatMCParticle BHad;
-                CatMCParticle CHad;
+                cat::CatMCParticle BHad;
+                cat::CatMCParticle CHad;
 
                 std::vector <const reco::GenParticle*> mcparts = genJet->getGenConstituents();
 
@@ -87,7 +87,7 @@ void GenJetAnalyzer::Process(const edm::Event& iEvent, TClonesArray* rootGenJets
                   const reco::Candidate* lastB = lastBHadron(*mcpart);
                   if( lastB ) {
                     isBHadron = true;
-                    CatMCParticle tmp( lastB->px(), lastB->py(), lastB->pz(), lastB->energy() );
+                    cat::CatMCParticle tmp( lastB->px(), lastB->py(), lastB->pz(), lastB->energy() );
                     BHad = tmp;
                     break;
                   }
@@ -99,7 +99,7 @@ void GenJetAnalyzer::Process(const edm::Event& iEvent, TClonesArray* rootGenJets
                   const reco::Candidate* lastC = lastCHadron(*mcpart);
                   if( lastC ) {
                     isCHadron = true;
-                    CatMCParticle tmp( lastC->px(), lastC->py(), lastC->pz(), lastC->energy() );
+                    cat::CatMCParticle tmp( lastC->px(), lastC->py(), lastC->pz(), lastC->energy() );
                     CHad = tmp;
                     break;
                   }
@@ -109,7 +109,7 @@ void GenJetAnalyzer::Process(const edm::Event& iEvent, TClonesArray* rootGenJets
                 if( isCHadron ) localGenJet.setCHadron(CHad); //if only no B-Hadron matched, assign C-Hadron
                 
 				
-		new( (*rootGenJets)[j] ) CatGenJet(localGenJet);
+		new( (*rootGenJets)[j] ) cat::CatGenJet(localGenJet);
 		if(verbosity_>2) cout << "   ["<< setw(3) << j << "] " << localGenJet << endl;
 	}
 }

@@ -98,7 +98,7 @@ void ObjectProducer::beginJob()
 
         tmp_ = new TH1F("EventSummary","EventSummary", filters_.size(),0,filters_.size());
 
-	runInfos_ = new CatRun();
+	runInfos_ = new cat::CatRun();
 	runTree_ = new TTree("runTree", "Global Run Infos");
 	runTree_->Branch ("runInfos", "cat::CatRun", &runInfos_);
 	if(verbosity>0) cout << "RunTree is created" << endl;
@@ -278,7 +278,7 @@ void ObjectProducer::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 			<< " #######" << endl;
 
 	// Global Event Infos
-	rootEvent = new CatEvent();
+	rootEvent = new cat::CatEvent();
 	rootEvent->setNb(nTotEvt_);
 	rootEvent->setEventId(iEvent.id().event());
 	rootEvent->setRunId(iEvent.id().run());

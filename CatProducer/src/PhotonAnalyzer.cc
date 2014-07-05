@@ -86,7 +86,7 @@ PhotonAnalyzer::Process (const edm::Event & iEvent, TClonesArray * rootPhotons, 
       const pat::Photon*  patPhoton = &((*patPhotons)[j]);//dynamic_cast < const pat::Photon * >(&*photon);
       const reco::Photon* photon = (const reco::Photon *) patPhoton;//(&((*patPhotons)[j]));
 
-      CatPhoton localPhoton (photon->px (), photon->py (), photon->pz (), photon->energy ());
+      cat::CatPhoton localPhoton (photon->px (), photon->py (), photon->pz (), photon->energy ());
 
       localPhoton.setSigmaIetaIeta( photon->sigmaIetaIeta() );
       localPhoton.setHadronicOverEm( photon->hadronicOverEm() );
@@ -127,7 +127,7 @@ PhotonAnalyzer::Process (const edm::Event & iEvent, TClonesArray * rootPhotons, 
         }
       }
       
-      new ((*rootPhotons)[j]) CatPhoton (localPhoton);
+      new ((*rootPhotons)[j]) cat::CatPhoton (localPhoton);
       if (verbosity_ > 2)
         cout << "   [" << setw (3) << j << "] " << localPhoton << endl;
    }

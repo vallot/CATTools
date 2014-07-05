@@ -23,7 +23,7 @@ cat::CatMET METAnalyzer::Process(const reco::Candidate* met)
 {
 
   
-  CatMET localMET(
+  cat::CatMET localMET(
 		    met->px()
 		    ,met->py()
 		    ,met->pz()

@@ -19,7 +19,7 @@ int getIndexForRun ( const edm::Event& iEvent, vector<cat::CatHLTInfo> infos ) {
 
 }
 
-/*void HLTAnalyzer::init(const edm::Event& iEvent, CatEvent* rootEvent)
+/*void HLTAnalyzer::init(const edm::Event& iEvent, cat::CatEvent* rootEvent)
 {
        
    edm::Handle<edm::TriggerResults> trigResults;
@@ -31,7 +31,7 @@ int getIndexForRun ( const edm::Event& iEvent, vector<cat::CatHLTInfo> infos ) {
 }
 */
 
-void HLTAnalyzer::process(const edm::Event& iEvent, CatEvent* rootEvent)
+void HLTAnalyzer::process(const edm::Event& iEvent, cat::CatEvent* rootEvent)
 {
 	nEvents_++;
 	
@@ -191,7 +191,7 @@ void HLTAnalyzer::printStats()
 	return;
 }
 
-void HLTAnalyzer::copySummary(CatRun* runInfos)
+void HLTAnalyzer::copySummary(cat::CatRun* runInfos)
 {
 	if(doHLT_)
 	{

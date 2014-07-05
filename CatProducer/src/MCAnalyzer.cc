@@ -62,7 +62,7 @@ void MCAnalyzer::DrawMCTree(const edm::Event& iEvent, const edm::EventSetup& iSe
 
 
 
-void MCAnalyzer::PDFInfo(const edm::Event& iEvent, CatEvent* rootEvent)
+void MCAnalyzer::PDFInfo(const edm::Event& iEvent, cat::CatEvent* rootEvent)
 {
 	if(verbosity_>1) cout << endl << "   Process PDF Infos..." << endl;
 	edm::Handle<GenEventInfoProduct> genEvtInfo;
@@ -122,8 +122,8 @@ void MCAnalyzer::ProcessMCParticle(const edm::Event& iEvent, TClonesArray* rootM
 		{
 			iElectron++;
 			if ( abs(p.eta()>electronMC_etaMax_) || p.pt()<electronMC_ptMin_ ) continue;
-			new( (*rootMCParticles)[iPartSel] ) CatMCParticle( p.px(), p.py(), p.pz(), p.energy(), p.vx(), p.vy(), p.vz(), p.pdgId(), p.charge(), p.status(), p.numberOfDaughters(), motherID, grannyID, 0, 0, 0, 0, j );
-			if(verbosity_>2) cout << "   ["<< setw(3) << iPartSel << "] MC Electron  " << (const CatMCParticle&)(*rootMCParticles->At(iPartSel)) << endl;
+			new( (*rootMCParticles)[iPartSel] ) cat::CatMCParticle( p.px(), p.py(), p.pz(), p.energy(), p.vx(), p.vy(), p.vz(), p.pdgId(), p.charge(), p.status(), p.numberOfDaughters(), motherID, grannyID, 0, 0, 0, 0, j );
+			if(verbosity_>2) cout << "   ["<< setw(3) << iPartSel << "] MC Electron  " << (const cat::CatMCParticle&)(*rootMCParticles->At(iPartSel)) << endl;
 			iPartSel++;
 			iElectronSel++;
 		}
@@ -132,8 +132,8 @@ void MCAnalyzer::ProcessMCParticle(const edm::Event& iEvent, TClonesArray* rootM
 		{
 			iMuon++;
 			if ( abs(p.eta()>muonMC_etaMax_) || p.pt()<muonMC_ptMin_ ) continue;
-			new( (*rootMCParticles)[iPartSel] ) CatMCParticle( p.px(), p.py(), p.pz(), p.energy(), p.vx(), p.vy(), p.vz(), p.pdgId(), p.charge(), p.status(), p.numberOfDaughters(), motherID, grannyID, 0, 0, 0, 0, j );
-			if(verbosity_>2) cout << "   ["<< setw(3) << iPartSel << "] MC Muon  " << (const CatMCParticle&)(*rootMCParticles->At(iPartSel)) << endl;
+			new( (*rootMCParticles)[iPartSel] ) cat::CatMCParticle( p.px(), p.py(), p.pz(), p.energy(), p.vx(), p.vy(), p.vz(), p.pdgId(), p.charge(), p.status(), p.numberOfDaughters(), motherID, grannyID, 0, 0, 0, 0, j );
+			if(verbosity_>2) cout << "   ["<< setw(3) << iPartSel << "] MC Muon  " << (const cat::CatMCParticle&)(*rootMCParticles->At(iPartSel)) << endl;
 			iPartSel++;
 			iMuonSel++;
 		}
@@ -143,8 +143,8 @@ void MCAnalyzer::ProcessMCParticle(const edm::Event& iEvent, TClonesArray* rootM
 		{
 			iJet++;
 			if ( abs(p.eta()>jetMC_etaMax_) || p.pt()<jetMC_ptMin_ ) continue;
-			new( (*rootMCParticles)[iPartSel] ) CatMCParticle( p.px(), p.py(), p.pz(), p.energy(), p.vx(), p.vy(), p.vz(), p.pdgId() , p.charge(), p.status(), p.numberOfDaughters(), motherID, grannyID, 0, 0, 0, 0, j );
-			if(verbosity_>2) cout << "   MC Jet  " << (const CatParticle&)(*rootMCParticles->At(iPartSel)) << endl;
+			new( (*rootMCParticles)[iPartSel] ) cat::CatMCParticle( p.px(), p.py(), p.pz(), p.energy(), p.vx(), p.vy(), p.vz(), p.pdgId() , p.charge(), p.status(), p.numberOfDaughters(), motherID, grannyID, 0, 0, 0, 0, j );
+			if(verbosity_>2) cout << "   MC Jet  " << (const cat::CatParticle&)(*rootMCParticles->At(iPartSel)) << endl;
 			iPartSel++;
 			iJetSel++;
 		}
@@ -152,8 +152,8 @@ void MCAnalyzer::ProcessMCParticle(const edm::Event& iEvent, TClonesArray* rootM
     {
       iJet++;
       if ( abs(p.eta()>jetMC_etaMax_) || p.pt()<jetMC_ptMin_ ) continue;
-      new( (*rootMCParticles)[iPartSel] ) CatMCParticle( p.px(), p.py(), p.pz(), p.energy(), p.vx(), p.vy(), p.vz(), p.pdgId() , p.charge(), p.status(), p.numberOfDaughters(), motherID, grannyID, 0, 0, 0, 0, j );
-      if(verbosity_>2) cout << "   MC Jet  " << (const CatParticle&)(*rootMCParticles->At(iPartSel)) << endl;
+      new( (*rootMCParticles)[iPartSel] ) cat::CatMCParticle( p.px(), p.py(), p.pz(), p.energy(), p.vx(), p.vy(), p.vz(), p.pdgId() , p.charge(), p.status(), p.numberOfDaughters(), motherID, grannyID, 0, 0, 0, 0, j );
+      if(verbosity_>2) cout << "   MC Jet  " << (const cat::CatParticle&)(*rootMCParticles->At(iPartSel)) << endl;
       iPartSel++;
       iJetSel++;
     }
@@ -162,8 +162,8 @@ void MCAnalyzer::ProcessMCParticle(const edm::Event& iEvent, TClonesArray* rootM
 		if ( doMETMC_ && (abs(p.pdgId()) == 12 || abs(p.pdgId()) == 14 ||  abs(p.pdgId()) == 16 || ( abs(p.pdgId()) > 1000000 && abs(p.pdgId()) < 3000000 ) )&& p.status()==1 )
 		{
 			iMET++;
-			new( (*rootMCParticles)[iPartSel] ) CatMCParticle( p.px(), p.py(), p.pz(), p.energy(), p.vx(), p.vy(), p.vz(), p.pdgId() , p.charge(), p.status(), p.numberOfDaughters(), motherID, grannyID, 0, 0, 0, 0, j );
-			if(verbosity_>2) cout << "   MC MET  " << (const CatParticle&)(*rootMCParticles->At(iPartSel)) << endl;
+			new( (*rootMCParticles)[iPartSel] ) cat::CatMCParticle( p.px(), p.py(), p.pz(), p.energy(), p.vx(), p.vy(), p.vz(), p.pdgId() , p.charge(), p.status(), p.numberOfDaughters(), motherID, grannyID, 0, 0, 0, 0, j );
+			if(verbosity_>2) cout << "   MC MET  " << (const cat::CatParticle&)(*rootMCParticles->At(iPartSel)) << endl;
 			iPartSel++;
 			iMETSel++;
 		}
@@ -181,8 +181,8 @@ void MCAnalyzer::ProcessMCParticle(const edm::Event& iEvent, TClonesArray* rootM
 			if (p.numberOfDaughters() > 2) daug2Id = p.daughter( 2 )->pdgId();
 			if (p.numberOfDaughters() > 3) daug3Id = p.daughter( 3 )->pdgId();
 
-			new( (*rootMCParticles)[iPartSel] ) CatMCParticle( p.px(), p.py(), p.pz(), p.energy(), p.vx(), p.vy(),p.vz(), p.pdgId(), p.charge(), p.status(), p.numberOfDaughters(), motherID, grannyID, daug0Id, daug1Id, daug2Id, daug3Id, j );
-			if(verbosity_>2) cout << "   ["<< setw(3) << iPartSel << "] unstable particle  " << (const CatMCParticle&)(*rootMCParticles->At(iPartSel)) << endl;
+			new( (*rootMCParticles)[iPartSel] ) cat::CatMCParticle( p.px(), p.py(), p.pz(), p.energy(), p.vx(), p.vy(),p.vz(), p.pdgId(), p.charge(), p.status(), p.numberOfDaughters(), motherID, grannyID, daug0Id, daug1Id, daug2Id, daug3Id, j );
+			if(verbosity_>2) cout << "   ["<< setw(3) << iPartSel << "] unstable particle  " << (const cat::CatMCParticle&)(*rootMCParticles->At(iPartSel)) << endl;
 			iPartSel++;		
 
 		}	

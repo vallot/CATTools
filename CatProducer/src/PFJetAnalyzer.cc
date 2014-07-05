@@ -64,9 +64,9 @@ void PFJetAnalyzer::Process(const edm::Event& iEvent, TClonesArray* rootJets, co
 		if( (*patJets)[j].isPFJet() ) jetType="PF";
 			
 		// Call JetAnalyzer to fill the basic Jet Properties
-		CatJet tempJet = myJetAnalyzer->Process( &( *(jet) ), iSetup);
+		cat::CatJet tempJet = myJetAnalyzer->Process( &( *(jet) ), iSetup);
 		
-		CatPFJet localJet = CatPFJet(tempJet);
+		cat::CatPFJet localJet = cat::CatPFJet(tempJet);
 
 		localJet.setJetType(2); // 2 = PFJet
 
@@ -86,7 +86,7 @@ void PFJetAnalyzer::Process(const edm::Event& iEvent, TClonesArray* rootJets, co
 		localJet.setHFHadronMultiplicity(patJet->HFHadronMultiplicity());
 		localJet.setHFEMMultiplicity(patJet->HFEMMultiplicity());
 
-		new( (*rootJets)[j] ) CatPFJet(localJet);
+		new( (*rootJets)[j] ) cat::CatPFJet(localJet);
 		if(verbosity_>2) cout << "   ["<< setw(3) << j << "] " << localJet << endl;
 		
 	}
