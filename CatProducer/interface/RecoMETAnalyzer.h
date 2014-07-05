@@ -17,8 +17,8 @@
 #include "DataFormats/METReco/interface/PFMETCollection.h"
 #include "DataFormats/PatCandidates/interface/MET.h"
 
-#include "CATTools/DataFormats/interface/CatEvent.h"
-#include "CATTools/DataFormats/interface/CatMET.h"
+#include "CATTools/DataFormats/interface/Event.h"
+#include "CATTools/DataFormats/interface/MET.h"
 
 #include "TClonesArray.h"
 
@@ -30,7 +30,7 @@ public:
 	RecoMETAnalyzer(const edm::ParameterSet& producersNames, const edm::ParameterSet& myConfig, int verbosity);
 	~RecoMETAnalyzer();
 	void SetVerbosity(int verbosity) {verbosity_ = verbosity; };
-	cat::CatMET Process(const reco::Candidate* met);
+	cat::MET Process(const reco::Candidate* met);
 
 private:
 	int verbosity_;

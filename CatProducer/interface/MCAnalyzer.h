@@ -32,10 +32,10 @@
 //#include "DataFormats/EgammaCandidates/interface/ConvertedPhoton.h"
 
 #include "../interface/ParticleTreeDrawer.h"
-#include "CATTools/DataFormats/interface/CatEvent.h"
-#include "CATTools/DataFormats/interface/CatParticle.h"
-#include "CATTools/DataFormats/interface/CatMCParticle.h"
-#include "CATTools/DataFormats/interface/CatJet.h"
+#include "CATTools/DataFormats/interface/Event.h"
+#include "CATTools/DataFormats/interface/Particle.h"
+#include "CATTools/DataFormats/interface/MCParticle.h"
+#include "CATTools/DataFormats/interface/Jet.h"
 
 #include "TClonesArray.h"
 
@@ -49,7 +49,7 @@ public:
 	~MCAnalyzer();
 	void SetVerbosity(int verbosity) {verbosity_ = verbosity; };
 	void DrawMCTree(const edm::Event& iEvent, const edm::EventSetup& iSetup, const edm::ParameterSet& config, const edm::ParameterSet& producersNames);
-	void PDFInfo(const edm::Event& iEvent, CatEvent* rootEvent);
+	void PDFInfo(const edm::Event& iEvent, Event* rootEvent);
   void ProcessMCParticle(const edm::Event& iEvent, TClonesArray* rootMCParticles);	
 
 private:

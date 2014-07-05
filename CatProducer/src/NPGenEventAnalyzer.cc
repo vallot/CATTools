@@ -32,7 +32,7 @@ TLorentzVector NPGenEventAnalyzer::P4toTLV (reco::Particle::LorentzVector a)
   return TLorentzVector (a.px (), a.py (), a.pz (), a.energy ());
 }
 
-cat::CatMCParticle NPGenEventAnalyzer::ConvertMCPart(reco::GenParticleCollection::const_iterator t){
+cat::MCParticle NPGenEventAnalyzer::ConvertMCPart(reco::GenParticleCollection::const_iterator t){
   TLorentzVector p4 = P4toTLV(t->p4());
   TVector3 vertex = TVector3(t->vertex().x(),t->vertex().y(),t->vertex().z());
   int motherType = -9999;
@@ -51,11 +51,11 @@ cat::CatMCParticle NPGenEventAnalyzer::ConvertMCPart(reco::GenParticleCollection
     if(nDau==3) dauThreeId = td->pdgId();
     if(nDau==4) dauFourId = td->pdgId();
   }
-  cat::CatMCParticle part(p4, vertex, t->pdgId(), t->charge(), t->status(), nDau, motherType, grannyType, dauOneId, dauTwoId, dauThreeId, dauFourId, -9999);
+  cat::MCParticle part(p4, vertex, t->pdgId(), t->charge(), t->status(), nDau, motherType, grannyType, dauOneId, dauTwoId, dauThreeId, dauFourId, -9999);
   return part;
 }
 
-cat::CatMCParticle NPGenEventAnalyzer::ConvertMCPart(reco::GenParticle::const_iterator t){
+cat::MCParticle NPGenEventAnalyzer::ConvertMCPart(reco::GenParticle::const_iterator t){
   TLorentzVector p4 = P4toTLV(t->p4());
   TVector3 vertex = TVector3(t->vertex().x(),t->vertex().y(),t->vertex().z());
   int motherType = -9999;
@@ -74,7 +74,7 @@ cat::CatMCParticle NPGenEventAnalyzer::ConvertMCPart(reco::GenParticle::const_it
     if(nDau==3) dauThreeId = td->pdgId();
     if(nDau==4) dauFourId = td->pdgId();
   }
-  cat::CatMCParticle part(p4, vertex, t->pdgId(), t->charge(), t->status(), nDau, motherType, grannyType, dauOneId, dauTwoId, dauThreeId, dauFourId, -9999);
+  cat::MCParticle part(p4, vertex, t->pdgId(), t->charge(), t->status(), nDau, motherType, grannyType, dauOneId, dauTwoId, dauThreeId, dauFourId, -9999);
   return part;
 }
 void
@@ -93,14 +93,14 @@ NPGenEventAnalyzer::Process (const edm::Event & iEvent, TClonesArray * rootGenEv
     std::cout << "   NPGenEventAnalyzer  " << "   Label: " << genParticlesProducer_.label () << "   Instance: " << genParticlesProducer_.instance () << std::endl;
 
   bool isNewPhysics_ = false;
-  vector < cat::CatGenTop > tops_;
-  vector < cat::CatMCParticle > stops_;
-  vector < cat::CatMCParticle > leptons_;
-  vector < cat::CatMCParticle > quarks_;
-  vector < cat::CatMCParticle > bquarks_;
-  vector < cat::CatMCParticle > gluinos_;
-  vector < cat::CatMCParticle > neutrinos_;
-  vector < cat::CatMCParticle > invisibleParticles_;
+  vector < cat::GenTop > tops_;
+  vector < cat::MCParticle > stops_;
+  vector < cat::MCParticle > leptons_;
+  vector < cat::MCParticle > quarks_;
+  vector < cat::MCParticle > bquarks_;
+  vector < cat::MCParticle > gluinos_;
+  vector < cat::MCParticle > neutrinos_;
+  vector < cat::MCParticle > invisibleParticles_;
 
   for (reco::GenParticleCollection::const_iterator t = src.begin (); t != src.end (); ++t)
     {
@@ -136,13 +136,13 @@ NPGenEventAnalyzer::Process (const edm::Event & iEvent, TClonesArray * rootGenEv
 	  if (abs (t->pdgId ()) == 6)
 	    {
 	      bool isLeptonic_ = false;
-	      cat::CatMCParticle top_;
-	      cat::CatMCParticle W_;
-	      cat::CatMCParticle bquark_;
-	      cat::CatMCParticle quark_;
-	      cat::CatMCParticle quarkBar_;
-	      cat::CatMCParticle lepton_;
-	      cat::CatMCParticle neutrino_;
+	      cat::MCParticle top_;
+	      cat::MCParticle W_;
+	      cat::MCParticle bquark_;
+	      cat::MCParticle quark_;
+	      cat::MCParticle quarkBar_;
+	      cat::MCParticle lepton_;
+	      cat::MCParticle neutrino_;
 	      
 	      top_ = ConvertMCPart(t);
 	      reco::GenParticle::const_iterator td = t->begin ();
@@ -188,11 +188,11 @@ NPGenEventAnalyzer::Process (const edm::Event & iEvent, TClonesArray * rootGenEv
 	      }
 	      string production_ = string(cprod);	  
 	      if(isLeptonic_){
-	        cat::CatGenTop top (isLeptonic_, top_, W_, bquark_, lepton_, neutrino_, production_);
+	        cat::GenTop top (isLeptonic_, top_, W_, bquark_, lepton_, neutrino_, production_);
 	        tops_.push_back (top);
 	      }
 	      else{
-	        cat::CatGenTop top (isLeptonic_, top_, W_, bquark_, quark_, quarkBar_, production_);
+	        cat::GenTop top (isLeptonic_, top_, W_, bquark_, quark_, quarkBar_, production_);
 	        tops_.push_back (top);
 	     }
 	      //cout<<"End TopGenPart"<<endl;
@@ -200,10 +200,10 @@ NPGenEventAnalyzer::Process (const edm::Event & iEvent, TClonesArray * rootGenEv
 	}
     }
     //cout<<"AT THE END"<<endl;
-  cat::CatNPGenEvent genEvt (isNewPhysics_, tops_, leptons_, quarks_, bquarks_, invisibleParticles_, neutrinos_, gluinos_, stops_);
+  cat::NPGenEvent genEvt (isNewPhysics_, tops_, leptons_, quarks_, bquarks_, invisibleParticles_, neutrinos_, gluinos_, stops_);
     //cout<<"AT THE END"<<endl;
 
 
-  new ((*rootGenEvent)[0]) cat::CatNPGenEvent (genEvt);
+  new ((*rootGenEvent)[0]) cat::NPGenEvent (genEvt);
     //cout<<"AT THE END"<<endl;
 }

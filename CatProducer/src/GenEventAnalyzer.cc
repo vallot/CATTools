@@ -35,9 +35,9 @@ void GenEventAnalyzer::Process(const edm::Event& iEvent, TClonesArray* rootGenEv
 
 	if(verbosity_>1) std::cout << "   GenEvent  "  << "   Label: " << genEventProducer_.label() << "   Instance: " << genEventProducer_.instance() << std::endl;
 
-        cat::CatGenEvent genEvt;
+        cat::GenEvent genEvt;
 	genEvt.SetBoolean(genEvent->isTtBar(), genEvent->isFullHadronic(), genEvent->isSemiLeptonic(), genEvent->isFullLeptonic());
-	genEvt.SetSemiLeptonicChannel((cat::CatGenEvent::LeptonType) genEvent->semiLeptonicChannel());
+	genEvt.SetSemiLeptonicChannel((cat::GenEvent::LeptonType) genEvent->semiLeptonicChannel());
 	TLorentzVector neutrino;
 	TLorentzVector lepton;
 	TLorentzVector leptonicDecayW, leptonicDecayB, leptonicDecayTop;
@@ -74,5 +74,5 @@ void GenEventAnalyzer::Process(const edm::Event& iEvent, TClonesArray* rootGenEv
 	    hadronicDecayTopRadiation.push_back(P4toTLV(genEvent->radiatedGluons(genEvent->hadronicDecayTop()->pdgId())[i]->p4())); 
 	}
 	genEvt.SetRadiation(leptonicDecayTopRadiation, hadronicDecayTopRadiation, ISR);
-	new( (*rootGenEvent)[0] ) cat::CatGenEvent(genEvt);
+	new( (*rootGenEvent)[0] ) cat::GenEvent(genEvt);
 }

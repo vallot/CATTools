@@ -21,7 +21,7 @@
 #include "DataFormats/RecoCandidate/interface/IsoDepositVetos.h"
 #include "DataFormats/PatCandidates/interface/Isolation.h"
 
-#include "CATTools/DataFormats/interface/CatMuon.h"
+#include "CATTools/DataFormats/interface/Muon.h"
 
 #include "TClonesArray.h"
 

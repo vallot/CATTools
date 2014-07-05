@@ -18,7 +18,7 @@
 #include "CondFormats/PhysicsToolsObjects/interface/BinningPointByMap.h"
 #include "RecoBTag/PerformanceDB/interface/BtagPerformance.h"
 
-#include "CATTools/DataFormats/interface/CatJet.h"
+#include "CATTools/DataFormats/interface/Jet.h"
 
 using namespace cat;
 
@@ -30,7 +30,7 @@ public:
 	JetAnalyzer(const edm::ParameterSet& myConfig, int verbosity);
 	~JetAnalyzer();
 	void SetVerbosity(int verbosity) {verbosity_ = verbosity; };
-	CatJet Process(const reco::Jet* jet, const edm::EventSetup& iSetup);
+	Jet Process(const reco::Jet* jet, const edm::EventSetup& iSetup);
 
 private:
 	int verbosity_;

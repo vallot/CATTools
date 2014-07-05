@@ -11,7 +11,7 @@
 
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 
-#include "CATTools/DataFormats/interface/CatNPGenEvent.h"
+#include "CATTools/DataFormats/interface/NPGenEvent.h"
 
 #include "TClonesArray.h"
 #include "TLorentzVector.h"
@@ -28,8 +28,8 @@ public:
 	void SetVerbosity(int verbosity) {verbosity_ = verbosity; };
 	void Process(const edm::Event& iEvent, TClonesArray* rootGenEvent);
         TLorentzVector P4toTLV (reco::Particle::LorentzVector a);
-        CatMCParticle ConvertMCPart(reco::GenParticleCollection::const_iterator t);
-        CatMCParticle ConvertMCPart(reco::GenParticle::const_iterator t);
+        MCParticle ConvertMCPart(reco::GenParticleCollection::const_iterator t);
+        MCParticle ConvertMCPart(reco::GenParticle::const_iterator t);
   
 private:
 	int verbosity_;

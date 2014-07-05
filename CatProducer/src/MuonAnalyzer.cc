@@ -58,7 +58,7 @@ MuonAnalyzer::Process (const edm::Event & iEvent, TClonesArray * rootMuons)
       const pat::Muon*  patMuon = &((*patMuons)[j]);//dynamic_cast < const pat::Muon * >(&*muon);
       const reco::Muon* muon = (const reco::Muon *) patMuon;//(&((*patMuons)[j]));
 
-      cat::CatMuon localMuon (muon->px (), muon->py (), muon->pz (), muon->energy (), muon->vx (), muon->vy (), muon->vz (), muon->pdgId (), muon->charge ());
+      cat::Muon localMuon (muon->px (), muon->py (), muon->pz (), muon->energy (), muon->vx (), muon->vy (), muon->vz (), muon->pdgId (), muon->charge ());
 
       //set detector-based isolation
       localMuon.setIsoR03_trackIso( muon->isolationR03().sumPt);
@@ -160,7 +160,7 @@ MuonAnalyzer::Process (const edm::Event & iEvent, TClonesArray * rootMuons)
        localMuon.setIsoR03_PhotonIso( phIso03 );
        localMuon.setIsoR03_NeutralHadronIso( nhIso03 );
 
-      new ((*rootMuons)[j]) cat::CatMuon (localMuon);
+      new ((*rootMuons)[j]) cat::Muon (localMuon);
       if (verbosity_ > 2)
         cout << "   [" << setw (3) << j << "] " << localMuon << endl;
 	}

@@ -46,9 +46,9 @@ void PFMETAnalyzer::Process(const edm::Event& iEvent, TClonesArray* rootMET)
 		const reco::Candidate* met = 0;	
 		met = (const reco::Candidate*) ( & ((*patMETs)[j]) );
 
-		cat::CatMET tempMET = (cat::CatMET) myMETAnalyzer->Process( &( *(met) ) );
+		cat::MET tempMET = (cat::MET) myMETAnalyzer->Process( &( *(met) ) );
 
-		cat::CatPFMET localMET = cat::CatPFMET(tempMET);
+		cat::PFMET localMET = cat::PFMET(tempMET);
 
 		localMET.setMETType(2); // 2 = PFMET
     
@@ -56,7 +56,7 @@ void PFMETAnalyzer::Process(const edm::Event& iEvent, TClonesArray* rootMET)
     
     localMET.setPFMETFraction(patMET->NeutralEMFraction(), patMET->NeutralHadEtFraction(), patMET->ChargedEMEtFraction(), patMET->ChargedHadEtFraction(), patMET->MuonEtFraction(), patMET->Type6EtFraction(), patMET->Type7EtFraction());
 
-		new( (*rootMET)[j] ) cat::CatPFMET(localMET);
+		new( (*rootMET)[j] ) cat::PFMET(localMET);
 		if(verbosity_>2) cout << "   ["<< setw(3) << j << "] " << localMET << endl;
 	}
 

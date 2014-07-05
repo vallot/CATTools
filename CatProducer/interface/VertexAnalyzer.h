@@ -12,7 +12,7 @@
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 
-#include "CATTools/DataFormats/interface/CatVertex.h"
+#include "CATTools/DataFormats/interface/Vertex.h"
 
 #include "TClonesArray.h"
 

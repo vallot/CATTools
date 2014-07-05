@@ -13,7 +13,7 @@
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/PatCandidates/interface/JetCorrFactors.h"
 
-#include "CATTools/DataFormats/interface/CatPFJet.h"
+#include "CATTools/DataFormats/interface/PFJet.h"
 #include "../interface/JetAnalyzer.h"
 
 #include "TClonesArray.h"

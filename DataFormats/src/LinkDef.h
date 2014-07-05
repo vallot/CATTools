@@ -1,43 +1,43 @@
 #ifdef __CINT__
-#include "../interface/CatRun.h"
-#include "../interface/CatEvent.h"
-#include "../interface/CatParticle.h"
-#include "../interface/CatMCParticle.h"
-#include "../interface/CatJet.h"
-#include "../interface/CatGenJet.h"
-#include "../interface/CatPFJet.h"
-#include "../interface/CatMuon.h"
-#include "../interface/CatElectron.h"
-#include "../interface/CatLepton.h"
-#include "../interface/CatPhoton.h"
-#include "../interface/CatMET.h"
-#include "../interface/CatPFMET.h"
-#include "../interface/CatGenEvent.h"
-#include "../interface/CatGenTop.h"
-#include "../interface/CatNPGenEvent.h"
-#include "../interface/CatSpinCorrGen.h"
-#include "../interface/CatVertex.h"
-#include "../interface/CatHLTInfo.h"
+#include "../interface/Run.h"
+#include "../interface/Event.h"
+#include "../interface/Particle.h"
+#include "../interface/MCParticle.h"
+#include "../interface/Jet.h"
+#include "../interface/GenJet.h"
+#include "../interface/PFJet.h"
+#include "../interface/Muon.h"
+#include "../interface/Electron.h"
+#include "../interface/Lepton.h"
+#include "../interface/Photon.h"
+#include "../interface/MET.h"
+#include "../interface/PFMET.h"
+#include "../interface/GenEvent.h"
+#include "../interface/GenTop.h"
+#include "../interface/NPGenEvent.h"
+#include "../interface/SpinCorrGen.h"
+#include "../interface/Vertex.h"
+#include "../interface/HLTInfo.h"
 #else
-#include "../interface/CatRun.h"
-#include "../interface/CatEvent.h"
-#include "../interface/CatParticle.h"
-#include "../interface/CatMCParticle.h"
-#include "../interface/CatJet.h"
-#include "../interface/CatGenJet.h"
-#include "../interface/CatPFJet.h"
-#include "../interface/CatMuon.h"
-#include "../interface/CatElectron.h"
-#include "../interface/CatLepton.h"
-#include "../interface/CatPhoton.h"
-#include "../interface/CatMET.h"
-#include "../interface/CatPFMET.h"
-#include "../interface/CatGenEvent.h"
-#include "../interface/CatGenTop.h"
-#include "../interface/CatNPGenEvent.h"
-#include "../interface/CatSpinCorrGen.h"
-#include "../interface/CatVertex.h"
-#include "../interface/CatHLTInfo.h"
+#include "../interface/Run.h"
+#include "../interface/Event.h"
+#include "../interface/Particle.h"
+#include "../interface/MCParticle.h"
+#include "../interface/Jet.h"
+#include "../interface/GenJet.h"
+#include "../interface/PFJet.h"
+#include "../interface/Muon.h"
+#include "../interface/Electron.h"
+#include "../interface/Lepton.h"
+#include "../interface/Photon.h"
+#include "../interface/MET.h"
+#include "../interface/PFMET.h"
+#include "../interface/GenEvent.h"
+#include "../interface/GenTop.h"
+#include "../interface/NPGenEvent.h"
+#include "../interface/SpinCorrGen.h"
+#include "../interface/Vertex.h"
+#include "../interface/HLTInfo.h"
 #endif
 
 #ifdef __CINT__
@@ -45,25 +45,25 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class cat::CatRun;
-#pragma link C++ class cat::CatEvent;
-#pragma link C++ class cat::CatParticle;
-#pragma link C++ class cat::CatMCParticle;
-#pragma link C++ class cat::CatJet;
-#pragma link C++ class cat::CatGenJet;
-#pragma link C++ class cat::CatPFJet;
-#pragma link C++ class cat::CatMuon;
-#pragma link C++ class cat::CatElectron;
-#pragma link C++ class cat::CatLepton;
-#pragma link C++ class cat::CatPhoton;
-#pragma link C++ class cat::CatMET;
-#pragma link C++ class cat::CatPFMET;
-#pragma link C++ class cat::CatGenEvent;
-#pragma link C++ class cat::CatGenTop;
-#pragma link C++ class cat::CatNPGenEvent;
-#pragma link C++ class cat::CatSpinCorrGen;
-#pragma link C++ class cat::CatVertex;
-#pragma link C++ class cat::CatHLTInfo;
+#pragma link C++ class cat::Run;
+#pragma link C++ class cat::Event;
+#pragma link C++ class cat::Particle;
+#pragma link C++ class cat::MCParticle;
+#pragma link C++ class cat::Jet;
+#pragma link C++ class cat::GenJet;
+#pragma link C++ class cat::PFJet;
+#pragma link C++ class cat::Muon;
+#pragma link C++ class cat::Electron;
+#pragma link C++ class cat::Lepton;
+#pragma link C++ class cat::Photon;
+#pragma link C++ class cat::MET;
+#pragma link C++ class cat::PFMET;
+#pragma link C++ class cat::GenEvent;
+#pragma link C++ class cat::GenTop;
+#pragma link C++ class cat::NPGenEvent;
+#pragma link C++ class cat::SpinCorrGen;
+#pragma link C++ class cat::Vertex;
+#pragma link C++ class cat::HLTInfo;
 
 #pragma link C++ struct cat::triggeredObject;
 

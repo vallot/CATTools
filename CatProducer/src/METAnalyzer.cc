@@ -19,11 +19,11 @@ METAnalyzer::~METAnalyzer()
 {
 }
 
-cat::CatMET METAnalyzer::Process(const reco::Candidate* met)
+cat::MET METAnalyzer::Process(const reco::Candidate* met)
 {
 
   
-  cat::CatMET localMET(
+  cat::MET localMET(
 		    met->px()
 		    ,met->py()
 		    ,met->pz()

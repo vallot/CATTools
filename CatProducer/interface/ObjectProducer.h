@@ -41,22 +41,22 @@
 #include "../interface/NPGenEventAnalyzer.h"
 #include "../interface/SpinCorrGenAnalyzer.h"
 
-#include "CATTools/DataFormats/interface/CatRun.h"
-#include "CATTools/DataFormats/interface/CatEvent.h"
-#include "CATTools/DataFormats/interface/CatParticle.h"
-#include "CATTools/DataFormats/interface/CatMCParticle.h"
-#include "CATTools/DataFormats/interface/CatJet.h"
-#include "CATTools/DataFormats/interface/CatGenJet.h"
-#include "CATTools/DataFormats/interface/CatPFJet.h"
-#include "CATTools/DataFormats/interface/CatLepton.h"
-#include "CATTools/DataFormats/interface/CatMuon.h"
-#include "CATTools/DataFormats/interface/CatElectron.h"
-#include "CATTools/DataFormats/interface/CatMET.h"
-#include "CATTools/DataFormats/interface/CatPFMET.h"
-#include "CATTools/DataFormats/interface/CatGenEvent.h"
-#include "CATTools/DataFormats/interface/CatNPGenEvent.h"
-#include "CATTools/DataFormats/interface/CatSpinCorrGen.h"
-#include "CATTools/DataFormats/interface/CatVertex.h"
+#include "CATTools/DataFormats/interface/Run.h"
+#include "CATTools/DataFormats/interface/Event.h"
+#include "CATTools/DataFormats/interface/Particle.h"
+#include "CATTools/DataFormats/interface/MCParticle.h"
+#include "CATTools/DataFormats/interface/Jet.h"
+#include "CATTools/DataFormats/interface/GenJet.h"
+#include "CATTools/DataFormats/interface/PFJet.h"
+#include "CATTools/DataFormats/interface/Lepton.h"
+#include "CATTools/DataFormats/interface/Muon.h"
+#include "CATTools/DataFormats/interface/Electron.h"
+#include "CATTools/DataFormats/interface/MET.h"
+#include "CATTools/DataFormats/interface/PFMET.h"
+#include "CATTools/DataFormats/interface/GenEvent.h"
+#include "CATTools/DataFormats/interface/NPGenEvent.h"
+#include "CATTools/DataFormats/interface/SpinCorrGen.h"
+#include "CATTools/DataFormats/interface/Vertex.h"
 
 #include "TFile.h"
 #include "TTree.h"
@@ -112,8 +112,8 @@ private:
         std::vector<std::string> vTrackmetProducer; 
 	int nTotEvt_;
 	HLTAnalyzer* hltAnalyzer_;
-	CatRun* runInfos_;
-	CatEvent* rootEvent;
+	cat::Run* runInfos_;
+	cat::Event* rootEvent;
 	TClonesArray* mcParticles;
 	TClonesArray* tracks;
 	std::vector<TClonesArray*> vcaloJets;

@@ -21,7 +21,7 @@ CXXFLAGS	+= $(ROOTCFLAGS)
 LIBS		= $(ROOTLIBS) -lEG
 GLIBS		= $(ROOTGLIBS)
 #------------------------------------------------------------------------------
-SOURCES 	= $(wildcard Cat*.cc)
+SOURCES 	= $(wildcard *.cc)
 HEADERS 	= $(wildcard ../interface/Cat*.h)
 OBJECTS 	= $(SOURCES:.$(SrcSuf)=.$(ObjSuf))
 DEPENDS 	= $(SOURCES:.$(SrcSuf)=.d)

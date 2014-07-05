@@ -14,8 +14,8 @@
 #include "FWCore/Common/interface/TriggerNames.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
 
-#include "CATTools/DataFormats/interface/CatRun.h"
-#include "CATTools/DataFormats/interface/CatEvent.h"
+#include "CATTools/DataFormats/interface/Run.h"
+#include "CATTools/DataFormats/interface/Event.h"
 
 #include <iomanip>
 
@@ -47,10 +47,10 @@ public:
 	~HLTAnalyzer() {;}
 	
 	void setVerbosity(int verbosity) {verbosity_ = verbosity; };
-	void init(const edm::Event& iEvent, CatEvent* rootEvent);
-	void process(const edm::Event& iEvent, CatEvent* rootEvent);
+	void init(const edm::Event& iEvent, Event* rootEvent);
+	void process(const edm::Event& iEvent, Event* rootEvent);
 	void printStats();
-	void copySummary(CatRun* runInfos);
+	void copySummary(Run* runInfos);
 	
 /*	unsigned int  nHLTPaths() const { return hltNames_.size(); }
 
@@ -97,7 +97,7 @@ private:
 
 	// new HLTInfo container
 
-	vector<cat::CatHLTInfo> hltInfos_;
+	vector<cat::HLTInfo> hltInfos_;
 	
 };
 

@@ -70,7 +70,7 @@ void ElectronAnalyzer::Process(const edm::Event& iEvent, TClonesArray* rootElect
     const pat::Electron*  patElectron = &((*patElectrons)[j]);//dynamic_cast<const pat::Electron*>(&*electron);
     const reco::GsfElectron* electron = (const reco::GsfElectron*) patElectron;//( & ((*patElectrons)[j]) );
     
-    cat::CatElectron localElectron(
+    cat::Electron localElectron(
                                 electron->px()
                                 ,electron->py()
                                 ,electron->pz()
@@ -254,7 +254,7 @@ void ElectronAnalyzer::Process(const edm::Event& iEvent, TClonesArray* rootElect
     //localElectron.setMvaTrigId( patElectron->electronID("mvaTrigV0") );
     //localElectron.setMvaNonTrigId( patElectron->electronID("mvaNonTrigV0") );
     
-    new( (*rootElectrons)[j] ) cat::CatElectron(localElectron);
+    new( (*rootElectrons)[j] ) cat::Electron(localElectron);
     if(verbosity_>2) cout << "   ["<< setw(3) << j << "] " << localElectron << endl;
   }
 } 

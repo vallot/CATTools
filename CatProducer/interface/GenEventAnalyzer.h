@@ -11,7 +11,7 @@
 
 #include "AnalysisDataFormats/TopObjects/interface/TtGenEvent.h"
 
-#include "CATTools/DataFormats/interface/CatGenEvent.h"
+#include "CATTools/DataFormats/interface/GenEvent.h"
 
 #include "TClonesArray.h"
 #include "TLorentzVector.h"

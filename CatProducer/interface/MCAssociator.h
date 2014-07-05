@@ -12,9 +12,9 @@
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
 
-#include "CATTools/DataFormats/interface/CatParticle.h"
-#include "CATTools/DataFormats/interface/CatMCParticle.h"
-#include "CATTools/DataFormats/interface/CatElectron.h"
+#include "CATTools/DataFormats/interface/Particle.h"
+#include "CATTools/DataFormats/interface/MCParticle.h"
+#include "CATTools/DataFormats/interface/Electron.h"
 
 #include "TClonesArray.h"
 

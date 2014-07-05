@@ -35,7 +35,7 @@ void VertexAnalyzer::Process(const edm::Event& iEvent, TClonesArray* rootVertex)
 		const reco::Vertex * vertex = 0;
 		vertex = &((*recoVertex)[j]);
 		
-		cat::CatVertex localVertex(vertex->x(), vertex->y(), vertex->z());
+		cat::Vertex localVertex(vertex->x(), vertex->y(), vertex->z());
 
 		localVertex.setIsValid(vertex->isValid());
 		localVertex.setIsFake(vertex->isFake());
@@ -47,7 +47,7 @@ void VertexAnalyzer::Process(const edm::Event& iEvent, TClonesArray* rootVertex)
 		localVertex.setYError(vertex->yError());
 		localVertex.setZError(vertex->zError());
 
-		new ((*rootVertex)[j]) cat::CatVertex (localVertex);
+		new ((*rootVertex)[j]) cat::Vertex (localVertex);
 	}
 
 }

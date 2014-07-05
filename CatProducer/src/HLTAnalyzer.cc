@@ -3,11 +3,11 @@
 using namespace std;
 using namespace cat;
 
-int getIndexForRun ( const edm::Event& iEvent, vector<cat::CatHLTInfo> infos ) {
+int getIndexForRun ( const edm::Event& iEvent, vector<cat::HLTInfo> infos ) {
   
   for (unsigned int i=0; i<infos.size(); i++) {
 
-    cat::CatHLTInfo hltInfo_ = infos[i];
+    cat::HLTInfo hltInfo_ = infos[i];
 
     if ( iEvent.id().run() == hltInfo_.RunID() )
     
@@ -19,7 +19,7 @@ int getIndexForRun ( const edm::Event& iEvent, vector<cat::CatHLTInfo> infos ) {
 
 }
 
-/*void HLTAnalyzer::init(const edm::Event& iEvent, cat::CatEvent* rootEvent)
+/*void HLTAnalyzer::init(const edm::Event& iEvent, cat::Event* rootEvent)
 {
        
    edm::Handle<edm::TriggerResults> trigResults;
@@ -31,7 +31,7 @@ int getIndexForRun ( const edm::Event& iEvent, vector<cat::CatHLTInfo> infos ) {
 }
 */
 
-void HLTAnalyzer::process(const edm::Event& iEvent, cat::CatEvent* rootEvent)
+void HLTAnalyzer::process(const edm::Event& iEvent, cat::Event* rootEvent)
 {
 	nEvents_++;
 	
@@ -85,7 +85,7 @@ void HLTAnalyzer::process(const edm::Event& iEvent, cat::CatEvent* rootEvent)
 	      }
 	    
 	    if (index == -1) {
-	      hltInfos_.push_back(cat::CatHLTInfo(iEvent.id().run(),hltNames_,hltWasRun_,hltAccept_,hltErrors_));
+	      hltInfos_.push_back(cat::HLTInfo(iEvent.id().run(),hltNames_,hltWasRun_,hltAccept_,hltErrors_));
 	      index = getIndexForRun(iEvent,hltInfos_); // reload the index number
 	    }
 
@@ -166,7 +166,7 @@ void HLTAnalyzer::printStats()
 	  
 	  for (unsigned int i = 0; i<hltInfos_.size(); i++) {
 	    
-	    cat::CatHLTInfo hltInfo = hltInfos_[i];
+	    cat::HLTInfo hltInfo = hltInfos_[i];
 	    
 	    const unsigned int n(hltInfo.nHLTPaths());
 	    
@@ -191,7 +191,7 @@ void HLTAnalyzer::printStats()
 	return;
 }
 
-void HLTAnalyzer::copySummary(cat::CatRun* runInfos)
+void HLTAnalyzer::copySummary(cat::Run* runInfos)
 {
 	if(doHLT_)
 	{

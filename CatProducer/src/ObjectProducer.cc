@@ -98,14 +98,14 @@ void ObjectProducer::beginJob()
 
         tmp_ = new TH1F("EventSummary","EventSummary", filters_.size(),0,filters_.size());
 
-	runInfos_ = new cat::CatRun();
+	runInfos_ = new cat::Run();
 	runTree_ = new TTree("runTree", "Global Run Infos");
-	runTree_->Branch ("runInfos", "cat::CatRun", &runInfos_);
+	runTree_->Branch ("runInfos", "cat::Run", &runInfos_);
 	if(verbosity>0) cout << "RunTree is created" << endl;
 
 	rootEvent = 0;
 	eventTree_ = new TTree("eventTree", "Event Infos");
-	eventTree_->Branch ("Event", "cat::CatEvent", &rootEvent);
+	eventTree_->Branch ("Event", "cat::Event", &rootEvent);
 	if(verbosity>0) cout << "EventTree is created" << endl;
 
 	if(doHLT)
@@ -118,7 +118,7 @@ void ObjectProducer::beginJob()
 	if(!isRealData_)
 	{
 		if(verbosity>0) cout << "MC Particles info will be added to rootuple" << endl;
-		mcParticles = new TClonesArray("cat::CatMCParticle", 1000);
+		mcParticles = new TClonesArray("cat::MCParticle", 1000);
 		eventTree_->Branch ("MCParticles", "TClonesArray", &mcParticles);
 	}
 
@@ -127,7 +127,7 @@ void ObjectProducer::beginJob()
 		if(verbosity>0) cout << "GenJets info will be added to rootuple (for GenJetStudy)" << endl;
 		for(unsigned int s=0; s<vGenJetProducer.size(); s++)
 		{
-			vgenJets[s] = new TClonesArray("cat::CatGenJet", 1000);
+			vgenJets[s] = new TClonesArray("cat::GenJet", 1000);
 			char name[100];
 			sprintf(name,"GenJets_%s",vGenJetProducer[s].c_str());
 			eventTree_->Branch (name, "TClonesArray", &vgenJets[s]);
@@ -139,7 +139,7 @@ void ObjectProducer::beginJob()
 		if(verbosity>0) cout << "PFJets info will be added to rootuple" << endl;
 		for(unsigned int s=0;s<vPFJetProducer.size();s++)
 		{
-			vpfJets[s] = new TClonesArray("cat::CatPFJet", 1000);
+			vpfJets[s] = new TClonesArray("cat::PFJet", 1000);
 			char name[100];
 			sprintf(name,"PFJets_%s",vPFJetProducer[s].c_str());
 			eventTree_->Branch (name, "TClonesArray", &vpfJets[s]);
@@ -149,21 +149,21 @@ void ObjectProducer::beginJob()
 	if(doGenEvent)
 	{
 		if(verbosity>0) cout << "GenEvent info will be added to rootuple" << endl;
-		genEvent = new TClonesArray("cat::CatGenEvent", 1000);
+		genEvent = new TClonesArray("cat::GenEvent", 1000);
 		eventTree_->Branch ("GenEvent", "TClonesArray", &genEvent);
 	}
 
 	if(doNPGenEvent)
 	{
 		if(verbosity>0) cout << "NPGenEvent info will be added to rootuple" << endl;
-		NPgenEvent = new TClonesArray("cat::CatNPGenEvent", 1000);
+		NPgenEvent = new TClonesArray("cat::NPGenEvent", 1000);
 		eventTree_->Branch ("NPGenEvent", "TClonesArray", &NPgenEvent);
 	}
 
 	if(doSpinCorrGen)
 	{
 		if(verbosity>0) cout << "SpinCorrelation Gen info will be added to rootuple" << endl;
-		spinCorrGen = new TClonesArray("cat::CatSpinCorrGen", 1000);
+		spinCorrGen = new TClonesArray("cat::SpinCorrGen", 1000);
 		eventTree_->Branch ("SpinCorrGen", "TClonesArray", &spinCorrGen);
 	}
     
@@ -171,7 +171,7 @@ void ObjectProducer::beginJob()
 	{
 		if(verbosity>0) cout << "Muons info will be added to rootuple" << endl;
 		for(unsigned int s=0;s<vMuonProducer.size();s++) {
-			vmuons[s] = new TClonesArray("cat::CatMuon", 1000);
+			vmuons[s] = new TClonesArray("cat::Muon", 1000);
 			char name[100];
 			sprintf(name,"Muons_%s",vMuonProducer[s].c_str());
 			eventTree_->Branch (name, "TClonesArray", &vmuons[s]);
@@ -182,7 +182,7 @@ void ObjectProducer::beginJob()
 	{
 		if(verbosity>0) cout << "Electrons info will be added to rootuple" << endl;
 		for(unsigned int s=0;s<vElectronProducer.size();s++) {
-			velectrons[s] = new TClonesArray("cat::CatElectron", 1000);
+			velectrons[s] = new TClonesArray("cat::Electron", 1000);
 			char name[100];
 			sprintf(name,"Electrons_%s",vElectronProducer[s].c_str());
 			eventTree_->Branch (name, "TClonesArray", &velectrons[s]);
@@ -193,7 +193,7 @@ void ObjectProducer::beginJob()
         {
                 if(verbosity>0) cout << "Photons info will be added to rootuple" << endl;
                 for(unsigned int s=0;s<vPhotonProducer.size();s++) {
-                        vphotons[s] = new TClonesArray("cat::CatPhoton", 1000);
+                        vphotons[s] = new TClonesArray("cat::Photon", 1000);
                         char name[100];
                         sprintf(name,"Photons_%s",vPhotonProducer[s].c_str());
                         eventTree_->Branch (name, "TClonesArray", &vphotons[s]);
@@ -204,7 +204,7 @@ void ObjectProducer::beginJob()
 	{
 		if(verbosity>0) cout << "ParticleFlowMET info will be added to rootuple" << endl;
     for(unsigned int s=0; s<vPFmetProducer.size(); s++) {
-		  vPFmets[s] = new TClonesArray("cat::CatPFMET", 1000);
+		  vPFmets[s] = new TClonesArray("cat::PFMET", 1000);
       char name[100];
 			sprintf(name,"PFMET_%s",vPFmetProducer[s].c_str());
   		eventTree_->Branch (name, "TClonesArray", &vPFmets[s]);
@@ -215,7 +215,7 @@ void ObjectProducer::beginJob()
 	if(doPrimaryVertex)
 	{
 		if(verbosity>0) cout << "Primary Vertex info will be added to rootuple" << endl;
-		primaryVertex = new TClonesArray("cat::CatVertex", 1000);
+		primaryVertex = new TClonesArray("cat::Vertex", 1000);
 		eventTree_->Branch ("PrimaryVertex", "TClonesArray", &primaryVertex);
 	}
 
@@ -278,7 +278,7 @@ void ObjectProducer::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 			<< " #######" << endl;
 
 	// Global Event Infos
-	rootEvent = new cat::CatEvent();
+	rootEvent = new cat::Event();
 	rootEvent->setNb(nTotEvt_);
 	rootEvent->setEventId(iEvent.id().event());
 	rootEvent->setRunId(iEvent.id().run());
