@@ -17,8 +17,8 @@
 #include "DataFormats/METReco/interface/PFMETCollection.h"
 #include "DataFormats/PatCandidates/interface/MET.h"
 
-#include "../interface/CatEvent.h"
-#include "../interface/CatMET.h"
+#include "CATTools/DataFormats/interface/CatEvent.h"
+#include "CATTools/DataFormats/interface/CatMET.h"
 
 #include "TClonesArray.h"
 

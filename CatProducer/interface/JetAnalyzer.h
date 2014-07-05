@@ -18,7 +18,7 @@
 #include "CondFormats/PhysicsToolsObjects/interface/BinningPointByMap.h"
 #include "RecoBTag/PerformanceDB/interface/BtagPerformance.h"
 
-#include "../interface/CatJet.h"
+#include "CATTools/DataFormats/interface/CatJet.h"
 
 using namespace cat;
 

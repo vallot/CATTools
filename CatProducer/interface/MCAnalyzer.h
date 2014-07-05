@@ -32,10 +32,10 @@
 //#include "DataFormats/EgammaCandidates/interface/ConvertedPhoton.h"
 
 #include "../interface/ParticleTreeDrawer.h"
-#include "../interface/CatEvent.h"
-#include "../interface/CatParticle.h"
-#include "../interface/CatMCParticle.h"
-#include "../interface/CatJet.h"
+#include "CATTools/DataFormats/interface/CatEvent.h"
+#include "CATTools/DataFormats/interface/CatParticle.h"
+#include "CATTools/DataFormats/interface/CatMCParticle.h"
+#include "CATTools/DataFormats/interface/CatJet.h"
 
 #include "TClonesArray.h"
 

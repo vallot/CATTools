@@ -33,8 +33,10 @@
 <use   name="RecoBTag/PerformanceDB"/>
 <use   name="CondFormats/PhysicsToolsObjects"/>
 <use   name="RecoBTag/Records"/>
-<use   name="CATTools/DataFormats"/>
 <use   name="clhep"/>
 <use   name="root"/>
 <flags LDFLAGS="-lTMVA"/>
-<flags EDM_PLUGIN="1"/>
+<export>
+  <lib   name="1"/>
+</export>
+

@@ -13,7 +13,7 @@
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/PatCandidates/interface/JetCorrFactors.h"
 
-#include "../interface/CatGenJet.h"
+#include "CATTools/DataFormats/interface/CatGenJet.h"
 
 #include "TClonesArray.h"
 

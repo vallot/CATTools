@@ -13,7 +13,7 @@
 
 #include "AnalysisDataFormats/TopObjects/interface/TtGenEvent.h"
 
-#include "../interface/CatSpinCorrGen.h"
+#include "CATTools/DataFormats/interface/CatSpinCorrGen.h"
 
 #include "TClonesArray.h"
 #include "TLorentzVector.h"

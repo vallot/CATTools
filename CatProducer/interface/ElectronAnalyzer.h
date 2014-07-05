@@ -21,7 +21,7 @@
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "RecoEgamma/EgammaTools/interface/ConversionFinder.h"
-#include "../interface/CatElectron.h"
+#include "CATTools/DataFormats/interface/CatElectron.h"
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/BeamSpot/interface/BeamSpot.h"
 //#include "MagneticField/Engine/interface/MagneticField.h"

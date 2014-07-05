@@ -11,7 +11,7 @@
 
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 
-#include "../interface/CatNPGenEvent.h"
+#include "CATTools/DataFormats/interface/CatNPGenEvent.h"
 
 #include "TClonesArray.h"
 #include "TLorentzVector.h"

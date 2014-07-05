@@ -14,8 +14,8 @@
 #include "FWCore/Common/interface/TriggerNames.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
 
-#include "../interface/CatRun.h"
-#include "../interface/CatEvent.h"
+#include "CATTools/DataFormats/interface/CatRun.h"
+#include "CATTools/DataFormats/interface/CatEvent.h"
 
 #include <iomanip>
 

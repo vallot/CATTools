@@ -15,8 +15,8 @@
 #include "DataFormats/METReco/interface/PFMETCollection.h"
 #include "DataFormats/PatCandidates/interface/MET.h"
 
-#include "../interface/CatEvent.h"
-#include "../interface/CatPFMET.h"
+#include "CATTools/DataFormats/interface/CatEvent.h"
+#include "CATTools/DataFormats/interface/CatPFMET.h"
 
 #include "../interface/METAnalyzer.h"
 

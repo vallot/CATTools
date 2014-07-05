@@ -14,7 +14,7 @@
 #include "DataFormats/EgammaCandidates/interface/Photon.h"
 #include "DataFormats/Common/interface/ValueMap.h"
 
-#include "../interface/CatPhoton.h"
+#include "CATTools/DataFormats/interface/CatPhoton.h"
 
 #include "TClonesArray.h"
 
