@@ -32,14 +32,12 @@ void ObjectProducer::beginJob()
 	doPDFInfo = myConfig_.getUntrackedParameter<bool>("doPDFInfo",false);
 	doPrimaryVertex = myConfig_.getUntrackedParameter<bool>("doPrimaryVertex",false);
 	runGeneralTracks = myConfig_.getUntrackedParameter<bool>("runGeneralTracks",false);
-	doCaloJet = myConfig_.getUntrackedParameter<bool>("doCaloJet",false);
 	doGenJet = myConfig_.getUntrackedParameter<bool>("doGenJet",false);
 	doPFJet = myConfig_.getUntrackedParameter<bool>("doPFJet",false);
 	doJPTJet = myConfig_.getUntrackedParameter<bool>("doJPTJet",false);
 	doMuon = myConfig_.getUntrackedParameter<bool>("doMuon",false);
 	doElectron = myConfig_.getUntrackedParameter<bool>("doElectron",false);	
 	doPhoton = myConfig_.getUntrackedParameter<bool>("doPhoton",false);	
-	doCaloMET = myConfig_.getUntrackedParameter<bool>("doCaloMET",false);
 	doPFMET = myConfig_.getUntrackedParameter<bool>("doPFMET",false);
 	doTrackMET = myConfig_.getUntrackedParameter<bool>("doTrackMET",false);
 	doTCMET = myConfig_.getUntrackedParameter<bool>("doTCMET",false);
@@ -51,7 +49,6 @@ void ObjectProducer::beginJob()
         filters_ = myConfig_.getUntrackedParameter<std::vector<std::string> >("filters");
 	vector<string> defaultVec;
 	vGenJetProducer = producersNames_.getUntrackedParameter<vector<string> >("vgenJetProducer",defaultVec);
-	vCaloJetProducer = producersNames_.getUntrackedParameter<vector<string> >("vcaloJetProducer",defaultVec);
 	vPFJetProducer = producersNames_.getUntrackedParameter<vector<string> >("vpfJetProducer",defaultVec);
 	vJPTJetProducer = producersNames_.getUntrackedParameter<vector<string> >("vJPTJetProducer",defaultVec);
 	vMuonProducer = producersNames_.getUntrackedParameter<vector<string> >("vmuonProducer",defaultVec);
@@ -63,11 +60,6 @@ void ObjectProducer::beginJob()
 	for(unsigned int s=0;s<vGenJetProducer.size();s++){
 		TClonesArray* a;
 		vgenJets.push_back(a);
-	}
-
-	for(unsigned int s=0;s<vCaloJetProducer.size();s++){
-		TClonesArray* a;
-		vcaloJets.push_back(a);
 	}
 
 	for(unsigned int s=0;s<vPFJetProducer.size();s++){
@@ -137,18 +129,6 @@ void ObjectProducer::beginJob()
 		if(verbosity>0) cout << "MC Particles info will be added to rootuple" << endl;
 		mcParticles = new TClonesArray("cat::CatMCParticle", 1000);
 		eventTree_->Branch ("MCParticles", "TClonesArray", &mcParticles);
-	}
-
-	if(doCaloJet)
-	{
-		if(verbosity>0) cout << "CaloJets info will be added to rootuple" << endl;
-		for(unsigned int s=0;s<vCaloJetProducer.size();s++)
-		{
-			vcaloJets[s] = new TClonesArray("cat::CatCaloJet", 1000);
-			char name[100];
-			sprintf(name,"CaloJets_%s",vCaloJetProducer[s].c_str());
-			eventTree_->Branch (name, "TClonesArray", &vcaloJets[s]);
-		}
 	}
 
 	if(!isRealData_ && doGenJet)
@@ -240,13 +220,6 @@ void ObjectProducer::beginJob()
                         eventTree_->Branch (name, "TClonesArray", &vphotons[s]);
                 }
         }
-
-	if(doCaloMET)
-	{
-		if(verbosity>0) cout << "CaloMET info will be added to rootuple" << endl;
-		CALOmet = new TClonesArray("cat::CatCaloMET", 1000);
-		eventTree_->Branch ("CaloMET", "TClonesArray", &CALOmet);
-	}
 
 	if(doPFMET)
 	{
@@ -502,17 +475,6 @@ void ObjectProducer::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 		delete myVertexAnalyzer;
 	}
 
-	// CaloJet
-	if(doCaloJet)
-	{
-		if(verbosity>1) cout << endl << "Analysing Calojets collection (for JetStudy)..." << endl;
-		for(unsigned int s=0;s<vCaloJetProducer.size();s++){
-			CaloJetAnalyzer* myCaloJetAnalyzer = new CaloJetAnalyzer(producersNames_, s, myConfig_, verbosity);
-			myCaloJetAnalyzer->Process(iEvent, vcaloJets[s], iSetup);
-			delete myCaloJetAnalyzer;
-		}
-	}
-
 	// GenJet
 	if(!isRealData_ && doGenJet)
 	{
@@ -609,15 +571,6 @@ void ObjectProducer::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
                 }
         }
 
-	// MET 
-	if(doCaloMET)
-	{
-		if(verbosity>1) cout << endl << "Analysing Calorimeter Missing Et..." << endl;
-		CaloMETAnalyzer* myMETAnalyzer = new CaloMETAnalyzer(producersNames_, myConfig_, verbosity);
-		myMETAnalyzer->Process(iEvent, CALOmet);
-		delete myMETAnalyzer;
-	}
-
 	if(doPFMET)
 	{
 		if(verbosity>1) cout << endl << "Analysing ParticleFlow Missing Et..." << endl;
@@ -653,16 +606,12 @@ void ObjectProducer::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 	{
 		MCAssociator* myMCAssociator = new MCAssociator(producersNames_, verbosity);
 		myMCAssociator->init(iEvent, mcParticles);
-		if(doCaloJet && vcaloJets.size() > 0) myMCAssociator->process(vcaloJets[0]);
 		if(doPFJet && vpfJets.size() > 0) myMCAssociator->process(vpfJets[0]);
 		if(doMuon && vmuons.size() > 0) myMCAssociator->process(vmuons[0]);
 		if(doElectron && velectrons.size() > 0) myMCAssociator->process(velectrons[0]);
-		if(doCaloMET) myMCAssociator->process(CALOmet);
-		//if(verbosity>2 && doCaloJet && vcaloJets.size() > 0) myMCAssociator->printParticleAssociation(vcaloJets[0]);
 		//if(verbosity>2 && doMuon && vmuons.size() > 0) myMCAssociator->printParticleAssociation(vmuons[0]);
 		//if(verbosity>2 && doElectron && velectrons.size() > 0) myMCAssociator->printParticleAssociation(velectrons[0]);
 		//if(verbosity>2 && doPhoton) myMCAssociator->printParticleAssociation(photons);
-		//if(verbosity>2 && doCaloMET) myMCAssociator->printParticleAssociation(CALOmet);
 		delete myMCAssociator;
 	}
 
@@ -672,13 +621,6 @@ void ObjectProducer::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 	if(verbosity>1) cout << endl << "Deleting objects..." << endl;
 	delete rootEvent;
 	if(!isRealData_) (*mcParticles).Delete();
-	if(doCaloJet)
-	{
-		for(unsigned int s=0;s<vCaloJetProducer.size();s++)
-		{
-			(*vcaloJets[s]).Delete();
-		}
-	}
 	if(!isRealData_ && doGenJet)
 	{
 		for(unsigned int s=0;s<vGenJetProducer.size();s++)
@@ -711,7 +653,6 @@ void ObjectProducer::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
                         (*vphotons[s]).Delete();
                 }
         }
-	if(doCaloMET) (*CALOmet).Delete();
 	if(doPFMET) {
     for(unsigned int s=0; s<vPFmetProducer.size(); s++) {
       (*vPFmets[s]).Delete();

@@ -5,7 +5,6 @@
 #include "../interface/CatMCParticle.h"
 #include "../interface/CatJet.h"
 #include "../interface/CatJPTJet.h"
-#include "../interface/CatCaloJet.h"
 #include "../interface/CatGenJet.h"
 #include "../interface/CatPFJet.h"
 #include "../interface/CatMuon.h"
@@ -13,7 +12,6 @@
 #include "../interface/CatLepton.h"
 #include "../interface/CatPhoton.h"
 #include "../interface/CatMET.h"
-#include "../interface/CatCaloMET.h"
 #include "../interface/CatPFMET.h"
 #include "../interface/CatTrackMET.h"
 #include "../interface/CatGenEvent.h"
@@ -29,7 +27,6 @@
 #include "../interface/CatMCParticle.h"
 #include "../interface/CatJet.h"
 #include "../interface/CatJPTJet.h"
-#include "../interface/CatCaloJet.h"
 #include "../interface/CatGenJet.h"
 #include "../interface/CatPFJet.h"
 #include "../interface/CatMuon.h"
@@ -37,7 +34,6 @@
 #include "../interface/CatLepton.h"
 #include "../interface/CatPhoton.h"
 #include "../interface/CatMET.h"
-#include "../interface/CatCaloMET.h"
 #include "../interface/CatPFMET.h"
 #include "../interface/CatTrackMET.h"
 #include "../interface/CatGenEvent.h"
@@ -59,7 +55,6 @@
 #pragma link C++ class cat::CatMCParticle;
 #pragma link C++ class cat::CatJet;
 #pragma link C++ class cat::CatJPTJet;
-#pragma link C++ class cat::CatCaloJet;
 #pragma link C++ class cat::CatGenJet;
 #pragma link C++ class cat::CatPFJet;
 #pragma link C++ class cat::CatMuon;
@@ -67,7 +62,6 @@
 #pragma link C++ class cat::CatLepton;
 #pragma link C++ class cat::CatPhoton;
 #pragma link C++ class cat::CatMET;
-#pragma link C++ class cat::CatCaloMET;
 #pragma link C++ class cat::CatPFMET;
 #pragma link C++ class cat::CatTrackMET;
 #pragma link C++ class cat::CatGenEvent;
