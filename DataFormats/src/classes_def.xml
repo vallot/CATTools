@@ -1,0 +1,39 @@
+<lcgdict>
+
+  <class name="cat::Particle"/>
+  <class name="std::vector<cat::Particle>"/>
+  <class name="edm::Wrapper<cat::Particle>"/>
+  <class name="edm::Wrapper<std::vector<cat::Particle> >"/>
+  <class name="edm::Ptr<cat::Particle>"/>
+
+  <class name="cat::Muon"/>
+  <class name="std::vector<cat::Muon>"/>
+  <class name="edm::Wrapper<cat::Muon>"/>
+  <class name="edm::Wrapper<std::vector<cat::Muon> >"/>
+  <class name="edm::Ptr<cat::Muon>"/>
+
+  <class name="cat::Electron"/>
+  <class name="std::vector<cat::Electron>"/>
+  <class name="edm::Wrapper<cat::Electron>"/>
+  <class name="edm::Wrapper<std::vector<cat::Electron> >"/>
+  <class name="edm::Ptr<cat::Electron>"/>
+
+  <class name="cat::Photon"/>
+  <class name="std::vector<cat::Photon>"/>
+  <class name="edm::Wrapper<cat::Photon>"/>
+  <class name="edm::Wrapper<std::vector<cat::Photon> >"/>
+  <class name="edm::Ptr<cat::Photon>"/>
+
+  <class name="cat::Jet"/>
+  <class name="std::vector<cat::Jet>"/>
+  <class name="edm::Wrapper<cat::Jet>"/>
+  <class name="edm::Wrapper<std::vector<cat::Jet> >"/>
+  <class name="edm::Ptr<cat::Jet>"/>
+
+  <class name="cat::MET"/>
+  <class name="std::vector<cat::MET>"/>
+  <class name="edm::Wrapper<cat::MET>"/>
+  <class name="edm::Wrapper<std::vector<cat::MET> >"/>
+  <class name="edm::Ptr<cat::MET>"/>
+  
+</lcgdict>

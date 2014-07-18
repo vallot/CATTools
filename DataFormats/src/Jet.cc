@@ -1,5 +1,14 @@
-#include "../interface/Jet.h"
+#include "CATTools/DataFormats/interface/Jet.h"
 
 using namespace cat;
 
-ClassImp(Jet)
+/// default constructor
+Jet::Jet() {
+}
+
+Jet::Jet(const reco::LeafCandidate & aJet) : Particle( aJet ) {
+}
+
+/// destructor
+Jet::~Jet() {
+}

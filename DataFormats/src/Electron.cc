@@ -1,5 +1,14 @@
-#include "../interface/Electron.h"
+#include "CATTools/DataFormats/interface/Electron.h"
 
 using namespace cat;
 
-ClassImp(Electron)
+/// default constructor
+Electron::Electron() {
+}
+
+Electron::Electron(const reco::LeafCandidate & aElectron) : Particle( aElectron ) {
+}
+
+/// destructor
+Electron::~Electron() {
+}

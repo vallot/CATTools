@@ -1,5 +1,14 @@
-#include "../interface/Photon.h"
+#include "CATTools/DataFormats/interface/Photon.h"
 
 using namespace cat;
 
-ClassImp(Photon)
+/// default constructor
+Photon::Photon() {
+}
+
+Photon::Photon(const reco::LeafCandidate & aPhoton) : Particle( aPhoton ) {
+}
+
+/// destructor
+Photon::~Photon() {
+}

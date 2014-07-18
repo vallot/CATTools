@@ -1,5 +1,15 @@
-#include "../interface/Particle.h"
+#include "CATTools/DataFormats/interface/Particle.h"
 
 using namespace cat;
 
-ClassImp(Particle)
+/// default constructor
+Particle::Particle(){
+}
+
+Particle::Particle(const reco::LeafCandidate & aParticle) : reco::LeafCandidate(aParticle) {
+}
+
+/// destructor
+Particle::~Particle() {
+}
+
