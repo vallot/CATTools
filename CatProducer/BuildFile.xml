@@ -15,6 +15,7 @@
 <use   name="FWCore/ParameterSet"/>
 <use   name="FWCore/ServiceRegistry"/>
 <use   name="FWCore/Utilities"/>
+<use   name="CommonTools/UtilAlgos"/>
 <use   name="PhysicsTools/PatUtils"/>
 <use   name="PhysicsTools/Utilities"/>
 <use   name="PhysicsTools/IsolationAlgos"/>
