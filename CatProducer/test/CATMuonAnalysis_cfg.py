@@ -26,15 +26,15 @@ process.defaultIso = cms.EDAnalyzer("CATMuonAnalysis",
     src = cms.InputTag("catMuons"),
 )
 
-#process.weightIso = cms.EDAnalyzer("CATMuonAnalysis",
-#    # input collection
-#    src = cms.InputTag("catMuonsWeighted"),
-#)
+process.weightIso = cms.EDAnalyzer("CATMuonAnalysis",
+    # input collection
+    src = cms.InputTag("catMuonsWeighted"),
+)
 
 
 process.p = cms.Path(
             process.defaultIso
-#            *process.weightIso
+            *process.weightIso
 )
 
 
