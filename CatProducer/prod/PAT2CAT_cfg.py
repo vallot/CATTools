@@ -64,4 +64,6 @@ process.out.fileName = 'CAT.root'
 #                                         ##
 #   process.options.wantSummary = False   ##  (to suppress the long output at the end of the job)
 
-process.out.outputCommands = ['keep *_cat*_*_*']
+process.out.outputCommands = ['keep *_cat*_*_*',
+                              'keep *_goodOfflinePrimaryVertices_*_*'
+                             ]

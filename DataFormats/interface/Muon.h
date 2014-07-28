@@ -27,6 +27,23 @@ namespace cat {
     double neutralHadronIso() const { return neutralHadronIso_; }
     double photonIso() const { return photonIso_; }
 
+    double absIso(float dBetaFactor=0) const{
+
+      if(dBetaFactor>0 && puChargedHadronIso()<0) return -1;
+
+      double neutralIso = neutralHadronIso() + photonIso();
+      double corNeutralIso = neutralIso - dBetaFactor * puChargedHadronIso();
+
+      double charged = chargedHadronIso();
+
+      return charged + ( corNeutralIso>0 ? corNeutralIso : 0 ) ;
+    }
+
+    double relIso(float dBetaFactor=0) const{
+      double abs = absIso(dBetaFactor)/this->pt();
+      return abs >=0 ? abs : -1;
+    }
+
     bool isTightMuon() const { return isTightMuon_; }
     bool isLooseMuon() const { return isLooseMuon_; } 
     bool isSoftMuon() const { return isSoftMuon_; } 
