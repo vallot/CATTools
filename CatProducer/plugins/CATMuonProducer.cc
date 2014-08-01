@@ -64,11 +64,16 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
       unsigned int idx = it - src->begin();
       const pat::Muon & aPatMuon = src->at(idx);
       cat::Muon aMuon(aPatMuon);
-  
-      aMuon.setChargedHadronIso( aPatMuon.chargedHadronIso() );
-      aMuon.setNeutralHadronIso( aPatMuon.neutralHadronIso() );
-      aMuon.setPhotonIso( aPatMuon.photonIso() );
-      aMuon.setPUChargedHadronIso( aPatMuon.puChargedHadronIso() );
+
+      aMuon.setChargedHadronIso04( aPatMuon.chargedHadronIso() );
+      aMuon.setNeutralHadronIso04( aPatMuon.neutralHadronIso() );
+      aMuon.setPhotonIso04( aPatMuon.photonIso() );
+      aMuon.setPUChargedHadronIso04( aPatMuon.puChargedHadronIso() );
+
+      aMuon.setChargedHadronIso03( aPatMuon.userIsolation("pat::User1Iso") );
+      aMuon.setNeutralHadronIso03( aPatMuon.userIsolation("pat::User2Iso") );
+      aMuon.setPhotonIso03( aPatMuon.userIsolation("pat::User3Iso") );
+      aMuon.setPUChargedHadronIso03( aPatMuon.userIsolation("pat::User4Iso") );
 
       aMuon.setIsTightMuon( aPatMuon.isTightMuon(pv) );
       aMuon.setIsLooseMuon( aPatMuon.isLooseMuon() );
