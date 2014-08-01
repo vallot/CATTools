@@ -43,7 +43,7 @@ namespace cat {
       else return -1.0;
     }
 
-    double absIso(float dR=0.3, float dBetaFactor=0) const{
+    double absIso(double dR=0.3, double dBetaFactor=0.5) const{
 
       if(dBetaFactor>0 && puChargedHadronIso(dR)<0) return -1;
 
@@ -55,7 +55,7 @@ namespace cat {
       return charged + ( corNeutralIso>0 ? corNeutralIso : 0 ) ;
     }
 
-    double relIso(float dR=0.3, float dBetaFactor=0) const{
+    double relIso(double dR=0.3, double dBetaFactor=0.5) const{
       double abs = absIso(dR, dBetaFactor)/this->pt();
       return abs >=0 ? abs : -1;
     }

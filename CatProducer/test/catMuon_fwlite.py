@@ -15,10 +15,10 @@ handleMu2  = Handle ("std::vector<cat::Muon>")
 labelMu1 = ("catMuons","","PAT")
 labelMu2 = ("catMuonsWeighted","","PAT")
 
-#ROOT.gROOT.SetBatch()        # don't pop up canvases
+ROOT.gROOT.SetBatch()        # don't pop up canvases
 ROOT.gROOT.SetStyle('Plain') # white background
-histdefault = ROOT.TH1F ("histdefault", "neutral", 100, 0, 1)
-histweighted = ROOT.TH1F ("histweighted", "neutral", 100, 0, 1)
+histdefault = ROOT.TH1F ("histdefault", "relIso03", 30, 0, 0.3)
+histweighted = ROOT.TH1F ("histweighted", "relIso03", 30, 0, 0.3)
 
 # loop over events
 count= 0
@@ -33,17 +33,29 @@ for event in events:
     muons2 = handleMu2.product()
     
     for m1,m2 in zip(muons1,muons2)  :
-        histdefault.Fill(m1.neutralHadronIso()); 
-        histweighted.Fill(m2.neutralHadronIso()); 
-        if m1.neutralHadronIso() > m2.neutralHadronIso():
-	  print "Muon neutral iso : default vs weighed = ", m1.neutralHadronIso(),m2.neutralHadronIso()
-        if m1.photonIso() > m2.photonIso():
-	  print "Muon photon iso : default vs weighed = ", m1.photonIso(),m2.photonIso()
+        if( m1.isTightMuon() ) :
+          histdefault.Fill(m1.relIso()); 
+        if( m2.isTightMuon() ) :
+          histweighted.Fill(m2.relIso()); 
     
-from ROOT import TCanvas
+from ROOT import TCanvas, TLegend
 c = TCanvas('c','Example',200,10,700,500)
 
-histdefault.Draw()
-#histweighted.Draw("same")
+histweighted.Draw()
+histweighted.SetStats(0)
+histweighted.GetXaxis().SetTitle("Relative Isolation")
+histweighted.GetYaxis().SetTitle("Number of Muons")
+histdefault.Draw("same")
+histweighted.SetLineColor(2)
+
+l = TLegend(0.70,0.70,0.80,0.80)
+l.AddEntry(histdefault,"dbeta","L")
+l.AddEntry(histweighted,"weighted","L")
+l.SetTextSize(0.04)
+l.SetFillColor(0)
+l.SetLineColor(0)
+l.Draw()
+
 c.Update()
-#c.Draw()
+c.Draw()
+c.Print("relIso.pdf")
