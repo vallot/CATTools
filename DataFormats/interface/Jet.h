@@ -23,6 +23,8 @@ namespace cat {
     virtual ~Jet();
 
     bool LooseId() const { return LooseId_; }
+
+    void setLooseId(bool id) { LooseId_ = id; } 
   
   private:
 

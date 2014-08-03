@@ -30,6 +30,8 @@ namespace cat {
 
       virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
+      bool checkPFJetId(const pat::Jet & jet);
+
     private:
       edm::EDGetTokenT<edm::View<pat::Jet> > src_;
 
@@ -56,12 +58,34 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
     for (View<pat::Jet>::const_iterator it = src->begin(), ed = src->end(); it != ed; ++it) {
       unsigned int idx = it - src->begin();
       const pat::Jet & aPatJet = src->at(idx);
+ 
+      bool looseId = checkPFJetId( aPatJet ); 
+
       cat::Jet aJet(aPatJet);
+
+      aJet.setLooseId( looseId );
+
       out->push_back(aJet);
 
     }
 
     iEvent.put(out);
+}
+
+bool cat::CATJetProducer::checkPFJetId(const pat::Jet & jet){
+    //Loose PF Jet id
+    ///https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetID
+    //debug
+    bool out = false;
+    if( (jet.neutralHadronEnergy() + jet.HFHadronEnergy() ) / jet.energy() < 0.99
+       &&jet.neutralEmEnergyFraction() < 0.99
+       &&jet.numberOfDaughters() > 1
+       &&(jet.chargedHadronEnergyFraction() > 0 || abs(jet.eta()) > 2.4)
+       &&(jet.chargedMultiplicity() > 0 || abs(jet.eta()) > 2.4)
+       &&(jet.chargedEmEnergyFraction() < 0.99 || abs(jet.eta()) > 2.4)
+    ) out = true;
+
+    return out;
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"
