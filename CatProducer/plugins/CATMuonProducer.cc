@@ -21,6 +21,9 @@
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
 #include "FWCore/Utilities/interface/isFinite.h"
 
+using namespace edm;
+using namespace std;
+
 namespace cat {
 
   class CATMuonProducer : public edm::EDProducer {
@@ -30,8 +33,12 @@ namespace cat {
 
       virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
+      bool mcMatch( const reco::Candidate::LorentzVector& lepton, const edm::Handle<edm::View<reco::GenParticle> > & genParticles );
+      bool MatchObjects( const reco::Candidate::LorentzVector& pasObj, const reco::Candidate::LorentzVector& proObj, bool exact );
+
     private:
       edm::EDGetTokenT<edm::View<pat::Muon> > src_;
+      edm::EDGetTokenT<edm::View<reco::GenParticle> > mcLabel_;
       edm::EDGetTokenT<edm::View<reco::Vertex> > vertexLabel_;
 
   };
@@ -40,6 +47,7 @@ namespace cat {
 
 cat::CATMuonProducer::CATMuonProducer(const edm::ParameterSet & iConfig) :
     src_(consumes<edm::View<pat::Muon> >(iConfig.getParameter<edm::InputTag>("src"))),
+    mcLabel_(consumes<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("mcLabel"))),
     vertexLabel_(consumes<edm::View<reco::Vertex> >(iConfig.getParameter<edm::InputTag>("vertexLabel")))
 {
     produces<std::vector<cat::Muon> >();
@@ -47,12 +55,13 @@ cat::CATMuonProducer::CATMuonProducer(const edm::ParameterSet & iConfig) :
 
 void 
 cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) {
-    using namespace edm;
-    using namespace std;
 
     Handle<View<pat::Muon> > src;
     iEvent.getByToken(src_, src);
-
+ 
+    Handle<View<reco::GenParticle> > genParticles;
+    iEvent.getByToken(mcLabel_,genParticles);
+    
     Handle<View<reco::Vertex> > recVtxs;
     iEvent.getByToken(vertexLabel_,recVtxs);
 
@@ -63,6 +72,9 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     for (View<pat::Muon>::const_iterator it = src->begin(), ed = src->end(); it != ed; ++it) {
       unsigned int idx = it - src->begin();
       const pat::Muon & aPatMuon = src->at(idx);
+
+      bool mcMatched = mcMatch( aPatMuon.p4(), genParticles );
+
       cat::Muon aMuon(aPatMuon);
 
       aMuon.setChargedHadronIso04( aPatMuon.chargedHadronIso() );
@@ -78,6 +90,8 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
       aMuon.setIsTightMuon( aPatMuon.isTightMuon(pv) );
       aMuon.setIsLooseMuon( aPatMuon.isLooseMuon() );
       aMuon.setIsSoftMuon( aPatMuon.isSoftMuon(pv) );
+
+      aMuon.setMCMatched( mcMatched );
     
       out->push_back(aMuon);
 
@@ -85,6 +99,51 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
 
     iEvent.put(out);
 }
+
+bool cat::CATMuonProducer::mcMatch( const reco::Candidate::LorentzVector& lepton, const edm::Handle<edm::View<reco::GenParticle> > & genParticles ){
+
+  bool out = false;
+
+  for (edm::View<reco::GenParticle>::const_iterator mcIter=genParticles->begin(); mcIter != genParticles->end(); mcIter++ ) {
+    int genId = mcIter->pdgId();
+
+    if( abs(genId) != 13 ) continue;
+
+    bool match = MatchObjects(lepton, mcIter->p4(), false);
+
+    if( match != true) continue;
+   
+    const reco::Candidate* mother = mcIter->mother();
+    while( mother != 0 ){
+      if( abs(mother->pdgId()) == 23 || abs(mother->pdgId()) == 24 ) {
+        out = true;
+      }
+      mother = mother->mother();
+    }
+  }
+
+  return out;
+}
+
+
+bool cat::CATMuonProducer::MatchObjects( const reco::Candidate::LorentzVector& pasObj, const reco::Candidate::LorentzVector& proObj, bool exact ) {
+    double proEta = proObj.eta();
+    double proPhi = proObj.phi();
+    double proPt = proObj.pt();
+    double pasEta = pasObj.eta();
+    double pasPhi = pasObj.phi();
+    double pasPt = pasObj.pt();
+
+    double dRval = deltaR(proEta, proPhi, pasEta, pasPhi);
+    double dPtRel = 999.0;
+    if( proPt > 0.0 ) dPtRel = fabs( pasPt - proPt )/proPt;
+    // If we are comparing two objects for which the candidates should
+    // be exactly the same, cut hard. Otherwise take cuts from user.
+    if( exact ) return ( dRval < 1e-3 && dPtRel < 1e-3 );
+    else return ( dRval < 0.025 && dPtRel < 0.025 );
+}
+
+
 
 #include "FWCore/Framework/interface/MakerMacros.h"
 using namespace cat;

@@ -63,7 +63,9 @@ namespace cat {
     bool isTightMuon() const { return isTightMuon_; }
     bool isLooseMuon() const { return isLooseMuon_; } 
     bool isSoftMuon() const { return isSoftMuon_; } 
- 
+
+    bool mcMatched() const { return mcMatched_; }
+
     void setChargedHadronIso03(double i) { chargedHadronIso03_ = i; }
     void setPUChargedHadronIso03(double i) { puChargedHadronIso03_ = i; }
     void setNeutralHadronIso03(double i) { neutralHadronIso03_ = i; }
@@ -78,6 +80,7 @@ namespace cat {
     void setIsLooseMuon(bool d) { isLooseMuon_ = d; }
     void setIsSoftMuon(bool d) { isSoftMuon_ = d; }
      
+    void setMCMatched(bool m) { mcMatched_ = m; }
  
   private:
 
@@ -95,6 +98,7 @@ namespace cat {
     bool isLooseMuon_; 
     bool isSoftMuon_;
 
+    bool mcMatched_;
   };
 }
 
