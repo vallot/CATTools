@@ -11,7 +11,8 @@ process.load("CATTools.CatProducer.catCandidates_cff")
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
     fileNames = cms.untracked.vstring(
-      '/store/relval/CMSSW_7_0_6_patch3/RelValZMM_13/GEN-SIM-RECO/PUpmx50ns_PLS170_V6AN1-v2/00000/1EF0EB3F-B412-E411-A7EC-0025905A612A.root'
+      #'/store/relval/CMSSW_7_0_6_patch3/RelValZMM_13/GEN-SIM-RECO/PUpmx50ns_PLS170_V6AN1-v2/00000/1EF0EB3F-B412-E411-A7EC-0025905A612A.root'
+      '/store/relval/CMSSW_7_2_0_pre3/RelValZMM_13/GEN-SIM-RECO/PU25ns_POSTLS172_V3-v1/00000/40AB5AF9-621D-E411-9926-02163E00F4EC.root'
     )
 )
 
