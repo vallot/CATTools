@@ -10,6 +10,10 @@
 <use   name="DataFormats/TauReco"/>
 <use   name="DataFormats/TrackReco"/>
 <use   name="DataFormats/VertexReco"/>
+<use   name="DataFormats/GsfTrackReco"/>
+<use   name="TrackingTools/IPTools"/>
+<use   name="TrackingTools/Records"/>
+<use   name="TrackingTools/TransientTrack"/>
 <use   name="CATTools/DataFormats"/>
 <use   name="FWCore/Framework"/>
 <use   name="FWCore/ParameterSet"/>

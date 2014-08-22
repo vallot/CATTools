@@ -60,11 +60,23 @@ namespace cat {
       return abs >=0 ? abs : -1;
     }
 
+    bool isGlobalMuon() const { return isGlobalMuon_; }
+    bool isPFMuon() const { return isPFMuon_; }
     bool isTightMuon() const { return isTightMuon_; }
     bool isLooseMuon() const { return isLooseMuon_; } 
     bool isSoftMuon() const { return isSoftMuon_; } 
 
     bool mcMatched() const { return mcMatched_; }
+
+    double normalizedChi2() { return normalizedChi2_; }
+    int numberOfValidHits() { return numberOfValidHits_; }
+    int numberOfValidMuonHits() { return numberOfValidMuonHits_; }
+    int numberOfMatchedStations() { return numberOfMatchedStations_; } 
+    int numberOfValidPixelHits() { return numberOfValidPixelHits_; }
+    int trackerLayersWithMeasurement() { return trackerLayersWithMeasurement_; }
+ 
+    double dxy(){ return dxy_; }
+    double dz(){ return dz_; }
 
     void setChargedHadronIso03(double i) { chargedHadronIso03_ = i; }
     void setPUChargedHadronIso03(double i) { puChargedHadronIso03_ = i; }
@@ -76,12 +88,24 @@ namespace cat {
     void setNeutralHadronIso04(double i) { neutralHadronIso04_ = i; }
     void setPhotonIso04(double i) { photonIso04_ = i; }
 
+    void setIsGlobalMuon(bool d) { isGlobalMuon_ = d; }
+    void setIsPFMuon(bool d) { isPFMuon_ = d; }
     void setIsTightMuon(bool d) { isTightMuon_ = d; }
     void setIsLooseMuon(bool d) { isLooseMuon_ = d; }
     void setIsSoftMuon(bool d) { isSoftMuon_ = d; }
      
     void setMCMatched(bool m) { mcMatched_ = m; }
+    
+    void setNormalizedChi2(double d) { normalizedChi2_ = d; }
+    void setNumberOfValidHits(int i) { numberOfValidHits_ = i; }
+    void setNumberOfValidMuonHits(int i) { numberOfValidMuonHits_ = i; }
+    void setNumberOfMatchedStations(int i) { numberOfMatchedStations_ = i; }
+    void setNumberOfValidPixelHits(int i) { numberOfValidPixelHits_ = i; }
+    void setTackerLayersWithMeasurement(int i) { trackerLayersWithMeasurement_ = i; }
  
+    void setDz(int d) { dz_ = d; }
+    void setDxy(int d) { dxy_ = d; }
+
   private:
 
     double chargedHadronIso03_;
@@ -94,11 +118,24 @@ namespace cat {
     double neutralHadronIso04_;
     double photonIso04_;
 
+    bool isGlobalMuon_; 
+    bool isPFMuon_; 
     bool isTightMuon_; 
     bool isLooseMuon_; 
     bool isSoftMuon_;
 
     bool mcMatched_;
+
+    double normalizedChi2_; 
+    int numberOfValidHits_; 
+    int numberOfValidMuonHits_; 
+    int numberOfMatchedStations_; 
+    int numberOfValidPixelHits_; 
+    int trackerLayersWithMeasurement_; 
+
+    double dz_;
+    double dxy_;
+
   };
 }
 
