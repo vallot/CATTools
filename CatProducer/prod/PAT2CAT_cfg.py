@@ -66,6 +66,44 @@ process.patMuonsWeighted.isolationValues = cms.PSet(
     user = cms.VInputTag("muPFIsoValueCharged03Weighted","muPFIsoValueNeutral03Weighted","muPFIsoValueGamma03Weighted","muPFIsoValuePU03Weighted","muPFIsoValueChargedAll03Weighted"),
     )
 
+
+process.load('CondCore.DBCommon.CondDBSetup_cfi')
+process.BTauMVAJetTagComputerRecord = cms.ESSource('PoolDBESSource',
+    process.CondDBSetup,
+    timetype = cms.string('runnumber'),
+    toGet = cms.VPSet(cms.PSet(
+        record = cms.string('BTauGenericMVAJetTagComputerRcd'),
+        tag = cms.string('MVAComputerContainer_Retrained53X_JetTags_v2')
+    )),
+    connect = cms.string('frontier://FrontierProd/CMS_COND_PAT_000'),
+    BlobStreamerName = cms.untracked.string('TBufferBlobStreamingService')
+)
+process.es_prefer_BTauMVAJetTagComputerRecord = cms.ESPrefer('PoolDBESSource','BTauMVAJetTagComputerRecord')
+
+process.patJets.discriminatorSources = [
+    cms.InputTag("trackCountingHighPurBJetTags"),
+    cms.InputTag("jetProbabilityBJetTags"),
+    cms.InputTag("combinedSecondaryVertexBJetTags"),
+    cms.InputTag("combinedSecondaryVertexV1BJetsTags"),
+    cms.InputTag("combinedSecondaryVertexSoftPFLeptonV1BJetTags"),
+    cms.InputTag("combinedSecondaryVertexIVFV2BJetTags")
+]
+#add b-tag information
+#process.patJets.addTagInfos = True
+#process.patJets.tagInfoSources = cms.VInputTag(
+#  #cms.InputTag("secondaryVertexTagInfos")
+#  cms.InputTag("CombinedSecondaryVertexTagInfos")
+#)
+#process.patJets.userData.userFunctions = cms.vstring( "? hasTagInfo('secondaryVertex') && tagInfoSecondaryVertex('secondaryVertex').nVertices() > 0 ? "
+#"tagInfoSecondaryVertex('secondaryVertex').secondaryVertex(0).p4().mass() : 0",
+#"? hasTagInfo('secondaryVertex') && tagInfoSecondaryVertex('secondaryVertex').nVertices() > 0 ? "
+#"tagInfoSecondaryVertex('secondaryVertex').flightDistance(0).value() : 0",
+#"? hasTagInfo('secondaryVertex') && tagInfoSecondaryVertex('secondaryVertex').nVertices() > 0 ? "
+#"tagInfoSecondaryVertex('secondaryVertex').flightDistance(0).error() : 0",
+#)
+#process.patJets.userData.userFunctionLabels = cms.vstring('secvtxMass','Lxy','LxyErr')
+
+
 ##
 ## ------------------------------------------------------
 #  In addition you usually want to change the following
