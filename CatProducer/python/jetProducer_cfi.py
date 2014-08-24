@@ -8,9 +8,10 @@ catJets = cms.EDProducer("CATJetProducer",
       'trackCountingHighPurBJetTags', #0
       'jetProbabilityBJetTags', #1
       'combinedSecondaryVertexBJetTags', #2
-      'combinedSecondaryVertexV1BJetsTags', #3
-      'combinedSecondaryVertexSoftPFLeptonV1BJetTags', #4
-      'combinedSecondaryVertexIVFV2BJetTags', #5
+ #     'combinedSecondaryVertexV1BJetsTags', #3
+ #     'combinedSecondaryVertexSoftPFLeptonV1BJetTags', #4
+ #     'combinedSecondaryVertexIVFV2BJetTags', #5
+#old for Run 1
  #     'trackCountingHighEffBJetTags',#0
  #     'trackCountingHighPurBJetTags',#1
  #     'jetProbabilityBJetTags',#2

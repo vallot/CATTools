@@ -12,9 +12,10 @@ process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
     fileNames = cms.untracked.vstring(
 #CERN
-#      '/store/relval/CMSSW_7_0_6_patch3/RelValZMM_13/GEN-SIM-RECO/PUpmx50ns_PLS170_V6AN1-v2/00000/1EF0EB3F-B412-E411-A7EC-0025905A612A.root'
+#       '/store/relval/CMSSW_7_0_6_patch3/RelValZMM_13/GEN-SIM-RECO/PUpmx50ns_PLS170_V6AN1-v2/00000/1EF0EB3F-B412-E411-A7EC-0025905A612A.root'
+        '/store/relval/CMSSW_7_0_7/RelValTTbar_13/GEN-SIM-RECO/PU25ns_PLS170_V7AN1-v1/00000/46E6309D-9516-E411-A4FC-0025905A48F0.root'
     #Kisti
-       'file:/cms/data/xrd/store/mc/Spring14dr/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/AODSIM/PU_S14_POSTLS170_V6-v1/00000/820E2720-7AF5-E311-9470-002618943937.root'
+#       'file:/cms/data/xrd/store/mc/Spring14dr/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/AODSIM/PU_S14_POSTLS170_V6-v1/00000/820E2720-7AF5-E311-9470-002618943937.root'
     )
 )
 
@@ -67,41 +68,42 @@ process.patMuonsWeighted.isolationValues = cms.PSet(
     )
 
 
-process.load('CondCore.DBCommon.CondDBSetup_cfi')
-process.BTauMVAJetTagComputerRecord = cms.ESSource('PoolDBESSource',
-    process.CondDBSetup,
-    timetype = cms.string('runnumber'),
-    toGet = cms.VPSet(cms.PSet(
-        record = cms.string('BTauGenericMVAJetTagComputerRcd'),
-        tag = cms.string('MVAComputerContainer_Retrained53X_JetTags_v2')
-    )),
-    connect = cms.string('frontier://FrontierProd/CMS_COND_PAT_000'),
-    BlobStreamerName = cms.untracked.string('TBufferBlobStreamingService')
-)
-process.es_prefer_BTauMVAJetTagComputerRecord = cms.ESPrefer('PoolDBESSource','BTauMVAJetTagComputerRecord')
+
+#we need following lines for the time being for new btags 
+#process.load('CondCore.DBCommon.CondDBSetup_cfi')
+#process.BTauMVAJetTagComputerRecord = cms.ESSource('PoolDBESSource',
+#    process.CondDBSetup,
+#    timetype = cms.string('runnumber'),
+#    toGet = cms.VPSet(cms.PSet(
+#        record = cms.string('BTauGenericMVAJetTagComputerRcd'),
+#        tag = cms.string('MVAComputerContainer_Retrained53X_JetTags_v2')
+#    )),
+#    connect = cms.string('frontier://FrontierProd/CMS_COND_PAT_000'),
+#    BlobStreamerName = cms.untracked.string('TBufferBlobStreamingService')
+#)
+#process.es_prefer_BTauMVAJetTagComputerRecord = cms.ESPrefer('PoolDBESSource','BTauMVAJetTagComputerRecord')
 
 process.patJets.discriminatorSources = [
     cms.InputTag("trackCountingHighPurBJetTags"),
     cms.InputTag("jetProbabilityBJetTags"),
     cms.InputTag("combinedSecondaryVertexBJetTags"),
-    cms.InputTag("combinedSecondaryVertexV1BJetsTags"),
-    cms.InputTag("combinedSecondaryVertexSoftPFLeptonV1BJetTags"),
-    cms.InputTag("combinedSecondaryVertexIVFV2BJetTags")
+#    cms.InputTag("combinedSecondaryVertexV1BJetsTags"),
+#    cms.InputTag("combinedSecondaryVertexSoftPFLeptonV1BJetTags"),
+#    cms.InputTag("combinedSecondaryVertexIVFV2BJetTags")
 ]
 #add b-tag information
-#process.patJets.addTagInfos = True
-#process.patJets.tagInfoSources = cms.VInputTag(
-#  #cms.InputTag("secondaryVertexTagInfos")
-#  cms.InputTag("CombinedSecondaryVertexTagInfos")
-#)
-#process.patJets.userData.userFunctions = cms.vstring( "? hasTagInfo('secondaryVertex') && tagInfoSecondaryVertex('secondaryVertex').nVertices() > 0 ? "
-#"tagInfoSecondaryVertex('secondaryVertex').secondaryVertex(0).p4().mass() : 0",
-#"? hasTagInfo('secondaryVertex') && tagInfoSecondaryVertex('secondaryVertex').nVertices() > 0 ? "
-#"tagInfoSecondaryVertex('secondaryVertex').flightDistance(0).value() : 0",
-#"? hasTagInfo('secondaryVertex') && tagInfoSecondaryVertex('secondaryVertex').nVertices() > 0 ? "
-#"tagInfoSecondaryVertex('secondaryVertex').flightDistance(0).error() : 0",
-#)
-#process.patJets.userData.userFunctionLabels = cms.vstring('secvtxMass','Lxy','LxyErr')
+process.patJets.addTagInfos = True
+process.patJets.tagInfoSources = cms.VInputTag(
+  cms.InputTag("secondaryVertexTagInfos")
+)
+process.patJets.userData.userFunctions = cms.vstring( "? hasTagInfo('secondaryVertex') && tagInfoSecondaryVertex('secondaryVertex').nVertices() > 0 ? "
+"tagInfoSecondaryVertex('secondaryVertex').secondaryVertex(0).p4().mass() : 0",
+"? hasTagInfo('secondaryVertex') && tagInfoSecondaryVertex('secondaryVertex').nVertices() > 0 ? "
+"tagInfoSecondaryVertex('secondaryVertex').flightDistance(0).value() : 0",
+"? hasTagInfo('secondaryVertex') && tagInfoSecondaryVertex('secondaryVertex').nVertices() > 0 ? "
+"tagInfoSecondaryVertex('secondaryVertex').flightDistance(0).error() : 0",
+)
+process.patJets.userData.userFunctionLabels = cms.vstring('secvtxMass','Lxy','LxyErr')
 
 
 ##
