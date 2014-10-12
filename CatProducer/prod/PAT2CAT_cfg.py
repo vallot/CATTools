@@ -13,9 +13,10 @@ process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
 #CERN
 #       '/store/relval/CMSSW_7_0_6_patch3/RelValZMM_13/GEN-SIM-RECO/PUpmx50ns_PLS170_V6AN1-v2/00000/1EF0EB3F-B412-E411-A7EC-0025905A612A.root'
-        '/store/relval/CMSSW_7_0_7/RelValTTbar_13/GEN-SIM-RECO/PU25ns_PLS170_V7AN1-v1/00000/46E6309D-9516-E411-A4FC-0025905A48F0.root'
+#        '/store/relval/CMSSW_7_0_7/RelValTTbar_13/GEN-SIM-RECO/PU25ns_PLS170_V7AN1-v1/00000/46E6309D-9516-E411-A4FC-0025905A48F0.root'
     #Kisti
-#       'file:/cms/data/xrd/store/mc/Spring14dr/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/AODSIM/PU_S14_POSTLS170_V6-v1/00000/820E2720-7AF5-E311-9470-002618943937.root'
+#         'file:/cms/home/tjkim/store/relval/CMSSW_7_0_7/RelValTTbar_13/GEN-SIM-RECO/PU25ns_PLS170_V7AN1-v1/00000/56517256-CB15-E411-9C56-0025905A48F2.root'
+         'root://cms-xrdr.sdfarm.kr///cms/data/xrd//store/mc/Spring14dr/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/AODSIM/PU_S14_POSTLS170_V6-v1/00000/BC91BA37-E2F2-E311-A317-0025905A612E.root'
     )
 )
 
@@ -92,7 +93,7 @@ process.patJets.discriminatorSources = [
 #    cms.InputTag("combinedSecondaryVertexIVFV2BJetTags")
 ]
 #add b-tag information
-process.patJets.addTagInfos = True
+process.patJets.addTagInfos = False #let's set False for the time being
 process.patJets.tagInfoSources = cms.VInputTag(
   cms.InputTag("secondaryVertexTagInfos")
 )
