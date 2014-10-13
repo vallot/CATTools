@@ -4,7 +4,6 @@ from datetime import datetime
 from optparse import OptionParser
 
 import sys, string, os, re, pprint, shutil
-import CATTools.CatProducer.eostools as castortools 
 
 class BatchManager:
     """

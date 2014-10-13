@@ -6,6 +6,8 @@
 #include "CATTools/DataFormats/interface/Photon.h"
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/MET.h"
+#include "CATTools/DataFormats/interface/GenJet.h"
+#include "CATTools/DataFormats/interface/MCParticle.h"
 #include "DataFormats/Common/interface/ValueMap.h"
 
 #include <vector>
@@ -51,6 +53,17 @@ namespace {
     edm::Wrapper<std::vector<cat::MET> > metvw;
     edm::Ptr<cat::MET> metPtr;
 
+    cat::MCParticle ma_;
+    std::vector<cat::MCParticle> mav;
+    edm::Wrapper<cat::MCParticle> maw;
+    edm::Wrapper<std::vector<cat::MCParticle> > mavw;
+    edm::Ptr<cat::MCParticle> maPtr;
+
+    cat::GenJet gj_;
+    std::vector<cat::GenJet> gjv;
+    edm::Wrapper<cat::GenJet> gjw;
+    edm::Wrapper<std::vector<cat::GenJet> > gjvw;
+    edm::Ptr<cat::GenJet> gjPtr;
 
   };
   

@@ -37,5 +37,17 @@
   <class name="edm::Wrapper<cat::MET>"/>
   <class name="edm::Wrapper<std::vector<cat::MET> >"/>
   <class name="edm::Ptr<cat::MET>"/>
-  
+
+  <class name="cat::MCParticle"/>
+  <class name="std::vector<cat::MCParticle>"/>
+  <class name="edm::Wrapper<cat::MCParticle>"/>
+  <class name="edm::Wrapper<std::vector<cat::MCParticle> >"/>
+  <class name="edm::Ptr<cat::MCParticle>"/>
+
+  <class name="cat::GenJet"/>
+  <class name="std::vector<cat::GenJet>"/>
+  <class name="edm::Wrapper<cat::GenJet>"/>
+  <class name="edm::Wrapper<std::vector<cat::GenJet> >"/>
+  <class name="edm::Ptr<cat::GenJet>"/>
+
 </lcgdict>
