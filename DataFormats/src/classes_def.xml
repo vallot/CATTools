@@ -50,4 +50,10 @@
   <class name="edm::Wrapper<std::vector<cat::GenJet> >"/>
   <class name="edm::Ptr<cat::GenJet>"/>
 
+  <class name="cat::GenTop"/>
+  <class name="std::vector<cat::GenTop>"/>
+  <class name="edm::Wrapper<cat::GenTop>"/>
+  <class name="edm::Wrapper<std::vector<cat::GenTop> >"/>
+  <class name="edm::Ptr<cat::GenTop>"/>
+
 </lcgdict>

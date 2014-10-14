@@ -7,6 +7,7 @@
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/MET.h"
 #include "CATTools/DataFormats/interface/GenJet.h"
+#include "CATTools/DataFormats/interface/GenTop.h"
 #include "CATTools/DataFormats/interface/MCParticle.h"
 #include "DataFormats/Common/interface/ValueMap.h"
 
@@ -64,6 +65,12 @@ namespace {
     edm::Wrapper<cat::GenJet> gjw;
     edm::Wrapper<std::vector<cat::GenJet> > gjvw;
     edm::Ptr<cat::GenJet> gjPtr;
+
+    cat::GenTop tgj_;
+    std::vector<cat::GenTop> tgjv;
+    edm::Wrapper<cat::GenTop> tgjw;
+    edm::Wrapper<std::vector<cat::GenTop> > tgjvw;
+    edm::Ptr<cat::GenTop> tgjPtr;
 
   };
   
