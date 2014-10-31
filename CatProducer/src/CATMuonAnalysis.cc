@@ -44,7 +44,7 @@ private:
   // ----------member data ---------------------------
 
   //edm::EDGetTokenT<edm::View<cat::Muon> > src_;
-  edm::InputTag src;
+  edm::InputTag src_;
 
   TH1F* chIso;
   TH1F* nhIso;

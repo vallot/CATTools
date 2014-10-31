@@ -42,7 +42,7 @@ namespace cat {
 
   private:
     // edm::EDGetTokenT<edm::View<pat::Jet> > src_;
-    edm::InputTag src;
+    edm::InputTag src_;
 
     const std::vector<std::string> btagType_;
 

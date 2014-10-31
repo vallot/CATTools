@@ -41,10 +41,10 @@ namespace cat {
     // edm::EDGetTokenT<edm::View<reco::GenParticle> > mcLabel_;
     // edm::EDGetTokenT<edm::View<reco::Vertex> > vertexLabel_;
     // edm::EDGetTokenT<reco::BeamSpot> beamLineSrc_;
-    edm::InputTag src;
-    edm::InputTag mcLabel;
-    edm::InputTag vertexLabel;
-    edm::InputTag beamLineSrc;
+    edm::InputTag src_;
+    edm::InputTag mcLabel_;
+    edm::InputTag vertexLabel_;
+    edm::InputTag beamLineSrc_;
 
   };
 

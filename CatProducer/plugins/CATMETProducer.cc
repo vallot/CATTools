@@ -32,7 +32,7 @@ namespace cat {
 
   private:
     //edm::EDGetTokenT<edm::View<pat::MET> > src_;
-    edm::InputTag src;
+    edm::InputTag src_;
 
   };
 

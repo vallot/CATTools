@@ -40,7 +40,7 @@ namespace cat {
 
   private:
     //      edm::EDGetTokenT<edm::View<reco::GenJet> > src_;
-    edm::InputTag src;
+    edm::InputTag src_;
     
     const double pt_;
     const double eta_;
