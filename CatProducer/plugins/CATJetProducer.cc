@@ -64,7 +64,7 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
   using namespace std;
 
   Handle<View<pat::Jet> > src;
-  iEvent.getByToken(src_, src);
+  iEvent.getByLabel(src_, src);
 
   auto_ptr<vector<cat::Jet> >  out(new vector<cat::Jet>());
 

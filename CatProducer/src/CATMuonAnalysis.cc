@@ -88,7 +88,7 @@ void CATMuonAnalysis::analyze( const edm::Event& iEvent, const edm::EventSetup& 
   using namespace reco;
 
   Handle<View<cat::Muon> > src;
-  iEvent.getByToken(src_, src);
+  iEvent.getByLabel(src_, src);
 
   for (unsigned int i = 0; i < src->size() ; i++) {
     const cat::Muon & muon = src->at(i);
