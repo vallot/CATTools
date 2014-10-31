@@ -1,6 +1,6 @@
 /**
-  \class    cat::CATMCParticleProducer CATMCParticleProducer.h "CATTools/CatProducer/interface/CATMCParticleProducer.h"
-  \brief    CAT MCParticle 
+   \class    cat::CATMCParticleProducer CATMCParticleProducer.h "CATTools/CatProducer/interface/CATMCParticleProducer.h"
+   \brief    CAT MCParticle 
 */
 
 
@@ -28,50 +28,53 @@ using namespace std;
 namespace cat {
 
   class CATMCParticleProducer : public edm::EDProducer {
-    public:
-      explicit CATMCParticleProducer(const edm::ParameterSet & iConfig);
-      virtual ~CATMCParticleProducer() { }
+  public:
+    explicit CATMCParticleProducer(const edm::ParameterSet & iConfig);
+    virtual ~CATMCParticleProducer() { }
 
-      virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
+    virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
-    private:
-      edm::EDGetTokenT<edm::View<reco::GenParticle> > src_;
-      const double pt_;
-      const double eta_;
+  private:
+    //edm::EDGetTokenT<edm::View<reco::GenParticle> > src_;
+    edm::InputTag src;
+
+    const double pt_;
+    const double eta_;
 
   };
 
 } // namespace
 
 cat::CATMCParticleProducer::CATMCParticleProducer(const edm::ParameterSet & iConfig) :
-    src_(consumes<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("src"))),
-    pt_(iConfig.getParameter<double>("pt")),
-    eta_(iConfig.getParameter<double>("eta"))
+  //  src_(consumes<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("src"))),
+  src_(iConfig.getParameter<edm::InputTag>( "src" )),
+  pt_(iConfig.getParameter<double>("pt")),
+  eta_(iConfig.getParameter<double>("eta"))
 {
-    produces<std::vector<cat::MCParticle> >();
+  produces<std::vector<cat::MCParticle> >();
 }
 
 void 
-cat::CATMCParticleProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) {
-
-    Handle<View<reco::GenParticle> > genParticles;
-    iEvent.getByToken(src_,genParticles);
+cat::CATMCParticleProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) 
+{
+  Handle<View<reco::GenParticle> > genParticles;
+  iEvent.getByLabel(src_,genParticles);
     
-    auto_ptr<vector<cat::MCParticle> >  out(new vector<cat::MCParticle>());
+  auto_ptr<vector<cat::MCParticle> >  out(new vector<cat::MCParticle>());
 
-    for (View<reco::GenParticle>::const_iterator it = genParticles->begin(), ed = genParticles->end(); it != ed; ++it) {
-      unsigned int idx = it - genParticles->begin();
-      const reco::GenParticle & aGenParticle = genParticles->at(idx);
+  for (View<reco::GenParticle>::const_iterator it = genParticles->begin(), ed = genParticles->end(); it != ed; ++it) {
+    unsigned int idx = it - genParticles->begin();
+    const reco::GenParticle & aGenParticle = genParticles->at(idx);
 
-      if ( aGenParticle.pt() < pt_ || fabs(aGenParticle.eta()) > eta_ ) continue;  
+    if ( aGenParticle.pt() < pt_ || fabs(aGenParticle.eta()) > eta_ ) continue;  
 
-      cat::MCParticle aMCParticle(aGenParticle);
+    cat::MCParticle aMCParticle(aGenParticle);
 
-      out->push_back(aMCParticle);
+    out->push_back(aMCParticle);
 
-    }
+  }
 
-    iEvent.put(out);
+  iEvent.put(out);
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"

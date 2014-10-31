@@ -1,6 +1,6 @@
 /**
-  \class    cat::CATGenJetProducer CATGenJetProducer.h "CATTools/CatProducer/interface/CATGenJetProducer.h"
-  \brief    CAT GenJet 
+   \class    cat::CATGenJetProducer CATGenJetProducer.h "CATTools/CatProducer/interface/CATGenJetProducer.h"
+   \brief    CAT GenJet 
 */
 
 
@@ -31,91 +31,93 @@ using namespace std;
 namespace cat {
 
   class CATGenJetProducer : public edm::EDProducer {
-    public:
-      explicit CATGenJetProducer(const edm::ParameterSet & iConfig);
-      virtual ~CATGenJetProducer() { }
+  public:
+    explicit CATGenJetProducer(const edm::ParameterSet & iConfig);
+    virtual ~CATGenJetProducer() { }
 
-      virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
+    virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
       
 
-    private:
-      edm::EDGetTokenT<edm::View<reco::GenJet> > src_;
-      const double pt_;
-      const double eta_;
+  private:
+    //      edm::EDGetTokenT<edm::View<reco::GenJet> > src_;
+    edm::InputTag src;
+    
+    const double pt_;
+    const double eta_;
 
-      
-      std::vector<const reco::Candidate *> getAncestors(const reco::Candidate &c);
-      bool hasBottom(const reco::Candidate &c);
-      bool hasCharm(const reco::Candidate &c);
-      bool decayFromBHadron(const reco::Candidate &c);
-      bool decayFromCHadron(const reco::Candidate &c);
-      const reco::Candidate* lastBHadron(const reco::Candidate &c);
-      const reco::Candidate* lastCHadron(const reco::Candidate &c);
+    std::vector<const reco::Candidate *> getAncestors(const reco::Candidate &c);
+    bool hasBottom(const reco::Candidate &c);
+    bool hasCharm(const reco::Candidate &c);
+    bool decayFromBHadron(const reco::Candidate &c);
+    bool decayFromCHadron(const reco::Candidate &c);
+    const reco::Candidate* lastBHadron(const reco::Candidate &c);
+    const reco::Candidate* lastCHadron(const reco::Candidate &c);
 
   };
 
 } // namespace
 
 cat::CATGenJetProducer::CATGenJetProducer(const edm::ParameterSet & iConfig) :
-    src_(consumes<edm::View<reco::GenJet> >(iConfig.getParameter<edm::InputTag>("src"))),
-    pt_(iConfig.getParameter<double>("pt")),
-    eta_(iConfig.getParameter<double>("eta"))
+  //  src_(consumes<edm::View<reco::GenJet> >(iConfig.getParameter<edm::InputTag>("src"))),
+  src_(iConfig.getParameter<InputTag>( "src" )),
+  pt_(iConfig.getParameter<double>("pt")),
+  eta_(iConfig.getParameter<double>("eta"))
 {
-    produces<std::vector<cat::GenJet> >();
+  produces<std::vector<cat::GenJet> >();
 }
 
 void 
-cat::CATGenJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) {
+cat::CATGenJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
+{
+  Handle<View<reco::GenJet> > src;
+  iEvent.getByLabel(src_, src);
 
-    Handle<View<reco::GenJet> > src;
-    iEvent.getByToken(src_, src);
+  auto_ptr<vector<cat::GenJet> >  out(new vector<cat::GenJet>());
 
-    auto_ptr<vector<cat::GenJet> >  out(new vector<cat::GenJet>());
+  for (View<reco::GenJet>::const_iterator it = src->begin(), ed = src->end(); it != ed; ++it) {
+    unsigned int idx = it - src->begin();
+    const reco::GenJet & aGenJet = src->at(idx);
 
-    for (View<reco::GenJet>::const_iterator it = src->begin(), ed = src->end(); it != ed; ++it) {
-      unsigned int idx = it - src->begin();
-      const reco::GenJet & aGenJet = src->at(idx);
-
-      if ( aGenJet.pt() < pt_ || fabs(aGenJet.eta()) > eta_ ) continue;
+    if ( aGenJet.pt() < pt_ || fabs(aGenJet.eta()) > eta_ ) continue;
  
-      cat::GenJet aCatGenJet(aGenJet);
+    cat::GenJet aCatGenJet(aGenJet);
      
-      bool isBHadron = false;
-      bool isCHadron = false;
-      cat::MCParticle BHad;
-      cat::MCParticle CHad;
-      std::vector <const reco::GenParticle*> mcparts = aGenJet.getGenConstituents();
-      for (unsigned i = 0; i < mcparts.size (); i++) {
-        const reco::GenParticle* mcpart = mcparts[i];
-        const reco::Candidate* lastB = lastBHadron(*mcpart);
-        if( lastB ) {
-          isBHadron = true;
-          cat::MCParticle tmp(*lastB); 
-          BHad = tmp;
-          break;
-        }
+    bool isBHadron = false;
+    bool isCHadron = false;
+    cat::MCParticle BHad;
+    cat::MCParticle CHad;
+    std::vector <const reco::GenParticle*> mcparts = aGenJet.getGenConstituents();
+    for (unsigned i = 0; i < mcparts.size (); i++) {
+      const reco::GenParticle* mcpart = mcparts[i];
+      const reco::Candidate* lastB = lastBHadron(*mcpart);
+      if( lastB ) {
+	isBHadron = true;
+	cat::MCParticle tmp(*lastB); 
+	BHad = tmp;
+	break;
       }
-
-      for (unsigned i = 0; i < mcparts.size (); i++) {
-        if( isBHadron ) break; //no need to loop over again, this is b-jet!
-          const reco::GenParticle* mcpart = mcparts[i];
-          const reco::Candidate* lastC = lastCHadron(*mcpart);
-          if( lastC ) {
-            isCHadron = true;
-            cat::MCParticle tmp(*lastC);
-            CHad = tmp;
-            break;
-          }
-      }
-
-      if( isBHadron ) aCatGenJet.setBHadron(BHad); //if B-Hadron matched, always assign B-Hadron
-      if( isCHadron ) aCatGenJet.setCHadron(CHad); //if only no B-Hadron matched, assign C-Hadron
- 
-      out->push_back(aCatGenJet);
-
     }
 
-    iEvent.put(out);
+    for (unsigned i = 0; i < mcparts.size (); i++) {
+      if( isBHadron ) break; //no need to loop over again, this is b-jet!
+      const reco::GenParticle* mcpart = mcparts[i];
+      const reco::Candidate* lastC = lastCHadron(*mcpart);
+      if( lastC ) {
+	isCHadron = true;
+	cat::MCParticle tmp(*lastC);
+	CHad = tmp;
+	break;
+      }
+    }
+
+    if( isBHadron ) aCatGenJet.setBHadron(BHad); //if B-Hadron matched, always assign B-Hadron
+    if( isCHadron ) aCatGenJet.setCHadron(CHad); //if only no B-Hadron matched, assign C-Hadron
+ 
+    out->push_back(aCatGenJet);
+
+  }
+
+  iEvent.put(out);
 }
 
 std::vector<const reco::Candidate *> cat::CATGenJetProducer::getAncestors(const reco::Candidate &c)
@@ -160,18 +162,18 @@ bool cat::CATGenJetProducer::decayFromBHadron(const reco::Candidate & c)
   bool isFromB = false;
   vector<const reco::Candidate *> allParents = getAncestors( c );
   for( vector<const reco::Candidate *>::const_iterator aParent = allParents.begin();
-                                                 aParent != allParents.end();
-                                                 aParent ++ )
-  {
-    if( hasBottom(**aParent) ) isFromB = true;
-    /*
-    cout << " particle Parent is " << (*aParent)->status()
-    << " type " << (*aParent)->pdgId()
-    << " pt= " << (*aParent)->pt()
-    << " isB = " << isFromB
-    << endl;
-    */
-  }
+       aParent != allParents.end();
+       aParent ++ )
+    {
+      if( hasBottom(**aParent) ) isFromB = true;
+      /*
+	cout << " particle Parent is " << (*aParent)->status()
+	<< " type " << (*aParent)->pdgId()
+	<< " pt= " << (*aParent)->pt()
+	<< " isB = " << isFromB
+	<< endl;
+      */
+    }
   return isFromB;
 }
 
@@ -180,18 +182,18 @@ bool cat::CATGenJetProducer::decayFromCHadron(const reco::Candidate & c)
   bool isFromC = false;
   vector<const reco::Candidate *> allParents = getAncestors( c );
   for( vector<const reco::Candidate *>::const_iterator aParent = allParents.begin();
-                                                 aParent != allParents.end();
-                                                 aParent ++ )
-  {
-    if( hasCharm(**aParent) ) isFromC = true;
-    /*
-    cout << " particle Parent is " << (*aParent)->status()
-    << " type " << (*aParent)->pdgId()
-    << " pt=" << (*aParent)->pt()
-    << " isC = " << isFromC
-    << endl;
-    */
-  }
+       aParent != allParents.end();
+       aParent ++ )
+    {
+      if( hasCharm(**aParent) ) isFromC = true;
+      /*
+	cout << " particle Parent is " << (*aParent)->status()
+	<< " type " << (*aParent)->pdgId()
+	<< " pt=" << (*aParent)->pt()
+	<< " isC = " << isFromC
+	<< endl;
+      */
+    }
   return isFromC;
 }
 
@@ -201,11 +203,11 @@ const reco::Candidate* cat::CATGenJetProducer::lastBHadron(const reco::Candidate
   const reco::Candidate * out = 0;
   vector<const reco::Candidate *> allParents = getAncestors( c );
   for( vector<const reco::Candidate *>::const_iterator aParent = allParents.begin();
-                                                 aParent != allParents.end();
-                                                 aParent ++ )
-  {
-    if( hasBottom(**aParent) ) out = *aParent;
-  }
+       aParent != allParents.end();
+       aParent ++ )
+    {
+      if( hasBottom(**aParent) ) out = *aParent;
+    }
   return out;
 }
 
@@ -214,11 +216,11 @@ const reco::Candidate* cat::CATGenJetProducer::lastCHadron(const reco::Candidate
   const reco::Candidate * out = 0;
   vector<const reco::Candidate *> allParents = getAncestors( c );
   for( vector<const reco::Candidate *>::const_iterator aParent = allParents.begin();
-                                                 aParent != allParents.end();
-                                                 aParent ++ )
-  {
-    if( hasCharm(**aParent) ) out = *aParent;
-  }
+       aParent != allParents.end();
+       aParent ++ )
+    {
+      if( hasCharm(**aParent) ) out = *aParent;
+    }
 
   return out;
 }
