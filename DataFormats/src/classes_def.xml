@@ -25,7 +25,7 @@
   <class name="edm::Ptr<cat::Photon>"/>
 
   <class name="cat::Jet"/>
-  <class name="boost::array<double,16>" />
+  <class name="boost::array<float,16>" />
   <class name="boost::array<std::basic_string<char>,16>" />
   <class name="std::vector<cat::Jet>"/>
   <class name="edm::Wrapper<cat::Jet>"/>
