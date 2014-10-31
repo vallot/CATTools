@@ -41,7 +41,7 @@ Jet::~Jet() {
 }
 
 
-double cat::Jet::btag(const char* s) const{
+float cat::Jet::btag(const char* s) const{
   if(!btag_.size()) return -9.9;
   const std::string name(s);
   const TagNameArray::const_iterator index = std::find( btagNames_.begin(),btagNames_.end(), name);

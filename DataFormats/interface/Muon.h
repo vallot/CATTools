@@ -22,41 +22,41 @@ namespace cat {
     Muon(const reco::LeafCandidate & aMuon); 
     virtual ~Muon();
 
-    double chargedHadronIso(double dR=0.3) const { 
+    float chargedHadronIso(float dR=0.3) const { 
       if( dR == 0.3){ return chargedHadronIso03_;}
       else if( dR == 0.4) { return chargedHadronIso04_;}
       else return -1.0;  
     }
-    double puChargedHadronIso(double dR=0.3) const { 
+    float puChargedHadronIso(float dR=0.3) const { 
       if( dR == 0.3) { return puChargedHadronIso03_;}
       else if( dR == 0.4) { return puChargedHadronIso04_;}
       else return -1.0;
     }
-    double neutralHadronIso(double dR=0.3) const { 
+    float neutralHadronIso(float dR=0.3) const { 
       if( dR == 0.3) { return neutralHadronIso03_;}
       else if( dR == 0.4) { return neutralHadronIso04_;}
       else return -1.0;
     }
-    double photonIso(double dR=0.3) const { 
+    float photonIso(float dR=0.3) const { 
       if( dR == 0.3) { return photonIso03_;}
       else if( dR == 0.4) { return photonIso04_;} 
       else return -1.0;
     }
 
-    double absIso(double dR=0.3, double dBetaFactor=0.5) const{
+    float absIso(float dR=0.3, float dBetaFactor=0.5) const{
 
       if(dBetaFactor>0 && puChargedHadronIso(dR)<0) return -1;
 
-      double neutralIso = neutralHadronIso(dR) + photonIso(dR);
-      double corNeutralIso = neutralIso - dBetaFactor * puChargedHadronIso(dR);
+      float neutralIso = neutralHadronIso(dR) + photonIso(dR);
+      float corNeutralIso = neutralIso - dBetaFactor * puChargedHadronIso(dR);
 
-      double charged = chargedHadronIso(dR);
+      float charged = chargedHadronIso(dR);
 
       return charged + ( corNeutralIso>0 ? corNeutralIso : 0 ) ;
     }
 
-    double relIso(double dR=0.3, double dBetaFactor=0.5) const{
-      double abs = absIso(dR, dBetaFactor)/this->pt();
+    float relIso(float dR=0.3, float dBetaFactor=0.5) const{
+      float abs = absIso(dR, dBetaFactor)/this->pt();
       return abs >=0 ? abs : -1;
     }
 
@@ -68,25 +68,25 @@ namespace cat {
 
     bool mcMatched() const { return mcMatched_; }
 
-    double normalizedChi2() { return normalizedChi2_; }
+    float normalizedChi2() { return normalizedChi2_; }
     int numberOfValidHits() { return numberOfValidHits_; }
     int numberOfValidMuonHits() { return numberOfValidMuonHits_; }
     int numberOfMatchedStations() { return numberOfMatchedStations_; } 
     int numberOfValidPixelHits() { return numberOfValidPixelHits_; }
     int trackerLayersWithMeasurement() { return trackerLayersWithMeasurement_; }
  
-    double dxy(){ return dxy_; }
-    double dz(){ return dz_; }
+    float dxy(){ return dxy_; }
+    float dz(){ return dz_; }
 
-    void setChargedHadronIso03(double i) { chargedHadronIso03_ = i; }
-    void setPUChargedHadronIso03(double i) { puChargedHadronIso03_ = i; }
-    void setNeutralHadronIso03(double i) { neutralHadronIso03_ = i; }
-    void setPhotonIso03(double i) { photonIso03_ = i; }
+    void setChargedHadronIso03(float i) { chargedHadronIso03_ = i; }
+    void setPUChargedHadronIso03(float i) { puChargedHadronIso03_ = i; }
+    void setNeutralHadronIso03(float i) { neutralHadronIso03_ = i; }
+    void setPhotonIso03(float i) { photonIso03_ = i; }
 
-    void setChargedHadronIso04(double i) { chargedHadronIso04_ = i; }
-    void setPUChargedHadronIso04(double i) { puChargedHadronIso04_ = i; }
-    void setNeutralHadronIso04(double i) { neutralHadronIso04_ = i; }
-    void setPhotonIso04(double i) { photonIso04_ = i; }
+    void setChargedHadronIso04(float i) { chargedHadronIso04_ = i; }
+    void setPUChargedHadronIso04(float i) { puChargedHadronIso04_ = i; }
+    void setNeutralHadronIso04(float i) { neutralHadronIso04_ = i; }
+    void setPhotonIso04(float i) { photonIso04_ = i; }
 
     void setIsGlobalMuon(bool d) { isGlobalMuon_ = d; }
     void setIsPFMuon(bool d) { isPFMuon_ = d; }
@@ -96,7 +96,7 @@ namespace cat {
      
     void setMCMatched(bool m) { mcMatched_ = m; }
     
-    void setNormalizedChi2(double d) { normalizedChi2_ = d; }
+    void setNormalizedChi2(float d) { normalizedChi2_ = d; }
     void setNumberOfValidHits(int i) { numberOfValidHits_ = i; }
     void setNumberOfValidMuonHits(int i) { numberOfValidMuonHits_ = i; }
     void setNumberOfMatchedStations(int i) { numberOfMatchedStations_ = i; }
@@ -108,15 +108,15 @@ namespace cat {
 
   private:
 
-    double chargedHadronIso03_;
-    double puChargedHadronIso03_;
-    double neutralHadronIso03_;
-    double photonIso03_;
+    float chargedHadronIso03_;
+    float puChargedHadronIso03_;
+    float neutralHadronIso03_;
+    float photonIso03_;
 
-    double chargedHadronIso04_;
-    double puChargedHadronIso04_;
-    double neutralHadronIso04_;
-    double photonIso04_;
+    float chargedHadronIso04_;
+    float puChargedHadronIso04_;
+    float neutralHadronIso04_;
+    float photonIso04_;
 
     bool isGlobalMuon_; 
     bool isPFMuon_; 
@@ -126,15 +126,15 @@ namespace cat {
 
     bool mcMatched_;
 
-    double normalizedChi2_; 
+    float normalizedChi2_; 
     int numberOfValidHits_; 
     int numberOfValidMuonHits_; 
     int numberOfMatchedStations_; 
     int numberOfValidPixelHits_; 
     int trackerLayersWithMeasurement_; 
 
-    double dz_;
-    double dxy_;
+    float dz_;
+    float dxy_;
 
   };
 }

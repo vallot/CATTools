@@ -824,7 +824,7 @@ bool GenTop::isFromtop( const reco::GenParticle& p){
   return out;
 }
 
-double GenTop::deltaR( const Candidate& pasObj, const Candidate& proObj ) {
+float GenTop::deltaR( const Candidate& pasObj, const Candidate& proObj ) {
 
   double pasEta = pasObj.eta();
   double pasPhi = pasObj.phi();

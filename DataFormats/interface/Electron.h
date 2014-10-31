@@ -22,19 +22,19 @@ namespace cat {
     Electron(const reco::LeafCandidate & aElectron); 
     virtual ~Electron();
 
-    double chargedHadronIso() const { return chargedHadronIso_;  }
-    double puChargedHadronIso() const { return puChargedHadronIso_; }
-    double neutralHadronIso() const { return neutralHadronIso_; }
-    double photonIso() const { return photonIso_; }
+    float chargedHadronIso() const { return chargedHadronIso_;  }
+    float puChargedHadronIso() const { return puChargedHadronIso_; }
+    float neutralHadronIso() const { return neutralHadronIso_; }
+    float photonIso() const { return photonIso_; }
 
     float mva() const { return mva_; }
   
   private:
 
-    double chargedHadronIso_;
-    double puChargedHadronIso_;
-    double neutralHadronIso_;
-    double photonIso_;
+    float chargedHadronIso_;
+    float puChargedHadronIso_;
+    float neutralHadronIso_;
+    float photonIso_;
 
     float mva_;
 

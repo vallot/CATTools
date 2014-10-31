@@ -28,9 +28,9 @@ namespace cat {
     bool LooseId() const { return LooseId_; }
 
     /// \return btag discriminator
-    double btag(unsigned int index = 0) const{ return index < btag_.size() ? btag_.at(index) : -9.9; }
-    double btag(const char* s) const;
-    double bDiscriminator(const char* s) const{ return btag(s); }
+    float btag(unsigned int index = 0) const{ return index < btag_.size() ? btag_.at(index) : -9.9; }
+    float btag(const char* s) const;
+    float bDiscriminator(const char* s) const{ return btag(s); }
 
     enum BTagWP { TCHPT, JPL, JPM, JPT, CSVL, CSVM, CSVT,  CSVV1L, CSVV1M, CSVV1T,  CSVSLV1L, CSVSLV1M, CSVSLV1T, CSVIVFV2L, CSVIVFV2M, CSVIVFV2T  };
     bool btagWP(BTagWP wp) const ;
@@ -47,7 +47,7 @@ namespace cat {
     /// \return the pdgId of the matched MC parton from hard scattering (i.e. the closest quark or gluon of status == 3)
     Int_t partonPdgId() const{ return partonPdgId_;}
 
-    void setbTag( const int & i, const double & d, const std::string & name ) { 
+    void setbTag( const int & i, const float & d, const std::string & name ) { 
       btag_[i] = d;
       btagNames_[i] = name;
     }
@@ -64,7 +64,7 @@ namespace cat {
     bool LooseId_; 
  
     /// b tagging discriminators
-    typedef boost::array<double,16> TagArray;
+    typedef boost::array<float,16> TagArray;
     typedef boost::array<std::string,TagArray::static_size> TagNameArray;
     TagArray btag_;
     TagNameArray btagNames_;
