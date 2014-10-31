@@ -16,14 +16,9 @@ process.source = cms.Source("PoolSource",
 #        '/store/relval/CMSSW_7_0_7/RelValTTbar_13/GEN-SIM-RECO/PU25ns_PLS170_V7AN1-v1/00000/46E6309D-9516-E411-A4FC-0025905A48F0.root'
     #Kisti
 #         'file:/cms/home/tjkim/store/relval/CMSSW_7_0_7/RelValTTbar_13/GEN-SIM-RECO/PU25ns_PLS170_V7AN1-v1/00000/56517256-CB15-E411-9C56-0025905A48F2.root'
-         'root://cms-xrdr.sdfarm.kr///cms/data/xrd//store/mc/Spring14dr/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/AODSIM/PU_S14_POSTLS170_V6-v1/00000/BC91BA37-E2F2-E311-A317-0025905A612E.root'
+'file:/cms/home/jlee/scratch/QCD_Pt-15to3000_TuneEE3C_Flat_8TeV_herwigpp/001A0DC8-C313-E211-BCCB-00261894397B.root'
     )
 )
-
-## for muon isolation study with weighted method
-print "4508 PR needs to be merged"
-print "git cms-merge-topic 4508"
-print "or use the release above CMSSW_7_0_7"
 
 ### add different cone size
 #let's use userIsolation function to use different cone size for the time being
@@ -33,40 +28,40 @@ print "or use the release above CMSSW_7_0_7"
 #userIsolation("pat::User4Iso") for puChargedHadronIso()
 #userIsolation("pat::User5Iso") for particleIso()
 #for muon
-process.patMuons.isolationValues.user = cms.VInputTag("muPFIsoValueCharged03","muPFIsoValueNeutral03","muPFIsoValueGamma03","muPFIsoValuePU03","muPFIsoValueChargedAll03")
-#for electron
-process.patElectrons.isolationValues.user = cms.VInputTag("elPFIsoValueCharged03PFId","elPFIsoValueNeutral03PFId","elPFIsoValueGamma03PFId","elPFIsoValuePU03PFId","elPFIsoValueChargedAll03PFId")
-process.patElectrons.isolationValuesNoPFId.user = cms.VInputTag("elPFIsoValueCharged03NoPFId","elPFIsoValueNeutral03NoPFId","elPFIsoValueGamma03NoPFId","elPFIsoValuePU03NoPFId","elPFIsoValueChargedAll03NoPFId")
-###
+## process.patMuons.isolationValues.user = cms.VInputTag("muPFIsoValueCharged03","muPFIsoValueNeutral03","muPFIsoValueGamma03","muPFIsoValuePU03","muPFIsoValueChargedAll03")
+## #for electron
+## process.patElectrons.isolationValues.user = cms.VInputTag("elPFIsoValueCharged03PFId","elPFIsoValueNeutral03PFId","elPFIsoValueGamma03PFId","elPFIsoValuePU03PFId","elPFIsoValueChargedAll03PFId")
+## process.patElectrons.isolationValuesNoPFId.user = cms.VInputTag("elPFIsoValueCharged03NoPFId","elPFIsoValueNeutral03NoPFId","elPFIsoValueGamma03NoPFId","elPFIsoValuePU03NoPFId","elPFIsoValueChargedAll03NoPFId")
+## ###
 
-process.load("CommonTools.ParticleFlow.deltaBetaWeights_cff")
+## process.load("CommonTools.ParticleFlow.deltaBetaWeights_cff")
 
-from PhysicsTools.PatAlgos.tools.helpers import loadWithPostfix
-loadWithPostfix(process,'RecoMuon.MuonIsolation.muonPFIsolation_cff',"Weighted")
+## from PhysicsTools.PatAlgos.tools.helpers import loadWithPostfix
+## loadWithPostfix(process,'RecoMuon.MuonIsolation.muonPFIsolation_cff',"Weighted")
 
-process.patMuonsWeighted = process.patMuons.clone()
-process.catMuonsWeighted = process.catMuons.clone()
-process.catMuonsWeighted.src = 'patMuonsWeighted'
+## process.patMuonsWeighted = process.patMuons.clone()
+## process.catMuonsWeighted = process.catMuons.clone()
+## process.catMuonsWeighted.src = 'patMuonsWeighted'
 
-process.muPFIsoDepositNeutralWeighted.ExtractorPSet.inputCandView = 'pfWeightedNeutralHadrons'
-process.muPFIsoDepositGammaWeighted.ExtractorPSet.inputCandView = 'pfWeightedPhotons'
+## process.muPFIsoDepositNeutralWeighted.ExtractorPSet.inputCandView = 'pfWeightedNeutralHadrons'
+## process.muPFIsoDepositGammaWeighted.ExtractorPSet.inputCandView = 'pfWeightedPhotons'
 
-process.patMuonsWeighted.isoDeposits = cms.PSet(
-    pfChargedHadrons = cms.InputTag("muPFIsoDepositChargedWeighted" ),
-    pfNeutralHadrons = cms.InputTag("muPFIsoDepositNeutralWeighted" ),
-    pfPhotons = cms.InputTag("muPFIsoDepositGammaWeighted" ),
-    pfPUChargedHadrons = cms.InputTag("muPFIsoDepositPUWeighted" ),
-    pfChargedAll = cms.InputTag("muPFIsoDepositChargedAllWeighted" ),
-    )
+## process.patMuonsWeighted.isoDeposits = cms.PSet(
+##     pfChargedHadrons = cms.InputTag("muPFIsoDepositChargedWeighted" ),
+##     pfNeutralHadrons = cms.InputTag("muPFIsoDepositNeutralWeighted" ),
+##     pfPhotons = cms.InputTag("muPFIsoDepositGammaWeighted" ),
+##     pfPUChargedHadrons = cms.InputTag("muPFIsoDepositPUWeighted" ),
+##     pfChargedAll = cms.InputTag("muPFIsoDepositChargedAllWeighted" ),
+##     )
 
-process.patMuonsWeighted.isolationValues = cms.PSet(
-    pfChargedHadrons = cms.InputTag("muPFIsoValueCharged04Weighted"),
-    pfNeutralHadrons = cms.InputTag("muPFIsoValueNeutral04Weighted" ),
-    pfPhotons = cms.InputTag("muPFIsoValueGamma04Weighted" ),
-    pfPUChargedHadrons = cms.InputTag("muPFIsoValuePU04Weighted" ),
-    pfChargedAll = cms.InputTag("muPFIsoValueChargedAll04Weighted"),
-    user = cms.VInputTag("muPFIsoValueCharged03Weighted","muPFIsoValueNeutral03Weighted","muPFIsoValueGamma03Weighted","muPFIsoValuePU03Weighted","muPFIsoValueChargedAll03Weighted"),
-    )
+## process.patMuonsWeighted.isolationValues = cms.PSet(
+##     pfChargedHadrons = cms.InputTag("muPFIsoValueCharged04Weighted"),
+##     pfNeutralHadrons = cms.InputTag("muPFIsoValueNeutral04Weighted" ),
+##     pfPhotons = cms.InputTag("muPFIsoValueGamma04Weighted" ),
+##     pfPUChargedHadrons = cms.InputTag("muPFIsoValuePU04Weighted" ),
+##     pfChargedAll = cms.InputTag("muPFIsoValueChargedAll04Weighted"),
+##     user = cms.VInputTag("muPFIsoValueCharged03Weighted","muPFIsoValueNeutral03Weighted","muPFIsoValueGamma03Weighted","muPFIsoValuePU03Weighted","muPFIsoValueChargedAll03Weighted"),
+##     )
 
 
 

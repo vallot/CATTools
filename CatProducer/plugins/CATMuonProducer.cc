@@ -69,20 +69,20 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
   Handle<View<pat::Muon> > src;
   iEvent.getByLabel(src_, src);
  
-  Handle<View<reco::GenParticle> > genParticles;
-  iEvent.getByLabel(mcLabel_,genParticles);
+  // Handle<View<reco::GenParticle> > genParticles;
+  // iEvent.getByLabel(mcLabel_,genParticles);
     
-  Handle<View<reco::Vertex> > recVtxs;
-  iEvent.getByLabel(vertexLabel_,recVtxs);
+  // Handle<View<reco::Vertex> > recVtxs;
+  // iEvent.getByLabel(vertexLabel_,recVtxs);
 
-  Handle<reco::BeamSpot> beamSpotHandle;
-  iEvent.getByLabel(beamLineSrc_, beamSpotHandle);
+  // Handle<reco::BeamSpot> beamSpotHandle;
+  // iEvent.getByLabel(beamLineSrc_, beamSpotHandle);
 
-  reco::Vertex pv = recVtxs->at(0);
+  // reco::Vertex pv = recVtxs->at(0);
    
-  reco::BeamSpot beamSpot = *beamSpotHandle;
-  reco::TrackBase::Point beamPoint(0,0,0);
-  beamPoint = reco::TrackBase::Point ( beamSpot.x0(), beamSpot.y0(), beamSpot.z0() );  
+  // reco::BeamSpot beamSpot = *beamSpotHandle;
+  // reco::TrackBase::Point beamPoint(0,0,0);
+  // beamPoint = reco::TrackBase::Point ( beamSpot.x0(), beamSpot.y0(), beamSpot.z0() );  
  
   auto_ptr<vector<cat::Muon> >  out(new vector<cat::Muon>());
 
@@ -90,45 +90,45 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     unsigned int idx = it - src->begin();
     const pat::Muon & aPatMuon = src->at(idx);
 
-    bool mcMatched = mcMatch( aPatMuon.p4(), genParticles );
+    //    bool mcMatched = mcMatch( aPatMuon.p4(), genParticles );
 
     cat::Muon aMuon(aPatMuon);
 
-    aMuon.setChargedHadronIso04( aPatMuon.chargedHadronIso() );
-    aMuon.setNeutralHadronIso04( aPatMuon.neutralHadronIso() );
-    aMuon.setPhotonIso04( aPatMuon.photonIso() );
-    aMuon.setPUChargedHadronIso04( aPatMuon.puChargedHadronIso() );
+    // aMuon.setChargedHadronIso04( aPatMuon.chargedHadronIso() );
+    // aMuon.setNeutralHadronIso04( aPatMuon.neutralHadronIso() );
+    // aMuon.setPhotonIso04( aPatMuon.photonIso() );
+    // aMuon.setPUChargedHadronIso04( aPatMuon.puChargedHadronIso() );
 
-    aMuon.setChargedHadronIso03( aPatMuon.userIsolation("pat::User1Iso") );
-    aMuon.setNeutralHadronIso03( aPatMuon.userIsolation("pat::User2Iso") );
-    aMuon.setPhotonIso03( aPatMuon.userIsolation("pat::User3Iso") );
-    aMuon.setPUChargedHadronIso03( aPatMuon.userIsolation("pat::User4Iso") );
+    // aMuon.setChargedHadronIso03( aPatMuon.userIsolation("pat::User1Iso") );
+    // aMuon.setNeutralHadronIso03( aPatMuon.userIsolation("pat::User2Iso") );
+    // aMuon.setPhotonIso03( aPatMuon.userIsolation("pat::User3Iso") );
+    // aMuon.setPUChargedHadronIso03( aPatMuon.userIsolation("pat::User4Iso") );
 
-    aMuon.setIsGlobalMuon( aPatMuon.isGlobalMuon() );
-    aMuon.setIsPFMuon( aPatMuon.isPFMuon() );
-    aMuon.setIsTightMuon( aPatMuon.isTightMuon(pv) );
-    aMuon.setIsLooseMuon( aPatMuon.isLooseMuon() );
-    aMuon.setIsSoftMuon( aPatMuon.isSoftMuon(pv) );
+    // aMuon.setIsGlobalMuon( aPatMuon.isGlobalMuon() );
+    // aMuon.setIsPFMuon( aPatMuon.isPFMuon() );
+    // aMuon.setIsTightMuon( aPatMuon.isTightMuon(pv) );
+    // aMuon.setIsLooseMuon( aPatMuon.isLooseMuon() );
+    // aMuon.setIsSoftMuon( aPatMuon.isSoftMuon(pv) );
 
-    aMuon.setMCMatched( mcMatched );
+    // aMuon.setMCMatched( mcMatched );
     
-    aMuon.setNumberOfMatchedStations( aPatMuon.numberOfMatchedStations() );
+    // aMuon.setNumberOfMatchedStations( aPatMuon.numberOfMatchedStations() );
 
-    if ( aPatMuon.globalTrack().isNonnull() && aPatMuon.globalTrack().isAvailable() ) {
-      aMuon.setNormalizedChi2( aPatMuon.normChi2() );
-      aMuon.setNumberOfValidMuonHits( aPatMuon.globalTrack()->hitPattern().numberOfValidMuonHits() );
-    }
+    // if ( aPatMuon.globalTrack().isNonnull() && aPatMuon.globalTrack().isAvailable() ) {
+    //   aMuon.setNormalizedChi2( aPatMuon.normChi2() );
+    //   aMuon.setNumberOfValidMuonHits( aPatMuon.globalTrack()->hitPattern().numberOfValidMuonHits() );
+    // }
 
-    if ( aPatMuon.innerTrack().isNonnull() && aPatMuon.innerTrack().isAvailable() ){
-      aMuon.setNumberOfValidHits( aPatMuon.numberOfValidHits() );
-      aMuon.setNumberOfValidPixelHits( aPatMuon.innerTrack()->hitPattern().numberOfValidPixelHits() );
-      aMuon.setTackerLayersWithMeasurement( aPatMuon.innerTrack()->hitPattern().trackerLayersWithMeasurement() ); 
-    }
+    // if ( aPatMuon.innerTrack().isNonnull() && aPatMuon.innerTrack().isAvailable() ){
+    //   aMuon.setNumberOfValidHits( aPatMuon.numberOfValidHits() );
+    //   aMuon.setNumberOfValidPixelHits( aPatMuon.innerTrack()->hitPattern().numberOfValidPixelHits() );
+    //   aMuon.setTackerLayersWithMeasurement( aPatMuon.innerTrack()->hitPattern().trackerLayersWithMeasurement() ); 
+    // }
 
-    double dxy = fabs(aPatMuon.muonBestTrack()->dxy(pv.position()));
-    aMuon.setDxy( dxy );
-    double dz = fabs(aPatMuon.muonBestTrack()->dz(pv.position()));
-    aMuon.setDz( dz ); 
+    // double dxy = fabs(aPatMuon.muonBestTrack()->dxy(pv.position()));
+    // aMuon.setDxy( dxy );
+    // double dz = fabs(aPatMuon.muonBestTrack()->dz(pv.position()));
+    // aMuon.setDz( dz ); 
  
     out->push_back(aMuon);
 
