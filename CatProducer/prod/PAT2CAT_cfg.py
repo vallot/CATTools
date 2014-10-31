@@ -121,6 +121,8 @@ process.out.fileName = 'CAT.root'
 #                                         ##
 #   process.options.wantSummary = False   ##  (to suppress the long output at the end of the job)
 
-process.out.outputCommands = ['keep *_cat*_*_*',
-                              'keep *_goodOfflinePrimaryVertices_*_*'
-                             ]
+process.out.outputCommands = cms.untracked.vstring(
+    'drop *',
+    'keep *_cat*_*_*',
+    'keep *_goodOfflinePrimaryVertices_*_*')
+                             
