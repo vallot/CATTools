@@ -68,15 +68,15 @@ namespace cat {
 
     bool mcMatched() const { return mcMatched_; }
 
-    float normalizedChi2() { return normalizedChi2_; }
-    int numberOfValidHits() { return numberOfValidHits_; }
-    int numberOfValidMuonHits() { return numberOfValidMuonHits_; }
-    int numberOfMatchedStations() { return numberOfMatchedStations_; } 
-    int numberOfValidPixelHits() { return numberOfValidPixelHits_; }
-    int trackerLayersWithMeasurement() { return trackerLayersWithMeasurement_; }
+    float normalizedChi2() const { return normalizedChi2_; }
+    int numberOfValidHits() const { return numberOfValidHits_; }
+    int numberOfValidMuonHits() const { return numberOfValidMuonHits_; }
+    int numberOfMatchedStations() const { return numberOfMatchedStations_; } 
+    int numberOfValidPixelHits() const { return numberOfValidPixelHits_; }
+    int trackerLayersWithMeasurement() const { return trackerLayersWithMeasurement_; }
  
-    float dxy(){ return dxy_; }
-    float dz(){ return dz_; }
+    float dxy() const { return dxy_; }
+    float dz() const { return dz_; }
 
     void setChargedHadronIso03(float i) { chargedHadronIso03_ = i; }
     void setPUChargedHadronIso03(float i) { puChargedHadronIso03_ = i; }
@@ -103,8 +103,8 @@ namespace cat {
     void setNumberOfValidPixelHits(int i) { numberOfValidPixelHits_ = i; }
     void setTackerLayersWithMeasurement(int i) { trackerLayersWithMeasurement_ = i; }
  
-    void setDz(int d) { dz_ = d; }
-    void setDxy(int d) { dxy_ = d; }
+    void setDz(float d) { dz_ = d; }
+    void setDxy(float d) { dxy_ = d; }
 
   private:
 
