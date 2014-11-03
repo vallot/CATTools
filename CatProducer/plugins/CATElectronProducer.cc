@@ -50,6 +50,18 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     unsigned int idx = it - src->begin();
     const pat::Electron & aPatElectron = src->at(idx);
     cat::Electron aElectron(aPatElectron);
+
+    aElectron.setChargedHadronIso04( aPatElectron.chargedHadronIso() );
+    aElectron.setNeutralHadronIso04( aPatElectron.neutralHadronIso() );
+    aElectron.setPhotonIso04( aPatElectron.photonIso() );
+    aElectron.setPUChargedHadronIso04( aPatElectron.puChargedHadronIso() );
+
+    aElectron.setChargedHadronIso03( aPatElectron.userIsolation("pat::User1Iso") );
+    aElectron.setNeutralHadronIso03( aPatElectron.userIsolation("pat::User2Iso") );
+    aElectron.setPhotonIso03( aPatElectron.userIsolation("pat::User3Iso") );
+    aElectron.setPUChargedHadronIso03( aPatElectron.userIsolation("pat::User4Iso") );
+    aElectron.setMva(0.0);
+
     out->push_back(aElectron);
   }
 
