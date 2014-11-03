@@ -74,8 +74,8 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
     for(unsigned int i = 0; i < btagType_.size(); i++){
       const std::string tag(btagType_.at(i));
       aJet.setbTag( i, aPatJet.bDiscriminator(tag), tag);
-      output->btag_[i] = input->bDiscriminator(tag);
-      output->btagNames_[i] = tag;
+      //output->btag_[i] = input->bDiscriminator(tag);
+      //output->btagNames_[i] = tag;
     }
       
     //secondary vertex b-tagging information
