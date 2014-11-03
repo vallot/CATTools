@@ -1,9 +1,3 @@
-/**
-   \class    cat::CATMuonProducer CATMuonProducer.h "CATTools/CatProducer/interface/CATMuonProducer.h"
-   \brief    CAT Muon 
-*/
-
-
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -20,6 +14,7 @@
 #include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
 //#include "FWCore/Utilities/interface/isFinite.h"
+#include "DataFormats/VertexReco/interface/Vertex.h"
 
 using namespace edm;
 using namespace std;
@@ -37,10 +32,6 @@ namespace cat {
     bool MatchObjects( const reco::Candidate::LorentzVector& pasObj, const reco::Candidate::LorentzVector& proObj, bool exact );
 
   private:
-    // edm::EDGetTokenT<edm::View<pat::Muon> > src_;
-    // edm::EDGetTokenT<edm::View<reco::GenParticle> > mcLabel_;
-    // edm::EDGetTokenT<edm::View<reco::Vertex> > vertexLabel_;
-    // edm::EDGetTokenT<reco::BeamSpot> beamLineSrc_;
     edm::InputTag src_;
     edm::InputTag mcLabel_;
     edm::InputTag vertexLabel_;
@@ -51,10 +42,6 @@ namespace cat {
 } // namespace
 
 cat::CATMuonProducer::CATMuonProducer(const edm::ParameterSet & iConfig) :
-  // src_(consumes<edm::View<pat::Muon> >(iConfig.getParameter<edm::InputTag>("src"))),
-  // mcLabel_(consumes<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("mcLabel"))),
-  // vertexLabel_(consumes<edm::View<reco::Vertex> >(iConfig.getParameter<edm::InputTag>("vertexLabel"))),
-  // beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc")))
   src_(iConfig.getParameter<edm::InputTag>( "src" )),
   mcLabel_(iConfig.getParameter<edm::InputTag>( "mcLabel" )),
   vertexLabel_(iConfig.getParameter<edm::InputTag>( "vertexLabel" )),
@@ -69,20 +56,20 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
   Handle<View<pat::Muon> > src;
   iEvent.getByLabel(src_, src);
  
-  // Handle<View<reco::GenParticle> > genParticles;
-  // iEvent.getByLabel(mcLabel_,genParticles);
+  Handle<View<reco::GenParticle> > genParticles;
+  iEvent.getByLabel(mcLabel_,genParticles);
     
-  // Handle<View<reco::Vertex> > recVtxs;
-  // iEvent.getByLabel(vertexLabel_,recVtxs);
+  Handle<View<reco::Vertex> > recVtxs;
+  iEvent.getByLabel(vertexLabel_,recVtxs);
 
-  // Handle<reco::BeamSpot> beamSpotHandle;
-  // iEvent.getByLabel(beamLineSrc_, beamSpotHandle);
+  Handle<reco::BeamSpot> beamSpotHandle;
+  iEvent.getByLabel(beamLineSrc_, beamSpotHandle);
 
-  // reco::Vertex pv = recVtxs->at(0);
+  reco::Vertex pv = recVtxs->at(0);
    
-  // reco::BeamSpot beamSpot = *beamSpotHandle;
-  // reco::TrackBase::Point beamPoint(0,0,0);
-  // beamPoint = reco::TrackBase::Point ( beamSpot.x0(), beamSpot.y0(), beamSpot.z0() );  
+  reco::BeamSpot beamSpot = *beamSpotHandle;
+  reco::TrackBase::Point beamPoint(beamSpot.x0(), beamSpot.y0(), beamSpot.z0());
+  // //  beamPoint = reco::TrackBase::Point ( beamSpot.x0(), beamSpot.y0(), beamSpot.z0() );  
  
   auto_ptr<vector<cat::Muon> >  out(new vector<cat::Muon>());
 
@@ -94,44 +81,42 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
 
     cat::Muon aMuon(aPatMuon);
 
-    // aMuon.setChargedHadronIso04( aPatMuon.chargedHadronIso() );
-    // aMuon.setNeutralHadronIso04( aPatMuon.neutralHadronIso() );
-    // aMuon.setPhotonIso04( aPatMuon.photonIso() );
-    // aMuon.setPUChargedHadronIso04( aPatMuon.puChargedHadronIso() );
+    aMuon.setChargedHadronIso04( aPatMuon.chargedHadronIso() );
+    aMuon.setNeutralHadronIso04( aPatMuon.neutralHadronIso() );
+    aMuon.setPhotonIso04( aPatMuon.photonIso() );
+    aMuon.setPUChargedHadronIso04( aPatMuon.puChargedHadronIso() );
 
     // aMuon.setChargedHadronIso03( aPatMuon.userIsolation("pat::User1Iso") );
     // aMuon.setNeutralHadronIso03( aPatMuon.userIsolation("pat::User2Iso") );
     // aMuon.setPhotonIso03( aPatMuon.userIsolation("pat::User3Iso") );
     // aMuon.setPUChargedHadronIso03( aPatMuon.userIsolation("pat::User4Iso") );
 
-    // aMuon.setIsGlobalMuon( aPatMuon.isGlobalMuon() );
-    // aMuon.setIsPFMuon( aPatMuon.isPFMuon() );
-    // aMuon.setIsTightMuon( aPatMuon.isTightMuon(pv) );
-    // aMuon.setIsLooseMuon( aPatMuon.isLooseMuon() );
-    // aMuon.setIsSoftMuon( aPatMuon.isSoftMuon(pv) );
+    aMuon.setIsGlobalMuon( aPatMuon.isGlobalMuon() );
+    aMuon.setIsPFMuon( aPatMuon.isPFMuon() );
+    aMuon.setIsTightMuon( aPatMuon.isTightMuon(pv) );
+    aMuon.setIsLooseMuon( aPatMuon.isLooseMuon() );
+    aMuon.setIsSoftMuon( aPatMuon.isSoftMuon(pv) );
 
     // aMuon.setMCMatched( mcMatched );
     
-    // aMuon.setNumberOfMatchedStations( aPatMuon.numberOfMatchedStations() );
+    aMuon.setNumberOfMatchedStations( aPatMuon.numberOfMatchedStations() );
 
-    // if ( aPatMuon.globalTrack().isNonnull() && aPatMuon.globalTrack().isAvailable() ) {
-    //   aMuon.setNormalizedChi2( aPatMuon.normChi2() );
-    //   aMuon.setNumberOfValidMuonHits( aPatMuon.globalTrack()->hitPattern().numberOfValidMuonHits() );
-    // }
+    if ( aPatMuon.globalTrack().isNonnull() && aPatMuon.globalTrack().isAvailable() ) {
+      aMuon.setNormalizedChi2( aPatMuon.normChi2() );
+      aMuon.setNumberOfValidMuonHits( aPatMuon.globalTrack()->hitPattern().numberOfValidMuonHits() );
+    }
 
-    // if ( aPatMuon.innerTrack().isNonnull() && aPatMuon.innerTrack().isAvailable() ){
-    //   aMuon.setNumberOfValidHits( aPatMuon.numberOfValidHits() );
-    //   aMuon.setNumberOfValidPixelHits( aPatMuon.innerTrack()->hitPattern().numberOfValidPixelHits() );
-    //   aMuon.setTackerLayersWithMeasurement( aPatMuon.innerTrack()->hitPattern().trackerLayersWithMeasurement() ); 
-    // }
-
-    // double dxy = fabs(aPatMuon.muonBestTrack()->dxy(pv.position()));
-    // aMuon.setDxy( dxy );
-    // double dz = fabs(aPatMuon.muonBestTrack()->dz(pv.position()));
-    // aMuon.setDz( dz ); 
+    if ( aPatMuon.innerTrack().isNonnull() && aPatMuon.innerTrack().isAvailable() ){
+      aMuon.setNumberOfValidHits( aPatMuon.numberOfValidHits() );
+      aMuon.setNumberOfValidPixelHits( aPatMuon.innerTrack()->hitPattern().numberOfValidPixelHits() );
+      aMuon.setTackerLayersWithMeasurement( aPatMuon.innerTrack()->hitPattern().trackerLayersWithMeasurement() ); 
+    }
+    double dxy = fabs(aPatMuon.muonBestTrack()->dxy(pv.position()));
+    aMuon.setDxy( dxy );
+    double dz = fabs(aPatMuon.muonBestTrack()->dz(pv.position()));
+    aMuon.setDz( dz ); 
  
     out->push_back(aMuon);
-
   }
 
   iEvent.put(out);

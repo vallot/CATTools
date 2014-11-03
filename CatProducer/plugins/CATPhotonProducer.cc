@@ -1,9 +1,3 @@
-/**
-   \class    cat::CATPhotonProducer CATPhotonProducer.h "CATTools/CatProducer/interface/CATPhotonProducer.h"
-   \brief    CAT Photon 
-*/
-
-
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -21,6 +15,9 @@
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
 //#include "FWCore/Utilities/interface/isFinite.h"
 
+using namespace edm;
+using namespace std;
+
 namespace cat {
 
   class CATPhotonProducer : public edm::EDProducer {
@@ -31,25 +28,20 @@ namespace cat {
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
   private:
-    //   edm::EDGetTokenT<edm::View<pat::Photon> > src_;
     edm::InputTag src_;
-
   };
 
 } // namespace
 
 cat::CATPhotonProducer::CATPhotonProducer(const edm::ParameterSet & iConfig) :
-  //  src_(consumes<edm::View<pat::Photon> >(iConfig.getParameter<edm::InputTag>("src")))
   src_(iConfig.getParameter<edm::InputTag>( "src" ))
 {
   produces<std::vector<cat::Photon> >();
 }
 
 void 
-cat::CATPhotonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) {
-  using namespace edm;
-  using namespace std;
-
+cat::CATPhotonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
+{
   Handle<View<pat::Photon> > src;
   iEvent.getByLabel(src_, src);
 

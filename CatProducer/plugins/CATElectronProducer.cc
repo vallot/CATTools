@@ -1,9 +1,3 @@
-/**
-   \class    cat::CATElectronProducer CATElectronProducer.h "CATTools/CatProducer/interface/CATElectronProducer.h"
-   \brief    CAT Electron 
-*/
-
-
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -19,6 +13,9 @@
 #include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
 
+using namespace edm;
+using namespace std;
+
 namespace cat {
 
   class CATElectronProducer : public edm::EDProducer {
@@ -29,7 +26,6 @@ namespace cat {
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
   private:
-    //edm::EDGetTokenT<edm::View<pat::Electron> > src_;
     edm::InputTag src_;
 
   };
@@ -37,7 +33,6 @@ namespace cat {
 } // namespace
 
 cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig) :
-  //    src_(consumes<edm::View<pat::Electron> >(iConfig.getParameter<edm::InputTag>("src")))
   src_(iConfig.getParameter<edm::InputTag>( "src" ))
 {
   produces<std::vector<cat::Electron> >();
@@ -46,9 +41,6 @@ cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig)
 void 
 cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) 
 {
-  using namespace edm;
-  using namespace std;
-
   Handle<View<pat::Electron> > src;
   iEvent.getByLabel(src_, src);
 

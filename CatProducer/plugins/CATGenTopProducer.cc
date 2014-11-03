@@ -1,9 +1,3 @@
-/**
-   \class    cat::CATGenTopProducer CATGenTopProducer.h "CATTools/CatProducer/interface/CATGenTopProducer.h"
-   \brief    CAT GenTop 
-*/
-
-
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -37,11 +31,8 @@ namespace cat {
     virtual ~CATGenTopProducer() { }
 
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
-      
-
+    
   private:
-    // edm::EDGetTokenT<edm::View<reco::GenJet> > genJetLabel_;
-    // edm::EDGetTokenT<edm::View<reco::GenParticle> > mcParticleLabel_;
     edm::InputTag genJetLabel_;
     edm::InputTag mcParticleLabel_;
 
@@ -50,8 +41,6 @@ namespace cat {
 } // namespace
 
 cat::CATGenTopProducer::CATGenTopProducer(const edm::ParameterSet & iConfig) :
-  // genJetLabel_(consumes<edm::View<reco::GenJet> >(iConfig.getParameter<edm::InputTag>("genJetLabel"))),
-  // mcParticleLabel_(consumes<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("mcParticleLabel")))
   genJetLabel_(iConfig.getParameter<edm::InputTag>( "genJetLabel" )),
   mcParticleLabel_(iConfig.getParameter<edm::InputTag>( "mcParticleLabel" ))
 {
