@@ -39,16 +39,12 @@ namespace cat {
 
   private:
     edm::InputTag src_;
-
-    const std::vector<std::string> btagType_;
-
   };
 
 } // namespace
 
 cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
-  src_(iConfig.getParameter<edm::InputTag>( "src" )),
-  btagType_(iConfig.getParameter<std::vector<std::string> >("btagType"))
+  src_(iConfig.getParameter<edm::InputTag>( "src" ))
 {
   produces<std::vector<cat::Jet> >();
 }
@@ -70,14 +66,7 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
     cat::Jet aJet(aPatJet);
 
     aJet.setLooseId( looseId );
-
-    for(unsigned int i = 0; i < btagType_.size(); i++){
-      const std::string tag(btagType_.at(i));
-      aJet.setbTag( i, aPatJet.bDiscriminator(tag), tag);
-      //output->btag_[i] = input->bDiscriminator(tag);
-      //output->btagNames_[i] = tag;
-    }
-      
+    aJet.setbtag_csv(aPatJet.bDiscriminator("combinedSecondaryVertexBJetTags"));
     //secondary vertex b-tagging information
     if( aPatJet.hasUserFloat("secvtxMass") ) aJet.setSecVtxMass( aPatJet.userFloat("secvtxMass") );
     if( aPatJet.hasUserFloat("Lxy") ) aJet.setLxy( aPatJet.userFloat("Lxy") );
