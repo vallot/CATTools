@@ -1,13 +1,12 @@
 from PhysicsTools.PatAlgos.patTemplate_cfg import *
-#process.load("SimGeneral.HepPDTESSource.pythiapdt_cfi")
-process.load("PhysicsTools.PatAlgos.patSequences_cff")
-process.load("CATTools.CatProducer.eventCleaning.eventCleaning_cff")
-process.load("CATTools.CatProducer.catCandidates_cff")
-process.totaEvents   = cms.EDProducer("EventCountProducer")
 
 runOnMC=True
 postfix = "PFlow"
 jetAlgo="AK5"
+
+process.load("CATTools.CatProducer.eventCleaning.eventCleaning_cff")
+process.load("CATTools.CatProducer.catCandidates_cff")
+process.totaEvents   = cms.EDProducer("EventCountProducer")
 
 from Configuration.AlCa.autoCond import autoCond
 if runOnMC:
@@ -19,7 +18,7 @@ else:
 
 from PhysicsTools.PatAlgos.tools.pfTools import *
 usePF2PAT(process, runPF2PAT=True, jetAlgo=jetAlgo, jetCorrections=("AK5PFchs", jecLevels),
-          runOnMC=runOnMC, postfix=postfix, typeIMetCorrections=False)
+          runOnMC=runOnMC, postfix=postfix, typeIMetCorrections=True)
 
 if not runOnMC:
     removeMCMatchingPF2PAT( process, '' )
@@ -32,9 +31,9 @@ switchOnTrigger( process, sequence = "patPF2PATSequence"+postfix )
 
 process.p = cms.Path(process.totaEvents
                      +getattr(process,"patPF2PATSequence"+postfix)
+                     +process.photonMatch+process.patPhotons+process.selectedPatPhotons
                      +process.eventCleaning+process.makeCatCandidates)
 
-from PhysicsTools.PatAlgos.patEventContent_cff import *
 process.out.outputCommands = cms.untracked.vstring(
     'drop *',
     'keep *_cat*_*_*',
@@ -47,6 +46,7 @@ process.out.outputCommands = cms.untracked.vstring(
     #'keep *_patTrigger*_*_*',
     #'keep *_*_*_PAT',
     )
+process.out.fileName = cms.untracked.string('catTuple.root')
 
 # top projections in PF2PAT:
 getattr(process,"pfNoPileUp"+postfix).enable = True
@@ -79,17 +79,24 @@ process.patPFParticlesPFlow.embedGenMatch = cms.bool(True)
 process.patMuonsPFlow.isolationValues.user = cms.VInputTag("muPFIsoValueCharged03PFlow","muPFIsoValueNeutral03PFlow","muPFIsoValueGamma03PFlow","muPFIsoValuePU03PFlow","muPFIsoValueChargedAll03PFlow")
 process.patElectronsPFlow.isolationValues.user = cms.VInputTag("elPFIsoValueCharged03PFIdPFlow","elPFIsoValueNeutral03PFIdPFlow","elPFIsoValueGamma03PFIdPFlow","elPFIsoValuePU03PFIdPFlow","elPFIsoValueChargedAll03PFIdPFlow")
 
+process.patJetsPFlow.userData.userFunctions = cms.vstring( "? hasTagInfo('secondaryVertex') && tagInfoSecondaryVertex('secondaryVertex').nVertices() > 0 ? "
+"tagInfoSecondaryVertex('secondaryVertex').secondaryVertex(0).p4().mass() : 0",
+"? hasTagInfo('secondaryVertex') && tagInfoSecondaryVertex('secondaryVertex').nVertices() > 0 ? "
+"tagInfoSecondaryVertex('secondaryVertex').flightDistance(0).value() : 0",
+"? hasTagInfo('secondaryVertex') && tagInfoSecondaryVertex('secondaryVertex').nVertices() > 0 ? "
+"tagInfoSecondaryVertex('secondaryVertex').flightDistance(0).error() : 0",
+)
+process.patJetsPFlow.userData.userFunctionLabels = cms.vstring('secvtxMass','Lxy','LxyErr')
+
 process.catJets.src = cms.InputTag("selectedPatJetsPFlow")
 process.catMuons.src = cms.InputTag("selectedPatMuonsPFlow")
 process.catElectrons.src = cms.InputTag("selectedPatElectronsPFlow")
-process.catPhotons.src = cms.InputTag("patPhotons")
+process.catPhotons.src = cms.InputTag("selectedPatPhotons")
 process.catMETs.src = cms.InputTag("patMETsPFlow")
-
-process.maxEvents.input = 100
-process.out.fileName = 'catTuple.root'
 
 process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(False))
 
+process.maxEvents.input = 1000
 process.source.fileNames = cms.untracked.vstring(
 'file:/pnfs/user/kraft_data/FEEEC639-4A98-E211-BE1C-002618943919.root',
 #'file:/cms/home/jlee/scratch/QCD_Pt-15to3000_TuneEE3C_Flat_8TeV_herwigpp/001A0DC8-C313-E211-BCCB-00261894397B.root'
