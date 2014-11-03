@@ -2,6 +2,8 @@ CATTools
 ========
 
 for cms analysis
+
+First of all, Please *fork* CATTools repositories at GitHUB.
 Test file : /pnfs/user/jlee/catTuple.root
 ```bash
 scram p -n cat CMSSW CMSSW_5_3_22_patch1
