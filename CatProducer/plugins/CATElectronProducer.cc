@@ -12,6 +12,7 @@
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
 #include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
+#include "DataFormats/VertexReco/interface/Vertex.h"
 
 using namespace edm;
 using namespace std;
@@ -27,13 +28,15 @@ namespace cat {
 
   private:
     edm::InputTag src_;
+    edm::InputTag vertexLabel_;
 
   };
 
 } // namespace
 
 cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig) :
-  src_(iConfig.getParameter<edm::InputTag>( "src" ))
+  src_(iConfig.getParameter<edm::InputTag>( "src" )),
+  vertexLabel_(iConfig.getParameter<edm::InputTag>( "vertexLabel" ))
 {
   produces<std::vector<cat::Electron> >();
 }
@@ -43,6 +46,11 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
 {
   Handle<View<pat::Electron> > src;
   iEvent.getByLabel(src_, src);
+
+  Handle<View<reco::Vertex> > recVtxs;
+  iEvent.getByLabel(vertexLabel_,recVtxs);
+
+  reco::Vertex pv = recVtxs->at(0);
 
   auto_ptr<vector<cat::Electron> >  out(new vector<cat::Electron>());
 
@@ -60,7 +68,19 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     aElectron.setNeutralHadronIso03( aPatElectron.userIsolation("pat::User2Iso") );
     aElectron.setPhotonIso03( aPatElectron.userIsolation("pat::User3Iso") );
     aElectron.setPUChargedHadronIso03( aPatElectron.userIsolation("pat::User4Iso") );
-    aElectron.setmva(0.0);
+    
+    aElectron.setscEta( aPatElectron.superCluster()->eta());
+    aElectron.setmva( aPatElectron.electronID("mvaTrigV0")) ;
+
+    double dxy = fabs(aPatElectron.gsfTrack()->dxy(pv.position()));
+    aElectron.setdxy( dxy ) ;
+    double dz = fabs(aPatElectron.gsfTrack()->dz(pv.position()));
+    aElectron.setdz( dz ) ;
+
+
+    aElectron.setconversionVeto( (aPatElectron.passConversionVeto() ) && (aPatElectron.gsfTrack()->trackerExpectedHitsInner().numberOfHits()<=0) ) ;
+    aElectron.setchargeIDFull( aPatElectron.isGsfCtfScPixChargeConsistent()) ;
+    
 
     out->push_back(aElectron);
   }
