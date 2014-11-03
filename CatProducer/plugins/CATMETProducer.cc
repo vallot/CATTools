@@ -1,9 +1,3 @@
-/**
-   \class    cat::CATMETProducer CATMETProducer.h "CATTools/CatProducer/interface/CATMETProducer.h"
-   \brief    CAT MET 
-*/
-
-
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -21,6 +15,9 @@
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
 //#include "FWCore/Utilities/interface/isFinite.h"
 
+using namespace edm;
+using namespace std;
+
 namespace cat {
 
   class CATMETProducer : public edm::EDProducer {
@@ -31,7 +28,6 @@ namespace cat {
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
   private:
-    //edm::EDGetTokenT<edm::View<pat::MET> > src_;
     edm::InputTag src_;
 
   };
@@ -39,17 +35,14 @@ namespace cat {
 } // namespace
 
 cat::CATMETProducer::CATMETProducer(const edm::ParameterSet & iConfig) :
-  //  src_(consumes<edm::View<pat::MET> >(iConfig.getParameter<edm::InputTag>("src")))
   src_(iConfig.getParameter<edm::InputTag>( "src" ))
 {
   produces<std::vector<cat::MET> >();
 }
 
 void 
-cat::CATMETProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) {
-  using namespace edm;
-  using namespace std;
-
+cat::CATMETProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
+{
   Handle<View<pat::MET> > src;
   iEvent.getByLabel(src_, src);
 

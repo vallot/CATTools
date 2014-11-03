@@ -1,9 +1,3 @@
-/**
-   \class    cat::CATMuonProducer CATMuonProducer.h "CATTools/CatProducer/interface/CATMuonProducer.h"
-   \brief    CAT Muon 
-*/
-
-
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -37,10 +31,6 @@ namespace cat {
     bool MatchObjects( const reco::Candidate::LorentzVector& pasObj, const reco::Candidate::LorentzVector& proObj, bool exact );
 
   private:
-    // edm::EDGetTokenT<edm::View<pat::Muon> > src_;
-    // edm::EDGetTokenT<edm::View<reco::GenParticle> > mcLabel_;
-    // edm::EDGetTokenT<edm::View<reco::Vertex> > vertexLabel_;
-    // edm::EDGetTokenT<reco::BeamSpot> beamLineSrc_;
     edm::InputTag src_;
     edm::InputTag mcLabel_;
     edm::InputTag vertexLabel_;
@@ -51,10 +41,6 @@ namespace cat {
 } // namespace
 
 cat::CATMuonProducer::CATMuonProducer(const edm::ParameterSet & iConfig) :
-  // src_(consumes<edm::View<pat::Muon> >(iConfig.getParameter<edm::InputTag>("src"))),
-  // mcLabel_(consumes<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("mcLabel"))),
-  // vertexLabel_(consumes<edm::View<reco::Vertex> >(iConfig.getParameter<edm::InputTag>("vertexLabel"))),
-  // beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc")))
   src_(iConfig.getParameter<edm::InputTag>( "src" )),
   mcLabel_(iConfig.getParameter<edm::InputTag>( "mcLabel" )),
   vertexLabel_(iConfig.getParameter<edm::InputTag>( "vertexLabel" )),

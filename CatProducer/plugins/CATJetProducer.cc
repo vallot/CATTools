@@ -1,9 +1,3 @@
-/**
-   \class    cat::CATJetProducer CATJetProducer.h "CATTools/CatProducer/interface/CATJetProducer.h"
-   \brief    CAT Jet 
-*/
-
-
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -20,6 +14,9 @@
 #include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
 //#include "FWCore/Utilities/interface/isFinite.h"
+
+using namespace edm;
+using namespace std;
 
 namespace cat {
 
@@ -41,7 +38,6 @@ namespace cat {
     const reco::Candidate* lastCHadron(const reco::Candidate &c);
 
   private:
-    // edm::EDGetTokenT<edm::View<pat::Jet> > src_;
     edm::InputTag src_;
 
     const std::vector<std::string> btagType_;
@@ -51,7 +47,6 @@ namespace cat {
 } // namespace
 
 cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
-  //  src_(consumes<edm::View<pat::Jet> >(iConfig.getParameter<edm::InputTag>("src"))),
   src_(iConfig.getParameter<edm::InputTag>( "src" )),
   btagType_(iConfig.getParameter<std::vector<std::string> >("btagType"))
 {
@@ -60,8 +55,6 @@ cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
 
 void 
 cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) {
-  using namespace edm;
-  using namespace std;
 
   Handle<View<pat::Jet> > src;
   iEvent.getByLabel(src_, src);

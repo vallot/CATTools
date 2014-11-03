@@ -1,9 +1,3 @@
-/**
-   \class    cat::CATMCParticleProducer CATMCParticleProducer.h "CATTools/CatProducer/interface/CATMCParticleProducer.h"
-   \brief    CAT MCParticle 
-*/
-
-
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -35,7 +29,6 @@ namespace cat {
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
   private:
-    //edm::EDGetTokenT<edm::View<reco::GenParticle> > src_;
     edm::InputTag src_;
 
     const double pt_;
@@ -46,7 +39,6 @@ namespace cat {
 } // namespace
 
 cat::CATMCParticleProducer::CATMCParticleProducer(const edm::ParameterSet & iConfig) :
-  //  src_(consumes<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("src"))),
   src_(iConfig.getParameter<edm::InputTag>( "src" )),
   pt_(iConfig.getParameter<double>("pt")),
   eta_(iConfig.getParameter<double>("eta"))
