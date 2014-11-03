@@ -58,7 +58,9 @@ cat::CATMCParticleProducer::produce(edm::Event & iEvent, const edm::EventSetup &
     unsigned int idx = it - genParticles->begin();
     const reco::GenParticle & aGenParticle = genParticles->at(idx);
 
-    if ( aGenParticle.pt() < pt_ || fabs(aGenParticle.eta()) > eta_ ) continue;  
+    // fix me!! have better pruning of mc particles
+    if (fabs(aGenParticle.pdgid()) != 13) // including all muons for now
+      if ( aGenParticle.pt() < pt_ || fabs(aGenParticle.eta()) > eta_  ) continue;  
 
     cat::MCParticle aMCParticle(aGenParticle);
 
