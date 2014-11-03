@@ -86,10 +86,10 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     aMuon.setPhotonIso04( aPatMuon.photonIso() );
     aMuon.setPUChargedHadronIso04( aPatMuon.puChargedHadronIso() );
 
-    // aMuon.setChargedHadronIso03( aPatMuon.userIsolation("pat::User1Iso") );
-    // aMuon.setNeutralHadronIso03( aPatMuon.userIsolation("pat::User2Iso") );
-    // aMuon.setPhotonIso03( aPatMuon.userIsolation("pat::User3Iso") );
-    // aMuon.setPUChargedHadronIso03( aPatMuon.userIsolation("pat::User4Iso") );
+    aMuon.setChargedHadronIso03( aPatMuon.userIsolation("pat::User1Iso") );
+    aMuon.setNeutralHadronIso03( aPatMuon.userIsolation("pat::User2Iso") );
+    aMuon.setPhotonIso03( aPatMuon.userIsolation("pat::User3Iso") );
+    aMuon.setPUChargedHadronIso03( aPatMuon.userIsolation("pat::User4Iso") );
 
     aMuon.setIsGlobalMuon( aPatMuon.isGlobalMuon() );
     aMuon.setIsPFMuon( aPatMuon.isPFMuon() );
