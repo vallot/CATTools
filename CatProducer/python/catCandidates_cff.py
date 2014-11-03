@@ -13,7 +13,7 @@ makeCatCandidates =  cms.Sequence(
     catMuons*
     catElectrons*
     # turning off for now since pf photons dont work
-    #catPhotons*
+    catPhotons*
     catJets*
     catMETs*
     # MC information below
