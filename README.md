@@ -10,7 +10,7 @@ git-cms-addpkg EgammaAnalysis/ElectronTools
 cd EgammaAnalysis/ElectronTools/data
 cat download.url | xargs wget
 cd -
-git clone https://github.com/$USER/CATTools.git
+git clone git@github.com:$USER/CATTools.git
 git checkout CMSSW_5_3_22
 scram b -j 8
 ```
