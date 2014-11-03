@@ -57,7 +57,7 @@ namespace cat {
     void setdz(float i) {  dz_ = i; }
     void setconversionVeto(bool i) {  conversionVeto_ = i; }
     void setchargeIDFull(bool i) {  chargeIDFull_ = i; }
-    void setisPF(bool i) {  isPF_ = i; }
+    //void setisPF(bool i) {  isPF_ = i; }
 
     void setChargedHadronIso03(float i) { chargedHadronIso03_ = i; }
     void setPUChargedHadronIso03(float i) { puChargedHadronIso03_ = i; }
