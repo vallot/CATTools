@@ -60,7 +60,7 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     aElectron.setNeutralHadronIso03( aPatElectron.userIsolation("pat::User2Iso") );
     aElectron.setPhotonIso03( aPatElectron.userIsolation("pat::User3Iso") );
     aElectron.setPUChargedHadronIso03( aPatElectron.userIsolation("pat::User4Iso") );
-    aElectron.setMva(0.0);
+    aElectron.setmva(0.0);
 
     out->push_back(aElectron);
   }

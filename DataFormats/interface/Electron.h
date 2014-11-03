@@ -44,8 +44,20 @@ namespace cat {
     }
 
     float mva() const { return mva_; }
+    float scEta() const { return scEta_; }
+    float dxy() const { return dxy_; }
+    float dz() const { return dz_; }
+    bool conversionVeto() const { return conversionVeto_; }
+    bool chargeIDFull() const { return chargeIDFull_; }
+    bool isPF() const { return isPF_; }
 
-    void setMva(float i) { mva_ = i; }
+    void setmva(float i) { mva_ = i; }
+    void setscEta(float i) { scEta_ = i; }
+    void setdxy(float i) {  dxy_ = i; }
+    void setdz(float i) {  dz_ = i; }
+    void setconversionVeto(bool i) {  conversionVeto_ = i; }
+    void setchargeIDFull(bool i) {  chargeIDFull_ = i; }
+    void setisPF(bool i) {  isPF_ = i; }
 
     void setChargedHadronIso03(float i) { chargedHadronIso03_ = i; }
     void setPUChargedHadronIso03(float i) { puChargedHadronIso03_ = i; }
