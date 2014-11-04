@@ -5,12 +5,11 @@
   // environment is set up.
   //
   TString cmsswbase = getenv("CMSSW_BASE");
-  //gSystem->Load("pluginCATToolsCatProducer.so");
-  //gSystem->Load("$ROOTSYS/lib/libDCache.so");  
-  //gSystem->Load("libTopBrusselsTopTreeProducer.so");
+  //gSystem->Load("libCATToolsDataFormats.so");
   //ROOT::Cintex::Cintex::Enable();
-  //gSystem->Load("/afs/cern.ch/user/t/tjkim/Delphes/Delphes-3.0.10/libDelphes");
- 
+
+//  gSystem->Load("/cms/home/tjkim/fcnc/delphesMA5tune/libDelphesMA5tune.so");
+
   if (cmsswbase.Length() > 0) {
     //
     // The CMSSW environment is defined (this is true even for FW Lite)
@@ -22,6 +21,5 @@
     gSystem->Load("libDataFormatsFWLite.so");
     gSystem->Load("libDataFormatsPatCandidates.so");
    }
-   //defstyle();
-}
 
+}
