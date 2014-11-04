@@ -1,10 +1,15 @@
 import FWCore.ParameterSet.Config as cms
 
+catMuonsSource = "selectedPatMuonsPFlow"
+catVertexSource = "offlinePrimaryVertices"
+catMCsource = "genParticles"
+catBeamSpot = "offlineBeamSpot"
+
 catMuons = cms.EDProducer("CATMuonProducer",
     # input collection
-    src = cms.InputTag("patMuons"),
-    mcLabel = cms.InputTag("genParticles"),
-    vertexLabel = cms.InputTag('offlinePrimaryVertices'),
-    beamLineSrc = cms.InputTag("offlineBeamSpot"),
+    src = cms.InputTag(catMuonsSource),
+    mcLabel = cms.InputTag(catMCsource),
+    vertexLabel = cms.InputTag(catVertexSource),
+    beamLineSrc = cms.InputTag(catBeamSpot),
 )
 
