@@ -42,6 +42,7 @@ process.out.outputCommands = cms.untracked.vstring(
     'keep PileupSummaryInfos_*_*_*',
     'keep edmMergeableCounter_*_*_*',
     'keep patTriggerPaths_patTrigger*_*_*',
+    #'keep *_selectedPatJets_*_*',
     #'keep *_TriggerResults_*_PAT',
     #'keep *_patTrigger*_*_*',
     #'keep *_*_*_PAT',
@@ -54,10 +55,8 @@ getattr(process,"pfNoMuon"+postfix).enable = True
 getattr(process,"pfNoElectron"+postfix).enable = True
 getattr(process,"pfNoTau"+postfix).enable = False
 getattr(process,"pfNoJet"+postfix).enable = True
-
 # verbose flags for the PF2PAT modules
 getattr(process,"pfNoMuon"+postfix).verbose = False
-
 # enable delta beta correction for muon selection in PF2PAT?
 getattr(process,"pfIsolatedMuons"+postfix).doDeltaBetaCorrection = False
 
@@ -79,6 +78,7 @@ process.patPFParticlesPFlow.embedGenMatch = cms.bool(True)
 process.patMuonsPFlow.isolationValues.user = cms.VInputTag("muPFIsoValueCharged03PFlow","muPFIsoValueNeutral03PFlow","muPFIsoValueGamma03PFlow","muPFIsoValuePU03PFlow","muPFIsoValueChargedAll03PFlow")
 process.patElectronsPFlow.isolationValues.user = cms.VInputTag("elPFIsoValueCharged03PFIdPFlow","elPFIsoValueNeutral03PFIdPFlow","elPFIsoValueGamma03PFIdPFlow","elPFIsoValuePU03PFIdPFlow","elPFIsoValueChargedAll03PFIdPFlow")
 
+process.patJetsPFlow.addTagInfos = cms.bool(True)
 process.patJetsPFlow.userData.userFunctions = cms.vstring( "? hasTagInfo('secondaryVertex') && tagInfoSecondaryVertex('secondaryVertex').nVertices() > 0 ? "
 "tagInfoSecondaryVertex('secondaryVertex').secondaryVertex(0).p4().mass() : 0",
 "? hasTagInfo('secondaryVertex') && tagInfoSecondaryVertex('secondaryVertex').nVertices() > 0 ? "
@@ -96,7 +96,7 @@ process.catMETs.src = cms.InputTag("patMETsPFlow")
 
 process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(False))
 
-process.maxEvents.input = 1000
+process.maxEvents.input = 100
 process.source.fileNames = cms.untracked.vstring(
 'file:/pnfs/user/kraft_data/FEEEC639-4A98-E211-BE1C-002618943919.root',
 #'file:/cms/home/jlee/scratch/QCD_Pt-15to3000_TuneEE3C_Flat_8TeV_herwigpp/001A0DC8-C313-E211-BCCB-00261894397B.root'
