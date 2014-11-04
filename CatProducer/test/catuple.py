@@ -4,7 +4,7 @@ jetAlgo="AK4"
 
 from CATTools.CatProducer.catPatSetup_cff import *
 from CATTools.CatProducer.catSetup_cff import *
-catPatConfig(process, runOnMC, postfix, jetAlgo):
+catPatConfig(process, runOnMC, postfix, jetAlgo)
 catTool(process)
 
 process.maxEvents.input = 10
