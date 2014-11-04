@@ -17,9 +17,15 @@ def catSetup(process):
 
     process.catJets.src = cms.InputTag(catJetsSource)
     process.catMuons.src = cms.InputTag(catMuonsSource)
+    process.catMuons.mcLabel = cms.InputTag(catMCsource)
+    process.catMuons.vertexLabel = cms.InputTag(catVertexSource)
+    process.catMuons.beamLineSrc = cms.InputTag(catBeamSpot)
     process.catElectrons.src = cms.InputTag(catElectronsSource)
+    process.catElectrons.vertexLabel = cms.InputTag(catVertexSource)
     process.catPhotons.src = cms.InputTag(catPhotonsSource)
     process.catMETs.src = cms.InputTag(catMETsSource)
+    process.catGenJets.src = cms.InputTag(catGenJetsSource)
+    process.catMCParticles.src = cms.InputTag(catMCsource)
 
     ## electron ID tool
     process.load('EgammaAnalysis.ElectronTools.electronIdMVAProducer_cfi')
