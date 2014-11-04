@@ -1,21 +1,25 @@
-from PhysicsTools.PatAlgos.patTemplate_cfg import *
+import FWCore.ParameterSet.Config as cms
 
-catJetsSource = "selectedPatJetsPFlow"
-catGenJetsSource = "ak5GenJets"
-catMuonsSource = "selectedPatMuonsPFlow"
-catElectronsSource = "selectedPatElectronsPFlow"
-catPhotonsSource = "selectedPatPhotons"
-catMETsSource = "patMETsPFlow"
-catVertexSource = "offlinePrimaryVertices"
-catMCsource = "genParticles"
-catBeamSpot = "offlineBeamSpot"
-
-def catTool(process):
+def catSetup(process):
     process.load("CATTools.CatProducer.eventCleaning.eventCleaning_cff")
     process.load("CATTools.CatProducer.catCandidates_cff")
-
-    print "process.catJets.src",process.catJets.src
     process.p += process.eventCleaning+process.makeCatCandidates
+
+    catJetsSource = "selectedPatJetsPFlow"
+    catGenJetsSource = "ak5GenJets"
+    catMuonsSource = "selectedPatMuonsPFlow"
+    catElectronsSource = "selectedPatElectronsPFlow"
+    catPhotonsSource = "selectedPatPhotons"
+    catMETsSource = "patMETsPFlow"
+    catVertexSource = "offlinePrimaryVertices"
+    catMCsource = "genParticles"
+    catBeamSpot = "offlineBeamSpot"
+
+    process.catJets.src = cms.InputTag(catJetsSource)
+    process.catMuons.src = cms.InputTag(catMuonsSource)
+    process.catElectrons.src = cms.InputTag(catElectronsSource)
+    process.catPhotons.src = cms.InputTag(catPhotonsSource)
+    process.catMETs.src = cms.InputTag(catMETsSource)
 
     ## electron ID tool
     process.load('EgammaAnalysis.ElectronTools.electronIdMVAProducer_cfi')

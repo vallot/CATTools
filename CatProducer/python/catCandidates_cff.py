@@ -12,7 +12,6 @@ from CATTools.CatProducer.CATMcParticleProducer_cfi import *
 makeCatCandidates =  cms.Sequence( 
     catMuons*
     catElectrons*
-    # turning off for now since pf photons dont work
     catPhotons*
     catJets*
     catMETs*

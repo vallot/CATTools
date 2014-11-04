@@ -1,11 +1,12 @@
+from PhysicsTools.PatAlgos.patTemplate_cfg import *
 runOnMC=True
 postfix = "PFlow"
-jetAlgo="AK4"
+jetAlgo="AK5"
 
 from CATTools.CatProducer.catPatSetup_cff import *
 from CATTools.CatProducer.catSetup_cff import *
 catPatConfig(process, runOnMC, postfix, jetAlgo)
-catTool(process)
+catSetup(process)
 
 process.maxEvents.input = 10
 process.source.fileNames = cms.untracked.vstring(

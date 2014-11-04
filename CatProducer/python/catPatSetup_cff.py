@@ -1,5 +1,5 @@
+import FWCore.ParameterSet.Config as cms
 ## based on patTuple_PF2PAT_cfg
-from PhysicsTools.PatAlgos.patTemplate_cfg import *
 
 def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5"):
     from Configuration.AlCa.autoCond import autoCond
@@ -10,7 +10,7 @@ def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5"):
         process.GlobalTag.globaltag = autoCond['com10']
         jecLevels = ['L1FastJet','L2Relative', 'L3Absolute', 'L2L3Residual']
 
-    from PhysicsTools.PatAlgos.tools.pfTools import *
+    from PhysicsTools.PatAlgos.tools.pfTools import usePF2PAT
     usePF2PAT(process, runPF2PAT=True, jetAlgo=jetAlgo, jetCorrections=("AK5PFchs", jecLevels),
             runOnMC=runOnMC, postfix=postfix, typeIMetCorrections=True)
 
@@ -22,7 +22,7 @@ def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5"):
     enablePileUpCorrectionInPF2PAT( process, postfix, sequence = "patPF2PATSequence"+postfix)
 
     ## adding trigger info
-    from PhysicsTools.PatAlgos.tools.trigTools import *
+    from PhysicsTools.PatAlgos.tools.trigTools import switchOnTrigger
     switchOnTrigger( process, sequence = "patPF2PATSequence"+postfix )
 
     ## total event counter
