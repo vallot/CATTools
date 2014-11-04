@@ -32,9 +32,9 @@ switchOnTrigger( process, sequence = "patPF2PATSequence"+postfix )
 process.totaEvents = cms.EDProducer("EventCountProducer")
 
 process.p = cms.Path(process.totaEvents
-                     +getattr(process,"patPF2PATSequence"+postfix)
-                     +process.photonMatch+process.patPhotons+process.selectedPatPhotons
-                     )
+    + getattr(process,"patPF2PATSequence"+postfix)
+    + process.photonMatch+process.patPhotons+process.selectedPatPhotons
+    )
 
 # top projections in PF2PAT:
 getattr(process,"pfNoPileUp"+postfix).enable = True

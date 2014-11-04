@@ -1,5 +1,8 @@
-from CATTools/CatProducer.catTemplate_cfg import *
-process.load("CATTools.CatProducer.catTools")
+from CATTools.CatProducer.catTemplate_cfg import *
+from CATTools.CatProducer.catTools import *
+catTool(process)
+
+print process.p
 
 runOnMC=True
 postfix = "PFlow"
