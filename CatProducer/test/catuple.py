@@ -2,8 +2,9 @@ runOnMC=True
 postfix = "PFlow"
 jetAlgo="AK4"
 
-from CATTools.CatProducer.catTemplate_cfg import *
-from CATTools.CatProducer.catTools import *
+from CATTools.CatProducer.catPatSetup_cff import *
+from CATTools.CatProducer.catSetup_cff import *
+catPatConfig(process, runOnMC, postfix, jetAlgo):
 catTool(process)
 
 process.maxEvents.input = 10
