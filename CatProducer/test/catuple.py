@@ -1,14 +1,12 @@
+runOnMC=True
+postfix = "PFlow"
+jetAlgo="AK4"
+
 from CATTools.CatProducer.catTemplate_cfg import *
 from CATTools.CatProducer.catTools import *
 catTool(process)
 
-print process.p
-
-runOnMC=True
-postfix = "PFlow"
-jetAlgo="AK5"
-
-process.maxEvents.input = 100
+process.maxEvents.input = 10
 process.source.fileNames = cms.untracked.vstring(
 'file:/pnfs/user/kraft_data/FEEEC639-4A98-E211-BE1C-002618943919.root',
 #'file:/cms/home/jlee/scratch/QCD_Pt-15to3000_TuneEE3C_Flat_8TeV_herwigpp/001A0DC8-C313-E211-BCCB-00261894397B.root'

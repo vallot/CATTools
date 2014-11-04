@@ -5,6 +5,7 @@ runOnMC=True
 postfix = "PFlow"
 jetAlgo="AK5"
 
+print "jetAlgo", jetAlgo
 from Configuration.AlCa.autoCond import autoCond
 if runOnMC:
     process.GlobalTag.globaltag = autoCond['startup']

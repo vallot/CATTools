@@ -1,4 +1,4 @@
-import FWCore.ParameterSet.Config as cms
+from PhysicsTools.PatAlgos.patTemplate_cfg import *
 
 catJetsSource = "selectedPatJetsPFlow"
 catGenJetsSource = "ak5GenJets"
@@ -14,6 +14,7 @@ def catTool(process):
     process.load("CATTools.CatProducer.eventCleaning.eventCleaning_cff")
     process.load("CATTools.CatProducer.catCandidates_cff")
 
+    print "process.catJets.src",process.catJets.src
     process.p += process.eventCleaning+process.makeCatCandidates
 
     ## electron ID tool
