@@ -13,7 +13,7 @@ cd EgammaAnalysis/ElectronTools/data
 cat download.url | xargs wget
 cd $SRT_CMSSW_BASE_SCRAMRTDEL/src
 git clone git@github.com:vallot/CATTools.git
-git checkout CMSSW_5_3_22
+git checkout tags/CMSSW_5_3_22_1
 scram b -j 8
 
 cmsRun $SRT_CMSSW_BASE_SCRAMRTDEL/src/CATTools/CatProducer/test/runCatupling.py
