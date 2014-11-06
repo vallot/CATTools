@@ -6,5 +6,6 @@ catMuons = cms.EDProducer("CATMuonProducer",
     mcLabel = cms.InputTag("genParticles"),
     vertexLabel = cms.InputTag("offlinePrimaryVertices"),
     beamLineSrc = cms.InputTag("offlineBeamSpot"),
+    runOnMC = cms.bool(True)
 )
 
