@@ -40,16 +40,10 @@ namespace cat {
       else { return photonIso04_;} 
     }
 
-    float relIso(float dR=0.3,bool isMC=true ) const {
-      ElectronEffectiveArea::ElectronEffectiveAreaType electronEAType;
-      ElectronEffectiveArea::ElectronEffectiveAreaTarget electronEATarget; 
-      if( dR < 0.35)  electronEAType = ElectronEffectiveArea::kEleGammaAndNeutralHadronIso03;
-      else            electronEAType = ElectronEffectiveArea::kEleGammaAndNeutralHadronIso04;
-      if (isMC )      electronEATarget = ElectronEffectiveArea::kEleEAFall11MC; 
-      else            electronEATarget = ElectronEffectiveArea::kEleEAData2012;
-
-      double elEffArea = ElectronEffectiveArea::GetElectronEffectiveArea(electronEAType, scEta_, electronEATarget);
-
+    float relIso(float dR=0.3 ) const {
+      double elEffArea;
+      if( dR < 0.35) elEffArea = elecEA03_; 
+      else  elEffArea = elecEA04_; 
       return (chargedHadronIso(dR)+ std::max(0., neutralHadronIso(dR)+photonIso(dR)-elEffArea*rho_)) / pt_;
     }
 
@@ -74,11 +68,23 @@ namespace cat {
     void setPUChargedHadronIso03(float i) { puChargedHadronIso03_ = i; }
     void setNeutralHadronIso03(float i) { neutralHadronIso03_ = i; }
     void setPhotonIso03(float i) { photonIso03_ = i; }
+    void setEffArea03( bool runOnMC ) {
+      ElectronEffectiveArea::ElectronEffectiveAreaTarget electronEATarget; 
+      if ( runOnMC ) electronEATarget = ElectronEffectiveArea::kEleEAFall11MC;
+      else electronEATarget = ElectronEffectiveArea::kEleEAData2012;
+      elecEA03_ = ElectronEffectiveArea::GetElectronEffectiveArea( ElectronEffectiveArea::kEleGammaAndNeutralHadronIso03, scEta_, electronEATarget);
+    }
 
     void setChargedHadronIso04(float i) { chargedHadronIso04_ = i; }
     void setPUChargedHadronIso04(float i) { puChargedHadronIso04_ = i; }
     void setNeutralHadronIso04(float i) { neutralHadronIso04_ = i; }
     void setPhotonIso04(float i) { photonIso04_ = i; }
+    void setEffArea04( bool runOnMC ) {
+      ElectronEffectiveArea::ElectronEffectiveAreaTarget electronEATarget; 
+      if ( runOnMC ) electronEATarget = ElectronEffectiveArea::kEleEAFall11MC;
+      else electronEATarget = ElectronEffectiveArea::kEleEAData2012;
+      elecEA04_ = ElectronEffectiveArea::GetElectronEffectiveArea( ElectronEffectiveArea::kEleGammaAndNeutralHadronIso04, scEta_, electronEATarget);
+    }
 
   private:
 
@@ -86,11 +92,13 @@ namespace cat {
     float puChargedHadronIso03_;
     float neutralHadronIso03_;
     float photonIso03_;
+    float elecEA03_;
 
     float chargedHadronIso04_;
     float puChargedHadronIso04_;
     float neutralHadronIso04_;
     float photonIso04_;
+    float elecEA04_;
 
     float mva_;
     float scEta_;
