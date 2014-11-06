@@ -42,7 +42,6 @@ namespace cat {
     edm::InputTag elecSrc_;
     edm::InputTag vertexLabel_;
 
-    unsigned int pdgId_, leptonId_;
     double rawMassMin_, rawMassMax_, massMin_, massMax_;
 
     double cut_minPt_, cut_maxEta_;
@@ -145,6 +144,7 @@ cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<T
   double leptonMass = 0;
   if (pdgId == 11) leptonMass = 0.000511;
   if (pdgId == 13) leptonMass = 0.1056583715;
+  int ipos=0,ineg=0;
 
   for ( auto& transTrackPos : transTracksPos )
   {
@@ -237,29 +237,29 @@ cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<T
       if ( massMin_ > candLVec.mass() or massMax_ < candLVec.mass() ) continue;
 
 
-      cat::SecVertex aSecVertex;
 
       // Match to muons
       VertexCompositeCandidate* cand = new VertexCompositeCandidate(0, candLVec, vtx, vtxCov, vtxChi2, vtxNdof);
-      reco::LeafCandidate newLep1(+leptonId_, math::XYZTLorentzVector(mom1.x(), mom1.y(), mom1.z(), candE1));
-      reco::LeafCandidate newLep2(-leptonId_, math::XYZTLorentzVector(mom2.x(), mom2.y(), mom2.z(), candE2));
+      reco::LeafCandidate newLep1(+pdgId, math::XYZTLorentzVector(mom1.x(), mom1.y(), mom1.z(), candE1));
+      reco::LeafCandidate newLep2(-pdgId, math::XYZTLorentzVector(mom2.x(), mom2.y(), mom2.z(), candE2));
 
       cand->addDaughter(newLep1);
       cand->addDaughter(newLep2);
 
-      cand->setPdgId(pdgId_);
-      //AddFourMomenta addP4;
-      //      addP4.set(*cand);
+      cand->setPdgId(pdgId);
 
-      //decayCands->push_back(*cand);
-
+      cat::SecVertex aSecVertex(*cand);
       aSecVertex.setLxy(TMath::Prob( vtxChi2, (int) vtxNdof));
       aSecVertex.setL3D(rVtxMag);
       aSecVertex.setVProb(rVtxMag3D);
+      aSecVertex.setInts(ipos,ineg);
 
       output->push_back(aSecVertex);
+      ++ineg;
     }
+    ++ipos;
   }
+
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"

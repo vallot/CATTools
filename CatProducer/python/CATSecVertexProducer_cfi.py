@@ -23,7 +23,5 @@ catSecVertexs = cms.EDProducer("CATSecVertexProducer",
     rawMassMax = cms.double(4),
     massMin = cms.double(2.80),
     massMax = cms.double(3.40),
-    minNumber = cms.uint32(0),
-    maxNumber = cms.uint32(100),
 )
 

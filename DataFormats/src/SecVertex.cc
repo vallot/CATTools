@@ -6,7 +6,7 @@ using namespace cat;
 SecVertex::SecVertex() {
 }
 
-SecVertex::SecVertex(const reco::LeafCandidate & aSecVertex) : Particle( aSecVertex ) {
+SecVertex::SecVertex(reco::VertexCompositeCandidate & aSecVertex) : reco::VertexCompositeCandidate( aSecVertex ) {
 }
 
 /// destructor
