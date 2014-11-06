@@ -8,6 +8,7 @@ from CATTools.CatProducer.CATMetProducer_cfi import *
 from CATTools.CatProducer.CATGenJetProducer_cfi import *
 from CATTools.CatProducer.CATGenTopProducer_cfi import *
 from CATTools.CatProducer.CATMcParticleProducer_cfi import *
+from CATTools.CatProducer.CATSecVertexProducer_cfi import *
 
 makeCatCandidates =  cms.Sequence( 
     catMuons*
@@ -19,5 +20,6 @@ makeCatCandidates =  cms.Sequence(
     catGenJets*
     # dont need for now
     #catGenTops*
-    catMCParticles
+    catMCParticles*
+    catSecVertexs
 ) 
