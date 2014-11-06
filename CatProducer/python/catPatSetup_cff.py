@@ -14,9 +14,6 @@ def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5"):
     usePF2PAT(process, runPF2PAT=True, jetAlgo=jetAlgo, jetCorrections=("AK5PFchs", jecLevels),
             runOnMC=runOnMC, postfix=postfix, typeIMetCorrections=True)
 
-    if not runOnMC:
-        removeMCMatchingPF2PAT( process, postfix=postfix )
-
     ## pile up corrections
     from CommonTools.ParticleFlow.Tools.enablePileUpCorrection import enablePileUpCorrectionInPF2PAT
     enablePileUpCorrectionInPF2PAT( process, postfix, sequence = "patPF2PATSequence"+postfix)
@@ -30,9 +27,13 @@ def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5"):
 
     process.p = cms.Path(process.totaEvents
         + getattr(process,"patPF2PATSequence"+postfix)
-        + process.photonMatch+process.patPhotons+process.selectedPatPhotons
-        )
-
+        # temp fix for photons since they are not done with PF2PAT
+        + process.photonMatch + process.patPhotons + process.selectedPatPhotons
+    )
+    if not runOnMC:
+        removeMCMatchingPF2PAT( process, postfix=postfix )
+        process.p.remove(process.photonMatch)
+    
     # top projections in PF2PAT:
     getattr(process,"pfNoPileUp"+postfix).enable = True
     getattr(process,"pfNoMuon"+postfix).enable = True

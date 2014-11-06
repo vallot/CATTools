@@ -4,7 +4,7 @@ def catSetup(process, runOnMC=True):
     process.load("CATTools.CatProducer.eventCleaning.eventCleaning_cff")
     process.load("CATTools.CatProducer.catCandidates_cff")
         
-    process.p += process.eventCleaning+process.makeCatCandidates
+    process.p += process.eventCleaning + process.makeCatCandidates
 
     catJetsSource = "selectedPatJetsPFlow"
     catGenJetsSource = "ak5GenJets"
