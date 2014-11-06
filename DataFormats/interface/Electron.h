@@ -24,30 +24,26 @@ namespace cat {
     virtual ~Electron();
 
     float chargedHadronIso(float dR=0.3) const { 
-      if( dR == 0.3){ return chargedHadronIso03_;}
-      else if( dR == 0.4) { return chargedHadronIso04_;}
-      else return -1.0;  
+      if( dR < 0.35){ return chargedHadronIso03_;}
+      else { return chargedHadronIso04_;}
     }
     float puChargedHadronIso(float dR=0.3) const { 
-      if( dR == 0.3) { return puChargedHadronIso03_;}
-      else if( dR == 0.4) { return puChargedHadronIso04_;}
-      else return -1.0;
+      if( dR < 0.35) { return puChargedHadronIso03_;}
+      else { return puChargedHadronIso04_;}
     }
     float neutralHadronIso(float dR=0.3) const { 
-      if( dR == 0.3) { return neutralHadronIso03_;}
-      else if( dR == 0.4) { return neutralHadronIso04_;}
-      else return -1.0;
+      if( dR < 0.35 ) { return neutralHadronIso03_;}
+      else { return neutralHadronIso04_;}
     }
     float photonIso(float dR=0.3) const { 
-      if( dR == 0.3) { return photonIso03_;}
-      else if( dR == 0.4) { return photonIso04_;} 
-      else return -1.0;
+      if( dR < 0.35 ) { return photonIso03_;}
+      else { return photonIso04_;} 
     }
 
     float relIso(float dR=0.3,bool isMC=true ) const {
       ElectronEffectiveArea::ElectronEffectiveAreaType electronEAType;
       ElectronEffectiveArea::ElectronEffectiveAreaTarget electronEATarget; 
-      if( dR == 0.3)  electronEAType = ElectronEffectiveArea::kEleGammaAndNeutralHadronIso03;
+      if( dR < 0.35)  electronEAType = ElectronEffectiveArea::kEleGammaAndNeutralHadronIso03;
       else            electronEAType = ElectronEffectiveArea::kEleGammaAndNeutralHadronIso04;
       if (isMC )      electronEATarget = ElectronEffectiveArea::kEleEAFall11MC; 
       else            electronEATarget = ElectronEffectiveArea::kEleEAData2012;
