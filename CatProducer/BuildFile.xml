@@ -12,6 +12,7 @@
 <use   name="DataFormats/VertexReco"/>
 <use   name="DataFormats/GsfTrackReco"/>
 <use   name="TrackingTools/IPTools"/>
+<use   name="TrackingTools/PatternTools"/>
 <use   name="TrackingTools/Records"/>
 <use   name="TrackingTools/TransientTrack"/>
 <use   name="CATTools/DataFormats"/>
@@ -25,6 +26,7 @@
 <use   name="PhysicsTools/IsolationAlgos"/>
 <use   name="Geometry/CaloTopology"/>
 <use   name="RecoEgamma/EgammaTools"/>
+<use   name="RecoVertex/KalmanVertexFit"/>
 <use   name="clhep"/>
 <export>
   <lib   name="1"/>
