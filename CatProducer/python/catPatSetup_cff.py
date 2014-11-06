@@ -10,12 +10,12 @@ def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5"):
         process.GlobalTag.globaltag = autoCond['com10']
         jecLevels = ['L1FastJet','L2Relative', 'L3Absolute', 'L2L3Residual']
 
-    from PhysicsTools.PatAlgos.tools.pfTools import usePF2PAT
+    from PhysicsTools.PatAlgos.tools.pfTools import usePF2PAT,removeMCMatchingPF2PAT
     usePF2PAT(process, runPF2PAT=True, jetAlgo=jetAlgo, jetCorrections=("AK5PFchs", jecLevels),
             runOnMC=runOnMC, postfix=postfix, typeIMetCorrections=True)
 
     if not runOnMC:
-        removeMCMatchingPF2PAT( process, '' )
+        removeMCMatchingPF2PAT( process, postfix=postfix )
 
     ## pile up corrections
     from CommonTools.ParticleFlow.Tools.enablePileUpCorrection import enablePileUpCorrectionInPF2PAT

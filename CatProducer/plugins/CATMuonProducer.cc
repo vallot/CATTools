@@ -36,6 +36,7 @@ namespace cat {
     edm::InputTag mcLabel_;
     edm::InputTag vertexLabel_;
     edm::InputTag beamLineSrc_;
+    bool runOnMC_;
 
   };
 
@@ -45,7 +46,8 @@ cat::CATMuonProducer::CATMuonProducer(const edm::ParameterSet & iConfig) :
   src_(iConfig.getParameter<edm::InputTag>( "src" )),
   mcLabel_(iConfig.getParameter<edm::InputTag>( "mcLabel" )),
   vertexLabel_(iConfig.getParameter<edm::InputTag>( "vertexLabel" )),
-  beamLineSrc_(iConfig.getParameter<edm::InputTag>( "beamLineSrc" ))
+  beamLineSrc_(iConfig.getParameter<edm::InputTag>( "beamLineSrc" )),
+  runOnMC_(iConfig.getParameter<bool>("runOnMC"))
 {
   produces<std::vector<cat::Muon> >();
 }
@@ -57,7 +59,7 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
   iEvent.getByLabel(src_, src);
  
   Handle<View<reco::GenParticle> > genParticles;
-  iEvent.getByLabel(mcLabel_,genParticles);
+  if (runOnMC_) iEvent.getByLabel(mcLabel_,genParticles);
     
   Handle<View<reco::Vertex> > recVtxs;
   iEvent.getByLabel(vertexLabel_,recVtxs);
@@ -77,8 +79,6 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     unsigned int idx = it - src->begin();
     const pat::Muon & aPatMuon = src->at(idx);
 
-    //    bool mcMatched = mcMatch( aPatMuon.p4(), genParticles );
-
     cat::Muon aMuon(aPatMuon);
 
     aMuon.setChargedHadronIso04( aPatMuon.chargedHadronIso() );
@@ -97,7 +97,8 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     aMuon.setIsLooseMuon( aPatMuon.isLooseMuon() );
     aMuon.setIsSoftMuon( aPatMuon.isSoftMuon(pv) );
 
-    // aMuon.setMCMatched( mcMatched );
+    if (runOnMC_)
+      aMuon.setMCMatched( mcMatch( aPatMuon.p4(), genParticles ) );
     
     aMuon.setNumberOfMatchedStations( aPatMuon.numberOfMatchedStations() );
 
