@@ -1,11 +1,11 @@
 import FWCore.ParameterSet.Config as cms
 
-def catSetup(process, runOnMC=True):
+def catSetup(process, runOnMC=True, doSecVertex=True):
     process.load("CATTools.CatProducer.eventCleaning.eventCleaning_cff")
     process.load("CATTools.CatProducer.catCandidates_cff")
         
-    process.p += process.eventCleaning+process.makeCatCandidates
-
+    process.p += process.eventCleaning + process.makeCatCandidates
+        
     catJetsSource = "selectedPatJetsPFlow"
     catGenJetsSource = "ak5GenJets"
     catMuonsSource = "selectedPatMuonsPFlow"
@@ -27,10 +27,14 @@ def catSetup(process, runOnMC=True):
     process.catMETs.src = cms.InputTag(catMETsSource)
     process.catGenJets.src = cms.InputTag(catGenJetsSource)
     process.catMCParticles.src = cms.InputTag(catMCsource)
+
     if not runOnMC:
         process.makeCatCandidates.remove(process.catGenJets)
         process.makeCatCandidates.remove(process.catMCParticles)
         process.catMuons.runOnMC = cms.bool(False)
+
+    if not doSecVertex:
+        process.makeCatCandidates.remove(process.catSecVertexs)
 
     ## electron ID tool
     process.load('EgammaAnalysis.ElectronTools.electronIdMVAProducer_cfi')

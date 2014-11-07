@@ -54,4 +54,10 @@
   <class name="edm::Wrapper<std::vector<cat::GenTop> >"/>
   <class name="edm::Ptr<cat::GenTop>"/>
 
+  <class name="cat::SecVertex"/>
+  <class name="std::vector<cat::SecVertex>"/>
+  <class name="edm::Wrapper<cat::SecVertex>"/>
+  <class name="edm::Wrapper<std::vector<cat::SecVertex> >"/>
+  <class name="edm::Ptr<cat::SecVertex>"/>
+
 </lcgdict>

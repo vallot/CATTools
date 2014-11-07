@@ -14,12 +14,16 @@ def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5"):
     usePF2PAT(process, runPF2PAT=True, jetAlgo=jetAlgo, jetCorrections=("AK5PFchs", jecLevels),
             runOnMC=runOnMC, postfix=postfix, typeIMetCorrections=True)
 
-    if not runOnMC:
-        removeMCMatchingPF2PAT( process, postfix=postfix )
-
     ## pile up corrections
     from CommonTools.ParticleFlow.Tools.enablePileUpCorrection import enablePileUpCorrectionInPF2PAT
     enablePileUpCorrectionInPF2PAT( process, postfix, sequence = "patPF2PATSequence"+postfix)
+
+    ## electron ID tool
+    process.load('EgammaAnalysis.ElectronTools.electronIdMVAProducer_cfi')
+    process.eidMVASequence = cms.Sequence(  process.mvaTrigV0 + process.mvaNonTrigV0 )
+    process.patElectronsPFlow.electronIDSources.mvaTrigV0    = cms.InputTag("mvaTrigV0")
+    process.patElectronsPFlow.electronIDSources.mvaNonTrigV0 = cms.InputTag("mvaNonTrigV0")
+    process.patDefaultSequencePFlow.replace( process.patElectronsPFlow, process.eidMVASequence * process.patElectronsPFlow )
 
     ## adding trigger info
     from PhysicsTools.PatAlgos.tools.trigTools import switchOnTrigger
@@ -30,9 +34,13 @@ def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5"):
 
     process.p = cms.Path(process.totaEvents
         + getattr(process,"patPF2PATSequence"+postfix)
-        + process.photonMatch+process.patPhotons+process.selectedPatPhotons
-        )
-
+        # temp fix for photons since they are not done with PF2PAT
+        + process.photonMatch + process.patPhotons + process.selectedPatPhotons
+    )
+    if not runOnMC:
+        removeMCMatchingPF2PAT( process, postfix=postfix )
+        process.p.remove(process.photonMatch)
+    
     # top projections in PF2PAT:
     getattr(process,"pfNoPileUp"+postfix).enable = True
     getattr(process,"pfNoMuon"+postfix).enable = True
@@ -44,6 +52,28 @@ def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5"):
     # enable delta beta correction for muon selection in PF2PAT?
     getattr(process,"pfIsolatedMuons"+postfix).doDeltaBetaCorrection = False
     
+
+    # no taus for now...
+    #process.selectedPatTausPFlow.cut = cms.string("pt > 18. && tauID('decayModeFinding')> 0.5")
+
+    process.patJetPartonMatchPFlow.mcStatus = [ 3, 23 ]
+    process.patPFParticlesPFlow.embedGenMatch = cms.bool(True)
+
+    ## adding in user variables ## temp to add into objects
+    process.patMuonsPFlow.isolationValues.user = cms.VInputTag("muPFIsoValueCharged03PFlow","muPFIsoValueNeutral03PFlow","muPFIsoValueGamma03PFlow","muPFIsoValuePU03PFlow","muPFIsoValueChargedAll03PFlow")
+
+    process.patElectronsPFlow.isolationValues.user = cms.VInputTag("elPFIsoValueCharged03PFIdPFlow","elPFIsoValueNeutral03PFIdPFlow","elPFIsoValueGamma03PFIdPFlow","elPFIsoValuePU03PFIdPFlow","elPFIsoValueChargedAll03PFIdPFlow")
+
+    process.patJetsPFlow.addTagInfos = cms.bool(True)
+    process.patJetsPFlow.userData.userFunctions = cms.vstring( "? hasTagInfo('secondaryVertex') && tagInfoSecondaryVertex('secondaryVertex').nVertices() > 0 ? "
+"tagInfoSecondaryVertex('secondaryVertex').secondaryVertex(0).p4().mass() : 0",
+"? hasTagInfo('secondaryVertex') && tagInfoSecondaryVertex('secondaryVertex').nVertices() > 0 ? "
+"tagInfoSecondaryVertex('secondaryVertex').flightDistance(0).value() : 0",
+"? hasTagInfo('secondaryVertex') && tagInfoSecondaryVertex('secondaryVertex').nVertices() > 0 ? "
+"tagInfoSecondaryVertex('secondaryVertex').flightDistance(0).error() : 0",
+)
+    process.patJetsPFlow.userData.userFunctionLabels = cms.vstring('secvtxMass','Lxy','LxyErr')
+
 
     process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(False))
     process.out.outputCommands = cms.untracked.vstring(
