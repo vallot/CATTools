@@ -36,7 +36,7 @@ namespace cat {
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
   private:
-    void fitTransientTracks(reco::Vertex goodPV, std::vector<TransientTrack> transTracksPos, std::vector<TransientTrack> transTracksNeg, int pdgId) const;
+    void fitTransientTracks(reco::Vertex goodPV, std::vector<TransientTrack> transTracks, int pdgId) const;
 
     vector<cat::SecVertex> *out_;
 
@@ -94,17 +94,16 @@ cat::CATSecVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & 
 
   out_ = new std::vector<cat::SecVertex>();
 
-  if ( recVtxs->empty() ){
-    //iEvent.put(out_); 
+  if ( recVtxs->empty() || (muonSrc->size() < 2 && elecSrc->size() < 2))
     return;
-  }
   
   reco::Vertex pv = recVtxs->at(0);
 
   edm::ESHandle<TransientTrackBuilder> trackBuilder;
   iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",trackBuilder);
  
-  std::vector<TransientTrack> muTransTracksPos, muTransTracksNeg;
+  //make muon transient tracks
+  std::vector<TransientTrack> muTransTracks;
   for (View<pat::Muon>::const_iterator it = muonSrc->begin(), ed = muonSrc->end(); it != ed; ++it) {
     unsigned int idx = it - muonSrc->begin();
     const pat::Muon & aPatMuon = muonSrc->at(idx);
@@ -117,12 +116,12 @@ cat::CATSecVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & 
     reco::TransientTrack transTrack = trackBuilder->build(trackRef);
     if ( !transTrack.impactPointTSCP().isValid() ) continue;
 
-    if ( aPatMuon.charge() < 0 ) muTransTracksNeg.push_back(transTrack);
-    else if ( aPatMuon.charge() > 0 ) muTransTracksPos.push_back(transTrack);
+    muTransTracks.push_back(transTrack);
   }
-  fitTransientTracks(pv, muTransTracksPos, muTransTracksNeg, 13);
+  fitTransientTracks(pv, muTransTracks, 13);
 
-  std::vector<TransientTrack> elTransTracksPos, elTransTracksNeg;
+  //make electron transient tracks
+  std::vector<TransientTrack> elTransTracks;
   for (View<pat::Electron>::const_iterator it = elecSrc->begin(), ed = elecSrc->end(); it != ed; ++it) {
     unsigned int idx = it - elecSrc->begin();
     const pat::Electron & aPatElectron = elecSrc->at(idx);
@@ -132,16 +131,16 @@ cat::CATSecVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & 
     reco::TransientTrack transTrack = trackBuilder->build(aPatElectron.gsfTrack());
     if ( !transTrack.impactPointTSCP().isValid() ) continue;
 
-    if ( aPatElectron.charge() < 0 ) elTransTracksNeg.push_back(transTrack);
-    else if ( aPatElectron.charge() > 0 ) elTransTracksPos.push_back(transTrack);
+    elTransTracks.push_back(transTrack);
   }
-  fitTransientTracks(pv, elTransTracksPos, elTransTracksNeg, 11);
+  fitTransientTracks(pv, elTransTracks, 11);
+
   auto_ptr<vector<cat::SecVertex> >  out(out_);
   iEvent.put(out); 
 }
 
 void 
-cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<TransientTrack> transTracksPos, std::vector<TransientTrack> transTracksNeg, int pdgId) const
+cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<TransientTrack> transTracks, int pdgId) const
 {
   const double pvx = goodPV.position().x();
   const double pvy = goodPV.position().y();
@@ -149,13 +148,17 @@ cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<T
   double leptonMass = 0;
   if (pdgId == 11) leptonMass = 0.000511;
   if (pdgId == 13) leptonMass = 0.1056583715;
-  int ipos=0,ineg=0;
+  int ipos=-1,ineg=-1;
 
-  for ( auto& transTrackPos : transTracksPos )
+  for ( auto& transTrackPos : transTracks )
   {
+    ++ipos;
+    if (transTrackPos.charge() < 0) continue;
     FreeTrajectoryState ipStatePos = transTrackPos.impactPointTSCP().theState();
-    for ( auto& transTrackNeg : transTracksNeg )
+    for ( auto& transTrackNeg : transTracks )
     {
+      ++ineg;
+      if (transTrackNeg.charge() > 0) continue;
       FreeTrajectoryState ipStateNeg = transTrackNeg.impactPointTSCP().theState();
 
       // Measure distance between tracks at their closest approach
@@ -259,9 +262,7 @@ cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<T
       aSecVertex.setInts(ipos,ineg);
 
       out_->push_back(aSecVertex);
-      ++ineg;
     }
-    ++ipos;
   }
 
 }
