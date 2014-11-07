@@ -1,14 +1,15 @@
 from PhysicsTools.PatAlgos.patTemplate_cfg import *
-runOnMC=False
+runOnMC=True
 postfix = "PFlow"
 jetAlgo="AK5"
+doSecVertex=True # for jpsi candidates
 
 from CATTools.CatProducer.catPatSetup_cff import *
 from CATTools.CatProducer.catSetup_cff import *
 catPatConfig(process, runOnMC, postfix, jetAlgo)
-catSetup(process, runOnMC)
+catSetup(process, runOnMC, doSecVertex)
 
-process.maxEvents.input = 10
+process.maxEvents.input = 100
 process.source.fileNames = cms.untracked.vstring(
 'file:/pnfs/user/kraft_data/FEEEC639-4A98-E211-BE1C-002618943919.root',
 #'file:/cms/home/jlee/scratch/QCD_Pt-15to3000_TuneEE3C_Flat_8TeV_herwigpp/001A0DC8-C313-E211-BCCB-00261894397B.root'

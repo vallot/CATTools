@@ -1,8 +1,8 @@
 #ifndef CATTools_SecVertex_H
 #define CATTools_SecVertex_H 
 
-//#include "DataFormats/Candidate/interface/CandidateFwd.h"
-//#include "DataFormats/Candidate/interface/Candidate.h"
+#include "DataFormats/Candidate/interface/CandidateFwd.h"
+#include "DataFormats/Candidate/interface/Candidate.h"
 //#include "CATTools/DataFormats/interface/Particle.h"
 #include "DataFormats/Candidate/interface/VertexCompositeCandidate.h"
 

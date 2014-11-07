@@ -24,7 +24,7 @@
 
 using namespace edm;
 using namespace std;
-  using namespace reco;
+using namespace reco;
 
 namespace cat {
 
@@ -36,7 +36,9 @@ namespace cat {
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
   private:
-    void fitTransientTracks(reco::Vertex goodPV, std::vector<TransientTrack> transTracksPos, std::vector<TransientTrack> transTracksNeg, int pdgId, std::auto_ptr<std::vector<cat::SecVertex> > output) const;
+    void fitTransientTracks(reco::Vertex goodPV, std::vector<TransientTrack> transTracksPos, std::vector<TransientTrack> transTracksNeg, int pdgId) const;
+
+    vector<cat::SecVertex> *out_;
 
     edm::InputTag muonSrc_;
     edm::InputTag elecSrc_;
@@ -57,6 +59,7 @@ cat::CATSecVertexProducer::CATSecVertexProducer(const edm::ParameterSet & iConfi
   elecSrc_(iConfig.getParameter<edm::InputTag>( "elecSrc" )),
   vertexLabel_(iConfig.getParameter<edm::InputTag>( "vertexLabel" ))
 {
+  produces<std::vector<cat::SecVertex> >();
   edm::ParameterSet trackPSet = iConfig.getParameter<edm::ParameterSet>("track");
   cut_minPt_ = trackPSet.getParameter<double>("minPt");
   cut_maxEta_ = trackPSet.getParameter<double>("maxEta");
@@ -75,7 +78,6 @@ cat::CATSecVertexProducer::CATSecVertexProducer(const edm::ParameterSet & iConfi
   rawMassMax_ = iConfig.getParameter<double>("rawMassMax");
   massMin_ = iConfig.getParameter<double>("massMin");
   massMax_ = iConfig.getParameter<double>("massMax");
-  produces<std::vector<cat::SecVertex> >();
 }
 
 void 
@@ -90,16 +92,18 @@ cat::CATSecVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & 
   Handle<View<reco::Vertex> > recVtxs;
   iEvent.getByLabel(vertexLabel_,recVtxs);
 
-  if ( recVtxs->empty() ) return;
+  out_ = new std::vector<cat::SecVertex>();
 
+  if ( recVtxs->empty() ){
+    //iEvent.put(out_); 
+    return;
+  }
+  
   reco::Vertex pv = recVtxs->at(0);
 
   edm::ESHandle<TransientTrackBuilder> trackBuilder;
   iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",trackBuilder);
  
-  auto_ptr<vector<cat::SecVertex> >  out(new vector<cat::SecVertex>());
-  cout << "CATSecVertexProducer::produce "<< out->size() << endl;
-
   std::vector<TransientTrack> muTransTracksPos, muTransTracksNeg;
   for (View<pat::Muon>::const_iterator it = muonSrc->begin(), ed = muonSrc->end(); it != ed; ++it) {
     unsigned int idx = it - muonSrc->begin();
@@ -116,7 +120,7 @@ cat::CATSecVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & 
     if ( aPatMuon.charge() < 0 ) muTransTracksNeg.push_back(transTrack);
     else if ( aPatMuon.charge() > 0 ) muTransTracksPos.push_back(transTrack);
   }
-  fitTransientTracks(pv, muTransTracksPos, muTransTracksNeg, 13, out);
+  fitTransientTracks(pv, muTransTracksPos, muTransTracksNeg, 13);
 
   std::vector<TransientTrack> elTransTracksPos, elTransTracksNeg;
   for (View<pat::Electron>::const_iterator it = elecSrc->begin(), ed = elecSrc->end(); it != ed; ++it) {
@@ -131,17 +135,13 @@ cat::CATSecVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & 
     if ( aPatElectron.charge() < 0 ) elTransTracksNeg.push_back(transTrack);
     else if ( aPatElectron.charge() > 0 ) elTransTracksPos.push_back(transTrack);
   }
-  fitTransientTracks(pv, elTransTracksPos, elTransTracksNeg, 11, out);
-
-  cout << "CATSecVertexProducer::produce "<<endl;
-
-  if (out->size()==0) return;
-  cout << "CATSecVertexProducer::produce put out"<<endl;
-  iEvent.put(out);
+  fitTransientTracks(pv, elTransTracksPos, elTransTracksNeg, 11);
+  auto_ptr<vector<cat::SecVertex> >  out(out_);
+  iEvent.put(out); 
 }
 
 void 
-cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<TransientTrack> transTracksPos, std::vector<TransientTrack> transTracksNeg, int pdgId, std::auto_ptr<std::vector<cat::SecVertex> > output) const
+cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<TransientTrack> transTracksPos, std::vector<TransientTrack> transTracksNeg, int pdgId) const
 {
   const double pvx = goodPV.position().x();
   const double pvy = goodPV.position().y();
@@ -151,7 +151,6 @@ cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<T
   if (pdgId == 13) leptonMass = 0.1056583715;
   int ipos=0,ineg=0;
 
-  cout << "CATSecVertexProducer::fitTransientTracks "<<endl;
   for ( auto& transTrackPos : transTracksPos )
   {
     FreeTrajectoryState ipStatePos = transTrackPos.impactPointTSCP().theState();
@@ -171,8 +170,6 @@ cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<T
       //TrajectoryStateClosestToPoint caState2 = transTrackNeg.trajectoryStateClosestToPoint(cxPt);
       //if ( !caState1.isValid() or !caState2.isValid() ) continue;
 
-      cout << "CATSecVertexProducer::fitTransientTracks error 1 "<<endl;
-
       // Build Vertex
       std::vector<TransientTrack> transTracks;
       transTracks.push_back(transTrackPos);
@@ -190,7 +187,6 @@ cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<T
 
       typedef ROOT::Math::SMatrix<double, 3, 3, ROOT::Math::MatRepSym<double, 3> > SMatrixSym3D;
       typedef ROOT::Math::SVector<double, 3> SVector3;
-      cout << "CATSecVertexProducer::fitTransientTracks error 2 "<<endl;
 
       GlobalPoint vtxPos(vertex.x(), vertex.y(), vertex.z());
       SMatrixSym3D totalCov = goodPV.covariance() + vertex.covariance();
@@ -202,7 +198,6 @@ cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<T
 
       SVector3 distanceVector3D(vertex.x() - pvx, vertex.y() - pvy, vertex.z() - pvz);
       const double rVtxMag3D = ROOT::Math::Mag(distanceVector3D);
-      cout << "CATSecVertexProducer::fitTransientTracks error 3 "<<endl;
 
       // Cuts finished, now we create the candidates and push them back into the collections.
       std::auto_ptr<TrajectoryStateClosestToPoint> traj1;
@@ -226,7 +221,6 @@ cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<T
         traj2.reset(new TrajectoryStateClosestToPoint(refTrack2->trajectoryStateClosestToPoint(vtxPos)));
       }
       if( !traj1->isValid() or !traj2->isValid() ) continue;
-      cout << "CATSecVertexProducer::fitTransientTracks error 4 "<<endl;
 
       GlobalVector mom1(traj1->momentum());
       GlobalVector mom2(traj2->momentum());
@@ -246,9 +240,6 @@ cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<T
 
       const math::XYZTLorentzVector candLVec(mom.x(), mom.y(), mom.z(), candE1+candE2);
       if ( massMin_ > candLVec.mass() or massMax_ < candLVec.mass() ) continue;
-      cout << "CATSecVertexProducer::fitTransientTracks error 5 "<<endl;
-
-
 
       // Match to muons
       VertexCompositeCandidate* cand = new VertexCompositeCandidate(0, candLVec, vtx, vtxCov, vtxChi2, vtxNdof);
@@ -261,16 +252,13 @@ cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<T
 
       cand->setPdgId(pdgId);
 
-      cout << "CATSecVertexProducer::fitTransientTracks error 6 "<<endl;
-
       cat::SecVertex aSecVertex(*cand);
       aSecVertex.setLxy(TMath::Prob( vtxChi2, (int) vtxNdof));
       aSecVertex.setL3D(rVtxMag);
       aSecVertex.setVProb(rVtxMag3D);
       aSecVertex.setInts(ipos,ineg);
-      cout << "CATSecVertexProducer::fitTransientTracks error 7 "<<endl;
 
-      output->push_back(aSecVertex);
+      out_->push_back(aSecVertex);
       ++ineg;
     }
     ++ipos;
