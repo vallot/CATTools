@@ -25,6 +25,7 @@
 <use   name="PhysicsTools/IsolationAlgos"/>
 <use   name="Geometry/CaloTopology"/>
 <use   name="RecoEgamma/EgammaTools"/>
+<use   name="RecoParticleFlow/PFProducer"/>
 <use   name="clhep"/>
 <export>
   <lib   name="1"/>
