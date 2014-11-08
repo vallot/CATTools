@@ -23,23 +23,23 @@ namespace cat {
     virtual ~Muon();
 
     float chargedHadronIso(float dR=0.3) const { 
-      if( dR == 0.3){ return chargedHadronIso03_;}
-      else if( dR == 0.4) { return chargedHadronIso04_;}
+      if( dR < 0.35){ return chargedHadronIso03_;}
+      else if( dR > 0.35) { return chargedHadronIso04_;}
       else return -1.0;  
     }
-    float puChargedHadronIso(float dR=0.3) const { 
-      if( dR == 0.3) { return puChargedHadronIso03_;}
-      else if( dR == 0.4) { return puChargedHadronIso04_;}
+    float puChargedHadronIso(float dR=0.3) const {
+      if( dR < 0.35) { return puChargedHadronIso03_;}
+      else if( dR > 0.35) { return puChargedHadronIso04_;}
       else return -1.0;
     }
     float neutralHadronIso(float dR=0.3) const { 
-      if( dR == 0.3) { return neutralHadronIso03_;}
-      else if( dR == 0.4) { return neutralHadronIso04_;}
+      if( dR < 0.35) { return neutralHadronIso03_;}
+      else if( dR > 0.35) { return neutralHadronIso04_;}
       else return -1.0;
     }
     float photonIso(float dR=0.3) const { 
-      if( dR == 0.3) { return photonIso03_;}
-      else if( dR == 0.4) { return photonIso04_;} 
+      if( dR < 0.35) { return photonIso03_;}
+      else if( dR > 0.35) { return photonIso04_;} 
       else return -1.0;
     }
 

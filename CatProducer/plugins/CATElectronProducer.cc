@@ -29,6 +29,8 @@ namespace cat {
   private:
     edm::InputTag src_;
     edm::InputTag vertexLabel_;
+    edm::InputTag rhoLabel_;
+    bool runOnMC_;
 
   };
 
@@ -36,7 +38,9 @@ namespace cat {
 
 cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig) :
   src_(iConfig.getParameter<edm::InputTag>( "src" )),
-  vertexLabel_(iConfig.getParameter<edm::InputTag>( "vertexLabel" ))
+  vertexLabel_(iConfig.getParameter<edm::InputTag>( "vertexLabel" )),
+  rhoLabel_(iConfig.getParameter<edm::InputTag>("rhoLabel")),
+  runOnMC_(iConfig.getParameter<bool>("runOnMC"))
 {
   produces<std::vector<cat::Electron> >();
 }
@@ -48,9 +52,12 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
   iEvent.getByLabel(src_, src);
 
   Handle<View<reco::Vertex> > recVtxs;
-  iEvent.getByLabel(vertexLabel_,recVtxs);
-
+  iEvent.getByLabel(vertexLabel_, recVtxs);
   reco::Vertex pv = recVtxs->at(0);
+
+  Handle<double> rhoHandle;
+  iEvent.getByLabel(rhoLabel_, rhoHandle);
+  const double rho = *(rhoHandle.product());
 
   auto_ptr<vector<cat::Electron> >  out(new vector<cat::Electron>());
 
@@ -77,12 +84,17 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     double dz = fabs(aPatElectron.gsfTrack()->dz(pv.position()));
     aElectron.setdz( dz ) ;
 
+    aElectron.setrho( rho) ;
 
     aElectron.setconversionVeto( (aPatElectron.passConversionVeto() ) && (aPatElectron.gsfTrack()->trackerExpectedHitsInner().numberOfHits()<=0) ) ;
     aElectron.setchargeIDFull( aPatElectron.isGsfCtfScPixChargeConsistent()) ;
     
+    aElectron.setEffArea03( runOnMC_ ); 
+    aElectron.setEffArea04( runOnMC_ ); 
 
     out->push_back(aElectron);
+
+
   }
 
   iEvent.put(out);
