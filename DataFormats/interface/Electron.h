@@ -23,31 +23,11 @@ namespace cat {
     Electron(const reco::LeafCandidate & aElectron); 
     virtual ~Electron();
 
-    float chargedHadronIso(float dR=0.3) const { 
-      if( dR < 0.35){ return chargedHadronIso03_;}
-      else { return chargedHadronIso04_;}
-    }
-    float puChargedHadronIso(float dR=0.3) const { 
-      if( dR < 0.35) { return puChargedHadronIso03_;}
-      else { return puChargedHadronIso04_;}
-    }
-    float neutralHadronIso(float dR=0.3) const { 
-      if( dR < 0.35 ) { return neutralHadronIso03_;}
-      else { return neutralHadronIso04_;}
-    }
-    float photonIso(float dR=0.3) const { 
-      if( dR < 0.35 ) { return photonIso03_;}
-      else { return photonIso04_;} 
-    }
-
     float relIso(float dR=0.3 ) const {
-      double elEffArea;
-      if( dR < 0.35) elEffArea = elecEA03_; 
-      else  elEffArea = elecEA04_; 
-      return (chargedHadronIso(dR)+ std::max(0., neutralHadronIso(dR)+photonIso(dR)-elEffArea*rho_)) / pt_;
+      if( dR < 0.35) return relIso03_;
+      else return relIso04_;
     }
-
-    float mva() const { return mva_; }
+    float mvaTrigV0() const { return mvaTrigV0_; }
     float scEta() const { return scEta_; }
     float dxy() const { return dxy_; }
     float dz() const { return dz_; }
@@ -55,7 +35,13 @@ namespace cat {
     bool chargeIDFull() const { return chargeIDFull_; }
     bool isPF() const { return isPF_; }
 
-    void setmva(float i) { mva_ = i; }
+    void setrelIso(float dR, double chIso, double nhIso, double phIso, double AEff, double rhoIso, double ecalpt) {
+      float relIso = ( chIso + std::max(0.0, nhIso + phIso - rhoIso*AEff) )/ ecalpt;
+      if( dR < 0.35) relIso03_ = relIso; 
+      else  relIso04_ = relIso; 
+    }
+
+    void setmvaTrigV0(float i) { mvaTrigV0_ = i; }
     void setscEta(float i) { scEta_ = i; }
     void setdxy(float i) {  dxy_ = i; }
     void setdz(float i) {  dz_ = i; }
@@ -64,43 +50,12 @@ namespace cat {
     void setisPF(bool i) {  isPF_ = i; }
     void setrho(float i) { rho_ = i; }
 
-    void setChargedHadronIso03(float i) { chargedHadronIso03_ = i; }
-    void setPUChargedHadronIso03(float i) { puChargedHadronIso03_ = i; }
-    void setNeutralHadronIso03(float i) { neutralHadronIso03_ = i; }
-    void setPhotonIso03(float i) { photonIso03_ = i; }
-    void setEffArea03( bool runOnMC ) {
-      ElectronEffectiveArea::ElectronEffectiveAreaTarget electronEATarget; 
-      if ( runOnMC ) electronEATarget = ElectronEffectiveArea::kEleEAFall11MC;
-      else electronEATarget = ElectronEffectiveArea::kEleEAData2012;
-      elecEA03_ = ElectronEffectiveArea::GetElectronEffectiveArea( ElectronEffectiveArea::kEleGammaAndNeutralHadronIso03, scEta_, electronEATarget);
-    }
-
-    void setChargedHadronIso04(float i) { chargedHadronIso04_ = i; }
-    void setPUChargedHadronIso04(float i) { puChargedHadronIso04_ = i; }
-    void setNeutralHadronIso04(float i) { neutralHadronIso04_ = i; }
-    void setPhotonIso04(float i) { photonIso04_ = i; }
-    void setEffArea04( bool runOnMC ) {
-      ElectronEffectiveArea::ElectronEffectiveAreaTarget electronEATarget; 
-      if ( runOnMC ) electronEATarget = ElectronEffectiveArea::kEleEAFall11MC;
-      else electronEATarget = ElectronEffectiveArea::kEleEAData2012;
-      elecEA04_ = ElectronEffectiveArea::GetElectronEffectiveArea( ElectronEffectiveArea::kEleGammaAndNeutralHadronIso04, scEta_, electronEATarget);
-    }
-
   private:
 
-    float chargedHadronIso03_;
-    float puChargedHadronIso03_;
-    float neutralHadronIso03_;
-    float photonIso03_;
-    float elecEA03_;
+    float relIso03_;
+    float relIso04_;
 
-    float chargedHadronIso04_;
-    float puChargedHadronIso04_;
-    float neutralHadronIso04_;
-    float photonIso04_;
-    float elecEA04_;
-
-    float mva_;
+    float mvaTrigV0_;
     float scEta_;
     float dxy_;
     float dz_;
