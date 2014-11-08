@@ -135,7 +135,7 @@ cat::CATSecVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & 
   }
   fitTransientTracks(pv, elTransTracks, 11);
 
-  auto_ptr<vector<cat::SecVertex> >  out(out_);
+  auto_ptr<vector<cat::SecVertex> > out(out_);
   iEvent.put(out); 
 }
 

@@ -27,6 +27,8 @@ namespace cat {
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
   private:
+    float getEffArea( float dR, float scEta );
+
     edm::InputTag src_;
     edm::InputTag vertexLabel_;
     edm::InputTag rhoLabel_;
@@ -57,7 +59,7 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
 
   Handle<double> rhoHandle;
   iEvent.getByLabel(rhoLabel_, rhoHandle);
-  const double rho = *(rhoHandle.product());
+  double rhoIso = std::max(*(rhoHandle.product()), 0.0);
 
   auto_ptr<vector<cat::Electron> >  out(new vector<cat::Electron>());
 
@@ -66,38 +68,53 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     const pat::Electron & aPatElectron = src->at(idx);
     cat::Electron aElectron(aPatElectron);
 
-    aElectron.setChargedHadronIso04( aPatElectron.chargedHadronIso() );
-    aElectron.setNeutralHadronIso04( aPatElectron.neutralHadronIso() );
-    aElectron.setPhotonIso04( aPatElectron.photonIso() );
-    aElectron.setPUChargedHadronIso04( aPatElectron.puChargedHadronIso() );
+    float scEta = aPatElectron.superCluster()->eta();
+    double ecalpt = aPatElectron.ecalDrivenMomentum().pt();
 
-    aElectron.setChargedHadronIso03( aPatElectron.userIsolation("pat::User1Iso") );
-    aElectron.setNeutralHadronIso03( aPatElectron.userIsolation("pat::User2Iso") );
-    aElectron.setPhotonIso03( aPatElectron.userIsolation("pat::User3Iso") );
-    aElectron.setPUChargedHadronIso03( aPatElectron.userIsolation("pat::User4Iso") );
+    double elEffArea04 = getEffArea( 0.4, scEta);
+    double chIso04 = aPatElectron.chargedHadronIso();
+    double nhIso04 = aPatElectron.neutralHadronIso();
+    double phIso04 = aPatElectron.photonIso();
+    aElectron.setrelIso(0.4, chIso04, nhIso04, phIso04, elEffArea04, rhoIso, ecalpt);
+
+    double elEffArea03 = getEffArea( 0.3, scEta);
+    double chIso03 = aPatElectron.userIsolation("pat::User1Iso");
+    double nhIso03 = aPatElectron.userIsolation("pat::User2Iso");
+    double phIso03 = aPatElectron.userIsolation("pat::User3Iso");
+    aElectron.setrelIso(0.3, chIso03, nhIso03, phIso03, elEffArea03, rhoIso, ecalpt);
     
     aElectron.setscEta( aPatElectron.superCluster()->eta());
-    aElectron.setmva( aPatElectron.electronID("mvaTrigV0")) ;
+    aElectron.setmvaTrigV0( aPatElectron.electronID("mvaTrigV0")) ;
 
     double dxy = fabs(aPatElectron.gsfTrack()->dxy(pv.position()));
     aElectron.setdxy( dxy ) ;
     double dz = fabs(aPatElectron.gsfTrack()->dz(pv.position()));
     aElectron.setdz( dz ) ;
 
-    aElectron.setrho( rho) ;
-
+    aElectron.setrho( rhoIso) ;
+    
     aElectron.setconversionVeto( (aPatElectron.passConversionVeto() ) && (aPatElectron.gsfTrack()->trackerExpectedHitsInner().numberOfHits()<=0) ) ;
     aElectron.setchargeIDFull( aPatElectron.isGsfCtfScPixChargeConsistent()) ;
     
-    aElectron.setEffArea03( runOnMC_ ); 
-    aElectron.setEffArea04( runOnMC_ ); 
-
     out->push_back(aElectron);
 
 
   }
 
   iEvent.put(out);
+}
+
+float 
+cat::CATElectronProducer::getEffArea( float dR, float scEta) 
+{
+  ElectronEffectiveArea::ElectronEffectiveAreaTarget electronEATarget; 
+  if ( runOnMC_ ) electronEATarget = ElectronEffectiveArea::kEleEAFall11MC;
+  else electronEATarget = ElectronEffectiveArea::kEleEAData2012;
+
+  if( dR < 0.35) 
+    return ElectronEffectiveArea::GetElectronEffectiveArea( ElectronEffectiveArea::kEleGammaAndNeutralHadronIso03, scEta, electronEATarget);
+  else 
+    return ElectronEffectiveArea::GetElectronEffectiveArea( ElectronEffectiveArea::kEleGammaAndNeutralHadronIso04, scEta, electronEATarget);
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"
