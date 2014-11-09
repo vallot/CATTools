@@ -41,11 +41,12 @@ private:
   virtual void analyze(const edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
 
- // ----------member data ---------------------------
+  // ----------member data ---------------------------
 
-  edm::EDGetTokenT<edm::View<cat::Muon> > src_;
+  //edm::EDGetTokenT<edm::View<cat::Muon> > src_;
+  edm::InputTag src_;
 
-  TH1F* chIso;
+  TH1F* relIso;
   TH1F* nhIso;
   TH1F* phIso;
   TH1F* puIso;
@@ -53,11 +54,12 @@ private:
 };
 
 CATMuonAnalysis::CATMuonAnalysis(const edm::ParameterSet& iConfig):
-    src_(consumes<edm::View<cat::Muon> >(iConfig.getParameter<edm::InputTag>("src")))
+  //  src_(consumes<edm::View<cat::Muon> >(iConfig.getParameter<edm::InputTag>("src")))
+  src_(iConfig.getParameter<edm::InputTag>( "src" ))
 {
   edm::Service<TFileService> fs;
 
-  chIso = fs->make<TH1F>("chIso","chIso",400,0,4);
+  relIso = fs->make<TH1F>("relIso","relIso",400,0,4);
   nhIso = fs->make<TH1F>("nhIso","nhIso",400,0,4);
   phIso = fs->make<TH1F>("phIso","phIso",400,0,4);
   puIso = fs->make<TH1F>("puIso","puIso",400,0,4);
@@ -66,13 +68,13 @@ CATMuonAnalysis::CATMuonAnalysis(const edm::ParameterSet& iConfig):
 
 CATMuonAnalysis::~CATMuonAnalysis()
 {
-   // do anything here that needs to be done at desctruction time
-   // (e.g. close files, deallocate resources etc.)
+  // do anything here that needs to be done at desctruction time
+  // (e.g. close files, deallocate resources etc.)
 
 }
 
 void CATMuonAnalysis::beginJob(){
-   //Add event and RUN BRANCHING         
+  //Add event and RUN BRANCHING         
 }
 
 void CATMuonAnalysis::endJob(){
@@ -81,20 +83,17 @@ void CATMuonAnalysis::endJob(){
 
 void CATMuonAnalysis::analyze( const edm::Event& iEvent, const edm::EventSetup& iSetup){
 
-    using namespace edm;
-    using namespace std;
-    using namespace reco;
+  using namespace edm;
+  using namespace std;
+  using namespace reco;
 
-    Handle<View<cat::Muon> > src;
-    iEvent.getByToken(src_, src);
+  Handle<View<cat::Muon> > src;
+  iEvent.getByLabel(src_, src);
 
-    for (unsigned int i = 0; i < src->size() ; i++) {
-      const cat::Muon & muon = src->at(i);
-      chIso->Fill( muon.chargedHadronIso() );
-      nhIso->Fill( muon.neutralHadronIso() );
-      phIso->Fill( muon.photonIso() );
-      puIso->Fill( muon.puChargedHadronIso() );
-    }
+  for (unsigned int i = 0; i < src->size() ; i++) {
+    const cat::Muon & muon = src->at(i);
+    relIso->Fill( muon.relIso() );
+  }
 
 }
 

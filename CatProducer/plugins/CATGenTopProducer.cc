@@ -1,9 +1,3 @@
-/**
-  \class    cat::CATGenTopProducer CATGenTopProducer.h "CATTools/CatProducer/interface/CATGenTopProducer.h"
-  \brief    CAT GenTop 
-*/
-
-
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -21,10 +15,10 @@
 #include "CATTools/DataFormats/interface/MCParticle.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
-#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
+//#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
-#include "FWCore/Utilities/interface/isFinite.h"
+//#include "FWCore/Utilities/interface/isFinite.h"
 
 using namespace edm;
 using namespace std;
@@ -32,45 +26,44 @@ using namespace std;
 namespace cat {
 
   class CATGenTopProducer : public edm::EDProducer {
-    public:
-      explicit CATGenTopProducer(const edm::ParameterSet & iConfig);
-      virtual ~CATGenTopProducer() { }
+  public:
+    explicit CATGenTopProducer(const edm::ParameterSet & iConfig);
+    virtual ~CATGenTopProducer() { }
 
-      virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
-      
-
-    private:
-      edm::EDGetTokenT<edm::View<reco::GenJet> > genJetLabel_;
-      edm::EDGetTokenT<edm::View<reco::GenParticle> > mcParticleLabel_;
+    virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
+    
+  private:
+    edm::InputTag genJetLabel_;
+    edm::InputTag mcParticleLabel_;
 
   };
 
 } // namespace
 
 cat::CATGenTopProducer::CATGenTopProducer(const edm::ParameterSet & iConfig) :
-    genJetLabel_(consumes<edm::View<reco::GenJet> >(iConfig.getParameter<edm::InputTag>("genJetLabel"))),
-    mcParticleLabel_(consumes<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("mcParticleLabel")))
+  genJetLabel_(iConfig.getParameter<edm::InputTag>( "genJetLabel" )),
+  mcParticleLabel_(iConfig.getParameter<edm::InputTag>( "mcParticleLabel" ))
 {
-    produces<std::vector<cat::GenTop> >();
+  produces<std::vector<cat::GenTop> >();
 }
 
 void 
-cat::CATGenTopProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) {
+cat::CATGenTopProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) 
+{
+  Handle<View<reco::GenJet> > genJets;
+  iEvent.getByLabel(genJetLabel_, genJets);
 
-    Handle<View<reco::GenJet> > genJets;
-    iEvent.getByToken(genJetLabel_, genJets);
+  Handle<View<reco::GenParticle> > mcParticles;
+  iEvent.getByLabel(mcParticleLabel_, mcParticles);
 
-    Handle<View<reco::GenParticle> > mcParticles;
-    iEvent.getByToken(mcParticleLabel_, mcParticles);
+  cat::GenTop aGenTop;
+  aGenTop.building( genJets, mcParticles);
 
-    cat::GenTop aGenTop;
-    aGenTop.building( genJets, mcParticles);
+  auto_ptr<vector<cat::GenTop> >  out(new vector<cat::GenTop>());
 
-    auto_ptr<vector<cat::GenTop> >  out(new vector<cat::GenTop>());
+  out->push_back(aGenTop);
 
-    out->push_back(aGenTop);
-
-    iEvent.put(out);
+  iEvent.put(out);
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"

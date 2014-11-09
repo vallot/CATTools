@@ -809,12 +809,12 @@ const reco::Candidate* GenTop::getLast( const reco::Candidate& p ){
 bool GenTop::isFromtop( const reco::GenParticle& p){
   bool out = false;
 
-  string pt = Form("%f", p.pt());
-  string pdgid = Form("%i",p.pdgId());
+  //  string pt = Form("%f", p.pt());
+  //  string pdgid = Form("%i",p.pdgId());
   const reco::GenParticle* mother = dynamic_cast<const reco::GenParticle*>(p.mother());
   while( mother != 0 ){
-    string id = Form("%i", mother->pdgId());
-    string mopt = Form("%f", mother->pt());
+    //    string id = Form("%i", mother->pdgId());
+    //    string mopt = Form("%f", mother->pt());
     if( abs(mother->pdgId()) == 6 ) {
       out = true;
     }
@@ -824,7 +824,7 @@ bool GenTop::isFromtop( const reco::GenParticle& p){
   return out;
 }
 
-double GenTop::deltaR( const Candidate& pasObj, const Candidate& proObj ) {
+float GenTop::deltaR( const Candidate& pasObj, const Candidate& proObj ) {
 
   double pasEta = pasObj.eta();
   double pasPhi = pasObj.phi();

@@ -94,4 +94,3 @@ if useMiniAOD:
   process.out.outputCommands = catEventContent
 else:
   process.out.outputCommands = catEventContentExtended
-

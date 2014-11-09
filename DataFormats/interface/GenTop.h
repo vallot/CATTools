@@ -76,15 +76,15 @@ namespace cat {
     //void building( const std::vector<reco::GenJet>* genJets, const std::vector<reco::GenParticle>* genParticles );
     void building( Handle<View<reco::GenJet> > genJets, Handle<View<reco::GenParticle> > genParticles );
 
-    double ttbarmass() const { return ttbarmass_; }
+    float ttbarmass() const { return ttbarmass_; }
 
-    double dRaddJets() const { return dRaddJets_; }
+    float dRaddJets() const { return dRaddJets_; }
 
-    double dRaddbJets(int i=0) const { 
+    float dRaddbJets(int i=0) const { 
       if( i == 0){ return dRaddbJetsHad_; } 
       else return dRaddbJets_; 
     }
-    double dRcJets(int i=0) const { 
+    float dRcJets(int i=0) const { 
       if( i == 0){ return dRcJetsHad_; }
       else return dRcJets_; 
     }
@@ -239,7 +239,7 @@ namespace cat {
     bool isLastParton(const reco::GenParticle&);
     bool isFromtop(const reco::GenParticle&);
     const reco::Candidate* getLast( const reco::Candidate& p );
-    double deltaR( const reco::Candidate &pasObj, const reco::Candidate &proObj );
+    float deltaR( const reco::Candidate &pasObj, const reco::Candidate &proObj );
 
     bool is2tops_;
 
@@ -254,7 +254,7 @@ namespace cat {
     LorentzVectors addbJetsHad_;
     LorentzVectors addJets_;
 
-    double ttbarmass_;
+    float ttbarmass_;
 
     bool allHadronic_;
     bool semiLeptonic_;
@@ -340,13 +340,13 @@ namespace cat {
     int NaddJets40_;
 
 
-    double dRaddJets_;
+    float dRaddJets_;
 
-    double dRaddbJets_;
-    double dRcJets_;
+    float dRaddbJets_;
+    float dRcJets_;
 
-    double dRaddbJetsHad_;
-    double dRcJetsHad_;
+    float dRaddbJetsHad_;
+    float dRcJetsHad_;
 
 
   };

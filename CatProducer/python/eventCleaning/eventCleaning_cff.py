@@ -19,8 +19,8 @@ hcalLaserEventFilter.vetoByRunEventNumber=cms.untracked.bool(False)
 hcalLaserEventFilter.vetoByHBHEOccupancy=cms.untracked.bool(True)
 
 # ECAL dead cell filter
-from RecoMET.METFilters.EcalDeadCellTriggerPrimitiveFilter_cfi import *
-EcalDeadCellTriggerPrimitiveFilter.tpDigiCollection = cms.InputTag("ecalTPSkimNA")
+#from RecoMET.METFilters.EcalDeadCellTriggerPrimitiveFilter_cfi import *
+#EcalDeadCellTriggerPrimitiveFilter.tpDigiCollection = cms.InputTag("ecalTPSkimNA")
 
 # Tracking failure filter
 from RecoMET.METFilters.trackingFailureFilter_cfi import *
@@ -34,7 +34,7 @@ eventCleaning = cms.Sequence(
                 HBHENoiseFilter*
                 scrapingFilter*
                 hcalLaserEventFilter*
-                EcalDeadCellTriggerPrimitiveFilter*
+#                EcalDeadCellTriggerPrimitiveFilter*
 #                primaryVertexFilter * # this will be applied before this sequence. do we need to apply this only for data?
                 trackingFailureFilter*
                 eeBadScFilter

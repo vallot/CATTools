@@ -1,9 +1,3 @@
-/**
-  \class    cat::CATMETProducer CATMETProducer.h "CATTools/CatProducer/interface/CATMETProducer.h"
-  \brief    CAT MET 
-*/
-
-
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -16,52 +10,53 @@
 #include "CATTools/DataFormats/interface/MET.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
-#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
+//#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
-#include "FWCore/Utilities/interface/isFinite.h"
+//#include "FWCore/Utilities/interface/isFinite.h"
+
+using namespace edm;
+using namespace std;
 
 namespace cat {
 
   class CATMETProducer : public edm::EDProducer {
-    public:
-      explicit CATMETProducer(const edm::ParameterSet & iConfig);
-      virtual ~CATMETProducer() { }
+  public:
+    explicit CATMETProducer(const edm::ParameterSet & iConfig);
+    virtual ~CATMETProducer() { }
 
-      virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
+    virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
-    private:
-      edm::EDGetTokenT<edm::View<pat::MET> > src_;
+  private:
+    edm::InputTag src_;
 
   };
 
 } // namespace
 
 cat::CATMETProducer::CATMETProducer(const edm::ParameterSet & iConfig) :
-    src_(consumes<edm::View<pat::MET> >(iConfig.getParameter<edm::InputTag>("src")))
+  src_(iConfig.getParameter<edm::InputTag>( "src" ))
 {
-    produces<std::vector<cat::MET> >();
+  produces<std::vector<cat::MET> >();
 }
 
 void 
-cat::CATMETProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) {
-    using namespace edm;
-    using namespace std;
+cat::CATMETProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
+{
+  Handle<View<pat::MET> > src;
+  iEvent.getByLabel(src_, src);
 
-    Handle<View<pat::MET> > src;
-    iEvent.getByToken(src_, src);
+  auto_ptr<vector<cat::MET> >  out(new vector<cat::MET>());
 
-    auto_ptr<vector<cat::MET> >  out(new vector<cat::MET>());
+  for (View<pat::MET>::const_iterator it = src->begin(), ed = src->end(); it != ed; ++it) {
+    unsigned int idx = it - src->begin();
+    const pat::MET & aPatMET = src->at(idx);
+    cat::MET aMET(aPatMET);
+    out->push_back(aMET);
 
-    for (View<pat::MET>::const_iterator it = src->begin(), ed = src->end(); it != ed; ++it) {
-      unsigned int idx = it - src->begin();
-      const pat::MET & aPatMET = src->at(idx);
-      cat::MET aMET(aPatMET);
-      out->push_back(aMET);
+  }
 
-    }
-
-    iEvent.put(out);
+  iEvent.put(out);
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"
