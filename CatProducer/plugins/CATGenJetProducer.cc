@@ -14,10 +14,10 @@
 #include "CATTools/DataFormats/interface/MCParticle.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
-//#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
-//#include "FWCore/Utilities/interface/isFinite.h"
+#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
+#include "FWCore/Utilities/interface/isFinite.h"
 
 using namespace edm;
 using namespace std;
@@ -32,7 +32,7 @@ namespace cat {
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
     
   private:
-    edm::InputTag src_;
+    edm::EDGetTokenT<edm::View<reco::GenJet> > src_;
     
     const double pt_;
     const double eta_;
@@ -50,7 +50,7 @@ namespace cat {
 } // namespace
 
 cat::CATGenJetProducer::CATGenJetProducer(const edm::ParameterSet & iConfig) :
-  src_(iConfig.getParameter<InputTag>( "src" )),
+  src_(consumes<edm::View<reco::GenJet> >(iConfig.getParameter<edm::InputTag>("src"))),
   pt_(iConfig.getParameter<double>("pt")),
   eta_(iConfig.getParameter<double>("eta"))
 {
@@ -61,7 +61,7 @@ void
 cat::CATGenJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
   Handle<View<reco::GenJet> > src;
-  iEvent.getByLabel(src_, src);
+  iEvent.getByToken(src_, src);
 
   auto_ptr<vector<cat::GenJet> >  out(new vector<cat::GenJet>());
 

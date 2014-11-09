@@ -13,6 +13,8 @@
 #include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
+#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
+#include "FWCore/Utilities/interface/isFinite.h"
 
 using namespace edm;
 using namespace std;
@@ -29,9 +31,9 @@ namespace cat {
   private:
     float getEffArea( float dR, float scEta );
 
-    edm::InputTag src_;
-    edm::InputTag vertexLabel_;
-    edm::InputTag rhoLabel_;
+    edm::EDGetTokenT<edm::View<pat::Electron> > src_;
+    edm::EDGetTokenT<edm::View<pat::Vertex> > vertexLabel_;
+    edm::EDGetTokenT<double> > rhoLabel_;
     bool runOnMC_;
 
   };
@@ -39,9 +41,9 @@ namespace cat {
 } // namespace
 
 cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig) :
-  src_(iConfig.getParameter<edm::InputTag>( "src" )),
-  vertexLabel_(iConfig.getParameter<edm::InputTag>( "vertexLabel" )),
-  rhoLabel_(iConfig.getParameter<edm::InputTag>("rhoLabel")),
+  src_(consumes<edm::View<pat::Electron> >(iConfig.getParameter<edm::InputTag>("src"))),
+  vertexLabel_(consumes<edm::View<pat::Vertex> >(iConfig.getParameter<edm::InputTag>("vertexLabel"))),
+  rhoLabel_(consumes<double >(iConfig.getParameter<edm::InputTag>("rhoLabel"))),
   runOnMC_(iConfig.getParameter<bool>("runOnMC"))
 {
   produces<std::vector<cat::Electron> >();
@@ -51,14 +53,14 @@ void
 cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) 
 {
   Handle<View<pat::Electron> > src;
-  iEvent.getByLabel(src_, src);
+  iEvent.getByToken(src_, src);
 
   Handle<View<reco::Vertex> > recVtxs;
-  iEvent.getByLabel(vertexLabel_, recVtxs);
+  iEvent.getByToken(vertexLabel_, recVtxs);
   reco::Vertex pv = recVtxs->at(0);
 
   Handle<double> rhoHandle;
-  iEvent.getByLabel(rhoLabel_, rhoHandle);
+  iEvent.getByToken(rhoLabel_, rhoHandle);
   double rhoIso = std::max(*(rhoHandle.product()), 0.0);
 
   auto_ptr<vector<cat::Electron> >  out(new vector<cat::Electron>());

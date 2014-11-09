@@ -10,11 +10,11 @@
 #include "CATTools/DataFormats/interface/Muon.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
-//#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
-//#include "FWCore/Utilities/interface/isFinite.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
+#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
+#include "FWCore/Utilities/interface/isFinite.h"
 
 using namespace edm;
 using namespace std;
@@ -32,10 +32,10 @@ namespace cat {
     bool MatchObjects( const reco::Candidate::LorentzVector& pasObj, const reco::Candidate::LorentzVector& proObj, bool exact );
 
   private:
-    edm::InputTag src_;
-    edm::InputTag mcLabel_;
-    edm::InputTag vertexLabel_;
-    edm::InputTag beamLineSrc_;
+    edm::EDGetTokenT<edm::View<pat::Muon> > src_;
+    edm::EDGetTokenT<edm::View<reco::GenParticle> > mcLabel_;
+    edm::EDGetTokenT<edm::View<reco::Vertex> > vertexLabel_;
+    edm::EDGetTokenT<reco::BeamSpot> beamLineSrc_;
     bool runOnMC_;
 
   };
@@ -43,10 +43,10 @@ namespace cat {
 } // namespace
 
 cat::CATMuonProducer::CATMuonProducer(const edm::ParameterSet & iConfig) :
-  src_(iConfig.getParameter<edm::InputTag>( "src" )),
-  mcLabel_(iConfig.getParameter<edm::InputTag>( "mcLabel" )),
-  vertexLabel_(iConfig.getParameter<edm::InputTag>( "vertexLabel" )),
-  beamLineSrc_(iConfig.getParameter<edm::InputTag>( "beamLineSrc" )),
+  src_(consumes<edm::View<pat::Muon> >(iConfig.getParameter<edm::InputTag>("src"))),
+  mcLabel_(consumes<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("mcLabel"))),
+  vertexLabel_(consumes<edm::View<reco::Vertex> >(iConfig.getParameter<edm::InputTag>("vertexLabel"))),
+  beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc"))),
   runOnMC_(iConfig.getParameter<bool>("runOnMC"))
 {
   produces<std::vector<cat::Muon> >();
@@ -56,16 +56,16 @@ void
 cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) 
 {
   Handle<View<pat::Muon> > src;
-  iEvent.getByLabel(src_, src);
+  iEvent.getByToken(src_, src);
  
   Handle<View<reco::GenParticle> > genParticles;
-  if (runOnMC_) iEvent.getByLabel(mcLabel_,genParticles);
+  if (runOnMC_) iEvent.getByToken(mcLabel_,genParticles);
     
   Handle<View<reco::Vertex> > recVtxs;
-  iEvent.getByLabel(vertexLabel_,recVtxs);
+  iEvent.getByToken(vertexLabel_,recVtxs);
 
   Handle<reco::BeamSpot> beamSpotHandle;
-  iEvent.getByLabel(beamLineSrc_, beamSpotHandle);
+  iEvent.getByToken(beamLineSrc_, beamSpotHandle);
 
   reco::Vertex pv = recVtxs->at(0);
    

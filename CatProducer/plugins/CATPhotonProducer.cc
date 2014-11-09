@@ -10,10 +10,10 @@
 #include "CATTools/DataFormats/interface/Photon.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
-//#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
-//#include "FWCore/Utilities/interface/isFinite.h"
+#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
+#include "FWCore/Utilities/interface/isFinite.h"
 
 using namespace edm;
 using namespace std;
@@ -28,13 +28,13 @@ namespace cat {
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
   private:
-    edm::InputTag src_;
+    edm::EDGetTokenT<edm::View<pat::Photon> > src_;
   };
 
 } // namespace
 
 cat::CATPhotonProducer::CATPhotonProducer(const edm::ParameterSet & iConfig) :
-  src_(iConfig.getParameter<edm::InputTag>( "src" ))
+  src_(consumes<edm::View<pat::Photon> >(iConfig.getParameter<edm::InputTag>("src")))
 {
   produces<std::vector<cat::Photon> >();
 }
@@ -43,7 +43,7 @@ void
 cat::CATPhotonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
   Handle<View<pat::Photon> > src;
-  iEvent.getByLabel(src_, src);
+  iEvent.getByToken(src_, src);
 
   auto_ptr<vector<cat::Photon> >  out(new vector<cat::Photon>());
 

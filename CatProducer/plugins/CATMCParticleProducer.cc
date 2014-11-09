@@ -11,10 +11,8 @@
 #include "CATTools/DataFormats/interface/MCParticle.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
-//#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
-//#include "FWCore/Utilities/interface/isFinite.h"
 
 using namespace edm;
 using namespace std;
@@ -29,7 +27,7 @@ namespace cat {
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
   private:
-    edm::InputTag src_;
+    edm::EDGetTokenT<edm::View<reco::GenParticle> > src_;
 
     const double pt_;
     const double eta_;
@@ -39,7 +37,7 @@ namespace cat {
 } // namespace
 
 cat::CATMCParticleProducer::CATMCParticleProducer(const edm::ParameterSet & iConfig) :
-  src_(iConfig.getParameter<edm::InputTag>( "src" )),
+  src_(consumes<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("src"))),
   pt_(iConfig.getParameter<double>("pt")),
   eta_(iConfig.getParameter<double>("eta"))
 {
@@ -50,7 +48,7 @@ void
 cat::CATMCParticleProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) 
 {
   Handle<View<reco::GenParticle> > genParticles;
-  iEvent.getByLabel(src_,genParticles);
+  iEvent.getByToken(src_,genParticles);
     
   auto_ptr<vector<cat::MCParticle> >  out(new vector<cat::MCParticle>());
 

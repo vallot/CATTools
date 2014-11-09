@@ -10,10 +10,10 @@
 #include "CATTools/DataFormats/interface/MET.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
-//#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
-//#include "FWCore/Utilities/interface/isFinite.h"
+#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
+#include "FWCore/Utilities/interface/isFinite.h"
 
 using namespace edm;
 using namespace std;
@@ -28,14 +28,14 @@ namespace cat {
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
   private:
-    edm::InputTag src_;
+    edm::EDGetTokenT<edm::View<pat::MET> > src_;
 
   };
 
 } // namespace
 
 cat::CATMETProducer::CATMETProducer(const edm::ParameterSet & iConfig) :
-  src_(iConfig.getParameter<edm::InputTag>( "src" ))
+  src_(consumes<edm::View<pat::MET> >(iConfig.getParameter<edm::InputTag>("src")))
 {
   produces<std::vector<cat::MET> >();
 }
@@ -44,7 +44,7 @@ void
 cat::CATMETProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
   Handle<View<pat::MET> > src;
-  iEvent.getByLabel(src_, src);
+  iEvent.getByToken(src_, src);
 
   auto_ptr<vector<cat::MET> >  out(new vector<cat::MET>());
 
