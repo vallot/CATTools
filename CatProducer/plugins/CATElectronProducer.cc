@@ -10,11 +10,12 @@
 #include "CATTools/DataFormats/interface/Electron.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
-#include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
-#include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
-#include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
+#include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
+//#include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
 #include "FWCore/Utilities/interface/isFinite.h"
+
+#include "DataFormats/VertexReco/interface/Vertex.h"
 
 using namespace edm;
 using namespace std;
@@ -33,7 +34,7 @@ namespace cat {
 
     edm::EDGetTokenT<edm::View<pat::Electron> > src_;
     edm::EDGetTokenT<edm::View<reco::Vertex> > vertexLabel_;
-    edm::EDGetTokenT<double> > rhoLabel_;
+    edm::EDGetTokenT<double> rhoLabel_;
     bool runOnMC_;
 
   };
@@ -43,7 +44,7 @@ namespace cat {
 cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig) :
   src_(consumes<edm::View<pat::Electron> >(iConfig.getParameter<edm::InputTag>("src"))),
   vertexLabel_(consumes<edm::View<reco::Vertex> >(iConfig.getParameter<edm::InputTag>("vertexLabel"))),
-  rhoLabel_(consumes<double >(iConfig.getParameter<edm::InputTag>("rhoLabel"))),
+  rhoLabel_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoLabel"))),
   runOnMC_(iConfig.getParameter<bool>("runOnMC"))
 {
   produces<std::vector<cat::Electron> >();
@@ -99,8 +100,6 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     aElectron.setchargeIDFull( aPatElectron.isGsfCtfScPixChargeConsistent()) ;
     
     out->push_back(aElectron);
-
-
   }
 
   iEvent.put(out);
