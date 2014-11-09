@@ -26,6 +26,7 @@
 <use   name="PhysicsTools/IsolationAlgos"/>
 <use   name="Geometry/CaloTopology"/>
 <use   name="RecoEgamma/EgammaTools"/>
+<use   name="EgammaAnalysis/ElectronTools"/>
 <use   name="RecoParticleFlow/PFProducer"/>
 <use   name="RecoVertex/KalmanVertexFit"/>
 <use   name="clhep"/>
