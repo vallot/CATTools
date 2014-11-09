@@ -46,7 +46,7 @@ private:
   //edm::EDGetTokenT<edm::View<cat::Muon> > src_;
   edm::InputTag src_;
 
-  TH1F* chIso;
+  TH1F* relIso;
   TH1F* nhIso;
   TH1F* phIso;
   TH1F* puIso;
@@ -59,7 +59,7 @@ CATMuonAnalysis::CATMuonAnalysis(const edm::ParameterSet& iConfig):
 {
   edm::Service<TFileService> fs;
 
-  chIso = fs->make<TH1F>("chIso","chIso",400,0,4);
+  relIso = fs->make<TH1F>("relIso","relIso",400,0,4);
   nhIso = fs->make<TH1F>("nhIso","nhIso",400,0,4);
   phIso = fs->make<TH1F>("phIso","phIso",400,0,4);
   puIso = fs->make<TH1F>("puIso","puIso",400,0,4);
@@ -92,10 +92,7 @@ void CATMuonAnalysis::analyze( const edm::Event& iEvent, const edm::EventSetup& 
 
   for (unsigned int i = 0; i < src->size() ; i++) {
     const cat::Muon & muon = src->at(i);
-    chIso->Fill( muon.chargedHadronIso() );
-    nhIso->Fill( muon.neutralHadronIso() );
-    phIso->Fill( muon.photonIso() );
-    puIso->Fill( muon.puChargedHadronIso() );
+    relIso->Fill( muon.relIso() );
   }
 
 }
