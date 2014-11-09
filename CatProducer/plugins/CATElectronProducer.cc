@@ -32,7 +32,7 @@ namespace cat {
     float getEffArea( float dR, float scEta );
 
     edm::EDGetTokenT<edm::View<pat::Electron> > src_;
-    edm::EDGetTokenT<edm::View<pat::Vertex> > vertexLabel_;
+    edm::EDGetTokenT<edm::View<reco::Vertex> > vertexLabel_;
     edm::EDGetTokenT<double> > rhoLabel_;
     bool runOnMC_;
 
@@ -42,7 +42,7 @@ namespace cat {
 
 cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig) :
   src_(consumes<edm::View<pat::Electron> >(iConfig.getParameter<edm::InputTag>("src"))),
-  vertexLabel_(consumes<edm::View<pat::Vertex> >(iConfig.getParameter<edm::InputTag>("vertexLabel"))),
+  vertexLabel_(consumes<edm::View<reco::Vertex> >(iConfig.getParameter<edm::InputTag>("vertexLabel"))),
   rhoLabel_(consumes<double >(iConfig.getParameter<edm::InputTag>("rhoLabel"))),
   runOnMC_(iConfig.getParameter<bool>("runOnMC"))
 {
