@@ -1,5 +1,5 @@
-Create multicrab configuration using CRAB2.
+Using genMultiCRAB.py
 ===
 ```bash
-./createMulticrab.py MC/ttbar_mc.txt
+Usage : ./genMultiCRAB.py MC/ttbar_mc.txt ...
 ```

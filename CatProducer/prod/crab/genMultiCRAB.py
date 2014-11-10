@@ -13,21 +13,26 @@ for file in sys.argv[1:] :
   lines = open(file)
   datasets += lines.readlines()
 
+#MC or Data?
+isMC = True
+type_label = "MC"
+
+dataset = datasets[0]
+datatype = dataset.strip().split("/")[-1]
+if datatype == "AOD" :
+  isMC = False
+  type_label = "RD"
+
+
+
 #print datasets
 #Init multicrab.cfg
-header = """[MULTICRAB]\ncfg=crab.cfg\n[COMMON]\n"""
+header = """[MULTICRAB]\ncfg=crab%s.cfg\n[COMMON]\n"""%(type_label)
 
 output.write(header)
 
 for dataset in datasets :
   dataset = dataset.strip()
-  datatype = dataset.split("/")[-1]
-  isMC = True
-
-  #If it is "Real Data",
-  if datatype == "AOD" :
-    isMC = False
-
   if isMC :
     label = dataset.split("/")[1]
   else :
