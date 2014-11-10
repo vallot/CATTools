@@ -14,7 +14,7 @@ cat download.url | xargs wget
 cd $SRT_CMSSW_BASE_SCRAMRTDEL/src
 git clone git@github.com:vallot/CATTools.git
 cd CATTools
-git checkout tags/CMSSW_5_3_22_4
+git checkout tags/cat_5_3_22_5
 cd ..
 scram b -j 8
 
@@ -42,5 +42,11 @@ cmsRun $SRT_CMSSW_BASE_SCRAMRTDEL/src/CATTools/CatProducer/test/runCatupling.py
 ### 2-2. Example
 - If we want to generate multicrab.cfg file to make ntuple about ttbar and diboson datasets.
 ```bash
+cd $SRT_CMSSW_BASE_SCRAMRTDEL/src/CATTools/CatProducer/prod/crab
 ./genMultiCRAB.py MC/ttbar_dilepton.txt MC/diboson.txt
+
+multicrab -create
+multicrab -submit
+multicrab -status
+multicrab -get
 ```
