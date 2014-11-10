@@ -1,15 +1,17 @@
 from PhysicsTools.PatAlgos.patTemplate_cfg import *
 from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing ('python')
-options.register ('runOnMC', 1,
+options.register ('runOnMC', True,
                   VarParsing.multiplicity.singleton,
                   VarParsing.varType.bool,
-                  "runOnMC")
+                  "runOnMC: 1  default")
+
 import sys
 if hasattr(sys, "argv") == True:
     options.parseArguments()
     runOnMC = options.runOnMC
 
+print "runOnMC",runOnMC
 postfix = "PFlow"
 jetAlgo="AK5"
 doSecVertex=True # for jpsi candidates
@@ -20,9 +22,6 @@ catPatConfig(process, runOnMC, postfix, jetAlgo)
 catSetup(process, runOnMC, doSecVertex)
 
 process.maxEvents.input = 100
-process.MessageLogger.cerr.threshold = ''
-process.MessageLogger.cerr.FwkReport.reportEvery = 1000
-
 process.source.fileNames = cms.untracked.vstring(
 'file:/pnfs/user/kraft_data/FEEEC639-4A98-E211-BE1C-002618943919.root',
 #'file:/cms/home/jlee/scratch/QCD_Pt-15to3000_TuneEE3C_Flat_8TeV_herwigpp/001A0DC8-C313-E211-BCCB-00261894397B.root'
