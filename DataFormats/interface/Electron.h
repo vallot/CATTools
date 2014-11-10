@@ -5,7 +5,6 @@
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "CATTools/DataFormats/interface/Particle.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
-#include "EgammaAnalysis/ElectronTools/interface/ElectronEffectiveArea.h"
 
 // Define typedefs for convenience
 namespace cat {
