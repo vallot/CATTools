@@ -27,6 +27,7 @@ if isMC : print "I guess these datasets are Monte Carlo samples.\nmulticrab.cfg 
 else : print "I guess these datasets are Real Data samples.\nmulticrab.cfg will be set for RD.\n"
 
 ### Header of multicrab.cfg for each type.
+#header = "[MULTICRAB]\ncfg=crab%s.cfg\n[COMMON]\nUSER.ui_working_dir=working_dir\n\n"%(type_label)
 header = "[MULTICRAB]\ncfg=crab%s.cfg\n[COMMON]\n"%(type_label)
 
 output.write(header)
