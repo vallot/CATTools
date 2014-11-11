@@ -2,6 +2,10 @@
 
 import os,time
 
+def runCommand(commandstring, loopn):
+    print "loop", loopn, " ,", commandstring
+    os.system(commandstring)
+    
 multicrabdir = []
 for fn in os.listdir('.'):
     if os.path.isdir(fn):
@@ -11,16 +15,7 @@ for fn in os.listdir('.'):
 
 for n in range(50):
     for d in multicrabdir:
-        command_submit = "multicrab -submit 500 -c "+d
-        print "loop", n, " ,", command_submit
-        os.system(command_submit)
-        command_status = "multicrab -status -c "+d
-        print "loop", n, " ,", command_status        
-        os.system(command_status)
-        command_get = "multicrab -get -c "+d
-        print "loop", n, " ,", command_get
-        os.system(command_get)
-        command_resubmit = "multicrab -resubmit bad -c "+d
-        print "loop", n, " ,", command_resubmit
-        os.system(command_resubmit)
-        time.sleep(2000)
+        runCommand("multicrab -submit 500 -c "+d, n)
+        runCommand("multicrab -status -c "+d, n)
+        runCommand("multicrab -get -c "+d, n)
+        runCommand("multicrab -resubmit bad -c "+d, n)
