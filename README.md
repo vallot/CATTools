@@ -44,9 +44,13 @@ cmsRun $SRT_CMSSW_BASE_SCRAMRTDEL/src/CATTools/CatProducer/test/runCatupling.py
 ```bash
 cd $SRT_CMSSW_BASE_SCRAMRTDEL/src/CATTools/CatProducer/prod/crab
 ./genMultiCRAB.py MC/ttbar_dilepton.txt MC/diboson.txt
-
+```
+### 2-3. Creating jobs
+```bash
 multicrab -create
-multicrab -submit
-multicrab -status
-multicrab -get
+```
+### 2-3.Submitting jobs
+- multicrabresub.py script will submit, get and resub every 2000 seconds
+```bash
+python multicrabresub.py
 ```
