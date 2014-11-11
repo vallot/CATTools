@@ -3,7 +3,7 @@
 import os,time
 
 def runCommand(commandstring, loopn):
-    print "loop", loopn, " ,", commandstring
+    print "loop", loopn, ",", commandstring
     os.system(commandstring)
     
 multicrabdir = []
