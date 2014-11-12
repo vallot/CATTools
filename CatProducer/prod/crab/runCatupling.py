@@ -26,4 +26,3 @@ process.MessageLogger.cerr.threshold = ''
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.source.fileNames = cms.untracked.vstring(
 "/store/mc/HC/GenericTTbar/GEN-SIM-RECO/CMSSW_5_3_1_START53_V5-v1/0010/FC85224E-EAAD-E111-AB01-0025901D629C.root")
-
