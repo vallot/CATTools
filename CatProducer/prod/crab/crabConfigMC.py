@@ -4,8 +4,8 @@ config = Configuration()
 
 config.section_("General")
 config.General.requestName   = 'cat_test1'
-config.General.saveLogs = True
-#config.General.transferOutput = False
+config.General.saveLogs = False
+config.General.transferOutput = False
 
 config.section_("JobType")
 config.JobType.pluginName  = 'Analysis'
@@ -17,7 +17,7 @@ config.section_("Data")
 config.Data.inputDataset = '/QCD_Pt-15to3000_TuneEE3C_Flat_8TeV_herwigpp/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM'
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 1
-config.Data.totalUnits = -1
+config.Data.totalUnits = 1000
 config.Data.publication = False
 
 # This string is used to construct the output dataset name
@@ -25,7 +25,7 @@ config.Data.publishDataName = 'CRAB3-test'
 
 config.section_("Site")
 # Where the output files will be transmitted to
-#config.Site.storageSite = 'T2_KR_KNU'
-config.Site.storageSite = 'T3_US_FNALLPC'
+config.Site.storageSite = 'T2_KR_KNU'
+#config.Site.storageSite = 'T3_US_FNALLPC'
 
 
