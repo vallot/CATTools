@@ -13,7 +13,7 @@ for file in sys.argv[1:] :
 ### MC or Data?
 isMC = True
 type_label = "MC"
-requestName = "cat_test1"
+requestName = "cat_test2"
 
 dataset = datasets[0]
 datatype = dataset.strip().split("/")[-1]

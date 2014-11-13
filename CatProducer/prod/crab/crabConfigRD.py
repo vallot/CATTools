@@ -5,6 +5,7 @@ config = Configuration()
 config.section_("General")
 config.General.requestName   = 'cat_test1'
 config.General.saveLogs = True
+#config.General.transferOutput = False
 
 config.section_("JobType")
 config.JobType.pluginName  = 'Analysis'
@@ -18,12 +19,13 @@ config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 1
 config.Data.totalUnits = -1
 config.Data.publication = False
+config.Data.lumiMask = 'Cert_190456-208686_8TeV_22Jan2013ReReco_Collisions12_JSON.txt'
 
 # This string is used to construct the output dataset name
 config.Data.publishDataName = 'CRAB3-test'
 
 config.section_("Site")
 # Where the output files will be transmitted to
-config.Site.storageSite = 'T2_KR_KNU'
-
+#config.Site.storageSite = 'T2_KR_KNU'
+config.Site.storageSite = 'T3_US_FNALLPC'
 
