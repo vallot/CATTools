@@ -14,7 +14,7 @@ cat download.url | xargs wget
 cd $SRT_CMSSW_BASE_SCRAMRTDEL/src
 git clone git@github.com:vallot/CATTools.git
 cd CATTools
-git checkout tags/cat_5_3_22_6
+git checkout tags/cat_5_3_22_7
 cd ..
 scram b -j 8
 
@@ -23,34 +23,32 @@ cmsRun $SRT_CMSSW_BASE_SCRAMRTDEL/src/CATTools/CatProducer/test/runCatupling.py
 ```
 
 # Submit CRAB jobs using CATTools
-## 1. Modify crabMC.cfg and crabRD.cfg files.
-- Some variables will be modify to support specific case. 
-  - Madantory : **pset**, **storage_element**, **user_remote_dir**
-  - Option : total_number_of_events, events_per_job, eMail
-- **Do not use _return_data_ for multicrab.**
-  - Large result files can be corructed due to storage limit(100GB). 
+## 1. This is based on crab3
+ - no need to change configurations since jobs are stored all in remote servers
+ - make sure crab3 is setup first
+```bash
+source /cvmfs/cms.cern.ch/crab3/crab.sh
+```
 
-## 2. Using genMultiCRAB.py
-- This script can be used in order to generate correct "multicrab.cfg"
-- Dataset lists are located on MC/ or RD/ directories for data type.
+## 2. Using submitCrab3.py
+- This script can be used to pass CRAB configuration parameters from the command line depending on the Dataset lists are located on MC/ or RD/ directories for data type.
 
 ### 2-1. Usage 
 ```bash
-./genMultiCRAB.py [Dataset1.txt] [Dataset2.txt]
+./submitCrab3.py [Dataset1.txt] [Dataset2.txt]
 ```
 
 ### 2-2. Example
-- If we want to generate multicrab.cfg file to make ntuple about ttbar and diboson datasets.
+- If we want to submit cattuple ttbar and diboson datasets.
 ```bash
 cd $SRT_CMSSW_BASE_SCRAMRTDEL/src/CATTools/CatProducer/prod/crab
-./genMultiCRAB.py MC/ttbar_dilepton.txt MC/diboson.txt
+./submitCrab3.py MC/ttbar_dilepton.txt MC/diboson.txt
 ```
-### 2-3. Creating jobs
-```bash
-multicrab -create
-```
+
 ### 2-3.Submitting jobs
-- multicrabresub.py script will submit, get and resub every 2000 seconds
+- because the jobs only saved in local storage (where the job was done) we need to get the output manually. 
+- this has the benefit of crab jobs not failing due to transfer errors
+- to get the output use "crab out -t <taskdir>" or the script below
 ```bash
-python multicrabresub.py
+python getcrabOut.py
 ```
