@@ -9,6 +9,8 @@ def miniAOD(process):
   process.catMuons.mcLabel = "prunedGenParticles"
   process.catMuons.vertexLabel = "offlineSlimmedPrimaryVertices" 
   process.catElectrons.src = "slimmedElectrons"
+  process.catElectrons.mcLabel = "prunedGenParticles"
+  process.catElectrons.vertexLabel = "offlineSlimmedPrimaryVertices"
   process.catPhotons.src = "slimmedPhotons"
   process.catMETs.src = "slimmedMETs"
   process.catJets.src = "slimmedJets"

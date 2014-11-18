@@ -61,6 +61,8 @@ namespace cat {
     }
 
 
+    bool mcMatched() const { return mcMatched_; }
+
     float mva() const { return mva_; }
 
     void setChargedHadronIso03(double i) { chargedHadronIso03_ = i; }
@@ -71,7 +73,9 @@ namespace cat {
     void setChargedHadronIso04(double i) { chargedHadronIso04_ = i; }
     void setPUChargedHadronIso04(double i) { puChargedHadronIso04_ = i; }
     void setNeutralHadronIso04(double i) { neutralHadronIso04_ = i; }
+    void setPhotonIso04(double i) { photonIso04_ = i; }
 
+    void setMCMatched(bool m) { mcMatched_ = m; }
     void setMva(float m) { mva_ = m; } 
   
   private:
@@ -86,7 +90,7 @@ namespace cat {
     double neutralHadronIso04_;
     double photonIso04_;
 
-
+    bool mcMatched_;
     float mva_;
 
   };
