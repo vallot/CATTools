@@ -67,13 +67,10 @@ namespace cat {
       return charged + ( corNeutralIso>0 ? corNeutralIso : 0 ) ;
     }
 
-    float relIso(float dR=0.3, float dBetaFactor=0.5) const{
-      float abs = absIso(dR, dBetaFactor)/this->pt();
-      return abs >=0 ? abs : -1;
-    }
     bool mcMatched() const { return mcMatched_; }
 
-    void setrelIso(float dR, float chIso, float nhIso, float phIso, float AEff, float rhoIso, float ecalpt) {
+    void setrelIso(double dR, double chIso, double nhIso, double phIso, double AEff, double rhoIso, double ecalpt)
+    {
       float relIso = ( chIso + std::max(0.0, nhIso + phIso - rhoIso*AEff) )/ ecalpt;
       if( dR < 0.35) relIso03_ = relIso; 
       else  relIso04_ = relIso; 
