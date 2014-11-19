@@ -4,8 +4,8 @@ config = Configuration()
 
 config.section_("General")
 config.General.requestName   = 'cat_test1'
-config.General.saveLogs = False
-config.General.transferOutput = False
+config.General.transferLogs = False
+config.General.transferOutputs = False
 
 config.section_("JobType")
 config.JobType.pluginName  = 'Analysis'
