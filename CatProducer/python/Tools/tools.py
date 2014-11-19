@@ -5,17 +5,19 @@ from CommonTools.ParticleFlow.pfParticleSelection_cff import *
 from CommonTools.ParticleFlow.Isolation.pfMuonIsolation_cff import *
 
 def miniAOD(process):
-  process.catMuons.src = "slimmedMuons" 
-  process.catMuons.mcLabel = "prunedGenParticles"
-  process.catMuons.vertexLabel = "offlineSlimmedPrimaryVertices" 
-  process.catElectrons.src = "slimmedElectrons"
-  process.catPhotons.src = "slimmedPhotons"
-  process.catMETs.src = "slimmedMETs"
-  process.catJets.src = "slimmedJets"
-  process.catGenJets.src = "slimmedGenJets" 
-  process.catMCParticles.src = "prunedGenParticles"
-  process.catGenTops.genJetLabel = "slimmedGenJets"
-  process.catGenTops.mcParticleLabel = "prunedGenParticles" 
+    process.catMuons.src = "slimmedMuons" 
+    process.catMuons.mcLabel = "prunedGenParticles"
+    process.catMuons.vertexLabel = "offlineSlimmedPrimaryVertices" 
+    process.catElectrons.src = "slimmedElectrons"
+    process.catPhotons.src = "slimmedPhotons"
+    process.catMETs.src = "slimmedMETs"
+    process.catJets.src = "slimmedJets"
+    process.catGenJets.src = "slimmedGenJets" 
+    process.catMCParticles.src = "prunedGenParticles"
+    process.catGenTops.genJetLabel = "slimmedGenJets"
+    process.catGenTops.mcParticleLabel = "prunedGenParticles" 
+    process.catElectrons.vertexLabel = "offlineSlimmedPrimaryVertices" 
+    process.catElectrons.rhoLabel = "fixedGridRhoAll" 
 
 #muons with weighted isolation method
 def addMuonWeighted(process):
