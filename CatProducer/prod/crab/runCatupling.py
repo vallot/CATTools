@@ -31,7 +31,7 @@ if hasattr(sys, "argv") == True:
 
 print "runOnMC",runOnMC
 useMiniAOD = True
-doSecVertex=True # for jpsi candidates
+doSecVertex=False # for jpsi candidates
 postfix = "PFlow"
 jetAlgo="AK5"
 
@@ -41,7 +41,7 @@ catPatConfig(process, runOnMC, postfix, jetAlgo)
 from CATTools.CatProducer.catSetup_cff import *
 catSetup(process, runOnMC, useMiniAOD, doSecVertex)
 
-process.maxEvents.input = 100
+process.maxEvents.input = -1
 process.MessageLogger.cerr.threshold = ''
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.source = cms.Source("PoolSource",

@@ -86,3 +86,5 @@ if useMiniAOD:
   process.out.outputCommands = catEventContent
 else:
   process.out.outputCommands = catEventContentExtended
+process.MessageLogger.cerr.threshold = ''
+process.MessageLogger.cerr.FwkReport.reportEvery = 1000

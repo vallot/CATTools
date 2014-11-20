@@ -77,29 +77,29 @@ cat::CATGenJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
     bool isCHadron = false;
     cat::MCParticle BHad;
     cat::MCParticle CHad;
-    std::vector <const reco::GenParticle*> mcparts = aGenJet.getGenConstituents();
-    for (unsigned i = 0; i < mcparts.size (); i++) {
-      const reco::GenParticle* mcpart = mcparts[i];
-      const reco::Candidate* lastB = lastBHadron(*mcpart);
-      if( lastB ) {
-	isBHadron = true;
-	cat::MCParticle tmp(*lastB); 
-	BHad = tmp;
-	break;
-      }
-    }
+    // std::vector <const reco::GenParticle*> mcparts = aGenJet.getGenConstituents();
+    // for (unsigned i = 0; i < mcparts.size (); i++) {
+    //   const reco::GenParticle* mcpart = mcparts[i];
+    //   const reco::Candidate* lastB = lastBHadron(*mcpart);
+    //   if( lastB ) {
+    // 	isBHadron = true;
+    // 	cat::MCParticle tmp(*lastB); 
+    // 	BHad = tmp;
+    // 	break;
+    //   }
+    // }
 
-    for (unsigned i = 0; i < mcparts.size (); i++) {
-      if( isBHadron ) break; //no need to loop over again, this is b-jet!
-      const reco::GenParticle* mcpart = mcparts[i];
-      const reco::Candidate* lastC = lastCHadron(*mcpart);
-      if( lastC ) {
-	isCHadron = true;
-	cat::MCParticle tmp(*lastC);
-	CHad = tmp;
-	break;
-      }
-    }
+    // for (unsigned i = 0; i < mcparts.size (); i++) {
+    //   if( isBHadron ) break; //no need to loop over again, this is b-jet!
+    //   const reco::GenParticle* mcpart = mcparts[i];
+    //   const reco::Candidate* lastC = lastCHadron(*mcpart);
+    //   if( lastC ) {
+    // 	isCHadron = true;
+    // 	cat::MCParticle tmp(*lastC);
+    // 	CHad = tmp;
+    // 	break;
+    //   }
+    // }
 
     if( isBHadron ) aCatGenJet.setBHadron(BHad); //if B-Hadron matched, always assign B-Hadron
     if( isCHadron ) aCatGenJet.setCHadron(CHad); //if only no B-Hadron matched, assign C-Hadron

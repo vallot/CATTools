@@ -30,7 +30,7 @@ def catSetup(process, runOnMC=True, useMiniAOD = True, doSecVertex=True):
         catMCsource = "prunedGenParticles"
         catBeamSpot = "offlineBeamSpot"
         catRho = "fixedGridRhoAll"
-
+    
     process.catJets.src = cms.InputTag(catJetsSource)
     process.catMuons.src = cms.InputTag(catMuonsSource)
     process.catMuons.mcLabel = cms.InputTag(catMCsource)
@@ -38,11 +38,16 @@ def catSetup(process, runOnMC=True, useMiniAOD = True, doSecVertex=True):
     process.catMuons.beamLineSrc = cms.InputTag(catBeamSpot)
     process.catElectrons.src = cms.InputTag(catElectronsSource)
     process.catElectrons.vertexLabel = cms.InputTag(catVertexSource)
+    process.catElectrons.mcLabel = cms.InputTag(catMCsource)
+    process.catElectrons.beamLineSrc = cms.InputTag(catBeamSpot)
+    process.catElectrons.rhoLabel = cms.InputTag(catRho)
     process.catPhotons.src = cms.InputTag(catPhotonsSource)
     process.catMETs.src = cms.InputTag(catMETsSource)
     process.catGenJets.src = cms.InputTag(catGenJetsSource)
     process.catMCParticles.src = cms.InputTag(catMCsource)
-    process.catElectrons.rhoLabel = cms.InputTag(catRho)
+    process.catSecVertexs.muonSrc = cms.InputTag(catMuonsSource)
+    process.catSecVertexs.elecSrc = cms.InputTag(catElectronsSource)
+    process.catSecVertexs.vertexLabel = cms.InputTag(catVertexSource)
 
     if not runOnMC:
         process.makeCatCandidates.remove(process.catGenJets)
@@ -52,7 +57,6 @@ def catSetup(process, runOnMC=True, useMiniAOD = True, doSecVertex=True):
 
     if not doSecVertex:
         process.makeCatCandidates.remove(process.catSecVertexs)
-
     ## cuts on selected Pat objects
     if not useMiniAOD:
         getattr(process,catJetsSource).cut = cms.string("pt > 20")
