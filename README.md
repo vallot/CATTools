@@ -4,12 +4,12 @@ CATTools
 for cms analysis
 
 ```bash
-scram p -n cat CMSSW CMSSW_7_2_1_patch4
+scram p -n cat CMSSW CMSSW_7_0_6
 cd cat/src
 cmsenv
 git clone git@github.com:vallot/CATTools.git
 cd CATTools
-git checkout 72X_v1
+git checkout 70X_v1
 cd ..
 scram b -j 8
 
