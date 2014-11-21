@@ -1,5 +1,6 @@
 ## import skeleton process
 from PhysicsTools.PatAlgos.patTemplate_cfg import *
+process._Process__name = 'CAT'
 ## switch to uncheduled mode
 process.options.allowUnscheduled = cms.untracked.bool(True)
 #process.Tracer = cms.Service("Tracer")
@@ -12,7 +13,8 @@ process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
     fileNames = cms.untracked.vstring(
       #'/store/relval/CMSSW_7_0_6_patch3/RelValZMM_13/GEN-SIM-RECO/PUpmx50ns_PLS170_V6AN1-v2/00000/1EF0EB3F-B412-E411-A7EC-0025905A612A.root'
-      '/store/relval/CMSSW_7_2_0_pre3/RelValZMM_13/GEN-SIM-RECO/PU25ns_POSTLS172_V3-v1/00000/40AB5AF9-621D-E411-9926-02163E00F4EC.root'
+      #'/store/relval/CMSSW_7_2_0_pre3/RelValZMM_13/GEN-SIM-RECO/PU25ns_POSTLS172_V3-v1/00000/40AB5AF9-621D-E411-9926-02163E00F4EC.root'
+      'file:/cms/home/geonmo/CMSSW_7_2_1_patch4/src/CATTools/CatProducer/prod/data/080957A7-C36E-E411-A5BC-00266CF327C4.root',
     )
 )
 
