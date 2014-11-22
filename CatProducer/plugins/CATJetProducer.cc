@@ -72,9 +72,9 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
     if( aPatJet.hasUserFloat("Lxy") ) aJet.setLxy( aPatJet.userFloat("Lxy") );
     if( aPatJet.hasUserFloat("LxyErr") ) aJet.setLxyErr( aPatJet.userFloat("LxyErr") );
 
-    Int_t partonFlavour = aPatJet.partonFlavour();
+    int partonFlavour = aPatJet.partonFlavour();
     aJet.setPartonFlavour( partonFlavour );
-    Int_t partonPdgId = aPatJet.genParton() ? aPatJet.genParton()->pdgId() : 0;
+    int partonPdgId = aPatJet.genParton() ? aPatJet.genParton()->pdgId() : 0;
     aJet.setPartonPdgId(partonPdgId);
 
     out->push_back(aJet);
