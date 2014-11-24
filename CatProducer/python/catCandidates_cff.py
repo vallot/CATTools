@@ -25,6 +25,10 @@ catJets = cms.EDProducer("CATJetProducer",
     src = cms.InputTag("selectedPatJetsPFlow"),
 )
 
+catTaus = cms.EDProducer("CATTauProducer",
+    src = cms.InputTag("selectedPatTaus"),
+)
+
 catMETs = cms.EDProducer("CATMETProducer",
     src = cms.InputTag("patMETsPFlow"),
 )
@@ -73,8 +77,9 @@ catSecVertexs = cms.EDProducer("CATSecVertexProducer",
 makeCatCandidates =  cms.Sequence( 
     catMuons*
     catElectrons*
-    catPhotons*
+    #catPhotons*
     catJets*
+    #catTaus*
     catMETs*
     # MC information below
     catGenJets*

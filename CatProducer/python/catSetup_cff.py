@@ -6,6 +6,7 @@ def catSetup(process, runOnMC=True, useMiniAOD = True, doSecVertex=True):
     catMuonsSource = "selectedPatMuonsPFlow"
     catElectronsSource = "selectedPatElectronsPFlow"
     catPhotonsSource = "selectedPatPhotons"
+    catTausSource = "selectedPatTaus"
     catMETsSource = "patMETsPFlow"
     catVertexSource = "offlinePrimaryVertices"
     catMCsource = "genParticles"
@@ -25,6 +26,7 @@ def catSetup(process, runOnMC=True, useMiniAOD = True, doSecVertex=True):
         catMuonsSource = "slimmedMuons"
         catElectronsSource = "slimmedElectrons"
         catPhotonsSource = "slimmedPhotons"
+        catTausSource = "slimmedTaus"
         catMETsSource = "slimmedMETs"
         catVertexSource = "offlineSlimmedPrimaryVertices"
         catMCsource = "prunedGenParticles"
@@ -42,6 +44,7 @@ def catSetup(process, runOnMC=True, useMiniAOD = True, doSecVertex=True):
     process.catElectrons.beamLineSrc = cms.InputTag(catBeamSpot)
     process.catElectrons.rhoLabel = cms.InputTag(catRho)
     process.catPhotons.src = cms.InputTag(catPhotonsSource)
+    process.catTaus.src = cms.InputTag(catTausSource)
     process.catMETs.src = cms.InputTag(catMETsSource)
     process.catGenJets.src = cms.InputTag(catGenJetsSource)
     process.catMCParticles.src = cms.InputTag(catMCsource)

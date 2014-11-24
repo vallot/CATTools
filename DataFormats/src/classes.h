@@ -5,6 +5,7 @@
 #include "CATTools/DataFormats/interface/Electron.h"
 #include "CATTools/DataFormats/interface/Photon.h"
 #include "CATTools/DataFormats/interface/Jet.h"
+#include "CATTools/DataFormats/interface/Tau.h"
 #include "CATTools/DataFormats/interface/MET.h"
 #include "CATTools/DataFormats/interface/GenJet.h"
 #include "CATTools/DataFormats/interface/GenTop.h"
@@ -48,6 +49,12 @@ namespace {
     edm::Wrapper<cat::Jet> jw;
     edm::Wrapper<std::vector<cat::Jet> > jvw;
     edm::Ptr<cat::Jet> jPtr;
+
+    cat::Tau t_;
+    std::vector<cat::Tau> tv;
+    edm::Wrapper<cat::Tau> tw;
+    edm::Wrapper<std::vector<cat::Tau> > tvw;
+    edm::Ptr<cat::Tau> tPtr;
 
     cat::MET met_;
     std::vector<cat::MET> metv;
