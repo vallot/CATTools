@@ -41,7 +41,7 @@ catPatConfig(process, runOnMC, postfix, jetAlgo)
 from CATTools.CatProducer.catSetup_cff import *
 catSetup(process, runOnMC, useMiniAOD, doSecVertex)
 
-process.maxEvents.input = -1
+process.maxEvents.input = 3000
 process.MessageLogger.cerr.threshold = ''
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.source = cms.Source("PoolSource",

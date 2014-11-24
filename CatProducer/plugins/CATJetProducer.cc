@@ -66,14 +66,18 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
     cat::Jet aJet(aPatJet);
 
     aJet.setLooseId( looseId );
-    aJet.setbtag_csv(aPatJet.bDiscriminator("combinedSecondaryVertexBJetTags"));
+    if( aPatJet.hasUserFloat("pileupJetId:fullDiscriminant") )
+      aJet.setPileupJetId( aPatJet.userFloat("pileupJetId:fullDiscriminant") );
+
+    aJet.setBtag_csv(aPatJet.bDiscriminator("combinedSecondaryVertexBJetTags"));
     //secondary vertex b-tagging information
-    if( aPatJet.hasUserFloat("secvtxMass") ) aJet.setSecVtxMass( aPatJet.userFloat("secvtxMass") );
-    if( aPatJet.hasUserFloat("Lxy") ) aJet.setLxy( aPatJet.userFloat("Lxy") );
-    if( aPatJet.hasUserFloat("LxyErr") ) aJet.setLxyErr( aPatJet.userFloat("LxyErr") );
+    if( aPatJet.hasUserFloat("vtxMass") ) aJet.setVtxMass( aPatJet.userFloat("vtxMass") );
+    if( aPatJet.hasUserFloat("vtxNtracks") ) aJet.setVtxNtracks( aPatJet.userFloat("vtxNtracks") );
+    if( aPatJet.hasUserFloat("vtx3DVal") ) aJet.setVtx3DVal( aPatJet.userFloat("vtx3DVal") );
+    if( aPatJet.hasUserFloat("vtx3DSig") ) aJet.setVtx3DSig( aPatJet.userFloat("vtx3DSig") );
 
     int partonFlavour = aPatJet.partonFlavour();
-    aJet.setPartonFlavour( partonFlavour );
+    aJet.setPartonFlavour(partonFlavour);
     int partonPdgId = aPatJet.genParton() ? aPatJet.genParton()->pdgId() : 0;
     aJet.setPartonPdgId(partonPdgId);
 
