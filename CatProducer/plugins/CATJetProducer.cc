@@ -38,13 +38,13 @@ namespace cat {
     const reco::Candidate* lastCHadron(const reco::Candidate &c);
 
   private:
-    edm::EDGetTokenT<edm::View<pat::Jet> > src_;
+    edm::EDGetTokenT<pat::JetCollection> src_;
   };
 
 } // namespace
 
 cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
-  src_(consumes<edm::View<pat::Jet> >(iConfig.getParameter<edm::InputTag>("src")))
+  src_(consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("src")))
 {
   produces<std::vector<cat::Jet> >();
 }
@@ -52,17 +52,13 @@ cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
 void 
 cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) {
 
-  Handle<View<pat::Jet> > src;
+  edm::Handle<pat::JetCollection> src;
   iEvent.getByToken(src_, src);
 
   auto_ptr<vector<cat::Jet> >  out(new vector<cat::Jet>());
 
-  for (View<pat::Jet>::const_iterator it = src->begin(), ed = src->end(); it != ed; ++it) {
-    unsigned int idx = it - src->begin();
-    const pat::Jet & aPatJet = src->at(idx);
- 
-    bool looseId = checkPFJetId( aPatJet ); 
-
+  for (const pat::Jet &aPatJet : *src) {
+    bool looseId = checkPFJetId( aPatJet );
     cat::Jet aJet(aPatJet);
 
     aJet.setLooseId( looseId );
@@ -76,8 +72,8 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
     if( aPatJet.hasUserFloat("vtx3DVal") ) aJet.setVtx3DVal( aPatJet.userFloat("vtx3DVal") );
     if( aPatJet.hasUserFloat("vtx3DSig") ) aJet.setVtx3DSig( aPatJet.userFloat("vtx3DSig") );
 
-    int partonFlavour = aPatJet.partonFlavour();
-    aJet.setPartonFlavour(partonFlavour);
+    aJet.setHadronFlavour(aPatJet.hadronFlavour());
+    aJet.setPartonFlavour(aPatJet.partonFlavour());
     int partonPdgId = aPatJet.genParton() ? aPatJet.genParton()->pdgId() : 0;
     aJet.setPartonPdgId(partonPdgId);
 

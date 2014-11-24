@@ -35,6 +35,7 @@ namespace cat {
 
     // return the matched MC parton flavour (from the shower, used e.g. for b-tagging)
     int partonFlavour() const{ return partonFlavour_;}
+    int hadronFlavour() const{ return hadronFlavour_;}
     // pdgId of the matched MC parton from hard scattering (i.e. the closest quark or gluon of status == 3)
     int partonPdgId() const{ return partonPdgId_;}
 
@@ -49,6 +50,7 @@ namespace cat {
     void setVtx3DSig(float f) { vtx3DSig_ = f;}
 
     void setPartonFlavour(int i) { partonFlavour_ = i; }
+    void setHadronFlavour(int i) { hadronFlavour_ = i; }
     void setPartonPdgId(int i) { partonPdgId_ = i; }
 
     /* case CSVL: return bDiscriminator("combinedSecondaryVertexBJetTags") > 0.244; */
@@ -68,6 +70,7 @@ namespace cat {
 
     //parton flavour
     int partonFlavour_;
+    int hadronFlavour_;
     int partonPdgId_;
 
   };

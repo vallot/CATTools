@@ -41,9 +41,9 @@ namespace cat {
 
     vector<cat::SecVertex> *out_;
 
-    edm::EDGetTokenT<edm::View<pat::Muon> > muonSrc_;
-    edm::EDGetTokenT<edm::View<pat::Electron> > elecSrc_;
-    edm::EDGetTokenT<edm::View<reco::Vertex> > vertexLabel_;
+    edm::EDGetTokenT<pat::MuonCollection> muonSrc_;
+    edm::EDGetTokenT<pat::ElectronCollection> elecSrc_;
+    edm::EDGetTokenT<reco::VertexCollection> vertexLabel_;
 
     double rawMassMin_, rawMassMax_, massMin_, massMax_;
 
@@ -56,9 +56,9 @@ namespace cat {
 } // namespace
 
 cat::CATSecVertexProducer::CATSecVertexProducer(const edm::ParameterSet & iConfig) :
-  muonSrc_(consumes<edm::View<pat::Muon> >(iConfig.getParameter<edm::InputTag>("muonSrc"))),
-  elecSrc_(consumes<edm::View<pat::Electron> >(iConfig.getParameter<edm::InputTag>("elecSrc"))),
-  vertexLabel_(consumes<edm::View<reco::Vertex> >(iConfig.getParameter<edm::InputTag>("vertexLabel")))
+  muonSrc_(consumes<pat::MuonCollection>(iConfig.getParameter<edm::InputTag>("muonSrc"))),
+  elecSrc_(consumes<pat::ElectronCollection>(iConfig.getParameter<edm::InputTag>("elecSrc"))),
+  vertexLabel_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexLabel")))
 {
   produces<std::vector<cat::SecVertex> >();
   edm::ParameterSet trackPSet = iConfig.getParameter<edm::ParameterSet>("track");
@@ -84,13 +84,13 @@ cat::CATSecVertexProducer::CATSecVertexProducer(const edm::ParameterSet & iConfi
 void 
 cat::CATSecVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) 
 {
-  Handle<View<pat::Muon> > muonSrc;
+  Handle<pat::MuonCollection> muonSrc;
   iEvent.getByToken(muonSrc_, muonSrc);
  
-  Handle<View<pat::Electron> > elecSrc;
+  Handle<pat::ElectronCollection> elecSrc;
   iEvent.getByToken(elecSrc_, elecSrc);
 
-  Handle<View<reco::Vertex> > recVtxs;
+  Handle<reco::VertexCollection> recVtxs;
   iEvent.getByToken(vertexLabel_,recVtxs);
 
   out_ = new std::vector<cat::SecVertex>();
@@ -105,10 +105,7 @@ cat::CATSecVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & 
  
   //make muon transient tracks
   std::vector<TransientTrack> muTransTracks;
-  for (View<pat::Muon>::const_iterator it = muonSrc->begin(), ed = muonSrc->end(); it != ed; ++it) {
-    unsigned int idx = it - muonSrc->begin();
-    const pat::Muon & aPatMuon = muonSrc->at(idx);
-
+  for (const pat::Muon & aPatMuon : *muonSrc){
     reco::TrackRef trackRef;
     if ( aPatMuon.isGlobalMuon() ) trackRef = aPatMuon.globalTrack();
     else if ( aPatMuon.isTrackerMuon() ) trackRef = aPatMuon.innerTrack();
@@ -123,10 +120,7 @@ cat::CATSecVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & 
 
   //make electron transient tracks
   std::vector<TransientTrack> elTransTracks;
-  for (View<pat::Electron>::const_iterator it = elecSrc->begin(), ed = elecSrc->end(); it != ed; ++it) {
-    unsigned int idx = it - elecSrc->begin();
-    const pat::Electron & aPatElectron = elecSrc->at(idx);
-
+  for (const pat::Electron & aPatElectron : *elecSrc){
     if ( aPatElectron.gsfTrack().isNull() ) continue;
 
     reco::TransientTrack transTrack = trackBuilder->build(aPatElectron.gsfTrack());

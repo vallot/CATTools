@@ -28,14 +28,14 @@ namespace cat {
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
   private:
-    edm::EDGetTokenT<edm::View<pat::MET> > src_;
+    edm::EDGetTokenT<pat::METCollection> src_;
 
   };
 
 } // namespace
 
 cat::CATMETProducer::CATMETProducer(const edm::ParameterSet & iConfig) :
-  src_(consumes<edm::View<pat::MET> >(iConfig.getParameter<edm::InputTag>("src")))
+  src_(consumes<pat::METCollection>(iConfig.getParameter<edm::InputTag>("src")))
 {
   produces<std::vector<cat::MET> >();
 }
@@ -43,17 +43,14 @@ cat::CATMETProducer::CATMETProducer(const edm::ParameterSet & iConfig) :
 void 
 cat::CATMETProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
-  Handle<View<pat::MET> > src;
+  Handle<pat::METCollection> src;
   iEvent.getByToken(src_, src);
 
   auto_ptr<vector<cat::MET> >  out(new vector<cat::MET>());
 
-  for (View<pat::MET>::const_iterator it = src->begin(), ed = src->end(); it != ed; ++it) {
-    unsigned int idx = it - src->begin();
-    const pat::MET & aPatMET = src->at(idx);
+  for (const pat::MET & aPatMET : *src) {
     cat::MET aMET(aPatMET);
     out->push_back(aMET);
-
   }
 
   iEvent.put(out);

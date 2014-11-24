@@ -32,7 +32,7 @@ namespace cat {
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
     
   private:
-    edm::EDGetTokenT<edm::View<reco::GenJet> > src_;
+    edm::EDGetTokenT<reco::GenJetCollection> src_;
     const double pt_;
     const double eta_;
 
@@ -49,7 +49,7 @@ namespace cat {
 } // namespace
 
 cat::CATGenJetProducer::CATGenJetProducer(const edm::ParameterSet & iConfig) :
-  src_(consumes<edm::View<reco::GenJet> >(iConfig.getParameter<edm::InputTag>("src"))),
+  src_(consumes<reco::GenJetCollection>(iConfig.getParameter<edm::InputTag>("src"))),
   pt_(iConfig.getParameter<double>("pt")),
   eta_(iConfig.getParameter<double>("eta"))
 {
@@ -59,17 +59,14 @@ cat::CATGenJetProducer::CATGenJetProducer(const edm::ParameterSet & iConfig) :
 void 
 cat::CATGenJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
-  Handle<View<reco::GenJet> > src;
+  Handle<reco::GenJetCollection> src;
   iEvent.getByToken(src_, src);
 
   auto_ptr<vector<cat::GenJet> >  out(new vector<cat::GenJet>());
 
-  for (View<reco::GenJet>::const_iterator it = src->begin(), ed = src->end(); it != ed; ++it) {
-    unsigned int idx = it - src->begin();
-    const reco::GenJet & aGenJet = src->at(idx);
-
+  for (const reco::GenJet & aGenJet : *src) {
     if ( aGenJet.pt() < pt_ || fabs(aGenJet.eta()) > eta_ ) continue;
- 
+
     cat::GenJet aCatGenJet(aGenJet);
      
     cat::MCParticle matched;

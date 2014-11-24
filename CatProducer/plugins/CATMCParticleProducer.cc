@@ -27,7 +27,7 @@ namespace cat {
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
   private:
-    edm::EDGetTokenT<edm::View<reco::GenParticle> > src_;
+    edm::EDGetTokenT<reco::GenParticleCollection> src_;
 
     const double pt_;
     const double eta_;
@@ -37,7 +37,7 @@ namespace cat {
 } // namespace
 
 cat::CATMCParticleProducer::CATMCParticleProducer(const edm::ParameterSet & iConfig) :
-  src_(consumes<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("src"))),
+  src_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("src"))),
   pt_(iConfig.getParameter<double>("pt")),
   eta_(iConfig.getParameter<double>("eta"))
 {
@@ -47,15 +47,12 @@ cat::CATMCParticleProducer::CATMCParticleProducer(const edm::ParameterSet & iCon
 void 
 cat::CATMCParticleProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) 
 {
-  Handle<View<reco::GenParticle> > genParticles;
+  Handle<reco::GenParticleCollection> genParticles;
   iEvent.getByToken(src_,genParticles);
     
   auto_ptr<vector<cat::MCParticle> >  out(new vector<cat::MCParticle>());
 
-  for (View<reco::GenParticle>::const_iterator it = genParticles->begin(), ed = genParticles->end(); it != ed; ++it) {
-    unsigned int idx = it - genParticles->begin();
-    const reco::GenParticle & aGenParticle = genParticles->at(idx);
-
+  for (const reco::GenParticle & aGenParticle : *genParticles) {
     // fix me!! have better pruning of mc particles
     if (fabs(aGenParticle.pdgId()) != 13) // including all muons for now
       if ( aGenParticle.pt() < pt_ || fabs(aGenParticle.eta()) > eta_  ) continue;  
