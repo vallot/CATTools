@@ -77,7 +77,7 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
 
   auto_ptr<vector<cat::Electron> >  out(new vector<cat::Electron>());
 
-  for (const pat::Electron &aPatElectron : *src) {
+  for (const pat::Electron &aPatElectron : *src){
     cat::Electron aElectron(aPatElectron);
 
     bool mcMatched = mcMatch( aPatElectron.p4(), genParticles );
@@ -122,9 +122,10 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     aElectron.setchargeIDFull( aPatElectron.isGsfCtfScPixChargeConsistent()) ;
 
     out->push_back(aElectron);
-
   }
+  iEvent.put(out);
 }
+
 float 
 cat::CATElectronProducer::getEffArea( float dR, float scEta) 
 {
