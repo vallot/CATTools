@@ -77,12 +77,11 @@ cat::CATGenJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
     cat::MCParticle BHad;
     cat::MCParticle CHad;
 
-    cout << "aGenJet.nConstituents() " << aGenJet.nConstituents()<<endl;
-    if (aGenJet.nConstituents()){
-      std::vector <const reco::GenParticle*> mcparts = aGenJet.getGenConstituents();
-      for (unsigned i = 0; i < mcparts.size (); i++) {
-	const reco::GenParticle* mcpart = mcparts[i];
-	const reco::Candidate* lastB = lastBHadron(*mcpart);
+    reco::Jet::Constituents jc = aGenJet.getJetConstituents();
+    for ( reco::Jet::Constituents::const_iterator itr = jc.begin(); itr != jc.end(); ++itr ){
+      if (itr->isAvailable()){
+	const reco::Candidate* mcpart = dynamic_cast<const reco::Candidate*>(itr->get());	  
+	const reco::Candidate* lastB = lastBHadron(*mcpart);	  
 	if( lastB ) {
 	  isBHadron = true;
 	  cat::MCParticle tmp(*lastB); 
@@ -90,13 +89,14 @@ cat::CATGenJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
 	  break;
 	}
       }
-      for (unsigned i = 0; i < mcparts.size (); i++) {
-	if( isBHadron ) break; //no need to loop over again, this is b-jet!
-	const reco::GenParticle* mcpart = mcparts[i];
-	const reco::Candidate* lastC = lastCHadron(*mcpart);
+    }
+    for ( reco::Jet::Constituents::const_iterator itr = jc.begin(); itr != jc.end(); ++itr ){
+      if (itr->isAvailable()){
+	const reco::Candidate* mcpart = dynamic_cast<const reco::Candidate*>(itr->get());	  
+	const reco::Candidate* lastC = lastCHadron(*mcpart);	  
 	if( lastC ) {
 	  isCHadron = true;
-	  cat::MCParticle tmp(*lastC);
+	  cat::MCParticle tmp(*lastC); 
 	  CHad = tmp;
 	  break;
 	}
