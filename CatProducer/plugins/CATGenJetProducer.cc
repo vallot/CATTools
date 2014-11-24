@@ -72,43 +72,39 @@ cat::CATGenJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
  
     cat::GenJet aCatGenJet(aGenJet);
      
-    bool isBHadron = false;
-    bool isCHadron = false;
-    cat::MCParticle BHad;
-    cat::MCParticle CHad;
-
+    cat::MCParticle matched;
     reco::Jet::Constituents jc = aGenJet.getJetConstituents();
+    //if B-Hadron matched, always assign B-Hadron
     for ( reco::Jet::Constituents::const_iterator itr = jc.begin(); itr != jc.end(); ++itr ){
       if (itr->isAvailable()){
 	const reco::Candidate* mcpart = dynamic_cast<const reco::Candidate*>(itr->get());	  
 	const reco::Candidate* lastB = lastBHadron(*mcpart);	  
-	if( lastB ) {
-	  isBHadron = true;
-	  cat::MCParticle tmp(*lastB); 
-	  BHad = tmp;
+	if (lastB){
+	  matched = cat::MCParticle(*lastB);
 	  break;
 	}
       }
     }
-    for ( reco::Jet::Constituents::const_iterator itr = jc.begin(); itr != jc.end(); ++itr ){
-      if (itr->isAvailable()){
-	const reco::Candidate* mcpart = dynamic_cast<const reco::Candidate*>(itr->get());	  
-	const reco::Candidate* lastC = lastCHadron(*mcpart);	  
-	if( lastC ) {
-	  isCHadron = true;
-	  cat::MCParticle tmp(*lastC); 
-	  CHad = tmp;
-	  break;
+    if (fabs(matched.pdgId()) != 5){
+      //if only no B-Hadron matched, assign C-Hadron
+      for ( reco::Jet::Constituents::const_iterator itr = jc.begin(); itr != jc.end(); ++itr ){
+	if (itr->isAvailable()){
+	  const reco::Candidate* mcpart = dynamic_cast<const reco::Candidate*>(itr->get());	  
+	  const reco::Candidate* lastC = lastCHadron(*mcpart);	  
+	  if (lastC){
+	    matched = cat::MCParticle(*lastC);
+	    break;
+	  }
 	}
       }
     }
-    if( isBHadron ) aCatGenJet.setHadron(BHad); //if B-Hadron matched, always assign B-Hadron
-    if( isCHadron ) aCatGenJet.setHadron(CHad); //if only no B-Hadron matched, assign C-Hadron
- 
+    aCatGenJet.setHadron(matched);
+    aCatGenJet.setPdgId(matched.pdgId());
     // int partonFlavour = aGenJet.partonFlavour();
-    // aCatGenJet.setPartonFlavour( partonFlavour );
     // int partonPdgId = aGenJet.genParton();
-    // aCatGenJet.setPartonPdgId(partonPdgId);
+    // temp - find better way to match flavour and id
+    aCatGenJet.setPartonFlavour(matched.pdgId());
+    aCatGenJet.setPartonPdgId(matched.pdgId());
 
     out->push_back(aCatGenJet);
 
