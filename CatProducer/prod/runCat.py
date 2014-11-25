@@ -1,6 +1,6 @@
 from CATTools.CatProducer.catTemplate_cfg import *
 ## some options
-doSecVertex=False # for jpsi candidates
+doSecVertex=True # for jpsi candidates
     
 ## setting up arguements
 from FWCore.ParameterSet.VarParsing import VarParsing

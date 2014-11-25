@@ -77,14 +77,14 @@ catSecVertexs = cms.EDProducer("CATSecVertexProducer",
 makeCatCandidates =  cms.Sequence( 
     catMuons*
     catElectrons*
-    #catPhotons*
     catJets*
-    #catTaus*
     catMETs*
-    # MC information below
     catGenJets*
+    catMCParticles
+    #catPhotons*
+    #catTaus*
+    # MC information below
     # dont need for now
     #catGenTops*
-    catMCParticles*
-    catSecVertexs
+    #catSecVertexs
 ) 
