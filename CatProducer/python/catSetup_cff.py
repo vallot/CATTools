@@ -41,5 +41,7 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
         process.catMuons.runOnMC = cms.bool(False)
         process.catElectrons.runOnMC = cms.bool(False)
 
-    if not doSecVertex:
-        process.makeCatCandidates.remove(process.catSecVertexs)
+    if doSecVertex:
+        from TrackingTools.TransientTrack.TransientTrackBuilder_cfi import TransientTrackBuilderESProducer
+        setattr(process, "TransientTrackBuilderESProducer", TransientTrackBuilderESProducer)
+        process.makeCatCandidates += process.catSecVertexs
