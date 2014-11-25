@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 ## based on patTuple_PF2PAT_cfg
 
-def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5"):
+def catPatConfig(process, runOnMC=True):
     from Configuration.AlCa.autoCond import autoCond
     if runOnMC:
         process.GlobalTag.globaltag = autoCond['startup']

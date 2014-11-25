@@ -1,23 +1,18 @@
 from CATTools.CatProducer.catTemplate_cfg import *
-
+## some options
+doSecVertex=False # for jpsi candidates
+    
 ## setting up arguements
 from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing ('python')
 options.register('runOnMC', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runOnMC: 1  default")
 options.register('useMiniAOD', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "useMiniAOD: 1  default")
 
-import sys
-if hasattr(sys, "argv") == True:
-    options.parseArguments()
-    runOnMC = options.runOnMC
-    useMiniAOD = options.useMiniAOD
+options.parseArguments()
+runOnMC = options.runOnMC
+useMiniAOD = options.useMiniAOD
 
 print "runOnMC =",runOnMC,"and useMiniAOD =",useMiniAOD
-## some more options
-doSecVertex=False # for jpsi candidates
-postfix = "PFlow"
-jetAlgo="AK5"
-
 ####################################################################################################
 ## from miniAOD/patTuple_mini.py to run miniAOD maker when starting from AOD
 if not useMiniAOD:
@@ -26,7 +21,7 @@ if not useMiniAOD:
     process.load("PhysicsTools.PatAlgos.slimming.slimming_cff")
     process.load("RecoVertex.AdaptiveVertexFinder.inclusiveVertexing_cff")
 
-    from PhysicsTools.PatAlgos.slimming.miniAOD_tools import miniAOD_customizeCommon, miniAOD_customizeData
+    from PhysicsTools.PatAlgos.slimming.miniAOD_tools import miniAOD_customizeCommon,miniAOD_customizeMC,miniAOD_customizeData
     miniAOD_customizeCommon(process)
     if runOnMC:
         miniAOD_customizeMC(process)
@@ -35,16 +30,14 @@ if not useMiniAOD:
 ####################################################################################################
 ## setting up catTools
 from CATTools.CatProducer.catPatSetup_cff import *
-catPatConfig(process, runOnMC, postfix, jetAlgo)
+catPatConfig(process, runOnMC)
 
 from CATTools.CatProducer.catSetup_cff import *
-catSetup(process, runOnMC, useMiniAOD, doSecVertex)
-
-process.source.fileNames = [
-'file:/pnfs/user/jlee/DYJetsToLL_M-50_13TeV-madgraph-pythia8/0432E62A-7A6C-E411-87BB-002590DB92A8.root'
-]
+catSetup(process, runOnMC, doSecVertex)
 
 process.maxEvents.input = 5000
+
+process.source.fileNames = options.inputFiles
 
 ## to suppress the long output at the end of the job
 process.MessageLogger.cerr.threshold = ''
