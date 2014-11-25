@@ -8,7 +8,6 @@ catEventContent.extend([
     'keep *_catElectrons_*_*',
     'keep *_catPhotons_*_*',
     'keep *_catJets_*_*',
-    'keep *_catTaus_*_*',
     'keep *_catMETs_*_*',
     'keep *_catMCParticles_*_*',
     'keep *_catGenTops_*_*',
@@ -18,6 +17,4 @@ catEventContentExtended.extend([
     'keep *_cat*_*_*',
     'keep *_goodOfflinePrimaryVertices_*_*'
     ])
-
-
 

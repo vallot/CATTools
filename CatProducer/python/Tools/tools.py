@@ -4,20 +4,32 @@ from PhysicsTools.PatAlgos.tools.helpers import listModules, applyPostfix
 from CommonTools.ParticleFlow.pfParticleSelection_cff import *
 from CommonTools.ParticleFlow.Isolation.pfMuonIsolation_cff import *
 
+def miniAODWithoutGen(process) :
+  process.catMuons.src = "slimmedMuons" 
+  process.catMuons.mcLabel = "prunedGenParticles"
+  process.catMuons.vertexLabel = "offlineSlimmedPrimaryVertices" 
+  process.catElectrons.src = "slimmedElectrons"
+  process.catElectrons.mcLabel = "prunedGenParticles"
+  process.catElectrons.vertexLabel = "offlineSlimmedPrimaryVertices"
+  process.catPhotons.src = "slimmedPhotons"
+  process.catMETs.src = "slimmedMETs"
+  process.catJets.src = "slimmedJets"
+
+
 def miniAOD(process):
-    process.catMuons.src = "slimmedMuons" 
-    process.catMuons.mcLabel = "prunedGenParticles"
-    process.catMuons.vertexLabel = "offlineSlimmedPrimaryVertices" 
-    process.catElectrons.src = "slimmedElectrons"
-    process.catPhotons.src = "slimmedPhotons"
-    process.catMETs.src = "slimmedMETs"
-    process.catJets.src = "slimmedJets"
-    process.catGenJets.src = "slimmedGenJets" 
-    process.catMCParticles.src = "prunedGenParticles"
-    process.catGenTops.genJetLabel = "slimmedGenJets"
-    process.catGenTops.mcParticleLabel = "prunedGenParticles" 
-    process.catElectrons.vertexLabel = "offlineSlimmedPrimaryVertices" 
-    process.catElectrons.rhoLabel = "fixedGridRhoAll" 
+  process.catMuons.src = "slimmedMuons" 
+  process.catMuons.mcLabel = "prunedGenParticles"
+  process.catMuons.vertexLabel = "offlineSlimmedPrimaryVertices" 
+  process.catElectrons.src = "slimmedElectrons"
+  process.catElectrons.mcLabel = "prunedGenParticles"
+  process.catElectrons.vertexLabel = "offlineSlimmedPrimaryVertices"
+  process.catPhotons.src = "slimmedPhotons"
+  process.catMETs.src = "slimmedMETs"
+  process.catJets.src = "slimmedJets"
+  process.catGenJets.src = "slimmedGenJets" 
+  process.catMCParticles.src = "prunedGenParticles"
+  process.catGenTops.genJetLabel = "slimmedGenJets"
+  process.catGenTops.mcParticleLabel = "prunedGenParticles" 
 
 #muons with weighted isolation method
 def addMuonWeighted(process):

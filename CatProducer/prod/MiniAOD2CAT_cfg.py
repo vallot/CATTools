@@ -11,7 +11,7 @@ from CATTools.CatProducer.Tools.tools import *
 
 useMiniAOD = True
 if useMiniAOD:
-  miniAOD(process)
+  miniAODWithoutGen(process)
 
 # Input source
 process.source = cms.Source("PoolSource",
@@ -24,7 +24,7 @@ process.source = cms.Source("PoolSource",
 #         'file:/cms/home/tjkim/store/relval/CMSSW_7_0_7/RelValTTbar_13/GEN-SIM-RECO/PU25ns_PLS170_V7AN1-v1/00000/56517256-CB15-E411-9C56-0025905A48F2.root'
          #'root://cms-xrdr.sdfarm.kr///cms/data/xrd//store/mc/Spring14dr/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/AODSIM/PU_S14_POSTLS170_V6-v1/00000/BC91BA37-E2F2-E311-A317-0025905A612E.root'
          #'file:/cms/data/xrd//store/mc/Spring14dr/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/AODSIM/PU_S14_POSTLS170_V6-v1/00000/BC91BA37-E2F2-E311-A317-0025905A612E.root'
-          'file:/cms/data/xrd/store/mc/Spring14miniaod/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU_S14_POSTLS170_V6-v1/00000/3EAD631C-75FD-E311-8DF3-001EC9B0B214.root'
+          'file:data/080957A7-C36E-E411-A5BC-00266CF327C4.root',
     )
 )
 
@@ -94,3 +94,4 @@ if useMiniAOD:
   process.out.outputCommands = catEventContent
 else:
   process.out.outputCommands = catEventContentExtended
+
