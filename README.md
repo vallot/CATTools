@@ -16,6 +16,10 @@ scram b -j 8
 
 cmsRun $SRT_CMSSW_BASE_SCRAMRTDEL/src/CATTools/CatProducer/prod/runCat.py useMiniAOD=True inputFiles=file:/pnfs/user/jlee/DYJetsToLL_M-50_13TeV-madgraph-pythia8/miniaod.root
 
+or 
+
+cmsRun $SRT_CMSSW_BASE_SCRAMRTDEL/src/CATTools/CatProducer/prod/runCat.py useMiniAOD=False inputFiles=/store/mc/Phys14DR/DYJetsToLL_M-50_13TeV-madgraph-pythia8/AODSIM/PU20bx25_PHYS14_25_V1-v1/00000/00CC714A-F86B-E411-B99A-0025904B5FB8.root
+
 ```
 
 # Submit CRAB jobs using CATTools
