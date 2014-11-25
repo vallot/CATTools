@@ -22,6 +22,7 @@ process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:startup')
 process.load("Configuration.StandardSequences.MagneticField_cff")
+process.load("SimGeneral.HepPDTESSource.pythiapdt_cfi")
 
 ## Output Module Configuration (expects a path 'p')
 from PhysicsTools.PatAlgos.patEventContent_cff import patEventContentNoCleaning
