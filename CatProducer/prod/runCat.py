@@ -29,6 +29,8 @@ if not useMiniAOD:
         miniAOD_customizeData(process)
 ####################################################################################################
 ## setting up catTools
+process.load('PhysicsTools.PatAlgos.slimming.unpackedTracksAndVertices_cfi')
+
 from CATTools.CatProducer.catPatSetup_cff import *
 catPatConfig(process, runOnMC)
 

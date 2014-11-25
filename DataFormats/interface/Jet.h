@@ -27,7 +27,6 @@ namespace cat {
 
     /// \return secondary vertex b-tagging information
     // combinedSecondaryVertexBJetTags
-    float btag_csv() const{ return csv_;}
     float vtxMass() const { return vtxMass_ ; }
     int vtxNtracks() const { return vtxNtracks_ ; }
     float vtx3DVal() const { return vtx3DVal_; }
@@ -43,7 +42,6 @@ namespace cat {
     void setLooseId(bool id) { LooseId_ = id; } 
     void setPileupJetId(float f) { pileupJetId_ = f;}
 
-    void setBtag_csv(float f) { csv_ = f;}
     void setVtxMass(float f) { vtxMass_ = f;}
     void setVtxNtracks(int f) { vtxNtracks_ = f;}
     void setVtx3DVal(float f) { vtx3DVal_ = f;}
@@ -53,16 +51,23 @@ namespace cat {
     void setHadronFlavour(int i) { hadronFlavour_ = i; }
     void setPartonPdgId(int i) { partonPdgId_ = i; }
 
+    float csvBJetTags() const{ return csvBJetTags_;}
+    void setCsvBJetTags(float f) { csvBJetTags_ = f;}
+
+    float cisvBJetTags() const{ return cisvBJetTags_;}
+    void setCisvBJetTags(float f) { cisvBJetTags_ = f;}
+
     /* case CSVL: return bDiscriminator("combinedSecondaryVertexBJetTags") > 0.244; */
     /* case CSVM: return bDiscriminator("combinedSecondaryVertexBJetTags") > 0.679; */
     /* case CSVT: return bDiscriminator("combinedSecondaryVertexBJetTags") > 0.898; */
 
   private:
+    float csvBJetTags_;
+    float cisvBJetTags_;
 
     bool LooseId_; 
     float pileupJetId_;
      /// b tagging information
-    float csv_;
     float vtxMass_;
     int vtxNtracks_;
     float vtx3DVal_;
