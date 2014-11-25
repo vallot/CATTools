@@ -65,12 +65,6 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
     if( aPatJet.hasUserFloat("pileupJetId:fullDiscriminant") )
       aJet.setPileupJetId( aPatJet.userFloat("pileupJetId:fullDiscriminant") );
 
-    cout <<"aPatJet.bDiscriminator(combinedInclusiveSecondaryVertexBJetTags) "
-	 <<aPatJet.bDiscriminator("combinedInclusiveSecondaryVertexBJetTags")
-	 <<endl;
-    cout <<"aPatJet.bDiscriminator(combinedSecondaryVertexBJetTags) "
-	 <<aPatJet.bDiscriminator("combinedSecondaryVertexBJetTags")
-	 <<endl;
     aJet.setCisvBJetTags(aPatJet.bDiscriminator("combinedInclusiveSecondaryVertexBJetTags"));
     aJet.setCsvBJetTags(aPatJet.bDiscriminator("combinedSecondaryVertexBJetTags"));
 
@@ -86,7 +80,6 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
     aJet.setPartonPdgId(partonPdgId);
 
     out->push_back(aJet);
-
   }
 
   iEvent.put(out);
