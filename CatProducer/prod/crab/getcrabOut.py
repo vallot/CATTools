@@ -17,3 +17,4 @@ for n in range(20):
     for d in multicrabdir:
         runCommand("crab out -t "+d, n)
         runCommand("crab report -t "+d, n)
+	time.sleep(500)
