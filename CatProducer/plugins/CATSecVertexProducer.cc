@@ -256,9 +256,9 @@ cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<T
       cand->setPdgId(pdgId);
 
       cat::SecVertex aSecVertex(*cand);
-      aSecVertex.setLxy(TMath::Prob( vtxChi2, (int) vtxNdof));
-      aSecVertex.setL3D(rVtxMag);
-      aSecVertex.setVProb(rVtxMag3D);
+      aSecVertex.setVProb(TMath::Prob( vtxChi2, (int) vtxNdof));
+      aSecVertex.setLxy(rVtxMag);
+      aSecVertex.setL3D(rVtxMag3D);
       aSecVertex.setInts(ipos,ineg);
 
       out_->push_back(aSecVertex);
