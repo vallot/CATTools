@@ -42,10 +42,10 @@ namespace cat {
     edm::EDGetTokenT<double> rhoLabel_;
     bool runOnMC_;
  
-    edm::InputTag cutBasedElectronIDveto_;
-    edm::InputTag cutBasedElectronIDloose_;
-    edm::InputTag cutBasedElectronIDmedium_;
-    edm::InputTag cutBasedElectronIDtight_;
+    edm::InputTag cutBasedElectronIDvetoName_;
+    edm::InputTag cutBasedElectronIDlooseName_;
+    edm::InputTag cutBasedElectronIDmediumName_;
+    edm::InputTag cutBasedElectronIDtightName_;
 
   };
 
