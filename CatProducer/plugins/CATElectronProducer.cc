@@ -130,10 +130,10 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     aElectron.setPassConversionVeto( aPatElectron.passConversionVeto() );
     aElectron.setIsGsfCtfScPixChargeConsistent( aPatElectron.isGsfCtfScPixChargeConsistent()) ;
 
-    aElectron.setcutBasedElectronIDveto(aPatElectron.electronID(cutBasedElectronIDvetoName)) ;
-    aElectron.setcutBasedElectronIDloose(aPatElectron.electronID(cutBasedElectronIDlooseName)) ;
-    aElectron.setcutBasedElectronIDmedium(aPatElectron.electronID(cutBasedElectronIDmediumName)) ;
-    aElectron.setcutBasedElectronIDtight(aPatElectron.electronID(cutBasedElectronIDtightName)) ;
+    aElectron.setcutBasedElectronIDveto(aPatElectron.electronID(cutBasedElectronIDvetoName_)) ;
+    aElectron.setcutBasedElectronIDloose(aPatElectron.electronID(cutBasedElectronIDlooseName_)) ;
+    aElectron.setcutBasedElectronIDmedium(aPatElectron.electronID(cutBasedElectronIDmediumName_)) ;
+    aElectron.setcutBasedElectronIDtight(aPatElectron.electronID(cutBasedElectronIDtightName_)) ;
 
     out->push_back(aElectron);
   }
