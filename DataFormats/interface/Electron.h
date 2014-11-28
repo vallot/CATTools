@@ -94,24 +94,24 @@ namespace cat {
 
     void setMCMatched(bool m) { mcMatched_ = m; }
 
-    float cutBasedElectronIDveto() const { return cutBasedElectronIDveto_; }
-    void setcutBasedElectronIDveto(float i) { cutBasedElectronIDveto_ = i; }
-    float cutBasedElectronIDloose() const { return cutBasedElectronIDloose_; }
-    void setcutBasedElectronIDloose(float i) { cutBasedElectronIDloose_ = i; }
-    float cutBasedElectronIDmedium() const { return cutBasedElectronIDmedium_; }
-    void setcutBasedElectronIDmedium(float i) { cutBasedElectronIDmedium_ = i; }
-    float cutBasedElectronIDtight() const { return cutBasedElectronIDtight_; }
-    void setcutBasedElectronIDtight(float i) { cutBasedElectronIDtight_ = i; }
+    bool cutBasedElectronIDveto() const { return cutBasedElectronIDveto_; }
+    void setcutBasedElectronIDveto(bool i) { cutBasedElectronIDveto_ = i; }
+    bool cutBasedElectronIDloose() const { return cutBasedElectronIDloose_; }
+    void setcutBasedElectronIDloose(bool i) { cutBasedElectronIDloose_ = i; }
+    bool cutBasedElectronIDmedium() const { return cutBasedElectronIDmedium_; }
+    void setcutBasedElectronIDmedium(bool i) { cutBasedElectronIDmedium_ = i; }
+    bool cutBasedElectronIDtight() const { return cutBasedElectronIDtight_; }
+    void setcutBasedElectronIDtight(bool i) { cutBasedElectronIDtight_ = i; }
 
   private:
 
+    bool cutBasedElectronIDveto_;
+    bool cutBasedElectronIDloose_;
+    bool cutBasedElectronIDmedium_;
+    bool cutBasedElectronIDtight_;
+
     float relIso03_;
     float relIso04_;
-
-    float cutBasedElectronIDveto_;
-    float cutBasedElectronIDloose_;
-    float cutBasedElectronIDmedium_;
-    float cutBasedElectronIDtight_;
 
     float scEta_;
     float dxy_;

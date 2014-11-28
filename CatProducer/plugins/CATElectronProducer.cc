@@ -42,10 +42,10 @@ namespace cat {
     edm::EDGetTokenT<double> rhoLabel_;
     bool runOnMC_;
  
-    edm::InputTag cutBasedElectronIDvetoName_;
-    edm::InputTag cutBasedElectronIDlooseName_;
-    edm::InputTag cutBasedElectronIDmediumName_;
-    edm::InputTag cutBasedElectronIDtightName_;
+    string cutBasedElectronIDvetoName_;
+    string cutBasedElectronIDlooseName_;
+    string cutBasedElectronIDmediumName_;
+    string cutBasedElectronIDtightName_;
 
   };
 
@@ -58,10 +58,10 @@ cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig)
   beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc"))),
   rhoLabel_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoLabel"))),
   runOnMC_(iConfig.getParameter<bool>("runOnMC")),
-  cutBasedElectronIDvetoName_(iConfig.getParameter<edm::InputTag>("cutBasedElectronIDvetoName")),
-  cutBasedElectronIDlooseName_(iConfig.getParameter<edm::InputTag>("cutBasedElectronIDlooseName")),
-  cutBasedElectronIDmediumName_(iConfig.getParameter<edm::InputTag>("cutBasedElectronIDmediumName")),
-  cutBasedElectronIDtightName_(iConfig.getParameter<edm::InputTag>("cutBasedElectronIDtightName"))
+  cutBasedElectronIDvetoName_(iConfig.getParameter<string>("cutBasedElectronIDvetoName")),
+  cutBasedElectronIDlooseName_(iConfig.getParameter<string>("cutBasedElectronIDlooseName")),
+  cutBasedElectronIDmediumName_(iConfig.getParameter<string>("cutBasedElectronIDmediumName")),
+  cutBasedElectronIDtightName_(iConfig.getParameter<string>("cutBasedElectronIDtightName"))
 {
   produces<std::vector<cat::Electron> >();
 }

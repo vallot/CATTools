@@ -15,7 +15,12 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
     catMCsource = "prunedGenParticles"
     catBeamSpot = "offlineBeamSpot"
     catRho = "fixedGridRhoAll"
-    
+
+    process.catElectrons.cutBasedElectronIDvetoName = cms.string("cutBasedElectronID-CSA14-50ns-V1-standalone-veto")
+    process.catElectrons.cutBasedElectronIDlooseName = cms.string("cutBasedElectronID-CSA14-50ns-V1-standalone-loose")
+    process.catElectrons.cutBasedElectronIDmediumName = cms.string("cutBasedElectronID-CSA14-50ns-V1-standalone-medium")
+    process.catElectrons.cutBasedElectronIDtightName = cms.string("cutBasedElectronID-CSA14-50ns-V1-standalone-tight")
+
     process.catJets.src = cms.InputTag(catJetsSource)
     process.catMuons.src = cms.InputTag(catMuonsSource)
     process.catMuons.mcLabel = cms.InputTag(catMCsource)
