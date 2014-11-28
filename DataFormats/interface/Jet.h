@@ -57,10 +57,6 @@ namespace cat {
     float cisvBJetTags() const{ return cisvBJetTags_;}
     void setCisvBJetTags(float f) { cisvBJetTags_ = f;}
 
-    /* case CSVL: return bDiscriminator("combinedSecondaryVertexBJetTags") > 0.244; */
-    /* case CSVM: return bDiscriminator("combinedSecondaryVertexBJetTags") > 0.679; */
-    /* case CSVT: return bDiscriminator("combinedSecondaryVertexBJetTags") > 0.898; */
-
   private:
     float csvBJetTags_;
     float cisvBJetTags_;

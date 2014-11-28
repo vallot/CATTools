@@ -110,7 +110,7 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     aElectron.setrelIso(0.3, chIso03, nhIso03, phIso03, elEffArea03, rhoIso, ecalpt);
     
     aElectron.setscEta( aPatElectron.superCluster()->eta());
-    //    aElectron.setmvaTrigV0( aPatElectron.electronID("mvaTrigV0")) ;
+    aElectron.setmvaTrigV0( aPatElectron.electronID("mvaTrigV0")) ;
     double dxy = fabs(aPatElectron.gsfTrack()->dxy(pv.position()));
     aElectron.setdxy( dxy ) ;
     double dz = fabs(aPatElectron.gsfTrack()->dz(pv.position()));
@@ -118,8 +118,8 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
 
     aElectron.setrho( rhoIso) ;
     
-    aElectron.setconversionVeto( aPatElectron.passConversionVeto() );
-    aElectron.setchargeIDFull( aPatElectron.isGsfCtfScPixChargeConsistent()) ;
+    aElectron.setPassConversionVeto( aPatElectron.passConversionVeto() );
+    aElectron.setIsGsfCtfScPixChargeConsistent( aPatElectron.isGsfCtfScPixChargeConsistent()) ;
 
     out->push_back(aElectron);
   }

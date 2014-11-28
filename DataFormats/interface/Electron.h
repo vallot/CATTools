@@ -30,8 +30,8 @@ namespace cat {
     float scEta() const { return scEta_; }
     float dxy() const { return dxy_; }
     float dz() const { return dz_; }
-    bool conversionVeto() const { return conversionVeto_; }
-    bool chargeIDFull() const { return chargeIDFull_; }
+    bool passConversionVeto() const { return passConversionVeto_; }
+    bool isGsfCtfScPixChargeConsistent() const { return isGsfCtfScPixChargeConsistent_; }
     bool isPF() const { return isPF_; }
 
     float chargedHadronIso(float dR=0.3) const {
@@ -80,8 +80,8 @@ namespace cat {
     void setscEta(float i) { scEta_ = i; }
     void setdxy(float i) {  dxy_ = i; }
     void setdz(float i) {  dz_ = i; }
-    void setconversionVeto(bool i) {  conversionVeto_ = i; }
-    void setchargeIDFull(bool i) {  chargeIDFull_ = i; }
+    void setPassConversionVeto(bool i) {  passConversionVeto_ = i; }
+    void setIsGsfCtfScPixChargeConsistent(bool i) {  isGsfCtfScPixChargeConsistent_ = i; }
     void setisPF(bool i) {  isPF_ = i; }
     void setrho(float i) { rho_ = i; }
 
@@ -118,8 +118,8 @@ namespace cat {
     float photonIso04_;
 
     bool mcMatched_;
-    bool conversionVeto_;
-    bool chargeIDFull_;
+    bool passConversionVeto_;
+    bool isGsfCtfScPixChargeConsistent_;
     bool isPF_;
     
   };
