@@ -23,6 +23,7 @@ namespace cat {
     virtual ~Jet();
 
     bool LooseId() const { return LooseId_; }
+    float pileupJetId() const { return pileupJetId_; }
 
     /// \return secondary vertex b-tagging information
     // combinedSecondaryVertexBJetTags
@@ -44,6 +45,7 @@ namespace cat {
     void setPartonFlavour(int i) { partonFlavour_ = i; }
     void setPartonPdgId(int i) { partonPdgId_ = i; }
     void setLooseId(bool id) { LooseId_ = id; } 
+    void setPileupJetId(float f) { pileupJetId_ = f;}
 
     /* case CSVL: return bDiscriminator("combinedSecondaryVertexBJetTags") > 0.244; */
     /* case CSVM: return bDiscriminator("combinedSecondaryVertexBJetTags") > 0.679; */
@@ -52,7 +54,8 @@ namespace cat {
   private:
 
     bool LooseId_; 
-     /// b tagging information
+    float pileupJetId_; 
+    /// b tagging information
     float csv_;
     float secvtxMass_;
     float Lxy_;
