@@ -58,10 +58,10 @@ cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig)
   beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc"))),
   rhoLabel_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoLabel"))),
   runOnMC_(iConfig.getParameter<bool>("runOnMC")),
-  cutBasedElectronIDveto_(iConfig.getParameter<edm::InputTag>("cutBasedElectronIDveto")),
-  cutBasedElectronIDloose_(iConfig.getParameter<edm::InputTag>("cutBasedElectronIDloose")),
-  cutBasedElectronIDmedium_(iConfig.getParameter<edm::InputTag>("cutBasedElectronIDmedium")),
-  cutBasedElectronIDtight_(iConfig.getParameter<edm::InputTag>("cutBasedElectronIDtight"))
+  cutBasedElectronIDvetoName_(iConfig.getParameter<edm::InputTag>("cutBasedElectronIDvetoName")),
+  cutBasedElectronIDlooseName_(iConfig.getParameter<edm::InputTag>("cutBasedElectronIDlooseName")),
+  cutBasedElectronIDmediumName_(iConfig.getParameter<edm::InputTag>("cutBasedElectronIDmediumName")),
+  cutBasedElectronIDtightName_(iConfig.getParameter<edm::InputTag>("cutBasedElectronIDtightName"))
 {
   produces<std::vector<cat::Electron> >();
 }
@@ -130,10 +130,10 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     aElectron.setPassConversionVeto( aPatElectron.passConversionVeto() );
     aElectron.setIsGsfCtfScPixChargeConsistent( aPatElectron.isGsfCtfScPixChargeConsistent()) ;
 
-    aElectron.setcutBasedElectronIDveto(aPatElectron.electronID(cutBasedElectronIDveto)) ;
-    aElectron.setcutBasedElectronIDloose(aPatElectron.electronID(cutBasedElectronIDloose_)) ;
-    aElectron.setcutBasedElectronIDmedium(aPatElectron.electronID(cutBasedElectronIDmedium_)) ;
-    aElectron.setcutBasedElectronIDtight(aPatElectron.electronID(cutBasedElectronIDtight_)) ;
+    aElectron.setcutBasedElectronIDveto(aPatElectron.electronID(cutBasedElectronIDvetoName)) ;
+    aElectron.setcutBasedElectronIDloose(aPatElectron.electronID(cutBasedElectronIDlooseName)) ;
+    aElectron.setcutBasedElectronIDmedium(aPatElectron.electronID(cutBasedElectronIDmediumName)) ;
+    aElectron.setcutBasedElectronIDtight(aPatElectron.electronID(cutBasedElectronIDtightName)) ;
 
     out->push_back(aElectron);
   }

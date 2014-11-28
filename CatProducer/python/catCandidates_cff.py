@@ -15,10 +15,10 @@ catElectrons = cms.EDProducer("CATElectronProducer",
     beamLineSrc = cms.InputTag("offlineBeamSpot"),
     rhoLabel = cms.InputTag("fixedGridRhoAll", "rho"),
     runOnMC = cms.bool(True),
-    cutBasedElectronIDveto = cms.InputTag("cutBasedElectronID-CSA14-50ns-V1-standalone-veto"),
-    cutBasedElectronIDloose = cms.InputTag("cutBasedElectronID-CSA14-50ns-V1-standalone-loose"),
-    cutBasedElectronIDmedium = cms.InputTag("cutBasedElectronID-CSA14-50ns-V1-standalone-medium"),
-    cutBasedElectronIDtight = cms.InputTag("cutBasedElectronID-CSA14-50ns-V1-standalone-tight")
+    cutBasedElectronIDvetoName = cms.InputTag("cutBasedElectronID-CSA14-50ns-V1-standalone-veto"),
+    cutBasedElectronIDlooseName = cms.InputTag("cutBasedElectronID-CSA14-50ns-V1-standalone-loose"),
+    cutBasedElectronIDmediumName = cms.InputTag("cutBasedElectronID-CSA14-50ns-V1-standalone-medium"),
+    cutBasedElectronIDtightName = cms.InputTag("cutBasedElectronID-CSA14-50ns-V1-standalone-tight")
 )
 
 catPhotons = cms.EDProducer("CATPhotonProducer",
