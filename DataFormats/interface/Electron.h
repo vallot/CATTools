@@ -26,7 +26,6 @@ namespace cat {
       if( dR < 0.35) return relIso03_;
       else return relIso04_;
     }
-    float mvaTrigV0() const { return mvaTrigV0_; }
     float scEta() const { return scEta_; }
     float dxy() const { return dxy_; }
     float dz() const { return dz_; }
@@ -75,8 +74,6 @@ namespace cat {
       if( dR < 0.35) relIso03_ = relIso; 
       else  relIso04_ = relIso; 
     }
-
-    void setmvaTrigV0(float i) { mvaTrigV0_ = i; }
     void setscEta(float i) { scEta_ = i; }
     void setdxy(float i) {  dxy_ = i; }
     void setdz(float i) {  dz_ = i; }
@@ -97,12 +94,25 @@ namespace cat {
 
     void setMCMatched(bool m) { mcMatched_ = m; }
 
+    float cutBasedElectronIDveto() const { return cutBasedElectronIDveto_; }
+    void setcutBasedElectronIDveto(float i) { cutBasedElectronIDveto_ = i; }
+    float cutBasedElectronIDloose() const { return cutBasedElectronIDloose_; }
+    void setcutBasedElectronIDloose(float i) { cutBasedElectronIDloose_ = i; }
+    float cutBasedElectronIDmedium() const { return cutBasedElectronIDmedium_; }
+    void setcutBasedElectronIDmedium(float i) { cutBasedElectronIDmedium_ = i; }
+    float cutBasedElectronIDtight() const { return cutBasedElectronIDtight_; }
+    void setcutBasedElectronIDtight(float i) { cutBasedElectronIDtight_ = i; }
+
   private:
 
     float relIso03_;
     float relIso04_;
 
-    float mvaTrigV0_;
+    float cutBasedElectronIDveto;
+    float cutBasedElectronIDloose;
+    float cutBasedElectronIDmedium;
+    float cutBasedElectronIDtight;
+
     float scEta_;
     float dxy_;
     float dz_;
