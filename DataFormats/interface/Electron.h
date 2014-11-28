@@ -108,10 +108,10 @@ namespace cat {
     float relIso03_;
     float relIso04_;
 
-    float cutBasedElectronIDveto;
-    float cutBasedElectronIDloose;
-    float cutBasedElectronIDmedium;
-    float cutBasedElectronIDtight;
+    float cutBasedElectronIDveto_;
+    float cutBasedElectronIDloose_;
+    float cutBasedElectronIDmedium_;
+    float cutBasedElectronIDtight_;
 
     float scEta_;
     float dxy_;
