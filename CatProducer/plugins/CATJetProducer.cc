@@ -66,6 +66,9 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
     cat::Jet aJet(aPatJet);
 
     aJet.setLooseId( looseId );
+    if( aPatJet.hasUserFloat("pileupJetId:fullDiscriminant") )
+      aJet.setPileupJetId( aPatJet.userFloat("pileupJetId:fullDiscriminant") );
+
     aJet.setbtag_csv(aPatJet.bDiscriminator("combinedSecondaryVertexBJetTags"));
     //secondary vertex b-tagging information
     if( aPatJet.hasUserFloat("secvtxMass") ) aJet.setSecVtxMass( aPatJet.userFloat("secvtxMass") );
