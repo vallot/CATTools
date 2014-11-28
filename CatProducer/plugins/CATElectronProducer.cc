@@ -41,6 +41,12 @@ namespace cat {
     edm::EDGetTokenT<reco::BeamSpot> beamLineSrc_;
     edm::EDGetTokenT<double> rhoLabel_;
     bool runOnMC_;
+ 
+    edm::InputTag cutBasedElectronIDvetoName_;
+    edm::InputTag cutBasedElectronIDlooseName_;
+    edm::InputTag cutBasedElectronIDmediumName_;
+    edm::InputTag cutBasedElectronIDtightName_;
+
   };
 
 } // namespace
@@ -51,7 +57,11 @@ cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig)
   mcLabel_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcLabel"))),
   beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc"))),
   rhoLabel_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoLabel"))),
-  runOnMC_(iConfig.getParameter<bool>("runOnMC"))
+  runOnMC_(iConfig.getParameter<bool>("runOnMC")),
+  cutBasedElectronIDvetoName_(iConfig.getParameter<edm::InputTag>("cutBasedElectronIDvetoName")),
+  cutBasedElectronIDlooseName_(iConfig.getParameter<edm::InputTag>("cutBasedElectronIDlooseName")),
+  cutBasedElectronIDmediumName_(iConfig.getParameter<edm::InputTag>("cutBasedElectronIDmediumName")),
+  cutBasedElectronIDtightName_(iConfig.getParameter<edm::InputTag>("cutBasedElectronIDtightName"))
 {
   produces<std::vector<cat::Electron> >();
 }
@@ -110,7 +120,6 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     aElectron.setrelIso(0.3, chIso03, nhIso03, phIso03, elEffArea03, rhoIso, ecalpt);
     
     aElectron.setscEta( aPatElectron.superCluster()->eta());
-    aElectron.setmvaTrigV0( aPatElectron.electronID("mvaTrigV0")) ;
     double dxy = fabs(aPatElectron.gsfTrack()->dxy(pv.position()));
     aElectron.setdxy( dxy ) ;
     double dz = fabs(aPatElectron.gsfTrack()->dz(pv.position()));
@@ -120,6 +129,11 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     
     aElectron.setPassConversionVeto( aPatElectron.passConversionVeto() );
     aElectron.setIsGsfCtfScPixChargeConsistent( aPatElectron.isGsfCtfScPixChargeConsistent()) ;
+
+    aElectron.setcutBasedElectronIDveto(aPatElectron.electronID(cutBasedElectronIDvetoName_)) ;
+    aElectron.setcutBasedElectronIDloose(aPatElectron.electronID(cutBasedElectronIDlooseName_)) ;
+    aElectron.setcutBasedElectronIDmedium(aPatElectron.electronID(cutBasedElectronIDmediumName_)) ;
+    aElectron.setcutBasedElectronIDtight(aPatElectron.electronID(cutBasedElectronIDtightName_)) ;
 
     out->push_back(aElectron);
   }
