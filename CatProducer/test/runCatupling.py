@@ -12,7 +12,7 @@ if hasattr(sys, "argv") == True:
 
 postfix = "PFlow"
 jetAlgo="AK5"
-doSecVertex=True # for jpsi candidates
+doSecVertex=False # for jpsi candidates
 
 from CATTools.CatProducer.catPatSetup_cff import *
 from CATTools.CatProducer.catSetup_cff import *
@@ -36,10 +36,10 @@ process.jec = cms.ESSource("PoolDBESSource",
 )
 
 process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
-process.maxEvents.input = 100
+process.maxEvents.input = 3000
 process.MessageLogger.cerr.threshold = ''
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
 process.source.fileNames = cms.untracked.vstring(
-'file:/cms/home/jlee/scratch/QCD_Pt-15to3000_Tune4C_Flat_8TeV_pythia8/14085CA3-3DE1-E111-BB95-00266CF270A8.root'
+'file:$HOME/scratch/QCD_Pt-15to3000_Tune4C_Flat_8TeV_pythia8/14085CA3-3DE1-E111-BB95-00266CF270A8.root'
 )
