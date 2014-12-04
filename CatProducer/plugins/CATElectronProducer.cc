@@ -128,12 +128,16 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     aElectron.setrho( rhoIso) ;
     
     aElectron.setPassConversionVeto( aPatElectron.passConversionVeto() );
-    aElectron.setIsGsfCtfScPixChargeConsistent( aPatElectron.isGsfCtfScPixChargeConsistent()) ;
+    aElectron.setIsGsfCtfScPixChargeConsistent( aPatElectron.isGsfCtfScPixChargeConsistent());
 
-    aElectron.setcutBasedElectronIDveto(aPatElectron.electronID(cutBasedElectronIDvetoName_)) ;
-    aElectron.setcutBasedElectronIDloose(aPatElectron.electronID(cutBasedElectronIDlooseName_)) ;
-    aElectron.setcutBasedElectronIDmedium(aPatElectron.electronID(cutBasedElectronIDmediumName_)) ;
-    aElectron.setcutBasedElectronIDtight(aPatElectron.electronID(cutBasedElectronIDtightName_)) ;
+    if (aPatElectron.isElectronIDAvailable(cutBasedElectronIDvetoName_))
+      aElectron.setcutBasedElectronIDveto(aPatElectron.electronID(cutBasedElectronIDvetoName_));
+    if (aPatElectron.isElectronIDAvailable(cutBasedElectronIDlooseName_))
+      aElectron.setcutBasedElectronIDloose(aPatElectron.electronID(cutBasedElectronIDlooseName_));
+    if (aPatElectron.isElectronIDAvailable(cutBasedElectronIDmediumName_))
+      aElectron.setcutBasedElectronIDmedium(aPatElectron.electronID(cutBasedElectronIDmediumName_));
+    if (aPatElectron.isElectronIDAvailable(cutBasedElectronIDtightName_))
+      aElectron.setcutBasedElectronIDtight(aPatElectron.electronID(cutBasedElectronIDtightName_));
 
     out->push_back(aElectron);
   }
