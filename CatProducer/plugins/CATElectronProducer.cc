@@ -79,7 +79,7 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
 
   Handle<reco::VertexCollection> recVtxs;
   iEvent.getByToken(vertexLabel_, recVtxs);
-  reco::Vertex pv = recVtxs->at(0);
+  reco::Vertex pv= recVtxs->at(0);
 
   Handle<double> rhoHandle;
   iEvent.getByToken(rhoLabel_, rhoHandle);
