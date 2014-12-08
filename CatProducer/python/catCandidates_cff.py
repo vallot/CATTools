@@ -13,7 +13,7 @@ from CATTools.CatProducer.CATSecVertexProducer_cfi import *
 makeCatCandidates =  cms.Sequence( 
     catMuons*
     catElectrons*
-    catPhotons*
+    #catPhotons*
     catJets*
     catMETs*
     # MC information below
