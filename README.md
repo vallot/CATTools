@@ -14,7 +14,7 @@ cat download.url | xargs wget
 cd $SRT_CMSSW_BASE_SCRAMRTDEL/src
 git clone git@github.com:vallot/CATTools.git
 cd CATTools
-git checkout tags/cat53x1
+git checkout tags/cat53x2
 cd ..
 scram b -j 8
 
