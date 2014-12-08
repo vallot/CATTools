@@ -49,10 +49,10 @@ catMCParticles = cms.EDProducer("CATMCParticleProducer",
     eta = cms.double(2.5)
 )
 
-catGenTops = cms.EDProducer("CATGenTopProducer",
-    genJetLabel = cms.InputTag("ak5GenJets"),
-    mcParticleLabel = cms.InputTag("genParticles"),
-)
+#catGenTops = cms.EDProducer("CATGenTopProducer",
+#    genJetLabel = cms.InputTag("slimmedGenJets"),
+#    mcParticleLabel = cms.InputTag("prunedGenParticles"),
+#)
 
 catSecVertexs = cms.EDProducer("CATSecVertexProducer",
     muonSrc = cms.InputTag("selectedPatMuonsPFlow"),

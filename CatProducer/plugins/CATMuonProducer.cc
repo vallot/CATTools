@@ -57,21 +57,19 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
 {
   Handle<pat::MuonCollection> src;
   iEvent.getByToken(src_, src);
- 
+
   Handle<reco::GenParticleCollection> genParticles;
   if (runOnMC_) iEvent.getByToken(mcLabel_,genParticles);
     
-  Handle<reco::VertexCollection> recVtxs;
-  iEvent.getByToken(vertexLabel_,recVtxs);
-
   Handle<reco::BeamSpot> beamSpotHandle;
   iEvent.getByToken(beamLineSrc_, beamSpotHandle);
 
-  reco::Vertex pv = recVtxs->at(0);
+  Handle<reco::VertexCollection> recVtxs;
+  iEvent.getByToken(vertexLabel_,recVtxs);
+  reco::Vertex pv= recVtxs->at(0);
    
   reco::BeamSpot beamSpot = *beamSpotHandle;
   reco::TrackBase::Point beamPoint(beamSpot.x0(), beamSpot.y0(), beamSpot.z0());
-  // //  beamPoint = reco::TrackBase::Point ( beamSpot.x0(), beamSpot.y0(), beamSpot.z0() );  
  
   auto_ptr<vector<cat::Muon> >  out(new vector<cat::Muon>());
 
