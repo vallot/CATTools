@@ -18,7 +18,7 @@ git checkout tags/cat53x2
 cd ..
 scram b -j 8
 
-cmsRun $SRT_CMSSW_BASE_SCRAMRTDEL/src/CATTools/CatProducer/test/runCatupling.py
+cmsRun $SRT_CMSSW_BASE_SCRAMRTDEL/src/CATTools/CatProducer/prod/crab/runCatupling.py
 
 ```
 
