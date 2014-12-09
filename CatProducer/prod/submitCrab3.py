@@ -13,13 +13,16 @@ for file in sys.argv[1:] :
 ### MC or Data?
 isMC = True
 type_label = "MC"
-requestName = "cat_test2"
+requestName = "cat72x1"
+publishDataName = "top"
+runOnMC = "cmsRun runCatupling.py runOnMC=True"
 
 dataset = datasets[0]
 datatype = dataset.strip().split("/")[-1]
 if datatype == "AOD" or datatype == "MINIAOD" :
     isMC = False
     type_label = "RD"
+    runOnMC = "cmsRun runCatupling.py runOnMC=False"
 
 crabcommand ='crab submit -c crabConfigMC.py'
 
@@ -35,6 +38,7 @@ for dataset in datasets :
         label = dataset.split("/")[1]
     else :
         label = dataset.split("/")[1]+"_"+dataset.split("/")[2]
-    sendjob = crabcommand + " General.requestName='%s_%s' Data.inputDataset='%s'"%(requestName,label,dataset)
+
+    sendjob = crabcommand + " Data.publishDataName='%s' General.requestName='%s_%s' Data.inputDataset='%s'"%(publishDataName,requestName,label,dataset)
     print sendjob
     os.system(sendjob)
