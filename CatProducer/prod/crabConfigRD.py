@@ -5,7 +5,7 @@ config = Configuration()
 config.section_("General")
 config.General.requestName   = 'cat_test1'
 config.General.transferLogs = False
-config.General.transferOutputs = False
+config.General.transferOutputs = True
 
 config.section_("JobType")
 config.JobType.pluginName  = 'Analysis'
@@ -25,8 +25,8 @@ config.Data.publishDataName = 'cat'
 
 config.section_("Site")
 # Where the output files will be transmitted to
-config.Site.storageSite = 'T2_KR_KNU'
-#config.Site.storageSite = 'T3_KR_KISTI'
+#config.Site.storageSite = 'T2_KR_KNU'
+config.Site.storageSite = 'T3_KR_KISTI'
 #config.Site.storageSite = 'T3_KR_UOS'
 #config.Site.storageSite = 'T3_US_FNALLPC'
 
