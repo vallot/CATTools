@@ -6,6 +6,9 @@
 #include "CATTools/DataFormats/interface/Particle.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
 
+#include <string>
+#include <boost/array.hpp>
+
 // Define typedefs for convenience
 namespace cat {
   class Jet;
@@ -51,18 +54,26 @@ namespace cat {
     void setHadronFlavour(int i) { hadronFlavour_ = i; }
     void setPartonPdgId(int i) { partonPdgId_ = i; }
 
-    float csvBJetTags() const{ return csvBJetTags_;}
-    void setCsvBJetTags(float f) { csvBJetTags_ = f;}
+    enum BTagWP { TCHPT, JPL, JPM, JPT, CSVL, CSVM, CSVT,  CSVV1L, CSVV1M, CSVV1T,  CSVSLV1L, CSVSLV1M, CSVSLV1T, CSVIVFV2L, CSVIVFV2M, CSVIVFV2T  };
+    bool btagWP(BTagWP wp) const ;
+    bool btagWP(const std::string &wp) const ;
+    bool btagWP(const char *wp) const ;
 
-    float cisvBJetTags() const{ return cisvBJetTags_;}
-    void setCisvBJetTags(float f) { cisvBJetTags_ = f;}
+    void setbTag( const int & i, const float & d, const std::string & name ) { 
+      btag_[i] = d;
+      btagNames_[i] = name;
+    }
 
   private:
-    float csvBJetTags_;
-    float cisvBJetTags_;
-
     bool LooseId_; 
     float pileupJetId_;
+
+    /// b tagging discriminators
+    typedef boost::array<float,16> TagArray;
+    typedef boost::array<std::string,TagArray::static_size> TagNameArray;
+    TagArray btag_;
+    TagNameArray btagNames_;
+
      /// b tagging information
     float vtxMass_;
     int vtxNtracks_;

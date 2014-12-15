@@ -42,10 +42,7 @@ namespace cat {
     edm::EDGetTokenT<double> rhoLabel_;
     bool runOnMC_;
  
-    string cutBasedElectronIDvetoName_;
-    string cutBasedElectronIDlooseName_;
-    string cutBasedElectronIDmediumName_;
-    string cutBasedElectronIDtightName_;
+    std::vector<std::string> electronIDName_;
 
   };
 
@@ -58,10 +55,7 @@ cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig)
   beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc"))),
   rhoLabel_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoLabel"))),
   runOnMC_(iConfig.getParameter<bool>("runOnMC")),
-  cutBasedElectronIDvetoName_(iConfig.getParameter<string>("cutBasedElectronIDvetoName")),
-  cutBasedElectronIDlooseName_(iConfig.getParameter<string>("cutBasedElectronIDlooseName")),
-  cutBasedElectronIDmediumName_(iConfig.getParameter<string>("cutBasedElectronIDmediumName")),
-  cutBasedElectronIDtightName_(iConfig.getParameter<string>("cutBasedElectronIDtightName"))
+  electronIDName_(iConfig.getParameter<std::vector<std::string> >("electronIDName"))
 {
   produces<std::vector<cat::Electron> >();
 }
@@ -103,7 +97,6 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     aElectron.setPhotonIso03( aPatElectron.userIsolation("pat::User3Iso") );
     aElectron.setPUChargedHadronIso03( aPatElectron.userIsolation("pat::User4Iso") );
 
-
     float scEta = aPatElectron.superCluster()->eta();
     double ecalpt = aPatElectron.ecalDrivenMomentum().pt();
 
@@ -130,14 +123,7 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     aElectron.setPassConversionVeto( aPatElectron.passConversionVeto() );
     aElectron.setIsGsfCtfScPixChargeConsistent( aPatElectron.isGsfCtfScPixChargeConsistent());
 
-    if (aPatElectron.isElectronIDAvailable(cutBasedElectronIDvetoName_))
-      aElectron.setcutBasedElectronIDveto(aPatElectron.electronID(cutBasedElectronIDvetoName_));
-    if (aPatElectron.isElectronIDAvailable(cutBasedElectronIDlooseName_))
-      aElectron.setcutBasedElectronIDloose(aPatElectron.electronID(cutBasedElectronIDlooseName_));
-    if (aPatElectron.isElectronIDAvailable(cutBasedElectronIDmediumName_))
-      aElectron.setcutBasedElectronIDmedium(aPatElectron.electronID(cutBasedElectronIDmediumName_));
-    if (aPatElectron.isElectronIDAvailable(cutBasedElectronIDtightName_))
-      aElectron.setcutBasedElectronIDtight(aPatElectron.electronID(cutBasedElectronIDtightName_));
+    aElectron.setElectronIDs(aPatElectron.electronIDs());
 
     out->push_back(aElectron);
   }
