@@ -54,25 +54,19 @@ namespace cat {
     void setHadronFlavour(int i) { hadronFlavour_ = i; }
     void setPartonPdgId(int i) { partonPdgId_ = i; }
 
-    enum BTagWP { TCHPT, JPL, JPM, JPT, CSVL, CSVM, CSVT,  CSVV1L, CSVV1M, CSVV1T,  CSVSLV1L, CSVSLV1M, CSVSLV1T, CSVIVFV2L, CSVIVFV2M, CSVIVFV2T  };
-    bool btagWP(BTagWP wp) const ;
-    bool btagWP(const std::string &wp) const ;
-    bool btagWP(const char *wp) const ;
-
-    void setbTag( const int & i, const float & d, const std::string & name ) { 
-      btag_[i] = d;
-      btagNames_[i] = name;
+    float bDiscriminator(const std::string &theLabel) const;
+    void setBDiscriminators(const std::vector<std::pair<std::string, float> > & ids) { pairDiscriVector_ = ids; }
+    void addBDiscriminatorPair(const std::pair<std::string, float> & thePair) {
+      pairDiscriVector_.push_back(thePair);
     }
-
+    
   private:
     bool LooseId_; 
     float pileupJetId_;
 
     /// b tagging discriminators
-    typedef boost::array<float,16> TagArray;
-    typedef boost::array<std::string,TagArray::static_size> TagNameArray;
-    TagArray btag_;
-    TagNameArray btagNames_;
+    std::vector<std::pair<std::string, float> >  pairDiscriVector_;
+    //std::vector<std::string>                     tagInfoLabels_;
 
      /// b tagging information
     float vtxMass_;

@@ -13,8 +13,6 @@
   <class name="edm::Ptr<cat::Muon>"/>
 
   <class name="cat::Electron"/>
-  <class name="std::pair<std::string,std::vector<float> >" />
-  <class name="edm::Wrapper<std::pair<std::string,std::vector<float> > >" />
   <class name="std::vector<cat::Electron>"/>
   <class name="edm::Wrapper<cat::Electron>"/>
   <class name="edm::Wrapper<std::vector<cat::Electron> >"/>
@@ -27,8 +25,6 @@
   <class name="edm::Ptr<cat::Photon>"/>
 
   <class name="cat::Jet"/>
-  <class name="boost::array<float,16>" />
-  <class name="boost::array<std::basic_string<char>,16>" />
   <class name="std::vector<cat::Jet>"/>
   <class name="edm::Wrapper<cat::Jet>"/>
   <class name="edm::Wrapper<std::vector<cat::Jet> >"/>

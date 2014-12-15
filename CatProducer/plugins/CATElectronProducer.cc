@@ -42,7 +42,7 @@ namespace cat {
     edm::EDGetTokenT<double> rhoLabel_;
     bool runOnMC_;
  
-    std::vector<std::string> electronIDName_;
+    std::vector<std::string> electronIDNames_;
 
   };
 
@@ -55,7 +55,7 @@ cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig)
   beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc"))),
   rhoLabel_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoLabel"))),
   runOnMC_(iConfig.getParameter<bool>("runOnMC")),
-  electronIDName_(iConfig.getParameter<std::vector<std::string> >("electronIDName"))
+  electronIDNames_(iConfig.getParameter<std::vector<std::string> >("electronIDNames"))
 {
   produces<std::vector<cat::Electron> >();
 }
@@ -123,7 +123,8 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     aElectron.setPassConversionVeto( aPatElectron.passConversionVeto() );
     aElectron.setIsGsfCtfScPixChargeConsistent( aPatElectron.isGsfCtfScPixChargeConsistent());
 
-    aElectron.setElectronIDs(aPatElectron.electronIDs());
+    if (electronIDNames_.size() == 0)
+      aElectron.setElectronIDs(aPatElectron.electronIDs());
 
     out->push_back(aElectron);
   }

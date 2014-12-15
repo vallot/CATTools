@@ -96,13 +96,12 @@ namespace cat {
 
     float electronID(const std::string& name) const;
     float electronID(const char* name) const { return electronID( std::string(name) );}
-    void setElectronIDs(const std::vector<IdPair> & ids) { electronIDs_ = ids; }
+    void setElectronIDs(const std::vector<pat::Electron::IdPair> & ids) { electronIDs_ = ids; }
 
   private:
 
-    //typedef std::pair<std::string,float> IdPair;
-    std::vector<IdPair> electronIDs_;
-    std::vector<std::string> electronIDNames_;
+    std::vector<pat::Electron::IdPair> electronIDs_;
+    //std::vector<std::string> electronIDNames_;
 
     float relIso03_;
     float relIso04_;

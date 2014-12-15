@@ -14,13 +14,13 @@ Electron::~Electron() {
 }
 
 float Electron::electronID(const std::string& name) const {
-  for (std::vector<IdPair>::const_iterator it = electronIDs_.begin(), ed = electronIDs_.end(); it != ed; ++it) {
+  for (std::vector<pat::Electron::IdPair>::const_iterator it = electronIDs_.begin(), ed = electronIDs_.end(); it != ed; ++it) {
     if (it->first == name) return it->second;
   }
   cms::Exception ex("Key not found");
   ex << "cat::Electron: the ID " << name << " can't be found in this cat::Electron.\n";
   ex << "The available IDs are: ";
-  for (std::vector<IdPair>::const_iterator it = electronIDs_.begin(), ed = electronIDs_.end(); it != ed; ++it) {
+  for (std::vector<pat::Electron::IdPair>::const_iterator it = electronIDs_.begin(), ed = electronIDs_.end(); it != ed; ++it) {
     ex << "'" << it->first << "' ";
   }
   ex << ".\n";
