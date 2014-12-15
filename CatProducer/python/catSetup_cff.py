@@ -30,14 +30,12 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
     process.catTaus.src = cms.InputTag(catTausSource)
     process.catMETs.src = cms.InputTag(catMETsSource)
     process.catGenJets.src = cms.InputTag(catGenJetsSource)
-    process.catMCParticles.src = cms.InputTag(catMCsource)
     process.catSecVertexs.muonSrc = cms.InputTag(catMuonsSource)
     process.catSecVertexs.elecSrc = cms.InputTag(catElectronsSource)
     process.catSecVertexs.vertexLabel = cms.InputTag(catVertexSource)
 
     if not runOnMC:
         process.makeCatCandidates.remove(process.catGenJets)
-        process.makeCatCandidates.remove(process.catMCParticles)
         process.catMuons.runOnMC = cms.bool(False)
         process.catElectrons.runOnMC = cms.bool(False)
 
