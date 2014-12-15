@@ -25,8 +25,6 @@ for opt, arg in opts:
         lines = open(inputFile)
         datasets = lines.readlines()
 
-print opts
-    
 for dataset in datasets:
     isMC = True
     crabcommand ='crab submit -c crabConfigMC.py'
@@ -48,4 +46,10 @@ for dataset in datasets:
     print sendjob
     if submit:
         print "submiting job"
-        #os.system(sendjob)
+        os.system(sendjob)
+
+if not submit:
+    print "Dry run, not submitting job and only printing crab3 command"
+    print "Add -s to submit job"
+    print 'Usage : ./submitCrab3.py -n <requestName> -i <inputFile> -s'
+
