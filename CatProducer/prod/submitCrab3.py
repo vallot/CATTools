@@ -13,7 +13,7 @@ for file in sys.argv[1:] :
 ### MC or Data?
 isMC = True
 type_label = "MC"
-requestName = "cat72x1"
+requestName = "cat72x2"
 publishDataName = "top"
 runOnMC = "cmsRun runCatupling.py runOnMC=True"
 

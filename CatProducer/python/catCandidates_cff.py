@@ -15,18 +15,38 @@ catElectrons = cms.EDProducer("CATElectronProducer",
     beamLineSrc = cms.InputTag("offlineBeamSpot"),
     rhoLabel = cms.InputTag("fixedGridRhoAll", "rho"),
     runOnMC = cms.bool(True),
-    cutBasedElectronIDvetoName = cms.string("cutBasedElectronID-CSA14-50ns-V1-standalone-veto"),
-    cutBasedElectronIDlooseName = cms.string("cutBasedElectronID-CSA14-50ns-V1-standalone-loose"),
-    cutBasedElectronIDmediumName = cms.string("cutBasedElectronID-CSA14-50ns-V1-standalone-medium"),
-    cutBasedElectronIDtightName = cms.string("cutBasedElectronID-CSA14-50ns-V1-standalone-tight")
-)
-
-catPhotons = cms.EDProducer("CATPhotonProducer",
-    src = cms.InputTag("selectedPatPhotons"),
+    electronIDNames = cms.vstring()
 )
 
 catJets = cms.EDProducer("CATJetProducer",
     src = cms.InputTag("selectedPatJetsPFlow"),
+    btagNames = cms.vstring()
+##       #see https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideBTagPerformance
+##       'trackCountingHighPurBJetTags', #0
+##       'jetProbabilityBJetTags', #1
+##       'combinedSecondaryVertexBJetTags', #2
+##  #     'combinedSecondaryVertexV1BJetsTags', #3
+##  #     'combinedSecondaryVertexSoftPFLeptonV1BJetTags', #4
+##  #     'combinedSecondaryVertexIVFV2BJetTags', #5
+## #old for Run 1
+##  #     'trackCountingHighEffBJetTags',#0
+##  #     'trackCountingHighPurBJetTags',#1
+##  #     'jetProbabilityBJetTags',#2
+##  #     'jetBProbabilityBJetTags',#3
+##  #     'simpleSecondaryVertexHighEffBJetTags',#4
+##  #     'simpleSecondaryVertexHighPurBJetTags',#5
+##  #     'combinedSecondaryVertexBJetTags',#6
+##  #    'combinedSecondaryVertexMVABJetTags'#7
+##  #     'softPFMuonBJetTags', #8
+##  #     'softPFElectronBJetTags', #9
+##  #     'softPFElectronByIP3dBJetTags', #10
+##  #     'softPFElectronByPtBJetTags', #11
+##  #     'softPFMuonByPtBJetTags', #12
+##     ),
+)
+
+catPhotons = cms.EDProducer("CATPhotonProducer",
+    src = cms.InputTag("selectedPatPhotons"),
 )
 
 catTaus = cms.EDProducer("CATTauProducer",

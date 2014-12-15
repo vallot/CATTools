@@ -6,6 +6,9 @@
 #include "CATTools/DataFormats/interface/Particle.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
 
+#include <string>
+#include <boost/array.hpp>
+
 // Define typedefs for convenience
 namespace cat {
   class Jet;
@@ -51,18 +54,20 @@ namespace cat {
     void setHadronFlavour(int i) { hadronFlavour_ = i; }
     void setPartonPdgId(int i) { partonPdgId_ = i; }
 
-    float csvBJetTags() const{ return csvBJetTags_;}
-    void setCsvBJetTags(float f) { csvBJetTags_ = f;}
-
-    float cisvBJetTags() const{ return cisvBJetTags_;}
-    void setCisvBJetTags(float f) { cisvBJetTags_ = f;}
-
+    float bDiscriminator(const std::string &theLabel) const;
+    void setBDiscriminators(const std::vector<std::pair<std::string, float> > & ids) { pairDiscriVector_ = ids; }
+    void addBDiscriminatorPair(const std::pair<std::string, float> & thePair) {
+      pairDiscriVector_.push_back(thePair);
+    }
+    
   private:
-    float csvBJetTags_;
-    float cisvBJetTags_;
-
     bool LooseId_; 
     float pileupJetId_;
+
+    /// b tagging discriminators
+    std::vector<std::pair<std::string, float> >  pairDiscriVector_;
+    //std::vector<std::string>                     tagInfoLabels_;
+
      /// b tagging information
     float vtxMass_;
     int vtxNtracks_;

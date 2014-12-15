@@ -39,12 +39,14 @@ namespace cat {
 
   private:
     edm::EDGetTokenT<pat::JetCollection> src_;
+    const std::vector<std::string> btagNames_;
   };
 
 } // namespace
 
 cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
-  src_(consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("src")))
+  src_(consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("src"))),
+  btagNames_(iConfig.getParameter<std::vector<std::string> >("btagNames"))
 {
   produces<std::vector<cat::Jet> >();
 }
@@ -65,8 +67,14 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
     if( aPatJet.hasUserFloat("pileupJetId:fullDiscriminant") )
       aJet.setPileupJetId( aPatJet.userFloat("pileupJetId:fullDiscriminant") );
 
-    aJet.setCisvBJetTags(aPatJet.bDiscriminator("combinedInclusiveSecondaryVertexBJetTags"));
-    aJet.setCsvBJetTags(aPatJet.bDiscriminator("combinedSecondaryVertexBJetTags"));
+    if (btagNames_.size() == 0){
+      aJet.setBDiscriminators(aPatJet.getPairDiscri());
+    }
+    else {
+      for(unsigned int i = 0; i < btagNames_.size(); i++){
+	aJet.addBDiscriminatorPair(std::make_pair(btagNames_.at(i), aPatJet.bDiscriminator(btagNames_.at(i)) ));
+      }
+    }
 
     //secondary vertex b-tagging information
     if( aPatJet.hasUserFloat("vtxMass") ) aJet.setVtxMass( aPatJet.userFloat("vtxMass") );

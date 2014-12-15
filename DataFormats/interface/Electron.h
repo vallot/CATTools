@@ -94,21 +94,14 @@ namespace cat {
 
     void setMCMatched(bool m) { mcMatched_ = m; }
 
-    bool cutBasedElectronIDveto() const { return cutBasedElectronIDveto_; }
-    void setcutBasedElectronIDveto(bool i) { cutBasedElectronIDveto_ = i; }
-    bool cutBasedElectronIDloose() const { return cutBasedElectronIDloose_; }
-    void setcutBasedElectronIDloose(bool i) { cutBasedElectronIDloose_ = i; }
-    bool cutBasedElectronIDmedium() const { return cutBasedElectronIDmedium_; }
-    void setcutBasedElectronIDmedium(bool i) { cutBasedElectronIDmedium_ = i; }
-    bool cutBasedElectronIDtight() const { return cutBasedElectronIDtight_; }
-    void setcutBasedElectronIDtight(bool i) { cutBasedElectronIDtight_ = i; }
+    float electronID(const std::string& name) const;
+    float electronID(const char* name) const { return electronID( std::string(name) );}
+    void setElectronIDs(const std::vector<pat::Electron::IdPair> & ids) { electronIDs_ = ids; }
 
   private:
 
-    bool cutBasedElectronIDveto_;
-    bool cutBasedElectronIDloose_;
-    bool cutBasedElectronIDmedium_;
-    bool cutBasedElectronIDtight_;
+    std::vector<pat::Electron::IdPair> electronIDs_;
+    //std::vector<std::string> electronIDNames_;
 
     float relIso03_;
     float relIso04_;
