@@ -50,6 +50,6 @@ process.source.fileNames = options.inputFiles
 
 ## to suppress the long output at the end of the job
 process.MessageLogger.cerr.threshold = ''
-if options.maxEvents > 0:
+if options.maxEvents < 0:
     process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.options.wantSummary = False
