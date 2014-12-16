@@ -1,20 +1,21 @@
 import FWCore.ParameterSet.Config as cms
 
 def catSetup(process, runOnMC=True, doSecVertex=True):    
-    process.load("CATTools.CatProducer.catCandidates_cff")        
-    process.p += process.makeCatCandidates
+    process.load("CATTools.CatProducer.eventCleaning.eventCleaning_cff")
+    process.load("CATTools.CatProducer.catCandidates_cff")
+    process.p += process.eventCleaning + process.makeCatCandidates
 
-    catJetsSource = "slimmedJets"
-    catGenJetsSource = "slimmedGenJets"
-    catMuonsSource = "slimmedMuons"
-    catElectronsSource = "slimmedElectrons"
-    catPhotonsSource = "slimmedPhotons"
-    catTausSource = "slimmedTaus"
-    catMETsSource = "slimmedMETs"
-    catVertexSource = "offlineSlimmedPrimaryVertices"
-    catMCsource = "prunedGenParticles"
+    catJetsSource = "selectedPatJetsPFlow"
+    catGenJetsSource = "ak5GenJets"
+    catMuonsSource = "selectedPatMuonsPFlow"
+    catElectronsSource = "selectedPatElectronsPFlow"
+    catPhotonsSource = "selectedPatPhotons"
+    catTausSource = "selectedPatTauPFlow"
+    catMETsSource = "patMETsPFlow"
+    catVertexSource = "offlinePrimaryVertices"
+    catMCsource = "genParticles"
     catBeamSpot = "offlineBeamSpot"
-    catRho = "fixedGridRhoAll"
+    #catRho = "kt6PFJets"
 
     process.catJets.src = cms.InputTag(catJetsSource)
     process.catMuons.src = cms.InputTag(catMuonsSource)
@@ -25,7 +26,7 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
     process.catElectrons.vertexLabel = cms.InputTag(catVertexSource)
     process.catElectrons.mcLabel = cms.InputTag(catMCsource)
     process.catElectrons.beamLineSrc = cms.InputTag(catBeamSpot)
-    process.catElectrons.rhoLabel = cms.InputTag(catRho)
+    #process.catElectrons.rhoLabel = cms.InputTag(catRho)
     process.catPhotons.src = cms.InputTag(catPhotonsSource)
     process.catTaus.src = cms.InputTag(catTausSource)
     process.catMETs.src = cms.InputTag(catMETsSource)
@@ -36,6 +37,7 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
 
     if not runOnMC:
         process.makeCatCandidates.remove(process.catGenJets)
+        process.makeCatCandidates.remove(process.catMCParticles)
         process.catMuons.runOnMC = cms.bool(False)
         process.catElectrons.runOnMC = cms.bool(False)
 
@@ -43,3 +45,9 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
         from TrackingTools.TransientTrack.TransientTrackBuilder_cfi import TransientTrackBuilderESProducer
         setattr(process, "TransientTrackBuilderESProducer", TransientTrackBuilderESProducer)
         process.makeCatCandidates += process.catSecVertexs
+        
+    ## cuts on selected Pat objects
+    getattr(process,catJetsSource).cut = cms.string("pt > 20")
+    #getattr(process,catMuonsSource).cut = cms.string("pt > 5 || isPFMuon || (pt > 3 && (isGlobalMuon || isStandAloneMuon || numberOfMatches > 0 || muonID('RPCMuLoose')))") 
+    #getattr(process,catElectronsSource).cut = cms.string("pt > 5") 
+    #getattr(process,catPhotonsSource).cut = cms.string("pt > 5")

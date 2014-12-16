@@ -13,7 +13,7 @@ catElectrons = cms.EDProducer("CATElectronProducer",
     mcLabel = cms.InputTag("genParticles"),
     vertexLabel = cms.InputTag('offlinePrimaryVertices'),
     beamLineSrc = cms.InputTag("offlineBeamSpot"),
-    rhoLabel = cms.InputTag("fixedGridRhoAll", "rho"),
+    rhoLabel = cms.InputTag("kt6PFJets", "rho"),
     runOnMC = cms.bool(True),
     electronIDNames = cms.vstring()
 )
@@ -63,11 +63,11 @@ catGenJets = cms.EDProducer("CATGenJetProducer",
     eta = cms.double(2.5)
 )
 
-#catMCParticles = cms.EDProducer("CATMCParticleProducer",
-#    src = cms.InputTag("genParticles"),
-#    pt = cms.double(10),
-#    eta = cms.double(2.5)
-#)
+catMCParticles = cms.EDProducer("CATMCParticleProducer",
+    src = cms.InputTag("genParticles"),
+    pt = cms.double(10),
+    eta = cms.double(2.5)
+)
 
 #catGenTops = cms.EDProducer("CATGenTopProducer",
 #    genJetLabel = cms.InputTag("slimmedGenJets"),
@@ -103,8 +103,8 @@ makeCatCandidates =  cms.Sequence(
     catElectrons*
     catJets*
     catMETs*
-    catGenJets
-    #catMCParticles
+    catGenJets*
+    catMCParticles
     #catPhotons*
     #catTaus*
     # MC information below
