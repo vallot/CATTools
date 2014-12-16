@@ -12,6 +12,8 @@ options.parseArguments()
 runOnMC = options.runOnMC
 globalTag = options.globalTag
 
+####################################################################################################
+## running PAT
 postfix = "PFlow"
 jetAlgo="AK5"
 from CATTools.CatProducer.catPatSetup_cff import *
@@ -34,7 +36,7 @@ process.jec = cms.ESSource("PoolDBESSource",
 )
 
 process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
-
+####################################################################################################
 
 from CATTools.CatProducer.catSetup_cff import *
 catSetup(process, runOnMC, doSecVertex)
