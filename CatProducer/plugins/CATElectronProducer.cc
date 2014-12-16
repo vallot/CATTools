@@ -33,13 +33,13 @@ namespace cat {
   private:
     float getEffArea( float dR, float scEta );
 
-    edm::EDGetTokenT<pat::ElectronCollection> src_;
-    edm::EDGetTokenT<reco::VertexCollection> vertexLabel_;
-    edm::EDGetTokenT<reco::GenParticleCollection> mcLabel_;
-    edm::EDGetTokenT<reco::BeamSpot> beamLineSrc_;
-    edm::EDGetTokenT<double> rhoLabel_;
+    edm::InputTag src_;
+    edm::InputTag vertexLabel_;
+    edm::InputTag mcLabel_;
+    edm::InputTag beamLineSrc_;
+    edm::InputTag rhoLabel_;
     bool runOnMC_;
- 
+
     std::vector<std::string> electronIDNames_;
 
   };
@@ -47,11 +47,11 @@ namespace cat {
 } // namespace
 
 cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig) :
-  src_(consumes<pat::ElectronCollection>(iConfig.getParameter<edm::InputTag>("src"))),
-  vertexLabel_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexLabel"))),
-  mcLabel_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcLabel"))),
-  beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc"))),
-  rhoLabel_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoLabel"))),
+  src_(iConfig.getParameter<edm::InputTag>( "src" )),
+  vertexLabel_(iConfig.getParameter<edm::InputTag>( "vertexLabel" )),
+  mcLabel_(iConfig.getParameter<edm::InputTag>("mcLabel")),
+  beamLineSrc_(iConfig.getParameter<edm::InputTag>("beamLineSrc")),
+  rhoLabel_(iConfig.getParameter<edm::InputTag>("rhoLabel")),
   runOnMC_(iConfig.getParameter<bool>("runOnMC")),
   electronIDNames_(iConfig.getParameter<std::vector<std::string> >("electronIDNames"))
 {
@@ -64,17 +64,17 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
   using namespace std;
 
   Handle<pat::ElectronCollection> src;
-  iEvent.getByToken(src_, src);
+  iEvent.getByLabel(src_, src);
 
   Handle<reco::GenParticleCollection> genParticles;
-  iEvent.getByToken(mcLabel_,genParticles);
+  iEvent.getByLabel(mcLabel_,genParticles);
 
   Handle<reco::VertexCollection> recVtxs;
-  iEvent.getByToken(vertexLabel_, recVtxs);
+  iEvent.getByLabel(vertexLabel_, recVtxs);
   reco::Vertex pv= recVtxs->at(0);
 
   Handle<double> rhoHandle;
-  iEvent.getByToken(rhoLabel_, rhoHandle);
+  iEvent.getByLabel(rhoLabel_, rhoHandle);
   double rhoIso = std::max(*(rhoHandle.product()), 0.0);
 
   auto_ptr<vector<cat::Electron> >  out(new vector<cat::Electron>());

@@ -26,13 +26,13 @@ namespace cat {
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
   private:
-    edm::EDGetTokenT<pat::PhotonCollection> src_;
+    edm::InputTag src_;
   };
 
 } // namespace
 
 cat::CATPhotonProducer::CATPhotonProducer(const edm::ParameterSet & iConfig) :
-  src_(consumes<pat::PhotonCollection>(iConfig.getParameter<edm::InputTag>("src")))
+  src_(iConfig.getParameter<edm::InputTag>( "src" ))
 {
   produces<std::vector<cat::Photon> >();
 }
@@ -41,7 +41,7 @@ void
 cat::CATPhotonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
   Handle<pat::PhotonCollection> src;
-  iEvent.getByToken(src_, src);
+  iEvent.getByLabel(src_, src);
 
   auto_ptr<vector<cat::Photon> >  out(new vector<cat::Photon>());
 

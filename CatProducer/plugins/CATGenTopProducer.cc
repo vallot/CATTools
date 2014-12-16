@@ -31,16 +31,16 @@ namespace cat {
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
     
   private:
-    edm::EDGetTokenT<reco::GenJetCollection> genJetLabel_;
-    edm::EDGetTokenT<reco::GenParticleCollection> mcParticleLabel_;
+    edm::InputTag genJetLabel_;
+    edm::InputTag mcParticleLabel_;
 
   };
 
 } // namespace
 
 cat::CATGenTopProducer::CATGenTopProducer(const edm::ParameterSet & iConfig) :
-  genJetLabel_(consumes<reco::GenJetCollection>(iConfig.getParameter<edm::InputTag>("genJetLabel"))),
-  mcParticleLabel_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcParticleLabel")))
+  genJetLabel_(iConfig.getParameter<edm::InputTag>( "genJetLabel" )),
+  mcParticleLabel_(iConfig.getParameter<edm::InputTag>( "mcParticleLabel" ))
 {
   produces<std::vector<cat::GenTop> >();
 }
@@ -49,10 +49,10 @@ void
 cat::CATGenTopProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) 
 {
   Handle<reco::GenJetCollection> genJets;
-  iEvent.getByToken(genJetLabel_, genJets);
+  iEvent.getByLabel(genJetLabel_, genJets);
 
   Handle<reco::GenParticleCollection> mcParticles;
-  iEvent.getByToken(mcParticleLabel_, mcParticles);
+  iEvent.getByLabel(mcParticleLabel_, mcParticles);
 
   cat::GenTop aGenTop;
   aGenTop.building( genJets, mcParticles);

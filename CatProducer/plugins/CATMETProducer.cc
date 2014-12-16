@@ -26,14 +26,14 @@ namespace cat {
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
   private:
-    edm::EDGetTokenT<pat::METCollection> src_;
+    edm::InputTag src_;
 
   };
 
 } // namespace
 
 cat::CATMETProducer::CATMETProducer(const edm::ParameterSet & iConfig) :
-  src_(consumes<pat::METCollection>(iConfig.getParameter<edm::InputTag>("src")))
+  src_(iConfig.getParameter<edm::InputTag>( "src" ))
 {
   produces<std::vector<cat::MET> >();
 }
@@ -42,7 +42,7 @@ void
 cat::CATMETProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
   Handle<pat::METCollection> src;
-  iEvent.getByToken(src_, src);
+  iEvent.getByLabel(src_, src);
 
   auto_ptr<vector<cat::MET> >  out(new vector<cat::MET>());
 

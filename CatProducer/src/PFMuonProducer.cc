@@ -35,7 +35,7 @@ namespace reco {
       virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
     private:
-      edm::EDGetTokenT<reco::MuonCollection> src_;
+    edm::InputTag src_;
     
       PFMuonAlgo *pfmu_;
   };
@@ -43,7 +43,7 @@ namespace reco {
 } // namespace
 
 reco::PFMuonProducer::PFMuonProducer(const edm::ParameterSet & iConfig) :
-    src_(consumes<reco::MuonCollection>(iConfig.getParameter<edm::InputTag>("src")))
+  src_(iConfig.getParameter<edm::InputTag>( "src" ))
 {
     pfmu_ = new PFMuonAlgo();
     pfmu_->setParameters(iConfig);
@@ -55,7 +55,7 @@ reco::PFMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
 
 
     edm::Handle<reco::MuonCollection> src;
-    iEvent.getByToken(src_, src);
+    iEvent.getByLabel(src_, src);
 
     auto_ptr<vector<reco::Muon> >  out(new vector<reco::Muon>());
 

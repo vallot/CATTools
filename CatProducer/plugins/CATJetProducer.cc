@@ -36,14 +36,14 @@ namespace cat {
     const reco::Candidate* lastCHadron(const reco::Candidate &c);
 
   private:
-    edm::EDGetTokenT<pat::JetCollection> src_;
+    edm::InputTag src_;
     const std::vector<std::string> btagNames_;
   };
 
 } // namespace
 
 cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
-  src_(consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("src"))),
+  src_(iConfig.getParameter<edm::InputTag>( "src" )),
   btagNames_(iConfig.getParameter<std::vector<std::string> >("btagNames"))
 {
   produces<std::vector<cat::Jet> >();
@@ -53,7 +53,7 @@ void
 cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) {
 
   edm::Handle<pat::JetCollection> src;
-  iEvent.getByToken(src_, src);
+  iEvent.getByLabel(src_, src);
 
   auto_ptr<vector<cat::Jet> >  out(new vector<cat::Jet>());
 

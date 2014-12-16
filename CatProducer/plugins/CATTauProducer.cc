@@ -26,13 +26,13 @@ namespace cat {
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
   private:
-    edm::EDGetTokenT<pat::TauCollection> src_;
+    edm::InputTag src_;
   };
 
 } // namespace
 
 cat::CATTauProducer::CATTauProducer(const edm::ParameterSet & iConfig) :
-  src_(consumes<pat::TauCollection>(iConfig.getParameter<edm::InputTag>("src")))
+  src_(iConfig.getParameter<edm::InputTag>( "src" ))
 {
   produces<std::vector<cat::Tau> >();
 }
@@ -41,7 +41,7 @@ void
 cat::CATTauProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
   Handle<pat::TauCollection> src;
-  iEvent.getByToken(src_, src);
+  iEvent.getByLabel(src_, src);
 
   auto_ptr<vector<cat::Tau> >  out(new vector<cat::Tau>());
 

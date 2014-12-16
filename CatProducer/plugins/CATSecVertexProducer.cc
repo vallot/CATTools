@@ -38,9 +38,9 @@ namespace cat {
 
     vector<cat::SecVertex> *out_;
 
-    edm::EDGetTokenT<pat::MuonCollection> muonSrc_;
-    edm::EDGetTokenT<pat::ElectronCollection> elecSrc_;
-    edm::EDGetTokenT<reco::VertexCollection> vertexLabel_;
+    edm::InputTag muonSrc_;
+    edm::InputTag elecSrc_;
+    edm::InputTag vertexLabel_;
 
     double rawMassMin_, rawMassMax_, massMin_, massMax_;
 
@@ -53,9 +53,9 @@ namespace cat {
 } // namespace
 
 cat::CATSecVertexProducer::CATSecVertexProducer(const edm::ParameterSet & iConfig) :
-  muonSrc_(consumes<pat::MuonCollection>(iConfig.getParameter<edm::InputTag>("muonSrc"))),
-  elecSrc_(consumes<pat::ElectronCollection>(iConfig.getParameter<edm::InputTag>("elecSrc"))),
-  vertexLabel_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexLabel")))
+  muonSrc_(iConfig.getParameter<edm::InputTag>( "muonSrc" )),
+  elecSrc_(iConfig.getParameter<edm::InputTag>( "elecSrc" )),
+  vertexLabel_(iConfig.getParameter<edm::InputTag>( "vertexLabel" ))
 {
   produces<std::vector<cat::SecVertex> >();
   edm::ParameterSet trackPSet = iConfig.getParameter<edm::ParameterSet>("track");
@@ -82,13 +82,13 @@ void
 cat::CATSecVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) 
 {
   Handle<pat::MuonCollection> muonSrc;
-  iEvent.getByToken(muonSrc_, muonSrc);
+  iEvent.getByLabel(muonSrc_, muonSrc);
  
   Handle<pat::ElectronCollection> elecSrc;
-  iEvent.getByToken(elecSrc_, elecSrc);
+  iEvent.getByLabel(elecSrc_, elecSrc);
 
   Handle<reco::VertexCollection> recVtxs;
-  iEvent.getByToken(vertexLabel_,recVtxs);
+  iEvent.getByLabel(vertexLabel_,recVtxs);
 
   out_ = new std::vector<cat::SecVertex>();
 

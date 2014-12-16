@@ -30,10 +30,10 @@ namespace cat {
     bool MatchObjects( const reco::Candidate::LorentzVector& pasObj, const reco::Candidate::LorentzVector& proObj, bool exact );
 
   private:
-    edm::EDGetTokenT<pat::MuonCollection> src_;
-    edm::EDGetTokenT<reco::GenParticleCollection> mcLabel_;
-    edm::EDGetTokenT<reco::VertexCollection> vertexLabel_;
-    edm::EDGetTokenT<reco::BeamSpot> beamLineSrc_;
+    edm::InputTag src_;
+    edm::InputTag mcLabel_;
+    edm::InputTag vertexLabel_;
+    edm::InputTag beamLineSrc_;
     bool runOnMC_;
 
   };
@@ -41,10 +41,10 @@ namespace cat {
 } // namespace
 
 cat::CATMuonProducer::CATMuonProducer(const edm::ParameterSet & iConfig) :
-  src_(consumes<pat::MuonCollection>(iConfig.getParameter<edm::InputTag>("src"))),
-  mcLabel_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcLabel"))),
-  vertexLabel_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexLabel"))),
-  beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc"))),
+  src_(iConfig.getParameter<edm::InputTag>( "src" )),
+  mcLabel_(iConfig.getParameter<edm::InputTag>( "mcLabel" )),
+  vertexLabel_(iConfig.getParameter<edm::InputTag>( "vertexLabel" )),
+  beamLineSrc_(iConfig.getParameter<edm::InputTag>( "beamLineSrc" )),
   runOnMC_(iConfig.getParameter<bool>("runOnMC"))
 {
   produces<std::vector<cat::Muon> >();
@@ -54,16 +54,16 @@ void
 cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) 
 {
   Handle<pat::MuonCollection> src;
-  iEvent.getByToken(src_, src);
+  iEvent.getByLabel(src_, src);
 
   Handle<reco::GenParticleCollection> genParticles;
-  if (runOnMC_) iEvent.getByToken(mcLabel_,genParticles);
+  if (runOnMC_) iEvent.getByLabel(mcLabel_,genParticles);
     
   Handle<reco::BeamSpot> beamSpotHandle;
-  iEvent.getByToken(beamLineSrc_, beamSpotHandle);
+  iEvent.getByLabel(beamLineSrc_, beamSpotHandle);
 
   Handle<reco::VertexCollection> recVtxs;
-  iEvent.getByToken(vertexLabel_,recVtxs);
+  iEvent.getByLabel(vertexLabel_,recVtxs);
   reco::Vertex pv= recVtxs->at(0);
    
   reco::BeamSpot beamSpot = *beamSpotHandle;

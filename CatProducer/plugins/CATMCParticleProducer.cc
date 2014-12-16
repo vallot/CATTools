@@ -27,7 +27,7 @@ namespace cat {
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
   private:
-    edm::EDGetTokenT<reco::GenParticleCollection> src_;
+    edm::InputTag src_;
 
     const double pt_;
     const double eta_;
@@ -37,7 +37,7 @@ namespace cat {
 } // namespace
 
 cat::CATMCParticleProducer::CATMCParticleProducer(const edm::ParameterSet & iConfig) :
-  src_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("src"))),
+  src_(iConfig.getParameter<edm::InputTag>( "src" )),
   pt_(iConfig.getParameter<double>("pt")),
   eta_(iConfig.getParameter<double>("eta"))
 {
@@ -48,7 +48,7 @@ void
 cat::CATMCParticleProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) 
 {
   Handle<reco::GenParticleCollection> genParticles;
-  iEvent.getByToken(src_,genParticles);
+  iEvent.getByLabel(src_,genParticles);
     
   auto_ptr<vector<cat::MCParticle> >  out(new vector<cat::MCParticle>());
 

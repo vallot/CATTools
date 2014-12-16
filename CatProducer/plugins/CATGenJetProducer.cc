@@ -30,7 +30,7 @@ namespace cat {
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
     
   private:
-    edm::EDGetTokenT<reco::GenJetCollection> src_;
+    edm::InputTag src_;
     const double pt_;
     const double eta_;
 
@@ -47,7 +47,7 @@ namespace cat {
 } // namespace
 
 cat::CATGenJetProducer::CATGenJetProducer(const edm::ParameterSet & iConfig) :
-  src_(consumes<reco::GenJetCollection>(iConfig.getParameter<edm::InputTag>("src"))),
+  src_(iConfig.getParameter<InputTag>( "src" )),
   pt_(iConfig.getParameter<double>("pt")),
   eta_(iConfig.getParameter<double>("eta"))
 {
@@ -58,7 +58,7 @@ void
 cat::CATGenJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
   Handle<reco::GenJetCollection> src;
-  iEvent.getByToken(src_, src);
+  iEvent.getByLabel(src_, src);
 
   auto_ptr<vector<cat::GenJet> >  out(new vector<cat::GenJet>());
 
