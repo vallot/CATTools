@@ -27,7 +27,7 @@ namespace cat {
     virtual ~CATElectronProducer() { }
 
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
-    bool mcMatch( const reco::Candidate::LorentzVector& lepton, const edm::Handle<View<reco::GenParticle> > & genParticles );
+    bool mcMatch( const reco::Candidate::LorentzVector& lepton, const edm::Handle<edm::View<reco::GenParticle> > & genParticles );
     bool MatchObjects( const reco::Candidate::LorentzVector& pasObj, const reco::Candidate::LorentzVector& proObj, bool exact );
 
   private:
@@ -143,7 +143,7 @@ cat::CATElectronProducer::getEffArea( float dR, float scEta)
     return ElectronEffectiveArea::GetElectronEffectiveArea( ElectronEffectiveArea::kEleGammaAndNeutralHadronIso04, scEta, electronEATarget);
 }
 
-bool cat::CATElectronProducer::mcMatch( const reco::Candidate::LorentzVector& lepton, const edm::Handle<View<reco::GenParticle> > & genParticles ){
+bool cat::CATElectronProducer::mcMatch( const reco::Candidate::LorentzVector& lepton, const edm::Handle<edm::View<reco::GenParticle> > & genParticles ){
 
   bool out = false;
 
