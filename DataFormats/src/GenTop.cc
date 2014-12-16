@@ -363,7 +363,7 @@ void GenTop::building(Handle<View<reco::GenJet> > genJets, Handle<View<reco::Gen
 
   //Gen-jets loop
   //for (std::vector<reco::GenJet>::const_iterator genJet=genJets->begin();genJet!=genJets->end();++genJet, ++idx){
-  for (reco::GenJetCollection::const_iterator genJet=genJets->begin();genJet!=genJets->end();++genJet, ++idx){
+  for (View<reco::GenJet>::const_iterator genJet=genJets->begin();genJet!=genJets->end();++genJet, ++idx){
     const reco::Candidate& gJet = *genJet;
 
     //clean jets with leptons
