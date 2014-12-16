@@ -150,6 +150,7 @@ cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<T
       ++ipos;
       if (transTrackPos.charge() < 0) continue;
       FreeTrajectoryState ipStatePos = transTrackPos.impactPointTSCP().theState();
+      ineg=-1;
       for ( auto& transTrackNeg : transTracks )
 	{
 	  ++ineg;
