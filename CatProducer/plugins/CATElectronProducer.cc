@@ -147,19 +147,17 @@ bool cat::CATElectronProducer::mcMatch( const reco::Candidate::LorentzVector& le
 
   bool out = false;
 
-  for (reco::GenParticleCollection::const_iterator mcIter=genParticles->begin(); mcIter != genParticles->end(); mcIter++ ) {
-    int genId = mcIter->pdgId();
+  for (const reco::GenParticle & aGenPart : *genParticles){
+    if( abs(aGenPart.pdgId()) != 11 ) continue;
 
-    if( abs(genId) != 11 ) continue;
-
-    bool match = MatchObjects(lepton, mcIter->p4(), false);
+    bool match = MatchObjects(lepton, aGenPart.p4(), false);
 
     if( match != true) continue;
-
-    const reco::Candidate* mother = mcIter->mother();
+   
+    const reco::Candidate* mother = aGenPart.mother();
     while( mother != 0 ){
       if( abs(mother->pdgId()) == 23 || abs(mother->pdgId()) == 24 ) {
-	out = true;
+        out = true;
       }
       mother = mother->mother();
     }
