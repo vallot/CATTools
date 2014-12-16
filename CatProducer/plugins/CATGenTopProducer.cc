@@ -15,10 +15,9 @@
 #include "CATTools/DataFormats/interface/MCParticle.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
-//#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
-//#include "FWCore/Utilities/interface/isFinite.h"
+#include "FWCore/Utilities/interface/isFinite.h"
 
 using namespace edm;
 using namespace std;
@@ -33,16 +32,16 @@ namespace cat {
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
     
   private:
-    edm::InputTag genJetLabel_;
-    edm::InputTag mcParticleLabel_;
+    edm::EDGetTokenT<reco::GenJetCollection> genJetLabel_;
+    edm::EDGetTokenT<reco::GenParticleCollection> mcParticleLabel_;
 
   };
 
 } // namespace
 
 cat::CATGenTopProducer::CATGenTopProducer(const edm::ParameterSet & iConfig) :
-  genJetLabel_(iConfig.getParameter<edm::InputTag>( "genJetLabel" )),
-  mcParticleLabel_(iConfig.getParameter<edm::InputTag>( "mcParticleLabel" ))
+  genJetLabel_(consumes<reco::GenJetCollection>(iConfig.getParameter<edm::InputTag>("genJetLabel"))),
+  mcParticleLabel_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcParticleLabel")))
 {
   produces<std::vector<cat::GenTop> >();
 }
@@ -50,11 +49,11 @@ cat::CATGenTopProducer::CATGenTopProducer(const edm::ParameterSet & iConfig) :
 void 
 cat::CATGenTopProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) 
 {
-  Handle<View<reco::GenJet> > genJets;
-  iEvent.getByLabel(genJetLabel_, genJets);
+  Handle<reco::GenJetCollection> genJets;
+  iEvent.getByToken(genJetLabel_, genJets);
 
-  Handle<View<reco::GenParticle> > mcParticles;
-  iEvent.getByLabel(mcParticleLabel_, mcParticles);
+  Handle<reco::GenParticleCollection> mcParticles;
+  iEvent.getByToken(mcParticleLabel_, mcParticles);
 
   cat::GenTop aGenTop;
   aGenTop.building( genJets, mcParticles);

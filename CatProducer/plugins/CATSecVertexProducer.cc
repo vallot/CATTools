@@ -11,9 +11,7 @@
 #include "CATTools/DataFormats/interface/SecVertex.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
-//#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
-//#include "FWCore/Utilities/interface/isFinite.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 
 #include "RecoVertex/KalmanVertexFit/interface/KalmanVertexFitter.h"
@@ -21,6 +19,8 @@
 #include "TrackingTools/Records/interface/TransientTrackRecord.h"
 #include "TrackingTools/PatternTools/interface/ClosestApproachInRPhi.h"
 #include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
+
+#include "FWCore/Utilities/interface/isFinite.h"
 
 using namespace edm;
 using namespace std;
@@ -40,9 +40,9 @@ namespace cat {
 
     vector<cat::SecVertex> *out_;
 
-    edm::InputTag muonSrc_;
-    edm::InputTag elecSrc_;
-    edm::InputTag vertexLabel_;
+    edm::EDGetTokenT<pat::MuonCollection> muonSrc_;
+    edm::EDGetTokenT<pat::ElectronCollection> elecSrc_;
+    edm::EDGetTokenT<reco::VertexCollection> vertexLabel_;
 
     double rawMassMin_, rawMassMax_, massMin_, massMax_;
 
@@ -55,9 +55,9 @@ namespace cat {
 } // namespace
 
 cat::CATSecVertexProducer::CATSecVertexProducer(const edm::ParameterSet & iConfig) :
-  muonSrc_(iConfig.getParameter<edm::InputTag>( "muonSrc" )),
-  elecSrc_(iConfig.getParameter<edm::InputTag>( "elecSrc" )),
-  vertexLabel_(iConfig.getParameter<edm::InputTag>( "vertexLabel" ))
+  muonSrc_(consumes<pat::MuonCollection>(iConfig.getParameter<edm::InputTag>("muonSrc"))),
+  elecSrc_(consumes<pat::ElectronCollection>(iConfig.getParameter<edm::InputTag>("elecSrc"))),
+  vertexLabel_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexLabel")))
 {
   produces<std::vector<cat::SecVertex> >();
   edm::ParameterSet trackPSet = iConfig.getParameter<edm::ParameterSet>("track");
@@ -83,14 +83,14 @@ cat::CATSecVertexProducer::CATSecVertexProducer(const edm::ParameterSet & iConfi
 void 
 cat::CATSecVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) 
 {
-  Handle<View<pat::Muon> > muonSrc;
-  iEvent.getByLabel(muonSrc_, muonSrc);
+  Handle<pat::MuonCollection> muonSrc;
+  iEvent.getByToken(muonSrc_, muonSrc);
  
-  Handle<View<pat::Electron> > elecSrc;
-  iEvent.getByLabel(elecSrc_, elecSrc);
+  Handle<pat::ElectronCollection> elecSrc;
+  iEvent.getByToken(elecSrc_, elecSrc);
 
-  Handle<View<reco::Vertex> > recVtxs;
-  iEvent.getByLabel(vertexLabel_,recVtxs);
+  Handle<reco::VertexCollection> recVtxs;
+  iEvent.getByToken(vertexLabel_,recVtxs);
 
   out_ = new std::vector<cat::SecVertex>();
 
@@ -104,10 +104,7 @@ cat::CATSecVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & 
  
   //make muon transient tracks
   std::vector<TransientTrack> muTransTracks;
-  for (View<pat::Muon>::const_iterator it = muonSrc->begin(), ed = muonSrc->end(); it != ed; ++it) {
-    unsigned int idx = it - muonSrc->begin();
-    const pat::Muon & aPatMuon = muonSrc->at(idx);
-
+  for (const pat::Muon & aPatMuon : *muonSrc){
     reco::TrackRef trackRef;
     if ( aPatMuon.isGlobalMuon() ) trackRef = aPatMuon.globalTrack();
     else if ( aPatMuon.isTrackerMuon() ) trackRef = aPatMuon.innerTrack();
@@ -122,10 +119,7 @@ cat::CATSecVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & 
 
   //make electron transient tracks
   std::vector<TransientTrack> elTransTracks;
-  for (View<pat::Electron>::const_iterator it = elecSrc->begin(), ed = elecSrc->end(); it != ed; ++it) {
-    unsigned int idx = it - elecSrc->begin();
-    const pat::Electron & aPatElectron = elecSrc->at(idx);
-
+  for (const pat::Electron & aPatElectron : *elecSrc){
     if ( aPatElectron.gsfTrack().isNull() ) continue;
 
     reco::TransientTrack transTrack = trackBuilder->build(aPatElectron.gsfTrack());
@@ -151,119 +145,120 @@ cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<T
   int ipos=-1,ineg=-1;
 
   for ( auto& transTrackPos : transTracks )
-  {
-    ++ipos;
-    if (transTrackPos.charge() < 0) continue;
-    FreeTrajectoryState ipStatePos = transTrackPos.impactPointTSCP().theState();
-    for ( auto& transTrackNeg : transTracks )
     {
-      ++ineg;
-      if (transTrackNeg.charge() > 0) continue;
-      FreeTrajectoryState ipStateNeg = transTrackNeg.impactPointTSCP().theState();
+      ++ipos;
+      if (transTrackPos.charge() < 0) continue;
+      FreeTrajectoryState ipStatePos = transTrackPos.impactPointTSCP().theState();
+      ineg=-1;
+      for ( auto& transTrackNeg : transTracks )
+	{
+	  ++ineg;
+	  if (transTrackNeg.charge() > 0) continue;
+	  FreeTrajectoryState ipStateNeg = transTrackNeg.impactPointTSCP().theState();
 
-      // Measure distance between tracks at their closest approach
-      ClosestApproachInRPhi cApp;
-      cApp.calculate(ipStatePos, ipStateNeg);
-      if ( !cApp.status() ) continue;
-      const float dca = fabs(cApp.distance());
-      if ( dca < 0. || dca > cut_DCA_ ) continue;
-      GlobalPoint cxPt = cApp.crossingPoint();
-      if (std::hypot(cxPt.x(), cxPt.y()) > 120. || std::abs(cxPt.z()) > 300.) continue;
-      //TrajectoryStateClosestToPoint caState1 = transTrackPos.trajectoryStateClosestToPoint(cxPt);
-      //TrajectoryStateClosestToPoint caState2 = transTrackNeg.trajectoryStateClosestToPoint(cxPt);
-      //if ( !caState1.isValid() or !caState2.isValid() ) continue;
+	  // Measure distance between tracks at their closest approach
+	  ClosestApproachInRPhi cApp;
+	  cApp.calculate(ipStatePos, ipStateNeg);
+	  if ( !cApp.status() ) continue;
+	  const float dca = fabs(cApp.distance());
+	  if ( dca < 0. || dca > cut_DCA_ ) continue;
+	  GlobalPoint cxPt = cApp.crossingPoint();
+	  if (std::hypot(cxPt.x(), cxPt.y()) > 120. || std::abs(cxPt.z()) > 300.) continue;
+	  //TrajectoryStateClosestToPoint caState1 = transTrackPos.trajectoryStateClosestToPoint(cxPt);
+	  //TrajectoryStateClosestToPoint caState2 = transTrackNeg.trajectoryStateClosestToPoint(cxPt);
+	  //if ( !caState1.isValid() or !caState2.isValid() ) continue;
 
-      // Build Vertex
-      std::vector<TransientTrack> transTracks;
-      transTracks.push_back(transTrackPos);
-      transTracks.push_back(transTrackNeg);
-      KalmanVertexFitter fitter(true);
-      TransientVertex transVertex = fitter.vertex(transTracks);
+	  // Build Vertex
+	  std::vector<TransientTrack> transTracks;
+	  transTracks.push_back(transTrackPos);
+	  transTracks.push_back(transTrackNeg);
+	  KalmanVertexFitter fitter(true);
+	  TransientVertex transVertex = fitter.vertex(transTracks);
 
-      if ( !transVertex.isValid() or transVertex.totalChiSquared() < 0. ) continue;
+	  if ( !transVertex.isValid() or transVertex.totalChiSquared() < 0. ) continue;
 
-      const reco::Vertex vertex = transVertex;
-      if ( vertex.normalizedChi2() > cut_vertexChi2_ ) continue;
+	  const reco::Vertex vertex = transVertex;
+	  if ( vertex.normalizedChi2() > cut_vertexChi2_ ) continue;
 
-      std::vector<TransientTrack> refittedTracks;
-      if ( transVertex.hasRefittedTracks() ) refittedTracks = transVertex.refittedTracks();
+	  std::vector<TransientTrack> refittedTracks;
+	  if ( transVertex.hasRefittedTracks() ) refittedTracks = transVertex.refittedTracks();
 
-      typedef ROOT::Math::SMatrix<double, 3, 3, ROOT::Math::MatRepSym<double, 3> > SMatrixSym3D;
-      typedef ROOT::Math::SVector<double, 3> SVector3;
+	  typedef ROOT::Math::SMatrix<double, 3, 3, ROOT::Math::MatRepSym<double, 3> > SMatrixSym3D;
+	  typedef ROOT::Math::SVector<double, 3> SVector3;
 
-      GlobalPoint vtxPos(vertex.x(), vertex.y(), vertex.z());
-      SMatrixSym3D totalCov = goodPV.covariance() + vertex.covariance();
-      SVector3 distanceVectorXY(vertex.x() - pvx, vertex.y() - pvy, 0.);
+	  GlobalPoint vtxPos(vertex.x(), vertex.y(), vertex.z());
+	  SMatrixSym3D totalCov = goodPV.covariance() + vertex.covariance();
+	  SVector3 distanceVectorXY(vertex.x() - pvx, vertex.y() - pvy, 0.);
 
-      double rVtxMag = ROOT::Math::Mag(distanceVectorXY);
-      double sigmaRvtxMag = sqrt(ROOT::Math::Similarity(totalCov, distanceVectorXY)) / rVtxMag;
-      if( rVtxMag < cut_minLxy_ or rVtxMag > cut_maxLxy_ or rVtxMag / sigmaRvtxMag < cut_vtxSignif_ ) continue;
+	  double rVtxMag = ROOT::Math::Mag(distanceVectorXY);
+	  double sigmaRvtxMag = sqrt(ROOT::Math::Similarity(totalCov, distanceVectorXY)) / rVtxMag;
+	  if( rVtxMag < cut_minLxy_ or rVtxMag > cut_maxLxy_ or rVtxMag / sigmaRvtxMag < cut_vtxSignif_ ) continue;
 
-      SVector3 distanceVector3D(vertex.x() - pvx, vertex.y() - pvy, vertex.z() - pvz);
-      const double rVtxMag3D = ROOT::Math::Mag(distanceVector3D);
+	  SVector3 distanceVector3D(vertex.x() - pvx, vertex.y() - pvy, vertex.z() - pvz);
+	  const double rVtxMag3D = ROOT::Math::Mag(distanceVector3D);
 
-      // Cuts finished, now we create the candidates and push them back into the collections.
-      std::auto_ptr<TrajectoryStateClosestToPoint> traj1;
-      std::auto_ptr<TrajectoryStateClosestToPoint> traj2;
+	  // Cuts finished, now we create the candidates and push them back into the collections.
+	  std::auto_ptr<TrajectoryStateClosestToPoint> traj1;
+	  std::auto_ptr<TrajectoryStateClosestToPoint> traj2;
 
-      if ( refittedTracks.empty() )
-      {
-        traj1.reset(new TrajectoryStateClosestToPoint(transTrackPos.trajectoryStateClosestToPoint(vtxPos)));
-        traj2.reset(new TrajectoryStateClosestToPoint(transTrackNeg.trajectoryStateClosestToPoint(vtxPos)));
-      }
-      else
-      {
-        TransientTrack* refTrack1 = 0, * refTrack2 = 0;
-        for ( auto& refTrack : refittedTracks )
-        {
-          if ( refTrack.track().charge() < 0 ) refTrack1 = &refTrack;
-          else refTrack2 = &refTrack;
-        }
-        if ( refTrack1 == 0 or refTrack2 == 0 ) continue;
-        traj1.reset(new TrajectoryStateClosestToPoint(refTrack1->trajectoryStateClosestToPoint(vtxPos)));
-        traj2.reset(new TrajectoryStateClosestToPoint(refTrack2->trajectoryStateClosestToPoint(vtxPos)));
-      }
-      if( !traj1->isValid() or !traj2->isValid() ) continue;
+	  if ( refittedTracks.empty() )
+	    {
+	      traj1.reset(new TrajectoryStateClosestToPoint(transTrackPos.trajectoryStateClosestToPoint(vtxPos)));
+	      traj2.reset(new TrajectoryStateClosestToPoint(transTrackNeg.trajectoryStateClosestToPoint(vtxPos)));
+	    }
+	  else
+	    {
+	      TransientTrack* refTrack1 = 0, * refTrack2 = 0;
+	      for ( auto& refTrack : refittedTracks )
+		{
+		  if ( refTrack.track().charge() < 0 ) refTrack1 = &refTrack;
+		  else refTrack2 = &refTrack;
+		}
+	      if ( refTrack1 == 0 or refTrack2 == 0 ) continue;
+	      traj1.reset(new TrajectoryStateClosestToPoint(refTrack1->trajectoryStateClosestToPoint(vtxPos)));
+	      traj2.reset(new TrajectoryStateClosestToPoint(refTrack2->trajectoryStateClosestToPoint(vtxPos)));
+	    }
+	  if( !traj1->isValid() or !traj2->isValid() ) continue;
 
-      GlobalVector mom1(traj1->momentum());
-      GlobalVector mom2(traj2->momentum());
-      GlobalVector mom(mom1+mom2);
+	  GlobalVector mom1(traj1->momentum());
+	  GlobalVector mom2(traj2->momentum());
+	  GlobalVector mom(mom1+mom2);
 
-      //cleanup stuff we don't need anymore
-      traj1.reset();
-      traj2.reset();
+	  //cleanup stuff we don't need anymore
+	  traj1.reset();
+	  traj2.reset();
 
-      Particle::Point vtx(vertex.x(), vertex.y(), vertex.z());
-      const Vertex::CovarianceMatrix vtxCov(vertex.covariance());
-      double vtxChi2(vertex.chi2());
-      double vtxNdof(vertex.ndof());
+	  Particle::Point vtx(vertex.x(), vertex.y(), vertex.z());
+	  const Vertex::CovarianceMatrix vtxCov(vertex.covariance());
+	  double vtxChi2(vertex.chi2());
+	  double vtxNdof(vertex.ndof());
 
-      const double candE1 = hypot(mom1.mag(), leptonMass);
-      const double candE2 = hypot(mom2.mag(), leptonMass);
+	  const double candE1 = hypot(mom1.mag(), leptonMass);
+	  const double candE2 = hypot(mom2.mag(), leptonMass);
 
-      const math::XYZTLorentzVector candLVec(mom.x(), mom.y(), mom.z(), candE1+candE2);
-      if ( massMin_ > candLVec.mass() or massMax_ < candLVec.mass() ) continue;
+	  const math::XYZTLorentzVector candLVec(mom.x(), mom.y(), mom.z(), candE1+candE2);
+	  if ( massMin_ > candLVec.mass() or massMax_ < candLVec.mass() ) continue;
 
-      // Match to muons
-      VertexCompositeCandidate* cand = new VertexCompositeCandidate(0, candLVec, vtx, vtxCov, vtxChi2, vtxNdof);
-      if (!cand) continue;
-      reco::LeafCandidate newLep1(+pdgId, math::XYZTLorentzVector(mom1.x(), mom1.y(), mom1.z(), candE1));
-      reco::LeafCandidate newLep2(-pdgId, math::XYZTLorentzVector(mom2.x(), mom2.y(), mom2.z(), candE2));
+	  // Match to muons
+	  VertexCompositeCandidate* cand = new VertexCompositeCandidate(0, candLVec, vtx, vtxCov, vtxChi2, vtxNdof);
+	  if (!cand) continue;
+	  reco::LeafCandidate newLep1(+pdgId, math::XYZTLorentzVector(mom1.x(), mom1.y(), mom1.z(), candE1));
+	  reco::LeafCandidate newLep2(-pdgId, math::XYZTLorentzVector(mom2.x(), mom2.y(), mom2.z(), candE2));
 
-      cand->addDaughter(newLep1);
-      cand->addDaughter(newLep2);
+	  cand->addDaughter(newLep1);
+	  cand->addDaughter(newLep2);
 
-      cand->setPdgId(pdgId);
+	  cand->setPdgId(pdgId);
 
-      cat::SecVertex aSecVertex(*cand);
-      aSecVertex.setVProb(TMath::Prob( vtxChi2, (int) vtxNdof));
-      aSecVertex.setLxy(rVtxMag);
-      aSecVertex.setL3D(rVtxMag3D);
-      aSecVertex.setInts(ipos,ineg);
+	  cat::SecVertex aSecVertex(*cand);
+	  aSecVertex.setVProb(TMath::Prob( vtxChi2, (int) vtxNdof));
+	  aSecVertex.setLxy(rVtxMag);
+	  aSecVertex.setL3D(rVtxMag3D);
+	  aSecVertex.setInts(ipos,ineg);
 
-      out_->push_back(aSecVertex);
+	  out_->push_back(aSecVertex);
+	}
     }
-  }
 
 }
 

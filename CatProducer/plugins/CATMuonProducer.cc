@@ -10,11 +10,10 @@
 #include "CATTools/DataFormats/interface/Muon.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
-//#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
-//#include "FWCore/Utilities/interface/isFinite.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
+#include "FWCore/Utilities/interface/isFinite.h"
 
 using namespace edm;
 using namespace std;
@@ -28,14 +27,14 @@ namespace cat {
 
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
-    bool mcMatch( const reco::Candidate::LorentzVector& lepton, const edm::Handle<edm::View<reco::GenParticle> > & genParticles );
+    bool mcMatch( const reco::Candidate::LorentzVector& lepton, Handle<reco::GenParticleCollection> genParticles );
     bool MatchObjects( const reco::Candidate::LorentzVector& pasObj, const reco::Candidate::LorentzVector& proObj, bool exact );
 
   private:
-    edm::InputTag src_;
-    edm::InputTag mcLabel_;
-    edm::InputTag vertexLabel_;
-    edm::InputTag beamLineSrc_;
+    edm::EDGetTokenT<pat::MuonCollection> src_;
+    edm::EDGetTokenT<reco::GenParticleCollection> mcLabel_;
+    edm::EDGetTokenT<reco::VertexCollection> vertexLabel_;
+    edm::EDGetTokenT<reco::BeamSpot> beamLineSrc_;
     bool runOnMC_;
 
   };
@@ -43,10 +42,10 @@ namespace cat {
 } // namespace
 
 cat::CATMuonProducer::CATMuonProducer(const edm::ParameterSet & iConfig) :
-  src_(iConfig.getParameter<edm::InputTag>( "src" )),
-  mcLabel_(iConfig.getParameter<edm::InputTag>( "mcLabel" )),
-  vertexLabel_(iConfig.getParameter<edm::InputTag>( "vertexLabel" )),
-  beamLineSrc_(iConfig.getParameter<edm::InputTag>( "beamLineSrc" )),
+  src_(consumes<pat::MuonCollection>(iConfig.getParameter<edm::InputTag>("src"))),
+  mcLabel_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcLabel"))),
+  vertexLabel_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexLabel"))),
+  beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc"))),
   runOnMC_(iConfig.getParameter<bool>("runOnMC"))
 {
   produces<std::vector<cat::Muon> >();
@@ -55,30 +54,25 @@ cat::CATMuonProducer::CATMuonProducer(const edm::ParameterSet & iConfig) :
 void 
 cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) 
 {
-  Handle<View<pat::Muon> > src;
-  iEvent.getByLabel(src_, src);
- 
-  Handle<View<reco::GenParticle> > genParticles;
-  if (runOnMC_) iEvent.getByLabel(mcLabel_,genParticles);
+  Handle<pat::MuonCollection> src;
+  iEvent.getByToken(src_, src);
+
+  Handle<reco::GenParticleCollection> genParticles;
+  if (runOnMC_) iEvent.getByToken(mcLabel_,genParticles);
     
-  Handle<View<reco::Vertex> > recVtxs;
-  iEvent.getByLabel(vertexLabel_,recVtxs);
-
   Handle<reco::BeamSpot> beamSpotHandle;
-  iEvent.getByLabel(beamLineSrc_, beamSpotHandle);
+  iEvent.getByToken(beamLineSrc_, beamSpotHandle);
 
-  reco::Vertex pv = recVtxs->at(0);
+  Handle<reco::VertexCollection> recVtxs;
+  iEvent.getByToken(vertexLabel_,recVtxs);
+  reco::Vertex pv= recVtxs->at(0);
    
   reco::BeamSpot beamSpot = *beamSpotHandle;
   reco::TrackBase::Point beamPoint(beamSpot.x0(), beamSpot.y0(), beamSpot.z0());
-  // //  beamPoint = reco::TrackBase::Point ( beamSpot.x0(), beamSpot.y0(), beamSpot.z0() );  
  
   auto_ptr<vector<cat::Muon> >  out(new vector<cat::Muon>());
 
-  for (View<pat::Muon>::const_iterator it = src->begin(), ed = src->end(); it != ed; ++it) {
-    unsigned int idx = it - src->begin();
-    const pat::Muon & aPatMuon = src->at(idx);
-
+  for (const pat::Muon & aPatMuon : *src) {
     cat::Muon aMuon(aPatMuon);
 
     double pt    = aPatMuon.pt() ;
@@ -127,20 +121,17 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
   iEvent.put(out);
 }
 
-bool cat::CATMuonProducer::mcMatch( const reco::Candidate::LorentzVector& lepton, const edm::Handle<edm::View<reco::GenParticle> > & genParticles ){
-
+bool cat::CATMuonProducer::mcMatch( const reco::Candidate::LorentzVector& lepton, Handle<reco::GenParticleCollection> genParticles ){
   bool out = false;
 
-  for (edm::View<reco::GenParticle>::const_iterator mcIter=genParticles->begin(); mcIter != genParticles->end(); mcIter++ ) {
-    int genId = mcIter->pdgId();
+  for (const reco::GenParticle & aGenPart : *genParticles){
+    if( abs(aGenPart.pdgId()) != 13 ) continue;
 
-    if( abs(genId) != 13 ) continue;
-
-    bool match = MatchObjects(lepton, mcIter->p4(), false);
+    bool match = MatchObjects(lepton, aGenPart.p4(), false);
 
     if( match != true) continue;
    
-    const reco::Candidate* mother = mcIter->mother();
+    const reco::Candidate* mother = aGenPart.mother();
     while( mother != 0 ){
       if( abs(mother->pdgId()) == 23 || abs(mother->pdgId()) == 24 ) {
         out = true;

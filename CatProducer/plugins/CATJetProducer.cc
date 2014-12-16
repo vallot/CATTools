@@ -10,10 +10,9 @@
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
-//#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
-//#include "FWCore/Utilities/interface/isFinite.h"
+#include "FWCore/Utilities/interface/isFinite.h"
 
 using namespace edm;
 using namespace std;
@@ -38,13 +37,15 @@ namespace cat {
     const reco::Candidate* lastCHadron(const reco::Candidate &c);
 
   private:
-    edm::InputTag src_;
+    edm::EDGetTokenT<pat::JetCollection> src_;
+    const std::vector<std::string> btagNames_;
   };
 
 } // namespace
 
 cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
-  src_(iConfig.getParameter<edm::InputTag>( "src" ))
+  src_(consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("src"))),
+  btagNames_(iConfig.getParameter<std::vector<std::string> >("btagNames"))
 {
   produces<std::vector<cat::Jet> >();
 }
@@ -52,36 +53,40 @@ cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
 void 
 cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) {
 
-  Handle<View<pat::Jet> > src;
-  iEvent.getByLabel(src_, src);
+  edm::Handle<pat::JetCollection> src;
+  iEvent.getByToken(src_, src);
 
   auto_ptr<vector<cat::Jet> >  out(new vector<cat::Jet>());
 
-  for (View<pat::Jet>::const_iterator it = src->begin(), ed = src->end(); it != ed; ++it) {
-    unsigned int idx = it - src->begin();
-    const pat::Jet & aPatJet = src->at(idx);
- 
-    bool looseId = checkPFJetId( aPatJet ); 
-
+  for (const pat::Jet &aPatJet : *src) {
+    bool looseId = checkPFJetId( aPatJet );
     cat::Jet aJet(aPatJet);
 
     aJet.setLooseId( looseId );
     if( aPatJet.hasUserFloat("pileupJetId:fullDiscriminant") )
       aJet.setPileupJetId( aPatJet.userFloat("pileupJetId:fullDiscriminant") );
 
-    aJet.setbtag_csv(aPatJet.bDiscriminator("combinedSecondaryVertexBJetTags"));
-    //secondary vertex b-tagging information
-    if( aPatJet.hasUserFloat("secvtxMass") ) aJet.setSecVtxMass( aPatJet.userFloat("secvtxMass") );
-    if( aPatJet.hasUserFloat("Lxy") ) aJet.setLxy( aPatJet.userFloat("Lxy") );
-    if( aPatJet.hasUserFloat("LxyErr") ) aJet.setLxyErr( aPatJet.userFloat("LxyErr") );
+    if (btagNames_.size() == 0){
+      aJet.setBDiscriminators(aPatJet.getPairDiscri());
+    }
+    else {
+      for(unsigned int i = 0; i < btagNames_.size(); i++){
+	aJet.addBDiscriminatorPair(std::make_pair(btagNames_.at(i), aPatJet.bDiscriminator(btagNames_.at(i)) ));
+      }
+    }
 
-    Int_t partonFlavour = aPatJet.partonFlavour();
-    aJet.setPartonFlavour( partonFlavour );
-    Int_t partonPdgId = aPatJet.genParton() ? aPatJet.genParton()->pdgId() : 0;
+    //secondary vertex b-tagging information
+    if( aPatJet.hasUserFloat("vtxMass") ) aJet.setVtxMass( aPatJet.userFloat("vtxMass") );
+    if( aPatJet.hasUserFloat("vtxNtracks") ) aJet.setVtxNtracks( aPatJet.userFloat("vtxNtracks") );
+    if( aPatJet.hasUserFloat("vtx3DVal") ) aJet.setVtx3DVal( aPatJet.userFloat("vtx3DVal") );
+    if( aPatJet.hasUserFloat("vtx3DSig") ) aJet.setVtx3DSig( aPatJet.userFloat("vtx3DSig") );
+
+    aJet.setHadronFlavour(aPatJet.hadronFlavour());
+    aJet.setPartonFlavour(aPatJet.partonFlavour());
+    int partonPdgId = aPatJet.genParton() ? aPatJet.genParton()->pdgId() : 0;
     aJet.setPartonPdgId(partonPdgId);
 
     out->push_back(aJet);
-
   }
 
   iEvent.put(out);

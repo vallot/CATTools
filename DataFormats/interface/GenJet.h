@@ -27,16 +27,21 @@ namespace cat {
     GenJet(const reco::GenJet & aGenJet); 
     virtual ~GenJet(); 
 
-    const MCParticle BHadron() const {return BHadron_; }
-    const MCParticle CHadron() const {return CHadron_; }
-
-    void setBHadron( MCParticle BHad ) { BHadron_ = BHad; }	
-    void setCHadron( MCParticle CHad ) { CHadron_ = CHad; }	
+    const MCParticle hadron() const {return hadron_; }
+    void setHadron( MCParticle Had ) { hadron_ = Had; }	
+    /// \return the matched MC parton flavour (from the shower, used e.g. for b-tagging)
+    int partonFlavour() const{ return partonFlavour_;}
+    /// \return the pdgId of the matched MC parton from hard scattering (i.e. the closest quark or gluon of status == 3)
+    int partonPdgId() const{ return partonPdgId_;}
+    void setPartonFlavour(int i) { partonFlavour_ = i; }
+    void setPartonPdgId(int i) { partonPdgId_ = i; }
 
   private:
 
-    MCParticle BHadron_;
-    MCParticle CHadron_;
+    MCParticle hadron_;
+    //parton flavour
+    int partonFlavour_;
+    int partonPdgId_;
 
   };
 }

@@ -30,6 +30,12 @@
   <class name="edm::Wrapper<std::vector<cat::Jet> >"/>
   <class name="edm::Ptr<cat::Jet>"/>
 
+  <class name="cat::Tau"/>
+  <class name="std::vector<cat::Tau>"/>
+  <class name="edm::Wrapper<cat::Tau>"/>
+  <class name="edm::Wrapper<std::vector<cat::Tau> >"/>
+  <class name="edm::Ptr<cat::Tau>"/>
+
   <class name="cat::MET"/>
   <class name="std::vector<cat::MET>"/>
   <class name="edm::Wrapper<cat::MET>"/>
