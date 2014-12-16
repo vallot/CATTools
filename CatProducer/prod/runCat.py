@@ -44,7 +44,7 @@ process.load('PhysicsTools.PatAlgos.slimming.unpackedTracksAndVertices_cfi')
 from CATTools.CatProducer.catSetup_cff import *
 catSetup(process, runOnMC, doSecVertex)
 
-process.maxEvents.input = 100
+process.maxEvents.input = options.maxEvents
 
 process.source.fileNames = options.inputFiles
 
