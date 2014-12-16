@@ -26,7 +26,7 @@ namespace cat {
 
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
-    bool mcMatch( const reco::Candidate::LorentzVector& lepton, Handle<reco::GenParticleCollection> genParticles );
+    bool mcMatch( const reco::Candidate::LorentzVector& lepton, Handle<View<reco::GenParticle> > genParticles );
     bool MatchObjects( const reco::Candidate::LorentzVector& pasObj, const reco::Candidate::LorentzVector& proObj, bool exact );
 
   private:
@@ -120,7 +120,7 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
   iEvent.put(out);
 }
 
-bool cat::CATMuonProducer::mcMatch( const reco::Candidate::LorentzVector& lepton, Handle<reco::GenParticleCollection> genParticles ){
+bool cat::CATMuonProducer::mcMatch( const reco::Candidate::LorentzVector& lepton, Handle<View<reco::GenParticle> > genParticles ){
   bool out = false;
 
   for (const reco::GenParticle & aGenPart : *genParticles){

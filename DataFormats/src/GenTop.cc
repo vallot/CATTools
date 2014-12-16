@@ -17,7 +17,7 @@ GenTop::~GenTop() {
 }
 
 //void GenTop::building( const std::vector<reco::GenJet>* genJets, const std::vector<reco::GenParticle>* genParticles  ){
-void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenParticleCollection> genParticles ){
+void GenTop::building(Handle<View<reco::GenJet> > genJets, Handle<View<reco::GenParticle> > genParticles ){
 
   math::XYZTLorentzVector null(0,0,0,0); 
 
