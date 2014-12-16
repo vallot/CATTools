@@ -19,7 +19,6 @@
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
 #include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
-#include "FWCore/Utilities/interface/isFinite.h"
 
 #include "RecoParticleFlow/PFProducer/interface/PFMuonAlgo.h"  //PFMuons
 

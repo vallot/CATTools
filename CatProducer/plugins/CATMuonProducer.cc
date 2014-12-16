@@ -13,7 +13,6 @@
 #include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
-#include "FWCore/Utilities/interface/isFinite.h"
 
 using namespace edm;
 using namespace std;

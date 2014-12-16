@@ -20,8 +20,6 @@
 #include "TrackingTools/PatternTools/interface/ClosestApproachInRPhi.h"
 #include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
 
-#include "FWCore/Utilities/interface/isFinite.h"
-
 using namespace edm;
 using namespace std;
 using namespace reco;
