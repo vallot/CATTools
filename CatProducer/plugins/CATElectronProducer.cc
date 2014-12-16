@@ -63,20 +63,21 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
   using namespace edm;
   using namespace std;
 
-  Handle<pat::ElectronCollection> src;
+  Handle<View<pat::Electron> > src;
   iEvent.getByLabel(src_, src);
 
-  Handle<reco::GenParticleCollection> genParticles;
+  Handle<View<reco::GenParticle> > genParticles;
   iEvent.getByLabel(mcLabel_,genParticles);
 
-  Handle<reco::VertexCollection> recVtxs;
+  Handle<View<reco::Vertex> > recVtxs;
   iEvent.getByLabel(vertexLabel_, recVtxs);
-  reco::Vertex pv= recVtxs->at(0);
+  reco::Vertex pv = recVtxs->at(0);
 
   Handle<double> rhoHandle;
   iEvent.getByLabel(rhoLabel_, rhoHandle);
   double rhoIso = std::max(*(rhoHandle.product()), 0.0);
 
+  
   auto_ptr<vector<cat::Electron> >  out(new vector<cat::Electron>());
 
   for (const pat::Electron &aPatElectron : *src){

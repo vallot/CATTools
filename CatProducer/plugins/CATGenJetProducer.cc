@@ -57,7 +57,7 @@ cat::CATGenJetProducer::CATGenJetProducer(const edm::ParameterSet & iConfig) :
 void 
 cat::CATGenJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
-  Handle<reco::GenJetCollection> src;
+  Handle<View<reco::GenJet> > src;
   iEvent.getByLabel(src_, src);
 
   auto_ptr<vector<cat::GenJet> >  out(new vector<cat::GenJet>());

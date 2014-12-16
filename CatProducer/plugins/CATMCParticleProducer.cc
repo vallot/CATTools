@@ -47,7 +47,7 @@ cat::CATMCParticleProducer::CATMCParticleProducer(const edm::ParameterSet & iCon
 void 
 cat::CATMCParticleProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) 
 {
-  Handle<reco::GenParticleCollection> genParticles;
+  Handle<View<reco::GenParticle> > genParticles;
   iEvent.getByLabel(src_,genParticles);
     
   auto_ptr<vector<cat::MCParticle> >  out(new vector<cat::MCParticle>());

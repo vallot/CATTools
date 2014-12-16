@@ -48,10 +48,10 @@ cat::CATGenTopProducer::CATGenTopProducer(const edm::ParameterSet & iConfig) :
 void 
 cat::CATGenTopProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) 
 {
-  Handle<reco::GenJetCollection> genJets;
+  Handle<View<reco::GenJet> > genJets;
   iEvent.getByLabel(genJetLabel_, genJets);
 
-  Handle<reco::GenParticleCollection> mcParticles;
+  Handle<View<reco::GenParticle> > mcParticles;
   iEvent.getByLabel(mcParticleLabel_, mcParticles);
 
   cat::GenTop aGenTop;

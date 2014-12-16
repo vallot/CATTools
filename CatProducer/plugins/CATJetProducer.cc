@@ -52,7 +52,7 @@ cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
 void 
 cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) {
 
-  edm::Handle<pat::JetCollection> src;
+  Handle<View<pat::Jet> > src;
   iEvent.getByLabel(src_, src);
 
   auto_ptr<vector<cat::Jet> >  out(new vector<cat::Jet>());

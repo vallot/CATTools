@@ -40,7 +40,7 @@ cat::CATTauProducer::CATTauProducer(const edm::ParameterSet & iConfig) :
 void 
 cat::CATTauProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
-  Handle<pat::TauCollection> src;
+  Handle<View<pat::Tau> > src;
   iEvent.getByLabel(src_, src);
 
   auto_ptr<vector<cat::Tau> >  out(new vector<cat::Tau>());

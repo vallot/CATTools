@@ -81,13 +81,13 @@ cat::CATSecVertexProducer::CATSecVertexProducer(const edm::ParameterSet & iConfi
 void 
 cat::CATSecVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) 
 {
-  Handle<pat::MuonCollection> muonSrc;
+  Handle<View<pat::Muon> > muonSrc;
   iEvent.getByLabel(muonSrc_, muonSrc);
  
-  Handle<pat::ElectronCollection> elecSrc;
+  Handle<View<pat::Electron> > elecSrc;
   iEvent.getByLabel(elecSrc_, elecSrc);
 
-  Handle<reco::VertexCollection> recVtxs;
+  Handle<View<reco::Vertex> > recVtxs;
   iEvent.getByLabel(vertexLabel_,recVtxs);
 
   out_ = new std::vector<cat::SecVertex>();

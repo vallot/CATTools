@@ -1,6 +1,6 @@
 /**
-  \class    PFMuonProducer PFMuonProducer.h "CATTools/CatProducer/interface/PFMuonProducer.h"
-  \brief    PF Muon 
+   \class    PFMuonProducer PFMuonProducer.h "CATTools/CatProducer/interface/PFMuonProducer.h"
+   \brief    PF Muon 
 */
 
 
@@ -28,16 +28,16 @@ using namespace std;
 namespace reco {
 
   class PFMuonProducer : public edm::EDProducer {
-    public:
-      explicit PFMuonProducer(const edm::ParameterSet & iConfig);
-      virtual ~PFMuonProducer() { }
+  public:
+    explicit PFMuonProducer(const edm::ParameterSet & iConfig);
+    virtual ~PFMuonProducer() { }
 
-      virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
+    virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
-    private:
+  private:
     edm::InputTag src_;
     
-      PFMuonAlgo *pfmu_;
+    PFMuonAlgo *pfmu_;
   };
 
 } // namespace
@@ -45,44 +45,43 @@ namespace reco {
 reco::PFMuonProducer::PFMuonProducer(const edm::ParameterSet & iConfig) :
   src_(iConfig.getParameter<edm::InputTag>( "src" ))
 {
-    pfmu_ = new PFMuonAlgo();
-    pfmu_->setParameters(iConfig);
-    produces<std::vector<reco::Muon> >();
+  pfmu_ = new PFMuonAlgo();
+  pfmu_->setParameters(iConfig);
+  produces<std::vector<reco::Muon> >();
 }
 
 void 
-reco::PFMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) {
+reco::PFMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
+{
+  Handle<View<reco::Muon> > src;
+  iEvent.getByLabel(src_, src);
 
+  auto_ptr<vector<reco::Muon> >  out(new vector<reco::Muon>());
 
-    edm::Handle<reco::MuonCollection> src;
-    iEvent.getByLabel(src_, src);
+  std::cout << "Total Number of Muons = " << src->size() << std::endl; 
 
-    auto_ptr<vector<reco::Muon> >  out(new vector<reco::Muon>());
-
-    std::cout << "Total Number of Muons = " << src->size() << std::endl; 
-
-    for (reco::MuonCollection::size_type i = 0; i < src->size(); ++i) {
+  for (reco::MuonCollection::size_type i = 0; i < src->size(); ++i) {
      
-      const reco::Muon aRecoMuon = src->at(i);
+    const reco::Muon aRecoMuon = src->at(i);
 
-      reco::MuonRef aRecoMuonRef(src,i);
+    reco::MuonRef aRecoMuonRef(src,i);
 
-      //bool pfmuon = pfmu_->isMuon(aRecoMuonRef) || pfmu_->isLooseMuon(aRecoMuonRef);
-      bool pfmuon = pfmu_->isMuon(aRecoMuonRef);
-      bool defaultPFMuon = aRecoMuon.isPFMuon(); 
+    //bool pfmuon = pfmu_->isMuon(aRecoMuonRef) || pfmu_->isLooseMuon(aRecoMuonRef);
+    bool pfmuon = pfmu_->isMuon(aRecoMuonRef);
+    bool defaultPFMuon = aRecoMuon.isPFMuon(); 
 
-      if(defaultPFMuon) std::cout << "Default PF muon at " << i ;
+    if(defaultPFMuon) std::cout << "Default PF muon at " << i ;
 
-      if(pfmuon){
-        std::cout << " ---> new pf muon at " << i ;
-        out->push_back(aRecoMuon);
-      }
-
-      std::cout << endl;
-
+    if(pfmuon){
+      std::cout << " ---> new pf muon at " << i ;
+      out->push_back(aRecoMuon);
     }
 
-    iEvent.put(out);
+    std::cout << endl;
+
+  }
+
+  iEvent.put(out);
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"

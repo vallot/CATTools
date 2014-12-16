@@ -53,16 +53,16 @@ cat::CATMuonProducer::CATMuonProducer(const edm::ParameterSet & iConfig) :
 void 
 cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) 
 {
-  Handle<pat::MuonCollection> src;
+  Handle<View<pat::Muon> > src;
   iEvent.getByLabel(src_, src);
 
-  Handle<reco::GenParticleCollection> genParticles;
+  Handle<View<reco::GenParticle> > genParticles;
   if (runOnMC_) iEvent.getByLabel(mcLabel_,genParticles);
     
   Handle<reco::BeamSpot> beamSpotHandle;
   iEvent.getByLabel(beamLineSrc_, beamSpotHandle);
 
-  Handle<reco::VertexCollection> recVtxs;
+  Handle<View<reco::Vertex> > recVtxs;
   iEvent.getByLabel(vertexLabel_,recVtxs);
   reco::Vertex pv= recVtxs->at(0);
    

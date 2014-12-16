@@ -40,7 +40,7 @@ cat::CATPhotonProducer::CATPhotonProducer(const edm::ParameterSet & iConfig) :
 void 
 cat::CATPhotonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
-  Handle<pat::PhotonCollection> src;
+  Handle<View<pat::Photon> > src;
   iEvent.getByLabel(src_, src);
 
   auto_ptr<vector<cat::Photon> >  out(new vector<cat::Photon>());

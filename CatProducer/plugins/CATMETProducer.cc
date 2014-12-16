@@ -41,7 +41,7 @@ cat::CATMETProducer::CATMETProducer(const edm::ParameterSet & iConfig) :
 void 
 cat::CATMETProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
-  Handle<pat::METCollection> src;
+  Handle<View<pat::MET> > src;
   iEvent.getByLabel(src_, src);
 
   auto_ptr<vector<cat::MET> >  out(new vector<cat::MET>());
