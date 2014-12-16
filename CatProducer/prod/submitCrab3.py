@@ -1,38 +1,41 @@
 #!/usr/bin/env python
-import os,sys
+import os,sys,getopt
 
-if len(sys.argv) < 2 :
-    print "Usage : ./submitCrab3.py ttbar_mc.txt ttbar_rd.txt ..."
-    exit(-1)
+requestName = "test"
+publishDataName = "caTuple"
+datasets = []
+inputFile =""
+submit = False
+try:
+    opts, args = getopt.getopt(sys.argv[1:],"hsi:n:",["requestName","inputFile"])
+except getopt.GetoptError:          
+    print 'Usage : ./submitCrab3.py -n <requestName> -i <inputFile>'
+    sys.exit(2)
 
-datasets =[]
-for file in sys.argv[1:] :
-    lines = open(file)
-    datasets += lines.readlines()
+for opt, arg in opts:
+    if opt == '-h':
+        print 'Usage : ./submitCrab3.py -n <requestName> -i <inputFile>'
+        sys.exit()
+    elif opt in ("-n", "--requestName"):
+        requestName = arg
+    elif opt in ("-s"):
+        submit = True
+    elif opt in ("-i", "--inputFile"):
+        inputFile = arg
+        lines = open(inputFile)
+        datasets = lines.readlines()
 
-### MC or Data?
-isMC = True
-type_label = "MC"
-requestName = "cat72x2"
-publishDataName = "top"
-runOnMC = "cmsRun runCatupling.py runOnMC=True"
+for dataset in datasets:
+    isMC = True
+    crabcommand ='crab submit -c crabConfigMC.py'
 
-dataset = datasets[0]
-datatype = dataset.strip().split("/")[-1]
-if datatype == "AOD" or datatype == "MINIAOD" :
-    isMC = False
-    type_label = "RD"
-    runOnMC = "cmsRun runCatupling.py runOnMC=False"
+    ### MC or Data?
+    datatype = dataset.strip().split("/")[-1]
+    if datatype == "AOD" or datatype == "MINIAOD" :
+        isMC = False
+        crabcommand ='crab submit -c crabConfigRD.py'
 
-crabcommand ='crab submit -c crabConfigMC.py'
-
-if isMC :
-    print "I guess these datasets are Monte Carlo samples.crab3 job is MC.\n"
-else :
-    print "I guess these datasets are Real Data samples.crab3 job is RD.\n"
-    crabcommand ='crab submit -c crabConfigRD.py'
-    
-for dataset in datasets :
+    ### adjusting label for requestName
     dataset = dataset.strip()
     if isMC :
         label = dataset.split("/")[1]
@@ -41,4 +44,12 @@ for dataset in datasets :
 
     sendjob = crabcommand + " Data.publishDataName='%s' General.requestName='%s_%s' Data.inputDataset='%s'"%(publishDataName,requestName,label,dataset)
     print sendjob
-    os.system(sendjob)
+    if submit:
+        print "submiting job"
+        os.system(sendjob)
+
+if not submit:
+    print "Dry run, not submitting job and only printing crab3 command"
+    print "Add -s to submit job"
+    print 'Usage : ./submitCrab3.py -n <requestName> -i <inputFile> -s'
+
