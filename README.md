@@ -35,14 +35,14 @@ source /cvmfs/cms.cern.ch/crab3/crab.sh
 
 ### 2-1. Usage 
 ```bash
-./submitCrab3.py [Dataset1.txt] [Dataset2.txt]
+./submitCrab3.py -n <requestName> -i <inputFile> -s
 ```
-
+To submit jobs add in '-s', without -s, just the job submission command is displayed
 ### 2-2. Example
 - If we want to submit cattuple ttbar and diboson datasets.
 ```bash
 cd $SRT_CMSSW_BASE_SCRAMRTDEL/src/CATTools/CatProducer/prod/crab
-./submitCrab3.py MC/ttbar_dilepton.txt MC/diboson.txt
+./submitCrab3.py -i MC/ttbar_dilepton.txt -n catTooltest -s 
 ```
 
 ### 2-3.Submitting jobs
