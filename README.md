@@ -8,10 +8,8 @@ Test file : catTuple.root can be found in https://www.dropbox.com/s/40tvwebdv6g0
 scram p -n cat CMSSW CMSSW_7_2_2_patch1
 cd cat/src
 cmsenv
-git clone git@github.com:vallot/CATTools.git
-cd CATTools
-git checkout cat72x
-cd ..
+git-cms-addpkg FWCore/Version
+git clone git@github.com:vallot/CATTools.git -b cat72x
 scram b -j 8
 
 cmsRun $SRT_CMSSW_BASE_SCRAMRTDEL/src/CATTools/CatProducer/prod/runCat.py useMiniAOD=True inputFiles=file:/pnfs/user/jlee/DYJetsToLL_M-50_13TeV-madgraph-pythia8/miniaod.root
