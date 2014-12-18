@@ -18,10 +18,23 @@
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "EgammaAnalysis/ElectronTools/interface/ElectronEffectiveArea.h"
 
+<<<<<<< HEAD
 using namespace edm;
 using namespace std;
 
 namespace cat {
+=======
+      virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
+      bool mcMatch( const reco::Candidate::LorentzVector& lepton, const edm::Handle<edm::View<reco::GenParticle> > & genParticles );
+      bool MatchObjects( const reco::Candidate::LorentzVector& pasObj, const reco::Candidate::LorentzVector& proObj, bool exact );
+
+    private:
+      edm::EDGetTokenT<edm::View<pat::Electron> > src_;
+      edm::EDGetTokenT<edm::View<reco::GenParticle> > mcLabel_;
+      edm::EDGetTokenT<edm::View<reco::Vertex> > vertexLabel_;
+      edm::EDGetTokenT<reco::BeamSpot> beamLineSrc_;
+
+>>>>>>> origin/70X_v2
 
   class CATElectronProducer : public edm::EDProducer {
   public:
@@ -48,6 +61,7 @@ namespace cat {
 } // namespace
 
 cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig) :
+<<<<<<< HEAD
   src_(consumes<pat::ElectronCollection>(iConfig.getParameter<edm::InputTag>("src"))),
   vertexLabel_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexLabel"))),
   mcLabel_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcLabel"))),
@@ -55,12 +69,19 @@ cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig)
   rhoLabel_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoLabel"))),
   runOnMC_(iConfig.getParameter<bool>("runOnMC")),
   electronIDNames_(iConfig.getParameter<std::vector<std::string> >("electronIDNames"))
+=======
+    src_(consumes<edm::View<pat::Electron> >(iConfig.getParameter<edm::InputTag>("src"))),
+    mcLabel_(consumes<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("mcLabel"))),
+    vertexLabel_(consumes<edm::View<reco::Vertex> >(iConfig.getParameter<edm::InputTag>("vertexLabel"))),
+    beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc")))
+>>>>>>> origin/70X_v2
 {
   produces<std::vector<cat::Electron> >();
 }
 
 void 
 cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) {
+<<<<<<< HEAD
   using namespace edm;
   using namespace std;
 
@@ -142,6 +163,39 @@ cat::CATElectronProducer::getEffArea( float dR, float scEta)
   else 
     return ElectronEffectiveArea::GetElectronEffectiveArea( ElectronEffectiveArea::kEleGammaAndNeutralHadronIso04, scEta, electronEATarget);
 }
+=======
+    using namespace edm;
+    using namespace std;
+
+    Handle<View<pat::Electron> > src;
+    iEvent.getByToken(src_, src);
+
+    Handle<View<reco::GenParticle> > genParticles;
+    iEvent.getByToken(mcLabel_,genParticles);
+
+
+    auto_ptr<vector<cat::Electron> >  out(new vector<cat::Electron>());
+
+    for (View<pat::Electron>::const_iterator it = src->begin(), ed = src->end(); it != ed; ++it) {
+      unsigned int idx = it - src->begin();
+      const pat::Electron & aPatElectron = src->at(idx);
+      cat::Electron aElectron(aPatElectron);
+
+      bool mcMatched = mcMatch( aPatElectron.p4(), genParticles );
+      aElectron.setMCMatched( mcMatched );
+
+      aElectron.setChargedHadronIso04( aPatElectron.chargedHadronIso() );
+      aElectron.setNeutralHadronIso04( aPatElectron.neutralHadronIso() );
+      aElectron.setPhotonIso04( aPatElectron.photonIso() );
+      aElectron.setPUChargedHadronIso04( aPatElectron.puChargedHadronIso() );
+
+      aElectron.setChargedHadronIso03( aPatElectron.userIsolation("pat::User1Iso") );
+      aElectron.setNeutralHadronIso03( aPatElectron.userIsolation("pat::User2Iso") );
+      aElectron.setPhotonIso03( aPatElectron.userIsolation("pat::User3Iso") );
+      aElectron.setPUChargedHadronIso03( aPatElectron.userIsolation("pat::User4Iso") );
+
+      out->push_back(aElectron);
+>>>>>>> origin/70X_v2
 
 bool cat::CATElectronProducer::mcMatch( const reco::Candidate::LorentzVector& lepton, const edm::Handle<reco::GenParticleCollection> & genParticles )
 {
@@ -182,6 +236,52 @@ bool cat::CATElectronProducer::MatchObjects( const reco::Candidate::LorentzVecto
   else return ( dRval < 0.025 && dPtRel < 0.025 );
 }
 
+<<<<<<< HEAD
+=======
+bool cat::CATElectronProducer::mcMatch( const reco::Candidate::LorentzVector& lepton, const edm::Handle<edm::View<reco::GenParticle> > & genParticles ){
+
+  bool out = false;
+
+  for (edm::View<reco::GenParticle>::const_iterator mcIter=genParticles->begin(); mcIter != genParticles->end(); mcIter++ ) {
+    int genId = mcIter->pdgId();
+
+    if( abs(genId) != 11 ) continue;
+
+    bool match = MatchObjects(lepton, mcIter->p4(), false);
+
+    if( match != true) continue;
+
+    const reco::Candidate* mother = mcIter->mother();
+    while( mother != 0 ){
+      if( abs(mother->pdgId()) == 23 || abs(mother->pdgId()) == 24 ) {
+        out = true;
+      }
+      mother = mother->mother();
+    }
+  }
+
+  return out;
+}
+
+
+bool cat::CATElectronProducer::MatchObjects( const reco::Candidate::LorentzVector& pasObj, const reco::Candidate::LorentzVector& proObj, bool exact ) {
+    double proEta = proObj.eta();
+    double proPhi = proObj.phi();
+    double proPt = proObj.pt();
+    double pasEta = pasObj.eta();
+    double pasPhi = pasObj.phi();
+    double pasPt = pasObj.pt();
+
+    double dRval = deltaR(proEta, proPhi, pasEta, pasPhi);
+    double dPtRel = 999.0;
+    if( proPt > 0.0 ) dPtRel = fabs( pasPt - proPt )/proPt;
+    // If we are comparing two objects for which the candidates should
+    // be exactly the same, cut hard. Otherwise take cuts from user.
+    if( exact ) return ( dRval < 1e-3 && dPtRel < 1e-3 );
+    else return ( dRval < 0.025 && dPtRel < 0.025 );
+}
+
+>>>>>>> origin/70X_v2
 
 #include "FWCore/Framework/interface/MakerMacros.h"
 using namespace cat;
