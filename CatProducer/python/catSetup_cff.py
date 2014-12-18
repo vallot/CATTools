@@ -31,7 +31,7 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
     process.catTaus.src = cms.InputTag(catTausSource)
     process.catMETs.src = cms.InputTag(catMETsSource)
     process.catGenJets.src = cms.InputTag(catGenJetsSource)
-    process.catSecVertexs.muonSrc = cms.InputTag(catMuonsSource)
+    process.catSecVertexs.muonSrc = cms.InputTag("pfMuonsFromVertexPFlow")
     process.catSecVertexs.elecSrc = cms.InputTag(catElectronsSource)
     process.catSecVertexs.vertexLabel = cms.InputTag(catVertexSource)
 
@@ -48,6 +48,8 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
         
     ## cuts on selected Pat objects
     getattr(process,catJetsSource).cut = cms.string("pt > 20")
+    process.pfSelectedMuonsPFlow.cut = cms.string("")
+
     #getattr(process,catMuonsSource).cut = cms.string("pt > 5 || isPFMuon || (pt > 3 && (isGlobalMuon || isStandAloneMuon || numberOfMatches > 0 || muonID('RPCMuLoose')))") 
     #getattr(process,catElectronsSource).cut = cms.string("pt > 5") 
     #getattr(process,catPhotonsSource).cut = cms.string("pt > 5")

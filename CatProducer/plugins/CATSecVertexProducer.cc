@@ -159,12 +159,13 @@ cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<T
 	  cApp.calculate(ipStatePos, ipStateNeg);
 	  if ( !cApp.status() ) continue;
 	  const float dca = fabs(cApp.distance());
+	  cout << "fitTransientTracks::dca" << dca <<endl;
 	  if ( dca < 0. || dca > cut_DCA_ ) continue;
 	  GlobalPoint cxPt = cApp.crossingPoint();
 	  if (std::hypot(cxPt.x(), cxPt.y()) > 120. || std::abs(cxPt.z()) > 300.) continue;
 	  //TrajectoryStateClosestToPoint caState1 = transTrackPos.trajectoryStateClosestToPoint(cxPt);
 	  //TrajectoryStateClosestToPoint caState2 = transTrackNeg.trajectoryStateClosestToPoint(cxPt);
-	  //if ( !caState1.isValid() or !caState2.isValid() ) continue;
+	  //if ( !caState1.isValid() || !caState2.isValid() ) continue;
 
 	  // Build Vertex
 	  std::vector<TransientTrack> transTracks;
@@ -173,7 +174,7 @@ cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<T
 	  KalmanVertexFitter fitter(true);
 	  TransientVertex transVertex = fitter.vertex(transTracks);
 
-	  if ( !transVertex.isValid() or transVertex.totalChiSquared() < 0. ) continue;
+	  if ( !transVertex.isValid() || transVertex.totalChiSquared() < 0. ) continue;
 
 	  const reco::Vertex vertex = transVertex;
 	  if ( vertex.normalizedChi2() > cut_vertexChi2_ ) continue;
@@ -190,7 +191,7 @@ cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<T
 
 	  double rVtxMag = ROOT::Math::Mag(distanceVectorXY);
 	  double sigmaRvtxMag = sqrt(ROOT::Math::Similarity(totalCov, distanceVectorXY)) / rVtxMag;
-	  if( rVtxMag < cut_minLxy_ or rVtxMag > cut_maxLxy_ or rVtxMag / sigmaRvtxMag < cut_vtxSignif_ ) continue;
+	  if( rVtxMag < cut_minLxy_ || rVtxMag > cut_maxLxy_ || rVtxMag / sigmaRvtxMag < cut_vtxSignif_ ) continue;
 
 	  SVector3 distanceVector3D(vertex.x() - pvx, vertex.y() - pvy, vertex.z() - pvz);
 	  const double rVtxMag3D = ROOT::Math::Mag(distanceVector3D);
@@ -212,11 +213,11 @@ cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<T
 		  if ( refTrack.track().charge() < 0 ) refTrack1 = &refTrack;
 		  else refTrack2 = &refTrack;
 		}
-	      if ( refTrack1 == 0 or refTrack2 == 0 ) continue;
+	      if ( refTrack1 == 0 || refTrack2 == 0 ) continue;
 	      traj1.reset(new TrajectoryStateClosestToPoint(refTrack1->trajectoryStateClosestToPoint(vtxPos)));
 	      traj2.reset(new TrajectoryStateClosestToPoint(refTrack2->trajectoryStateClosestToPoint(vtxPos)));
 	    }
-	  if( !traj1->isValid() or !traj2->isValid() ) continue;
+	  if( !traj1->isValid() || !traj2->isValid() ) continue;
 
 	  GlobalVector mom1(traj1->momentum());
 	  GlobalVector mom2(traj2->momentum());
@@ -235,7 +236,7 @@ cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<T
 	  const double candE2 = hypot(mom2.mag(), leptonMass);
 
 	  const math::XYZTLorentzVector candLVec(mom.x(), mom.y(), mom.z(), candE1+candE2);
-	  if ( massMin_ > candLVec.mass() or massMax_ < candLVec.mass() ) continue;
+	  if ( massMin_ > candLVec.mass() || massMax_ < candLVec.mass() ) continue;
 
 	  // Match to muons
 	  VertexCompositeCandidate* cand = new VertexCompositeCandidate(0, candLVec, vtx, vtxCov, vtxChi2, vtxNdof);
