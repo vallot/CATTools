@@ -24,5 +24,7 @@
   <use   name="RecoMET/METAlgorithms"/>
   <use   name="RecoEgamma/EgammaTools"/>
   <use   name="TrackingTools/IPTools"/> 
+  <use   name="RecoJets/JetProducers" />
   <use   name="root"/>
+  <use   name="fastjet" />
 </library>
