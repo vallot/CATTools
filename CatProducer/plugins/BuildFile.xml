@@ -27,4 +27,5 @@
   <use   name="RecoJets/JetProducers" />
   <use   name="root"/>
   <use   name="fastjet" />
+  <use   name="lhapdf"/>
 </library>
