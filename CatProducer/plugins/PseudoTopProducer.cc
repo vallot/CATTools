@@ -3,30 +3,18 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "DataFormats/Math/interface/LorentzVector.h"
-#include "DataFormats/Candidate/interface/Candidate.h"
-#include "DataFormats/Candidate/interface/CompositeCandidate.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
-#include "DataFormats/Math/interface/deltaR.h"
 
 #include "CommonTools/Utils/interface/PtComparator.h"
 
 #include "RecoJets/JetProducers/interface/JetSpecific.h"
 #include "fastjet/JetDefinition.hh"
 #include "fastjet/ClusterSequence.hh"
-#include "fastjet/PseudoJet.hh"
-
-#include "TMath.h"
 
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
-#include "CommonTools/Utils/interface/TFileDirectory.h"
 #include "TH1F.h"
 #include "TH2F.h"
-
-#include <memory>
-#include <vector>
-#include <set>
 
 using namespace std;
 using namespace edm;
