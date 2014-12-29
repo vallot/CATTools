@@ -3,7 +3,7 @@ CATTools/TopAnalysis
 
 plugins, scripts and macro files for standard top quark analysis with CATTools
 
-## Instruction to analyse ttbar-dilepton channel
+## ttbar-dilepton channel analysis
 (Hopefully) Top quark differential cross section measurement and related topics can be done.
 An example cfg file can be found in the test directory.
 
@@ -11,7 +11,6 @@ An example cfg file can be found in the test directory.
 cd test
 cmsRun run_ttll_cfg.py
 ```
-
 
 The "TTbarDileptonProducer" module allows to do standard object combinations with some
 kinematic reconstructions. The output of this module is the best solution of the reconstruction
@@ -27,3 +26,8 @@ By default, dummy algorithm is implemented but other widely used algorithms will
 - Neutrino weighting (not added)
 - MT2 solution (to be implemented)
 - MAOS solution (to be implemented)
+
+For a convenient analysis, a generic ntuple producer is added (imported from KrAFT tool).
+The ntuple producer will give a flat-formatted ntuple, fully configurable with python configuration file.
+A fully working version is to be added in the run_ttll_cfg.py.
+
