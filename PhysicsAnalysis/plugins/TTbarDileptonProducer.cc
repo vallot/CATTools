@@ -68,8 +68,6 @@ TTbarDileptonProducer::TTbarDileptonProducer(const edm::ParameterSet& pset)
   produces<int>("channel");
 
   produces<doubles>("mLL");
-  produces<doubles>("mTop");
-  produces<doubles>("mW");
   produces<doubles>("mLB");
   produces<doubles>("mAddJJ");
   produces<doubles>("dphi");
@@ -91,8 +89,6 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
   *channel = CH_NONE;
 
   std::auto_ptr<doubles> out_mLL(new doubles);
-  std::auto_ptr<doubles> out_mTop(new doubles(2));
-  std::auto_ptr<doubles> out_mW(new doubles(2));
   std::auto_ptr<doubles> out_mLB(new doubles(2));
   std::auto_ptr<doubles> out_mAddJJ(new doubles);
   std::auto_ptr<doubles> out_dphi(new doubles);
@@ -226,11 +222,7 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
     w2.addDaughter(reco::CandidatePtr(prodId, 6, getter));
 
     out_mLL->push_back((lep1->p4()+lep2->p4()).mass());
-    out_mTop->push_back(top1.mass());
-    out_mTop->push_back(top2.mass());
     out_dphi->push_back(deltaPhi(top1.phi(), top2.phi()));
-    out_mW->push_back(w1.mass());
-    out_mW->push_back(w2.mass());
     out_mLB->push_back((lep1->p4()+selectedJet1->p4()).mass());
     out_mLB->push_back((lep2->p4()+selectedJet2->p4()).mass());
     if ( jetHandle->size() >= 4 )
@@ -251,8 +243,6 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
   event.put(channel, "channel");
 
   event.put(out_mLL, "mLL");
-  event.put(out_mTop, "mTop");
-  event.put(out_mW, "mW");
   event.put(out_mLB, "mLB");
   event.put(out_mAddJJ, "mAddJJ");
   event.put(out_dphi, "dphi");
