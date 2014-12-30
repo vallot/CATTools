@@ -1,7 +1,8 @@
 <lcgdict>
-  <class name="reco::CompositePtrCandidate"/>
-  <class name="std::vector<reco::CompositePtrCandidate>"/>
-  <class name="edm::Wrapper<reco::CompositePtrCandidate>"/>
-  <class name="edm::Wrapper<std::vector<reco::CompositePtrCandidate> >"/>
-  <class name="edm::Ptr<reco::CompositePtrCandidate>"/>
+  <class name="reco::CompositePtrCandidateCollection" />
+  <class name="edm::Wrapper<reco::CompositePtrCandidateCollection>" />
+  <class name="edm::reftobase::Holder<reco::Candidate, reco::CompositePtrCandidateRef>" />
+  <class name="edm::reftobase::RefHolder<reco::CompositePtrCandidateRef>" />
+  <class name="edm::reftobase::VectorHolder<reco::Candidate, reco::CompositePtrCandidateRefVector>" />
+  <class name="edm::reftobase::RefVectorHolder<reco::CompositePtrCandidateRefVector>" />
 </lcgdict>
