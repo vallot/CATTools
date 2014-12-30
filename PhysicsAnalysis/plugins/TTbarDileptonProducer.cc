@@ -57,7 +57,8 @@ TTbarDileptonProducer::TTbarDileptonProducer(const edm::ParameterSet& pset)
 
   //pseudoTopToken_ = consumes<reco::GenParticleCollection>(pset.getParameter<edm::InpuTag>("pseudoTop"));
 
-  const auto solverName = pset.getParameter<std::string>("solver");
+  auto solverName = pset.getParameter<std::string>("solver");
+  std::transform(solverName.begin(), solverName.end(), solverName.begin(), ::toupper);
   if      ( solverName == "CMSKIN" ) solver_ = new CMSKinSolver();
   else if ( solverName == "MT2"    ) solver_ = new MT2Solver();
   else if ( solverName == "MAOS"   ) solver_ = new MAOSSolver();
