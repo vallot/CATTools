@@ -11,6 +11,8 @@
 
 #include "CATTools/PhysicsAnalysis/interface/KinematicSolvers.h"
 #include "DataFormats/Candidate/interface/LeafCandidate.h"
+//#include "DataFormats/Candidate/interface/CompositeCandidate.h"
+//#include "DataFormats/Candidate/interface/CompositeRefCandidate.h"
 #include "DataFormats/Candidate/interface/CompositePtrCandidate.h"
 
 using namespace std;
@@ -34,6 +36,7 @@ private:
   typedef reco::Candidate::LorentzVector LorentzVector;
   typedef reco::CompositePtrCandidate CRCand;
   typedef std::vector<CRCand> CRCandColl;
+  typedef std::vector<double> doubles;
   enum CHANNEL {
     CH_NONE=0, CH_MUMU, CH_ELEL, CH_MUEL
   };
@@ -62,6 +65,15 @@ TTbarDileptonProducer::TTbarDileptonProducer(const edm::ParameterSet& pset)
 
   produces<CRCandColl>();
   produces<int>("channel");
+
+  produces<double>("mLL");
+  produces<doubles>("mTop");
+  produces<doubles>("mW");
+  produces<doubles>("mLB");
+  produces<double>("mAddJJ");
+  produces<double>("dphi");
+  //produces<edm::RefVector<cat::Jet> >("topJets");
+  //produces<edm::RefVector<cat::Jet> >("addJets");
 }
 
 TTbarDileptonProducer::~TTbarDileptonProducer()
@@ -76,6 +88,13 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
 
   std::auto_ptr<int> channel(new int);
   *channel = CH_NONE;
+
+  std::auto_ptr<double> out_mLL(new double);
+  std::auto_ptr<doubles> out_mTop(new doubles(2));
+  std::auto_ptr<doubles> out_mW(new doubles(2));
+  std::auto_ptr<doubles> out_mLB(new doubles(2));
+  std::auto_ptr<double> out_mAddJJ(new double);
+  std::auto_ptr<double> out_dphi(new double);
 
   edm::Handle<cat::MuonCollection> muonHandle;
   event.getByToken(muonToken_, muonHandle);
@@ -171,44 +190,71 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
     top2.setPdgId(-6*lep2Q);
 
     // Do the basic mother-daughter associations
-    const auto& prodId = candsRefProd.id();
-    const auto getter = candsRefProd.productGetter();
-    ttbar.addDaughter(reco::CandidatePtr(prodId, 1, getter)); //ttbar->t1
-    ttbar.addDaughter(reco::CandidatePtr(prodId, 2, getter)); //ttbar->t2
-    top1.addDaughter(reco::CandidatePtr(prodId, 3, getter)); //t1->w1
-    top2.addDaughter(reco::CandidatePtr(prodId, 4, getter)); //t2->w2
+    auto prodId = candsRefProd.id();
+    auto getter = candsRefProd.productGetter();
+    ttbar.addDaughter(reco::CandidatePtr(prodId, 1, getter));
+    ttbar.addDaughter(reco::CandidatePtr(prodId, 2, getter));
+    top1.addDaughter(reco::CandidatePtr(prodId, 3, getter));
+    top2.addDaughter(reco::CandidatePtr(prodId, 4, getter));
 
     if ( *channel == CH_MUMU )
     {
-      top1.addDaughter(reco::CandidatePtr(muonHandle, mu1-muonHandle->begin()));
-      top2.addDaughter(reco::CandidatePtr(muonHandle, mu2-muonHandle->begin()));
+      w1.addDaughter(reco::CandidatePtr(muonHandle, mu1-muonHandle->begin()));
+      w2.addDaughter(reco::CandidatePtr(muonHandle, mu2-muonHandle->begin()));
       nu1.setPdgId(14*mu1->charge());
       nu2.setPdgId(14*mu2->charge());
     }
     else if ( *channel == CH_ELEL )
     {
-      top1.addDaughter(reco::CandidatePtr(electronHandle, el1-electronHandle->begin()));
-      top2.addDaughter(reco::CandidatePtr(electronHandle, el2-electronHandle->begin()));
+      w1.addDaughter(reco::CandidatePtr(electronHandle, el1-electronHandle->begin()));
+      w2.addDaughter(reco::CandidatePtr(electronHandle, el2-electronHandle->begin()));
       nu1.setPdgId(12*el1->charge());
       nu2.setPdgId(12*el2->charge());
     }
     else if ( *channel == CH_MUEL )
     {
-      top1.addDaughter(reco::CandidatePtr(muonHandle, mu1-muonHandle->begin()));
-      top2.addDaughter(reco::CandidatePtr(electronHandle, el1-electronHandle->begin()));
+      w1.addDaughter(reco::CandidatePtr(muonHandle, mu1-muonHandle->begin()));
+      w2.addDaughter(reco::CandidatePtr(electronHandle, el1-electronHandle->begin()));
       nu1.setPdgId(14*mu1->charge());
       nu2.setPdgId(12*el1->charge());
     }
 
-    top1.addDaughter(reco::CandidatePtr(prodId, 3, getter));
-    top2.addDaughter(reco::CandidatePtr(prodId, 4, getter));
     top1.addDaughter(reco::CandidatePtr(jetHandle, selectedJet1-jetHandle->begin()));
     top2.addDaughter(reco::CandidatePtr(jetHandle, selectedJet2-jetHandle->begin()));
+    w1.addDaughter(reco::CandidatePtr(prodId, 5, getter));
+    w2.addDaughter(reco::CandidatePtr(prodId, 6, getter));
 
+    *out_mLL = (lep1->p4()+lep2->p4()).mass();
+    out_mTop->push_back(top1.mass());
+    out_mTop->push_back(top2.mass());
+    *out_dphi = deltaPhi(top1.phi(), top2.phi());
+    out_mW->push_back(w1.mass());
+    out_mW->push_back(w2.mass());
+    out_mLB->push_back((lep1->p4()+selectedJet1->p4()).mass());
+    out_mLB->push_back((lep2->p4()+selectedJet2->p4()).mass());
+    if ( jetHandle->size() >= 4 )
+    {
+      int nUsedJet = 0;
+      LorentzVector addJet2P4;
+      for ( auto jet = jetHandle->begin(); jet != jetHandle->end(); ++jet )
+      {
+        if ( jet == selectedJet1 or jet == selectedJet2 ) continue;
+        addJet2P4 += jet->p4();
+        if ( ++nUsedJet > 2 ) break;
+      }
+      *out_mAddJJ = addJet2P4.mass();
+    }
   } while (false);
 
   event.put(cands);
   event.put(channel, "channel");
+
+  event.put(out_mLL, "mLL");
+  event.put(out_mTop, "mTop");
+  event.put(out_mW, "mW");
+  event.put(out_mLB, "mLB");
+  event.put(out_mAddJJ, "mAddJJ");
+  event.put(out_dphi, "dphi");
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"
