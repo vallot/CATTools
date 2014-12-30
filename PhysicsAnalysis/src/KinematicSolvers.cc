@@ -13,6 +13,9 @@ void TTDileptonSolver::solve(const KinematicSolver::LorentzVector input[])
   const auto& j2 = input[3];
   const auto& met = input[4];
 
+  nu1_ = met/2;
+  nu2_ = met/2;
+
   const auto& lb1 = l1+j1;
   const auto& lb2 = l2+j2;
   if ( lb1.mass() > 150 or lb2.mass() > 150 ) quality_ = 0;
@@ -33,5 +36,9 @@ void MAOSSolver::solve(const KinematicSolver::LorentzVector input[])
 
   // recover neutrino z component by assuming MT2 value as the top mass
   
+}
+
+void CMSKinSolver::solve(const KinematicSolver::LorentzVector input[])
+{
 }
 

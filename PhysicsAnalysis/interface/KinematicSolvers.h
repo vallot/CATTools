@@ -8,6 +8,7 @@ namespace cat {
 class KinematicSolver
 {
 public:
+  virtual ~KinematicSolver() {};
   typedef reco::Candidate::LorentzVector LorentzVector;
   virtual void solve(const LorentzVector input[]) = 0;
 
@@ -46,6 +47,12 @@ public:
   void solve(const LorentzVector input[]) override;
 
 protected:
+};
+
+class CMSKinSolver : public KinematicSolver
+{
+public:
+  void solve(const LorentzVector input[]) override;
 };
 
 }
