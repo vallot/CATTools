@@ -51,13 +51,14 @@ private:
   std::vector<CandToken> candTokens_;
   std::vector<std::vector<VmapToken> > vmapTokens_;
   std::vector<edm::EDGetTokenT<int> > intTokens_;
-  std::vector<edm::EDGetTokenT<double> > weightTokens_;
-  std::vector<edm::EDGetTokenT<doubles> > vWeightTokens_;
+  std::vector<edm::EDGetTokenT<double> > doubleTokens_;
+  std::vector<edm::EDGetTokenT<doubles> > doublesTokens_;
   std::vector<edm::EDGetTokenT<edm::MergeableCounter> > eventCounterTokens_;
 
   typedef StringObjectFunction<reco::Candidate,true> CandFtn;
   typedef StringCutObjectSelector<reco::Candidate,true> CandSel;
 
+  std::vector<int> indices_;
   std::vector<std::vector<CandFtn> > exprs_;
   std::vector<std::vector<CandSel> > selectors_;
 
@@ -66,8 +67,8 @@ private:
   TTree* tree_;
   int runNumber_, lumiNumber_, eventNumber_;
   std::vector<int*> ints_;
-  std::vector<double*> weights_;
-  std::vector<doubles*> vWeights_;
+  std::vector<double*> double_;
+  std::vector<doubles*> vdouble_;
   std::vector<std::vector<doubles*> > candVars_;
 
   struct FAILUREMODE
@@ -105,26 +106,26 @@ GenericNtupleMaker::GenericNtupleMaker(const edm::ParameterSet& pset)
     tree_->Branch(intName.c_str(), ints_.back(), (intName+"/I").c_str());
   }
 
-  PSet weightPSets = pset.getParameter<PSet>("weight");
-  const strings weightNames = weightPSets.getParameterNamesForType<PSet>();
-  for ( auto& weightName : weightNames )
+  PSet doublePSets = pset.getParameter<PSet>("double");
+  const strings doubleNames = doublePSets.getParameterNamesForType<PSet>();
+  for ( auto& doubleName : doubleNames )
   {
-    PSet weightPSet = weightPSets.getParameter<PSet>(weightName);
-    weightTokens_.push_back(consumes<double>(weightPSet.getParameter<edm::InputTag>("src")));
+    PSet doublePSet = doublePSets.getParameter<PSet>(doubleName);
+    doubleTokens_.push_back(consumes<double>(doublePSet.getParameter<edm::InputTag>("src")));
 
-    weights_.push_back(new double);
-    tree_->Branch(weightName.c_str(), weights_.back(), (weightName+"/D").c_str());
+    double_.push_back(new double);
+    tree_->Branch(doubleName.c_str(), double_.back(), (doubleName+"/D").c_str());
   }
 
-  PSet vWeightPSets = pset.getParameter<PSet>("vWeight");
-  const strings vWeightNames = vWeightPSets.getParameterNamesForType<PSet>();
-  for ( auto& vWeightName : vWeightNames )
+  PSet doublesPSets = pset.getParameter<PSet>("doubles");
+  const strings doublesNames = doublesPSets.getParameterNamesForType<PSet>();
+  for ( auto& doublesName : doublesNames )
   {
-    PSet vWeightPSet = vWeightPSets.getParameter<PSet>(vWeightName);
-    vWeightTokens_.push_back(consumes<doubles>(vWeightPSet.getParameter<edm::InputTag>("src")));
+    PSet doublesPSet = doublesPSets.getParameter<PSet>(doublesName);
+    doublesTokens_.push_back(consumes<doubles>(doublesPSet.getParameter<edm::InputTag>("src")));
 
-    vWeights_.push_back(new doubles);
-    tree_->Branch(vWeightName.c_str(), vWeights_.back());
+    vdouble_.push_back(new doubles);
+    tree_->Branch(doublesName.c_str(), vdouble_.back());
   }
 
   PSet candPSets = pset.getParameter<PSet>("cands");
@@ -140,6 +141,7 @@ GenericNtupleMaker::GenericNtupleMaker(const edm::ParameterSet& pset)
     vmapTokens_.push_back(std::vector<VmapToken>());
     candVars_.push_back(std::vector<doubles*>());
     const string candTokenName = candToken.label();
+    indices_.push_back(candPSet.getUntrackedParameter<int>("index", -1));
     const PSet exprSets = candPSet.getUntrackedParameter<PSet>("exprs", PSet());
     for ( auto& exprName : exprSets.getParameterNamesForType<string>() )
     {
@@ -203,27 +205,27 @@ void GenericNtupleMaker::analyze(const edm::Event& event, const edm::EventSetup&
     }
   }
 
-  for ( size_t i=0, n=weightTokens_.size(); i<n; ++i )
+  for ( size_t i=0, n=doubleTokens_.size(); i<n; ++i )
   {
-    edm::Handle<double> weightHandle;
-    event.getByToken(weightTokens_[i], weightHandle);
+    edm::Handle<double> doubleHandle;
+    event.getByToken(doubleTokens_[i], doubleHandle);
 
-    if ( weightHandle.isValid() ) *weights_[i] = *weightHandle;
+    if ( doubleHandle.isValid() ) *double_[i] = *doubleHandle;
     else
     {
-      *weights_[i] = 0;
+      *double_[i] = 0;
       ++nFailure;
     }
   }
 
-  for ( size_t i=0, n=vWeightTokens_.size(); i<n; ++i )
+  for ( size_t i=0, n=doublesTokens_.size(); i<n; ++i )
   {
-    edm::Handle<doubles> vWeightHandle;
-    event.getByToken(vWeightTokens_[i], vWeightHandle);
+    edm::Handle<doubles> doublesHandle;
+    event.getByToken(doublesTokens_[i], doublesHandle);
 
-    if ( vWeightHandle.isValid() )
+    if ( doublesHandle.isValid() )
     {
-      vWeights_[i]->insert(vWeights_[i]->begin(), vWeightHandle->begin(), vWeightHandle->end());
+      vdouble_[i]->insert(vdouble_[i]->begin(), doublesHandle->begin(), doublesHandle->end());
     }
     else
     {
@@ -242,6 +244,7 @@ void GenericNtupleMaker::analyze(const edm::Event& event, const edm::EventSetup&
       continue;
     }
 
+    const int index = indices_[iCand];
     const std::vector<CandFtn>& exprs = exprs_[iCand];
     const std::vector<CandSel>& selectors = selectors_[iCand];
     std::vector<VmapToken>& vmapTokens = vmapTokens_[iCand];
@@ -256,6 +259,7 @@ void GenericNtupleMaker::analyze(const edm::Event& event, const edm::EventSetup&
 
     for ( size_t i=0, n=srcHandle->size(); i<n; ++i )
     {
+      if ( index >= 0 and int(i) != index ) continue;
       edm::Ref<CandView> candRef(srcHandle, i);
 
       for ( size_t j=0; j<nExpr; ++j )
@@ -277,20 +281,20 @@ void GenericNtupleMaker::analyze(const edm::Event& event, const edm::EventSetup&
     }
   }
 
-  if ( failureMode_ == FAILUREMODE::KEEP ) tree_->Fill();
-  //else if ( failureMode_ == FAILUREMODE::SKIP ); // don't fill and continue memory cleanup
-  else if ( nFailure > 0 and failureMode_ == FAILUREMODE::ERROR )
+  if ( nFailure == 0 or failureMode_ == FAILUREMODE::KEEP ) tree_->Fill();
+  else if ( failureMode_ == FAILUREMODE::ERROR )
   {
     edm::LogError("GenericNtupleMaker") << "Failed to get " << nFailure << " items";
     throw cms::Exception("DataError") << "Cannot get object from data";
   }
+  //else if ( failureMode_ == FAILUREMODE::SKIP ); // don't fill and continue memory cleanup
 
-  for ( size_t i=0, n=vWeightTokens_.size(); i<n; ++i )
+  for ( size_t i=0, n=doublesTokens_.size(); i<n; ++i )
   {
-    edm::Handle<doubles> vWeightHandle;
-    event.getByToken(vWeightTokens_[i], vWeightHandle);
+    edm::Handle<doubles> doublesHandle;
+    event.getByToken(doublesTokens_[i], doublesHandle);
 
-    vWeights_[i]->clear();
+    vdouble_[i]->clear();
   }
 
   for ( size_t iCand=0; iCand<nCand; ++iCand )
