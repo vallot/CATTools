@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 recoEventInfo = cms.EDProducer("RecoEventInfoProducer",
-    vertex = cms.InputTag("goodOfflinePrimaryVertices"),
+    vertex = cms.InputTag("offlineSlimmedPrimaryVertices"),
     triggerResults = cms.InputTag("TriggerResults", "", "HLT"),
     HLT = cms.PSet(
         DoubleMu = cms.vstring(
