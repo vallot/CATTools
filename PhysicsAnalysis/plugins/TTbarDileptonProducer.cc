@@ -3,25 +3,15 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-//#include "CATTools/DataFormats/interface/Particle.h"
 #include "CATTools/DataFormats/interface/Muon.h"
 #include "CATTools/DataFormats/interface/Electron.h"
-//#include "CATTools/DataFormats/interface/Photon.h"
 #include "CATTools/DataFormats/interface/Jet.h"
-//#include "CATTools/DataFormats/interface/Tau.h"
 #include "CATTools/DataFormats/interface/MET.h"
-//#include "CATTools/DataFormats/interface/GenJet.h"
-//#include "CATTools/DataFormats/interface/GenTop.h"
-//#include "CATTools/DataFormats/interface/MCParticle.h"
 #include "CATTools/DataFormats/interface/SecVertex.h"
 
 #include "CATTools/PhysicsAnalysis/interface/KinematicSolvers.h"
 #include "DataFormats/Candidate/interface/LeafCandidate.h"
 #include "DataFormats/Candidate/interface/CompositePtrCandidate.h"
-
-//#include "DataFormats/JetReco/interface/GenJetCollection.h"
-//#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
-//#include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
 
 using namespace std;
 
@@ -31,6 +21,7 @@ class TTbarDileptonProducer : public edm::EDProducer
 {
 public:
   TTbarDileptonProducer(const edm::ParameterSet& pset);
+  virtual ~TTbarDileptonProducer();
   void produce(edm::Event & event, const edm::EventSetup&) override;
 
 private:
@@ -63,19 +54,24 @@ TTbarDileptonProducer::TTbarDileptonProducer(const edm::ParameterSet& pset)
 
   //pseudoTopToken_ = consumes<reco::GenParticleCollection>(pset.getParameter<edm::InpuTag>("pseudoTop"));
 
-  solver_ = new TTDileptonSolver(); // A dummy solver
-  //const auto solverName = pset.getParameter<std::string>("solver");
-  //if      ( solverName == "CMSKINSOLVER" ) solver_ = DileptonSolvers::CMSKinSolver();
-  //else if ( solverName == "MT2"          ) solver_ = DileptonSolvers::MT2Solver();
-  //else if ( solverName == "MAOS"         ) solver_ = DileptonSolvers::MAOSSolver();
+  const auto solverName = pset.getParameter<std::string>("solver");
+  if      ( solverName == "CMSKIN" ) solver_ = new CMSKinSolver();
+  else if ( solverName == "MT2"    ) solver_ = new MT2Solver();
+  else if ( solverName == "MAOS"   ) solver_ = new MAOSSolver();
+  else solver_ = new TTDileptonSolver(); // A dummy solver
 
   produces<CRCandColl>();
   produces<int>("channel");
 }
 
+TTbarDileptonProducer::~TTbarDileptonProducer()
+{
+  if ( solver_ ) delete solver_;
+}
+
 void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&) 
 {
-  std::auto_ptr<CRCandColl> cands(new CRCandColl(5)); //ttbar, top1, top2, nu1, nu2
+  std::auto_ptr<CRCandColl> cands(new CRCandColl);
   auto candsRefProd = event.getRefBeforePut<CRCandColl>();
 
   std::auto_ptr<int> channel(new int);
@@ -96,30 +92,30 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
 
   do {
     // Build dileptons. We pick two highest pT muons and electrons.
-    LorentzVector lep1LVec, lep2LVec;
-cout << "S1 : " << muonHandle->size() << ' ' << electronHandle->size() << endl;
-    if ( muonHandle->size() + electronHandle->size() < 2 ) break; // Skip if it is not dilepton event
+    const reco::Candidate* lep1 = 0, * lep2 = 0;
+    const int nMuon = muonHandle->size();
+    const int nElectron = electronHandle->size();
+    if ( nMuon + nElectron < 2 ) break; // Skip if it is not dilepton event
     // Pick leading leptons. Assume muons and electrons are sorted by pT.
     auto mu1 = muonHandle->begin(), mu2 = muonHandle->begin()+1;
     auto el1 = electronHandle->begin(), el2 = electronHandle->begin()+1;
-    if ( electronHandle->empty() or mu2->pt() > mu1->pt() ) // mumu channel
+    if ( electronHandle->empty() or (nMuon>=2 and mu2->pt() > el1->pt()) ) // mumu channel
     {
       *channel = CH_MUMU;
-      lep1LVec = mu1->p4();
-      lep2LVec = mu2->p4();
+      lep1 = &*mu1; lep2 = &*mu2;
     }
-    else if ( muonHandle->empty() or el2->pt() < mu1->pt() ) // elel channel
+    else if ( muonHandle->empty() or (nElectron>=2 and el2->pt() > mu1->pt()) ) // elel channel
     {
       *channel = CH_ELEL;
-      lep1LVec = el1->p4();
-      lep2LVec = el2->p4();
+      lep1 = &*el1; lep2 = &*el2;
     }
     else // Otherwise it is emu channel
     {
       *channel = CH_MUEL;
-      lep1LVec = mu1->p4();
-      lep2LVec = el1->p4();
+      lep1 = &*mu1; lep2 = &*el1;
     }
+    const LorentzVector& lep1LVec = lep1->p4();
+    const LorentzVector& lep2LVec = lep2->p4();
 
     // Run the solver with all jet combinations
     LorentzVector nu1LVec, nu2LVec;
@@ -136,26 +132,51 @@ cout << "S1 : " << muonHandle->size() << ' ' << electronHandle->size() << endl;
         solver_->solve(inputLVecs);
         if ( solver_->quality() > quality )
         {
-          selectedJet1 = jet1; selectedJet2 = jet2;
+          quality = solver_->quality();
+          selectedJet1 = jet1;
+          selectedJet2 = jet2;
           nu1LVec = solver_->nu1();
           nu2LVec = solver_->nu2();
         }
       }
     }
-cout << "S2: " << jetHandle->size() << " " << quality << endl;
     if ( quality <= -1e9 ) break; // failed to get solution
+
+    cands->resize(7);
 
     CRCand& ttbar = cands->at(0);
     CRCand& top1 = cands->at(1);
     CRCand& top2 = cands->at(2);
-    CRCand& nu1 = cands->at(3);
-    CRCand& nu2 = cands->at(4);
+    CRCand& w1 = cands->at(3);
+    CRCand& w2 = cands->at(4);
+    CRCand& nu1 = cands->at(5);
+    CRCand& nu2 = cands->at(6);
+
+    // Set four momentum
+    nu1.setP4(nu1LVec);
+    nu2.setP4(nu2LVec);
+    w1.setP4(lep1LVec+nu1LVec);
+    w2.setP4(lep2LVec+nu2LVec);
+    top1.setP4(w1.p4()+selectedJet1->p4());
+    top2.setP4(w2.p4()+selectedJet2->p4());
+    ttbar.setP4(top1.p4()+top2.p4());
+
+    // Set basic quantum numbers (do channel dependent things later)
+    const int lep1Q = lep1->charge();
+    const int lep2Q = lep2->charge();
+    ttbar.setPdgId(0);
+    w1.setPdgId(-24*lep1Q);
+    w2.setPdgId(-24*lep2Q);
+    top1.setPdgId(-6*lep1Q);
+    top2.setPdgId(-6*lep2Q);
 
     // Do the basic mother-daughter associations
     const auto& prodId = candsRefProd.id();
     const auto getter = candsRefProd.productGetter();
-    ttbar.addDaughter(reco::CandidatePtr(prodId, 1, getter));
-    ttbar.addDaughter(reco::CandidatePtr(prodId, 2, getter));
+    ttbar.addDaughter(reco::CandidatePtr(prodId, 1, getter)); //ttbar->t1
+    ttbar.addDaughter(reco::CandidatePtr(prodId, 2, getter)); //ttbar->t2
+    top1.addDaughter(reco::CandidatePtr(prodId, 3, getter)); //t1->w1
+    top2.addDaughter(reco::CandidatePtr(prodId, 4, getter)); //t2->w2
 
     if ( *channel == CH_MUMU )
     {
@@ -168,17 +189,16 @@ cout << "S2: " << jetHandle->size() << " " << quality << endl;
     {
       top1.addDaughter(reco::CandidatePtr(electronHandle, el1-electronHandle->begin()));
       top2.addDaughter(reco::CandidatePtr(electronHandle, el2-electronHandle->begin()));
-      nu1.setPdgId(14*el1->charge());
-      nu2.setPdgId(14*el2->charge());
+      nu1.setPdgId(12*el1->charge());
+      nu2.setPdgId(12*el2->charge());
     }
     else if ( *channel == CH_MUEL )
     {
       top1.addDaughter(reco::CandidatePtr(muonHandle, mu1-muonHandle->begin()));
       top2.addDaughter(reco::CandidatePtr(electronHandle, el1-electronHandle->begin()));
       nu1.setPdgId(14*mu1->charge());
-      nu2.setPdgId(14*el1->charge());
+      nu2.setPdgId(12*el1->charge());
     }
-cout << "S3 " << *channel << endl;
 
     top1.addDaughter(reco::CandidatePtr(prodId, 3, getter));
     top2.addDaughter(reco::CandidatePtr(prodId, 4, getter));
