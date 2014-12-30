@@ -1,5 +1,4 @@
+<use name="CATTools/DataFormats"/>
 <export>
   <lib   name="1"/>
 </export>
-<use name="CATTools/DataFormats"/>
-<use name="rootrflx" />
