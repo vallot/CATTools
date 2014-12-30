@@ -41,11 +41,11 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
         channel = cms.PSet(src = cms.InputTag("ttbar:channel")),
     ),
     double = cms.PSet(
-        ttbar_mLL = cms.PSet(src = cms.InputTag("ttbar:mLL")),
-        ttbar_dphi = cms.PSet(src = cms.InputTag("ttbar:dphi")),
-        mAddJJ = cms.PSet(src = cms.InputTag("ttbar:mAddJJ")),
     ),
     doubles = cms.PSet(
+        ttbar_mLL = cms.PSet(src = cms.InputTag("ttbar:mLL")),
+        ttbar_dphi = cms.PSet(src = cms.InputTag("ttbar:dphi")),
+        ttbar_mAddJJ = cms.PSet(src = cms.InputTag("ttbar:mAddJJ")),
         ttbar_mLB = cms.PSet(src = cms.InputTag("ttbar:mLB")),
     ),
     cands = cms.PSet(

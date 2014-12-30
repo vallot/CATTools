@@ -66,12 +66,12 @@ TTbarDileptonProducer::TTbarDileptonProducer(const edm::ParameterSet& pset)
   produces<CRCandColl>();
   produces<int>("channel");
 
-  produces<double>("mLL");
+  produces<doubles>("mLL");
   produces<doubles>("mTop");
   produces<doubles>("mW");
   produces<doubles>("mLB");
-  produces<double>("mAddJJ");
-  produces<double>("dphi");
+  produces<doubles>("mAddJJ");
+  produces<doubles>("dphi");
   //produces<edm::RefVector<cat::Jet> >("topJets");
   //produces<edm::RefVector<cat::Jet> >("addJets");
 }
@@ -89,12 +89,12 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
   std::auto_ptr<int> channel(new int);
   *channel = CH_NONE;
 
-  std::auto_ptr<double> out_mLL(new double);
+  std::auto_ptr<doubles> out_mLL(new doubles);
   std::auto_ptr<doubles> out_mTop(new doubles(2));
   std::auto_ptr<doubles> out_mW(new doubles(2));
   std::auto_ptr<doubles> out_mLB(new doubles(2));
-  std::auto_ptr<double> out_mAddJJ(new double);
-  std::auto_ptr<double> out_dphi(new double);
+  std::auto_ptr<doubles> out_mAddJJ(new doubles);
+  std::auto_ptr<doubles> out_dphi(new doubles);
 
   edm::Handle<cat::MuonCollection> muonHandle;
   event.getByToken(muonToken_, muonHandle);
@@ -224,10 +224,10 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
     w1.addDaughter(reco::CandidatePtr(prodId, 5, getter));
     w2.addDaughter(reco::CandidatePtr(prodId, 6, getter));
 
-    *out_mLL = (lep1->p4()+lep2->p4()).mass();
+    out_mLL->push_back((lep1->p4()+lep2->p4()).mass());
     out_mTop->push_back(top1.mass());
     out_mTop->push_back(top2.mass());
-    *out_dphi = deltaPhi(top1.phi(), top2.phi());
+    out_dphi->push_back(deltaPhi(top1.phi(), top2.phi()));
     out_mW->push_back(w1.mass());
     out_mW->push_back(w2.mass());
     out_mLB->push_back((lep1->p4()+selectedJet1->p4()).mass());
@@ -242,7 +242,7 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
         addJet2P4 += jet->p4();
         if ( ++nUsedJet > 2 ) break;
       }
-      *out_mAddJJ = addJet2P4.mass();
+      out_mAddJJ->push_back(addJet2P4.mass());
     }
   } while (false);
 
