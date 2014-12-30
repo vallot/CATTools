@@ -72,6 +72,8 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
                 w2m   = cms.string("daughterPtr(1).daughter(0).mass"),
                 b1Pt = cms.string("daughterPtr(0).daughter(1).pt"),
                 b2Pt = cms.string("daughterPtr(1).daughter(1).pt"),
+                b1Tag = cms.string("daughterPtr(0).daughter(1).bDiscriminator('combinedInclusiveSecondaryVertexV2BJetTags')"),
+                b2Tag = cms.string("daughterPtr(1).daughter(1).bDiscriminator('combinedInclusiveSecondaryVertexV2BJetTags')"),
 
                 lep1Pt = cms.string("daughter(0).daughter(0).daughter(0).pt"),
                 lep2Pt = cms.string("daughter(1).daughter(0).daughter(0).pt"),
