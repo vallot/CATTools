@@ -40,7 +40,7 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
         ## Load MC dependent producers
         process.load("CATTools.CatProducer.pdfWeight_cff")
         process.load("CATTools.CatProducer.pileupWeight_cff")
-        process.out.outputCommands.append("keep *_pdfWeights_*_*")
+        process.out.outputCommands.append("keep *_pdfWeight_*_*")
         process.out.outputCommands.append("keep *_pileupWeight_*_*")
 
     if not runOnMC:
