@@ -84,6 +84,7 @@ def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5"):
         'keep PileupSummaryInfos_*_*_*',
         'keep edmMergeableCounter_*_*_*',
         'keep patTriggerPaths_patTrigger*_*_*',
+        'keep recoGenParticles_genParticles__SIM',
         #'keep *_selectedPatJets_*_*',
         #'keep *_TriggerResults_*_PAT',
         #'keep *_patTrigger*_*_*',

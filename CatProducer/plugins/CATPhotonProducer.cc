@@ -10,10 +10,8 @@
 #include "CATTools/DataFormats/interface/Photon.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
-//#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
-//#include "FWCore/Utilities/interface/isFinite.h"
 
 using namespace edm;
 using namespace std;
@@ -47,12 +45,9 @@ cat::CATPhotonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
 
   auto_ptr<vector<cat::Photon> >  out(new vector<cat::Photon>());
 
-  for (View<pat::Photon>::const_iterator it = src->begin(), ed = src->end(); it != ed; ++it) {
-    unsigned int idx = it - src->begin();
-    const pat::Photon & aPatPhoton = src->at(idx);
+  for (const pat::Photon & aPatPhoton : *src){
     cat::Photon aPhoton(aPatPhoton);
     out->push_back(aPhoton);
-
   }
 
   iEvent.put(out);

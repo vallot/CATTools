@@ -6,6 +6,9 @@
 #include "CATTools/DataFormats/interface/Particle.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
 
+#include <string>
+#include <boost/array.hpp>
+
 // Define typedefs for convenience
 namespace cat {
   class Jet;
@@ -27,42 +30,53 @@ namespace cat {
 
     /// \return secondary vertex b-tagging information
     // combinedSecondaryVertexBJetTags
-    float btag_csv() const{ return csv_;}
-    float secvtxMass() const { return secvtxMass_ ; }
-    float Lxy() const { return Lxy_ ; }
-    float LxyErr() const { return LxyErr_; }
+    float vtxMass() const { return vtxMass_ ; }
+    int vtxNtracks() const { return vtxNtracks_ ; }
+    float vtx3DVal() const { return vtx3DVal_; }
+    float vtx3DSig() const { return vtx3DSig_; }
 
-    /// \return the matched MC parton flavour (from the shower, used e.g. for b-tagging)
+    // return the matched MC parton flavour (from the shower, used e.g. for b-tagging)
     int partonFlavour() const{ return partonFlavour_;}
-    /// \return the pdgId of the matched MC parton from hard scattering (i.e. the closest quark or gluon of status == 3)
+    int hadronFlavour() const{ return hadronFlavour_;}
+    // pdgId of the matched MC parton from hard scattering (i.e. the closest quark or gluon of status == 3)
     int partonPdgId() const{ return partonPdgId_;}
 
 
-    void setbtag_csv(float f) { csv_ = f;}
-    void setSecVtxMass(float f) { secvtxMass_ = f;}
-    void setLxy(float f) { Lxy_ = f;}
-    void setLxyErr(float f) { LxyErr_ = f;}
-    void setPartonFlavour(int i) { partonFlavour_ = i; }
-    void setPartonPdgId(int i) { partonPdgId_ = i; }
     void setLooseId(bool id) { LooseId_ = id; } 
     void setPileupJetId(float f) { pileupJetId_ = f;}
 
-    /* case CSVL: return bDiscriminator("combinedSecondaryVertexBJetTags") > 0.244; */
-    /* case CSVM: return bDiscriminator("combinedSecondaryVertexBJetTags") > 0.679; */
-    /* case CSVT: return bDiscriminator("combinedSecondaryVertexBJetTags") > 0.898; */
+    void setVtxMass(float f) { vtxMass_ = f;}
+    void setVtxNtracks(int f) { vtxNtracks_ = f;}
+    void setVtx3DVal(float f) { vtx3DVal_ = f;}
+    void setVtx3DSig(float f) { vtx3DSig_ = f;}
 
+    void setPartonFlavour(int i) { partonFlavour_ = i; }
+    void setHadronFlavour(int i) { hadronFlavour_ = i; }
+    void setPartonPdgId(int i) { partonPdgId_ = i; }
+
+    float bDiscriminator(const std::string &theLabel) const;
+    void setBDiscriminators(const std::vector<std::pair<std::string, float> > & ids) { pairDiscriVector_ = ids; }
+    void addBDiscriminatorPair(const std::pair<std::string, float> & thePair) {
+      pairDiscriVector_.push_back(thePair);
+    }
+    
   private:
-
     bool LooseId_; 
-    float pileupJetId_; 
-    /// b tagging information
-    float csv_;
-    float secvtxMass_;
-    float Lxy_;
-    float LxyErr_;
+    float pileupJetId_;
+
+    /// b tagging discriminators
+    std::vector<std::pair<std::string, float> >  pairDiscriVector_;
+    //std::vector<std::string>                     tagInfoLabels_;
+
+     /// b tagging information
+    float vtxMass_;
+    int vtxNtracks_;
+    float vtx3DVal_;
+    float vtx3DSig_;
 
     //parton flavour
     int partonFlavour_;
+    int hadronFlavour_;
     int partonPdgId_;
 
   };

@@ -6,8 +6,8 @@
 #include "DataFormats/Common/interface/Association.h"
 #include "DataFormats/Common/interface/RefToPtr.h"
 
-#include "DataFormats/PatCandidates/interface/MET.h"
-#include "CATTools/DataFormats/interface/MET.h"
+#include "DataFormats/PatCandidates/interface/Tau.h"
+#include "CATTools/DataFormats/interface/Tau.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
 #include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
@@ -18,37 +18,36 @@ using namespace std;
 
 namespace cat {
 
-  class CATMETProducer : public edm::EDProducer {
+  class CATTauProducer : public edm::EDProducer {
   public:
-    explicit CATMETProducer(const edm::ParameterSet & iConfig);
-    virtual ~CATMETProducer() { }
+    explicit CATTauProducer(const edm::ParameterSet & iConfig);
+    virtual ~CATTauProducer() { }
 
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
   private:
     edm::InputTag src_;
-
   };
 
 } // namespace
 
-cat::CATMETProducer::CATMETProducer(const edm::ParameterSet & iConfig) :
+cat::CATTauProducer::CATTauProducer(const edm::ParameterSet & iConfig) :
   src_(iConfig.getParameter<edm::InputTag>( "src" ))
 {
-  produces<std::vector<cat::MET> >();
+  produces<std::vector<cat::Tau> >();
 }
 
 void 
-cat::CATMETProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
+cat::CATTauProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
-  Handle<View<pat::MET> > src;
+  Handle<View<pat::Tau> > src;
   iEvent.getByLabel(src_, src);
 
-  auto_ptr<vector<cat::MET> >  out(new vector<cat::MET>());
+  auto_ptr<vector<cat::Tau> >  out(new vector<cat::Tau>());
 
-  for (const pat::MET & aPatMET : *src) {
-    cat::MET aMET(aPatMET);
-    out->push_back(aMET);
+  for (const pat::Tau & aPatTau : *src){
+    cat::Tau aTau(aPatTau);
+    out->push_back(aTau);
   }
 
   iEvent.put(out);
@@ -56,4 +55,4 @@ cat::CATMETProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
 
 #include "FWCore/Framework/interface/MakerMacros.h"
 using namespace cat;
-DEFINE_FWK_MODULE(CATMETProducer);
+DEFINE_FWK_MODULE(CATTauProducer);

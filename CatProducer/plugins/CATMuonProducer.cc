@@ -10,10 +10,8 @@
 #include "CATTools/DataFormats/interface/Muon.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
-//#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
-//#include "FWCore/Utilities/interface/isFinite.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 
 using namespace edm;
@@ -57,28 +55,23 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
 {
   Handle<View<pat::Muon> > src;
   iEvent.getByLabel(src_, src);
- 
+
   Handle<View<reco::GenParticle> > genParticles;
   if (runOnMC_) iEvent.getByLabel(mcLabel_,genParticles);
     
-  Handle<View<reco::Vertex> > recVtxs;
-  iEvent.getByLabel(vertexLabel_,recVtxs);
-
   Handle<reco::BeamSpot> beamSpotHandle;
   iEvent.getByLabel(beamLineSrc_, beamSpotHandle);
 
-  reco::Vertex pv = recVtxs->at(0);
+  Handle<View<reco::Vertex> > recVtxs;
+  iEvent.getByLabel(vertexLabel_,recVtxs);
+  reco::Vertex pv= recVtxs->at(0);
    
   reco::BeamSpot beamSpot = *beamSpotHandle;
   reco::TrackBase::Point beamPoint(beamSpot.x0(), beamSpot.y0(), beamSpot.z0());
-  // //  beamPoint = reco::TrackBase::Point ( beamSpot.x0(), beamSpot.y0(), beamSpot.z0() );  
  
   auto_ptr<vector<cat::Muon> >  out(new vector<cat::Muon>());
 
-  for (View<pat::Muon>::const_iterator it = src->begin(), ed = src->end(); it != ed; ++it) {
-    unsigned int idx = it - src->begin();
-    const pat::Muon & aPatMuon = src->at(idx);
-
+  for (const pat::Muon & aPatMuon : *src) {
     cat::Muon aMuon(aPatMuon);
 
     double pt    = aPatMuon.pt() ;
@@ -128,19 +121,16 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
 }
 
 bool cat::CATMuonProducer::mcMatch( const reco::Candidate::LorentzVector& lepton, const edm::Handle<edm::View<reco::GenParticle> > & genParticles ){
-
   bool out = false;
 
-  for (edm::View<reco::GenParticle>::const_iterator mcIter=genParticles->begin(); mcIter != genParticles->end(); mcIter++ ) {
-    int genId = mcIter->pdgId();
+  for (const reco::GenParticle & aGenPart : *genParticles){
+    if( abs(aGenPart.pdgId()) != 13 ) continue;
 
-    if( abs(genId) != 13 ) continue;
-
-    bool match = MatchObjects(lepton, mcIter->p4(), false);
+    bool match = MatchObjects(lepton, aGenPart.p4(), false);
 
     if( match != true) continue;
    
-    const reco::Candidate* mother = mcIter->mother();
+    const reco::Candidate* mother = aGenPart.mother();
     while( mother != 0 ){
       if( abs(mother->pdgId()) == 23 || abs(mother->pdgId()) == 24 ) {
         out = true;

@@ -11,10 +11,8 @@
 #include "CATTools/DataFormats/interface/MCParticle.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
-//#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
-//#include "FWCore/Utilities/interface/isFinite.h"
 
 using namespace edm;
 using namespace std;
@@ -54,10 +52,7 @@ cat::CATMCParticleProducer::produce(edm::Event & iEvent, const edm::EventSetup &
     
   auto_ptr<vector<cat::MCParticle> >  out(new vector<cat::MCParticle>());
 
-  for (View<reco::GenParticle>::const_iterator it = genParticles->begin(), ed = genParticles->end(); it != ed; ++it) {
-    unsigned int idx = it - genParticles->begin();
-    const reco::GenParticle & aGenParticle = genParticles->at(idx);
-
+  for (const reco::GenParticle & aGenParticle : *genParticles) {
     // fix me!! have better pruning of mc particles
     if (fabs(aGenParticle.pdgId()) != 13) // including all muons for now
       if ( aGenParticle.pt() < pt_ || fabs(aGenParticle.eta()) > eta_  ) continue;  
