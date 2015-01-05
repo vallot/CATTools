@@ -10,6 +10,7 @@ cd cat/src
 cmsenv
 git-cms-addpkg FWCore/Version
 git clone git@github.com:vallot/CATTools.git -b cat72x
+scram setup lhapdffull
 scram b -j 8
 
 cmsRun $SRT_CMSSW_BASE_SCRAMRTDEL/src/CATTools/CatProducer/prod/runCat.py useMiniAOD=True inputFiles=file:/pnfs/user/jlee/DYJetsToLL_M-50_13TeV-madgraph-pythia8/miniaod.root
