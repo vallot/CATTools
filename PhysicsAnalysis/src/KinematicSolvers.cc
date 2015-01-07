@@ -61,10 +61,10 @@ void CMSKinSolver::solve(const KinematicSolver::LorentzVector input[])
 
   const TLorentzVector l1(input[0].px(), input[0].py(), input[0].pz(), input[0].e());
   const TLorentzVector l2(input[1].px(), input[1].py(), input[1].pz(), input[1].e());
-  const TLorentzVector j1(input[2].px(), input[2].py(), input[2].pz(), input[2].e());
-  const TLorentzVector j2(input[3].px(), input[3].py(), input[3].pz(), input[3].e());
-  const double metX = input[4].px();
-  const double metY = input[4].py();
+  const double metX = input[2].px();
+  const double metY = input[2].py();
+  const TLorentzVector j1(input[3].px(), input[3].py(), input[3].pz(), input[3].e());
+  const TLorentzVector j2(input[4].px(), input[4].py(), input[4].pz(), input[4].e());
 
   solver_->SetConstraints(metX, metY);
   auto nuSol = solver_->getNuSolution(l1, l2, j1, j2);
@@ -81,11 +81,10 @@ void NuWeightSolver::solve(const KinematicSolver::LorentzVector input[])
 
   const auto& l1 = input[0];
   const auto& l2 = input[1];
-  const auto& j1 = input[2];
-  const auto& j2 = input[3];
-  const auto& met = input[4];
-  const double metX = met.px();
-  const double metY = met.py();
+  const double metX = input[2].px();
+  const double metY = input[2].py();
+  const auto& j1 = input[3];
+  const auto& j2 = input[4];
 
   const double sigmaEXsqr = 1, sigmaEYsqr = 1;
 
