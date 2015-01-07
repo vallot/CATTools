@@ -2,6 +2,7 @@
 #define CATTools_PhysicsAnalysis_KinematicSolvers_H
 
 #include "DataFormats/Candidate/interface/Candidate.h"
+class TtFullLepKinSolver;
 
 namespace cat {
 
@@ -52,7 +53,13 @@ protected:
 class CMSKinSolver : public KinematicSolver
 {
 public:
+  CMSKinSolver();
+  ~CMSKinSolver();
   void solve(const LorentzVector input[]) override;
+
+protected:
+  TtFullLepKinSolver* solver_;
+  
 };
 
 }
