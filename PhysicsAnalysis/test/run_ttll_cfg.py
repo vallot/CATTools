@@ -27,7 +27,9 @@ process.out = cms.OutputModule("PoolOutputModule",
 process.outPath = cms.EndPath(process.out)
 
 process.ttbar = cms.EDProducer("TTbarDileptonProducer",
-    solver = cms.string("Default"),
+#    solver = cms.string("Default"),
+    #solver = cms.string("CMSKIN"),
+    solver = cms.string("NUWGT"),
     muons = cms.InputTag("catMuons"),
     electrons = cms.InputTag("catElectrons"),
     jets = cms.InputTag("catJets"),

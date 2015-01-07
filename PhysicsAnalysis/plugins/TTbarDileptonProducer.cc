@@ -62,6 +62,7 @@ TTbarDileptonProducer::TTbarDileptonProducer(const edm::ParameterSet& pset)
   if      ( solverName == "CMSKIN" ) solver_ = new CMSKinSolver();
   else if ( solverName == "MT2"    ) solver_ = new MT2Solver();
   else if ( solverName == "MAOS"   ) solver_ = new MAOSSolver();
+  else if ( solverName == "NUWGT"  ) solver_ = new NuWeightSolver();
   else solver_ = new TTDileptonSolver(); // A dummy solver
 
   produces<CRCandColl>();
