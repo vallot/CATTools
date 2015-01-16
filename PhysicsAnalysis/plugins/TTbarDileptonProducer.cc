@@ -14,6 +14,7 @@
 //#include "DataFormats/Candidate/interface/CompositeCandidate.h"
 //#include "DataFormats/Candidate/interface/CompositeRefCandidate.h"
 #include "DataFormats/Candidate/interface/CompositePtrCandidate.h"
+#include "CommonTools/Utils/interface/PtComparator.h"
 
 using namespace std;
 
@@ -27,10 +28,14 @@ public:
   void produce(edm::Event & event, const edm::EventSetup&) override;
 
 private:
-  edm::EDGetTokenT<cat::MuonCollection> muonToken_;
-  edm::EDGetTokenT<cat::ElectronCollection> electronToken_;
-  edm::EDGetTokenT<cat::JetCollection> jetToken_;
-  edm::EDGetTokenT<cat::METCollection> metToken_;
+  typedef cat::Muon TMuon;
+  typedef cat::Electron TElectron;;
+  typedef cat::Jet TJet;
+  typedef cat::MET TMET;
+  edm::EDGetTokenT<edm::View<TMuon> > muonToken_;
+  edm::EDGetTokenT<edm::View<TElectron> > electronToken_;
+  edm::EDGetTokenT<edm::View<TJet> > jetToken_;
+  edm::EDGetTokenT<edm::View<TMET> > metToken_;
 
 private:
   typedef reco::Candidate::LorentzVector LorentzVector;
@@ -50,12 +55,10 @@ using namespace cat;
 
 TTbarDileptonProducer::TTbarDileptonProducer(const edm::ParameterSet& pset)
 {
-  muonToken_ = consumes<cat::MuonCollection>(pset.getParameter<edm::InputTag>("muons"));
-  electronToken_ = consumes<cat::ElectronCollection>(pset.getParameter<edm::InputTag>("electrons"));
-  jetToken_ = consumes<cat::JetCollection>(pset.getParameter<edm::InputTag>("jets"));
-  metToken_ = consumes<cat::METCollection>(pset.getParameter<edm::InputTag>("mets"));
-
-  //pseudoTopToken_ = consumes<reco::GenParticleCollection>(pset.getParameter<edm::InpuTag>("pseudoTop"));
+  muonToken_ = consumes<edm::View<TMuon> >(pset.getParameter<edm::InputTag>("muons"));
+  electronToken_ = consumes<edm::View<TElectron> >(pset.getParameter<edm::InputTag>("electrons"));
+  jetToken_ = consumes<edm::View<TJet> >(pset.getParameter<edm::InputTag>("jets"));
+  metToken_ = consumes<edm::View<TMET> >(pset.getParameter<edm::InputTag>("mets"));
 
   auto solverName = pset.getParameter<std::string>("solver");
   std::transform(solverName.begin(), solverName.end(), solverName.begin(), ::toupper);
@@ -94,18 +97,18 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
   std::auto_ptr<doubles> out_mAddJJ(new doubles);
   std::auto_ptr<doubles> out_dphi(new doubles);
 
-  edm::Handle<cat::MuonCollection> muonHandle;
+  edm::Handle<edm::View<TMuon> > muonHandle;
   event.getByToken(muonToken_, muonHandle);
 
-  edm::Handle<cat::ElectronCollection> electronHandle;
+  edm::Handle<edm::View<TElectron> > electronHandle;
   event.getByToken(electronToken_, electronHandle);
 
-  edm::Handle<cat::JetCollection> jetHandle;
+  edm::Handle<edm::View<TJet> > jetHandle;
   event.getByToken(jetToken_, jetHandle);
 
-  edm::Handle<cat::METCollection> metHandle;
+  edm::Handle<edm::View<TMET> > metHandle;
   event.getByToken(metToken_, metHandle);
-  const auto& met = metHandle->at(0);
+  const auto& metP4 = metHandle->at(0).p4();
 
   do {
     // Build dileptons. We pick two highest pT muons and electrons.
@@ -136,7 +139,7 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
 
     // Run the solver with all jet combinations
     LorentzVector nu1LVec, nu2LVec;
-    LorentzVector inputLVecs[5] = { lep1LVec, lep2LVec, met.p4(), };
+    LorentzVector inputLVecs[5] = { metP4, lep1LVec, lep2LVec, };
     double quality = -1e9; // Default quality value
     auto selectedJet1 = jetHandle->end(), selectedJet2 = jetHandle->end();
     for ( auto jet1 = jetHandle->begin(); jet1 != jetHandle->end(); ++jet1 )
@@ -239,6 +242,7 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
       out_mAddJJ->push_back(addJet2P4.mass());
     }
   } while (false);
+
 
   event.put(cands);
   event.put(channel, "channel");

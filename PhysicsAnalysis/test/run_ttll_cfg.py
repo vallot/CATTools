@@ -14,6 +14,8 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 10000
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 process.source.fileNames = [
     '/store/user/jlee/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/Phys14DR-PU20bx25_PHYS14_25_V1-v1/141219_091640/0000/catTuple_290.root',
+#    '/store/mc/Spring14miniaod/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU40bx25_POSTLS170_V7-v2/00000/0A30732D-FA26-E411-9A59-E0CB4E29C4FD.root',
+#'/store/mc/Summer12_DR53X/TTJets_MSDecays_central_TuneZ2star_8TeV-madgraph-tauola/AODSIM/PU_S10_START53_V19-v1/00000/16964A21-7344-E311-BBE6-00A0D1EE8ECC.root',
 ]
 
 process.out = cms.OutputModule("PoolOutputModule",
@@ -24,21 +26,23 @@ process.out = cms.OutputModule("PoolOutputModule",
     )
 )
 
-process.outPath = cms.EndPath(process.out)
+#process.outPath = cms.EndPath(process.out)
 
 process.ttbar = cms.EDProducer("TTbarDileptonProducer",
-#    solver = cms.string("Default"),
-    #solver = cms.string("CMSKIN"),
-    solver = cms.string("NUWGT"),
+    solver = cms.string("Default"),
+#    solver = cms.string("CMSKIN"),
+#    solver = cms.string("NUWGT"),
+#    solver = cms.string("MT2"),
     muons = cms.InputTag("catMuons"),
     electrons = cms.InputTag("catElectrons"),
     jets = cms.InputTag("catJets"),
     mets = cms.InputTag("catMETs"),
+    genParticles = cms.InputTag("prunedGenParticles"),
 )
 
 process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
     failureMode = cms.untracked.string("error"), # choose one among keep/skip/error
-    eventCounters = cms.vstring("nEventsTotal", "nEventsClean", "nEventsPAT"),
+    eventCounters = cms.vstring(), #"nEventsTotal", "nEventsClean", "nEventsPAT"),
     int = cms.PSet(
         channel = cms.PSet(src = cms.InputTag("ttbar:channel")),
     ),
@@ -84,16 +88,6 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
             ),
             selections = cms.untracked.PSet(
             )
-        ),
-        muon = cms.PSet(
-            src = cms.InputTag("catMuons"),
-            exprs = cms.untracked.PSet(
-                pt = cms.string("pt"),
-                eta = cms.string("eta"),
-                phi = cms.string("phi"),
-                m = cms.string("mass"),
-                pdgId = cms.string("pdgId"),
-            ),
         ),
     ),
 )

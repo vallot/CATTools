@@ -16,6 +16,7 @@ public:
   double quality() const { return quality_; };
   const LorentzVector& nu1() const { return nu1_; };
   const LorentzVector& nu2() const { return nu2_; };
+  double aux(size_t i) const { return values_.at(i); };
 
 protected:
   double quality_;
