@@ -20,6 +20,8 @@ using namespace std;
 
 namespace cat {
 
+bool GreaterByPtPtr(reco::CandidatePtr a, reco::CandidatePtr b) { return a->pt() > b->pt(); }
+
 class TTbarDileptonProducer : public edm::EDProducer 
 {
 public:
@@ -103,6 +105,27 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
   edm::Handle<edm::View<TElectron> > electronHandle;
   event.getByToken(electronToken_, electronHandle);
 
+  std::vector<reco::CandidatePtr> leptons;
+  for ( int i=0, n=muonHandle->size(); i<n; ++i )
+  {
+    auto& p = muonHandle->at(i);
+    if ( p.pt() < 20 or abs(p.eta()) > 2.4 ) continue;
+    if ( p.relIso() > 0.15 ) continue;
+
+    reco::CandidatePtr muonPtr = reco::CandidatePtr(muonHandle, i);
+    leptons.push_back(muonPtr);
+  }
+  for ( int i=0, n=electronHandle->size(); i<n; ++i )
+  {
+    auto& p = electronHandle->at(i);
+    if ( p.pt() < 20 or abs(p.eta()) > 2.4 ) continue;
+    if ( p.relIso() > 0.15 ) continue;
+
+    reco::CandidatePtr electronPtr = reco::CandidatePtr(electronHandle, i);
+    leptons.push_back(electronPtr);
+  }
+  std::sort(leptons.begin(), leptons.end(), GreaterByPtPtr);
+
   edm::Handle<edm::View<TJet> > jetHandle;
   event.getByToken(jetToken_, jetHandle);
 
@@ -112,28 +135,13 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
 
   do {
     // Build dileptons. We pick two highest pT muons and electrons.
-    const reco::Candidate* lep1 = 0, * lep2 = 0;
-    const int nMuon = muonHandle->size();
-    const int nElectron = electronHandle->size();
-    if ( nMuon + nElectron < 2 ) break; // Skip if it is not dilepton event
-    // Pick leading leptons. Assume muons and electrons are sorted by pT.
-    auto mu1 = muonHandle->begin(), mu2 = muonHandle->begin()+1;
-    auto el1 = electronHandle->begin(), el2 = electronHandle->begin()+1;
-    if ( electronHandle->empty() or (nMuon>=2 and mu2->pt() > el1->pt()) ) // mumu channel
-    {
-      *channel = CH_MUMU;
-      lep1 = &*mu1; lep2 = &*mu2;
-    }
-    else if ( muonHandle->empty() or (nElectron>=2 and el2->pt() > mu1->pt()) ) // elel channel
-    {
-      *channel = CH_ELEL;
-      lep1 = &*el1; lep2 = &*el2;
-    }
-    else // Otherwise it is emu channel
-    {
-      *channel = CH_MUEL;
-      lep1 = &*mu1; lep2 = &*el1;
-    }
+    if ( leptons.size() < 2 ) break; // Skip if it is not dilepton event
+    // Pick leading leptons.
+    const reco::Candidate* lep1 = &*leptons.at(0);
+    const reco::Candidate* lep2 = &*leptons.at(1);
+    if ( lep1->isMuon() and lep2->isMuon() ) *channel = CH_MUMU;
+    else if ( lep1->isElectron() and lep2->isElectron() ) *channel = CH_ELEL;
+    else *channel = CH_MUEL;
     const LorentzVector& lep1LVec = lep1->p4();
     const LorentzVector& lep2LVec = lep2->p4();
 
@@ -144,10 +152,14 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
     auto selectedJet1 = jetHandle->end(), selectedJet2 = jetHandle->end();
     for ( auto jet1 = jetHandle->begin(); jet1 != jetHandle->end(); ++jet1 )
     {
+      if ( deltaR(jet1->p4(), lep1->p4()) < 0.5 ) continue;
+      if ( deltaR(jet1->p4(), lep2->p4()) < 0.5 ) continue;
       inputLVecs[3] = jet1->p4();
       for ( auto jet2 = jetHandle->begin(); jet2 != jetHandle->end(); ++jet2 )
       {
         if ( jet1 == jet2 ) continue;
+        if ( deltaR(jet2->p4(), lep1->p4()) < 0.5 ) continue;
+        if ( deltaR(jet2->p4(), lep2->p4()) < 0.5 ) continue;
         inputLVecs[4] = jet2->p4();
         solver_->solve(inputLVecs);
         if ( solver_->quality() > quality )
@@ -198,27 +210,12 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
     top1.addDaughter(reco::CandidatePtr(prodId, 3, getter));
     top2.addDaughter(reco::CandidatePtr(prodId, 4, getter));
 
-    if ( *channel == CH_MUMU )
-    {
-      w1.addDaughter(reco::CandidatePtr(muonHandle, mu1-muonHandle->begin()));
-      w2.addDaughter(reco::CandidatePtr(muonHandle, mu2-muonHandle->begin()));
-      nu1.setPdgId(14*mu1->charge());
-      nu2.setPdgId(14*mu2->charge());
-    }
-    else if ( *channel == CH_ELEL )
-    {
-      w1.addDaughter(reco::CandidatePtr(electronHandle, el1-electronHandle->begin()));
-      w2.addDaughter(reco::CandidatePtr(electronHandle, el2-electronHandle->begin()));
-      nu1.setPdgId(12*el1->charge());
-      nu2.setPdgId(12*el2->charge());
-    }
-    else if ( *channel == CH_MUEL )
-    {
-      w1.addDaughter(reco::CandidatePtr(muonHandle, mu1-muonHandle->begin()));
-      w2.addDaughter(reco::CandidatePtr(electronHandle, el1-electronHandle->begin()));
-      nu1.setPdgId(14*mu1->charge());
-      nu2.setPdgId(12*el1->charge());
-    }
+    w1.addDaughter(leptons.at(0));
+    w2.addDaughter(leptons.at(1));
+    if ( lep1->isElectron() ) nu1.setPdgId(12*lep1->charge());
+    else if ( lep1->isMuon() ) nu1.setPdgId(14*lep1->charge());
+    if ( lep2->isElectron() ) nu2.setPdgId(12*lep2->charge());
+    else if ( lep2->isMuon() ) nu2.setPdgId(14*lep2->charge());
 
     top1.addDaughter(reco::CandidatePtr(jetHandle, selectedJet1-jetHandle->begin()));
     top2.addDaughter(reco::CandidatePtr(jetHandle, selectedJet2-jetHandle->begin()));
