@@ -20,6 +20,12 @@ catElectrons = cms.EDProducer("CATElectronProducer",
 
 catJets = cms.EDProducer("CATJetProducer",
     src = cms.InputTag("selectedPatJetsPFlow"),
+    shiftedEnDownSrc = cms.InputTag("shiftedSlimmedJetsEnDown"),
+    shiftedEnUpSrc = cms.InputTag("shiftedSlimmedJetsEnUp"),
+    smearedResSrc = cms.InputTag("smearedSlimmedJets"),
+    smearedResDownSrc = cms.InputTag("smearedSlimmedJetsResDown"),
+    smearedResUpSrc = cms.InputTag("smearedSlimmedJetsResUp"),
+    runOnMC = cms.bool(True),
     btagNames = cms.vstring()
 ##       #see https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideBTagPerformance
 ##       'trackCountingHighPurBJetTags', #0
