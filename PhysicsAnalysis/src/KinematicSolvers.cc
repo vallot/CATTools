@@ -192,7 +192,6 @@ void CMSKinSolver::solve(const KinematicSolver::LorentzVector input[])
 
 void NuWeightSolver::solve(const KinematicSolver::LorentzVector input[])
 {
-//cout << "STARTING NUSOLVER" << endl;
   quality_ = -1e9;
   values_.clear();
 
@@ -211,10 +210,10 @@ void NuWeightSolver::solve(const KinematicSolver::LorentzVector input[])
   double tmpSolX1[2], tmpSolY1[2], tmpSolX2[2], tmpSolY2[2];
   for ( double mt = 100; mt < 300; mt += 1 )
   {
-    for ( double nu1Eta = -5.0; nu1Eta <= 5.0; nu1Eta += 0.05 )
+    for ( double nu1Eta = -5.0; nu1Eta <= 5.0; nu1Eta += 0.1 )
     {
       if ( !computeNuPxPy(l1, j1, mt, nu1Eta, tmpSolX1[0], tmpSolY1[0], tmpSolX1[1], tmpSolY1[1]) ) continue;
-      for ( double nu2Eta = -5.0; nu2Eta <= 5.0; nu2Eta += 0.05 )
+      for ( double nu2Eta = -5.0; nu2Eta <= 5.0; nu2Eta += 0.1 )
       {
         if ( !computeNuPxPy(l2, j2, mt, nu2Eta, tmpSolX2[0], tmpSolY2[0], tmpSolX2[1], tmpSolY2[1]) ) continue;
         for ( int i=0; i<2; ++i )
@@ -233,7 +232,6 @@ void NuWeightSolver::solve(const KinematicSolver::LorentzVector input[])
               bestPy2 = tmpSolY2[j];
               bestEta1 = nu1Eta;
               bestEta2 = nu2Eta;
-cout << "New mT=" << mt << " w=" << weight << " pT1=" << hypot(bestPx1, bestPy1) << " eta1=" << bestEta1 << " pT2=" << hypot(bestPx2, bestPy2) << " eta2=" << bestEta2 << endl;
             }
           }
         }
@@ -252,12 +250,6 @@ cout << "New mT=" << mt << " w=" << weight << " pT1=" << hypot(bestPx1, bestPy1)
   values_.push_back((t1+t2).mass());
   values_.push_back(t1.mass());
   values_.push_back(t2.mass());
-if ( quality_ > 0 )
-{
-cout << "BEST W=" << quality_ << ' ' << hypot(bestPx1, bestPy1) << ' ' << hypot(bestPx2, bestPy2) << endl;
-cout << " Mtop=" << t1.mass() << ' ' << t2.mass() << endl;
-cout << " MW  =" << (l1+nu1_).mass() << ' ' << (l2+nu2_).mass() << endl;
-}
 }
 
 bool NuWeightSolver::computeNuPxPy(const KinematicSolver::LorentzVector& lep,
@@ -276,8 +268,8 @@ bool NuWeightSolver::computeNuPxPy(const KinematicSolver::LorentzVector& lep,
   const double pxl = lep.px(), pyl = lep.py(), pzl = lep.pz(), el = lep.energy();
   const double pxb = jet.px(), pyb = jet.py(), pzb = jet.pz(), eb = jet.energy();
 
-  const double denB = eb*sinh(nuEta) - pzb*cosh(nuEta); // eqn B.14
-  const double denL = el*sinh(nuEta) - pzl*cosh(nuEta); // eqn B.14
+  const double denB = eb*cosh(nuEta) - pzb*sinh(nuEta); // eqn B.14
+  const double denL = el*cosh(nuEta) - pzl*sinh(nuEta); // eqn B.14
 
   const double ab = pxb/denB; // eqn B.14
   const double bb = pyb/denB; // eqn B.14
