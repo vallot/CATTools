@@ -12,11 +12,11 @@ process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 process.MessageLogger.cerr.FwkReport.reportEvery = 10000
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
-process.source.fileNames = [
-    '/store/user/jlee/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/Phys14DR-PU20bx25_PHYS14_25_V1-v1/141219_091640/0000/catTuple_290.root',
+for i in xrange(1,101):
+    process.source.fileNames.append('/store/user/jlee/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/Phys14DR-PU20bx25_PHYS14_25_V1-v1/141219_091640/0000/catTuple_%d.root' % i)
 #    '/store/mc/Spring14miniaod/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU40bx25_POSTLS170_V7-v2/00000/0A30732D-FA26-E411-9A59-E0CB4E29C4FD.root',
 #'/store/mc/Summer12_DR53X/TTJets_MSDecays_central_TuneZ2star_8TeV-madgraph-tauola/AODSIM/PU_S10_START53_V19-v1/00000/16964A21-7344-E311-BBE6-00A0D1EE8ECC.root',
-]
+#]
 
 process.out = cms.OutputModule("PoolOutputModule",
     fileName = cms.untracked.string("out.root"),
@@ -29,10 +29,10 @@ process.out = cms.OutputModule("PoolOutputModule",
 #process.outPath = cms.EndPath(process.out)
 
 process.ttbar = cms.EDProducer("TTbarDileptonProducer",
-    solver = cms.string("Default"),
+#    solver = cms.string("Default"),
 #    solver = cms.string("CMSKIN"),
 #    solver = cms.string("NUWGT"),
-#    solver = cms.string("MT2"),
+    solver = cms.string("MT2"),
     muons = cms.InputTag("catMuons"),
     electrons = cms.InputTag("catElectrons"),
     jets = cms.InputTag("catJets"),
@@ -53,6 +53,7 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
         ttbar_dphi = cms.PSet(src = cms.InputTag("ttbar:dphi")),
         ttbar_mAddJJ = cms.PSet(src = cms.InputTag("ttbar:mAddJJ")),
         ttbar_mLB = cms.PSet(src = cms.InputTag("ttbar:mLB")),
+        ttbar_aux = cms.PSet(src = cms.InputTag("ttbar:aux")),
     ),
     cands = cms.PSet(
         ttbar = cms.PSet(

@@ -73,6 +73,7 @@ TTbarDileptonProducer::TTbarDileptonProducer(const edm::ParameterSet& pset)
   produces<CRCandColl>();
   produces<int>("channel");
 
+  produces<doubles>("aux");
   produces<doubles>("mLL");
   produces<doubles>("mLB");
   produces<doubles>("mAddJJ");
@@ -94,6 +95,7 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
   std::auto_ptr<int> channel(new int);
   *channel = CH_NONE;
 
+  std::auto_ptr<doubles> out_aux(new doubles);
   std::auto_ptr<doubles> out_mLL(new doubles);
   std::auto_ptr<doubles> out_mLB(new doubles(2));
   std::auto_ptr<doubles> out_mAddJJ(new doubles);
@@ -173,6 +175,11 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
       }
     }
     if ( quality <= -1e9 ) break; // failed to get solution
+    // Redo the calculation with the selected ones
+    inputLVecs[3] = selectedJet1->p4();
+    inputLVecs[4] = selectedJet2->p4();
+    solver_->solve(inputLVecs);
+    std::copy(solver_->aux().begin(), solver_->aux().end(), std::back_inserter(*out_aux));
 
     cands->resize(7);
 
@@ -244,6 +251,7 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
   event.put(cands);
   event.put(channel, "channel");
 
+  event.put(out_aux, "aux");
   event.put(out_mLL, "mLL");
   event.put(out_mLB, "mLB");
   event.put(out_mAddJJ, "mAddJJ");
