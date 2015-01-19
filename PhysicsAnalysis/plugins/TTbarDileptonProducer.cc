@@ -147,21 +147,29 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
     const LorentzVector& lep1LVec = lep1->p4();
     const LorentzVector& lep2LVec = lep2->p4();
 
+    std::vector<reco::CandidatePtr> jets;
+    for ( int i=0, n=jetHandle->size(); i<n; ++i )
+    {
+      const auto& jet = jetHandle->at(i);
+      if ( jet.pt() < 30 or abs(jet.eta()) > 2.5 ) continue;
+      if ( deltaR(jet.p4(), lep1->p4()) < 0.5 ) continue;
+      if ( deltaR(jet.p4(), lep2->p4()) < 0.5 ) continue;
+
+      jets.push_back(reco::CandidatePtr(jetHandle, i));
+      //if ( jets.size() >= 2 ) break; // Just for testing.
+    }
+
     // Run the solver with all jet combinations
     LorentzVector nu1LVec, nu2LVec;
     LorentzVector inputLVecs[5] = { metP4, lep1LVec, lep2LVec, };
     double quality = -1e9; // Default quality value
-    auto selectedJet1 = jetHandle->end(), selectedJet2 = jetHandle->end();
-    for ( auto jet1 = jetHandle->begin(); jet1 != jetHandle->end(); ++jet1 )
+    reco::CandidatePtr selectedJet1, selectedJet2;
+    for ( auto jet1 : jets )
     {
-      if ( deltaR(jet1->p4(), lep1->p4()) < 0.5 ) continue;
-      if ( deltaR(jet1->p4(), lep2->p4()) < 0.5 ) continue;
       inputLVecs[3] = jet1->p4();
-      for ( auto jet2 = jetHandle->begin(); jet2 != jetHandle->end(); ++jet2 )
+      for ( auto jet2 : jets )
       {
         if ( jet1 == jet2 ) continue;
-        if ( deltaR(jet2->p4(), lep1->p4()) < 0.5 ) continue;
-        if ( deltaR(jet2->p4(), lep2->p4()) < 0.5 ) continue;
         inputLVecs[4] = jet2->p4();
         solver_->solve(inputLVecs);
         if ( solver_->quality() > quality )
@@ -224,8 +232,8 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
     if ( lep2->isElectron() ) nu2.setPdgId(12*lep2->charge());
     else if ( lep2->isMuon() ) nu2.setPdgId(14*lep2->charge());
 
-    top1.addDaughter(reco::CandidatePtr(jetHandle, selectedJet1-jetHandle->begin()));
-    top2.addDaughter(reco::CandidatePtr(jetHandle, selectedJet2-jetHandle->begin()));
+    top1.addDaughter(selectedJet1);
+    top2.addDaughter(selectedJet2);
     w1.addDaughter(reco::CandidatePtr(prodId, 5, getter));
     w2.addDaughter(reco::CandidatePtr(prodId, 6, getter));
 
@@ -233,11 +241,11 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
     out_dphi->push_back(deltaPhi(top1.phi(), top2.phi()));
     out_mLB->push_back((lep1->p4()+selectedJet1->p4()).mass());
     out_mLB->push_back((lep2->p4()+selectedJet2->p4()).mass());
-    if ( jetHandle->size() >= 4 )
+    if ( jets.size() >= 4 )
     {
       int nUsedJet = 0;
       LorentzVector addJet2P4;
-      for ( auto jet = jetHandle->begin(); jet != jetHandle->end(); ++jet )
+      for ( auto jet : jets )
       {
         if ( jet == selectedJet1 or jet == selectedJet2 ) continue;
         addJet2P4 += jet->p4();
