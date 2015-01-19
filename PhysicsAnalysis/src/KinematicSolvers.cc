@@ -1,8 +1,7 @@
 #include "CATTools/PhysicsAnalysis/interface/KinematicSolvers.h"
 #include "TopQuarkAnalysis/TopKinFitter/interface/TtFullLepKinSolver.h"
 #include <boost/assign/std/vector.hpp> // for 'operator+=()'
-#include <gsl/gsl_min.h>
-#include <gsl/gsl_roots.h>
+#include <gsl/gsl_multimin.h>
 #include <gsl/gsl_errno.h>
 
 using namespace cat;
@@ -44,84 +43,30 @@ void TTDileptonSolver::solve(const KinematicSolver::LorentzVector input[])
 namespace CATMT2
 {
 
-const double mbsqr = 4.8*4.8;
 const double mwsqr = 80.4*80.4;
-
-double fconstraint(double y, void* p)
-{
-  double* pars = (double*)p;
-
-  const double px1 = pars[1], py1 = pars[2];
-  const double px2 = pars[3], py2 = pars[4];
-  const double metx = pars[5], mety = pars[6];
-  const double e1 = sqrt(mbsqr + px1*px1 + py1*py1);
-  const double e2 = sqrt(mbsqr + px2*px2 + py2*py2);
-
-  const double x1 = pars[0], y1 = y;
-  const double x2 = metx-x1, y2 = mety-y1;
-
-  const double retVal = e1*sqrt(x1*x1 + y1*y1 + mwsqr)
-                      - e2*sqrt(x2*x2 + y2*y2 + mwsqr)
-                      - (px1+px2)*x1 - (py1+py2)*y1
-                      + px2*metx + py2*mety;
-
-  return retVal;
-}
-
-double solveConstraint(double qx1, double* p0)
-{
-  // Solve constraint equation to find y
-  double pars[] = {qx1, p0[0], p0[1], p0[2], p0[3], p0[4], p0[5]};
-  const double xmin = p0[6];
-  const double xmax = p0[7];
-
-  //gsl_root_fsolver* solver = gsl_root_fsolver_alloc(gsl_root_fsolver_bisection);
-  gsl_root_fsolver* solver = gsl_root_fsolver_alloc(gsl_root_fsolver_brent);
-  gsl_function fgsl_constraint;
-  fgsl_constraint.function = &fconstraint;
-  fgsl_constraint.params = &pars;
-
-  // Check solution exists in this range and expand if needed
-  double ymin = xmin, ymax = xmax;
-  while ( fconstraint(ymin, pars)*fconstraint(ymax, pars) >= 0 )
-  {
-    const double dy = (ymax-ymin)/2;
-    ymin -= dy;
-    ymax += dy;
-  }
-  gsl_root_fsolver_set(solver, &fgsl_constraint, ymin, ymax);
-
-  double qy1;
-  for ( int iter = 0; iter < 100; ++iter )
-  {
-    gsl_root_fsolver_iterate(solver);
-    qy1 = gsl_root_fsolver_root(solver);
-    const double xlo = gsl_root_fsolver_x_lower(solver);
-    const double xhi = gsl_root_fsolver_x_upper(solver);
-    int status = gsl_root_test_interval(xlo, xhi, 0, 1e-3);
-    if ( status != GSL_CONTINUE ) break;
-  }
-  gsl_root_fsolver_free(solver);
-
-  return qy1;
-}
+const double mbsqr = 4.8*4.8;
 
 double mtsqr(const double qx, const double qy,
              const double px, const double py)
 {
-  const double eb = sqrt(mbsqr + px*px + py*py);
   const double ew = sqrt(mwsqr + qx*qx + qy*qy);
+  const double eb = sqrt(mbsqr + px*px + py*py);
   return mwsqr + mbsqr + 2*eb*ew - 2*px*qx - 2*py*qy;
 }
 
-double fminimize(double qx1, void* p)
+double fminimize(const gsl_vector* xx, void* p)
 {
-  double* p0 = (double*)p;
-  const double qy1 = solveConstraint(qx1, p0);
+  const double qx1 = gsl_vector_get(xx, 0);
+  const double qy1 = gsl_vector_get(xx, 1);
 
-  // Return transverse mass squared
-  const double px1 = p0[0], py1 = p0[1];
-  return mtsqr(qx1, qy1, px1, py1);
+  double* p0 = (double*)p;
+  const double qx2 = p0[4] - qx1;
+  const double qy2 = p0[5] - qy1;
+
+  const double mtA = mtsqr(qx1, qy1, p0[0], p0[1]);
+  const double mtB = mtsqr(qx2, qy2, p0[2], p0[3]);
+
+  return max(mtA, mtB);
 }
 
 }
@@ -139,43 +84,52 @@ void MT2Solver::solve(const KinematicSolver::LorentzVector input[])
   const auto& j1 = input[3];
   const auto& j2 = input[4];
 
-  // pars : px1, py1, px2, py2, metx, mety, xmin, xmax
-  double pars[] = {j1.px(), j1.py(), j2.px(), j2.py(), met.px(), met.py(), -l1.pt(), l1.py()};
-  double& xmin = pars[6];
-  double& xmax = pars[7];
+  // pars : bx1, by1, bx2, by2, Kx, Ky, xmin, xmax
+  //        b : b jet px, py
+  //        K : MET + lep1 + lep2
+  double pars[] = {j1.px(), j1.py(), j2.px(), j2.py(),
+                   met.px()+l1.px()+l2.px(), met.py()+l1.py()+l2.py()};
 
   // Do the minimization
-  gsl_min_fminimizer* minimizer = gsl_min_fminimizer_alloc(gsl_min_fminimizer_brent);
-  //gsl_min_fminimizer* minimizer = gsl_min_fminimizer_alloc(gsl_min_fminimizer_quad_golden);
-  gsl_function fgsl_minimize;
-  fgsl_minimize.function = &fminimize;
-  fgsl_minimize.params = &pars;
-  // Check minimum exists in this range and expand if needed
-  while ( fminimize(xmin, pars) <= fminimize((xmin+xmax)/2, pars) or
-          fminimize(xmax, pars) <= fminimize((xmin+xmax)/2, pars) )
-  {
-    const double dx = (xmax-xmin)/2;
-    xmax += dx; xmin -= dx;
-  }
-  gsl_min_fminimizer_set(minimizer, &fgsl_minimize, (xmin+xmax)/2, xmin, xmax);
+  gsl_multimin_fminimizer* minimizer = gsl_multimin_fminimizer_alloc(gsl_multimin_fminimizer_nmsimplex, 2);
+  gsl_vector* xx = gsl_vector_alloc(2);
+  gsl_vector_set_all(xx, 0.0); // Initial value
+  gsl_vector* ss = gsl_vector_alloc(2);
+  gsl_vector_set_all(ss, 0.1); // Step size
 
-  double qx1 = 1e9;
+  gsl_multimin_function fgsl_minimize;
+  fgsl_minimize.n = 2;
+  fgsl_minimize.f = fminimize;
+  fgsl_minimize.params = pars;
+  gsl_multimin_fminimizer_set(minimizer, &fgsl_minimize, xx, ss);
+
+  int status = 0;
   for ( int iter=0; iter<100; ++iter )
   {
-    gsl_min_fminimizer_iterate(minimizer);
-    qx1 = gsl_min_fminimizer_x_minimum(minimizer);
-    const double xlo = gsl_min_fminimizer_x_lower(minimizer);
-    const double xhi = gsl_min_fminimizer_x_upper(minimizer);
+    status = gsl_multimin_fminimizer_iterate(minimizer);
+    if ( status ) break;
+    auto size = gsl_multimin_fminimizer_size(minimizer);
+    status = gsl_multimin_test_size(size, 1e-3);
 
-    int status = gsl_min_test_interval(xlo, xhi, 0.001, 0);
     if ( status != GSL_CONTINUE ) break;
   }
-  gsl_min_fminimizer_free(minimizer);
+  gsl_vector_free(xx);
+  gsl_vector_free(ss);
 
-  const double qy1 = solveConstraint(qx1, pars);
-  const double qx2 = met.px()-qx1;
-  const double qy2 = met.py()-qy1;
+  const double qx1 = gsl_vector_get(minimizer->x, 0);
+  const double qy1 = gsl_vector_get(minimizer->x, 1);
+
+  gsl_multimin_fminimizer_free(minimizer);
+  if ( status != GSL_SUCCESS ) return;
+
+  const double qx2 = met.px()+l1.px()+l2.px()-qx1;
+  const double qy2 = met.py()+l1.py()+l2.py()-qy1;
   const double mt2 = sqrt(mtsqr(qx1, qy1, pars[0], pars[1]));
+  quality_ = 1;
+  // For debug : print out mt2(qx1, qy1) vs mt2(qx2, qy2).
+  // If minimization was failed, mt2_A != mt2_B
+  // Of course this is not full test of minimization, but this must be the very first observable
+  // cout << sqrt(mtsqr(qx1, qy1, pars[0], pars[1]))-sqrt(mtsqr(qx2, qy2, pars[2], pars[3])) << endl;
 
   const double ew1 = sqrt(mwsqr + qx1*qx1 + qy1*qy1);
   const double ew2 = sqrt(mwsqr + qx2*qx2 + qy2*qy2);
