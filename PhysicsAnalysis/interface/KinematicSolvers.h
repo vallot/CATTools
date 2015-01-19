@@ -69,13 +69,6 @@ class NuWeightSolver : public KinematicSolver
 {
 public:
   void solve(const LorentzVector input[]) override;
-
-protected:
-  bool computeNuPxPy(const KinematicSolver::LorentzVector& lep,
-                     const KinematicSolver::LorentzVector& ljet,
-                     const double mT, const double nuEta,
-                     double& nuPx1, double& nuPy1, double& nuPx2, double& nuPy2) const;
-
 };
 
 }
