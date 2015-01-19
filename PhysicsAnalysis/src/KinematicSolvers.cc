@@ -190,72 +190,13 @@ void CMSKinSolver::solve(const KinematicSolver::LorentzVector input[])
   values_.push_back(t2.mass());
 }
 
-void NuWeightSolver::solve(const KinematicSolver::LorentzVector input[])
+namespace CATNuWeight
 {
-  quality_ = -1e9;
-  values_.clear();
 
-  const double metX = input[0].px();
-  const double metY = input[0].py();
-  const auto& l1 = input[1];
-  const auto& l2 = input[2];
-  const auto& j1 = input[3];
-  const auto& j2 = input[4];
-
-  const double sigmaEXsqr = 1, sigmaEYsqr = 1;
-
-  double bestWeight = -1e9;
-  double bestPx1 = 1e9, bestPx2 = 1e9, bestPy1 = 1e9, bestPy2 = -1e9;
-  double bestEta1 = -1e9, bestEta2 = -1e9;
-  double tmpSolX1[2], tmpSolY1[2], tmpSolX2[2], tmpSolY2[2];
-  for ( double mt = 100; mt < 300; mt += 1 )
-  {
-    for ( double nu1Eta = -5.0; nu1Eta <= 5.0; nu1Eta += 0.1 )
-    {
-      if ( !computeNuPxPy(l1, j1, mt, nu1Eta, tmpSolX1[0], tmpSolY1[0], tmpSolX1[1], tmpSolY1[1]) ) continue;
-      for ( double nu2Eta = -5.0; nu2Eta <= 5.0; nu2Eta += 0.1 )
-      {
-        if ( !computeNuPxPy(l2, j2, mt, nu2Eta, tmpSolX2[0], tmpSolY2[0], tmpSolX2[1], tmpSolY2[1]) ) continue;
-        for ( int i=0; i<2; ++i )
-        {
-          for ( int j=0; j<2; ++j )
-          {
-            const double dpx = metX-tmpSolX1[i]-tmpSolX2[j];
-            const double dpy = metY-tmpSolY1[i]-tmpSolY2[j];
-            const double weight = exp(-dpx*dpx/2/sigmaEXsqr)*exp(-dpy*dpy/2/sigmaEYsqr);
-            if ( weight > bestWeight )
-            {
-              bestWeight = weight;
-              bestPx1 = tmpSolX1[i];
-              bestPy1 = tmpSolY1[i];
-              bestPx2 = tmpSolX2[j];
-              bestPy2 = tmpSolY2[j];
-              bestEta1 = nu1Eta;
-              bestEta2 = nu2Eta;
-            }
-          }
-        }
-      }
-    }
-  }
-
-  quality_ = bestWeight;
-  const double bestPz1 = hypot(bestPx1, bestPy1)*sinh(bestEta1);
-  const double bestPz2 = hypot(bestPx2, bestPy2)*sinh(bestEta2);
-  nu1_ = LorentzVector(bestPx1, bestPy1, bestPz1, sqrt(bestPx1*bestPx1+bestPy1*bestPy1+bestPz1*bestPz1));
-  nu2_ = LorentzVector(bestPx2, bestPy2, bestPz2, sqrt(bestPx2*bestPx2+bestPy2*bestPy2+bestPz2*bestPz2));
-
-  const LorentzVector t1 = l1+j1+nu1_;
-  const LorentzVector t2 = l2+j2+nu2_;
-  values_.push_back((t1+t2).mass());
-  values_.push_back(t1.mass());
-  values_.push_back(t2.mass());
-}
-
-bool NuWeightSolver::computeNuPxPy(const KinematicSolver::LorentzVector& lep,
-                                   const KinematicSolver::LorentzVector& jet,
-                                   const double mT, const double nuEta,
-                                   double& nuPx1, double& nuPy1, double& nuPx2, double& nuPy2) const
+bool computeNuPxPy(const KinematicSolver::LorentzVector& lep,
+                   const KinematicSolver::LorentzVector& jet,
+                   const double mT, const double nuEta,
+                   double& nuPx1, double& nuPy1, double& nuPx2, double& nuPy2)
 {
   const double mTsqr = mT*mT;
   const double mWsqr = 80.4*80.4;
@@ -307,4 +248,164 @@ bool NuWeightSolver::computeNuPxPy(const KinematicSolver::LorentzVector& lep,
 
   return true;
 }
+
+double nuWeight(const KinematicSolver::LorentzVector& l1,
+                const KinematicSolver::LorentzVector& l2,
+                const KinematicSolver::LorentzVector& j1,
+                const KinematicSolver::LorentzVector& j2,
+                const double metX, const double metY,
+                const double sigmaEXsqr, const double sigmaEYsqr,
+                const double mt, const double nu1Eta, const double nu2Eta,
+                double& bestPx1, double& bestPy1, double& bestPx2, double& bestPy2)
+{
+  double tmpSolX1[2], tmpSolY1[2], tmpSolX2[2], tmpSolY2[2];
+  if ( !computeNuPxPy(l1, j1, mt, nu1Eta, tmpSolX1[0], tmpSolY1[0], tmpSolX1[1], tmpSolY1[1]) ) return -1;
+  if ( !computeNuPxPy(l2, j2, mt, nu2Eta, tmpSolX2[0], tmpSolY2[0], tmpSolX2[1], tmpSolY2[1]) ) return -1;
+
+  double bestWeight = -1e9;
+  for ( int i=0; i<2; ++i )
+  {
+    for ( int j=0; j<2; ++j )
+    {
+      const double dpx = metX-tmpSolX1[i]-tmpSolX2[j];
+      const double dpy = metY-tmpSolY1[i]-tmpSolY2[j];
+      const double weight = exp(-dpx*dpx/2/sigmaEXsqr)*exp(-dpy*dpy/2/sigmaEYsqr);
+      
+      if ( weight > bestWeight )
+      {
+        bestWeight = weight;
+        bestPx1 = tmpSolX1[i];
+        bestPy1 = tmpSolX1[i];
+        bestPx2 = tmpSolX2[j];
+        bestPy2 = tmpSolX2[j];
+      }
+    }
+  }
+
+  return bestWeight;
+}
+
+double fminimize(const gsl_vector* xx, void* p)
+{
+  const double mt = gsl_vector_get(xx, 0);
+  const double nu1Eta = gsl_vector_get(xx, 1);
+  const double nu2Eta = gsl_vector_get(xx, 2);
+
+  double* p0 = (double*) p;
+  KinematicSolver::LorentzVector l1(p0[ 0], p0[ 1], p0[ 2], p0[ 3]);
+  KinematicSolver::LorentzVector l2(p0[ 4], p0[ 5], p0[ 6], p0[ 7]);
+  KinematicSolver::LorentzVector j1(p0[ 8], p0[ 9], p0[10], p0[11]);
+  KinematicSolver::LorentzVector j2(p0[12], p0[13], p0[14], p0[15]);
+  const double metX = p0[16], metY = p0[17];
+  const double sigmaEXsqr = p0[18], sigmaEYsqr = p0[19];
+
+  double bestPx1, bestPy1, bestPx2, bestPy2;
+  const double weight = nuWeight(l1, l2, j1, j2, metX, metY, sigmaEXsqr, sigmaEYsqr,
+                                 mt, nu1Eta, nu2Eta,
+                                 bestPx1, bestPy1, bestPx2, bestPy2);
+  if ( weight <= 0 ) return 1e9;
+  return 1/(0.01+weight);
+}
+
+}
+
+void NuWeightSolver::solve(const KinematicSolver::LorentzVector input[])
+{
+  using namespace CATNuWeight;
+
+  quality_ = -1e9;
+  values_.clear();
+
+  const double metX = input[0].px();
+  const double metY = input[0].py();
+  const auto& l1 = input[1];
+  const auto& l2 = input[2];
+  const auto& j1 = input[3];
+  const auto& j2 = input[4];
+  const double sigmaEXsqr = 1, sigmaEYsqr = 1;
+
+  double bestWeight = -1e9;
+  double bestMt = 0;
+  double bestPx1 = 0, bestPx2 = 0, bestPy1 = 0, bestPy2 = 0;
+  double bestEta1 = 0, bestEta2 = 0;
+  for ( double mt = 100; mt < 300; mt += 2 )
+  {
+    for ( double nu1Eta = -5.0; nu1Eta <= 5.0; nu1Eta += 0.5 )
+    {
+      for ( double nu2Eta = -5.0; nu2Eta <= 5.0; nu2Eta += 0.5 )
+      {
+        double nu1Px, nu1Py, nu2Px, nu2Py;
+        const double weight = nuWeight(l1, l2, j1, j2, metX, metY,  sigmaEXsqr, sigmaEYsqr,
+                                       mt, nu1Eta, nu2Eta,
+                                       nu1Px, nu1Py, nu2Px, nu2Py);
+        if ( weight <= 0 ) continue;
+        if ( weight > bestWeight )
+        {
+          bestWeight = weight;
+          bestMt = mt;
+          bestPx1 = nu1Px; bestPy1 = nu1Py;
+          bestPx2 = nu2Px; bestPy2 = nu2Py;
+          bestEta1 = nu1Eta; bestEta2 = nu2Eta;
+        }
+      }
+    }
+  }
+
+  double pars[] = {
+    l1.px(), l1.py(), l1.pz(), l1.e(),
+    l2.px(), l2.py(), l2.pz(), l2.e(),
+    j1.px(), j1.py(), j1.pz(), j1.e(),
+    j2.px(), j2.py(), j2.pz(), j2.e(),
+    metX, metY,
+    sigmaEXsqr, sigmaEYsqr
+  };
+
+  gsl_multimin_fminimizer* minimizer = gsl_multimin_fminimizer_alloc(gsl_multimin_fminimizer_nmsimplex, 3);
+  gsl_vector* xx = gsl_vector_alloc(3);
+  gsl_vector_set(xx, 0, bestMt);
+  gsl_vector_set(xx, 1, bestEta1);
+  gsl_vector_set(xx, 2, bestEta2);
+  gsl_vector* ss = gsl_vector_alloc(3);
+  gsl_vector_set_all(ss, 0.1);
+
+  gsl_multimin_function fgsl_minimize;
+  fgsl_minimize.n = 3;
+  fgsl_minimize.f = fminimize;
+  fgsl_minimize.params = pars;
+  gsl_multimin_fminimizer_set(minimizer, &fgsl_minimize, xx, ss);
+
+  int status = 0;
+  for ( int iter=0; iter<100; ++iter )
+  {
+    status = gsl_multimin_fminimizer_iterate(minimizer);
+    if ( status ) break;
+    auto size = gsl_multimin_fminimizer_size(minimizer);
+    status = gsl_multimin_test_size(size, 1e-3);
+    if ( status != GSL_CONTINUE ) break;
+  }
+  gsl_vector_free(xx);
+  gsl_vector_free(ss);
+  if ( status == GSL_SUCCESS )
+  {
+    bestMt = gsl_vector_get(minimizer->x, 0);
+    bestEta1 = gsl_vector_get(minimizer->x, 1);
+    bestEta2 = gsl_vector_get(minimizer->x, 2);
+    quality_ = nuWeight(l1, l2, j1, j2, metX, metY, sigmaEXsqr, sigmaEYsqr,
+                        bestMt, bestEta1, bestEta2,
+                        bestPx1, bestPy1, bestPx2, bestPy2);
+  }
+  gsl_multimin_fminimizer_free(minimizer);
+
+  const double bestPz1 = hypot(bestPx1, bestPy1)*sinh(bestEta1);
+  const double bestPz2 = hypot(bestPx2, bestPy2)*sinh(bestEta2);
+  nu1_ = LorentzVector(bestPx1, bestPy1, bestPz1, sqrt(bestPx1*bestPx1+bestPy1*bestPy1+bestPz1*bestPz1));
+  nu2_ = LorentzVector(bestPx2, bestPy2, bestPz2, sqrt(bestPx2*bestPx2+bestPy2*bestPy2+bestPz2*bestPz2));
+
+  const LorentzVector t1 = l1+j1+nu1_;
+  const LorentzVector t2 = l2+j2+nu2_;
+  values_.push_back((t1+t2).mass());
+  values_.push_back(t1.mass());
+  values_.push_back(t2.mass());
+}
+
 
