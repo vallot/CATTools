@@ -28,7 +28,7 @@ class RecoEventInfoProducer : public edm::EDProducer
 public:
   RecoEventInfoProducer(const edm::ParameterSet& pset);
   void produce(edm::Event& event, const edm::EventSetup& eventSetup) override;
-  void beginRun(const edm::Run& run, const edm::EventSetup& eventSetup) override;
+  void beginRun(const edm::Run& run, const edm::EventSetup& eventSetup);
 
 private:
   typedef std::vector<double> doubles;
@@ -48,7 +48,7 @@ RecoEventInfoProducer::RecoEventInfoProducer(const edm::ParameterSet& pset)
   vertexToken_ = pset.getParameter<edm::InputTag>("vertex");
   edm::InputTag hltLabel = pset.getParameter<edm::InputTag>("triggerResults");
   processName_ = hltLabel.process();
-  hltToken_ = pset.getParameter<edm::InputTag>(hltLabel);
+  hltToken_ = pset.getParameter<edm::InputTag>("hltLabel");
 
   produces<int>("pvN");
   produces<double>("pvX");

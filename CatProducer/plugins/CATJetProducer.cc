@@ -56,12 +56,12 @@ namespace cat {
 } // namespace
 
 cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
-  src_(iConfig.getParameter<edm::InputTag>("src"))),
-  shiftedEnDownSrc_(iConfig.getParameter<edm::InputTag>("shiftedEnDownSrc"))),
-  shiftedEnUpSrc_(iConfig.getParameter<edm::InputTag>("shiftedEnUpSrc"))),
-  smearedResSrc_(iConfig.getParameter<edm::InputTag>("smearedResSrc"))),
-  smearedResDownSrc_(iConfig.getParameter<edm::InputTag>("smearedResDownSrc"))),
-  smearedResUpSrc_(iConfig.getParameter<edm::InputTag>("smearedResUpSrc"))),
+  src_(iConfig.getParameter<edm::InputTag>("src")),
+  shiftedEnDownSrc_(iConfig.getParameter<edm::InputTag>("shiftedEnDownSrc")),
+  shiftedEnUpSrc_(iConfig.getParameter<edm::InputTag>("shiftedEnUpSrc")),
+  smearedResSrc_(iConfig.getParameter<edm::InputTag>("smearedResSrc")),
+  smearedResDownSrc_(iConfig.getParameter<edm::InputTag>("smearedResDownSrc")),
+  smearedResUpSrc_(iConfig.getParameter<edm::InputTag>("smearedResUpSrc")),
   btagNames_(iConfig.getParameter<std::vector<std::string> >("btagNames")),
   runOnMC_(iConfig.getParameter<bool>("runOnMC"))
 {
@@ -72,20 +72,19 @@ cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
 void 
 cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) {
 
-  Handle<View<pat::Jet> > src;
-  iEvent.getByLabel(src_, src);
-
-  edm::Handle<pat::JetCollection> shiftedEnDownSrc;
-  edm::Handle<pat::JetCollection> shiftedEnUpSrc;
-  edm::Handle<pat::JetCollection> smearedResSrc;
-  edm::Handle<pat::JetCollection> smearedResDownSrc;
-  edm::Handle<pat::JetCollection> smearedResUpSrc;
+  Handle<View<pat::Jet> > src; iEvent.getByLabel(src_, src);
+  Handle<View<pat::Jet> > shiftedEnDownSrc;
+  Handle<View<pat::Jet> > shiftedEnUpSrc;
+  Handle<View<pat::Jet> > smearedResSrc;
+  Handle<View<pat::Jet> > smearedResDownSrc;
+  Handle<View<pat::Jet> > smearedResUpSrc;
+  
   if (runOnMC_){
-    iEvent.getByToken(shiftedEnDownSrc_, shiftedEnDownSrc);
-    iEvent.getByToken(shiftedEnUpSrc_, shiftedEnUpSrc);
-    iEvent.getByToken(smearedResSrc_, smearedResSrc);
-    iEvent.getByToken(smearedResDownSrc_, smearedResDownSrc);
-    iEvent.getByToken(smearedResUpSrc_, smearedResUpSrc);
+    iEvent.getByLabel(shiftedEnDownSrc_, shiftedEnDownSrc);
+    iEvent.getByLabel(shiftedEnUpSrc_, shiftedEnUpSrc);
+    iEvent.getByLabel(smearedResSrc_, smearedResSrc);
+    iEvent.getByLabel(smearedResDownSrc_, smearedResDownSrc);
+    iEvent.getByLabel(smearedResUpSrc_, smearedResUpSrc);
     std::cout << "src->size() " << src->size()<< endl;
     std::cout << "shiftedEnDownSrc->size() " << shiftedEnDownSrc->size()<< endl;
   }
