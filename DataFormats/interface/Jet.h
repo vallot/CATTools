@@ -59,7 +59,19 @@ namespace cat {
     void addBDiscriminatorPair(const std::pair<std::string, float> & thePair) {
       pairDiscriVector_.push_back(thePair);
     }
-    
+
+    void setShiftedEnDown(float f) { shiftedEnDown_ = f;}
+    void setShiftedEnUp(float f) { shiftedEnUp_ = f;}
+    void setSmearedRes(float f) { smearedRes_ = f;}
+    void setSmearedResDown(float f) { smearedResDown_ = f;}
+    void setSmearedResUp(float f) { smearedResUp_ = f;}
+
+    float shiftedEnDown() {return  shiftedEnDown_;}
+    float shiftedEnUp()   {return  shiftedEnUp_;}
+    float smearedRes()    {return  smearedRes_;}
+    float smearedResDown(){return  smearedResDown_;}
+    float smearedResUp()  {return  smearedResUp_;}
+
   private:
     bool LooseId_; 
     float pileupJetId_;
@@ -78,6 +90,12 @@ namespace cat {
     int partonFlavour_;
     int hadronFlavour_;
     int partonPdgId_;
+
+    float shiftedEnDown_;
+    float shiftedEnUp_;
+    float smearedRes_;
+    float smearedResDown_;
+    float smearedResUp_;
 
   };
 }

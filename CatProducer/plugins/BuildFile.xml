@@ -25,4 +25,5 @@
   <use   name="RecoEgamma/EgammaTools"/>
   <use   name="TrackingTools/IPTools"/> 
   <use   name="root"/>
+  <use   name="lhapdf"/>
 </library>

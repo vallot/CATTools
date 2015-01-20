@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 import os,sys,getopt
 
-requestName = "test"
-publishDataName = "caTuple"
+requestName = ""
 datasets = []
 inputFile =""
 submit = False
@@ -42,7 +41,12 @@ for dataset in datasets:
     else :
         label = dataset.split("/")[1]+"_"+dataset.split("/")[2]
 
-    sendjob = crabcommand + " Data.publishDataName='%s' General.requestName='%s_%s' Data.inputDataset='%s'"%(publishDataName,requestName,label,dataset)
+    if requestName:
+        requestName = '%s_%s'%(requestName,label)
+
+    publishDataName = dataset.split("/")[2]
+    
+    sendjob = crabcommand + " Data.publishDataName='%s' General.requestName='%s' Data.inputDataset='%s'"%(publishDataName,requestName,dataset)
     print sendjob
     if submit:
         print "submiting job"

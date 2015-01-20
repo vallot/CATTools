@@ -35,11 +35,41 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
     process.catSecVertexs.elecSrc = cms.InputTag(catElectronsSource)
     process.catSecVertexs.vertexLabel = cms.InputTag(catVertexSource)
 
+    process.load("CATTools.CatProducer.recoEventInfo_cfi")
+    process.out.outputCommands.append("keep *_recoEventInfo_*_*")
+    if runOnMC:
+        ## Load MC dependent producers
+        process.load("CATTools.CatProducer.pdfWeight_cff")
+        process.load("CATTools.CatProducer.pileupWeight_cff")
+        process.out.outputCommands.append("keep *_pdfWeight_*_*")
+        process.out.outputCommands.append("keep *_pileupWeight_*_*")
+
+        from PhysicsTools.PatUtils.tools.runType1PFMEtUncertainties import runType1PFMEtUncertainties
+        runType1PFMEtUncertainties(process,
+                                   dRjetCleaning = 0.0,
+                                    addToPatDefaultSequence=False,
+                                    jetCollection=catJetsSource,
+                                    electronCollection=catElectronsSource,
+                                    photonCollection=catPhotonsSource,
+                                    muonCollection=catMuonsSource,
+                                    tauCollection=catTausSource,
+                                    makeType1p2corrPFMEt=True,
+                                    outputModule=None)
+
+        #from PhysicsTools.PatUtils.tools.metUncertaintyTools import runMEtUncertainties
+        #runMEtUncertainties(process,
+        #                    electronCollection = cms.InputTag(catElectronsSource),
+        #                    jetCollection=cms.InputTag(catJetsSource),
+        #                    muonCollection = cms.InputTag(catMuonsSource),
+        #                    tauCollection = cms.InputTag(catTausSource) )
+        #process.patDefaultSequencePFlow += process.metUncertaintySequence        
+
     if not runOnMC:
         process.makeCatCandidates.remove(process.catGenJets)
         process.makeCatCandidates.remove(process.catMCParticles)
         process.catMuons.runOnMC = cms.bool(False)
         process.catElectrons.runOnMC = cms.bool(False)
+        process.catJets.runOnMC = cms.bool(False)
 
     if doSecVertex:
         from TrackingTools.TransientTrack.TransientTrackBuilder_cfi import TransientTrackBuilderESProducer

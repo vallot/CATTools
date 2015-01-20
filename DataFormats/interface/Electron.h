@@ -62,7 +62,6 @@ namespace cat {
       float corNeutralIso = neutralIso - dBetaFactor * puChargedHadronIso(dR);
 
       float charged = chargedHadronIso(dR);
-
       return charged + ( corNeutralIso>0 ? corNeutralIso : 0 ) ;
     }
 
