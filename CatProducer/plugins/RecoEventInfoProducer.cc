@@ -45,10 +45,10 @@ private:
 
 RecoEventInfoProducer::RecoEventInfoProducer(const edm::ParameterSet& pset)
 {
-  vertexToken_ = consumes<reco::VertexCollection>(pset.getParameter<edm::InputTag>("vertex"));
+  vertexToken_ = pset.getParameter<edm::InputTag>("vertex");
   edm::InputTag hltLabel = pset.getParameter<edm::InputTag>("triggerResults");
   processName_ = hltLabel.process();
-  hltToken_ = consumes<edm::TriggerResults>(hltLabel);
+  hltToken_ = pset.getParameter<edm::InputTag>(hltLabel);
 
   produces<int>("pvN");
   produces<double>("pvX");

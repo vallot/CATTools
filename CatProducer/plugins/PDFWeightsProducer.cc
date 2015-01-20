@@ -35,7 +35,7 @@ private:
 
 PDFWeightsProducer::PDFWeightsProducer(const edm::ParameterSet& pset)
 {
-  genInfoToken_ = consumes<GenEventInfoProduct>(pset.getParameter<edm::InputTag>("genEventInfo"));
+  genInfoToken_ = pset.getParameter<edm::InputTag>("genEventInfo");
   pdfName_ = pset.getParameter<std::string>("pdfName");
 
   doReweightPdf_ = false;

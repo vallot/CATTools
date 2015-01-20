@@ -55,7 +55,7 @@ PileupWeightProducer::PileupWeightProducer(const edm::ParameterSet& pset)
   lumiWeightsUp_ = edm::LumiReWeighting(pileupMCTmp, pileupUpTmp);
   lumiWeightsDn_ = edm::LumiReWeighting(pileupMCTmp, pileupDnTmp);
 
-  puToken_ = consumes<PUInfos>(edm::InputTag("addPileupInfo"));
+  puToken_ = pset.getParameter<edm::InputTag>("addPileupInfo");
 
   produces<int>("nTrueInteraction");
   produces<double>("");
