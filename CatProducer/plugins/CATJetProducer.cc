@@ -13,6 +13,10 @@
 #include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
 
+#include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
+#include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
+#include "JetMETCorrections/Objects/interface/JetCorrectionsRecord.h"
+
 using namespace edm;
 using namespace std;
 
@@ -37,30 +41,77 @@ namespace cat {
 
   private:
     edm::InputTag src_;
+    edm::InputTag shiftedEnDownSrc_;
+    edm::InputTag shiftedEnUpSrc_;
+    edm::InputTag smearedResSrc_;
+    edm::InputTag smearedResDownSrc_;
+    edm::InputTag smearedResUpSrc_;
+
     const std::vector<std::string> btagNames_;
+    std::string uncertaintyTag_, payloadName_;
+    bool runOnMC_;
+
   };
 
 } // namespace
 
 cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
-  src_(iConfig.getParameter<edm::InputTag>( "src" )),
-  btagNames_(iConfig.getParameter<std::vector<std::string> >("btagNames"))
+  src_(iConfig.getParameter<edm::InputTag>("src")),
+  shiftedEnDownSrc_(iConfig.getParameter<edm::InputTag>("shiftedEnDownSrc")),
+  shiftedEnUpSrc_(iConfig.getParameter<edm::InputTag>("shiftedEnUpSrc")),
+  smearedResSrc_(iConfig.getParameter<edm::InputTag>("smearedResSrc")),
+  smearedResDownSrc_(iConfig.getParameter<edm::InputTag>("smearedResDownSrc")),
+  smearedResUpSrc_(iConfig.getParameter<edm::InputTag>("smearedResUpSrc")),
+  btagNames_(iConfig.getParameter<std::vector<std::string> >("btagNames")),
+  runOnMC_(iConfig.getParameter<bool>("runOnMC"))
 {
   produces<std::vector<cat::Jet> >();
+  //uncertaintyTag_    = iConfig.getParameter<std::string>("UncertaintyTag");
 }
 
 void 
 cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) {
 
-  Handle<View<pat::Jet> > src;
-  iEvent.getByLabel(src_, src);
-
+  Handle<View<pat::Jet> > src; iEvent.getByLabel(src_, src);
+  Handle<View<pat::Jet> > shiftedEnDownSrc;
+  Handle<View<pat::Jet> > shiftedEnUpSrc;
+  Handle<View<pat::Jet> > smearedResSrc;
+  Handle<View<pat::Jet> > smearedResDownSrc;
+  Handle<View<pat::Jet> > smearedResUpSrc;
+  
+  if (runOnMC_){
+    iEvent.getByLabel(shiftedEnDownSrc_, shiftedEnDownSrc);
+    iEvent.getByLabel(shiftedEnUpSrc_, shiftedEnUpSrc);
+    iEvent.getByLabel(smearedResSrc_, smearedResSrc);
+    iEvent.getByLabel(smearedResDownSrc_, smearedResDownSrc);
+    iEvent.getByLabel(smearedResUpSrc_, smearedResUpSrc);
+    std::cout << "src->size() " << src->size()<< endl;
+    std::cout << "shiftedEnDownSrc->size() " << shiftedEnDownSrc->size()<< endl;
+  }
+  
   auto_ptr<vector<cat::Jet> >  out(new vector<cat::Jet>());
-
+  int j = 0;
   for (const pat::Jet &aPatJet : *src) {
     bool looseId = checkPFJetId( aPatJet );
     cat::Jet aJet(aPatJet);
 
+    if (runOnMC_){
+      //      const pat::Jet &shiftedEnDownJet = shiftedEnDownSrc->at(j);
+      std::cout << "                   jet pt " << aPatJet.pt()
+		<< " jet eta " << aPatJet.eta() << endl;
+      std::cout << " shiftedEnDownJet  jet pt " << shiftedEnDownSrc->at(j).pt()
+		<< " jet eta " << shiftedEnDownSrc->at(j).eta() << endl;
+      std::cout << " smearedResSrc     jet pt " << smearedResSrc->at(j).pt()
+		<< " jet eta " << smearedResSrc->at(j).eta() << endl;
+      std::cout << " smearedResDownSrc jet pt " << smearedResDownSrc->at(j).pt()
+		<< " jet eta " << smearedResDownSrc->at(j).eta() << endl;
+      aJet.setShiftedEnDown(shiftedEnDownSrc->at(j).pt() );
+      aJet.setShiftedEnUp(shiftedEnUpSrc->at(j).pt() );
+      aJet.setSmearedRes(smearedResSrc->at(j).pt() );
+      aJet.setSmearedResDown(smearedResDownSrc->at(j).pt() );
+      aJet.setSmearedResUp(smearedResUpSrc->at(j).pt() );
+    }
+    ++j;
     aJet.setLooseId( looseId );
     if( aPatJet.hasUserFloat("pileupJetId:fullDiscriminant") )
       aJet.setPileupJetId( aPatJet.userFloat("pileupJetId:fullDiscriminant") );

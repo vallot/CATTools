@@ -9,7 +9,8 @@ def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5"):
     else:
         process.GlobalTag.globaltag = autoCond['com10']
         jecLevels = ['L1FastJet','L2Relative', 'L3Absolute', 'L2L3Residual']
-
+    print "using globaltag", process.GlobalTag.globaltag
+    
     from PhysicsTools.PatAlgos.tools.pfTools import usePF2PAT,removeMCMatchingPF2PAT
     usePF2PAT(process, runPF2PAT=True, jetAlgo=jetAlgo, jetCorrections=("AK5PFchs", jecLevels),
             runOnMC=runOnMC, postfix=postfix, typeIMetCorrections=True)
@@ -37,6 +38,7 @@ def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5"):
         # temp fix for photons since they are not done with PF2PAT
         + process.photonMatch + process.patPhotons + process.selectedPatPhotons
     )
+
     if not runOnMC:
         removeMCMatchingPF2PAT( process, postfix=postfix )
         process.p.remove(process.photonMatch)
@@ -52,9 +54,8 @@ def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5"):
     # enable delta beta correction for muon selection in PF2PAT?
     getattr(process,"pfIsolatedMuons"+postfix).doDeltaBetaCorrection = False
     
-
     # no taus for now...
-    #process.selectedPatTausPFlow.cut = cms.string("pt > 18. && tauID('decayModeFinding')> 0.5")
+    process.selectedPatTausPFlow.cut = cms.string("pt > 18. && tauID('decayModeFinding')> 0.5")
 
     process.patJetPartonMatchPFlow.mcStatus = [ 3, 23 ]
     process.patPFParticlesPFlow.embedGenMatch = cms.bool(True)
@@ -74,8 +75,6 @@ def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5"):
 )
     process.patJetsPFlow.userData.userFunctionLabels = cms.vstring('secvtxMass','Lxy','LxyErr')
 
-
-    process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(False))
     process.out.outputCommands = cms.untracked.vstring(
         'drop *',
         'keep *_cat*_*_*',
@@ -85,9 +84,6 @@ def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5"):
         'keep edmMergeableCounter_*_*_*',
         'keep patTriggerPaths_patTrigger*_*_*',
         'keep recoGenParticles_genParticles__SIM',
-        #'keep *_selectedPatJets_*_*',
-        #'keep *_TriggerResults_*_PAT',
-        #'keep *_patTrigger*_*_*',
-        #'keep *_*_*_PAT',
         )
-    process.out.fileName = cms.untracked.string('catTuple.root')
+
+    process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(False))

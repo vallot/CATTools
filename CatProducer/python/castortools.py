@@ -5,7 +5,6 @@
 
 from optparse import OptionParser
 import sys,os, re, pprint
-import subprocess
 
 
 def isCastorDir( dir ):
@@ -14,60 +13,23 @@ def isCastorDir( dir ):
         return True
     else:
         return False
-
-#COLIN is it still in use?
-# yes, in crabProd.py. could think about removing it
-def isCastorFile( file ):
-    if isLFN(file):
-        file = lfnToCastor(file)
-    os.system( 'nsls ' + file )
-    ret = subprocess.call( ['nsls',file] )
-    return not ret
-
-
-def fileExists( file ):
-    if isLFN(file):
-        file =  lfnToCastor(file)
-    castor = isCastorDir(file)
-    ls = 'ls'
-    if castor:
-        ls = 'nsls'
-    # ret = subprocess.call( [ls, file] )
-    child = subprocess.Popen( [ls, file], stdout=subprocess.PIPE)
-    child.communicate()
-    # print ls, file, child.returncode
-    return not child.returncode
+    
 
 # returns all files in a directory matching regexp.
 # the directory can be a castor dir.
 # optionnally, the protocol (rfio: or file:) is prepended to the absolute
 # file name
-#COLIN: now that we are using LFNs, one should remove the castor argument (I guess)
-def matchingFiles( dir, regexp, addProtocol=False, LFN=True):
+def matchingFiles( dir, regexp, protocol=None, castor=True):
 
-    ls = 'nsls'
-
-    localFiles = False
-    if isLFN( dir ):
-        dir = lfnToCastor( dir )
-    elif not isCastorDir( dir ):
-        # neither LFN nor castor file -> local file
-        ls = 'ls'
-        localFiles = True
-        dir = os.getcwd() + '/' + dir
-        
+    ls = 'rfdir'
+ 
     try:
         pattern = re.compile( regexp )
     except:
         print 'please enter a valid regular expression '
         sys.exit(1)
 
-    # allFiles = None
-    # if localFiles:
-    #    cmd = "%s %s/%s" % (ls, os.getcwd(), dir)
-
-    cmd = "%s %s" % (ls, dir) 
-    allFiles = os.popen(cmd)
+    allFiles = os.popen("%s %s | awk '{print $9}'" % (ls, dir))
 
     matchingFiles = []
     for file in allFiles.readlines():
@@ -75,17 +37,32 @@ def matchingFiles( dir, regexp, addProtocol=False, LFN=True):
         
         m = pattern.match( file )
         if m:
-            fullFileName = '%s/%s' % (dir, file)
-            if addProtocol and localFiles:
-                fullFileName = 'file:%s/%s' % ( dir, file)
-            if not localFiles and LFN:
-                fullFileName = fullFileName.replace( '/castor/cern.ch/cms/store', '/store')
-            matchingFiles.append( fullFileName )
+            fullCastorFile = '%s/%s' % (dir, file)
+            if protocol:
+                fullCastorFile = '%s%s/%s' % (protocol, dir, file)
+            matchingFiles.append( fullCastorFile )
 
     allFiles.close()
 
     return matchingFiles
 
+# does not work
+def rootEventNumber( file ):
+    tmp = open("nEvents.C", "w")
+    tmp.write('''
+void nEvents(const char* f) {
+  loadFWLite();
+  TFile* fp = TFile::Open(f);
+  cout<<Events->GetEntries()<<endl;
+  gApplication->Terminate();
+}
+''')
+    command = 'root -b \'nEvents.C(\"%s\")\' ' % file
+    print command
+    output = os.popen('root -b \'nEvents.C(\"%s\")\' ' % file)
+    print 'done'
+    output.close()
+    print 'closed'
 
 # returns the number of events in a file 
 def numberOfEvents( file, castor=True):
@@ -263,7 +240,6 @@ def createSubDir( castorDir, subDir ):
     absName = '%s/%s' % (castorDir, subDir)
     return createCastorDir( absName )
 
-
 # create castor directory, if it does not already exist
 def createCastorDir( absName ):
     out = os.system( 'rfdir %s' % absName )
@@ -284,103 +260,30 @@ def move( absDestDir, files ):
 # remove a set of files
 def remove( files ):
     for file in files:
-        if isLFN( file ):
-            file = lfnToCastor( file )
         rfrm = 'rfrm %s' % file
         print rfrm
         os.system( rfrm )
 
-def protectedRemove( *args ):
-    files = matchingFiles( *args )
-    if len(files) == 0:
-        return True 
-
-    pprint.pprint( files )
-    yesno = ''
-    while yesno!='y' and yesno!='n':
-        yesno = raw_input('Are you sure you want to remove these files [y/n]? ')
-    if yesno == 'y':
-        remove( files )
-        print 'files removed'
-        return True
-    else:
-        print 'cancelled'
-        return False
-
-def isLFN( file ):
-    storePattern = re.compile('^/store.*')
-    if storePattern.match( file ):
-        return True
-    else:
-        return False
-
-def lfnToCastor( file ):
-    if isCastorDir(file):
-        return file
-    elif isLFN( file ):
-        return '/castor/cern.ch/cms' + file
-    else:
-        raise NameError(file)
-
-def castorToLFN( file ):
-    return file.replace('/castor/cern.ch/cms','')
-
-
-def cmsStage( absDestDir, files, force):
-
-    destIsCastorDir = isCastorDir(absDestDir)
-    if destIsCastorDir: 
-        createCastorDir( absDestDir )
-
-    for file in files:
-        storefile = file.replace('/castor/cern.ch/cms','')
-        forceOpt = ''
-        if force:
-            forceOpt = '-f'
-        cmsStage = 'cmsStage %s %s %s ' % (forceOpt, storefile, absDestDir) 
-        print cmsStage
-        os.system( cmsStage )
-        
-
-def xrdcp( absDestDir, files ):
+# copy a set of files to a castor directory
+def cp( absDestDir, files ):
     cp = 'cp'
     destIsCastorDir = isCastorDir(absDestDir)
     if destIsCastorDir: 
-        cp = 'xrdcp'
+        cp = 'rfcp'
         createCastorDir( absDestDir )
         
     for file in files:
 
-        cpfile = '%s %s %s' % (cp, file,absDestDir)
-        
         if destIsCastorDir == False:
             if isCastorDir( os.path.abspath(file) ):
-                cp = 'xrdcp'
-                cpfile = '%s "root://castorcms/%s?svcClass=cmst3&stageHost=castorcms" %s' % (cp, file,absDestDir)
-
+                cp = 'rfcp'
+            else:
+                cp = 'cp'
+        
+        cpfile = '%s %s %s' % (cp, file,absDestDir)
         print cpfile
         os.system(cpfile)
-
-def cat(lfn):
-    name = lfnToCastor(lfn)
-    if not fileExists(name):
-        raise Exception("File '%s' does not exist. Cannot do a cat." % name)
-    output = subprocess.Popen(['rfcat',name], stdout=subprocess.PIPE).communicate()[0]
-    return output
-
-def stageHost():
-    """Returns the CASTOR instance to use"""
-    return os.environ.get('STAGE_HOST','castorcms')
         
-def listFiles(dir, rec = False):
-    """Recursively list a file or directory on castor"""
-    cmd = 'dirlist'
-    if rec:
-        cmd = 'dirlistrec'
-    files = subprocess.Popen(['xrd',stageHost(),cmd, dir], stdout=subprocess.PIPE).communicate()[0]
-    result = []
-    for f in files.split('\n'):
-        s = f.split()
-        if s: result.append(tuple(s))
-    return result
+        
+
 

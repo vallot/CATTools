@@ -1,10 +1,8 @@
 from WMCore.Configuration import Configuration
-
 config = Configuration()
 
 config.section_("General")
-config.General.requestName   = 'cat_test1'
-config.General.transferLogs = False
+config.General.transferLogs    = False
 config.General.transferOutputs = True
 
 config.section_("JobType")
@@ -14,14 +12,11 @@ config.JobType.pyCfgParams = ['runOnMC=False']
 config.JobType.inputFiles  = ['Winter14_V5_DATA.db']
 
 config.section_("Data")
-# This string determines the primary dataset of the newly-produced outputs.
 config.Data.inputDataset = '/QCD_Pt-15to3000_TuneEE3C_Flat_8TeV_herwigpp/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM'
-config.Data.splitting = 'LumiBased'
-config.Data.unitsPerJob = 20
-config.Data.publication = False
-config.Data.lumiMask = 'Cert_190456-208686_8TeV_22Jan2013ReReco_Collisions12_JSON.txt'
-
-# This string is used to construct the output dataset name
+config.Data.splitting    = 'LumiBased'
+config.Data.unitsPerJob  = 20
+config.Data.lumiMask     = 'Cert_190456-208686_8TeV_22Jan2013ReReco_Collisions12_JSON.txt'
+config.Data.publication  = True
 config.Data.publishDataName = 'cat'
 
 config.section_("Site")

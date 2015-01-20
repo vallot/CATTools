@@ -9,14 +9,16 @@ process.load('SimGeneral.HepPDTESSource.pythiapdt_cfi')
 process.load('SimGeneral.MixingModule.mixNoPU_cfi')
 process.load('Configuration.EventContent.EventContent_cff')
 process.load('Configuration.StandardSequences.Services_cff')
-process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
-process.load('Configuration.StandardSequences.MagneticField_38T_cff')
+process.load("Configuration.Geometry.GeometryIdeal_cff")
+process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
+process.load("PhysicsTools.PatAlgos.patSequences_cff")
+process.GlobalTag.globaltag = cms.string( 'START53_V27::All' )
 
 ## Options and Output Report
 process.options = cms.untracked.PSet(
-    allowUnscheduled = cms.untracked.bool(True),
+    #allowUnscheduled = cms.untracked.bool(True),
     wantSummary = cms.untracked.bool(True)
 )
 
@@ -42,11 +44,7 @@ process.out = cms.OutputModule("PoolOutputModule",
         'keep PileupSummaryInfos_*_*_*',
         'keep edmMergeableCounter_*_*_*',
         'keep patTriggerPaths_patTrigger*_*_*',
-        'keep *_prunedGenParticles_*_*',
-        #'keep *_selectedPatJets_*_*',
-        #'keep *_TriggerResults_*_PAT',
-        #'keep *_patTrigger*_*_*',
-        #'keep *_*_*_PAT',
+        'keep recoGenParticles_genParticles__SIM',
     )
 )
 process.outpath = cms.EndPath(process.out)

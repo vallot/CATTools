@@ -1,5 +1,5 @@
-from PhysicsTools.PatAlgos.patTemplate_cfg import *
-#from CATTools.CatProducer.catTemplate_cfg import *
+#from PhysicsTools.PatAlgos.patTemplate_cfg import *
+from CATTools.CatProducer.catTemplate_cfg import *
 ## some options
 doSecVertex=True # for jpsi candidates
     
@@ -7,9 +7,11 @@ doSecVertex=True # for jpsi candidates
 from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing('python')
 options.register('runOnMC', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runOnMC: True default")
+#options.register('globalTag', '', VarParsing.multiplicity.singleton, VarParsing.varType.string, "globalTag: 1  default")
 
 options.parseArguments()
 runOnMC = options.runOnMC
+#globalTag = options.globalTag
 
 ####################################################################################################
 ## running PAT
@@ -18,23 +20,6 @@ jetAlgo="AK5"
 from CATTools.CatProducer.catPatSetup_cff import *
 catPatConfig(process, runOnMC, postfix, jetAlgo)
 
-process.load("CondCore.DBCommon.CondDBCommon_cfi")
-from CondCore.DBCommon.CondDBSetup_cfi import *
-process.jec = cms.ESSource("PoolDBESSource",
-      DBParameters = cms.PSet(
-        messageLevel = cms.untracked.int32(0)
-        ),
-      timetype = cms.string('runnumber'),
-      toGet = cms.VPSet(
-      cms.PSet(
-            record = cms.string('JetCorrectionsRecord'),
-            tag    = cms.string('JetCorrectorParametersCollection_Winter14_V5_DATA_AK5PF'),
-            ),
-      ), 
-      connect = cms.string('sqlite:Winter14_V5_DATA.db')
-)
-
-process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
 ####################################################################################################
 
 from CATTools.CatProducer.catSetup_cff import *
