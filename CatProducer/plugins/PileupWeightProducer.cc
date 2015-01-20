@@ -30,7 +30,7 @@ private:
   edm::LumiReWeighting lumiWeights_, lumiWeightsUp_, lumiWeightsDn_;
 
   typedef std::vector<PileupSummaryInfo> PUInfos;
-  edm::EDGetTokenT<PUInfos> puToken_;
+  edm::InputTag puToken_;
 
 };
 
@@ -67,7 +67,7 @@ PileupWeightProducer::PileupWeightProducer(const edm::ParameterSet& pset)
 void PileupWeightProducer::produce(edm::Event& event, const edm::EventSetup& eventSetup)
 {
   edm::Handle<std::vector<PileupSummaryInfo> > puHandle;
-  event.getByToken(puToken_, puHandle);
+  event.getByLabel(puToken_, puHandle);
 
   std::auto_ptr<int> nTrueIntr(new int(-1));
   std::auto_ptr<double> weight(new double(1.));

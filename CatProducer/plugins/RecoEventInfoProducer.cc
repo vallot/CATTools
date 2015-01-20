@@ -34,8 +34,8 @@ private:
   typedef std::vector<double> doubles;
   typedef std::vector<std::string> strings;
 
-  edm::EDGetTokenT<reco::VertexCollection> vertexToken_;
-  edm::EDGetTokenT<edm::TriggerResults> hltToken_;
+  edm::InputTag vertexToken_;
+  edm::InputTag hltToken_;
 
   std::string processName_;
   std::map<std::string, strings> hltGroup_;
@@ -89,7 +89,7 @@ void RecoEventInfoProducer::beginRun(const edm::Run& run, const edm::EventSetup&
 void RecoEventInfoProducer::produce(edm::Event& event, const edm::EventSetup& eventSetup)
 {
   edm::Handle<reco::VertexCollection> vertexHandle;
-  event.getByToken(vertexToken_, vertexHandle);
+  event.getByLabel(vertexToken_, vertexHandle);
 
   const int nPV = vertexHandle->size();
   double pvX = 0, pvY = 0, pvZ = 0;
@@ -105,7 +105,7 @@ void RecoEventInfoProducer::produce(edm::Event& event, const edm::EventSetup& ev
   event.put(std::auto_ptr<double>(new double(pvZ)), "pvZ");
 
   edm::Handle<edm::TriggerResults> hltHandle;
-  event.getByToken(hltToken_, hltHandle);
+  event.getByLabel(hltToken_, hltHandle);
   for ( auto key = hltGroup_.begin(); key != hltGroup_.end(); ++key )
   {
     const std::string& hltGroupName = key->first;

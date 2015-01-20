@@ -30,7 +30,7 @@ private:
   bool doReweightPdf_;
   std::string pdfName_;
   std::string generatedPdfName_;
-  edm::EDGetTokenT<GenEventInfoProduct> genInfoToken_;
+  edm::InputTag genInfoToken_;
 };
 
 PDFWeightsProducer::PDFWeightsProducer(const edm::ParameterSet& pset)
@@ -70,7 +70,7 @@ void PDFWeightsProducer::produce(edm::Event& event, const edm::EventSetup& event
   }
 
   edm::Handle<GenEventInfoProduct> genInfoHandle;
-  event.getByToken(genInfoToken_, genInfoHandle);
+  event.getByLabel(genInfoToken_, genInfoHandle);
 
   const float q = genInfoHandle->pdf()->scalePDF;
   const int id1 = genInfoHandle->pdf()->id.first;
