@@ -133,3 +133,4 @@ pileupWeight.pileupMC = pileupWeightMap["Summer12_S10"]
 pileupWeight.pileupRD = pileupWeightMap["Run2012"]
 pileupWeight.pileupUp = pileupWeightMap["Run2012Up"]
 pileupWeight.pileupDn = pileupWeightMap["Run2012Dn"]
+pileupWeight.addPileupInfo = cms.InputTag("addPileupInfo")

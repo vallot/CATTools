@@ -48,7 +48,7 @@ RecoEventInfoProducer::RecoEventInfoProducer(const edm::ParameterSet& pset)
   vertexToken_ = pset.getParameter<edm::InputTag>("vertex");
   edm::InputTag hltLabel = pset.getParameter<edm::InputTag>("triggerResults");
   processName_ = hltLabel.process();
-  hltToken_ = pset.getParameter<edm::InputTag>("hltLabel");
+  hltToken_ = hltLabel;
 
   produces<int>("pvN");
   produces<double>("pvX");

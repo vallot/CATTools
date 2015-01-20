@@ -54,14 +54,16 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
     process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
 
     process.load("CATTools.CatProducer.recoEventInfo_cfi")
+    process.recoEventInfo.vertex = cms.InputTag(catVertexSource)
     process.out.outputCommands.append("keep *_recoEventInfo_*_*")
+    process.p += process.recoEventInfo 
     if runOnMC:
         ## Load MC dependent producers
         process.load("CATTools.CatProducer.pdfWeight_cff")
         process.load("CATTools.CatProducer.pileupWeight_cff")
         process.out.outputCommands.append("keep *_pdfWeight_*_*")
         process.out.outputCommands.append("keep *_pileupWeight_*_*")
-
+        process.p += process.pdfWeight +  process.pileupWeight
         ## making met Uncertainty
         ## from PhysicsTools.PatUtils.tools.metUncertaintyTools import runMEtUncertainties
         ## runMEtUncertaintiesClass = runMEtUncertainties(process,
@@ -139,4 +141,3 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
     #getattr(process,catPhotonsSource).cut = cms.string("pt > 5")
 
     process.p += process.makeCatCandidates
-    print "process.out.outputCommands", process.out.outputCommands
