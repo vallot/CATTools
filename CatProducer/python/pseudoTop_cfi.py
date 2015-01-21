@@ -1,5 +1,9 @@
 import FWCore.ParameterSet.Config as cms
 
+partonTop = cms.EDProducer("PartonTopProducer",
+    genParticles = cms.InputTag("prunedGenParticles"),
+)
+
 pseudoTop = cms.EDProducer("PseudoTopProducer",
     genParticles = cms.InputTag("prunedGenParticles"),
     finalStates = cms.InputTag("packedGenParticles"),
