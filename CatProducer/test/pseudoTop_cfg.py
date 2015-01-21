@@ -58,7 +58,7 @@ process.TFileService = cms.Service("TFileService",
 )
 
 process.p = cms.Path(
-    process.pseudoTop
+    process.partonTop + process.pseudoTop
   #* process.printTree
   #* process.printDecay
   #* process.printList

@@ -184,11 +184,10 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
 
   if ( modes->size() == 2 )
   {
-    const int mode1 = modes->at(0);
-    const int mode2 = modes->at(1);
-    if ( mode1 == CH_HADRON and mode2 == CH_HADRON ) *channel = CH_FULLHADRON;
-    else if ( mode1 != CH_HADRON and mode2 == CH_HADRON ) *channel = CH_FULLLEPTON;
-    else *channel = CH_SEMILEPTON;
+    const int nLepton = nElectron + nMuon;
+    if      ( nLepton == 0 ) *channel = CH_FULLHADRON;
+    else if ( nLepton == 1 ) *channel = CH_SEMILEPTON;
+    else if ( nLepton == 2 ) *channel = CH_FULLLEPTON;
   }
 
   event.put(partons);
