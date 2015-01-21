@@ -2,14 +2,10 @@ import FWCore.ParameterSet.Config as cms
 ## based on patTuple_PF2PAT_cfg
 
 def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5"):
-    from Configuration.AlCa.autoCond import autoCond
     if runOnMC:
-        process.GlobalTag.globaltag = autoCond['startup']
         jecLevels = ['L1FastJet','L2Relative','L3Absolute']
     else:
-        process.GlobalTag.globaltag = autoCond['com10']
         jecLevels = ['L1FastJet','L2Relative', 'L3Absolute', 'L2L3Residual']
-    print "using globaltag", process.GlobalTag.globaltag
     
     from PhysicsTools.PatAlgos.tools.pfTools import usePF2PAT,removeMCMatchingPF2PAT
     usePF2PAT(process, runPF2PAT=True, jetAlgo=jetAlgo, jetCorrections=("AK5PFchs", jecLevels),
