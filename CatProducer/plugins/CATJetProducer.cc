@@ -85,8 +85,6 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
     iEvent.getByLabel(smearedResSrc_, smearedResSrc);
     iEvent.getByLabel(smearedResDownSrc_, smearedResDownSrc);
     iEvent.getByLabel(smearedResUpSrc_, smearedResUpSrc);
-    std::cout << "src->size() " << src->size()<< endl;
-    std::cout << "shiftedEnDownSrc->size() " << shiftedEnDownSrc->size()<< endl;
   }
   
   auto_ptr<vector<cat::Jet> >  out(new vector<cat::Jet>());
@@ -97,19 +95,24 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
 
     if (runOnMC_){
       //      const pat::Jet &shiftedEnDownJet = shiftedEnDownSrc->at(j);
-      std::cout << "                   jet pt " << aPatJet.pt()
-		<< " jet eta " << aPatJet.eta() << endl;
-      std::cout << " shiftedEnDownJet  jet pt " << shiftedEnDownSrc->at(j).pt()
-		<< " jet eta " << shiftedEnDownSrc->at(j).eta() << endl;
-      std::cout << " smearedResSrc     jet pt " << smearedResSrc->at(j).pt()
-		<< " jet eta " << smearedResSrc->at(j).eta() << endl;
-      std::cout << " smearedResDownSrc jet pt " << smearedResDownSrc->at(j).pt()
-		<< " jet eta " << smearedResDownSrc->at(j).eta() << endl;
+      // std::cout << "                   jet pt " << aPatJet.pt()
+      // 		<< " jet eta " << aPatJet.eta() << endl;
+      // std::cout << " shiftedEnDownJet  jet pt " << shiftedEnDownSrc->at(j).pt()
+      // 		<< " jet eta " << shiftedEnDownSrc->at(j).eta() << endl;
+      // std::cout << " smearedResSrc     jet pt " << smearedResSrc->at(j).pt()
+      // 		<< " jet eta " << smearedResSrc->at(j).eta() << endl;
+      // std::cout << " smearedResDownSrc jet pt " << smearedResDownSrc->at(j).pt()
+      // 		<< " jet eta " << smearedResDownSrc->at(j).eta() << endl;
+
+      // adding shifts and smeared up and down
       aJet.setShiftedEnDown(shiftedEnDownSrc->at(j).pt() );
       aJet.setShiftedEnUp(shiftedEnUpSrc->at(j).pt() );
       aJet.setSmearedRes(smearedResSrc->at(j).pt() );
       aJet.setSmearedResDown(smearedResDownSrc->at(j).pt() );
       aJet.setSmearedResUp(smearedResUpSrc->at(j).pt() );
+
+      // adding genJet
+      aJet.setGenJetRef(aPatJet.genJetFwdRef());
     }
     ++j;
     aJet.setLooseId( looseId );
