@@ -2,14 +2,10 @@ import FWCore.ParameterSet.Config as cms
 ## based on patTuple_PF2PAT_cfg
 
 def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5"):
-    from Configuration.AlCa.autoCond import autoCond
     if runOnMC:
-        process.GlobalTag.globaltag = autoCond['startup']
         jecLevels = ['L1FastJet','L2Relative','L3Absolute']
     else:
-        process.GlobalTag.globaltag = autoCond['com10']
         jecLevels = ['L1FastJet','L2Relative', 'L3Absolute', 'L2L3Residual']
-    print "using globaltag", process.GlobalTag.globaltag
     
     from PhysicsTools.PatAlgos.tools.pfTools import usePF2PAT,removeMCMatchingPF2PAT
     usePF2PAT(process, runPF2PAT=True, jetAlgo=jetAlgo, jetCorrections=("AK5PFchs", jecLevels),
@@ -74,16 +70,3 @@ def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5"):
 "tagInfoSecondaryVertex('secondaryVertex').flightDistance(0).error() : 0",
 )
     process.patJetsPFlow.userData.userFunctionLabels = cms.vstring('secvtxMass','Lxy','LxyErr')
-
-    process.out.outputCommands = cms.untracked.vstring(
-        'drop *',
-        'keep *_cat*_*_*',
-        'keep *_goodOfflinePrimaryVertices*_*_*',
-        'keep GenEventInfoProduct_*_*_*',
-        'keep PileupSummaryInfos_*_*_*',
-        'keep edmMergeableCounter_*_*_*',
-        'keep patTriggerPaths_patTrigger*_*_*',
-        'keep recoGenParticles_genParticles__SIM',
-        )
-
-    process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(False))
