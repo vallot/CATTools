@@ -74,16 +74,3 @@ def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5"):
 "tagInfoSecondaryVertex('secondaryVertex').flightDistance(0).error() : 0",
 )
     process.patJetsPFlow.userData.userFunctionLabels = cms.vstring('secvtxMass','Lxy','LxyErr')
-
-    process.out.outputCommands = cms.untracked.vstring(
-        'drop *',
-        'keep *_cat*_*_*',
-        'keep *_goodOfflinePrimaryVertices*_*_*',
-        'keep GenEventInfoProduct_*_*_*',
-        'keep PileupSummaryInfos_*_*_*',
-        'keep edmMergeableCounter_*_*_*',
-        'keep patTriggerPaths_patTrigger*_*_*',
-        'keep recoGenParticles_genParticles__SIM',
-        )
-
-    process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(False))

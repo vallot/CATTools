@@ -141,3 +141,16 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
     #getattr(process,catPhotonsSource).cut = cms.string("pt > 5")
 
     process.p += process.makeCatCandidates
+
+    process.out.outputCommands = cms.untracked.vstring(
+        'drop *',
+        'keep *_cat*_*_*',
+        'keep *_goodOfflinePrimaryVertices*_*_*',
+        'keep GenEventInfoProduct_*_*_*',
+        'keep PileupSummaryInfos_*_*_*',
+        'keep edmMergeableCounter_*_*_*',
+        'keep patTriggerPaths_patTrigger*_*_*',
+        'keep recoGenParticles_genParticles__SIM',
+        'keep recoGenJets_{0}_*_*'.format(catJetsSource),
+        )
+    process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(False))
