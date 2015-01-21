@@ -12,7 +12,7 @@ git-cms-addpkg FWCore/Version
 git clone git@github.com:vallot/CATTools.git -b cat72x
 scram b -j 8
 
-cmsRun $SRT_CMSSW_BASE_SCRAMRTDEL/src/CATTools/CatProducer/prod/runCat.py useMiniAOD=True inputFiles=file:/pnfs/user/jlee/DYJetsToLL_M-50_13TeV-madgraph-pythia8/miniaod.root
+cmsRun $SRT_CMSSW_BASE_SCRAMRTDEL/src/CATTools/CatProducer/prod/runCat.py useMiniAOD=True inputFiles=/store/mc/Phys14DR/DYJetsToLL_M-50_13TeV-madgraph-pythia8/MINIAODSIM/PU20bx25_PHYS14_25_V1-v1/00000/0432E62A-7A6C-E411-87BB-002590DB92A8.root
 
 or 
 
