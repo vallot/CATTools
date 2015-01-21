@@ -34,6 +34,15 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
     process.catSecVertexs.elecSrc = cms.InputTag(catElectronsSource)
     process.catSecVertexs.vertexLabel = cms.InputTag(catVertexSource)
 
+    process.load("CATTools.CatProducer.recoEventInfo_cfi")
+    process.out.outputCommands.append("keep *_recoEventInfo_*_*")
+    if runOnMC:
+        ## Load MC dependent producers
+        process.load("CATTools.CatProducer.pdfWeight_cff")
+        process.load("CATTools.CatProducer.pileupWeight_cff")
+        process.out.outputCommands.append("keep *_pdfWeight_*_*")
+        process.out.outputCommands.append("keep *_pileupWeight_*_*")
+
     if not runOnMC:
         process.makeCatCandidates.remove(process.catGenJets)
         process.catMuons.runOnMC = cms.bool(False)

@@ -43,7 +43,6 @@ namespace cat {
     bool runOnMC_;
  
     std::vector<std::string> electronIDNames_;
-
   };
 
 } // namespace
@@ -152,7 +151,6 @@ bool cat::CATElectronProducer::mcMatch( const reco::Candidate::LorentzVector& le
     if( abs(aGenPart.pdgId()) != 11 ) continue;
 
     bool match = MatchObjects(lepton, aGenPart.p4(), false);
-
     if( match != true) continue;
    
     const reco::Candidate* mother = aGenPart.mother();
@@ -166,7 +164,6 @@ bool cat::CATElectronProducer::mcMatch( const reco::Candidate::LorentzVector& le
 
   return out;
 }
-
 
 bool cat::CATElectronProducer::MatchObjects( const reco::Candidate::LorentzVector& pasObj, const reco::Candidate::LorentzVector& proObj, bool exact ) {
   double proEta = proObj.eta();

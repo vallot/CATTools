@@ -10,13 +10,14 @@ cd cat/src
 cmsenv
 git-cms-addpkg FWCore/Version
 git clone git@github.com:vallot/CATTools.git -b cat72x
+scram setup lhapdffull
 scram b -j 8
 
 cmsRun $SRT_CMSSW_BASE_SCRAMRTDEL/src/CATTools/CatProducer/prod/runCat.py useMiniAOD=True inputFiles=file:/pnfs/user/jlee/DYJetsToLL_M-50_13TeV-madgraph-pythia8/miniaod.root
 
 or 
 
-cmsRun $SRT_CMSSW_BASE_SCRAMRTDEL/src/CATTools/CatProducer/prod/runCat.py useMiniAOD=False inputFiles=/store/mc/Phys14DR/DYJetsToLL_M-50_13TeV-madgraph-pythia8/AODSIM/PU20bx25_PHYS14_25_V1-v1/00000/00CC714A-F86B-E411-B99A-0025904B5FB8.root
+cmsRun $SRT_CMSSW_BASE_SCRAMRTDEL/src/CATTools/CatProducer/prod/runCat.py useMiniAOD=False inputFiles=/store/mc/Phys14DR/DYJetsToLL_M-50_13TeV-madgraph-pythia8/AODSIM/PU20bx25_PHYS14_25_V1-v1/00000/00CC714A-F86B-E411-B99A-0025904B5FB8.root globalTag='PHYS14_25_V1:All'
 
 ```
 
@@ -33,14 +34,14 @@ source /cvmfs/cms.cern.ch/crab3/crab.sh
 
 ### 2-1. Usage 
 ```bash
-./submitCrab3.py [Dataset1.txt] [Dataset2.txt]
+submitCrab3.py -n <requestName> -i <inputFile> -s
 ```
-
+To submit jobs add in '-s', without -s, just the job submission command is displayed
 ### 2-2. Example
 - If we want to submit cattuple ttbar and diboson datasets.
 ```bash
 cd $SRT_CMSSW_BASE_SCRAMRTDEL/src/CATTools/CatProducer/prod/crab
-./submitCrab3.py MC/ttbar_dilepton.txt MC/diboson.txt
+submitCrab3.py -i MC/ttbar_dilepton.txt -n catTooltest -s 
 ```
 
 ### 2-3.Submitting jobs
