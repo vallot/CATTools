@@ -9,7 +9,7 @@
 #include "CATTools/DataFormats/interface/MET.h"
 #include "CATTools/DataFormats/interface/SecVertex.h"
 
-#include "CATTools/PhysicsAnalysis/interface/KinematicSolvers.h"
+#include "CATTools/CatAnalyzer/interface/KinematicSolvers.h"
 #include "DataFormats/Candidate/interface/LeafCandidate.h"
 //#include "DataFormats/Candidate/interface/CompositeCandidate.h"
 //#include "DataFormats/Candidate/interface/CompositeRefCandidate.h"

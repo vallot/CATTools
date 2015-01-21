@@ -3,7 +3,7 @@
 <library name="CATToolsCatAnalyzer_plugins" file="*.cc">
   <use name="FWCore/Framework"/> 
   <use name="CATTools/DataFormats"/>
-  <use name="CATTools/PhysicsAnalysis"/>
+  <use name="CATTools/CatAnalyzer"/>
   <use name="CommonTools/UtilAlgos"/>
 
   <use name="root"/>

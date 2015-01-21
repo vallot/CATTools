@@ -1,4 +1,4 @@
-#include "CATTools/PhysicsAnalysis/interface/KinematicSolvers.h"
+#include "CATTools/CatAnalyzer/interface/KinematicSolvers.h"
 #include "TopQuarkAnalysis/TopKinFitter/interface/TtFullLepKinSolver.h"
 #include <boost/assign/std/vector.hpp> // for 'operator+=()'
 #include <gsl/gsl_multimin.h>

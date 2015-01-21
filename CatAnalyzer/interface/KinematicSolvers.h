@@ -1,5 +1,5 @@
-#ifndef CATTools_PhysicsAnalysis_KinematicSolvers_H
-#define CATTools_PhysicsAnalysis_KinematicSolvers_H
+#ifndef CATTools_CatAnalyzer_KinematicSolvers_H
+#define CATTools_CatAnalyzer_KinematicSolvers_H
 
 #include "DataFormats/Candidate/interface/Candidate.h"
 class TtFullLepKinSolver;
