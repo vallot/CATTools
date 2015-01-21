@@ -30,75 +30,16 @@ process.out = cms.OutputModule("PoolOutputModule",
 
 process.ttbar = cms.EDProducer("TTbarDileptonProducer",
 #    solver = cms.string("Default"),
-#    solver = cms.string("CMSKIN"),
+    solver = cms.string("CMSKIN"),
 #    solver = cms.string("NUWGT"),
-    solver = cms.string("MT2"),
+#    solver = cms.string("MT2"),
     muons = cms.InputTag("catMuons"),
     electrons = cms.InputTag("catElectrons"),
     jets = cms.InputTag("catJets"),
     mets = cms.InputTag("catMETs"),
-    genParticles = cms.InputTag("prunedGenParticles"),
-)
-
-process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
-    failureMode = cms.untracked.string("error"), # choose one among keep/skip/error
-    eventCounters = cms.vstring(), #"nEventsTotal", "nEventsClean", "nEventsPAT"),
-    int = cms.PSet(
-        channel = cms.PSet(src = cms.InputTag("ttbar:channel")),
-    ),
-    double = cms.PSet(
-    ),
-    doubles = cms.PSet(
-        ttbar_mLL = cms.PSet(src = cms.InputTag("ttbar:mLL")),
-        ttbar_dphi = cms.PSet(src = cms.InputTag("ttbar:dphi")),
-        ttbar_mAddJJ = cms.PSet(src = cms.InputTag("ttbar:mAddJJ")),
-        ttbar_mLB = cms.PSet(src = cms.InputTag("ttbar:mLB")),
-        ttbar_aux = cms.PSet(src = cms.InputTag("ttbar:aux")),
-    ),
-    cands = cms.PSet(
-        ttbar = cms.PSet(
-            src = cms.InputTag("ttbar"),
-            index = cms.untracked.int32(0),
-            exprs = cms.untracked.PSet(
-                pt  = cms.string("pt"),
-                eta = cms.string("eta"),
-                phi = cms.string("phi"),
-                m   = cms.string("mass"),
-
-                top1pt  = cms.string("daughterPtr(0).pt"),
-                top1eta = cms.string("daughterPtr(0).eta"),
-                top1phi = cms.string("daughterPtr(0).phi"),
-                top1m   = cms.string("daughterPtr(0).mass"),
-
-                top2pt  = cms.string("daughterPtr(1).pt"),
-                top2eta = cms.string("daughterPtr(1).eta"),
-                top2phi = cms.string("daughterPtr(1).phi"),
-                top2m   = cms.string("daughterPtr(1).mass"),
-
-                w1m   = cms.string("daughterPtr(0).daughter(0).mass"),
-                w2m   = cms.string("daughterPtr(1).daughter(0).mass"),
-                b1Pt = cms.string("daughterPtr(0).daughter(1).pt"),
-                b2Pt = cms.string("daughterPtr(1).daughter(1).pt"),
-                b1Tag = cms.string("daughterPtr(0).daughter(1).bDiscriminator('combinedInclusiveSecondaryVertexV2BJetTags')"),
-                b2Tag = cms.string("daughterPtr(1).daughter(1).bDiscriminator('combinedInclusiveSecondaryVertexV2BJetTags')"),
-
-                lep1Pt = cms.string("daughter(0).daughter(0).daughter(0).pt"),
-                lep2Pt = cms.string("daughter(1).daughter(0).daughter(0).pt"),
-                nu1Pt = cms.string("daughter(0).daughter(0).daughter(1).pt"),
-                nu2Pt = cms.string("daughter(1).daughter(0).daughter(1).pt"),
-            ),
-            selections = cms.untracked.PSet(
-            )
-        ),
-    ),
-)
-
-process.TFileService = cms.Service("TFileService",
-    fileName = cms.string("hist.root"),
 )
 
 process.p = cms.Path(
     process.ttbar
-  * process.ntuple
 )
 
