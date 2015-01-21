@@ -30,7 +30,6 @@ private:
   bool isFromHadron(const reco::Candidate* p) const;
   bool isBHadron(const reco::Candidate* p) const;
   bool isBHadron(const unsigned int pdgId) const;
-  bool isFromW(const reco::Candidate&) const;
 
   const reco::Candidate* getLast(const reco::Candidate* p);
   reco::GenParticleRef buildGenParticle(const reco::Candidate* p, reco::GenParticleRefProd& refHandle,
@@ -79,7 +78,6 @@ PseudoTopProducer::PseudoTopProducer(const edm::ParameterSet& pset):
   produces<reco::GenJetCollection>("jets");
 
   produces<reco::GenParticleCollection>();
-  produces<reco::GenParticleCollection>("partons");
 
   doHist_ = false;
   edm::Service<TFileService> fs;
@@ -119,11 +117,7 @@ void PseudoTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
   std::auto_ptr<reco::GenParticleCollection> pseudoTop(new reco::GenParticleCollection);
   auto pseudoTopRefHandle = event.getRefBeforePut<reco::GenParticleCollection>();
 
-  std::auto_ptr<reco::GenParticleCollection> partons(new reco::GenParticleCollection);
-  auto partonRefHandle = event.getRefBeforePut<reco::GenParticleCollection>("partons");
-
-  // Collect top quarks and unstable B-hadrons
-  std::vector<const reco::Candidate*> tQuarks;
+  // Collect unstable B-hadrons
   std::set<size_t> bHadronIdxs;
   for ( size_t i=0, n=genParticleHandle->size(); i<n; ++i )
   {
@@ -133,116 +127,6 @@ void PseudoTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
 
     // Collect B-hadrons, to be used in b tagging
     if ( isBHadron(&p) ) bHadronIdxs.insert(i);
-
-    // Collect parton level objects. Ignore gluons and photons
-    const int absPdgId = abs(p.pdgId());
-    if ( absPdgId == 6 )
-    {
-      // top quark : select one 'after radiations'
-      bool toKeep = true;
-      if ( p.numberOfDaughters() == 0 ) toKeep = false;
-      for ( size_t j=0, m=p.numberOfDaughters(); j<m; ++j )
-      {
-        const int dauId = p.daughter(j)->pdgId();
-        if ( dauId == p.pdgId() ) { toKeep = false; break; }
-      }
-      if ( toKeep ) tQuarks.push_back(&p);
-    }
-  }
-  // Build top quark decay tree in parton level
-  // Also determine decay mode from parton level information
-  size_t nElectron = 0, nMuon = 0, nTau = 0, nTauToLepton = 0;
-  for ( int i=0, n=tQuarks.size(); i<n; ++i )
-  {
-    const reco::Candidate* t = tQuarks.at(i);
-    const reco::Candidate* tLast = getLast(t);
-    reco::GenParticleRef tRef = buildGenParticle(tLast, partonRefHandle, partons);
-
-    const reco::Candidate* w = 0;
-    const reco::Candidate* b = 0;
-    for ( int j=0, m=tLast->numberOfDaughters(); j<m; ++j )
-    {
-      const reco::Candidate* dau = tLast->daughter(j);
-      const unsigned int dauAbsId = abs(dau->pdgId());
-      if ( dauAbsId == 24 and !w ) w = dau;
-      else if ( dauAbsId == 5 and !b ) b = dau;
-    }
-    if ( !w or !b ) continue;
-    reco::GenParticleRef wRef = buildGenParticle(w, partonRefHandle, partons);
-    reco::GenParticleRef bRef = buildGenParticle(b, partonRefHandle, partons);
-    partons->at(wRef.key()).addMother(tRef);
-    partons->at(bRef.key()).addMother(tRef);
-    partons->at(tRef.key()).addDaughter(wRef);
-    partons->at(tRef.key()).addDaughter(bRef);
-
-    // W decay products
-    const reco::Candidate* wLast = getLast(w);
-    const reco::Candidate* wDau1 = 0;
-    const reco::Candidate* wDau2 = 0;
-    for ( int j=0, m=wLast->numberOfDaughters(); j<m; ++j )
-    {
-      const reco::Candidate* dau = wLast->daughter(j);
-      const unsigned int dauAbsId = abs(dau->pdgId());
-      if ( dauAbsId > 16 ) continue; // Consider quarks and leptons only for W decays
-
-      if ( !wDau1 ) wDau1 = dau;
-      else if ( !wDau2 ) wDau2 = dau;
-      else
-      {
-        cout << "--------------------------------------" << endl;
-        cout << "WDECAY with more than 2 body!!! " << wLast->numberOfDaughters() << endl;
-        cout << " dau1 = " << wDau1->pdgId() << " dau2 = " << wDau2->pdgId() << " skipped = " << dau->pdgId() << endl;
-        cout << "--------------------------------------" << endl;
-      }
-    }
-    if ( !wDau1 or !wDau2 ) continue;
-    if ( abs(wDau1->pdgId()) > abs(wDau2->pdgId()) ) swap(wDau1, wDau2);
-    reco::GenParticleRef wDauRef1 = buildGenParticle(wDau1, partonRefHandle, partons);
-    reco::GenParticleRef wDauRef2 = buildGenParticle(wDau2, partonRefHandle, partons);
-    partons->at(wDauRef1.key()).addMother(wRef);
-    partons->at(wDauRef2.key()).addMother(wRef);
-    partons->at(wRef.key()).addDaughter(wDauRef1);
-    partons->at(wRef.key()).addDaughter(wDauRef2);
-
-    // Special care for tau->lepton decays
-    // Note : we do not keep neutrinos from tau decays (tau->W, nu_tau, W->l, nu_l)
-    // Note : Up to 6 neutrinos from top decays if both W decays to taus and all taus go into leptonic decay chain
-    const reco::Candidate* lepFromTau = 0;
-    if ( abs(wDau1->pdgId()) == 15 )
-    {
-      const reco::Candidate* tauLast = getLast(wDau1);
-      for ( int j=0, m=tauLast->numberOfDaughters(); j<m; ++j )
-      {
-        const reco::Candidate* dau = tauLast->daughter(j);
-        const unsigned int dauAbsId = abs(dau->pdgId());
-        if ( dauAbsId == 11 or dauAbsId == 13 )
-        {
-          if ( !lepFromTau ) lepFromTau = dau;
-          else
-          {
-            cout << "--------------------------------------" << endl;
-            cout << "TAU decay with more than 1 leptons!!!, nDau=" << tauLast->numberOfDaughters() << endl;
-            cout << " dau = " << lepFromTau->pdgId() << " skipped = " << dau->pdgId() << endl;
-            cout << "--------------------------------------" << endl;
-          }
-        }
-      }
-      if ( lepFromTau )
-      {
-        reco::GenParticleRef lepRef = buildGenParticle(lepFromTau, partonRefHandle, partons);
-        partons->at(lepRef.key()).addMother(wDauRef1);
-        partons->at(wDauRef1.key()).addDaughter(lepRef);
-      }
-    }
-    switch ( abs(wDau1->pdgId()) )
-    {
-      case 11: ++nElectron; break;
-      case 13: ++nMuon; break;
-      case 15:
-        ++nTau;
-        if ( lepFromTau ) ++nTauToLepton;
-        break;
-    }
   }
 
   // Collect stable leptons and neutrinos
@@ -256,8 +140,9 @@ void PseudoTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
     if ( p.status() != 1 ) continue;
 
     ++nStables;
+    if ( p.numberOfMothers() == 0 ) continue; // Skip orphans (if exists)
+    if ( p.mother()->status() == 4 ) continue; // Treat particle as hadronic if directly from the incident beam (protect orphans in MINIAOD)
     if ( isFromHadron(&p) ) continue;
-    if ( !isFromW(p) ) continue;
     switch ( absPdgId )
     {
       case 11: case 13: // Leptons
@@ -412,14 +297,10 @@ void PseudoTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
   // NOTE : A C++ trick, use do-while instead of long-nested if-statements.
   do
   {
-    // should be generated with nTop=2. This is baseline.
-    if ( tQuarks.size() != 2 ) break;
-
     // Note : we will do dilepton or semilepton channel only, no tau.
     //        channels are identified from parton level information
     //        I believe this is not MC dependent too much.
-    if ( nTau > 0 ) break;
-    const size_t nLepton = nElectron+nMuon;
+    const size_t nLepton = leptons->size();
 
     // Collect leptonic-decaying W's
     std::vector<std::pair<int, int> > wCandIdxs;
@@ -702,19 +583,6 @@ void PseudoTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
   event.put(jets, "jets");
 
   event.put(pseudoTop);
-  event.put(partons, "partons");
-}
-
-bool PseudoTopProducer::isFromW(const reco::Candidate& p) const
-{
-  const reco::Candidate* mother = &p;
-  while ( (mother = mother->mother()) != 0 )
-  {
-    if ( abs(mother->pdgId()) != 24 ) continue;
-    if ( mother->status() == 3 ) return true; // Pythia6 hard interaction
-    if ( mother->status()>20 && mother->status()<30 ) return true; // Pythia8 hard interaction
-  }
-  return false;
 }
 
 const reco::Candidate* PseudoTopProducer::getLast(const reco::Candidate* p)
