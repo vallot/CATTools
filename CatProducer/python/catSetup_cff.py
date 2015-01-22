@@ -55,6 +55,12 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
                                     makeType1p2corrPFMEt=True,
                                     outputModule=None)
 
+        process.catJets.shiftedEnDownSrc = cms.InputTag("shiftedSlimmedJetsEnDown")
+        process.catJets.shiftedEnUpSrc = cms.InputTag("shiftedSlimmedJetsEnUp")
+        process.catJets.smearedResSrc = cms.InputTag("smearedSlimmedJets")
+        process.catJets.smearedResDownSrc = cms.InputTag("smearedSlimmedJetsResDown")
+        process.catJets.smearedResUpSrc = cms.InputTag("smearedSlimmedJetsResUp")
+
         #from PhysicsTools.PatUtils.tools.metUncertaintyTools import runMEtUncertainties
         #runMEtUncertainties(process,
         #                    electronCollection = cms.InputTag(catElectronsSource),

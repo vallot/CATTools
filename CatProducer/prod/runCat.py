@@ -44,60 +44,8 @@ process.load('PhysicsTools.PatAlgos.slimming.unpackedTracksAndVertices_cfi')
 from CATTools.CatProducer.catSetup_cff import *
 catSetup(process, runOnMC, doSecVertex)
 
-process.out.outputCommands += [
-        'keep *_slimmedPhotons*_*_*',
-        'keep *_slimmedElectrons_*_*',
-        'keep *_slimmedMuons*_*_*',
-        'keep *_slimmedTaus*_*_*',
-        'keep *_slimmedJets*_*_*',
-        'keep *_slimmedMETs*_*_*',
-        'keep *_slimmedSecondaryVertices*_*_*',
-        ## add extra METs
-
-        'keep recoPhotonCores_reducedEgamma_*_*',
-        'keep recoGsfElectronCores_reducedEgamma_*_*',
-        'keep recoConversions_reducedEgamma_*_*',
-        'keep recoSuperClusters_reducedEgamma_*_*',
-        'keep recoCaloClusters_reducedEgamma_*_*',
-        'keep EcalRecHitsSorted_reducedEgamma_*_*',
-        
-
-        'drop *_*_caloTowers_*',
-        'drop *_*_pfCandidates_*',
-        'drop *_*_genJets_*',
-
-        'keep *_offlineBeamSpot_*_*',
-        'keep *_offlineSlimmedPrimaryVertices_*_*',
-        'keep patPackedCandidates_packedPFCandidates_*_*',
-
-        'keep double_fixedGridRho*__*', 
-
-        'keep *_selectedPatTrigger_*_*',
-        'keep patPackedTriggerPrescales_patTrigger__*',
-        'keep *_l1extraParticles_*_*',
-        'keep L1GlobalTriggerReadoutRecord_gtDigis_*_*',
-        'keep *_TriggerResults_*_HLT',
-        'keep *_TriggerResults_*_PAT', # for MET filters
-	'keep patPackedCandidates_lostTracks_*_*',
-        'keep HcalNoiseSummary_hcalnoise__*',
-        'keep *_caTopTagInfos_*_*',
-        'keep *_slimmedGenJets_*_*',
-        'keep patPackedGenParticles_packedGenParticles_*_*',
-        'keep recoGenParticles_prunedGenParticles_*_*',
-        'keep LHEEventProduct_*_*_*',
-        'keep PileupSummaryInfos_*_*_*',
-        'keep GenFilterInfo_*_*_*',
-        'keep GenEventInfoProduct_generator_*_*',
-        # RUN
-        'keep LHERunInfoProduct_*_*_*',
-        'keep GenRunInfoProduct_*_*_*',
-        'keep L1GtTriggerMenuLite_l1GtTriggerMenuLite__*'
-]
-
 process.maxEvents.input = options.maxEvents
-
 process.source.fileNames = options.inputFiles
-
 ## to suppress the long output at the end of the job
 process.MessageLogger.cerr.threshold = ''
 if options.maxEvents < 0:

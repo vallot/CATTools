@@ -36,6 +36,8 @@ namespace cat {
     float getEffArea( float dR, float scEta );
 
     edm::EDGetTokenT<pat::ElectronCollection> src_;
+    edm::EDGetTokenT<pat::ElectronCollection> shiftedEnDownSrc_;
+    edm::EDGetTokenT<pat::ElectronCollection> shiftedEnUpSrc_;
     edm::EDGetTokenT<reco::VertexCollection> vertexLabel_;
     edm::EDGetTokenT<reco::GenParticleCollection> mcLabel_;
     edm::EDGetTokenT<reco::BeamSpot> beamLineSrc_;
@@ -49,6 +51,8 @@ namespace cat {
 
 cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig) :
   src_(consumes<pat::ElectronCollection>(iConfig.getParameter<edm::InputTag>("src"))),
+  shiftedEnDownSrc_(consumes<pat::ElectronCollection>(iConfig.getParameter<edm::InputTag>("shiftedEnDownSrc"))),
+  shiftedEnUpSrc_(consumes<pat::ElectronCollection>(iConfig.getParameter<edm::InputTag>("shiftedEnUpSrc"))),
   vertexLabel_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexLabel"))),
   mcLabel_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcLabel"))),
   beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc"))),
@@ -78,10 +82,23 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
   iEvent.getByToken(rhoLabel_, rhoHandle);
   double rhoIso = std::max(*(rhoHandle.product()), 0.0);
 
-  auto_ptr<vector<cat::Electron> >  out(new vector<cat::Electron>());
+  edm::Handle<pat::ElectronCollection> shiftedEnDownSrc;
+  edm::Handle<pat::ElectronCollection> shiftedEnUpSrc;
+  if (runOnMC_){
+    iEvent.getByToken(shiftedEnDownSrc_, shiftedEnDownSrc);
+    iEvent.getByToken(shiftedEnUpSrc_, shiftedEnUpSrc);
+  }
 
+  auto_ptr<vector<cat::Electron> >  out(new vector<cat::Electron>());
+  int j = 0;
   for (const pat::Electron &aPatElectron : *src){
     cat::Electron aElectron(aPatElectron);
+
+    if (runOnMC_){
+      aElectron.setShiftedEnDown(shiftedEnDownSrc->at(j).pt() );
+      aElectron.setShiftedEnUp(shiftedEnUpSrc->at(j).pt() );
+    }
+    ++j;
 
     bool mcMatched = mcMatch( aPatElectron.p4(), genParticles );
     aElectron.setMCMatched( mcMatched );
