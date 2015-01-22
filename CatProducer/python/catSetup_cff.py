@@ -5,7 +5,7 @@ from CondCore.DBCommon.CondDBSetup_cfi import *
 def catSetup(process, runOnMC=True, doSecVertex=True):    
     process.load("CATTools.CatProducer.eventCleaning.eventCleaning_cff")
     process.load("CATTools.CatProducer.catCandidates_cff")
-    process.p += process.eventCleaning
+    #process.p += process.eventCleaning
 
     catJetsSource = "selectedPatJetsPFlow"
     catGenJetsSource = "ak5GenJets"
