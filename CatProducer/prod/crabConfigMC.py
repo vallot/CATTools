@@ -3,12 +3,12 @@ config = Configuration()
 
 config.section_("General")
 config.General.transferLogs    = False
-config.General.transferOutputs = True
+config.General.transferOutputs = False
 
 config.section_("JobType")
 config.JobType.pluginName  = 'Analysis'
 config.JobType.psetName    = 'runCat.py'
-config.JobType.pyCfgParams = ['runOnMC=True','globalTag="START53_V27::All"']
+config.JobType.pyCfgParams = ['runOnMC=True','globalTag=START53_V27::All']
 config.JobType.inputFiles  = ['Winter14_V5_DATA.db']
 
 config.section_("Data")
@@ -16,7 +16,7 @@ config.Data.inputDataset = '/QCD_Pt-15to3000_TuneEE3C_Flat_8TeV_herwigpp/Summer1
 config.Data.splitting    = 'FileBased'
 config.Data.unitsPerJob  = 1
 config.Data.totalUnits   = 5000
-config.Data.publication  = True
+config.Data.publication  = config.General.transferOutputs
 config.Data.publishDataName = 'cat'
 
 config.section_("Site")

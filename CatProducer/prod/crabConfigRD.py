@@ -3,12 +3,12 @@ config = Configuration()
 
 config.section_("General")
 config.General.transferLogs    = False
-config.General.transferOutputs = True
+config.General.transferOutputs = False
 
 config.section_("JobType")
 config.JobType.pluginName  = 'Analysis'
 config.JobType.psetName    = 'runCat.py'
-config.JobType.pyCfgParams = ['runOnMC=False','globalTag="FT53_V21A_AN6::All"']
+config.JobType.pyCfgParams = ['runOnMC=False','globalTag=FT53_V21A_AN6::All']
 config.JobType.inputFiles  = ['Winter14_V5_DATA.db']
 
 config.section_("Data")
@@ -16,7 +16,7 @@ config.Data.inputDataset = '/QCD_Pt-15to3000_TuneEE3C_Flat_8TeV_herwigpp/Summer1
 config.Data.splitting    = 'LumiBased'
 config.Data.unitsPerJob  = 20
 config.Data.lumiMask     = 'Cert_190456-208686_8TeV_22Jan2013ReReco_Collisions12_JSON.txt'
-config.Data.publication  = True
+config.Data.publication  = config.General.transferOutputs
 config.Data.publishDataName = 'cat'
 
 config.section_("Site")

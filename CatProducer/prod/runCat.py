@@ -12,16 +12,14 @@ options.parseArguments()
 runOnMC = options.runOnMC
 globalTag = options.globalTag
 
-
-from Configuration.AlCa.autoCond import autoCond
-if runOnMC:
-    process.GlobalTag.globaltag = autoCond['startup']
-else:
-    process.GlobalTag.globaltag = autoCond['com10']
 if globalTag:
-    from Configuration.AlCa.GlobalTag import GlobalTag
-    process.GlobalTag = GlobalTag(process.GlobalTag, globalTag, '')
-
+    process.GlobalTag.globaltag = cms.string(globalTag)
+if not globalTag:
+    from Configuration.AlCa.autoCond import autoCond
+    if runOnMC:
+        process.GlobalTag.globaltag = autoCond['startup']
+    else:
+        process.GlobalTag.globaltag = autoCond['com10']
 print "using globaltag", process.GlobalTag.globaltag
 
 ####################################################################################################
