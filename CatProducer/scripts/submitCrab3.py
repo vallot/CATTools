@@ -41,12 +41,13 @@ for dataset in datasets:
     else :
         label = dataset.split("/")[1]+"_"+dataset.split("/")[2]
 
+    requestNameFull=""
     if requestName:
-        requestName = '%s_%s'%(requestName,label)
+        requestNameFull = '%s_%s'%(requestName,label)
 
     publishDataName = dataset.split("/")[2]
     
-    sendjob = crabcommand + " Data.publishDataName='%s' General.requestName='%s' Data.inputDataset='%s'"%(publishDataName,requestName,dataset)
+    sendjob = crabcommand + " Data.publishDataName='%s' General.requestName='%s' Data.inputDataset='%s'"%(publishDataName,requestNameFull,dataset)
     print sendjob
     if submit:
         print "submiting job"

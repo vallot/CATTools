@@ -66,7 +66,7 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
   iEvent.getByLabel(src_, src);
 
   Handle<View<reco::GenParticle> > genParticles;
-  iEvent.getByLabel(mcLabel_,genParticles);
+  if (runOnMC_) iEvent.getByLabel(mcLabel_,genParticles);
 
   Handle<View<reco::Vertex> > recVtxs;
   iEvent.getByLabel(vertexLabel_, recVtxs);
@@ -82,8 +82,8 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
   for (const pat::Electron &aPatElectron : *src){
     cat::Electron aElectron(aPatElectron);
 
-    bool mcMatched = mcMatch( aPatElectron.p4(), genParticles );
-    aElectron.setMCMatched( mcMatched );
+    if (runOnMC_)
+      aElectron.setMCMatched( mcMatch( aPatElectron.p4(), genParticles ) );
 
     aElectron.setChargedHadronIso04( aPatElectron.chargedHadronIso() );
     aElectron.setNeutralHadronIso04( aPatElectron.neutralHadronIso() );
