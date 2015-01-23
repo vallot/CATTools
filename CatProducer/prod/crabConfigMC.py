@@ -8,7 +8,7 @@ config.General.transferOutputs = True
 config.section_("JobType")
 config.JobType.pluginName  = 'Analysis'
 config.JobType.psetName    = 'runCat.py'
-config.JobType.pyCfgParams = ['runOnMC=True']
+config.JobType.pyCfgParams = ['runOnMC=True',"globalTag='PHYS14_25_V2::All'"]
 
 config.section_("Data")
 config.Data.inputDataset = '/QCD_Pt-15to3000_TuneEE3C_Flat_8TeV_herwigpp/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM'

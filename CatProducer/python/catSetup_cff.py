@@ -2,7 +2,6 @@ import FWCore.ParameterSet.Config as cms
 
 def catSetup(process, runOnMC=True, doSecVertex=True):    
     process.load("CATTools.CatProducer.catCandidates_cff")        
-    process.p += process.makeCatCandidates
 
     catJetsSource = "slimmedJets"
     catGenJetsSource = "slimmedGenJets"
@@ -43,9 +42,9 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
         process.out.outputCommands.append("keep *_pdfWeight_*_*")
         process.out.outputCommands.append("keep *_pileupWeight_*_*")
 
+        ## using MEtUncertainties to get lepton shifts
         from PhysicsTools.PatUtils.tools.runType1PFMEtUncertainties import runType1PFMEtUncertainties
         runType1PFMEtUncertainties(process,
-                                   dRjetCleaning = 0.0,
                                     addToPatDefaultSequence=False,
                                     jetCollection=catJetsSource,
                                     electronCollection=catElectronsSource,
@@ -54,20 +53,46 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
                                     tauCollection=catTausSource,
                                     makeType1p2corrPFMEt=True,
                                     outputModule=None)
+        
+        ## using objectsUncertaintyTools to get jet shifts
+        from PhysicsTools.PatUtils.tools.jmeUncertaintyTools import JetMEtUncertaintyTools, addSmearedJets
+        from PhysicsTools.PatUtils.tools.objectsUncertaintyTools import addShiftedJetCollections
+        import RecoMET.METProducers.METSigParams_cfi as jetResolutions
+        jetSmearFileName='PhysicsTools/PatUtils/data/pfJetResolutionMCtoDataCorrLUT.root'
+        jetSmearHistogram='pfJetResolutionMCtoDataCorrLUT'
+        varyByNsigmas=1.0
+        shiftedParticleSequence = cms.Sequence()
+        variations = { "":None, "ResUp":-1., "ResDown":1.  }
+        for var in variations.keys():
+            jetCollectionToKeep = addSmearedJets(process, catJetsSource,
+                                       [ "smeared", catJetsSource, var ],
+                                       jetSmearFileName,jetSmearHistogram,jetResolutions,
+                                       varyByNsigmas, variations[ var ],
+                                       shiftedParticleSequence)
+        jetCorrLabelUpToL3='ak4PFL1FastL2L3'
+        jetCorrLabelUpToL3Res='ak4PFL1FastL2L3Residual'
+        jecUncertaintyFile="PhysicsTools/PatUtils/data/Summer13_V1_DATA_UncertaintySources_AK5PF.txt"
+        jecUncertaintyTag='SubTotalMC'
+        shiftedJetsCollections, jetsCollectionsToKeep = addShiftedJetCollections(
+            process,catJetsSource,catJetsSource,
+            jetCorrLabelUpToL3, jetCorrLabelUpToL3Res,
+            jecUncertaintyFile, jecUncertaintyTag,
+            varyByNsigmas, shiftedParticleSequence)
 
+            
+        process.p += shiftedParticleSequence
+        process.catMuons.shiftedEnDownSrc = cms.InputTag("shiftedSlimmedMuonsEnDown")
+        process.catMuons.shiftedEnUpSrc = cms.InputTag("shiftedSlimmedMuonsEnUp")
+        process.catElectrons.shiftedEnDownSrc = cms.InputTag("shiftedSlimmedElectronsEnDown")
+        process.catElectrons.shiftedEnUpSrc = cms.InputTag("shiftedSlimmedElectronsEnUp")
         process.catJets.shiftedEnDownSrc = cms.InputTag("shiftedSlimmedJetsEnDown")
         process.catJets.shiftedEnUpSrc = cms.InputTag("shiftedSlimmedJetsEnUp")
         process.catJets.smearedResSrc = cms.InputTag("smearedSlimmedJets")
         process.catJets.smearedResDownSrc = cms.InputTag("smearedSlimmedJetsResDown")
         process.catJets.smearedResUpSrc = cms.InputTag("smearedSlimmedJetsResUp")
 
-        #from PhysicsTools.PatUtils.tools.metUncertaintyTools import runMEtUncertainties
-        #runMEtUncertainties(process,
-        #                    electronCollection = cms.InputTag(catElectronsSource),
-        #                    jetCollection=cms.InputTag(catJetsSource),
-        #                    muonCollection = cms.InputTag(catMuonsSource),
-        #                    tauCollection = cms.InputTag(catTausSource) )
-        #process.patDefaultSequencePFlow += process.metUncertaintySequence        
+        process.out.outputCommands.append("drop *_shifted*_*_*")
+        process.out.outputCommands.append("drop *_smeared*_*_*")
 
     if not runOnMC:
         process.makeCatCandidates.remove(process.catGenJets)
@@ -75,7 +100,11 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
         process.catElectrons.runOnMC = cms.bool(False)
         process.catJets.runOnMC = cms.bool(False)
 
+    process.p += process.makeCatCandidates
+
     if doSecVertex:
         from TrackingTools.TransientTrack.TransientTrackBuilder_cfi import TransientTrackBuilderESProducer
         setattr(process, "TransientTrackBuilderESProducer", TransientTrackBuilderESProducer)
         process.makeCatCandidates += process.catSecVertexs
+
+    
