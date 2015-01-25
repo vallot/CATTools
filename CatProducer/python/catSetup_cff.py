@@ -53,6 +53,18 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
     )
     process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
 
+    process.out.outputCommands = cms.untracked.vstring(
+        'drop *',
+        'keep *_cat*_*_*',
+        'keep *_goodOfflinePrimaryVertices*_*_*',
+        'keep GenEventInfoProduct_*_*_*',
+        'keep PileupSummaryInfos_*_*_*',
+        'keep edmMergeableCounter_*_*_*',
+        'keep patTriggerPaths_patTrigger*_*_*',
+        #'keep recoGenParticles_genParticles__SIM',
+        'keep recoGenJets_{0}_*_*'.format(catJetsSource),
+    )
+
     process.load("CATTools.CatProducer.recoEventInfo_cfi")
     process.recoEventInfo.vertex = cms.InputTag(catVertexSource)
     process.out.outputCommands.append("keep *_recoEventInfo_*_*")
@@ -133,7 +145,7 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
         process.makeCatCandidates += process.catSecVertexs
         
     ## cuts on selected Pat objects
-    getattr(process,catJetsSource).cut = cms.string("pt > 20")
+    getattr(process,catJetsSource).cut = cms.string("pt > 20 && abs(eta) < 5.2")
     process.pfSelectedMuonsPFlow.cut = cms.string("")
 
     #getattr(process,catMuonsSource).cut = cms.string("pt > 5 || isPFMuon || (pt > 3 && (isGlobalMuon || isStandAloneMuon || numberOfMatches > 0 || muonID('RPCMuLoose')))") 
@@ -142,15 +154,6 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
 
     process.p += process.makeCatCandidates
 
-    process.out.outputCommands = cms.untracked.vstring(
-        'drop *',
-        'keep *_cat*_*_*',
-        'keep *_goodOfflinePrimaryVertices*_*_*',
-        'keep GenEventInfoProduct_*_*_*',
-        'keep PileupSummaryInfos_*_*_*',
-        'keep edmMergeableCounter_*_*_*',
-        'keep patTriggerPaths_patTrigger*_*_*',
-        'keep recoGenParticles_genParticles__SIM',
-        'keep recoGenJets_{0}_*_*'.format(catJetsSource),
-        )
     process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(False))
+    process.makeCatCandidates.remove(process.catGenJets)
+    
