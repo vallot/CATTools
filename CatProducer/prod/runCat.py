@@ -37,7 +37,7 @@ catSetup(process, runOnMC, doSecVertex)
 process.maxEvents.input = options.maxEvents
 
 process.source.fileNames = options.inputFiles
-process.source.skipEvents=cms.untracked.uint32(7000)
+#process.source.skipEvents=cms.untracked.uint32(7000)
 ## to suppress the long output at the end of the job
 process.MessageLogger.cerr.threshold = ''
 if options.maxEvents < 0:
