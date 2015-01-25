@@ -3,7 +3,7 @@ config = Configuration()
 
 config.section_("General")
 config.General.transferLogs    = False
-config.General.transferOutputs = False
+config.General.transferOutputs = True
 
 config.section_("JobType")
 config.JobType.pluginName  = 'Analysis'
