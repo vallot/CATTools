@@ -28,7 +28,7 @@ class RecoEventInfoProducer : public edm::EDProducer
 public:
   RecoEventInfoProducer(const edm::ParameterSet& pset);
   void produce(edm::Event& event, const edm::EventSetup& eventSetup) override;
-  void beginRun(const edm::Run& run, const edm::EventSetup& eventSetup);
+  void beginRun(edm::Run& run, const edm::EventSetup& eventSetup) override;
 
 private:
   typedef std::vector<double> doubles;
@@ -67,11 +67,12 @@ RecoEventInfoProducer::RecoEventInfoProducer(const edm::ParameterSet& pset)
       hltPath = boost::regex_replace(hltPath, matchVersion, "");
     }
 
-    produces<int>("HLT"+hltSetName);
+    produces<bool>("HLT"+hltSetName);
+    produces<int>("psHLT"+hltSetName);
   }
 }
 
-void RecoEventInfoProducer::beginRun(const edm::Run& run, const edm::EventSetup& eventSetup)
+void RecoEventInfoProducer::beginRun(edm::Run& run, const edm::EventSetup& eventSetup)
 {
   bool changed = true;
   if ( !hltConfig_.init(run, eventSetup, processName_, changed) ) 
@@ -106,25 +107,29 @@ void RecoEventInfoProducer::produce(edm::Event& event, const edm::EventSetup& ev
 
   edm::Handle<edm::TriggerResults> hltHandle;
   event.getByLabel(hltToken_, hltHandle);
+
   for ( auto key = hltGroup_.begin(); key != hltGroup_.end(); ++key )
   {
     const std::string& hltGroupName = key->first;
     const strings& hltPaths = key->second;
 
     bool isPassed = false;
+    int psValue = 1;
     for ( auto& hltPath : hltPaths )
     {
       const strings hltPathsWithV = HLTConfigProvider::restoreVersion(hltConfig_.triggerNames(), hltPath);
       if ( hltPathsWithV.empty() ) continue;
       const std::string& trigName = hltPathsWithV[0];
+
       const unsigned int trigIndex = hltConfig_.triggerIndex(trigName);
       if ( trigIndex < hltHandle->size() )
       {
         if ( hltHandle->accept(trigIndex) ) { isPassed = true; break; }
       }
-      //const int psValue = hltConfig_.prescaleValue(event, eventSetup, trigName);
+      psValue = hltConfig_.prescaleValue(event, eventSetup, trigName);
     }
-    event.put(std::auto_ptr<int>(new int(isPassed)), "HLT"+hltGroupName);
+    event.put(std::auto_ptr<bool>(new bool (isPassed)), "HLT"+hltGroupName);
+    event.put(std::auto_ptr<int>(new int (psValue)), "psHLT"+hltGroupName);
   }
 
 }
