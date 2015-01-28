@@ -40,10 +40,6 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
         process.load("CATTools.CatProducer.pdfWeight_cff")
         process.load("CATTools.CatProducer.pileupWeight_cff")
         process.load("CATTools.CatProducer.pseudoTop_cfi")
-        process.out.outputCommands.append("keep *_pdfWeight_*_*")
-        process.out.outputCommands.append("keep *_pileupWeight_*_*")
-        process.out.outputCommands.append("keep *_pseudoTop_*_*")
-        process.out.outputCommands.append("keep *_partonTop_*_*")
 
         ## using MEtUncertainties to get lepton shifts
         from PhysicsTools.PatUtils.tools.runType1PFMEtUncertainties import runType1PFMEtUncertainties
