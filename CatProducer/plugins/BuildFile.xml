@@ -8,6 +8,13 @@
   <use   name="TrackingTools/TransientTrack"/>
   <use   name="HLTrigger/HLTcore"/>
   <use   name="PhysicsTools/Utilities"/>
-
+  <use   name="SimDataFormats/Track"/>
+  <use   name="SimDataFormats/Vertex"/>
+  <use   name="SimGeneral/HepPDTRecord"/>
+  <use   name="RecoMET/METAlgorithms"/>
+  <use   name="RecoEgamma/EgammaTools"/>
+  <use   name="RecoJets/JetProducers" />
+  <use   name="root"/>
+  <use   name="fastjet" />
   <use   name="lhapdf"/>
 </library>
