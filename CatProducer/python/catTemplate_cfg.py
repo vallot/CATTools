@@ -31,13 +31,9 @@ process.totaEvents = cms.EDProducer("EventCountProducer")
 process.p = cms.Path(process.totaEvents)
 
 ## Output Module Configuration (expects a path 'p')
-from CATTools.CatProducer.catEventContent_cff import catEventContentExtended
 process.out = cms.OutputModule("PoolOutputModule",
     fileName = cms.untracked.string('catTuple.root'),
     outputCommands = cms.untracked.vstring('drop *')
 )
-process.out.outputCommands += catEventContentExtended
-
-print process.out.outputCommands
 
 process.outpath = cms.EndPath(process.out)
