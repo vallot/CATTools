@@ -1,29 +1,13 @@
 <export>
 </export>
 <library   name="CATToolsCatProducer_plugins" file="*.cc">
-  <use   name="CATTools/CatProducer"/>
   <use   name="FWCore/Framework"/>
-  <use   name="FWCore/ParameterSet"/>
-  <use   name="FWCore/MessageLogger"/>
-  <use   name="FWCore/MessageService"/>
-  <use   name="L1Trigger/GlobalTriggerAnalyzer"/>
-  <use   name="HLTrigger/HLTcore"/>
-  <use   name="DataFormats/PatCandidates"/>
-  <use   name="DataFormats/BTauReco"/>
-  <use   name="DataFormats/JetReco"/>
-  <use   name="DataFormats/TrackReco"/>
-  <use   name="DataFormats/Candidate"/>
-  <use   name="DataFormats/HeavyIonEvent"/>
-  <use   name="PhysicsTools/PatUtils"/>
-  <use   name="CondFormats/JetMETObjects"/>
-  <use   name="JetMETCorrections/Objects"/>
+  <use   name="CATTools/DataFormats"/>
+  <use   name="RecoVertex/KalmanVertexFit"/>
+  <use   name="TrackingTools/IPTools"/>
   <use   name="TrackingTools/TransientTrack"/>
-  <use   name="SimDataFormats/Track"/>
-  <use   name="SimDataFormats/Vertex"/>
-  <use   name="SimGeneral/HepPDTRecord"/>
-  <use   name="RecoMET/METAlgorithms"/>
-  <use   name="RecoEgamma/EgammaTools"/>
-  <use   name="TrackingTools/IPTools"/> 
-  <use   name="root"/>
+  <use   name="HLTrigger/HLTcore"/>
+  <use   name="PhysicsTools/Utilities"/>
+
   <use   name="lhapdf"/>
 </library>
