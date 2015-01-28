@@ -1,6 +1,7 @@
 from CATTools.CatProducer.catTemplate_cfg import *
 ## some options
-doSecVertex=True # for jpsi candidates
+doSecVertex=False # for jpsi candidates
+doTriggerSkim=True # for qcd trigger skim on data
     
 ## setting up arguements
 from FWCore.ParameterSet.VarParsing import VarParsing
@@ -27,7 +28,7 @@ print "using globaltag", process.GlobalTag.globaltag
 postfix = "PFlow"
 jetAlgo="AK5"
 from CATTools.CatProducer.catPatSetup_cff import *
-catPatConfig(process, runOnMC, postfix, jetAlgo)
+catPatConfig(process, runOnMC, postfix, jetAlgo, doTriggerSkim)
 
 ####################################################################################################
 

@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 ## based on patTuple_PF2PAT_cfg
 
-def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5"):
+def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5", doTriggerSkim=False):
     if runOnMC:
         jecLevels = ['L1FastJet','L2Relative','L3Absolute']
     else:
@@ -28,12 +28,19 @@ def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5"):
 
     ## total event counter
     process.totaEvents = cms.EDProducer("EventCountProducer")
+    process.p = cms.Path(process.totaEvents)
 
-    process.p = cms.Path(process.totaEvents
-        + getattr(process,"patPF2PATSequence"+postfix)
-        # temp fix for photons since they are not done with PF2PAT
-        + process.photonMatch + process.patPhotons + process.selectedPatPhotons
-    )
+    ### skim for qcd data
+    if not runOnMC and doTriggerSkim:
+        process.load('HLTrigger/HLTfilters/hltHighLevel_cfi')
+        process.hltHighLevel.HLTPaths = ['HLT_PFJet80_v*','HLT_PFJet140_v*','HLT_PFJet320_v*'] # qcd only
+        process.hltHighLevel.andOr = cms.bool(True)
+        #process.hltJet.throw = cms.bool(True)
+        process.p += process.hltHighLevel
+    
+    process.p += getattr(process,"patPF2PATSequence"+postfix)
+    # temp fix for photons since they are not done with PF2PAT
+    process.p += process.photonMatch + process.patPhotons + process.selectedPatPhotons
 
     if not runOnMC:
         removeMCMatchingPF2PAT( process, postfix=postfix )
