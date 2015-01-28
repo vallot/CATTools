@@ -99,12 +99,20 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     double nhIso04 = aPatMuon.neutralHadronIso();
     double phIso04 = aPatMuon.photonIso();
     double puIso04 = aPatMuon.puChargedHadronIso();
+    aMuon.setChargedHadronIso04( chIso04 );
+    aMuon.setNeutralHadronIso04( nhIso04 );
+    aMuon.setPhotonIso04( phIso04 );
+    aMuon.setPUChargedHadronIso04( puIso04 );
     aMuon.setrelIso(0.4, chIso04, nhIso04, phIso04, puIso04, pt);
 
     double chIso03 = aPatMuon.userIsolation("pat::User1Iso");
     double nhIso03 = aPatMuon.userIsolation("pat::User2Iso");
     double phIso03 = aPatMuon.userIsolation("pat::User3Iso");
     double puIso03 = aPatMuon.userIsolation("pat::User4Iso");
+    aMuon.setChargedHadronIso03( chIso03 );
+    aMuon.setNeutralHadronIso03( nhIso03 );
+    aMuon.setPhotonIso03( phIso03 );
+    aMuon.setPUChargedHadronIso03( puIso03 );
     aMuon.setrelIso(0.3, chIso03, nhIso03, phIso03, puIso03, pt);
 
     aMuon.setIsGlobalMuon( aPatMuon.isGlobalMuon() );

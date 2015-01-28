@@ -49,6 +49,32 @@ namespace cat {
       if( dR < 0.35) relIso03_ = relIso; 
       else  relIso04_ = relIso; 
     }
+    float chargedHadronIso(float dR=0.3) const {
+      if( dR < 0.35) return chargedHadronIso03_;
+      else return chargedHadronIso04_;
+    }
+    float puChargedHadronIso(float dR=0.3) const {
+      if( dR < 0.35) return puChargedHadronIso03_;
+      else return puChargedHadronIso04_;
+    }
+    float neutralHadronIso(float dR=0.3) const {
+      if( dR < 0.35) return neutralHadronIso03_;
+      else return neutralHadronIso04_;
+    }
+    float photonIso(float dR=0.3) const {
+      if( dR < 0.35) return photonIso03_;
+      else return photonIso04_;
+    }
+
+    void setChargedHadronIso03(float i) { chargedHadronIso03_ = i; }
+    void setPUChargedHadronIso03(float i) { puChargedHadronIso03_ = i; }
+    void setNeutralHadronIso03(float i) { neutralHadronIso03_ = i; }
+    void setPhotonIso03(float i) { photonIso03_ = i; }
+
+    void setChargedHadronIso04(float i) { chargedHadronIso04_ = i; }
+    void setPUChargedHadronIso04(float i) { puChargedHadronIso04_ = i; }
+    void setNeutralHadronIso04(float i) { neutralHadronIso04_ = i; }
+    void setPhotonIso04(float i) { photonIso04_ = i; }
 
     void setIsGlobalMuon(bool d) { isGlobalMuon_ = d; }
     void setIsPFMuon(bool d) { isPFMuon_ = d; }
@@ -77,6 +103,16 @@ namespace cat {
 
     float relIso03_;
     float relIso04_;
+
+    float chargedHadronIso03_;
+    float puChargedHadronIso03_;
+    float neutralHadronIso03_;
+    float photonIso03_;
+
+    float chargedHadronIso04_;
+    float puChargedHadronIso04_;
+    float neutralHadronIso04_;
+    float photonIso04_;
 
     bool isGlobalMuon_; 
     bool isPFMuon_; 
