@@ -30,14 +30,13 @@ def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5", doTrig
     process.totaEvents = cms.EDProducer("EventCountProducer")
     process.p = cms.Path(process.totaEvents)
 
-    ### temp skim for qcd 
-    if not runOnMC:
+    ### skim for qcd data
+    if not runOnMC and doTriggerSkim:
         process.load('HLTrigger/HLTfilters/hltHighLevel_cfi')
         process.hltHighLevel.HLTPaths = ['HLT_PFJet80_v*','HLT_PFJet140_v*','HLT_PFJet320_v*'] # qcd only
         process.hltHighLevel.andOr = cms.bool(True)
         #process.hltJet.throw = cms.bool(True)
         process.p += process.hltHighLevel
-    ### temp skim for qcd 
     
     process.p += getattr(process,"patPF2PATSequence"+postfix)
     # temp fix for photons since they are not done with PF2PAT

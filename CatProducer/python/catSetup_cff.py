@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 import RecoMET.METProducers.METSigParams_cfi as jetResolutions
 from CondCore.DBCommon.CondDBSetup_cfi import *
     
-def catSetup(process, runOnMC=True, doSecVertex=True):    
+def catSetup(process, runOnMC=True, doSecVertex=True, runDependantMC=False):    
     process.load("CATTools.CatProducer.eventCleaning.eventCleaning_cff")
     process.load("CATTools.CatProducer.catCandidates_cff")
     #process.p += process.eventCleaning
@@ -37,22 +37,32 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
     process.catSecVertexs.elecSrc = cms.InputTag(catElectronsSource)
     process.catSecVertexs.vertexLabel = cms.InputTag(catVertexSource)
 
-    process.load("CondCore.DBCommon.CondDBCommon_cfi")
-    process.jec = cms.ESSource("PoolDBESSource",
-      DBParameters = cms.PSet(
-        messageLevel = cms.untracked.int32(0)
-        ),
-      timetype = cms.string('runnumber'),
-      toGet = cms.VPSet(
-      cms.PSet(
+    ## jet correction
+    jetCorrInputFile = 'PhysicsTools/PatUtils/data/Summer12_V2_DATA_AK5PF_UncertaintySources.txt'
+    #jetCorrInputFile = 'CATTools/CatProducer/prod/Winter14_V8/Winter14_V8_DATA_UncertaintySources_AK5PFchs.txt'
+
+    if runDependantMC:
+        #jetCorrInputFile = 'CATTools/CatProducer/prod/Winter14_V8/Winter14_V8_DATA_UncertaintySources_AK5PFchs.txt'
+        dataBaseName='sqlite:Winter14_V5_DATA.db'
+        if runOnMC:
+            dataBaseName='sqlite:Winter14_V5_MC.db'            
+        process.load("CondCore.DBCommon.CondDBCommon_cfi")
+        process.jec = cms.ESSource("PoolDBESSource",
+        DBParameters = cms.PSet(
+            messageLevel = cms.untracked.int32(0)
+            ),
+        timetype = cms.string('runnumber'),
+        toGet = cms.VPSet(
+        cms.PSet(
             record = cms.string('JetCorrectionsRecord'),
             tag    = cms.string('JetCorrectorParametersCollection_Winter14_V5_DATA_AK5PF'),
             ),
-      ), 
-      connect = cms.string('sqlite:Winter14_V5_DATA.db')
-    )
-    process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
+        ), 
+        connect = cms.string(dataBaseName)
+        )
+        process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
 
+    ## saved collections
     process.out.outputCommands = cms.untracked.vstring(
         'drop *',
         'keep *_cat*_*_*',
@@ -76,6 +86,7 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
         process.out.outputCommands.append("keep *_pdfWeight_*_*")
         process.out.outputCommands.append("keep *_pileupWeight_*_*")
         process.p += process.pdfWeight +  process.pileupWeight
+        
         ## making met Uncertainty
         ## from PhysicsTools.PatUtils.tools.metUncertaintyTools import runMEtUncertainties
         ## runMEtUncertaintiesClass = runMEtUncertainties(process,
@@ -110,24 +121,23 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
         )
         process.p += process.smearedJetsRes + process.smearedJetsResDown + process.smearedJetsResUp
       
-        process.shiftedJetsEnUp = cms.EDProducer("ShiftedPATJetProducer",
-            src = cms.InputTag(catJetsSource),
-            #jetCorrPayloadName = cms.string(jetCorrPayloadName),
-            #jetCorrUncertaintyTag = cms.string('Uncertainty'),
-            jetCorrInputFileName = cms.FileInPath('PhysicsTools/PatUtils/data/Summer12_V2_DATA_AK5PF_UncertaintySources.txt'),
-            jetCorrUncertaintyTag = cms.string("SubTotalDataMC"),
-            addResidualJES = cms.bool(True),
-            jetCorrLabelUpToL3 = cms.string("ak5PFL1FastL2L3"),
-            jetCorrLabelUpToL3Res = cms.string("ak5PFL1FastL2L3Residual"),                               
-            shiftBy = cms.double(+1.*varyByNsigmas)
-        )
-        process.shiftedJetsEnDown = process.shiftedJetsEnUp.clone(
-            shiftBy = cms.double(-1.*varyByNsigmas)
-        )
-        process.p += process.shiftedJetsEnUp + process.shiftedJetsEnDown
+        ## process.shiftedJetsEnUp = cms.EDProducer("ShiftedPATJetProducer",
+        ##     src = cms.InputTag(catJetsSource),
+        ##     jetCorrPayloadName = cms.string('AK5PF'),
+        ##     jetCorrInputFileName = cms.FileInPath(jetCorrInputFile),
+        ##     jetCorrUncertaintyTag = cms.string("SubTotalDataMC"),
+        ##     addResidualJES = cms.bool(True),
+        ##     jetCorrLabelUpToL3 = cms.string("ak5PFL1FastL2L3"),
+        ##     jetCorrLabelUpToL3Res = cms.string("ak5PFL1FastL2L3Residual"),                               
+        ##     shiftBy = cms.double(+1.*varyByNsigmas)
+        ## )
+        ## process.shiftedJetsEnDown = process.shiftedJetsEnUp.clone(
+        ##     shiftBy = cms.double(-1.*varyByNsigmas)
+        ## )
+        ## process.p += process.shiftedJetsEnUp + process.shiftedJetsEnDown
 
-        process.catJets.shiftedEnDownSrc = cms.InputTag("shiftedJetsEnDown")
-        process.catJets.shiftedEnUpSrc = cms.InputTag("shiftedJetsEnUp")
+        #process.catJets.shiftedEnDownSrc = cms.InputTag("shiftedJetsEnDown")
+        #process.catJets.shiftedEnUpSrc = cms.InputTag("shiftedJetsEnUp")
         process.catJets.smearedResSrc = cms.InputTag("smearedJetsRes")
         process.catJets.smearedResDownSrc = cms.InputTag("smearedJetsResDown")
         process.catJets.smearedResUpSrc = cms.InputTag("smearedJetsResUp")

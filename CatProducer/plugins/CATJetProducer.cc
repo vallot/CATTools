@@ -41,8 +41,8 @@ namespace cat {
 
   private:
     edm::InputTag src_;
-    edm::InputTag shiftedEnDownSrc_;
-    edm::InputTag shiftedEnUpSrc_;
+    // edm::InputTag shiftedEnDownSrc_;
+    // edm::InputTag shiftedEnUpSrc_;
     edm::InputTag smearedResSrc_;
     edm::InputTag smearedResDownSrc_;
     edm::InputTag smearedResUpSrc_;
@@ -57,8 +57,8 @@ namespace cat {
 
 cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
   src_(iConfig.getParameter<edm::InputTag>("src")),
-  shiftedEnDownSrc_(iConfig.getParameter<edm::InputTag>("shiftedEnDownSrc")),
-  shiftedEnUpSrc_(iConfig.getParameter<edm::InputTag>("shiftedEnUpSrc")),
+  // shiftedEnDownSrc_(iConfig.getParameter<edm::InputTag>("shiftedEnDownSrc")),
+  // shiftedEnUpSrc_(iConfig.getParameter<edm::InputTag>("shiftedEnUpSrc")),
   smearedResSrc_(iConfig.getParameter<edm::InputTag>("smearedResSrc")),
   smearedResDownSrc_(iConfig.getParameter<edm::InputTag>("smearedResDownSrc")),
   smearedResUpSrc_(iConfig.getParameter<edm::InputTag>("smearedResUpSrc")),
@@ -73,25 +73,38 @@ void
 cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) {
 
   Handle<View<pat::Jet> > src; iEvent.getByLabel(src_, src);
-  Handle<View<pat::Jet> > shiftedEnDownSrc;
-  Handle<View<pat::Jet> > shiftedEnUpSrc;
+  // Handle<View<pat::Jet> > shiftedEnDownSrc;
+  // Handle<View<pat::Jet> > shiftedEnUpSrc;
   Handle<View<pat::Jet> > smearedResSrc;
   Handle<View<pat::Jet> > smearedResDownSrc;
   Handle<View<pat::Jet> > smearedResUpSrc;
   
   if (runOnMC_){
-    iEvent.getByLabel(shiftedEnDownSrc_, shiftedEnDownSrc);
-    iEvent.getByLabel(shiftedEnUpSrc_, shiftedEnUpSrc);
+    // iEvent.getByLabel(shiftedEnDownSrc_, shiftedEnDownSrc);
+    // iEvent.getByLabel(shiftedEnUpSrc_, shiftedEnUpSrc);
     iEvent.getByLabel(smearedResSrc_, smearedResSrc);
     iEvent.getByLabel(smearedResDownSrc_, smearedResDownSrc);
     iEvent.getByLabel(smearedResUpSrc_, smearedResUpSrc);
   }
-  
+  edm::ESHandle<JetCorrectorParametersCollection> JetCorParColl;
+  iSetup.get<JetCorrectionsRecord>().get("AK5PF",JetCorParColl); 
+  JetCorrectorParameters const & JetCorPar = (*JetCorParColl)["Uncertainty"];
+  JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
+
   auto_ptr<vector<cat::Jet> >  out(new vector<cat::Jet>());
   int j = 0;
   for (const pat::Jet &aPatJet : *src) {
     bool looseId = checkPFJetId( aPatJet );
     cat::Jet aJet(aPatJet);
+
+    jecUnc->setJetEta(aJet.eta());
+    jecUnc->setJetPt(aJet.pt()); // here you must use the CORRECTED jet pt
+    double unc = jecUnc->getUncertainty(true);
+    aJet.setShiftedEnUp(aJet.pt()*(1. + unc) );
+    jecUnc->setJetEta(aJet.eta());
+    jecUnc->setJetPt(aJet.pt()); // here you must use the CORRECTED jet pt
+    unc = jecUnc->getUncertainty(false);
+    aJet.setShiftedEnDown(aJet.pt()*(1. - unc) );
 
     if (runOnMC_){
       //      const pat::Jet &shiftedEnDownJet = shiftedEnDownSrc->at(j);
@@ -105,8 +118,6 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
       // 		<< " jet eta " << smearedResDownSrc->at(j).eta() << endl;
 
       // adding shifts and smeared up and down
-      aJet.setShiftedEnDown(shiftedEnDownSrc->at(j).pt() );
-      aJet.setShiftedEnUp(shiftedEnUpSrc->at(j).pt() );
       aJet.setSmearedRes(smearedResSrc->at(j).pt() );
       aJet.setSmearedResDown(smearedResDownSrc->at(j).pt() );
       aJet.setSmearedResUp(smearedResUpSrc->at(j).pt() );
