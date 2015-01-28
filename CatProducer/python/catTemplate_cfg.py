@@ -31,23 +31,13 @@ process.totaEvents = cms.EDProducer("EventCountProducer")
 process.p = cms.Path(process.totaEvents)
 
 ## Output Module Configuration (expects a path 'p')
-from PhysicsTools.PatAlgos.patEventContent_cff import patEventContentNoCleaning
+from CATTools.CatProducer.catEventContent_cff import catEventContentExtended
 process.out = cms.OutputModule("PoolOutputModule",
     fileName = cms.untracked.string('catTuple.root'),
-    outputCommands = cms.untracked.vstring(
-        'drop *',
-        'keep *_cat*_*_*',
-#        'keep *_goodOfflinePrimaryVertices*_*_*',
-        'keep *_offlineSlimmedPrimaryVertices_*_*',
-        #'keep GenEventInfoProduct_*_*_*',
-        #'keep PileupSummaryInfos_*_*_*',
-        'keep edmMergeableCounter_*_*_*',
-        #'keep patTriggerPaths_patTrigger*_*_*',
-        'keep *_prunedGenParticles_*_*',
-        #'keep *_selectedPatJets_*_*',
-        #'keep *_TriggerResults_*_PAT',
-        #'keep *_patTrigger*_*_*',
-        #'keep *_*_*_PAT',
-    )
+    outputCommands = cms.untracked.vstring('drop *')
 )
+process.out.outputCommands += catEventContentExtended
+
+print process.out.outputCommands
+
 process.outpath = cms.EndPath(process.out)

@@ -15,6 +15,15 @@ catEventContent.extend([
 
 catEventContentExtended.extend([
     'keep *_cat*_*_*',
-    'keep *_goodOfflinePrimaryVertices_*_*'
+    'keep *_offlineSlimmedPrimaryVertices_*_*',
+    'keep *_prunedGenParticles_*_*',
+    #'keep patTriggerPaths_patTrigger*_*_*',
+    #'keep *_goodOfflinePrimaryVertices*_*_*',
+    #'keep GenEventInfoProduct_*_*_*',
+    #'keep PileupSummaryInfos_*_*_*',
+    #'keep *_selectedPatJets_*_*',
+    #'keep *_TriggerResults_*_PAT',
+    #'keep *_patTrigger*_*_*',
+    #'keep *_*_*_PAT',
     ])
 
