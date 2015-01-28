@@ -33,6 +33,8 @@ namespace cat {
 
   private:
     edm::EDGetTokenT<pat::MuonCollection> src_;
+    edm::EDGetTokenT<pat::MuonCollection> shiftedEnDownSrc_;
+    edm::EDGetTokenT<pat::MuonCollection> shiftedEnUpSrc_;
     edm::EDGetTokenT<reco::GenParticleCollection> mcLabel_;
     edm::EDGetTokenT<reco::VertexCollection> vertexLabel_;
     edm::EDGetTokenT<reco::BeamSpot> beamLineSrc_;
@@ -44,6 +46,8 @@ namespace cat {
 
 cat::CATMuonProducer::CATMuonProducer(const edm::ParameterSet & iConfig) :
   src_(consumes<pat::MuonCollection>(iConfig.getParameter<edm::InputTag>("src"))),
+  shiftedEnDownSrc_(consumes<pat::MuonCollection>(iConfig.getParameter<edm::InputTag>("shiftedEnDownSrc"))),
+  shiftedEnUpSrc_(consumes<pat::MuonCollection>(iConfig.getParameter<edm::InputTag>("shiftedEnUpSrc"))),
   mcLabel_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcLabel"))),
   vertexLabel_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexLabel"))),
   beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc"))),
@@ -70,11 +74,24 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
    
   reco::BeamSpot beamSpot = *beamSpotHandle;
   reco::TrackBase::Point beamPoint(beamSpot.x0(), beamSpot.y0(), beamSpot.z0());
- 
-  auto_ptr<vector<cat::Muon> >  out(new vector<cat::Muon>());
 
+  edm::Handle<pat::MuonCollection> shiftedEnDownSrc;
+  edm::Handle<pat::MuonCollection> shiftedEnUpSrc;
+  if (runOnMC_){
+    iEvent.getByToken(shiftedEnDownSrc_, shiftedEnDownSrc);
+    iEvent.getByToken(shiftedEnUpSrc_, shiftedEnUpSrc);
+  }
+
+  auto_ptr<vector<cat::Muon> >  out(new vector<cat::Muon>());
+  int j = 0;
   for (const pat::Muon & aPatMuon : *src) {
     cat::Muon aMuon(aPatMuon);
+
+    if (runOnMC_){
+      aMuon.setShiftedEnDown(shiftedEnDownSrc->at(j).pt() );
+      aMuon.setShiftedEnUp(shiftedEnUpSrc->at(j).pt() );
+    }
+    ++j;
 
     double pt    = aPatMuon.pt() ;
 

@@ -97,6 +97,11 @@ namespace cat {
     float electronID(const char* name) const { return electronID( std::string(name) );}
     void setElectronIDs(const std::vector<pat::Electron::IdPair> & ids) { electronIDs_ = ids; }
 
+    void setShiftedEnDown(float f) { shiftedEnDown_ = f;}
+    void setShiftedEnUp(float f) { shiftedEnUp_ = f;}
+    float shiftedEnDown() {return  shiftedEnDown_;}
+    float shiftedEnUp()   {return  shiftedEnUp_;}
+
   private:
 
     std::vector<pat::Electron::IdPair> electronIDs_;
@@ -123,7 +128,10 @@ namespace cat {
     bool passConversionVeto_;
     bool isGsfCtfScPixChargeConsistent_;
     bool isPF_;
-    
+
+    float shiftedEnDown_;
+    float shiftedEnUp_;
+
   };
 }
 

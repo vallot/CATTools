@@ -68,6 +68,11 @@ namespace cat {
     void setDz(float d) { dz_ = d; }
     void setDxy(float d) { dxy_ = d; }
 
+    void setShiftedEnDown(float f) { shiftedEnDown_ = f;}
+    void setShiftedEnUp(float f) { shiftedEnUp_ = f;}
+    float shiftedEnDown() {return  shiftedEnDown_;}
+    float shiftedEnUp()   {return  shiftedEnUp_;}
+
   private:
 
     float relIso03_;
@@ -90,6 +95,9 @@ namespace cat {
 
     float dz_;
     float dxy_;
+
+    float shiftedEnDown_;
+    float shiftedEnUp_;
 
   };
 }

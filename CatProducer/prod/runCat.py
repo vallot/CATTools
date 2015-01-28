@@ -22,13 +22,14 @@ if useMiniAOD:
         process.GlobalTag = GlobalTag(process.GlobalTag, 'PLS170_V7AN2::All', '')
     else:
         process.GlobalTag = GlobalTag(process.GlobalTag, 'GR_70_V2_AN1::All', '')
+if globalTag:
+    process.GlobalTag = GlobalTag(process.GlobalTag, globalTag, '')
 
 ####################################################################################################
 ## from miniAOD/patTuple_mini.py to run miniAOD maker when starting from AOD
 if not useMiniAOD:
     if not globalTag:
         print "ERROR!!!! Need correct globalTag to run on AOD"
-    process.GlobalTag = GlobalTag(process.GlobalTag, globalTag, '')
     process.load('Configuration.StandardSequences.PAT_cff')
     process.load("RecoVertex.AdaptiveVertexFinder.inclusiveVertexing_cff")
     from PhysicsTools.PatAlgos.slimming.miniAOD_tools import *
@@ -45,9 +46,7 @@ from CATTools.CatProducer.catSetup_cff import *
 catSetup(process, runOnMC, doSecVertex)
 
 process.maxEvents.input = options.maxEvents
-
 process.source.fileNames = options.inputFiles
-
 ## to suppress the long output at the end of the job
 process.MessageLogger.cerr.threshold = ''
 if options.maxEvents < 0:

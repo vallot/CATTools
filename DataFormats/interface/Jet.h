@@ -59,14 +59,32 @@ namespace cat {
     void addBDiscriminatorPair(const std::pair<std::string, float> & thePair) {
       pairDiscriVector_.push_back(thePair);
     }
-    
+
+    void setShiftedEnDown(float f) { shiftedEnDown_ = f;}
+    void setShiftedEnUp(float f) { shiftedEnUp_ = f;}
+    void setSmearedRes(float f) { smearedRes_ = f;}
+    void setSmearedResDown(float f) { smearedResDown_ = f;}
+    void setSmearedResUp(float f) { smearedResUp_ = f;}
+
+    float shiftedEnDown() {return  shiftedEnDown_;}
+    float shiftedEnUp()   {return  shiftedEnUp_;}
+    float smearedRes()    {return  smearedRes_;}
+    float smearedResDown(){return  smearedResDown_;}
+    float smearedResUp()  {return  smearedResUp_;}
+
+    const reco::GenJet * genJet() const {
+      return genJetFwdRef_.get();
+    }
+    void setGenJetRef(const edm::FwdRef<reco::GenJetCollection> & gj){ genJetFwdRef_ = gj;}
+    edm::FwdRef<reco::GenJetCollection> const & genJetFwdRef() const { return genJetFwdRef_; }
+
   private:
     bool LooseId_; 
     float pileupJetId_;
 
     /// b tagging discriminators
     std::vector<std::pair<std::string, float> >  pairDiscriVector_;
-    //std::vector<std::string>                     tagInfoLabels_;
+    edm::FwdRef<reco::GenJetCollection>  genJetFwdRef_;
 
      /// b tagging information
     float vtxMass_;
@@ -78,6 +96,12 @@ namespace cat {
     int partonFlavour_;
     int hadronFlavour_;
     int partonPdgId_;
+
+    float shiftedEnDown_;
+    float shiftedEnUp_;
+    float smearedRes_;
+    float smearedResDown_;
+    float smearedResUp_;
 
   };
 }

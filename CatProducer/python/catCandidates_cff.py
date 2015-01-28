@@ -2,6 +2,8 @@ import FWCore.ParameterSet.Config as cms
 
 catMuons = cms.EDProducer("CATMuonProducer",
     src = cms.InputTag("patMuons"),
+    shiftedEnDownSrc = cms.InputTag("shiftedSlimmedMuonsEnDown"),
+    shiftedEnUpSrc = cms.InputTag("shiftedSlimmedMuonsEnUp"),
     mcLabel = cms.InputTag("genParticles"),
     vertexLabel = cms.InputTag("offlinePrimaryVertices"),
     beamLineSrc = cms.InputTag("offlineBeamSpot"),
@@ -10,6 +12,8 @@ catMuons = cms.EDProducer("CATMuonProducer",
 
 catElectrons = cms.EDProducer("CATElectronProducer",
     src = cms.InputTag("patElectrons"),
+    shiftedEnDownSrc = cms.InputTag("shiftedSlimmedElectronsEnDown"),
+    shiftedEnUpSrc = cms.InputTag("shiftedSlimmedElectronsEnUp"),
     mcLabel = cms.InputTag("genParticles"),
     vertexLabel = cms.InputTag('offlinePrimaryVertices'),
     beamLineSrc = cms.InputTag("offlineBeamSpot"),
@@ -20,6 +24,12 @@ catElectrons = cms.EDProducer("CATElectronProducer",
 
 catJets = cms.EDProducer("CATJetProducer",
     src = cms.InputTag("selectedPatJetsPFlow"),
+    shiftedEnDownSrc = cms.InputTag("shiftedSlimmedJetsEnDown"),
+    shiftedEnUpSrc = cms.InputTag("shiftedSlimmedJetsEnUp"),
+    smearedResSrc = cms.InputTag("smearedSlimmedJets"),
+    smearedResDownSrc = cms.InputTag("smearedSlimmedJetsResDown"),
+    smearedResUpSrc = cms.InputTag("smearedSlimmedJetsResUp"),
+    runOnMC = cms.bool(True),
     btagNames = cms.vstring()
 ##       #see https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideBTagPerformance
 ##       'trackCountingHighPurBJetTags', #0
