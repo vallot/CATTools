@@ -7,7 +7,7 @@ config.General.transferOutputs = True
 
 config.section_("JobType")
 config.JobType.pluginName  = 'Analysis'
-config.JobType.psetName    = 'runCat.py'
+config.JobType.psetName    = 'runCat_cfg.py'
 config.JobType.pyCfgParams = ['runOnMC=False','globalTag=FT53_V21A_AN6::All']
 config.JobType.inputFiles  = ['Winter14_V5_DATA.db']
 
