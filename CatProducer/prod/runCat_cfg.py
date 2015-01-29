@@ -47,6 +47,11 @@ catSetup(process, runOnMC, doSecVertex)
 
 process.maxEvents.input = options.maxEvents
 process.source.fileNames = options.inputFiles
+
+from CATTools.CatProducer.catEventContent_cff import catEventContentExtended
+process.out.outputCommands = catEventContentExtended
+
+
 ## to suppress the long output at the end of the job
 process.MessageLogger.cerr.threshold = ''
 if options.maxEvents < 0:

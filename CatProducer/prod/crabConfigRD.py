@@ -7,7 +7,7 @@ config.General.transferOutputs = True
 
 config.section_("JobType")
 config.JobType.pluginName  = 'Analysis'
-config.JobType.psetName    = 'runCat.py'
+config.JobType.psetName    = 'runCat_cfg.py'
 config.JobType.pyCfgParams = ['runOnMC=False']
 
 config.section_("Data")

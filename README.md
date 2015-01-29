@@ -3,7 +3,7 @@ CATTools
 
 for cms analysis
 
-Test file : catTuple.root can be found in https://www.dropbox.com/s/40tvwebdv6g0x1m/catTuple.root?dl=0
+Test file : catTuple.root can be found in /afs/cern.ch/user/j/jlee/public/catTuple.root
 ```bash
 scram p -n cat CMSSW CMSSW_7_2_2_patch1
 cd cat/src
@@ -12,12 +12,13 @@ git-cms-addpkg FWCore/Version
 git clone git@github.com:vallot/CATTools.git -b cat72x
 scram setup lhapdffull
 scram b -j 8
+cd $SRT_CMSSW_BASE_SCRAMRTDEL/src/CATTools/CatProducer/prod
 
-cmsRun $SRT_CMSSW_BASE_SCRAMRTDEL/src/CATTools/CatProducer/prod/runCat.py useMiniAOD=True inputFiles=/store/mc/Phys14DR/DYJetsToLL_M-50_13TeV-madgraph-pythia8/MINIAODSIM/PU20bx25_PHYS14_25_V1-v1/00000/0432E62A-7A6C-E411-87BB-002590DB92A8.root
+cmsRun runCat_cfg.py useMiniAOD=True inputFiles=/store/mc/Phys14DR/DYJetsToLL_M-50_13TeV-madgraph-pythia8/MINIAODSIM/PU20bx25_PHYS14_25_V1-v1/00000/0432E62A-7A6C-E411-87BB-002590DB92A8.root
 
 or 
 
-cmsRun $SRT_CMSSW_BASE_SCRAMRTDEL/src/CATTools/CatProducer/prod/runCat.py useMiniAOD=False inputFiles=/store/mc/Phys14DR/DYJetsToLL_M-50_13TeV-madgraph-pythia8/AODSIM/PU20bx25_PHYS14_25_V1-v1/00000/00CC714A-F86B-E411-B99A-0025904B5FB8.root globalTag='PHYS14_25_V2::All'
+cmsRun runCat_cfg.py useMiniAOD=False inputFiles=/store/mc/Phys14DR/DYJetsToLL_M-50_13TeV-madgraph-pythia8/AODSIM/PU20bx25_PHYS14_25_V1-v1/00000/00CC714A-F86B-E411-B99A-0025904B5FB8.root globalTag='PHYS14_25_V2::All'
 ```
 
 # Submit CRAB jobs using CATTools
