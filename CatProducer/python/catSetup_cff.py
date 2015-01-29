@@ -34,7 +34,6 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
     process.catSecVertexs.vertexLabel = cms.InputTag(catVertexSource)
 
     process.load("CATTools.CatProducer.recoEventInfo_cfi")
-    process.out.outputCommands.append("keep *_recoEventInfo_*_*")
     if runOnMC:
         ## Load MC dependent producers
         process.load("CATTools.CatProducer.pdfWeight_cff")
@@ -89,9 +88,6 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
         process.catJets.smearedResSrc = cms.InputTag("smearedSlimmedJets")
         process.catJets.smearedResDownSrc = cms.InputTag("smearedSlimmedJetsResDown")
         process.catJets.smearedResUpSrc = cms.InputTag("smearedSlimmedJetsResUp")
-
-        process.out.outputCommands.append("drop *_shifted*_*_*")
-        process.out.outputCommands.append("drop *_smeared*_*_*")
 
     if not runOnMC:
         process.makeCatCandidates.remove(process.catGenJets)
