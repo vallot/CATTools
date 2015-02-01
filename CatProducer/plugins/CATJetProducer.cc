@@ -30,7 +30,8 @@ namespace cat {
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
     bool checkPFJetId(const pat::Jet & jet);
-      
+    void getJER(const double jetEta, double& cJER, double& cJERUp, double& cJERDn) const;
+
     std::vector<const reco::Candidate *> getAncestors(const reco::Candidate &c);
     bool hasBottom(const reco::Candidate &c);
     bool hasCharm(const reco::Candidate &c);
@@ -41,11 +42,6 @@ namespace cat {
 
   private:
     edm::InputTag src_;
-    // edm::InputTag shiftedEnDownSrc_;
-    // edm::InputTag shiftedEnUpSrc_;
-    edm::InputTag smearedResSrc_;
-    edm::InputTag smearedResDownSrc_;
-    edm::InputTag smearedResUpSrc_;
 
     const std::vector<std::string> btagNames_;
     std::string uncertaintyTag_, payloadName_;
@@ -57,11 +53,6 @@ namespace cat {
 
 cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
   src_(iConfig.getParameter<edm::InputTag>("src")),
-  // shiftedEnDownSrc_(iConfig.getParameter<edm::InputTag>("shiftedEnDownSrc")),
-  // shiftedEnUpSrc_(iConfig.getParameter<edm::InputTag>("shiftedEnUpSrc")),
-  smearedResSrc_(iConfig.getParameter<edm::InputTag>("smearedResSrc")),
-  smearedResDownSrc_(iConfig.getParameter<edm::InputTag>("smearedResDownSrc")),
-  smearedResUpSrc_(iConfig.getParameter<edm::InputTag>("smearedResUpSrc")),
   btagNames_(iConfig.getParameter<std::vector<std::string> >("btagNames")),
   runOnMC_(iConfig.getParameter<bool>("runOnMC"))
 {
@@ -73,19 +64,7 @@ void
 cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) {
 
   Handle<View<pat::Jet> > src; iEvent.getByLabel(src_, src);
-  // Handle<View<pat::Jet> > shiftedEnDownSrc;
-  // Handle<View<pat::Jet> > shiftedEnUpSrc;
-  Handle<View<pat::Jet> > smearedResSrc;
-  Handle<View<pat::Jet> > smearedResDownSrc;
-  Handle<View<pat::Jet> > smearedResUpSrc;
   
-  if (runOnMC_){
-    // iEvent.getByLabel(shiftedEnDownSrc_, shiftedEnDownSrc);
-    // iEvent.getByLabel(shiftedEnUpSrc_, shiftedEnUpSrc);
-    iEvent.getByLabel(smearedResSrc_, smearedResSrc);
-    iEvent.getByLabel(smearedResDownSrc_, smearedResDownSrc);
-    iEvent.getByLabel(smearedResUpSrc_, smearedResUpSrc);
-  }
   edm::ESHandle<JetCorrectorParametersCollection> JetCorParColl;
   iSetup.get<JetCorrectionsRecord>().get("AK5PF",JetCorParColl); 
   JetCorrectorParameters const & JetCorPar = (*JetCorParColl)["Uncertainty"];
@@ -100,30 +79,37 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
     jecUnc->setJetEta(aJet.eta());
     jecUnc->setJetPt(aJet.pt()); // here you must use the CORRECTED jet pt
     double unc = jecUnc->getUncertainty(true);
-    aJet.setShiftedEnUp(aJet.pt()*(1. + unc) );
+    aJet.setShiftedEnUp( (1. + unc) );
     jecUnc->setJetEta(aJet.eta());
     jecUnc->setJetPt(aJet.pt()); // here you must use the CORRECTED jet pt
     unc = jecUnc->getUncertainty(false);
-    aJet.setShiftedEnDown(aJet.pt()*(1. - unc) );
+    aJet.setShiftedEnDown( (1. - unc) );
 
+    float fJER   = 1;
+    float fJERUp = 1;
+    float fJERDn = 1;
     if (runOnMC_){
-      //      const pat::Jet &shiftedEnDownJet = shiftedEnDownSrc->at(j);
-      // std::cout << "                   jet pt " << aPatJet.pt()
-      // 		<< " jet eta " << aPatJet.eta() << endl;
-      // std::cout << " shiftedEnDownJet  jet pt " << shiftedEnDownSrc->at(j).pt()
-      // 		<< " jet eta " << shiftedEnDownSrc->at(j).eta() << endl;
-      // std::cout << " smearedResSrc     jet pt " << smearedResSrc->at(j).pt()
-      // 		<< " jet eta " << smearedResSrc->at(j).eta() << endl;
-      // std::cout << " smearedResDownSrc jet pt " << smearedResDownSrc->at(j).pt()
-      // 		<< " jet eta " << smearedResDownSrc->at(j).eta() << endl;
-
-      // adding shifts and smeared up and down
-      aJet.setSmearedRes(smearedResSrc->at(j).pt() );
-      aJet.setSmearedResDown(smearedResDownSrc->at(j).pt() );
-      aJet.setSmearedResUp(smearedResUpSrc->at(j).pt() );
-
       // adding genJet
       aJet.setGenJetRef(aPatJet.genJetFwdRef());
+
+      // setting JES 
+      if ( aPatJet.genJet() ){
+	double cJER, cJERUp, cJERDn;
+	getJER(aJet.eta(), cJER, cJERUp, cJERDn);
+
+	const double jetPt = aJet.pt();
+	const double genJetPt = aPatJet.genJet()->pt();
+	const double dPt = jetPt-genJetPt;
+
+	fJER   = max(0., (genJetPt+dPt*cJER  )/jetPt);
+	fJERUp = max(0., (genJetPt+dPt*cJERUp)/jetPt);
+	fJERDn = max(0., (genJetPt+dPt*cJERDn)/jetPt);
+      
+      }
+      aJet.setSmearedRes(fJER);
+      aJet.setSmearedResDown(fJERDn);
+      aJet.setSmearedResUp(fJERUp);
+
     }
     ++j;
     aJet.setLooseId( looseId );
@@ -154,6 +140,17 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
   }
 
   iEvent.put(out);
+}
+
+void cat::CATJetProducer::getJER(const double jetEta, double& cJER, double& cJERUp, double& cJERDn) const{
+  const double absEta = std::abs(jetEta);
+  if      ( absEta < 0.5 ) { cJER = 1.079; cJERUp = 1.105; cJERDn = 1.053; }
+  else if ( absEta < 1.1 ) { cJER = 1.099; cJERUp = 1.127; cJERDn = 1.071; }
+  else if ( absEta < 1.7 ) { cJER = 1.121; cJERUp = 1.150; cJERDn = 1.092; }
+  else if ( absEta < 2.3 ) { cJER = 1.208; cJERUp = 1.254; cJERDn = 1.162; }
+  else if ( absEta < 2.8 ) { cJER = 1.254; cJERUp = 1.316; cJERDn = 1.192; }
+  else if ( absEta < 3.2 ) { cJER = 1.395; cJERUp = 1.458; cJERDn = 1.332; }
+  else if ( absEta < 5.0 ) { cJER = 1.056; cJERUp = 1.247; cJERDn = 0.865; }
 }
 
 bool cat::CATJetProducer::checkPFJetId(const pat::Jet & jet){

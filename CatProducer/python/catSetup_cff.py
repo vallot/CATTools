@@ -86,7 +86,9 @@ def catSetup(process, runOnMC=True, doSecVertex=True, runDependantMC=False):
         process.out.outputCommands.append("keep *_pdfWeight_*_*")
         process.out.outputCommands.append("keep *_pileupWeight_*_*")
         process.p += process.pdfWeight +  process.pileupWeight
-        
+
+        ## turning off since the default ones are outdated...
+        ##
         ## making met Uncertainty
         ## from PhysicsTools.PatUtils.tools.metUncertaintyTools import runMEtUncertainties
         ## runMEtUncertaintiesClass = runMEtUncertainties(process,
@@ -98,28 +100,28 @@ def catSetup(process, runOnMC=True, doSecVertex=True, runDependantMC=False):
         ## process.patDefaultSequencePFlow += process.metUncertaintySequence
 
         ## added smeared and shifted jets
-        jetSmearFileName = 'PhysicsTools/PatUtils/data/pfJetResolutionMCtoDataCorrLUT.root'
-        jetSmearHistogram = 'pfJetResolutionMCtoDataCorrLUT'
-        varyByNsigmas = 1.0
+        ## jetSmearFileName = 'PhysicsTools/PatUtils/data/pfJetResolutionMCtoDataCorrLUT.root'
+        ## jetSmearHistogram = 'pfJetResolutionMCtoDataCorrLUT'
+        ## varyByNsigmas = 1.0
         
-        process.smearedJetsRes = cms.EDProducer("SmearedPATJetProducer",
-            src = cms.InputTag(catJetsSource),
-            dRmaxGenJetMatch = cms.string('TMath::Min(0.5, 0.1 + 0.3*TMath::Exp(-0.05*(genJetPt - 10.)))'),
-            sigmaMaxGenJetMatch = cms.double(5.),                               
-            inputFileName = cms.FileInPath(jetSmearFileName),
-            lutName = cms.string(jetSmearHistogram),
-            jetResolutions = jetResolutions.METSignificance_params,
-            skipJetSelection = cms.string('jecSetsAvailable & abs(energy - correctedP4("Uncorrected").energy) > (5.*min(energy, correctedP4("Uncorrected").energy))'),
-            skipRawJetPtThreshold = cms.double(10.), # GeV
-            skipCorrJetPtThreshold = cms.double(1.e-2),
-            )
-        process.smearedJetsResDown = process.smearedJetsRes.clone(
-            shiftBy = cms.double(-1.*varyByNsigmas)
-        )
-        process.smearedJetsResUp = process.smearedJetsRes.clone(
-            shiftBy = cms.double(+1.*varyByNsigmas)
-        )
-        process.p += process.smearedJetsRes + process.smearedJetsResDown + process.smearedJetsResUp
+        ## process.smearedJetsRes = cms.EDProducer("SmearedPATJetProducer",
+        ##     src = cms.InputTag(catJetsSource),
+        ##     dRmaxGenJetMatch = cms.string('TMath::Min(0.5, 0.1 + 0.3*TMath::Exp(-0.05*(genJetPt - 10.)))'),
+        ##     sigmaMaxGenJetMatch = cms.double(5.),                               
+        ##     inputFileName = cms.FileInPath(jetSmearFileName),
+        ##     lutName = cms.string(jetSmearHistogram),
+        ##     jetResolutions = jetResolutions.METSignificance_params,
+        ##     skipJetSelection = cms.string('jecSetsAvailable & abs(energy - correctedP4("Uncorrected").energy) > (5.*min(energy, correctedP4("Uncorrected").energy))'),
+        ##     skipRawJetPtThreshold = cms.double(10.), # GeV
+        ##     skipCorrJetPtThreshold = cms.double(1.e-2),
+        ##     )
+        ## process.smearedJetsResDown = process.smearedJetsRes.clone(
+        ##     shiftBy = cms.double(-1.*varyByNsigmas)
+        ## )
+        ## process.smearedJetsResUp = process.smearedJetsRes.clone(
+        ##     shiftBy = cms.double(+1.*varyByNsigmas)
+        ## )
+        ## process.p += process.smearedJetsRes + process.smearedJetsResDown + process.smearedJetsResUp
       
         ## process.shiftedJetsEnUp = cms.EDProducer("ShiftedPATJetProducer",
         ##     src = cms.InputTag(catJetsSource),
@@ -136,11 +138,11 @@ def catSetup(process, runOnMC=True, doSecVertex=True, runDependantMC=False):
         ## )
         ## process.p += process.shiftedJetsEnUp + process.shiftedJetsEnDown
 
-        #process.catJets.shiftedEnDownSrc = cms.InputTag("shiftedJetsEnDown")
-        #process.catJets.shiftedEnUpSrc = cms.InputTag("shiftedJetsEnUp")
-        process.catJets.smearedResSrc = cms.InputTag("smearedJetsRes")
-        process.catJets.smearedResDownSrc = cms.InputTag("smearedJetsResDown")
-        process.catJets.smearedResUpSrc = cms.InputTag("smearedJetsResUp")
+        ## process.catJets.shiftedEnDownSrc = cms.InputTag("shiftedJetsEnDown")
+        ## process.catJets.shiftedEnUpSrc = cms.InputTag("shiftedJetsEnUp")
+        ## process.catJets.smearedResSrc = cms.InputTag("smearedJetsRes")
+        ## process.catJets.smearedResDownSrc = cms.InputTag("smearedJetsResDown")
+        ## process.catJets.smearedResUpSrc = cms.InputTag("smearedJetsResUp")
 
     if not runOnMC:
         process.makeCatCandidates.remove(process.catGenJets)
