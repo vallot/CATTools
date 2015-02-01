@@ -5,20 +5,25 @@ for cms analysis
 
 Test file : catTuple.root can be found in https://www.dropbox.com/s/40tvwebdv6g0x1m/catTuple.root?dl=0
 ```bash
-scram p -n cat CMSSW CMSSW_5_3_22_patch1
+cmsnew cat CMSSW_5_3_24
 cd cat/src
 cmsenv
 git-cms-addpkg EgammaAnalysis/ElectronTools
+git-cms-addpkg PhysicsTools/PatAlgos
 cd EgammaAnalysis/ElectronTools/data
 cat download.url | xargs wget
 cd $SRT_CMSSW_BASE_SCRAMRTDEL/src
+scram setup lhapdffull
+mkdir CMGTools; cd CMGTools; git clone git@github.com:h2gglobe/External
+cd $SRT_CMSSW_BASE_SCRAMRTDEL/src
+
 git clone git@github.com:vallot/CATTools.git
 cd CATTools
-git checkout tags/cat53x2
+git checkout cat53x
 cd ..
 scram b -j 8
 
-cmsRun $SRT_CMSSW_BASE_SCRAMRTDEL/src/CATTools/CatProducer/prod/crab/runCatupling.py
+cmsRun $SRT_CMSSW_BASE_SCRAMRTDEL/src/CATTools/CatProducer/prod/crab/runCat_cfg.py
 
 ```
 
