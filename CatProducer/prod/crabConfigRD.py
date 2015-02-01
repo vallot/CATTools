@@ -9,7 +9,7 @@ config.section_("JobType")
 config.JobType.pluginName  = 'Analysis'
 config.JobType.psetName    = 'runCat_cfg.py'
 config.JobType.pyCfgParams = ['runOnMC=False','globalTag=FT53_V21A_AN6::All']
-config.JobType.inputFiles  = ['Winter14_V5_DATA.db']
+#config.JobType.inputFiles  = ['Winter14_V5_DATA.db']
 
 config.section_("Data")
 config.Data.inputDataset = '/QCD_Pt-15to3000_TuneEE3C_Flat_8TeV_herwigpp/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM'

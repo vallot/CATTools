@@ -12,8 +12,8 @@ def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5", doTrig
             runOnMC=runOnMC, postfix=postfix, typeIMetCorrections=True)
 
     ## pile up corrections
-    from CommonTools.ParticleFlow.Tools.enablePileUpCorrection import enablePileUpCorrectionInPF2PAT
-    enablePileUpCorrectionInPF2PAT( process, postfix, sequence = "patPF2PATSequence"+postfix)
+    #from CommonTools.ParticleFlow.Tools.enablePileUpCorrection import enablePileUpCorrection
+    #enablePileUpCorrection( process, postfix, sequence = "patPF2PATSequence"+postfix)
 
     ## electron ID tool
     process.load('EgammaAnalysis.ElectronTools.electronIdMVAProducer_cfi')
@@ -77,3 +77,11 @@ def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5", doTrig
 "tagInfoSecondaryVertex('secondaryVertex').flightDistance(0).error() : 0",
 )
     process.patJetsPFlow.userData.userFunctionLabels = cms.vstring('secvtxMass','Lxy','LxyErr')
+
+    ## adding pileup jet id
+    process.load("CMGTools.External.pujetidsequence_cff")
+    process.puJetMva.jets = cms.InputTag("selectedPatJetsPFlow")
+    process.puJetId.jets = cms.InputTag("selectedPatJetsPFlow")
+    process.puJetIdChs.jets = cms.InputTag("selectedPatJetsPFlow")
+    process.puJetMvaChs.jets = cms.InputTag("selectedPatJetsPFlow")
+    process.p += process.puJetIdSqeuence + process.puJetIdSqeuenceChs
