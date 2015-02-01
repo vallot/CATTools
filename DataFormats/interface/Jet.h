@@ -27,6 +27,10 @@ namespace cat {
 
     bool LooseId() const { return LooseId_; }
     float pileupJetId() const { return pileupJetId_; }
+    void setPileupJetId(float f) { pileupJetId_ = f;}
+
+    float pileupJetIdChs() const { return pileupJetIdChs_; }
+    void setPileupJetIdChs(float f) { pileupJetIdChs_ = f;}
 
     /// \return secondary vertex b-tagging information
     // combinedSecondaryVertexBJetTags
@@ -43,7 +47,6 @@ namespace cat {
 
 
     void setLooseId(bool id) { LooseId_ = id; } 
-    void setPileupJetId(float f) { pileupJetId_ = f;}
 
     void setVtxMass(float f) { vtxMass_ = f;}
     void setVtxNtracks(int f) { vtxNtracks_ = f;}
@@ -81,6 +84,7 @@ namespace cat {
   private:
     bool LooseId_; 
     float pileupJetId_;
+    float pileupJetIdChs_;
 
     /// b tagging discriminators
     std::vector<std::pair<std::string, float> >  pairDiscriVector_;

@@ -73,6 +73,7 @@ def catSetup(process, runOnMC=True, doSecVertex=True, runDependantMC=False):
         #'keep patTriggerPaths_patTrigger*_*_*',
         #'keep recoGenParticles_genParticles__SIM',
         'keep recoGenJets_{0}_*_*'.format(catJetsSource),
+        #"keep *_puJet*_*_*",
     )
 
     process.load("CATTools.CatProducer.recoEventInfo_cfi")
