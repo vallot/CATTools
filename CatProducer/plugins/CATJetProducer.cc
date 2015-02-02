@@ -66,15 +66,11 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
   Handle<View<pat::Jet> > src; iEvent.getByLabel(src_, src);
 
   edm::Handle<edm::ValueMap<float> > pileupID;
-  iEvent.getByLabel("puJetMva","full53xDiscriminant",pileupID);
+  iEvent.getByLabel("puJetMvaChs","fullDiscriminant",pileupID);
   const edm::ValueMap<float>& puIdMap = *pileupID;
 
-  edm::Handle<edm::ValueMap<float> > pileupIDCHS;
-  iEvent.getByLabel("puJetMvaChs","fullDiscriminant",pileupIDCHS);
-  const edm::ValueMap<float>& puIdChsMap = *pileupIDCHS;
-
   edm::ESHandle<JetCorrectorParametersCollection> JetCorParColl;
-  iSetup.get<JetCorrectionsRecord>().get("AK5PF",JetCorParColl); 
+  iSetup.get<JetCorrectionsRecord>().get("AK5PFchs",JetCorParColl); 
   JetCorrectorParameters const & JetCorPar = (*JetCorParColl)["Uncertainty"];
   JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
 
@@ -86,7 +82,6 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
 
     edm::Ref<View<pat::Jet>> patJetRef(src,j);
     aJet.setPileupJetId( puIdMap[patJetRef] );
-    aJet.setPileupJetIdChs( puIdChsMap[patJetRef] );
     
     jecUnc->setJetEta(aJet.eta());
     jecUnc->setJetPt(aJet.pt()); // here you must use the CORRECTED jet pt

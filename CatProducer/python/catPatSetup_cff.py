@@ -6,14 +6,22 @@ def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5", doTrig
         jecLevels = ['L1FastJet','L2Relative','L3Absolute']
     else:
         jecLevels = ['L1FastJet','L2Relative', 'L3Absolute', 'L2L3Residual']
-    
+
+    if not runOnMC:
+        process.load("RecoMET.METFilters.metFilters_cff")
+        process.p += process.metFilters
+
+    # from https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookJetEnergyCorrections#JetEnCorPFnoPU2012
+    # change pvCollection to goodOfflinePrimaryVertices
+    # and process.pfPileUpPFlow.checkClosestZVertex = False
     from PhysicsTools.PatAlgos.tools.pfTools import usePF2PAT,removeMCMatchingPF2PAT
     usePF2PAT(process, runPF2PAT=True, jetAlgo=jetAlgo, jetCorrections=("AK5PFchs", jecLevels),
-            runOnMC=runOnMC, postfix=postfix, typeIMetCorrections=True)
+              pvCollection=cms.InputTag('goodOfflinePrimaryVertices'),
+                runOnMC=runOnMC, postfix=postfix, typeIMetCorrections=True)
 
     ## pile up corrections
-    #from CommonTools.ParticleFlow.Tools.enablePileUpCorrection import enablePileUpCorrection
-    #enablePileUpCorrection( process, postfix, sequence = "patPF2PATSequence"+postfix)
+    from CommonTools.ParticleFlow.Tools.enablePileUpCorrection import enablePileUpCorrectionInPF2PAT
+    enablePileUpCorrectionInPF2PAT( process, postfix, sequence = "patPF2PATSequence"+postfix)
 
     ## electron ID tool
     process.load('EgammaAnalysis.ElectronTools.electronIdMVAProducer_cfi')
@@ -69,13 +77,15 @@ def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5", doTrig
     process.patElectronsPFlow.isolationValues.user = cms.VInputTag("elPFIsoValueCharged03PFIdPFlow","elPFIsoValueNeutral03PFIdPFlow","elPFIsoValueGamma03PFIdPFlow","elPFIsoValuePU03PFIdPFlow","elPFIsoValueChargedAll03PFIdPFlow")
 
     process.patJetsPFlow.addTagInfos = cms.bool(True)
-    process.patJetsPFlow.userData.userFunctions = cms.vstring( "? hasTagInfo('secondaryVertex') && tagInfoSecondaryVertex('secondaryVertex').nVertices() > 0 ? "
-"tagInfoSecondaryVertex('secondaryVertex').secondaryVertex(0).p4().mass() : 0",
-"? hasTagInfo('secondaryVertex') && tagInfoSecondaryVertex('secondaryVertex').nVertices() > 0 ? "
-"tagInfoSecondaryVertex('secondaryVertex').flightDistance(0).value() : 0",
-"? hasTagInfo('secondaryVertex') && tagInfoSecondaryVertex('secondaryVertex').nVertices() > 0 ? "
-"tagInfoSecondaryVertex('secondaryVertex').flightDistance(0).error() : 0",
-)
+    process.patJets.tagInfoSources = cms.VInputTag(cms.InputTag("secondaryVertexTagInfosAODPFlow"))
+    process.patJetsPFlow.userData.userFunctions = cms.vstring(
+        "? hasTagInfo('secondaryVertex') && tagInfoSecondaryVertex('secondaryVertex').nVertices() > 0 ? "
+        "tagInfoSecondaryVertex('secondaryVertex').secondaryVertex(0).p4().mass() : 0",
+        "? hasTagInfo('secondaryVertex') && tagInfoSecondaryVertex('secondaryVertex').nVertices() > 0 ? "
+        "tagInfoSecondaryVertex('secondaryVertex').flightDistance(0).value() : 0",
+        "? hasTagInfo('secondaryVertex') && tagInfoSecondaryVertex('secondaryVertex').nVertices() > 0 ? "
+        "tagInfoSecondaryVertex('secondaryVertex').flightDistance(0).error() : 0",
+    )
     process.patJetsPFlow.userData.userFunctionLabels = cms.vstring('secvtxMass','Lxy','LxyErr')
 
     ## adding pileup jet id
