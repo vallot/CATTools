@@ -95,5 +95,7 @@ def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5", doTrig
     process.puJetMva.jets = cms.InputTag("selectedPatJetsPFlow")
     process.puJetId.jets = cms.InputTag("selectedPatJetsPFlow")
     process.puJetIdChs.jets = cms.InputTag("selectedPatJetsPFlow")
+    process.puJetIdChs.vertexes = 'goodOfflinePrimaryVertices'
     process.puJetMvaChs.jets = cms.InputTag("selectedPatJetsPFlow")
+    process.puJetMvaChs.vertexes = 'goodOfflinePrimaryVertices'
     process.p += process.puJetIdSqeuence + process.puJetIdSqeuenceChs
