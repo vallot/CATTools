@@ -5,7 +5,7 @@ for cms analysis
 
 Test file : catTuple.root can be found in https://www.dropbox.com/s/40tvwebdv6g0x1m/catTuple.root?dl=0
 ```bash
-cmsnew cat CMSSW_5_3_24
+scram p -n cat CMSSW CMSSW_5_3_24
 cd cat/src
 cmsenv
 git-cms-addpkg EgammaAnalysis/ElectronTools
