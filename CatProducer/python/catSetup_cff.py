@@ -3,9 +3,7 @@ import RecoMET.METProducers.METSigParams_cfi as jetResolutions
 from CondCore.DBCommon.CondDBSetup_cfi import *
     
 def catSetup(process, runOnMC=True, doSecVertex=True, runDependantMC=False):    
-    process.load("CATTools.CatProducer.eventCleaning.eventCleaning_cff")
     process.load("CATTools.CatProducer.catCandidates_cff")
-    #process.p += process.eventCleaning
 
     catJetsSource = "selectedPatJetsPFlow"
     catGenJetsSource = "ak5GenJets"
