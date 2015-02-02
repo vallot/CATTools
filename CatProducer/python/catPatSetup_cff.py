@@ -82,11 +82,13 @@ def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5", doTrig
         "? hasTagInfo('secondaryVertex') && tagInfoSecondaryVertex('secondaryVertex').nVertices() > 0 ? "
         "tagInfoSecondaryVertex('secondaryVertex').secondaryVertex(0).p4().mass() : 0",
         "? hasTagInfo('secondaryVertex') && tagInfoSecondaryVertex('secondaryVertex').nVertices() > 0 ? "
+        "tagInfoSecondaryVertex('secondaryVertex').secondaryVertex(0).nTracks() : 0",
+        "? hasTagInfo('secondaryVertex') && tagInfoSecondaryVertex('secondaryVertex').nVertices() > 0 ? "
         "tagInfoSecondaryVertex('secondaryVertex').flightDistance(0).value() : 0",
         "? hasTagInfo('secondaryVertex') && tagInfoSecondaryVertex('secondaryVertex').nVertices() > 0 ? "
         "tagInfoSecondaryVertex('secondaryVertex').flightDistance(0).error() : 0",
     )
-    process.patJetsPFlow.userData.userFunctionLabels = cms.vstring('secvtxMass','Lxy','LxyErr')
+    process.patJetsPFlow.userData.userFunctionLabels = cms.vstring('vtxMass','vtxNtracks','vtx3DVal','vtx3DSig')
 
     ## adding pileup jet id
     process.load("CMGTools.External.pujetidsequence_cff")
