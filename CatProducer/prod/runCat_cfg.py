@@ -17,7 +17,7 @@ globalTag = options.globalTag
 print "runOnMC =",runOnMC,"and useMiniAOD =",useMiniAOD
 
 if globalTag:
-    process.GlobalTag = GlobalTag(process.GlobalTag, globalTag, '')
+    process.GlobalTag.globaltag = cms.string(globalTag)
 
 ####################################################################################################
 ## from miniAOD/patTuple_mini.py to run miniAOD maker when starting from AOD
