@@ -11,11 +11,9 @@ def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5", doTrig
     process.totaEvents = cms.EDProducer("EventCountProducer")
     process.p = cms.Path(process.totaEvents)
 
+    # met cleaning events
     process.load("RecoMET.METFilters.metFilters_cff")
-    if not runOnMC:
-        process.p += process.metFilters
-    if runOnMC:
-        process.p += process.goodVertices
+    process.p += process.metFilters
         
     # from https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookJetEnergyCorrections#JetEnCorPFnoPU2012
     # change pvCollection to goodOfflinePrimaryVertices
