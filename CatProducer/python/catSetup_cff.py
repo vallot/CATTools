@@ -91,9 +91,6 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
 
     if not runOnMC:
         process.makeCatCandidates.remove(process.catGenJets)
-        process.catMuons.runOnMC = cms.bool(False)
-        process.catElectrons.runOnMC = cms.bool(False)
-        process.catJets.runOnMC = cms.bool(False)
 
     process.p += process.makeCatCandidates
 

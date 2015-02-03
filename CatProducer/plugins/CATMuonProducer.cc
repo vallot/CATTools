@@ -50,8 +50,7 @@ cat::CATMuonProducer::CATMuonProducer(const edm::ParameterSet & iConfig) :
   shiftedEnUpSrc_(consumes<pat::MuonCollection>(iConfig.getParameter<edm::InputTag>("shiftedEnUpSrc"))),
   mcLabel_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcLabel"))),
   vertexLabel_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexLabel"))),
-  beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc"))),
-  runOnMC_(iConfig.getParameter<bool>("runOnMC"))
+  beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc")))
 {
   produces<std::vector<cat::Muon> >();
 }
@@ -59,6 +58,8 @@ cat::CATMuonProducer::CATMuonProducer(const edm::ParameterSet & iConfig) :
 void 
 cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) 
 {
+  runOnMC_ = !iEvent.isRealData();
+
   Handle<pat::MuonCollection> src;
   iEvent.getByToken(src_, src);
 
