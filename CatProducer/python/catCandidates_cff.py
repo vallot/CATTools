@@ -7,8 +7,8 @@ from CATTools.CatProducer.jetProducer_cfi import *
 from CATTools.CatProducer.metProducer_cfi import *
 from CATTools.CatProducer.tauProducer_cfi import *
 from CATTools.CatProducer.genJetProducer_cfi import *
-from CATTools.CatProducer.genTopProducer_cfi import *
-from CATTools.CatProducer.mcParticleProducer_cfi import *
+#from CATTools.CatProducer.genTopProducer_cfi import *
+#from CATTools.CatProducer.mcParticleProducer_cfi import *
 from CATTools.CatProducer.secondaryVertexProducer_cfi import *
 
 makeCatCandidates =  cms.Sequence( 
@@ -16,7 +16,6 @@ makeCatCandidates =  cms.Sequence(
     catElectrons*
     catJets*
     catMETs*
-    catTaus*
     catGenJets
     #catMCParticles
     #catPhotons*
