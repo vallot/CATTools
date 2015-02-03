@@ -7,6 +7,10 @@ def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5", doTrig
     else:
         jecLevels = ['L1FastJet','L2Relative', 'L3Absolute', 'L2L3Residual']
 
+    ## total event counter
+    process.totaEvents = cms.EDProducer("EventCountProducer")
+    process.p = cms.Path(process.totaEvents)
+
     if not runOnMC:
         process.load("RecoMET.METFilters.metFilters_cff")
         process.p += process.metFilters
@@ -33,10 +37,6 @@ def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5", doTrig
     ## adding trigger info
     from PhysicsTools.PatAlgos.tools.trigTools import switchOnTrigger
     switchOnTrigger( process, sequence = "patPF2PATSequence"+postfix )
-
-    ## total event counter
-    process.totaEvents = cms.EDProducer("EventCountProducer")
-    process.p = cms.Path(process.totaEvents)
 
     ### skim for qcd data
     if not runOnMC and doTriggerSkim:
