@@ -9,7 +9,7 @@ process.load("CATTools.CatProducer.catCandidates_cff")
 
 from CATTools.CatProducer.Tools.tools import *
 
-useMiniAOD = True
+useMiniAOD = False
 if useMiniAOD:
   miniAOD(process)
 
@@ -18,13 +18,15 @@ process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
     fileNames = cms.untracked.vstring(
 #CERN
-#       '/store/relval/CMSSW_7_0_6_patch3/RelValZMM_13/GEN-SIM-RECO/PUpmx50ns_PLS170_V6AN1-v2/00000/1EF0EB3F-B412-E411-A7EC-0025905A612A.root'
-#        '/store/relval/CMSSW_7_0_7/RelValTTbar_13/GEN-SIM-RECO/PU25ns_PLS170_V7AN1-v1/00000/46E6309D-9516-E411-A4FC-0025905A48F0.root'
+       # miniAOD
+       # '/store/relval/CMSSW_7_3_0/RelValTTbar_13/MINIAODSIM/PU50ns_MCRUN2_73_V6-v1/00000/2287A8B8-7E81-E411-89C2-002590593876.root'
+       # RECO
+       '/store/relval/CMSSW_7_3_0/RelValTTbar_13/GEN-SIM-RECO/PU50ns_MCRUN2_73_V6-v1/00000/4A3BE457-7281-E411-871A-0025905B85F6.root'
     #Kisti
 #         'file:/cms/home/tjkim/store/relval/CMSSW_7_0_7/RelValTTbar_13/GEN-SIM-RECO/PU25ns_PLS170_V7AN1-v1/00000/56517256-CB15-E411-9C56-0025905A48F2.root'
          #'root://cms-xrdr.sdfarm.kr///cms/data/xrd//store/mc/Spring14dr/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/AODSIM/PU_S14_POSTLS170_V6-v1/00000/BC91BA37-E2F2-E311-A317-0025905A612E.root'
          #'file:/cms/data/xrd//store/mc/Spring14dr/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/AODSIM/PU_S14_POSTLS170_V6-v1/00000/BC91BA37-E2F2-E311-A317-0025905A612E.root'
-          'file:/cms/data/xrd/store/mc/Spring14miniaod/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU_S14_POSTLS170_V6-v1/00000/3EAD631C-75FD-E311-8DF3-001EC9B0B214.root'
+#          'file:/cms/data/xrd/store/mc/Spring14miniaod/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU_S14_POSTLS170_V6-v1/00000/3EAD631C-75FD-E311-8DF3-001EC9B0B214.root'
     )
 )
 
