@@ -16,12 +16,6 @@ globalTag = options.globalTag
 
 print "runOnMC =",runOnMC,"and useMiniAOD =",useMiniAOD
 
-from Configuration.AlCa.GlobalTag import GlobalTag
-if useMiniAOD:
-    if runOnMC:
-        process.GlobalTag = GlobalTag(process.GlobalTag, 'PLS170_V7AN2::All', '')
-    else:
-        process.GlobalTag = GlobalTag(process.GlobalTag, 'GR_70_V2_AN1::All', '')
 if globalTag:
     process.GlobalTag = GlobalTag(process.GlobalTag, globalTag, '')
 
