@@ -11,18 +11,20 @@ def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5", doTrig
     process.totaEvents = cms.EDProducer("EventCountProducer")
     process.p = cms.Path(process.totaEvents)
 
+    process.load("RecoMET.METFilters.metFilters_cff")
     if not runOnMC:
-        process.load("RecoMET.METFilters.metFilters_cff")
         process.p += process.metFilters
-
+    if runOnMC:
+        process.p += process.goodVertices
+        
     # from https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookJetEnergyCorrections#JetEnCorPFnoPU2012
     # change pvCollection to goodOfflinePrimaryVertices
     # and process.pfPileUpPFlow.checkClosestZVertex = False
     from PhysicsTools.PatAlgos.tools.pfTools import usePF2PAT,removeMCMatchingPF2PAT
     usePF2PAT(process, runPF2PAT=True, jetAlgo=jetAlgo, jetCorrections=("AK5PFchs", jecLevels),
               pvCollection=cms.InputTag('goodOfflinePrimaryVertices'),
-                runOnMC=runOnMC, postfix=postfix, typeIMetCorrections=True)
-
+              runOnMC=runOnMC, postfix=postfix, typeIMetCorrections=True)
+    
     ## pile up corrections
     from CommonTools.ParticleFlow.Tools.enablePileUpCorrection import enablePileUpCorrectionInPF2PAT
     enablePileUpCorrectionInPF2PAT( process, postfix, sequence = "patPF2PATSequence"+postfix)
