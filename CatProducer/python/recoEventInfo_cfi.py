@@ -10,8 +10,14 @@ recoEventInfo = cms.EDProducer("RecoEventInfoProducer",
         DoubleEl = cms.vstring(
             "HLT_Ele23_Ele12_CaloId_TrackId_Iso_v*"
         ),
-        DoubleMuEl = cms.vstring(
+        MuEl = cms.vstring(
             "HLT_Mu23_TrkIsoVVL_Ele12_Gsf_CaloId_TrackId_Iso_MediumWP_v*","HLT_Mu8_TrkIsoVVL_Ele23_Gsf_CaloId_TrackId_Iso_MediumWP_v*"
+        ),
+        MuJet = cms.vstring(
+            "HLT_IsoMu24_eta2p1_v*"
+        ),
+        ELJet = cms.vstring(
+            "HLT_Ele27_WP80_v*"
         ),
     ),
 )
