@@ -42,6 +42,9 @@ private:
   TH1F* hJet2Eta_;
   TH1F* hJet2Phi_;
 
+  TH1F* hTop1Mass_;
+  TH1F* hTop2Mass_;
+
   TH1F* hTTMass_;
   TH1F* hTTDeltaPhi_;
   
@@ -77,6 +80,9 @@ CATGenLevelAnalysis::CATGenLevelAnalysis(const edm::ParameterSet& pset)
   hJet2Pt_      = fs->make<TH1F>("hJet2Pt", "jet 2 p_{T};p_{T} (GeV/c);Events", 100, 0, 100);
   hJet2Eta_     = fs->make<TH1F>("hJet2Eta", "jet 2 eta;#eta;Events", 100, -3, 3);
   hJet2Phi_     = fs->make<TH1F>("hJet2Phi", "jet 2 phi;#phi;Events", 100, 0, acos(-1));
+
+  hTop1Mass_      = fs->make<TH1F>("hTop1Mass", "top 1 mass;Mass (GeV/c^{2};Events",100,100,300);
+  hTop2Mass_      = fs->make<TH1F>("hTop2Mass", "top 2 mass;Mass (GeV/c^{2};Events",100,100,300);
 
   hTTMass_      = fs->make<TH1F>("hTTMass", "ttbar invariant mass;Mass (GeV/c^{2};Events",100,0,1000);
   hTTDeltaPhi_  = fs->make<TH1F>("hTTDeltaPhi", "ttbar #Delta#phi;#Delta#phi;Events",100,0,acos(-1));
@@ -114,14 +120,21 @@ void CATGenLevelAnalysis::analyze(const edm::Event& event, const edm::EventSetup
     if ( p.pdgId() == 6 ) top1 = &p;
     else if ( p.pdgId() == -6 ) top2 = &p;
   }
+  if ( !top1 or !top2 ) return;
+  hTop1Mass_->Fill(top1->mass());
+  hTop2Mass_->Fill(top2->mass());
 
   const reco::Candidate* w1 = top1->daughter(0);
   const reco::Candidate* w2 = top2->daughter(0);
   const reco::Candidate* b1 = top1->daughter(1);
   const reco::Candidate* b2 = top2->daughter(1);
 
+  if (!w1 or !w2 or !b1 or !b2) return;
+
   const reco::Candidate* l1 = w1->daughter(0);
   const reco::Candidate* l2 = w2->daughter(0);
+  if (!l1 or !l2) return;
+
   if ( abs(l1->pdgId()) == 15 and l1->numberOfDaughters() > 0 ) l1 = l1->daughter(0);
   if ( abs(l2->pdgId()) == 15 and l2->numberOfDaughters() > 0 ) l2 = l2->daughter(0);
 
