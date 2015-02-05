@@ -13,21 +13,37 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 10000
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 process.source.fileNames = [
-    'file:/store1/jhgoh/catTuple_790.root',
+#    'file:/store1/jhgoh/catTuple_790.root',
+    'file:/afs/cern.ch/user/c/chanwook/catTuple_290.root',
 ]
 
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string("hist.root"),
 )
 
-process.gena = cms.EDAnalyzer("CATGenLevelAnalysis",
+process.partontop = cms.EDAnalyzer("CATGenLevelAnalysis",
     channel = cms.InputTag("partonTop", "channel"),
     modes = cms.InputTag("partonTop", "modes"),
     partons = cms.InputTag("partonTop"),
+    leptonMinPt = cms.double(20.),
+    leptonMaxEta = cms.double(2.4),
+    jetMinPt = cms.double(20.),
+    jetMaxEta = cms.double(2.4),
 )
 
+process.pseudotop = cms.EDAnalyzer("CATGenLevelAnalysis",
+    channel = cms.InputTag("partonTop", "channel"),
+    modes = cms.InputTag("partonTop", "modes"),
+    partons = cms.InputTag("pseudoTop"),
+    leptonMinPt = cms.double(20.),
+    leptonMaxEta = cms.double(2.4),
+    jetMinPt = cms.double(20.),
+    jetMaxEta = cms.double(2.4),
+)
+
+
 process.p = cms.Path(
-    process.gena
+    process.partontop+process.pseudotop
 )
 
 
