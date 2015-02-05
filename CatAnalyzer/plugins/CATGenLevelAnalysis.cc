@@ -27,6 +27,9 @@ private:
   edm::EDGetTokenT<std::vector<int> > modesToken_;
   edm::EDGetTokenT<reco::GenParticleCollection> partonsToken_;
 
+  double jetMinPt_, jetMaxEta_;
+  double leptonMinPt_, leptonMaxEta_;
+
   TH1F* hLepton1Pt_;
   TH1F* hLepton1Eta_;
   TH1F* hLepton1Phi_;
@@ -63,6 +66,13 @@ CATGenLevelAnalysis::CATGenLevelAnalysis(const edm::ParameterSet& pset)
   partonsToken_ = consumes<reco::GenParticleCollection>(pset.getParameter<edm::InputTag>("partons"));
   channelToken_ = consumes<int>(pset.getParameter<edm::InputTag>("channel"));
   modesToken_ = consumes<std::vector<int> >(pset.getParameter<edm::InputTag>("modes"));
+
+  leptonMinPt_ = pset.getParameter<double>("leptonMinPt");
+  leptonMaxEta_ = pset.getParameter<double>("leptonMaxEta");
+
+
+  jetMinPt_ = pset.getParameter<double>("jetMinPt");
+  jetMaxEta_ = pset.getParameter<double>("jetMaxEta");
 
   edm::Service<TFileService> fs;
   hLepton1Pt_   = fs->make<TH1F>("hLepton1Pt", "lepton 1 p_{T};p_{T} (GeV/c);Events", 100, 0, 100);
@@ -137,6 +147,11 @@ void CATGenLevelAnalysis::analyze(const edm::Event& event, const edm::EventSetup
 
   if ( abs(l1->pdgId()) == 15 and l1->numberOfDaughters() > 0 ) l1 = l1->daughter(0);
   if ( abs(l2->pdgId()) == 15 and l2->numberOfDaughters() > 0 ) l2 = l2->daughter(0);
+
+  if ( l1->pt() < leptonMinPt_ or abs(l1->eta()) > leptonMaxEta_ ) return;
+  if ( l2->pt() < leptonMinPt_ or abs(l2->eta()) > leptonMaxEta_ ) return;
+  if ( b1->pt() < jetMinPt_ or abs(b1->eta()) > jetMaxEta_ ) return;
+  if ( b2->pt() < jetMinPt_ or abs(b2->eta()) > jetMaxEta_ ) return;
 
   const double ttMass = (top1->p4() + top2->p4()).mass();
   const double ttDPhi = abs(deltaPhi(top1->phi(), top2->phi()));
