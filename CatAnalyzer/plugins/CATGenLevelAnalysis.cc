@@ -26,6 +26,7 @@ private:
   edm::EDGetTokenT<int> channelToken_;
   edm::EDGetTokenT<std::vector<int> > modesToken_;
   edm::EDGetTokenT<reco::GenParticleCollection> partonsToken_;
+  edm::EDGetTokenT<reco::GenParticleCollection> pseudoToken_;
 
   double jetMinPt_, jetMaxEta_;
   double leptonMinPt_, leptonMaxEta_;
@@ -131,8 +132,6 @@ void CATGenLevelAnalysis::analyze(const edm::Event& event, const edm::EventSetup
     else if ( p.pdgId() == -6 ) top2 = &p;
   }
   if ( !top1 or !top2 ) return;
-  hTop1Mass_->Fill(top1->mass());
-  hTop2Mass_->Fill(top2->mass());
 
   const reco::Candidate* w1 = top1->daughter(0);
   const reco::Candidate* w2 = top2->daughter(0);
@@ -152,6 +151,9 @@ void CATGenLevelAnalysis::analyze(const edm::Event& event, const edm::EventSetup
   if ( l2->pt() < leptonMinPt_ or abs(l2->eta()) > leptonMaxEta_ ) return;
   if ( b1->pt() < jetMinPt_ or abs(b1->eta()) > jetMaxEta_ ) return;
   if ( b2->pt() < jetMinPt_ or abs(b2->eta()) > jetMaxEta_ ) return;
+
+  hTop1Mass_->Fill(top1->mass());
+  hTop2Mass_->Fill(top2->mass());
 
   const double ttMass = (top1->p4() + top2->p4()).mass();
   const double ttDPhi = abs(deltaPhi(top1->phi(), top2->phi()));
