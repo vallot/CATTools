@@ -11,6 +11,7 @@
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
 #include "TH1F.h"
+#include "TH2F.h"
 
 #include <iostream>
 
@@ -26,11 +27,15 @@ private:
   edm::EDGetTokenT<int> channelToken_;
   edm::EDGetTokenT<std::vector<int> > modesToken_;
   edm::EDGetTokenT<reco::GenParticleCollection> partonsToken_;
-  edm::EDGetTokenT<reco::GenParticleCollection> pseudoToken_;
+  edm::EDGetTokenT<reco::GenParticleCollection> pseudotopToken_;
 
   double jetMinPt_, jetMaxEta_;
   double leptonMinPt_, leptonMaxEta_;
-
+  TH2F* hL1PtParVsPseu_;
+  TH2F* hL2PtParVsPseu_;
+  TH2F* hJet1PtParVsPseu_;
+  TH2F* hJet2PtParVsPseu_;
+  /*
   TH1F* hLepton1Pt_;
   TH1F* hLepton1Eta_;
   TH1F* hLepton1Phi_;
@@ -57,7 +62,7 @@ private:
   TH1F* hDileptonMass_;
 
   TH1F* hLeptonJetDeltaR_;
-
+  */
 };
 
 //using namespace cat;
@@ -65,6 +70,7 @@ private:
 CATGenLevelAnalysis::CATGenLevelAnalysis(const edm::ParameterSet& pset)
 {
   partonsToken_ = consumes<reco::GenParticleCollection>(pset.getParameter<edm::InputTag>("partons"));
+  pseudotopToken_ = consumes<reco::GenParticleCollection>(pset.getParameter<edm::InputTag>("pseudo"));
   channelToken_ = consumes<int>(pset.getParameter<edm::InputTag>("channel"));
   modesToken_ = consumes<std::vector<int> >(pset.getParameter<edm::InputTag>("modes"));
 
@@ -76,6 +82,12 @@ CATGenLevelAnalysis::CATGenLevelAnalysis(const edm::ParameterSet& pset)
   jetMaxEta_ = pset.getParameter<double>("jetMaxEta");
 
   edm::Service<TFileService> fs;
+ 
+  hL1PtParVsPseu_ = fs->make<TH2F>("hL1PtParVsPseu", "lepton1 P_{T};parton p_{T} (GeV/c);pseudo p_{T} (GeV/c)", 100, 0, 150, 100, 0, 150);
+  hL2PtParVsPseu_ = fs->make<TH2F>("hL2PtParVsPseu", "lepton2 P_{T};parton p_{T} (GeV/c);pseudo p_{T} (GeV/c)", 100, 0, 150, 100, 0, 150);
+  hJet1PtParVsPseu_ = fs->make<TH2F>("hJet1PtParVsPseu", "b jet1 P_{T};parton p_{T} (GeV/c);pseudo p_{T} (GeV/c)", 100, 0, 200, 100, 0, 200);
+  hJet2PtParVsPseu_ = fs->make<TH2F>("hJet2PtParVsPseu", "b jet2 P_{T};parton p_{T} (GeV/c);pseudo p_{T} (GeV/c)", 100, 0, 200, 100, 0, 200);
+  /*
   hLepton1Pt_   = fs->make<TH1F>("hLepton1Pt", "lepton 1 p_{T};p_{T} (GeV/c);Events", 100, 0, 100);
   hLepton1Eta_  = fs->make<TH1F>("hLepton1Eta", "lepton 1 Eta;#eta;Events", 100, -3, 3);
   hLepton1Phi_  = fs->make<TH1F>("hLepton1Phi", "lepton 1 Phi;#phi;Events", 100, 0, acos(-1));
@@ -103,6 +115,7 @@ CATGenLevelAnalysis::CATGenLevelAnalysis(const edm::ParameterSet& pset)
   hDileptonMass_  = fs->make<TH1F>("hDileptonMass", "dilepton invariant mass;Mass (GeV/c^{2});Events",100,0,200);
 
   hLeptonJetDeltaR_ = fs->make<TH1F>("hLeptonJetDeltaR", "DeltaR;#DeltaR;Events", 100, 0, 5);
+  */
   // Do the same for the other histograms
 }
 
@@ -117,41 +130,73 @@ void CATGenLevelAnalysis::analyze(const edm::Event& event, const edm::EventSetup
   edm::Handle<reco::GenParticleCollection> partonsHandle;
   event.getByToken(partonsToken_, partonsHandle);
 
-  if (*channelHandle != 3) return;
-  cout << "CHANNEL = " << *channelHandle << endl;
-  for ( int i=0, n=modesHandle->size(); i<n; ++i )
-  {
-    cout << "MODE" << i << " = " << modesHandle->at(i) << endl;
-  }
+  edm::Handle<reco::GenParticleCollection> pseudoHandle;
+  event.getByToken(pseudotopToken_, pseudoHandle);
 
-  const reco::GenParticle* top1 = 0, * top2 = 0;
+  if (*channelHandle != 3) return;
+
+  const reco::GenParticle* partonTop1 = 0, * partonTop2 = 0;
   for ( int i=0, n=partonsHandle->size(); i<n; ++i )
   {
     const reco::GenParticle& p = partonsHandle->at(i);
-    if ( p.pdgId() == 6 ) top1 = &p;
-    else if ( p.pdgId() == -6 ) top2 = &p;
+    if ( p.pdgId() == 6 ) partonTop1 = &p;
+    else if ( p.pdgId() == -6 ) partonTop2 = &p;
   }
-  if ( !top1 or !top2 ) return;
+  if ( !partonTop1 or !partonTop2 ) return;
 
-  const reco::Candidate* w1 = top1->daughter(0);
-  const reco::Candidate* w2 = top2->daughter(0);
-  const reco::Candidate* b1 = top1->daughter(1);
-  const reco::Candidate* b2 = top2->daughter(1);
+  const reco::Candidate* partonW1 = partonTop1->daughter(0);
+  const reco::Candidate* partonW2 = partonTop2->daughter(0);
+  const reco::Candidate* partonB1 = partonTop1->daughter(1);
+  const reco::Candidate* partonB2 = partonTop2->daughter(1);
 
-  if (!w1 or !w2 or !b1 or !b2) return;
+  if (!partonW1 or !partonW2 or !partonB1 or !partonB2) return;
 
-  const reco::Candidate* l1 = w1->daughter(0);
-  const reco::Candidate* l2 = w2->daughter(0);
-  if (!l1 or !l2) return;
+  const reco::Candidate* partonL1 = partonW1->daughter(0);
+  const reco::Candidate* partonL2 = partonW2->daughter(0);
+  if (!partonL1 or !partonL2) return;
 
-  if ( abs(l1->pdgId()) == 15 and l1->numberOfDaughters() > 0 ) l1 = l1->daughter(0);
-  if ( abs(l2->pdgId()) == 15 and l2->numberOfDaughters() > 0 ) l2 = l2->daughter(0);
+  if ( abs(partonL1->pdgId()) == 15 and partonL1->numberOfDaughters() > 0 ) partonL1 = partonL1->daughter(0);
+  if ( abs(partonL2->pdgId()) == 15 and partonL2->numberOfDaughters() > 0 ) partonL2 = partonL2->daughter(0);
 
-  if ( l1->pt() < leptonMinPt_ or abs(l1->eta()) > leptonMaxEta_ ) return;
-  if ( l2->pt() < leptonMinPt_ or abs(l2->eta()) > leptonMaxEta_ ) return;
-  if ( b1->pt() < jetMinPt_ or abs(b1->eta()) > jetMaxEta_ ) return;
-  if ( b2->pt() < jetMinPt_ or abs(b2->eta()) > jetMaxEta_ ) return;
+  if ( partonL1->pt() < leptonMinPt_ or abs(partonL1->eta()) > leptonMaxEta_ ) return;
+  if ( partonL2->pt() < leptonMinPt_ or abs(partonL2->eta()) > leptonMaxEta_ ) return;
+  if ( partonB1->pt() < jetMinPt_ or abs(partonB1->eta()) > jetMaxEta_ ) return;
+  if ( partonB2->pt() < jetMinPt_ or abs(partonB2->eta()) > jetMaxEta_ ) return;
 
+  const reco::GenParticle* pseudoTop1 = 0, * pseudoTop2 = 0;
+  for ( int i=0, n=pseudoHandle->size(); i<n; ++i )
+  {
+    const reco::GenParticle& p = pseudoHandle->at(i);
+    if ( p.pdgId() == 6 ) pseudoTop1 = &p;
+    else if ( p.pdgId() == -6 ) pseudoTop2 = &p;
+  }
+  if ( !pseudoTop1 or !pseudoTop2 ) return;
+
+  const reco::Candidate* pseudoW1 = pseudoTop1->daughter(0);
+  const reco::Candidate* pseudoW2 = pseudoTop2->daughter(0);
+  const reco::Candidate* pseudoB1 = pseudoTop1->daughter(1);
+  const reco::Candidate* pseudoB2 = pseudoTop2->daughter(1);
+
+  if (!pseudoW1 or !pseudoW2 or !pseudoB1 or !pseudoB2) return;
+
+  const reco::Candidate* pseudoL1 = pseudoW1->daughter(0);
+  const reco::Candidate* pseudoL2 = pseudoW2->daughter(0);
+  if (!pseudoL1 or !pseudoL2) return;
+
+  if ( abs(pseudoL1->pdgId()) == 15 and pseudoL1->numberOfDaughters() > 0 ) pseudoL1 = pseudoL1->daughter(0);
+  if ( abs(pseudoL2->pdgId()) == 15 and pseudoL2->numberOfDaughters() > 0 ) pseudoL2 = pseudoL2->daughter(0);
+
+  if ( pseudoL1->pt() < leptonMinPt_ or abs(pseudoL1->eta()) > leptonMaxEta_ ) return;
+  if ( pseudoL2->pt() < leptonMinPt_ or abs(pseudoL2->eta()) > leptonMaxEta_ ) return;
+  if ( pseudoB1->pt() < jetMinPt_ or abs(pseudoB1->eta()) > jetMaxEta_ ) return;
+  if ( pseudoB2->pt() < jetMinPt_ or abs(pseudoB2->eta()) > jetMaxEta_ ) return;
+  
+  hL1PtParVsPseu_->Fill(partonL1->pt(),pseudoL1->pt());
+  hL2PtParVsPseu_->Fill(partonL2->pt(),pseudoL2->pt());
+  hJet1PtParVsPseu_->Fill(partonB1->pt(),pseudoB1->pt());
+  hJet2PtParVsPseu_->Fill(partonB2->pt(),pseudoB2->pt());
+
+  /*
   hTop1Mass_->Fill(top1->mass());
   hTop2Mass_->Fill(top2->mass());
 
@@ -160,7 +205,6 @@ void CATGenLevelAnalysis::analyze(const edm::Event& event, const edm::EventSetup
   const double lbMass1 = (l1->p4() + b1->p4()).mass();
   const double lbMass2 = (l2->p4() + b2->p4()).mass();
   const double llMass = (l1->p4() + l2->p4()).mass();
-
   hLepton1Pt_->Fill(l1->pt());
   hLepton1Eta_->Fill(l1->eta());
   hLepton1Phi_->Fill(l1->phi());
@@ -186,7 +230,7 @@ void CATGenLevelAnalysis::analyze(const edm::Event& event, const edm::EventSetup
 
   hLeptonJetDeltaR_->Fill(deltaR(l1->p4(),b1->p4()));    
   hLeptonJetDeltaR_->Fill(deltaR(l2->p4(),b2->p4()));    
-  
+  */
 }
 
 DEFINE_FWK_MODULE(CATGenLevelAnalysis);
