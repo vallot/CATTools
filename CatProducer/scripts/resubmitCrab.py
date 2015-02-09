@@ -16,6 +16,6 @@ for fn in os.listdir('.'):
 for n in range(20):
     for d in multicrabdir:
         runCommand("crab resubmit -d "+d, n)
-#        runCommand("crab report -d "+d, n)
+    os.system("hostname")
     time.sleep(5000)
 
