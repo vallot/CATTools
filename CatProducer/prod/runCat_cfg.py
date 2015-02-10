@@ -1,7 +1,7 @@
 from CATTools.CatProducer.catTemplate_cfg import *
 ## some options
-doSecVertex=False # for jpsi candidates
-doTriggerSkim=True # for qcd trigger skim on data
+doSecVertex=True # for jpsi candidates
+doTriggerSkim=False # for qcd trigger skim on data
     
 ## setting up arguements
 from FWCore.ParameterSet.VarParsing import VarParsing

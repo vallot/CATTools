@@ -19,6 +19,7 @@
 #include "TrackingTools/Records/interface/TransientTrackRecord.h"
 #include "TrackingTools/PatternTools/interface/ClosestApproachInRPhi.h"
 #include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
+#include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 
 using namespace edm;
 using namespace std;
@@ -34,13 +35,16 @@ namespace cat {
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
   private:
-    void fitTransientTracks(reco::Vertex goodPV, std::vector<TransientTrack> transTracks, int pdgId) const;
+    void fitTransientTracks(reco::Vertex goodPV, std::vector<TransientTrack> mutransTracks, std::vector<TransientTrack> gentransTracks, int pdgId) const;
 
     vector<cat::SecVertex> *out_;
 
     edm::InputTag muonSrc_;
     edm::InputTag elecSrc_;
+    edm::InputTag trackSrc_;
     edm::InputTag vertexLabel_;
+    edm::InputTag pfmuonSrc_;
+    edm::InputTag pfelecSrc_;
 
     double rawMassMin_, rawMassMax_, massMin_, massMax_;
 
@@ -55,7 +59,10 @@ namespace cat {
 cat::CATSecVertexProducer::CATSecVertexProducer(const edm::ParameterSet & iConfig) :
   muonSrc_(iConfig.getParameter<edm::InputTag>( "muonSrc" )),
   elecSrc_(iConfig.getParameter<edm::InputTag>( "elecSrc" )),
-  vertexLabel_(iConfig.getParameter<edm::InputTag>( "vertexLabel" ))
+  trackSrc_(iConfig.getParameter<edm::InputTag>( "trackSrc" )),
+  vertexLabel_(iConfig.getParameter<edm::InputTag>( "vertexLabel" )),
+  pfmuonSrc_(iConfig.getParameter<edm::InputTag>( "pfmuonSrc" )),
+  pfelecSrc_(iConfig.getParameter<edm::InputTag>( "pfelecSrc" ))
 {
   produces<std::vector<cat::SecVertex> >();
   edm::ParameterSet trackPSet = iConfig.getParameter<edm::ParameterSet>("track");
@@ -87,52 +94,88 @@ cat::CATSecVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & 
   Handle<View<pat::Electron> > elecSrc;
   iEvent.getByLabel(elecSrc_, elecSrc);
 
+  Handle<View<reco::Track> > trackSrc;
+  iEvent.getByLabel(trackSrc_, trackSrc);
+
   Handle<View<reco::Vertex> > recVtxs;
   iEvent.getByLabel(vertexLabel_,recVtxs);
 
+  Handle<View<reco::PFCandidate> > pfmuonSrc;
+  iEvent.getByLabel(pfmuonSrc_, pfmuonSrc);
+ 
+  Handle<View<reco::PFCandidate> > pfelecSrc;
+  iEvent.getByLabel(pfelecSrc_, pfelecSrc);
+
   out_ = new std::vector<cat::SecVertex>();
 
-  if ( recVtxs->empty() || (muonSrc->size() < 2 && elecSrc->size() < 2))
+  //  if ( recVtxs->empty() || (muonSrc->size() < 2 && elecSrc->size() < 2))
+  if ( recVtxs->empty())
     return;
-  
+
+  // cout << "muonSrc->size()   "<< muonSrc->size() << endl;
+  // cout << "pfmuonSrc->size() "<< pfmuonSrc->size() << endl;
+  // cout << "trackSrc->size()  "<< trackSrc->size() << endl;
+
   reco::Vertex pv = recVtxs->at(0);
 
   edm::ESHandle<TransientTrackBuilder> trackBuilder;
   iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",trackBuilder);
- 
-  //make muon transient tracks
-  std::vector<TransientTrack> muTransTracks;
-  for (const pat::Muon & aPatMuon : *muonSrc){
-    reco::TrackRef trackRef;
-    if ( aPatMuon.isGlobalMuon() ) trackRef = aPatMuon.globalTrack();
-    else if ( aPatMuon.isTrackerMuon() ) trackRef = aPatMuon.innerTrack();
-    else continue;
 
+  // pf muon 
+  std::vector<TransientTrack> pfmuTransTracks;
+  for (const reco::PFCandidate & pfmu : *pfmuonSrc){
+    reco::TrackRef trackRef = pfmu.trackRef();
     reco::TransientTrack transTrack = trackBuilder->build(trackRef);
     if ( !transTrack.impactPointTSCP().isValid() ) continue;
 
-    muTransTracks.push_back(transTrack);
+    pfmuTransTracks.push_back(transTrack);
   }
-  fitTransientTracks(pv, muTransTracks, 13);
+  // general track 
+  std::vector<TransientTrack> generalTracks;
+  for (auto it = trackSrc->begin(), ed = trackSrc->end(); it != ed; ++it) {
+    unsigned int idx = it - trackSrc->begin();
+    const auto  & aGeneralTrack = trackSrc->at(idx);
 
-  //make electron transient tracks
-  std::vector<TransientTrack> elTransTracks;
-  for (const pat::Electron & aPatElectron : *elecSrc){
-    if ( aPatElectron.gsfTrack().isNull() ) continue;
-
-    reco::TransientTrack transTrack = trackBuilder->build(aPatElectron.gsfTrack());
+    reco::TransientTrack transTrack = trackBuilder->build(aGeneralTrack);
     if ( !transTrack.impactPointTSCP().isValid() ) continue;
-
-    elTransTracks.push_back(transTrack);
+    generalTracks.push_back(transTrack);
   }
-  fitTransientTracks(pv, elTransTracks, 11);
+
+  fitTransientTracks(pv, pfmuTransTracks,generalTracks, 13);
+
+  // //make muon transient tracks
+  // std::vector<TransientTrack> muTransTracks;
+  // for (const pat::Muon & aPatMuon : *muonSrc){
+  //   reco::TrackRef trackRef;
+  //   if ( aPatMuon.isGlobalMuon() ) trackRef = aPatMuon.globalTrack();
+  //   else if ( aPatMuon.isTrackerMuon() ) trackRef = aPatMuon.innerTrack();
+  //   else continue;
+
+  //   reco::TransientTrack transTrack = trackBuilder->build(trackRef);
+  //   if ( !transTrack.impactPointTSCP().isValid() ) continue;
+
+  //   muTransTracks.push_back(transTrack);
+  // }
+  // fitTransientTracks(pv, muTransTracks, 13);
+
+  // //make electron transient tracks
+  // std::vector<TransientTrack> elTransTracks;
+  // for (const pat::Electron & aPatElectron : *elecSrc){
+  //   if ( aPatElectron.gsfTrack().isNull() ) continue;
+
+  //   reco::TransientTrack transTrack = trackBuilder->build(aPatElectron.gsfTrack());
+  //   if ( !transTrack.impactPointTSCP().isValid() ) continue;
+
+  //   elTransTracks.push_back(transTrack);
+  // }
+  // fitTransientTracks(pv, elTransTracks, 11);
 
   auto_ptr<vector<cat::SecVertex> > out(out_);
   iEvent.put(out); 
 }
 
 void 
-cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<TransientTrack> transTracks, int pdgId) const
+cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<TransientTrack> mutransTracks, std::vector<TransientTrack> gentransTracks, int pdgId) const
 {
   const double pvx = goodPV.position().x();
   const double pvy = goodPV.position().y();
@@ -142,30 +185,29 @@ cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<T
   if (pdgId == 13) leptonMass = 0.1056583715;
   int ipos=-1,ineg=-1;
 
-  for ( auto& transTrackPos : transTracks )
+  // temp pos track is now muons and neg is general tracks
+  for ( auto& transTrackPos : mutransTracks )
     {
       ++ipos;
-      if (transTrackPos.charge() < 0) continue;
       FreeTrajectoryState ipStatePos = transTrackPos.impactPointTSCP().theState();
       ineg=-1;
-      for ( auto& transTrackNeg : transTracks )
+      for ( auto& transTrackNeg : gentransTracks )
 	{
 	  ++ineg;
-	  if (transTrackNeg.charge() > 0) continue;
+	  if (transTrackNeg.charge()*transTrackPos.charge() > 0) continue;
 	  FreeTrajectoryState ipStateNeg = transTrackNeg.impactPointTSCP().theState();
 
 	  // Measure distance between tracks at their closest approach
 	  ClosestApproachInRPhi cApp;
 	  cApp.calculate(ipStatePos, ipStateNeg);
 	  if ( !cApp.status() ) continue;
-	  const float dca = fabs(cApp.distance());
-	  cout << "fitTransientTracks::dca" << dca <<endl;
-	  if ( dca < 0. || dca > cut_DCA_ ) continue;
+	  //	  const float dca = fabs(cApp.distance());
+
+	  //if ( dca < 0. || dca > cut_DCA_ ) continue;
+	  
 	  GlobalPoint cxPt = cApp.crossingPoint();
-	  if (std::hypot(cxPt.x(), cxPt.y()) > 120. || std::abs(cxPt.z()) > 300.) continue;
-	  //TrajectoryStateClosestToPoint caState1 = transTrackPos.trajectoryStateClosestToPoint(cxPt);
-	  //TrajectoryStateClosestToPoint caState2 = transTrackNeg.trajectoryStateClosestToPoint(cxPt);
-	  //if ( !caState1.isValid() || !caState2.isValid() ) continue;
+	  
+	  //if (std::hypot(cxPt.x(), cxPt.y()) > 120. || std::abs(cxPt.z()) > 300.) continue;
 
 	  // Build Vertex
 	  std::vector<TransientTrack> transTracks;
@@ -177,7 +219,7 @@ cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<T
 	  if ( !transVertex.isValid() || transVertex.totalChiSquared() < 0. ) continue;
 
 	  const reco::Vertex vertex = transVertex;
-	  if ( vertex.normalizedChi2() > cut_vertexChi2_ ) continue;
+	  //	  if ( vertex.normalizedChi2() > cut_vertexChi2_ ) continue;
 
 	  std::vector<TransientTrack> refittedTracks;
 	  if ( transVertex.hasRefittedTracks() ) refittedTracks = transVertex.refittedTracks();
@@ -191,7 +233,7 @@ cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<T
 
 	  double rVtxMag = ROOT::Math::Mag(distanceVectorXY);
 	  double sigmaRvtxMag = sqrt(ROOT::Math::Similarity(totalCov, distanceVectorXY)) / rVtxMag;
-	  if( rVtxMag < cut_minLxy_ || rVtxMag > cut_maxLxy_ || rVtxMag / sigmaRvtxMag < cut_vtxSignif_ ) continue;
+	  //	  if( rVtxMag < cut_minLxy_ || rVtxMag > cut_maxLxy_ || rVtxMag / sigmaRvtxMag < cut_vtxSignif_ ) continue;
 
 	  SVector3 distanceVector3D(vertex.x() - pvx, vertex.y() - pvy, vertex.z() - pvz);
 	  const double rVtxMag3D = ROOT::Math::Mag(distanceVector3D);
@@ -236,7 +278,7 @@ cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<T
 	  const double candE2 = hypot(mom2.mag(), leptonMass);
 
 	  const math::XYZTLorentzVector candLVec(mom.x(), mom.y(), mom.z(), candE1+candE2);
-	  if ( massMin_ > candLVec.mass() || massMax_ < candLVec.mass() ) continue;
+	  //if ( massMin_ > candLVec.mass() || massMax_ < candLVec.mass() ) continue;
 
 	  // Match to muons
 	  VertexCompositeCandidate* cand = new VertexCompositeCandidate(0, candLVec, vtx, vtxCov, vtxChi2, vtxNdof);
@@ -252,8 +294,13 @@ cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<T
 	  cat::SecVertex aSecVertex(*cand);
 	  aSecVertex.setVProb(TMath::Prob( vtxChi2, (int) vtxNdof));
 	  aSecVertex.setLxy(rVtxMag);
+	  aSecVertex.setSigmaLxy(sigmaRvtxMag);
 	  aSecVertex.setL3D(rVtxMag3D);
 	  aSecVertex.setInts(ipos,ineg);
+
+	  aSecVertex.set_dca(cApp.distance());
+	  aSecVertex.set_cxPtHypot(std::hypot(cxPt.x(), cxPt.y()));
+	  aSecVertex.set_cxPtAbs(std::abs(cxPt.z()));
 
 	  out_->push_back(aSecVertex);
 	}
