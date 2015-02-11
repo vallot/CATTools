@@ -64,8 +64,7 @@ cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
   smearedResSrc_(consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("smearedResSrc"))),
   smearedResDownSrc_(consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("smearedResDownSrc"))),
   smearedResUpSrc_(consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("smearedResUpSrc"))),
-  btagNames_(iConfig.getParameter<std::vector<std::string> >("btagNames")),
-  runOnMC_(iConfig.getParameter<bool>("runOnMC"))
+  btagNames_(iConfig.getParameter<std::vector<std::string> >("btagNames"))
 {
   produces<std::vector<cat::Jet> >();
   //uncertaintyTag_    = iConfig.getParameter<std::string>("UncertaintyTag");
@@ -73,6 +72,8 @@ cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
 
 void 
 cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) {
+
+  runOnMC_ = !iEvent.isRealData();
 
   edm::Handle<pat::JetCollection> src;
   iEvent.getByToken(src_, src);

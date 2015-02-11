@@ -16,14 +16,8 @@ globalTag = options.globalTag
 
 print "runOnMC =",runOnMC,"and useMiniAOD =",useMiniAOD
 
-from Configuration.AlCa.GlobalTag import GlobalTag
-if useMiniAOD:
-    if runOnMC:
-        process.GlobalTag = GlobalTag(process.GlobalTag, 'PLS170_V7AN2::All', '')
-    else:
-        process.GlobalTag = GlobalTag(process.GlobalTag, 'GR_70_V2_AN1::All', '')
 if globalTag:
-    process.GlobalTag = GlobalTag(process.GlobalTag, globalTag, '')
+    process.GlobalTag.globaltag = cms.string(globalTag)
 
 ####################################################################################################
 ## from miniAOD/patTuple_mini.py to run miniAOD maker when starting from AOD
@@ -43,14 +37,13 @@ print "process.GlobalTag.globaltag =",process.GlobalTag.globaltag
 process.load('PhysicsTools.PatAlgos.slimming.unpackedTracksAndVertices_cfi')
 
 from CATTools.CatProducer.catSetup_cff import *
-catSetup(process, runOnMC, doSecVertex)
+catSetup(process, runOnMC, doSecVertex, useMiniAOD)
 
 process.maxEvents.input = options.maxEvents
 process.source.fileNames = options.inputFiles
 
 from CATTools.CatProducer.catEventContent_cff import catEventContentExtended
 process.out.outputCommands = catEventContentExtended
-
 
 ## to suppress the long output at the end of the job
 process.MessageLogger.cerr.threshold = ''

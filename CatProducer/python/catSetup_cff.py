@@ -1,8 +1,16 @@
 import FWCore.ParameterSet.Config as cms
 
-def catSetup(process, runOnMC=True, doSecVertex=True):    
+def catSetup(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     process.load("CATTools.CatProducer.catCandidates_cff")        
+    process.load("CATTools.CatProducer.recoEventInfo_cfi")
 
+    if runOnMC:## Load MC dependent producers
+        process.load("CATTools.CatProducer.pdfWeight_cff")
+        process.load("CATTools.CatProducer.pileupWeight_cff")
+        process.load("CATTools.CatProducer.pseudoTop_cfi")
+        if not useMiniAOD:
+            process.load("CATTools.CatProducer.genTopProducer_cfi")
+        
     catJetsSource = "slimmedJets"
     catGenJetsSource = "slimmedGenJets"
     catMuonsSource = "slimmedMuons"
@@ -28,18 +36,11 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
     process.catPhotons.src = cms.InputTag(catPhotonsSource)
     process.catTaus.src = cms.InputTag(catTausSource)
     process.catMETs.src = cms.InputTag(catMETsSource)
-    process.catGenJets.src = cms.InputTag(catGenJetsSource)
     process.catSecVertexs.muonSrc = cms.InputTag(catMuonsSource)
     process.catSecVertexs.elecSrc = cms.InputTag(catElectronsSource)
     process.catSecVertexs.vertexLabel = cms.InputTag(catVertexSource)
 
-    process.load("CATTools.CatProducer.recoEventInfo_cfi")
     if runOnMC:
-        ## Load MC dependent producers
-        process.load("CATTools.CatProducer.pdfWeight_cff")
-        process.load("CATTools.CatProducer.pileupWeight_cff")
-        process.load("CATTools.CatProducer.pseudoTop_cfi")
-
         ## using MEtUncertainties to get lepton shifts
         from PhysicsTools.PatUtils.tools.runType1PFMEtUncertainties import runType1PFMEtUncertainties
         runType1PFMEtUncertainties(process,
@@ -89,17 +90,11 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
         process.catJets.smearedResDownSrc = cms.InputTag("smearedSlimmedJetsResDown")
         process.catJets.smearedResUpSrc = cms.InputTag("smearedSlimmedJetsResUp")
 
-    if not runOnMC:
-        process.makeCatCandidates.remove(process.catGenJets)
-        process.catMuons.runOnMC = cms.bool(False)
-        process.catElectrons.runOnMC = cms.bool(False)
-        process.catJets.runOnMC = cms.bool(False)
-
-    process.p += process.makeCatCandidates
+#    process.p += process.makeCatCandidates
 
     if doSecVertex:
         from TrackingTools.TransientTrack.TransientTrackBuilder_cfi import TransientTrackBuilderESProducer
         setattr(process, "TransientTrackBuilderESProducer", TransientTrackBuilderESProducer)
-        process.makeCatCandidates += process.catSecVertexs
+        #process.makeCatCandidates += process.catSecVertexs
 
     

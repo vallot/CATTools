@@ -14,6 +14,9 @@ process.load('Configuration.StandardSequences.MagneticField_38T_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
+from Configuration.AlCa.autoCond import autoCond
+process.GlobalTag.globaltag = autoCond['run2_mc_FULL']
+
 ## Options and Output Report
 process.options = cms.untracked.PSet(
     allowUnscheduled = cms.untracked.bool(True),

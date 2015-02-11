@@ -57,7 +57,6 @@ cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig)
   mcLabel_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcLabel"))),
   beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc"))),
   rhoLabel_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoLabel"))),
-  runOnMC_(iConfig.getParameter<bool>("runOnMC")),
   electronIDNames_(iConfig.getParameter<std::vector<std::string> >("electronIDNames"))
 {
   produces<std::vector<cat::Electron> >();
@@ -67,6 +66,8 @@ void
 cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) {
   using namespace edm;
   using namespace std;
+
+  runOnMC_ = !iEvent.isRealData();
 
   Handle<pat::ElectronCollection> src;
   iEvent.getByToken(src_, src);
