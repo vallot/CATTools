@@ -56,8 +56,7 @@ cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig)
   vertexLabel_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexLabel"))),
   mcLabel_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcLabel"))),
   beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc"))),
-  rhoLabel_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoLabel"))),
-  electronIDNames_(iConfig.getParameter<std::vector<std::string> >("electronIDNames"))
+  rhoLabel_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoLabel")))
 {
   produces<std::vector<cat::Electron> >();
 }
@@ -140,8 +139,7 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     aElectron.setPassConversionVeto( aPatElectron.passConversionVeto() );
     aElectron.setIsGsfCtfScPixChargeConsistent( aPatElectron.isGsfCtfScPixChargeConsistent());
 
-    if (electronIDNames_.size() == 0)
-      aElectron.setElectronIDs(aPatElectron.electronIDs());
+    aElectron.setElectronIDs(aPatElectron.electronIDs());
 
     out->push_back(aElectron);
   }
