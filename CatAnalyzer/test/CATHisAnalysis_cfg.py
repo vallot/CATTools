@@ -22,7 +22,7 @@ process.TFileService = cms.Service("TFileService",
     fileName = cms.string('CATHisAnalysis.root')
 )
 
-process.defaultIso = cms.EDAnalyzer("CATHisAnalysis",
+process.hist = cms.EDAnalyzer("CATHisAnalysis",
     # input collection
     electrons = cms.InputTag("catElectrons"),
     genjets = cms.InputTag("catGenJets"),
@@ -36,7 +36,7 @@ process.defaultIso = cms.EDAnalyzer("CATHisAnalysis",
 
 
 process.p = cms.Path(
-            process.defaultIso
+            process.hist
 )
 
 
