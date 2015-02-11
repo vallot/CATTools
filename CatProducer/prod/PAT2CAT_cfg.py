@@ -37,7 +37,7 @@ print "process.GlobalTag.globaltag =",process.GlobalTag.globaltag
 process.load('PhysicsTools.PatAlgos.slimming.unpackedTracksAndVertices_cfi')
 
 from CATTools.CatProducer.catSetup_cff import *
-catSetup(process, runOnMC, doSecVertex)
+catSetup(process, runOnMC, doSecVertex, useMiniAOD)
 
 process.maxEvents.input = options.maxEvents
 process.source.fileNames = options.inputFiles

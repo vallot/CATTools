@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-def catSetup(process, runOnMC=True, doSecVertex=True):
+def catSetup(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     process.load("CATTools.CatProducer.catCandidates_cff")        
     process.load("CATTools.CatProducer.recoEventInfo_cfi")
 
@@ -8,7 +8,8 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
         process.load("CATTools.CatProducer.pdfWeight_cff")
         process.load("CATTools.CatProducer.pileupWeight_cff")
         process.load("CATTools.CatProducer.pseudoTop_cfi")
-        process.load("CATTools.CatProducer.genTopProducer_cfi")
+        if not useMiniAOD:
+            process.load("CATTools.CatProducer.genTopProducer_cfi")
         
     catJetsSource = "slimmedJets"
     catGenJetsSource = "slimmedGenJets"
