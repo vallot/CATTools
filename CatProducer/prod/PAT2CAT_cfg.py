@@ -39,11 +39,15 @@ process.load('PhysicsTools.PatAlgos.slimming.unpackedTracksAndVertices_cfi')
 from CATTools.CatProducer.catSetup_cff import *
 catSetup(process, runOnMC, doSecVertex, useMiniAOD)
 
+from CATTools.CatProducer.catEventContent_cff import *
+process.out.outputCommands = catEventContent
+if runOnMC:
+    process.out.outputCommands.extend(catEventContentMC)
+    if not useMiniAOD:
+        process.out.outputCommands.extend(catEventContentAODMC)
+
 process.maxEvents.input = options.maxEvents
 process.source.fileNames = options.inputFiles
-
-from CATTools.CatProducer.catEventContent_cff import catEventContentExtended
-process.out.outputCommands = catEventContentExtended
 
 ## to suppress the long output at the end of the job
 process.MessageLogger.cerr.threshold = ''
