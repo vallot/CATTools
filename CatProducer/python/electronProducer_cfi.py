@@ -8,5 +8,4 @@ catElectrons = cms.EDProducer("CATElectronProducer",
     vertexLabel = cms.InputTag('offlinePrimaryVertices'),
     beamLineSrc = cms.InputTag("offlineBeamSpot"),
     rhoLabel = cms.InputTag("fixedGridRhoAll", "rho"),
-    electronIDNames = cms.vstring()
 )
