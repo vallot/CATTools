@@ -5,7 +5,6 @@ def catSetup(process, runOnMC=True, doSecVertex=True):
     process.load("CATTools.CatProducer.recoEventInfo_cfi")
 
     if runOnMC:## Load MC dependent producers
-        process.load("CATTools.CatProducer.catMcCandidates_cff")        
         process.load("CATTools.CatProducer.pdfWeight_cff")
         process.load("CATTools.CatProducer.pileupWeight_cff")
         process.load("CATTools.CatProducer.pseudoTop_cfi")
