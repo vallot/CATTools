@@ -3,7 +3,8 @@ import FWCore.ParameterSet.Config as cms
 catJets = cms.EDProducer("CATJetProducer",
     src = cms.InputTag("selectedPatJetsPFlow"),
     btagNames = cms.vstring(),
-    payloadName = cms.InputTag("AK4PFchs"),
+    ## payloadName should be AK4PFchs, but PHYS14_25_V2 does not have uncertainty 
+    payloadName = cms.string(""), 
 ##       #see https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideBTagPerformance
 ##       'trackCountingHighPurBJetTags', #0
 ##       'jetProbabilityBJetTags', #1

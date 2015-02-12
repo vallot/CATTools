@@ -48,6 +48,7 @@ namespace cat {
     const std::vector<std::string> btagNames_;
     std::string uncertaintyTag_, payloadName_;
     bool runOnMC_;
+    JetCorrectionUncertainty *jecUnc;
 
   };
 
@@ -70,10 +71,12 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
   iEvent.getByToken(src_, src);
 
   edm::ESHandle<JetCorrectorParametersCollection> JetCorParColl;
-  iSetup.get<JetCorrectionsRecord>().get("AK5PFchs",JetCorParColl); 
-  JetCorrectorParameters const & JetCorPar = (*JetCorParColl)["Uncertainty"];
-  JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
-
+  if (payloadName_.size()){
+    // temp measure - payloadName should be AK4PFchs, but PHYS14_25_V2 does not have uncertainty 
+    iSetup.get<JetCorrectionsRecord>().get(payloadName_,JetCorParColl); 
+    JetCorrectorParameters const & JetCorPar = (*JetCorParColl)["Uncertainty"];
+    jecUnc = new JetCorrectionUncertainty(JetCorPar);
+  }
   auto_ptr<vector<cat::Jet> >  out(new vector<cat::Jet>());
   for (const pat::Jet &aPatJet : *src) {
     bool looseId = checkPFJetId( aPatJet );
@@ -104,15 +107,16 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
     aJet.setPartonPdgId(partonPdgId);
 
     // setting JEC uncertainty
-    jecUnc->setJetEta(aJet.eta());
-    jecUnc->setJetPt(aJet.pt()); // here you must use the CORRECTED jet pt
-    double unc = jecUnc->getUncertainty(true);
-    aJet.setShiftedEnUp( (1. + unc) );
-    jecUnc->setJetEta(aJet.eta());
-    jecUnc->setJetPt(aJet.pt()); // here you must use the CORRECTED jet pt
-    unc = jecUnc->getUncertainty(false);
-    aJet.setShiftedEnDown( (1. - unc) );
-
+    if (jecUnc){
+      jecUnc->setJetEta(aJet.eta());
+      jecUnc->setJetPt(aJet.pt()); // here you must use the CORRECTED jet pt
+      double unc = jecUnc->getUncertainty(true);
+      aJet.setShiftedEnUp( (1. + unc) );
+      jecUnc->setJetEta(aJet.eta());
+      jecUnc->setJetPt(aJet.pt()); // here you must use the CORRECTED jet pt
+      unc = jecUnc->getUncertainty(false);
+      aJet.setShiftedEnDown( (1. - unc) );
+    }
     float fJER   = 0.;
     float fJERUp = 0.;
     float fJERDn = 0.;
