@@ -2,12 +2,8 @@ import FWCore.ParameterSet.Config as cms
 
 catJets = cms.EDProducer("CATJetProducer",
     src = cms.InputTag("selectedPatJetsPFlow"),
-    shiftedEnDownSrc = cms.InputTag("shiftedSlimmedJetsEnDown"),
-    shiftedEnUpSrc = cms.InputTag("shiftedSlimmedJetsEnUp"),
-    smearedResSrc = cms.InputTag("smearedSlimmedJets"),
-    smearedResDownSrc = cms.InputTag("smearedSlimmedJetsResDown"),
-    smearedResUpSrc = cms.InputTag("smearedSlimmedJetsResUp"),
-    btagNames = cms.vstring()
+    btagNames = cms.vstring(),
+    payloadName = cms.InputTag("AK4PFchs"),
 ##       #see https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideBTagPerformance
 ##       'trackCountingHighPurBJetTags', #0
 ##       'jetProbabilityBJetTags', #1
