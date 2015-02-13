@@ -133,7 +133,7 @@ void RecoEventInfoProducer::produce(edm::Event& event, const edm::EventSetup& ev
         //if ( hltHandle->accept(trigIndex) ) { isPassed = true; break; }
         if ( hltHandle->accept(trigIndex) ) { isPassed = true; HLTListPassFail.push_back(1); break;} 
         else {HLTListPassFail.push_back(0); }
-      }
+      } else {HLTListPassFail.push_back(0); }
       //const int psValue = hltConfig_.prescaleValue(event, eventSetup, trigName);
     }
     event.put(std::auto_ptr<int>(new int(isPassed)), "HLT"+hltGroupName);
