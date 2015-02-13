@@ -5,7 +5,7 @@ for cms analysis
 
 Test file : catTuple.root can be found in /afs/cern.ch/user/j/jlee/public/catTuple.root
 ```bash
-scram p -n cat CMSSW CMSSW_7_2_2_patch1
+scram p -n cat CMSSW CMSSW_7_2_3
 cd cat/src
 cmsenv
 git-cms-addpkg FWCore/Version

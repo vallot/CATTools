@@ -32,6 +32,7 @@ namespace cat {
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
     bool checkPFJetId(const pat::Jet & jet);
+    void getJER(const double jetEta, double& cJER, double& cJERUp, double& cJERDn) const;
       
     std::vector<const reco::Candidate *> getAncestors(const reco::Candidate &c);
     bool hasBottom(const reco::Candidate &c);
@@ -43,15 +44,11 @@ namespace cat {
 
   private:
     edm::EDGetTokenT<pat::JetCollection> src_;
-    edm::EDGetTokenT<pat::JetCollection> shiftedEnDownSrc_;
-    edm::EDGetTokenT<pat::JetCollection> shiftedEnUpSrc_;
-    edm::EDGetTokenT<pat::JetCollection> smearedResSrc_;
-    edm::EDGetTokenT<pat::JetCollection> smearedResDownSrc_;
-    edm::EDGetTokenT<pat::JetCollection> smearedResUpSrc_;
 
     const std::vector<std::string> btagNames_;
     std::string uncertaintyTag_, payloadName_;
     bool runOnMC_;
+    JetCorrectionUncertainty *jecUnc;
 
   };
 
@@ -59,15 +56,10 @@ namespace cat {
 
 cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
   src_(consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("src"))),
-  shiftedEnDownSrc_(consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("shiftedEnDownSrc"))),
-  shiftedEnUpSrc_(consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("shiftedEnUpSrc"))),
-  smearedResSrc_(consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("smearedResSrc"))),
-  smearedResDownSrc_(consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("smearedResDownSrc"))),
-  smearedResUpSrc_(consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("smearedResUpSrc"))),
-  btagNames_(iConfig.getParameter<std::vector<std::string> >("btagNames"))
+  btagNames_(iConfig.getParameter<std::vector<std::string> >("btagNames")),
+  payloadName_(iConfig.getParameter<std::string>("payloadName"))
 {
   produces<std::vector<cat::Jet> >();
-  //uncertaintyTag_    = iConfig.getParameter<std::string>("UncertaintyTag");
 }
 
 void 
@@ -78,36 +70,19 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
   edm::Handle<pat::JetCollection> src;
   iEvent.getByToken(src_, src);
 
-  edm::Handle<pat::JetCollection> shiftedEnDownSrc;
-  edm::Handle<pat::JetCollection> shiftedEnUpSrc;
-  edm::Handle<pat::JetCollection> smearedResSrc;
-  edm::Handle<pat::JetCollection> smearedResDownSrc;
-  edm::Handle<pat::JetCollection> smearedResUpSrc;
-  if (runOnMC_){
-    iEvent.getByToken(shiftedEnDownSrc_, shiftedEnDownSrc);
-    iEvent.getByToken(shiftedEnUpSrc_, shiftedEnUpSrc);
-    iEvent.getByToken(smearedResSrc_, smearedResSrc);
-    iEvent.getByToken(smearedResDownSrc_, smearedResDownSrc);
-    iEvent.getByToken(smearedResUpSrc_, smearedResUpSrc);
+  edm::ESHandle<JetCorrectorParametersCollection> JetCorParColl;
+  if (payloadName_.size()){
+    // temp measure - payloadName should be AK4PFchs, but PHYS14_25_V2 does not have uncertainty 
+    iSetup.get<JetCorrectionsRecord>().get(payloadName_,JetCorParColl); 
+    JetCorrectorParameters const & JetCorPar = (*JetCorParColl)["Uncertainty"];
+    jecUnc = new JetCorrectionUncertainty(JetCorPar);
   }
-  
   auto_ptr<vector<cat::Jet> >  out(new vector<cat::Jet>());
-  int j = 0;
   for (const pat::Jet &aPatJet : *src) {
     bool looseId = checkPFJetId( aPatJet );
     cat::Jet aJet(aPatJet);
-
-    if (runOnMC_){
-      aJet.setShiftedEnDown(shiftedEnDownSrc->at(j).pt() );
-      aJet.setShiftedEnUp(shiftedEnUpSrc->at(j).pt() );
-      aJet.setSmearedRes(smearedResSrc->at(j).pt() );
-      aJet.setSmearedResDown(smearedResDownSrc->at(j).pt() );
-      aJet.setSmearedResUp(smearedResUpSrc->at(j).pt() );
-      // adding genJet
-      aJet.setGenJetRef(aPatJet.genJetFwdRef());
-    }
-    ++j;
     aJet.setLooseId( looseId );
+
     if( aPatJet.hasUserFloat("pileupJetId:fullDiscriminant") )
       aJet.setPileupJetId( aPatJet.userFloat("pileupJetId:fullDiscriminant") );
 
@@ -131,6 +106,41 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
     int partonPdgId = aPatJet.genParton() ? aPatJet.genParton()->pdgId() : 0;
     aJet.setPartonPdgId(partonPdgId);
 
+    // setting JEC uncertainty
+    if (jecUnc){
+      jecUnc->setJetEta(aJet.eta());
+      jecUnc->setJetPt(aJet.pt()); // here you must use the CORRECTED jet pt
+      double unc = jecUnc->getUncertainty(true);
+      aJet.setShiftedEnUp( (1. + unc) );
+      jecUnc->setJetEta(aJet.eta());
+      jecUnc->setJetPt(aJet.pt()); // here you must use the CORRECTED jet pt
+      unc = jecUnc->getUncertainty(false);
+      aJet.setShiftedEnDown( (1. - unc) );
+    }
+    float fJER   = 0.;
+    float fJERUp = 0.;
+    float fJERDn = 0.;
+    if (runOnMC_){
+      // adding genJet
+      aJet.setGenJetRef(aPatJet.genJetFwdRef());
+      // setting JES 
+      if ( aPatJet.genJet() ){
+	double cJER, cJERUp, cJERDn;
+	getJER(aJet.eta(), cJER, cJERUp, cJERDn);
+
+	const double jetPt = aJet.pt();
+	const double genJetPt = aPatJet.genJet()->pt();
+	const double dPt = jetPt-genJetPt;
+
+	fJER   = max(0., (genJetPt+dPt*cJER  )/jetPt);
+	fJERUp = max(0., (genJetPt+dPt*cJERUp)/jetPt);
+	fJERDn = max(0., (genJetPt+dPt*cJERDn)/jetPt);
+      }
+    }
+    aJet.setSmearedRes(fJER);
+    aJet.setSmearedResDown(fJERDn);
+    aJet.setSmearedResUp(fJERUp);
+
     out->push_back(aJet);
   }
 
@@ -151,6 +161,19 @@ bool cat::CATJetProducer::checkPFJetId(const pat::Jet & jet){
       ) out = true;
 
   return out;
+}
+
+void cat::CATJetProducer::getJER(const double jetEta, double& cJER, double& cJERUp, double& cJERDn) const{
+  // 2012 values from https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetResolution
+  // need to update for run2, must be better way to impliment these corrections
+  const double absEta = std::abs(jetEta);
+  if      ( absEta < 0.5 ) { cJER = 1.079; cJERUp = 1.105; cJERDn = 1.053; }
+  else if ( absEta < 1.1 ) { cJER = 1.099; cJERUp = 1.127; cJERDn = 1.071; }
+  else if ( absEta < 1.7 ) { cJER = 1.121; cJERUp = 1.150; cJERDn = 1.092; }
+  else if ( absEta < 2.3 ) { cJER = 1.208; cJERUp = 1.254; cJERDn = 1.162; }
+  else if ( absEta < 2.8 ) { cJER = 1.254; cJERUp = 1.316; cJERDn = 1.192; }
+  else if ( absEta < 3.2 ) { cJER = 1.395; cJERUp = 1.458; cJERDn = 1.332; }
+  else if ( absEta < 5.0 ) { cJER = 1.056; cJERUp = 1.247; cJERDn = 0.865; }
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"
