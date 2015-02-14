@@ -42,6 +42,8 @@ cat::CATTauProducer::CATTauProducer(const edm::ParameterSet & iConfig) :
 void 
 cat::CATTauProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
+  bool runOnMC_ = !iEvent.isRealData();
+
   Handle<pat::TauCollection> src;
   iEvent.getByToken(src_, src);
 
@@ -49,6 +51,9 @@ cat::CATTauProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
 
   for (const pat::Tau & aPatTau : *src){
     cat::Tau aTau(aPatTau);
+    if (runOnMC_){
+      aTau.setGenParticleRef(aPatTau.genParticleRef());
+    }
     out->push_back(aTau);
   }
 

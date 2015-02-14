@@ -97,6 +97,7 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     if (runOnMC_){
       aElectron.setShiftedEnDown(shiftedEnDownSrc->at(j).pt() );
       aElectron.setShiftedEnUp(shiftedEnUpSrc->at(j).pt() );
+      aElectron.setGenParticleRef(aPatElectron.genParticleRef());
     }
     ++j;
 

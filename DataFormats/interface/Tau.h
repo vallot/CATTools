@@ -19,10 +19,8 @@ namespace cat {
   class Tau : public Particle{
   public:
     Tau();
-    Tau(const reco::LeafCandidate & aTau); 
+    Tau(const reco::LeafCandidate & aTau);
     virtual ~Tau();
-
-  private:
 
   };
 }

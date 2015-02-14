@@ -48,8 +48,8 @@ namespace cat {
     const std::vector<std::string> btagNames_;
     std::string uncertaintyTag_, payloadName_;
     bool runOnMC_;
+    //PFJetIDSelectionFunctor pfjetIDFunctor;
     JetCorrectionUncertainty *jecUnc;
-
   };
 
 } // namespace
@@ -60,6 +60,7 @@ cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
   payloadName_(iConfig.getParameter<std::string>("payloadName"))
 {
   produces<std::vector<cat::Jet> >();
+  ///  pfjetIDFunctor = PFJetIDSelectionFunctor(PFJetIDSelectionFunctor::FIRSTDATA,PFJetIDSelectionFunctor::LOOSE);
 }
 
 void 
@@ -77,9 +78,12 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
     JetCorrectorParameters const & JetCorPar = (*JetCorParColl)["Uncertainty"];
     jecUnc = new JetCorrectionUncertainty(JetCorPar);
   }
+
   auto_ptr<vector<cat::Jet> >  out(new vector<cat::Jet>());
   for (const pat::Jet &aPatJet : *src) {
+
     bool looseId = checkPFJetId( aPatJet );
+    
     cat::Jet aJet(aPatJet);
     aJet.setLooseId( looseId );
 
@@ -123,6 +127,8 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
     if (runOnMC_){
       // adding genJet
       aJet.setGenJetRef(aPatJet.genJetFwdRef());
+      aJet.setGenParticleRef(aPatJet.genParticleRef());
+
       // setting JES 
       if ( aPatJet.genJet() ){
 	double cJER, cJERUp, cJERDn;
@@ -152,13 +158,13 @@ bool cat::CATJetProducer::checkPFJetId(const pat::Jet & jet){
   ///https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetID
   //debug
   bool out = false;
-  if( (jet.neutralHadronEnergy() + jet.HFHadronEnergy() ) / jet.energy() < 0.99
-      &&jet.neutralEmEnergyFraction() < 0.99
-      &&jet.numberOfDaughters() > 1
-      &&(jet.chargedHadronEnergyFraction() > 0 || abs(jet.eta()) > 2.4)
-      &&(jet.chargedMultiplicity() > 0 || abs(jet.eta()) > 2.4)
-      &&(jet.chargedEmEnergyFraction() < 0.99 || abs(jet.eta()) > 2.4)
-      ) out = true;
+  if ( jet.neutralHadronEnergyFraction() < 0.99
+       &&jet.neutralEmEnergyFraction() < 0.99
+       &&jet.numberOfDaughters() > 1
+       &&(jet.chargedHadronEnergyFraction() > 0 || abs(jet.eta()) > 2.4)
+       &&(jet.chargedMultiplicity() > 0 || abs(jet.eta()) > 2.4)
+       &&(jet.chargedEmEnergyFraction() < 0.99 || abs(jet.eta()) > 2.4)
+       ) out = true;
 
   return out;
 }
