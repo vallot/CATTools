@@ -21,7 +21,12 @@ namespace cat {
     Particle(const reco::LeafCandidate & aParticle); 
     virtual ~Particle();
     
+    const reco::GenParticle * genParticle() const {return genParticleRef_.get();}
+    void setGenParticleRef(reco::GenParticleRef gj){ genParticleRef_ = gj;}
+
   private:
+
+    reco::GenParticleRef  genParticleRef_;
 
   };
 }

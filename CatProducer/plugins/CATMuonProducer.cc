@@ -122,8 +122,10 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     aMuon.setIsLooseMuon( aPatMuon.isLooseMuon() );
     aMuon.setIsSoftMuon( aPatMuon.isSoftMuon(pv) );
 
-    if (runOnMC_)
+    if (runOnMC_){
+      aMuon.setGenParticleRef(aPatMuon.genParticleRef());
       aMuon.setMCMatched( mcMatch( aPatMuon.p4(), genParticles ) );
+    }
     
     aMuon.setNumberOfMatchedStations( aPatMuon.numberOfMatchedStations() );
 
