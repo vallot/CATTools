@@ -19,7 +19,7 @@ catEventContent.extend([
     ])
 
 catEventContentMC.extend([
-    'keep *_prunedGenParticles_*_*',
+    'keep recoGenParticles_prunedGenParticles_*_*',
     'keep *_slimmedGenJets_*_*',
     'keep *_pdfWeight_*_*',
     'keep *_pileupWeight_*_*',

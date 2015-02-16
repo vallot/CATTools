@@ -72,20 +72,18 @@ namespace cat {
     float smearedResDown(){return  smearedResDown_;}
     float smearedResUp()  {return  smearedResUp_;}
 
-    const reco::GenJet * genJet() const {
-      return genJetFwdRef_.get();
-    }
+    const reco::GenJet * genJet() const { return genJetFwdRef_.get();}
     void setGenJetRef(const edm::FwdRef<reco::GenJetCollection> & gj){ genJetFwdRef_ = gj;}
-    edm::FwdRef<reco::GenJetCollection> const & genJetFwdRef() const { return genJetFwdRef_; }
+    //edm::FwdRef<reco::GenJetCollection> const & genJetFwdRef() const { return genJetFwdRef_; }
 
   private:
+    edm::FwdRef<reco::GenJetCollection>  genJetFwdRef_;
+
     bool LooseId_; 
     float pileupJetId_;
 
     /// b tagging discriminators
     std::vector<std::pair<std::string, float> >  pairDiscriVector_;
-    edm::FwdRef<reco::GenJetCollection>  genJetFwdRef_;
-
      /// b tagging information
     float vtxMass_;
     int vtxNtracks_;

@@ -1,16 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-def catSetup(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
-    process.load("CATTools.CatProducer.catCandidates_cff")        
-    process.load("CATTools.CatProducer.recoEventInfo_cfi")
-
-    if runOnMC:## Load MC dependent producers
-        process.load("CATTools.CatProducer.pdfWeight_cff")
-        process.load("CATTools.CatProducer.pileupWeight_cff")
-        process.load("CATTools.CatProducer.pseudoTop_cfi")
-        if not useMiniAOD:
-            process.load("CATTools.CatProducer.genTopProducer_cfi")
-        
+def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     catJetsSource = "slimmedJets"
     catGenJetsSource = "slimmedGenJets"
     catMuonsSource = "slimmedMuons"
@@ -23,7 +13,20 @@ def catSetup(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     catBeamSpot = "offlineBeamSpot"
     catRho = "fixedGridRhoAll"
 
+    process.load("CATTools.CatProducer.catCandidates_cff")        
+    process.load("CATTools.CatProducer.recoEventInfo_cfi")
+
+    if runOnMC:## Load MC dependent producers
+        process.load("CATTools.CatProducer.pdfWeight_cff")
+        process.load("CATTools.CatProducer.pileupWeight_cff")
+        process.load("CATTools.CatProducer.pseudoTop_cfi")
+        if not useMiniAOD:
+            process.load("CATTools.CatProducer.genTopProducer_cfi")
+
     process.catJets.src = cms.InputTag(catJetsSource)
+    process.catJets.genJetMatch = cms.InputTag("patJetGenJetMatch")
+    process.catTaus.src = cms.InputTag(catTausSource)
+    process.catTaus.genJetMatch = cms.InputTag("tauGenJetMatch")
     process.catMuons.src = cms.InputTag(catMuonsSource)
     process.catMuons.mcLabel = cms.InputTag(catMCsource)
     process.catMuons.vertexLabel = cms.InputTag(catVertexSource)
@@ -34,7 +37,6 @@ def catSetup(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     process.catElectrons.beamLineSrc = cms.InputTag(catBeamSpot)
     process.catElectrons.rhoLabel = cms.InputTag(catRho)
     process.catPhotons.src = cms.InputTag(catPhotonsSource)
-    process.catTaus.src = cms.InputTag(catTausSource)
     process.catMETs.src = cms.InputTag(catMETsSource)
     process.catSecVertexs.muonSrc = cms.InputTag(catMuonsSource)
     process.catSecVertexs.elecSrc = cms.InputTag(catElectronsSource)
@@ -58,8 +60,6 @@ def catSetup(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
         process.catMuons.shiftedEnUpSrc = cms.InputTag("shiftedSlimmedMuonsEnUp")
         process.catElectrons.shiftedEnDownSrc = cms.InputTag("shiftedSlimmedElectronsEnDown")
         process.catElectrons.shiftedEnUpSrc = cms.InputTag("shiftedSlimmedElectronsEnUp")
-
-#    process.p += process.makeCatCandidates
 
     if doSecVertex:
         from TrackingTools.TransientTrack.TransientTrackBuilder_cfi import TransientTrackBuilderESProducer
