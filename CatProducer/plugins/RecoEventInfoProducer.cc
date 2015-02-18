@@ -121,9 +121,11 @@ void RecoEventInfoProducer::produce(edm::Event& event, const edm::EventSetup& ev
       if ( trigIndex < hltHandle->size() )
       {
 	if ( hltHandle->accept(trigIndex) ) {
-	  const std::pair<int,int> prescales = hltConfig_.prescaleValues(event, eventSetup, trigName);
-	  psValue = prescales.first * prescales.second;
-	  break;
+	  const std::pair<std::vector<std::pair<std::string,int> >,int> prescalesInDetail(hltConfig_.prescaleValuesInDetail(event, eventSetup, trigName));
+	  std::ostringstream message;
+	  for (unsigned int i=0; i<prescalesInDetail.first.size(); ++i) {
+	    psValue = std::min(psValue, prescalesInDetail.first[i].second * prescalesInDetail.second);
+	  }
 	}
       }
     }
