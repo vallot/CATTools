@@ -61,29 +61,14 @@ def catSetup(process, runOnMC=True, doSecVertex=True, runDependantMC=False):
         process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
 
     ## saved collections
-    process.out.outputCommands = cms.untracked.vstring(
-        'drop *',
-        'keep *_cat*_*_*',
-        'keep *_goodOfflinePrimaryVertices*_*_*',
-        #'keep GenEventInfoProduct_*_*_*',
-        #'keep PileupSummaryInfos_*_*_*',
-        'keep edmMergeableCounter_*_*_*',
-        #'keep patTriggerPaths_patTrigger*_*_*',
-        #'keep recoGenParticles_genParticles__SIM',
-        'keep recoGenJets_{0}_*_*'.format(catJetsSource),
-        #"keep *_puJet*_*_*",
-    )
 
     process.load("CATTools.CatProducer.recoEventInfo_cfi")
     process.recoEventInfo.vertex = cms.InputTag(catVertexSource)
-    process.out.outputCommands.append("keep *_recoEventInfo_*_*")
     process.p += process.recoEventInfo 
     if runOnMC:
         ## Load MC dependent producers
         process.load("CATTools.CatProducer.pdfWeight_cff")
         process.load("CATTools.CatProducer.pileupWeight_cff")
-        process.out.outputCommands.append("keep *_pdfWeight_*_*")
-        process.out.outputCommands.append("keep *_pileupWeight_*_*")
         process.p += process.pdfWeight +  process.pileupWeight
 
         ## turning off since the default ones are outdated...
