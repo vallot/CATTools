@@ -42,6 +42,8 @@ cat::CATPhotonProducer::CATPhotonProducer(const edm::ParameterSet & iConfig) :
 void 
 cat::CATPhotonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
+  bool runOnMC_ = !iEvent.isRealData();
+
   Handle<pat::PhotonCollection> src;
   iEvent.getByToken(src_, src);
 
@@ -49,6 +51,9 @@ cat::CATPhotonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
 
   for (const pat::Photon & aPatPhoton : *src){
     cat::Photon aPhoton(aPatPhoton);
+    if (runOnMC_){
+      aPhoton.setGenParticleRef(aPatPhoton.genParticleRef());
+    }
     out->push_back(aPhoton);
   }
 
