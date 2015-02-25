@@ -111,7 +111,7 @@ void RecoEventInfoProducer::produce(edm::Event& event, const edm::EventSetup& ev
     const std::string& hltGroupName = key->first;
     const strings& hltPaths = key->second;
 
-    bool isPassed = false;
+    int psValue = 0;
     for ( auto& hltPath : hltPaths )
     {
       const strings hltPathsWithV = HLTConfigProvider::restoreVersion(hltConfig_.triggerNames(), hltPath);
@@ -120,11 +120,16 @@ void RecoEventInfoProducer::produce(edm::Event& event, const edm::EventSetup& ev
       const unsigned int trigIndex = hltConfig_.triggerIndex(trigName);
       if ( trigIndex < hltHandle->size() )
       {
-        if ( hltHandle->accept(trigIndex) ) { isPassed = true; break; }
+	if ( hltHandle->accept(trigIndex) ) {
+	  const std::pair<std::vector<std::pair<std::string,int> >,int> prescalesInDetail(hltConfig_.prescaleValuesInDetail(event, eventSetup, trigName));
+	  std::ostringstream message;
+	  for (unsigned int i=0; i<prescalesInDetail.first.size(); ++i) {
+	    psValue = std::min(psValue, prescalesInDetail.first[i].second * prescalesInDetail.second);
+	  }
+	}
       }
-      //const int psValue = hltConfig_.prescaleValue(event, eventSetup, trigName);
     }
-    event.put(std::auto_ptr<int>(new int(isPassed)), "HLT"+hltGroupName);
+    event.put(std::auto_ptr<int>(new int (psValue)), "HLT"+hltGroupName);
   }
 
 }
