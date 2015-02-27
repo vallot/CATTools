@@ -4,7 +4,6 @@ recoEventInfo = cms.EDProducer("RecoEventInfoProducer",
     vertex = cms.InputTag("offlineSlimmedPrimaryVertices"),
     triggerResults = cms.InputTag("TriggerResults", "", "HLT"),
     prescales = cms.InputTag("patTrigger"),
-    objects = cms.InputTag("selectedPatTrigger"),
     HLT = cms.PSet(
         ## from https://github.com/cms-sw/cmssw/blob/CMSSW_7_2_X/HLTriggerOffline/Top/python
         ## for PHYS14
