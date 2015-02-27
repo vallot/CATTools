@@ -16,6 +16,7 @@
 #include "FWCore/Common/interface/TriggerNames.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
+#include "DataFormats/PatCandidates/interface/PackedTriggerPrescales.h"
 
 #include <boost/regex.hpp>
 
@@ -35,7 +36,8 @@ private:
   typedef std::vector<std::string> strings;
 
   edm::EDGetTokenT<reco::VertexCollection> vertexToken_;
-  edm::EDGetTokenT<edm::TriggerResults> hltToken_;
+  edm::EDGetTokenT<edm::TriggerResults> triggerBits_;
+  edm::EDGetTokenT<pat::PackedTriggerPrescales> triggerPrescales_;
 
   std::string processName_;
   std::map<std::string, strings> hltGroup_;
@@ -46,9 +48,8 @@ private:
 RecoEventInfoProducer::RecoEventInfoProducer(const edm::ParameterSet& pset)
 {
   vertexToken_ = consumes<reco::VertexCollection>(pset.getParameter<edm::InputTag>("vertex"));
-  edm::InputTag hltLabel = pset.getParameter<edm::InputTag>("triggerResults");
-  processName_ = hltLabel.process();
-  hltToken_ = consumes<edm::TriggerResults>(hltLabel);
+  triggerBits_ = consumes<edm::TriggerResults>(pset.getParameter<edm::InputTag>("triggerResults"));
+  triggerPrescales_ = consumes<pat::PackedTriggerPrescales>(pset.getParameter<edm::InputTag>("prescales"));
 
   produces<int>("pvN");
   produces<double>("pvX");
@@ -104,8 +105,18 @@ void RecoEventInfoProducer::produce(edm::Event& event, const edm::EventSetup& ev
   event.put(std::auto_ptr<double>(new double(pvY)), "pvY");
   event.put(std::auto_ptr<double>(new double(pvZ)), "pvZ");
 
-  edm::Handle<edm::TriggerResults> hltHandle;
-  event.getByToken(hltToken_, hltHandle);
+  edm::Handle<edm::TriggerResults> triggerBits;
+  edm::Handle<pat::PackedTriggerPrescales> triggerPrescales;
+  event.getByToken(triggerBits_, triggerBits);
+  event.getByToken(triggerPrescales_, triggerPrescales);
+
+  // for full list of trigger names that pass
+  // const edm::TriggerNames &names = event.triggerNames(*triggerBits);
+  // for (unsigned int i = 4, n = triggerBits->size(); i < n-3; ++i) {
+  //   if (triggerBits->accept(i))
+  //   std::cout << names.triggerName(i) << ", prescale " << triggerPrescales->getPrescaleForIndex(i) << std::endl;
+  // }
+
   for ( auto key = hltGroup_.begin(); key != hltGroup_.end(); ++key )
   {
     const std::string& hltGroupName = key->first;
@@ -118,17 +129,18 @@ void RecoEventInfoProducer::produce(edm::Event& event, const edm::EventSetup& ev
       if ( hltPathsWithV.empty() ) continue;
       const std::string& trigName = hltPathsWithV[0];
       const unsigned int trigIndex = hltConfig_.triggerIndex(trigName);
-      if ( trigIndex < hltHandle->size() )
+      if ( trigIndex < triggerBits->size() )
       {
-	if ( hltHandle->accept(trigIndex) ) {
-	  const std::pair<int,int> prescales = hltConfig_.prescaleValues(event, eventSetup, trigName);
-	  psValue = prescales.first * prescales.second;
+	if ( triggerBits->accept(trigIndex) ) {
+	  // const std::pair<int,int> prescales = hltConfig_.prescaleValues(event, eventSetup, trigName);
+	  // psValue = prescales.first * prescales.second;
+	  psValue = triggerPrescales->getPrescaleForIndex(trigIndex);
+	  break;
 	}
       }
     }
     event.put(std::auto_ptr<int>(new int (psValue)), "HLT"+hltGroupName);
   }
-
 }
 
 DEFINE_FWK_MODULE(RecoEventInfoProducer);
