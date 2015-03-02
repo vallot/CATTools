@@ -6,8 +6,8 @@ using namespace cat;
 MCParticle::MCParticle(){
 }
 
-MCParticle::MCParticle(const reco::GenParticle & aMCParticle) : reco::LeafCandidate(aMCParticle) {
-}
+// MCParticle::MCParticle(const reco::GenParticle & aMCParticle) : reco::LeafCandidate(aMCParticle) {
+// }
 
 MCParticle::MCParticle(const reco::Candidate & aMCParticle) : reco::LeafCandidate(aMCParticle) {
 }

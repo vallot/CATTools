@@ -6,8 +6,8 @@ using namespace cat;
 GenTop::GenTop(){
 }
 
-GenTop::GenTop(const reco::GenParticle & aGenTop) : reco::LeafCandidate(aGenTop) {
-}
+// GenTop::GenTop(const reco::GenParticle & aGenTop) : reco::LeafCandidate(aGenTop) {
+// }
 
 GenTop::GenTop(const reco::Candidate & aGenTop) : reco::LeafCandidate(aGenTop) {
 }
