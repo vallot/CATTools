@@ -17,7 +17,7 @@ catEventContentExtended.extend([
     'drop *',
     'keep *_cat*_*_*',
     'keep *_goodOfflinePrimaryVertices_*_*',
-    'keep *_genParticles_*_*',
+    'keep recoGenParticles_genParticles_*_*',
     'keep recoGenJets_selectedPatJetsPFlow_*_*',
     "keep *_recoEventInfo_*_*",
     "keep *_pdfWeight_*_*",
