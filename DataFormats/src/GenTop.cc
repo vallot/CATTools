@@ -423,7 +423,7 @@ void GenTop::building(Handle<View<reco::GenJet> > genJets, Handle<View<reco::Gen
          //bool topdecay = isFromtop(*mcpart);
          //if( topdecay ) istopdecay = true;
          const reco::Candidate* lastB = lastBHadron(*mcpart);
-         vector<const reco::Candidate*>::iterator it = find ( mapJetToBHadrons[idx].begin(), mapJetToBHadrons[idx].begin(), lastB );
+         vector<const reco::Candidate*>::iterator it = find ( mapJetToBHadrons[idx].begin(), mapJetToBHadrons[idx].end(), lastB );
          if( it == mapJetToBHadrons[idx].end() ){
            mapJetToBHadrons[idx].push_back(lastB);
            mapJetToBMatched[idx] = 1;
@@ -433,7 +433,7 @@ void GenTop::building(Handle<View<reco::GenJet> > genJets, Handle<View<reco::Gen
       bool isC = decayFromCHadron(*mcpart);
       if(isC){
         const reco::Candidate* lastC = lastCHadron(*mcpart);
-        vector<const reco::Candidate*>::iterator it = find ( mapJetToCHadrons[idx].begin(), mapJetToCHadrons[idx].begin(), lastC );
+        vector<const reco::Candidate*>::iterator it = find ( mapJetToCHadrons[idx].begin(), mapJetToCHadrons[idx].end(), lastC );
         if( it == mapJetToCHadrons[idx].end() ){
           mapJetToCHadrons[idx].push_back(lastC);
           mapJetToCMatched[idx] = 1;
