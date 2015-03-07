@@ -125,6 +125,7 @@ cat::CATSecVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & 
   std::vector<TransientTrack> pfmuTransTracks;
   for (const reco::PFCandidate & pfmu : *pfmuonSrc){
     reco::TrackRef trackRef = pfmu.trackRef();
+    if ( trackRef.isNull() ) continue;
     reco::TransientTrack transTrack = trackBuilder->build(trackRef);
     if ( !transTrack.impactPointTSCP().isValid() ) continue;
 
