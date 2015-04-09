@@ -22,119 +22,190 @@ namespace cat {
     Muon(const reco::LeafCandidate & aMuon); 
     virtual ~Muon();
 
-    float relIso(float dR=0.3 ) const {
-      if( dR < 0.35) return relIso03_;
-      else return relIso04_;
-    }
-    bool isGlobalMuon() const { return isGlobalMuon_; }
-    bool isPFMuon() const { return isPFMuon_; }
-    bool isTightMuon() const { return isTightMuon_; }
-    bool isLooseMuon() const { return isLooseMuon_; } 
-    bool isSoftMuon() const { return isSoftMuon_; } 
-
-    bool mcMatched() const { return mcMatched_; }
-
-    float normalizedChi2() const { return normalizedChi2_; }
-    int numberOfValidHits() const { return numberOfValidHits_; }
-    int numberOfValidMuonHits() const { return numberOfValidMuonHits_; }
-    int numberOfMatchedStations() const { return numberOfMatchedStations_; } 
-    int numberOfValidPixelHits() const { return numberOfValidPixelHits_; }
-    int trackerLayersWithMeasurement() const { return trackerLayersWithMeasurement_; }
- 
-    float dxy() const { return dxy_; }
-    float dz() const { return dz_; }
-
-    void setrelIso(float dR, double chIso, double nhIso, double phIso, double puIso, double pt) {
-      float relIso = ( chIso + std::max( 0.0, nhIso + phIso - 0.5 * puIso) ) / pt;
-      if( dR < 0.35) relIso03_ = relIso; 
-      else  relIso04_ = relIso; 
-    }
-    float chargedHadronIso(float dR=0.3) const {
-      if( dR < 0.35) return chargedHadronIso03_;
-      else return chargedHadronIso04_;
-    }
-    float puChargedHadronIso(float dR=0.3) const {
-      if( dR < 0.35) return puChargedHadronIso03_;
-      else return puChargedHadronIso04_;
-    }
-    float neutralHadronIso(float dR=0.3) const {
-      if( dR < 0.35) return neutralHadronIso03_;
-      else return neutralHadronIso04_;
-    }
-    float photonIso(float dR=0.3) const {
-      if( dR < 0.35) return photonIso03_;
-      else return photonIso04_;
-    }
-
-    void setChargedHadronIso03(float i) { chargedHadronIso03_ = i; }
-    void setPUChargedHadronIso03(float i) { puChargedHadronIso03_ = i; }
-    void setNeutralHadronIso03(float i) { neutralHadronIso03_ = i; }
-    void setPhotonIso03(float i) { photonIso03_ = i; }
-
-    void setChargedHadronIso04(float i) { chargedHadronIso04_ = i; }
-    void setPUChargedHadronIso04(float i) { puChargedHadronIso04_ = i; }
-    void setNeutralHadronIso04(float i) { neutralHadronIso04_ = i; }
-    void setPhotonIso04(float i) { photonIso04_ = i; }
-
-    void setIsGlobalMuon(bool d) { isGlobalMuon_ = d; }
-    void setIsPFMuon(bool d) { isPFMuon_ = d; }
-    void setIsTightMuon(bool d) { isTightMuon_ = d; }
-    void setIsLooseMuon(bool d) { isLooseMuon_ = d; }
-    void setIsSoftMuon(bool d) { isSoftMuon_ = d; }
-     
-    void setMCMatched(bool m) { mcMatched_ = m; }
+    int GlobalCharge() const { return GlobalCharge_; }
+		float GlobalEta() const { return GlobalEta_; }
+		float GlobalPt() const { return GlobalPt_; }
+		float GlobalPhi() const { return GlobalPhi_; }
+  	float Energy() const { return Energy_; }
+  
+    float PtError() const { return PtError_; }
+    float EtaError() const { return EtaError_; }
     
-    void setNormalizedChi2(float d) { normalizedChi2_ = d; }
-    void setNumberOfValidHits(int i) { numberOfValidHits_ = i; }
-    void setNumberOfValidMuonHits(int i) { numberOfValidMuonHits_ = i; }
-    void setNumberOfMatchedStations(int i) { numberOfMatchedStations_ = i; }
-    void setNumberOfValidPixelHits(int i) { numberOfValidPixelHits_ = i; }
-    void setTackerLayersWithMeasurement(int i) { trackerLayersWithMeasurement_ = i; }
- 
-    void setDz(float d) { dz_ = d; }
-    void setDxy(float d) { dxy_ = d; }
+    float PFIsoR03ChargedHadron() const { return PFIsoR03ChargedHadron_; }
+    float PFIsoR03NeutralHadron() const { return PFIsoR03NeutralHadron_; }
+    float PFIsoR03Photon() const { return PFIsoR03Photon_; }
+    float PFIsoR04ChargedHadron() const { return PFIsoR04ChargedHadron_; }
+    float PFIsoR04NeutralHadron() const { return PFIsoR04NeutralHadron_; }
+    float PFIsoR04Photon() const { return PFIsoR04Photon_; }
+    float EcalVetoIso() const { return EcalVetoIso_; }
+    float HcalVetoIso() const { return HcalVetoIso_; }
+    float PFIsoR03PU() const { return PFIsoR03PU_; }
+    float PFIsoR04PU() const { return PFIsoR04PU_; }
+    
+		float TrkVx() const { return TrkVx_; }
+		float TrkVy() const { return TrkVy_; }
+		float TrkVz() const { return TrkVz_; }
 
-    void setShiftedEnDown(float f) { shiftedEnDown_ = f;}
-    void setShiftedEnUp(float f) { shiftedEnUp_ = f;}
-    float shiftedEnDown() {return  shiftedEnDown_;}
-    float shiftedEnUp()   {return  shiftedEnUp_;}
+		float MatchedGenParticlePt() const { return MatchedGenParticlePt_; }
+		float MatchedGenParticleEta() const { return MatchedGenParticleEta_; }
+		float MatchedGenParticlePhi() const { return MatchedGenParticlePhi_; }
+		float TrkD0() const { return TrkD0_; }
+		float TrkD0Error() const { return TrkD0Error_; }	
+
+		float GlobalChi2() const { return GlobalChi2_; }
+		float PrimaryVertexDXY() const { return PrimaryVertexDXY_; }
+		float PrimaryVertexDXYError() const { return PrimaryVertexDXYError_; }
+		
+		int GlobalTrkValidHits() const { return GlobalTrkValidHits_; }
+		int TrkPixelHits() const { return TrkPixelHits_; }
+		int StationMatches() const { return StationMatches_; }
+		int TrackLayersWithMeasurement() const { return TrackLayersWithMeasurement_; }
+		int IsPF() const { return IsPF_; }
+		int IsGlobal() const { return IsGlobal_; }
+		int IsTracker() const { return IsTracker_; }
+
+		float CocktailPt() const { return CocktailPt_; }
+		float CocktailEta() const { return CocktailEta_; }
+		float CocktailPhi() const { return CocktailPhi_; }
+		float CocktailGlobalChi2() const { return CocktailGlobalChi2_; }
+		float CocktailTrkVtxDXY() const { return CocktailTrkVtxDXY_; } 
+		float CocktailTrkVtxDZ() const { return CocktailTrkVtxDZ_; }
+		int CocktailCharge() const { return CocktailCharge_; }
+		
+		float MuonSpecPt() const { return MuonSpecPt_; }
+		float MuonSpecEta() const { return MuonSpecEta_; }
+		float MuonSpecPhi() const { return MuonSpecPhi_; }
+		int MuonSpecCharge() const { return MuonSpecCharge_; }
+		float MuonSpecE() const { return MuonSpecE_; }
+
+		int TrackerCharge() const { return TrackerCharge_; }
+		
+		float VtxDistXY() const { return VtxDistXY_; }
+		int BestTrackVtxIndex() const { return BestTrackVtxIndex_; }
+		float BestTrackVtxDistZ() const { return BestTrackVtxDistZ_; }
+		float BestTrackVtxDistXY() const { return BestTrackVtxDistXY_; }
+
+
+		///////////////////
+		// set functions //
+		///////////////////
+    
+    void setGlobalCharge(int i) { GlobalCharge_ = i; }
+		void setGlobalEta(int f) { GlobalEta_ = f; }
+		void setGlobalPt(float f) { GlobalPt_ = f;}
+		void setGlobalPhi(float f) { GlobalPhi_ = f;}
+   	void setEnergy(float f) { Energy_ = f; }
+ 
+    void setPtError(float f) { PtError_ = f; }
+    void setEtaError(float f) { EtaError_ = f; }
+    
+    void setPFIsoR03ChargedHadron(float f) { PFIsoR03ChargedHadron_ = f; }
+    void setPFIsoR03NeutralHadron(float f) { PFIsoR03NeutralHadron_ = f; }
+    void setPFIsoR03Photon(float f) { PFIsoR03Photon_ = f; }
+    void setPFIsoR04ChargedHadron(float f) { PFIsoR04ChargedHadron_ = f; }
+    void setPFIsoR04NeutralHadron(float f) { PFIsoR04NeutralHadron_ = f; }
+    void setPFIsoR04Photon(float f) { PFIsoR04Photon_ = f; }
+    void setEcalVetoIso(float f) { EcalVetoIso_ = f; }
+    void setHcalVetoIso(float f) { HcalVetoIso_ = f; }
+    void setPFIsoR03PU(float f) { PFIsoR03PU_ = f; }
+    void setPFIsoR04PU(float f) { PFIsoR04PU_ = f; }
+    
+		void setTrkVx(float f) { TrkVx_ = f; }
+		void setTrkVy(float f) { TrkVy_ = f; }
+		void setTrkVz(float f) { TrkVz_ = f; }
+
+		void setMatchedGenParticlePt(float f) { MatchedGenParticlePt_ = f; }		
+		void setMatchedGenParticleEta(float f) { MatchedGenParticleEta_ = f; }
+		void setMatchedGenParticlePhi(float f) { MatchedGenParticlePhi_ = f; }
+		void setTrkD0(float f) { TrkD0_ = f; }
+		void setTrkD0Error(float f) { TrkD0Error_ = f; }
+
+		void setGlobalChi2(float f) { GlobalChi2_ = f; }
+		void setPrimaryVertexDXY(float f) { PrimaryVertexDXY_ = f; }
+		void setPrimaryVertexDXYError(float f) { PrimaryVertexDXYError_ = f; }
+
+    void setGlobalTrkValidHits(int i) { GlobalTrkValidHits_ = i; }
+    void setTrkPixelHits(int i) { TrkPixelHits_ = i; }
+    void setStationMatches(int i) { StationMatches_ = i; }
+    void setTrackLayersWithMeasurement(int i) { TrackLayersWithMeasurement_ = i; }
+    void setIsPF(int i) { IsPF_ = i; }
+    void setIsGlobal(int i) { IsGlobal_ = i; }
+    void setIsTracker(int i) { IsTracker_ = i; }
+
+    void setCocktailPt(float f) {  CocktailPt_ = f; }
+    void setCocktailEta(float f) {  CocktailEta_ = f; }
+    void setCocktailPhi(float f) {  CocktailPhi_ = f; }
+    void setCocktailGlobalChi2(float f) {  CocktailGlobalChi2_ = f; }
+    void setCocktailTrkVtxDXY(float f) {  CocktailTrkVtxDXY_ = f; }
+    void setCocktailTrkVtxDZ(float f) {  CocktailTrkVtxDZ_ = f; }
+    void setCocktailCharge(int i) {  CocktailCharge_ = i; }
+
+    void setMuonSpecPt(float f) {  MuonSpecPt_ = f; }
+    void setMuonSpecEta(float f) {  MuonSpecEta_ = f; }
+    void setMuonSpecPhi(float f) {  MuonSpecPhi_ = f; }
+    void setMuonSpecCharge(int i) {  MuonSpecCharge_ = i; }
+    void setMuonSpecE(float f) {  MuonSpecE_ = f; }		
+
+		void setTrackerCharge(int i) { TrackerCharge_ = i; }
+
+    void setVtxDistXY(float f) { VtxDistXY_ = f; }
+    void setBestTrackVtxIndex(int i) { BestTrackVtxIndex_ = i; }
+    void setBestTrackVtxDistZ(float f) { BestTrackVtxDistZ_ = f; }
+    void setBestTrackVtxDistXY(float f) { BestTrackVtxDistXY_ = f; }
 
   private:
 
-    float relIso03_;
-    float relIso04_;
+    int GlobalCharge_;
+		float GlobalEta_;
+		float GlobalPt_;
+		float GlobalPhi_;
+		float Energy_;   
+ 
+    float PtError_;
+    float EtaError_;
+    
+    float PFIsoR03ChargedHadron_;
+    float PFIsoR03NeutralHadron_;
+    float PFIsoR03Photon_;
+    float PFIsoR04ChargedHadron_;
+    float PFIsoR04NeutralHadron_;
+    float PFIsoR04Photon_;
+    float EcalVetoIso_;
+    float HcalVetoIso_;
+    float PFIsoR03PU_;
+    float PFIsoR04PU_;
 
-    float chargedHadronIso03_;
-    float puChargedHadronIso03_;
-    float neutralHadronIso03_;
-    float photonIso03_;
+		float TrkVx_;
+		float TrkVy_;
+		float TrkVz_;
 
-    float chargedHadronIso04_;
-    float puChargedHadronIso04_;
-    float neutralHadronIso04_;
-    float photonIso04_;
+		float MatchedGenParticlePt_;
+		float MatchedGenParticleEta_;
+		float MatchedGenParticlePhi_;
+		float TrkD0_;
+		float TrkD0Error_;
+		
+		float GlobalChi2_;
+		float PrimaryVertexDXY_;
+		float PrimaryVertexDXYError_;
+	
+		int GlobalTrkValidHits_;
+		int TrkPixelHits_;
+		int StationMatches_;
+		int TrackLayersWithMeasurement_;
+		int IsPF_;
+		int IsGlobal_;
+		int IsTracker_;
 
-    bool isGlobalMuon_; 
-    bool isPFMuon_; 
-    bool isTightMuon_; 
-    bool isLooseMuon_; 
-    bool isSoftMuon_;
+		float CocktailPt_, CocktailEta_, CocktailPhi_, CocktailGlobalChi2_, CocktailTrkVtxDXY_, CocktailTrkVtxDZ_;
+		int CocktailCharge_;
+		
+		float MuonSpecPt_, MuonSpecEta_, MuonSpecPhi_, MuonSpecE_;
+		int MuonSpecCharge_;
 
-    bool mcMatched_;
+		int TrackerCharge_;
 
-    float normalizedChi2_; 
-    int numberOfValidHits_; 
-    int numberOfValidMuonHits_; 
-    int numberOfMatchedStations_; 
-    int numberOfValidPixelHits_; 
-    int trackerLayersWithMeasurement_; 
-
-    float dz_;
-    float dxy_;
-
-    float shiftedEnDown_;
-    float shiftedEnUp_;
-
+		float VtxDistXY_, BestTrackVtxIndex_, BestTrackVtxDistZ_, BestTrackVtxDistXY_;
   };
 }
 
