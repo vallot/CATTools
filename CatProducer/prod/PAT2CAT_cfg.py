@@ -6,7 +6,7 @@ doSecVertex=True # for jpsi candidates
 from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing ('python')
 options.register('runOnMC', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runOnMC: 1  default")
-options.register('useMiniAOD', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "useMiniAOD: 1  default")
+options.register('useMiniAOD', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "useMiniAOD: 1  default")
 options.register('globalTag', '', VarParsing.multiplicity.singleton, VarParsing.varType.string, "globalTag: 1  default")
 
 options.parseArguments()
@@ -31,8 +31,12 @@ if runOnMC:
         process.out.outputCommands.extend(catEventContentAODMC)
 
 process.maxEvents.input = options.maxEvents
-process.source.fileNames = options.inputFiles
-
+if options.inputFiles:
+    process.source.fileNames = options.inputFiles
+else :
+    from PhysicsTools.PatAlgos.patInputFiles_cff import filesRelValTTbarPileUpGENSIMRECO
+    process.source.fileNames = filesRelValTTbarPileUpGENSIMRECO
+    
 print "runOnMC =",runOnMC,"and useMiniAOD =",useMiniAOD
 print "process.GlobalTag.globaltag =",process.GlobalTag.globaltag
 
