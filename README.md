@@ -5,14 +5,18 @@ for cms analysis
 
 Test file : catTuple.root can be found in /afs/cern.ch/user/j/jlee/public/catTuple.root
 ```bash
-scram p -n cat CMSSW CMSSW_7_2_3
+scram p -n cat CMSSW CMSSW_7_4_0_patch1
 cd cat/src
 cmsenv
 git-cms-addpkg FWCore/Version
-git clone git@github.com:vallot/CATTools.git -b cat72x
-scram setup lhapdffull
+git clone git@github.com:vallot/CATTools.git -b cat75x
+scram setup lhapdf
 scram b -j 8
 cd $SRT_CMSSW_BASE_SCRAMRTDEL/src/CATTools/CatProducer/prod
+
+cmsRun PAT2CAT_cfg.py 
+
+or 
 
 cmsRun PAT2CAT_cfg.py useMiniAOD=True inputFiles=/store/mc/Phys14DR/DYJetsToLL_M-50_13TeV-madgraph-pythia8/MINIAODSIM/PU20bx25_PHYS14_25_V1-v1/00000/0432E62A-7A6C-E411-87BB-002590DB92A8.root
 
