@@ -19,7 +19,7 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     if runOnMC:## Load MC dependent producers
         process.load("CATTools.CatProducer.pdfWeight_cff")
         process.load("CATTools.CatProducer.pileupWeight_cff")
-        process.load("CATTools.CatProducer.pseudoTop_cfi")
+        process.load("CATTools.CatProducer.pseudoTop_cff")
         if not useMiniAOD:
             process.load("CATTools.CatProducer.genTopProducer_cfi")
 
