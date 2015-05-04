@@ -133,24 +133,31 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     aMuon.setHcalVetoIso( aPatMuon.isolationR03().hadVetoEt );
     aMuon.setPFIsoR03PU( aPatMuon.pfIsolationR03().sumPUPt );
     aMuon.setPFIsoR04PU( aPatMuon.pfIsolationR04().sumPUPt );
-/*
+
 		float genparPt = -999.;
 		float genparEta= -999.;
 		float genparPhi= -999.;
 			
-		if( runOnMC_ ){
-			//aPatMuon.genParticleRefs().size() should be 0 or 1
-			for(unsigned int igen = 0 ; igen < aPatMuon.genParticleRefs().size() ; ++igen ){
-				genparPt = aPatMuon.genParticle(igen)->pt();
-				genparEta= aPatMuon.genParticle(igen)->eta();
-				genparPhi= aPatMuon.genParticle(igen)->phi();
+		//if( runOnMC_ && mcMatch( aPatMuon.p4(), genParticles ) ){
+		if(runOnMC_){	
+		//aPatMuon.genParticleRefs().size() should be 0 or 1
+			for(uint igen = 0 ; igen < aPatMuon.genParticleRefs().size() ; ++igen ){
+				//cout << "aPatMuon.genParticleRefs().size() = " << aPatMuon.genParticleRefs().size() << endl;
+				if(aPatMuon.genParticleRef(igen).isNonnull()){
+					genparPt = aPatMuon.genParticle(igen)->pt();
+					//cout << genparPt << endl;
+					genparEta= aPatMuon.genParticle(igen)->eta();
+					//cout << genparEta << endl;
+					genparPhi= aPatMuon.genParticle(igen)->phi();
+					//cout << genparPhi << endl << "======================" << endl;
+				}
 			}
 		}
 
 		aMuon.setMatchedGenParticlePt( genparPt );
 		aMuon.setMatchedGenParticleEta( genparEta );
 		aMuon.setMatchedGenParticlePhi( genparPhi );
-*/
+
 		aMuon.setPrimaryVertexDXY( aPatMuon.dB() );
 		aMuon.setPrimaryVertexDXYError( aPatMuon.edB() );
 
