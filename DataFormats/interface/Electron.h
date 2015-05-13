@@ -22,7 +22,6 @@ namespace cat {
     Electron(const reco::LeafCandidate & aElectron); 
     virtual ~Electron();
   
-    float qx3() const { return qx3_; }
     float relIso(float dR=0.3 ) const {
       if( dR < 0.35) return relIso03_;
       else return relIso04_;
