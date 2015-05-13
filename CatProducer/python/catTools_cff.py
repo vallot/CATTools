@@ -68,7 +68,7 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
 
     ## for egamma pid
     ## https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2#Recipe_for_regular_users_for_74X
-    from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
+    from PhysicsTools.SelectorUtils.tools.vid_id_tools import DataFormat,switchOnVIDElectronIdProducer,setupAllVIDIdsInModule,setupVIDElectronSelection
     if not useMiniAOD :
         dataFormat = DataFormat.AOD
     else :

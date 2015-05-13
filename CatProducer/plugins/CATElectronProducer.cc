@@ -36,9 +36,9 @@ namespace cat {
   private:
     float getEffArea( float dR, float scEta );
 
-    edm::EDGetTokenT<pat::ElectronCollection> src_;
-    edm::EDGetTokenT<pat::ElectronCollection> shiftedEnDownSrc_;
-    edm::EDGetTokenT<pat::ElectronCollection> shiftedEnUpSrc_;
+    edm::EDGetTokenT<edm::View<pat::Electron> > src_;
+    edm::EDGetTokenT<edm::View<pat::Electron> > shiftedEnDownSrc_;
+    edm::EDGetTokenT<edm::View<pat::Electron> > shiftedEnUpSrc_;
     edm::EDGetTokenT<reco::VertexCollection> vertexLabel_;
     edm::EDGetTokenT<reco::GenParticleCollection> mcLabel_;
     edm::EDGetTokenT<reco::BeamSpot> beamLineSrc_;
@@ -54,20 +54,21 @@ namespace cat {
 } // namespace
 
 cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig) :
-  src_(consumes<pat::ElectronCollection>(iConfig.getParameter<edm::InputTag>("src"))),
-  shiftedEnDownSrc_(consumes<pat::ElectronCollection>(iConfig.getParameter<edm::InputTag>("shiftedEnDownSrc"))),
-  shiftedEnUpSrc_(consumes<pat::ElectronCollection>(iConfig.getParameter<edm::InputTag>("shiftedEnUpSrc"))),
+  src_(consumes<edm::View<pat::Electron> >(iConfig.getParameter<edm::InputTag>("src"))),
+  shiftedEnDownSrc_(consumes<edm::View<pat::Electron> >(iConfig.getParameter<edm::InputTag>("shiftedEnDownSrc"))),
+  shiftedEnUpSrc_(consumes<edm::View<pat::Electron> >(iConfig.getParameter<edm::InputTag>("shiftedEnUpSrc"))),
   vertexLabel_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexLabel"))),
   mcLabel_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcLabel"))),
   beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc"))),
   rhoLabel_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoLabel")))
 {
   produces<std::vector<cat::Electron> >();
-  if (iConfig.existsAs<edm::InputTag>("electronIDSources")) {
+  if (iConfig.existsAs<edm::ParameterSet>("electronIDSources")) {
     edm::ParameterSet idps = iConfig.getParameter<edm::ParameterSet>("electronIDSources");
     std::vector<std::string> names = idps.getParameterNamesForType<edm::InputTag>();
     for (std::vector<std::string>::const_iterator it = names.begin(), ed = names.end(); it != ed; ++it) {
-      elecIDSrcs_.push_back(NameTag(*it, idps.getParameter<edm::InputTag>(*it)));
+      auto inputTag = idps.getParameter<edm::InputTag>(*it);
+      elecIDSrcs_.push_back(NameTag(inputTag.instance(), inputTag));
     }
     elecIDTokens_ = edm::vector_transform(elecIDSrcs_, [this](NameTag const & tag){return mayConsume<edm::ValueMap<bool> >(tag.second);});
   }
@@ -81,7 +82,7 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
 
   runOnMC_ = !iEvent.isRealData();
 
-  Handle<pat::ElectronCollection> src;
+  Handle<edm::View<pat::Electron> > src;
   iEvent.getByToken(src_, src);
 
   Handle<reco::GenParticleCollection> genParticles;
@@ -95,8 +96,8 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
   iEvent.getByToken(rhoLabel_, rhoHandle);
   double rhoIso = std::max(*(rhoHandle.product()), 0.0);
 
-  edm::Handle<pat::ElectronCollection> shiftedEnDownSrc;
-  edm::Handle<pat::ElectronCollection> shiftedEnUpSrc;
+  edm::Handle<edm::View<pat::Electron> > shiftedEnDownSrc;
+  edm::Handle<edm::View<pat::Electron> > shiftedEnUpSrc;
   if (runOnMC_){
     iEvent.getByToken(shiftedEnDownSrc_, shiftedEnDownSrc);
     iEvent.getByToken(shiftedEnUpSrc_, shiftedEnUpSrc);
@@ -214,7 +215,6 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
 	  aElectron.setVtxDistZ( vertexDistZ_ );
 
 	}
-
 	i_vertex++;
       }
     }
@@ -236,14 +236,12 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     aElectron.setIsGsfCtfChargeConsistent( aPatElectron.isGsfCtfChargeConsistent());
 
     aElectron.setElectronIDs(aPatElectron.electronIDs());
-    //    const auto el = src->ptrAt(j);
-    //    reco::GsfElectronRef myElectronRef = aPatElectron.core();
-    for (size_t i = 0; i < elecIDSrcs_.size(); ++i) {
-      //pat::Electron::IdPair ids = std::make_pair("pf_evspi",pfRef->mva_e_pi()));
-      ids[i].second = (*idhandles[i])[aPatElectron.core()];
+    // for additional electron pids
+    auto elecsRef = src->refAt(j);
+    for (size_t i = 0; i < elecIDSrcs_.size(); ++i){
+      ids[i].second = (*idhandles[i])[elecsRef];
       aElectron.setElectronID(ids[i]);
     }
-    
 
     out->push_back(aElectron);
     ++j;
