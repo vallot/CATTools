@@ -57,6 +57,7 @@ cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig)
   mcLabel_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcLabel"))),
   beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc"))),
   rhoLabel_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoLabel")))
+
 {
   produces<std::vector<cat::Electron> >();
 }
@@ -128,17 +129,91 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     double nhIso03 = aPatElectron.userIsolation("pat::User2Iso");
     double phIso03 = aPatElectron.userIsolation("pat::User3Iso");
     aElectron.setrelIso(0.3, chIso03, nhIso03, phIso03, elEffArea03, rhoIso, ecalpt);
-    
+
+    aElectron.setIsEB( aPatElectron.isEB());
+    aElectron.setIsEE( aPatElectron.isEE());
+    aElectron.setTrackerDrivenSeed( aPatElectron.trackerDrivenSeed());
+    aElectron.setEcalDrivenSeed( aPatElectron.ecalDrivenSeed());
+
+    aElectron.setTrkIsoDR03( aPatElectron.dr03TkSumPt());
+    aElectron.setEcalIsoDR03( aPatElectron.dr03EcalRecHitSumEt());
+    aElectron.setHcalIsoDR03( aPatElectron.dr03HcalTowerSumEt());
+    aElectron.setTrkIso( aPatElectron.trackIso());
+    aElectron.setEcalIso( aPatElectron.ecalIso());
+    aElectron.setHcalIso( aPatElectron.hcalIso());
+
+    aElectron.setDeltaPhiTrkSC( aPatElectron.deltaPhiSuperClusterTrackAtVtx());
+    aElectron.setDeltaEtaTrkSC( aPatElectron.deltaEtaSuperClusterTrackAtVtx());
+
+    aElectron.setSigmaIEtaIEta( aPatElectron.sigmaIetaIeta());
+    aElectron.setHoE( aPatElectron.hadronicOverEm());
+    aElectron.setCaloEnergy( aPatElectron.caloEnergy());
+    aElectron.setESuperClusterOverP( aPatElectron.eSuperClusterOverP());
+    aElectron.setTrackVx( aPatElectron.gsfTrack()->vx());
+    aElectron.setTrackVy( aPatElectron.gsfTrack()->vy());
+    aElectron.setTrackVz( aPatElectron.gsfTrack()->vz());
+
+    aElectron.setNumberOfBrems( aPatElectron.numberOfBrems());
+    aElectron.setFbrem( aPatElectron.fbrem());
+    aElectron.setPrimaryVertexDXY( fabs(aPatElectron.dB()));
+    aElectron.setPrimaryVertexDXYError( fabs(aPatElectron.edB()));
+    aElectron.setTrackPt( aPatElectron.gsfTrack()->pt());
+    aElectron.setTrackValidFractionOfHits( aPatElectron.gsfTrack()->validFraction());    
+ 
+    float minVtxDist3D = 9999.;
+    int vertexIndex_ = -1;
+    float vertexDistXY_ = -9999.;
+    float vertexDistZ_ = -9999.;
+
+    float vertex0DistXY_;
+    float vertex0DistZ_;
+
+    if(recVtxs.isValid()) {
+
+	int i_vertex = 0;
+	for( reco::VertexCollection::const_iterator v_it=recVtxs->begin() ; v_it!=recVtxs->end() ; ++v_it ) {
+
+	  float distXY = aPatElectron.gsfTrack()->dxy(v_it->position());
+	  float distZ = aPatElectron.gsfTrack()->dz(v_it->position());
+	  float dist3D = sqrt(pow(distXY,2) + pow(distZ,2));
+
+	  if ( i_vertex == 0 ) {
+	    vertex0DistXY_ = distXY;
+	    vertex0DistZ_  = distZ ;
+	    aElectron.setLeadVtxDistXY( vertex0DistXY_ );
+	    aElectron.setLeadVtxDistZ( vertex0DistZ_ );
+	  }
+
+	  if( dist3D<minVtxDist3D ) {
+	    minVtxDist3D = dist3D;
+	    vertexIndex_ = int(std::distance(recVtxs->begin(),v_it));
+	    vertexDistXY_ = distXY;
+	    vertexDistZ_ = distZ;
+	    aElectron.setVtxIndex( vertexIndex_ );
+	    aElectron.setVtxDistXY( vertexDistXY_ );
+	    aElectron.setVtxDistZ( vertexDistZ_ );
+
+	  }
+
+          i_vertex++;
+        }
+    } 
+
     aElectron.setscEta( aPatElectron.superCluster()->eta());
-    double dxy = fabs(aPatElectron.gsfTrack()->dxy(pv.position()));
+    aElectron.setscPhi( aPatElectron.superCluster()->phi());
+    aElectron.setscPt( aPatElectron.superCluster()->energy() / cosh(aPatElectron.superCluster()->eta()));
+    aElectron.setscRawEnergy( aPatElectron.superCluster()->rawEnergy());
+    double dxy = aPatElectron.gsfTrack()->dxy(pv.position());
     aElectron.setdxy( dxy ) ;
-    double dz = fabs(aPatElectron.gsfTrack()->dz(pv.position()));
+    double dz = aPatElectron.gsfTrack()->dz(pv.position());
     aElectron.setdz( dz ) ;
 
     aElectron.setrho( rhoIso) ;
     
     aElectron.setPassConversionVeto( aPatElectron.passConversionVeto() );
     aElectron.setIsGsfCtfScPixChargeConsistent( aPatElectron.isGsfCtfScPixChargeConsistent());
+    aElectron.setIsGsfScPixChargeConsistent( aPatElectron.isGsfScPixChargeConsistent());
+    aElectron.setIsGsfCtfChargeConsistent( aPatElectron.isGsfCtfChargeConsistent());
 
     aElectron.setElectronIDs(aPatElectron.electronIDs());
 
