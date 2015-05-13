@@ -66,4 +66,28 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
         setattr(process, "TransientTrackBuilderESProducer", TransientTrackBuilderESProducer)
         #process.makeCatCandidates += process.catSecVertexs
 
+    ## for egamma pid
+    from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
+    #from PhysicsTools.SelectorUtils.tools.vid_id_tools import switchOnVIDElectronIdProducer,setupAllVIDIdsInModule
+    if not useMiniAOD :
+        dataFormat = DataFormat.AOD
+    else :
+        dataFormat = DataFormat.MiniAOD
     
+    switchOnVIDElectronIdProducer(process, dataFormat)
+    
+    # define which IDs we want to produce
+    my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_PHYS14_PU20bx25_V2_cff',
+                    'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV51_cff']
+    
+    #add them to the VID producer
+    for idmod in my_id_modules:
+        setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
+    
+    process.catElectrons.electronIDSources = cms.PSet(
+    eleVetoIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-veto"),
+    eleLooseIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-loose"),
+    eleMediumIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-medium"),
+    eleTightIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-tight"),
+    eleHEEPIdMap = cms.InputTag("egmGsfElectronIDs:heepElectronID-HEEPV51"),
+    )

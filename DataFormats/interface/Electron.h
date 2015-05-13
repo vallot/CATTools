@@ -22,7 +22,6 @@ namespace cat {
     Electron(const reco::LeafCandidate & aElectron); 
     virtual ~Electron();
   
-    float qx3() const { return qx3_; }
     float relIso(float dR=0.3 ) const {
       if( dR < 0.35) return relIso03_;
       else return relIso04_;
@@ -180,6 +179,7 @@ namespace cat {
     float electronID(const std::string& name) const;
     float electronID(const char* name) const { return electronID( std::string(name) );}
     void setElectronIDs(const std::vector<pat::Electron::IdPair> & ids) { electronIDs_ = ids; }
+    void setElectronID(pat::Electron::IdPair ids) { electronIDs_.push_back(ids); }
 
     void setShiftedEnDown(float f) { shiftedEnDown_ = f;}
     void setShiftedEnUp(float f) { shiftedEnUp_ = f;}

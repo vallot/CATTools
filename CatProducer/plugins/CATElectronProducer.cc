@@ -14,6 +14,7 @@
 #include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
 #include "FWCore/Utilities/interface/isFinite.h"
+#include "FWCore/Utilities/interface/transform.h"
 
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "EgammaAnalysis/ElectronTools/interface/ElectronEffectiveArea.h"
@@ -44,7 +45,10 @@ namespace cat {
     edm::EDGetTokenT<double> rhoLabel_;
     bool runOnMC_;
  
-    std::vector<std::string> electronIDNames_;
+    typedef std::pair<std::string, edm::InputTag> NameTag;
+    std::vector<NameTag> elecIDSrcs_;
+    std::vector<edm::EDGetTokenT<edm::ValueMap<bool> > > elecIDTokens_;
+
   };
 
 } // namespace
@@ -57,9 +61,17 @@ cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig)
   mcLabel_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcLabel"))),
   beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc"))),
   rhoLabel_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoLabel")))
-
 {
   produces<std::vector<cat::Electron> >();
+  if (iConfig.existsAs<edm::InputTag>("electronIDSources")) {
+    edm::ParameterSet idps = iConfig.getParameter<edm::ParameterSet>("electronIDSources");
+    std::vector<std::string> names = idps.getParameterNamesForType<edm::InputTag>();
+    for (std::vector<std::string>::const_iterator it = names.begin(), ed = names.end(); it != ed; ++it) {
+      elecIDSrcs_.push_back(NameTag(*it, idps.getParameter<edm::InputTag>(*it)));
+    }
+    elecIDTokens_ = edm::vector_transform(elecIDSrcs_, [this](NameTag const & tag){return mayConsume<edm::ValueMap<bool> >(tag.second);});
+  }
+
 }
 
 void 
@@ -89,6 +101,15 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     iEvent.getByToken(shiftedEnDownSrc_, shiftedEnDownSrc);
     iEvent.getByToken(shiftedEnUpSrc_, shiftedEnUpSrc);
   }
+  
+  std::vector<edm::Handle<edm::ValueMap<bool> > > idhandles;
+  std::vector<pat::Electron::IdPair>               ids;
+  idhandles.resize(elecIDSrcs_.size());
+  ids.resize(elecIDSrcs_.size());
+  for (size_t i = 0; i < elecIDSrcs_.size(); ++i) {
+    iEvent.getByToken(elecIDTokens_[i], idhandles[i]);
+    ids[i].first = elecIDSrcs_[i].first;
+  }
 
   auto_ptr<vector<cat::Electron> >  out(new vector<cat::Electron>());
   int j = 0;
@@ -100,7 +121,6 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
       aElectron.setShiftedEnUp(shiftedEnUpSrc->at(j).pt() );
       aElectron.setGenParticleRef(aPatElectron.genParticleRef());
     }
-    ++j;
 
     bool mcMatched = mcMatch( aPatElectron.p4(), genParticles );
     aElectron.setMCMatched( mcMatched );
@@ -170,34 +190,34 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
 
     if(recVtxs.isValid()) {
 
-	int i_vertex = 0;
-	for( reco::VertexCollection::const_iterator v_it=recVtxs->begin() ; v_it!=recVtxs->end() ; ++v_it ) {
+      int i_vertex = 0;
+      for( reco::VertexCollection::const_iterator v_it=recVtxs->begin() ; v_it!=recVtxs->end() ; ++v_it ) {
 
-	  float distXY = aPatElectron.gsfTrack()->dxy(v_it->position());
-	  float distZ = aPatElectron.gsfTrack()->dz(v_it->position());
-	  float dist3D = sqrt(pow(distXY,2) + pow(distZ,2));
+	float distXY = aPatElectron.gsfTrack()->dxy(v_it->position());
+	float distZ = aPatElectron.gsfTrack()->dz(v_it->position());
+	float dist3D = sqrt(pow(distXY,2) + pow(distZ,2));
 
-	  if ( i_vertex == 0 ) {
-	    vertex0DistXY_ = distXY;
-	    vertex0DistZ_  = distZ ;
-	    aElectron.setLeadVtxDistXY( vertex0DistXY_ );
-	    aElectron.setLeadVtxDistZ( vertex0DistZ_ );
-	  }
+	if ( i_vertex == 0 ) {
+	  vertex0DistXY_ = distXY;
+	  vertex0DistZ_  = distZ ;
+	  aElectron.setLeadVtxDistXY( vertex0DistXY_ );
+	  aElectron.setLeadVtxDistZ( vertex0DistZ_ );
+	}
 
-	  if( dist3D<minVtxDist3D ) {
-	    minVtxDist3D = dist3D;
-	    vertexIndex_ = int(std::distance(recVtxs->begin(),v_it));
-	    vertexDistXY_ = distXY;
-	    vertexDistZ_ = distZ;
-	    aElectron.setVtxIndex( vertexIndex_ );
-	    aElectron.setVtxDistXY( vertexDistXY_ );
-	    aElectron.setVtxDistZ( vertexDistZ_ );
+	if( dist3D<minVtxDist3D ) {
+	  minVtxDist3D = dist3D;
+	  vertexIndex_ = int(std::distance(recVtxs->begin(),v_it));
+	  vertexDistXY_ = distXY;
+	  vertexDistZ_ = distZ;
+	  aElectron.setVtxIndex( vertexIndex_ );
+	  aElectron.setVtxDistXY( vertexDistXY_ );
+	  aElectron.setVtxDistZ( vertexDistZ_ );
 
-	  }
+	}
 
-          i_vertex++;
-        }
-    } 
+	i_vertex++;
+      }
+    }
 
     aElectron.setscEta( aPatElectron.superCluster()->eta());
     aElectron.setscPhi( aPatElectron.superCluster()->phi());
@@ -216,8 +236,17 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     aElectron.setIsGsfCtfChargeConsistent( aPatElectron.isGsfCtfChargeConsistent());
 
     aElectron.setElectronIDs(aPatElectron.electronIDs());
+    //    const auto el = src->ptrAt(j);
+    //    reco::GsfElectronRef myElectronRef = aPatElectron.core();
+    for (size_t i = 0; i < elecIDSrcs_.size(); ++i) {
+      //pat::Electron::IdPair ids = std::make_pair("pf_evspi",pfRef->mva_e_pi()));
+      ids[i].second = (*idhandles[i])[aPatElectron.core()];
+      aElectron.setElectronID(ids[i]);
+    }
+    
 
     out->push_back(aElectron);
+    ++j;
   }
   iEvent.put(out);
 }
