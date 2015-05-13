@@ -67,8 +67,8 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
         #process.makeCatCandidates += process.catSecVertexs
 
     ## for egamma pid
+    ## https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2#Recipe_for_regular_users_for_74X
     from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
-    #from PhysicsTools.SelectorUtils.tools.vid_id_tools import switchOnVIDElectronIdProducer,setupAllVIDIdsInModule
     if not useMiniAOD :
         dataFormat = DataFormat.AOD
     else :
@@ -76,11 +76,9 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     
     switchOnVIDElectronIdProducer(process, dataFormat)
     
-    # define which IDs we want to produce
     my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_PHYS14_PU20bx25_V2_cff',
                     'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV51_cff']
     
-    #add them to the VID producer
     for idmod in my_id_modules:
         setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
     
