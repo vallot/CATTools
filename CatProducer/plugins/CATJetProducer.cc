@@ -111,7 +111,7 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
     aJet.setPartonPdgId(partonPdgId);
 
     // setting JEC uncertainty
-    if (jecUnc){
+    if (payloadName_.size()){
       jecUnc->setJetEta(aJet.eta());
       jecUnc->setJetPt(aJet.pt()); // here you must use the CORRECTED jet pt
       double unc = jecUnc->getUncertainty(true);

@@ -1,6 +1,6 @@
 from CATTools.CatProducer.catTemplate_cfg import *
 ## some options
-doSecVertex=True # for jpsi candidates
+doSecVertex=False # for jpsi candidates
     
 ## setting up arguements
 from FWCore.ParameterSet.VarParsing import VarParsing
@@ -29,7 +29,9 @@ if runOnMC:
     process.out.outputCommands.extend(catEventContentMC)
     if not useMiniAOD:
         process.out.outputCommands.extend(catEventContentAODMC)
-
+    if doSecVertex:
+        process.out.outputCommands.extend(catEventContentSecVertexs)
+        
 process.maxEvents.input = options.maxEvents
 if options.inputFiles:
     process.source.fileNames = options.inputFiles

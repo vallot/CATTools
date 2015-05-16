@@ -5,6 +5,7 @@ def patTool(process, runOnMC=True, useMiniAOD = True):
     process.load("RecoVertex.AdaptiveVertexFinder.inclusiveVertexing_cff")
 
     if not useMiniAOD:
+        process.load("RecoEgamma.ElectronIdentification.ElectronIDValueMapProducer_cfi")
         process.load('Configuration.StandardSequences.PAT_cff')
         from PhysicsTools.PatAlgos.slimming.miniAOD_tools import miniAOD_customizeAllMC,miniAOD_customizeAllData
         if runOnMC:

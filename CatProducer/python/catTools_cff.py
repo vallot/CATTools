@@ -73,7 +73,7 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
         dataFormat = DataFormat.AOD
     else :
         dataFormat = DataFormat.MiniAOD
-    
+            
     switchOnVIDElectronIdProducer(process, dataFormat)
     
     my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_PHYS14_PU20bx25_V2_cff',
