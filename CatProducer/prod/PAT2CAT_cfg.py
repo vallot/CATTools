@@ -15,7 +15,7 @@ useMiniAOD = options.useMiniAOD
 globalTag = options.globalTag
 
 if globalTag:
-    process.GlobalTag.globaltag = cms.string(globalTag)
+    process.GlobalTag.globaltag = globalTag
 
 from CATTools.CatProducer.patTools_cff import *
 patTool(process, runOnMC, useMiniAOD)
