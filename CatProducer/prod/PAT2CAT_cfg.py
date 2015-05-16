@@ -29,8 +29,8 @@ if runOnMC:
     process.out.outputCommands.extend(catEventContentMC)
     if not useMiniAOD:
         process.out.outputCommands.extend(catEventContentAODMC)
-    if doSecVertex:
-        process.out.outputCommands.extend(catEventContentSecVertexs)
+if doSecVertex:
+    process.out.outputCommands.extend(catEventContentSecVertexs)
         
 process.maxEvents.input = options.maxEvents
 if options.inputFiles:

@@ -12,7 +12,6 @@ catEventContent.extend([
     'keep *_catPhotons_*_*',
     'keep *_catJets_*_*',
     'keep *_catMETs_*_*',
-    'keep *_catSecVertexs_*_*',
     'keep *_offlineSlimmedPrimaryVertices_*_*',
     'keep *_recoEventInfo_*_*',
     'drop *_shifted*_*_*',
