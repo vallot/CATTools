@@ -48,7 +48,6 @@ namespace cat {
     typedef std::pair<std::string, edm::InputTag> NameTag;
     std::vector<NameTag> elecIDSrcs_;
     std::vector<edm::EDGetTokenT<edm::ValueMap<bool> > > elecIDTokens_;
-
   };
 
 } // namespace
@@ -72,7 +71,6 @@ cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig)
     }
     elecIDTokens_ = edm::vector_transform(elecIDSrcs_, [this](NameTag const & tag){return mayConsume<edm::ValueMap<bool> >(tag.second);});
   }
-
 }
 
 void 
@@ -116,6 +114,7 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
   int j = 0;
   for (const pat::Electron &aPatElectron : *src){
     cat::Electron aElectron(aPatElectron);
+    auto elecsRef = src->refAt(j);
 
     if (runOnMC_){
       aElectron.setShiftedEnDown(shiftedEnDownSrc->at(j).pt() );
@@ -131,24 +130,24 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     aElectron.setPhotonIso04( aPatElectron.photonIso() );
     aElectron.setPUChargedHadronIso04( aPatElectron.puChargedHadronIso() );
 
-    aElectron.setChargedHadronIso03( aPatElectron.userIsolation("pat::User1Iso") );
-    aElectron.setNeutralHadronIso03( aPatElectron.userIsolation("pat::User2Iso") );
-    aElectron.setPhotonIso03( aPatElectron.userIsolation("pat::User3Iso") );
-    aElectron.setPUChargedHadronIso03( aPatElectron.userIsolation("pat::User4Iso") );
-
+    aElectron.setChargedHadronIso03( aPatElectron.pfIsolationVariables().sumChargedHadronPt );
+    aElectron.setNeutralHadronIso03( aPatElectron.pfIsolationVariables().sumNeutralHadronEt );
+    aElectron.setPhotonIso03( aPatElectron.pfIsolationVariables().sumPhotonEt );
+    aElectron.setPUChargedHadronIso03( aPatElectron.pfIsolationVariables().sumPUPt );
+ 
     float scEta = aPatElectron.superCluster()->eta();
     double ecalpt = aPatElectron.ecalDrivenMomentum().pt();
 
     double elEffArea04 = getEffArea( 0.4, scEta);
-    double chIso04 = aPatElectron.chargedHadronIso();
-    double nhIso04 = aPatElectron.neutralHadronIso();
-    double phIso04 = aPatElectron.photonIso();
+    double chIso04 = aElectron.chargedHadronIso(0.4);
+    double nhIso04 = aElectron.neutralHadronIso(0.4);
+    double phIso04 = aElectron.photonIso(0.4);
     aElectron.setrelIso(0.4, chIso04, nhIso04, phIso04, elEffArea04, rhoIso, ecalpt);
 
     double elEffArea03 = getEffArea( 0.3, scEta);
-    double chIso03 = aPatElectron.userIsolation("pat::User1Iso");
-    double nhIso03 = aPatElectron.userIsolation("pat::User2Iso");
-    double phIso03 = aPatElectron.userIsolation("pat::User3Iso");
+    double chIso03 = aElectron.chargedHadronIso(0.3);
+    double nhIso03 = aElectron.neutralHadronIso(0.3);
+    double phIso03 = aElectron.photonIso(0.3);
     aElectron.setrelIso(0.3, chIso03, nhIso03, phIso03, elEffArea03, rhoIso, ecalpt);
 
     aElectron.setIsEB( aPatElectron.isEB());
@@ -237,7 +236,6 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
 
     aElectron.setElectronIDs(aPatElectron.electronIDs());
     // for additional electron pids
-    auto elecsRef = src->refAt(j);
     for (size_t i = 0; i < elecIDSrcs_.size(); ++i){
       ids[i].second = (*idhandles[i])[elecsRef];
       aElectron.setElectronID(ids[i]);

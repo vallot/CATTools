@@ -90,7 +90,7 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     eleHEEPIdMap = cms.InputTag("egmGsfElectronIDs:heepElectronID-HEEPV51"),
     )
 
-    ## updating jets
     if useMiniAOD:
+        ## applying new jer on the fly
         process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
         process.catJets.src = cms.InputTag("patJetsUpdated")
