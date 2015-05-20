@@ -13,10 +13,5 @@ def patTool(process, runOnMC=True, useMiniAOD = True):
         else :
             miniAOD_customizeAllData(process)
 
-        #for muon isolation
-        #process.patMuons.isolationValues.user = cms.VInputTag("muPFIsoValueCharged03","muPFIsoValueNeutral03","muPFIsoValueGamma03","muPFIsoValuePU03","muPFIsoValueChargedAll03")
-        #for electron isolation
-        process.patElectrons.isolationValues.user = cms.VInputTag("elPFIsoValueCharged03PFId","elPFIsoValueNeutral03PFId","elPFIsoValueGamma03PFId","elPFIsoValuePU03PFId","elPFIsoValueChargedAll03PFId")
-        process.patElectrons.isolationValuesNoPFId.user = cms.VInputTag("elPFIsoValueCharged03NoPFId","elPFIsoValueNeutral03NoPFId","elPFIsoValueGamma03NoPFId","elPFIsoValuePU03NoPFId","elPFIsoValueChargedAll03NoPFId")
-
-        
+        ## tem - due to ak4GenJetsNoNu not in AOD for now
+        process.load('CommonTools.ParticleFlow.genForPF2PAT_cff')

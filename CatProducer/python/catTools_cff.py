@@ -66,7 +66,7 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
         setattr(process, "TransientTrackBuilderESProducer", TransientTrackBuilderESProducer)
         #process.makeCatCandidates += process.catSecVertexs
 
-    ## for egamma pid
+    ## for egamma pid temp 
     ## https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2#Recipe_for_regular_users_for_74X
     from PhysicsTools.SelectorUtils.tools.vid_id_tools import DataFormat,switchOnVIDElectronIdProducer,setupAllVIDIdsInModule,setupVIDElectronSelection
     if not useMiniAOD :
@@ -82,15 +82,15 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     for idmod in my_id_modules:
         setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
     
-    process.catElectrons.electronIDSources = cms.PSet(
-    eleVetoIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-veto"),
-    eleLooseIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-loose"),
-    eleMediumIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-medium"),
-    eleTightIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-tight"),
-    eleHEEPIdMap = cms.InputTag("egmGsfElectronIDs:heepElectronID-HEEPV51"),
-    )
-
     if useMiniAOD:
         ## applying new jer on the fly
         process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
         process.catJets.src = cms.InputTag("patJetsUpdated")
+
+        process.catElectrons.electronIDSources = cms.PSet(
+            eleVetoIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-veto"),
+            eleLooseIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-loose"),
+            eleMediumIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-medium"),
+            eleTightIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-tight"),
+            eleHEEPIdMap = cms.InputTag("egmGsfElectronIDs:heepElectronID-HEEPV51"),
+        )
