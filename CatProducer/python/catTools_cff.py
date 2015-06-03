@@ -83,9 +83,48 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
         setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
     
     if useMiniAOD:
-        ## applying new jer on the fly
-        process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
-        process.catJets.src = cms.InputTag("patJetsUpdated")
+        ## applying new jec on the fly
+        from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
+        process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
+            connect = cms.string('sqlite_file:../data/PHYS14_V4_MC.db'),
+            toGet = cms.VPSet(
+                cms.PSet(record = cms.string("JetCorrectionsRecord"),
+                tag = cms.string("JetCorrectorParametersCollection_PHYS14_V4_MC_AK4PF"),
+                label= cms.untracked.string("AK4PF"))
+            ))
+        process.es_prefer_jec = cms.ESPrefer("PoolDBESSource","jec")
+
+        #process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
+        #process.catJets.src = cms.InputTag("patJetsUpdated")
+
+        from RecoJets.JetProducers.ak4PFJets_cfi import ak4PFJets
+        from RecoJets.JetProducers.ak4GenJets_cfi import ak4GenJets
+
+        process.chs = cms.EDFilter("CandPtrSelector", src = cms.InputTag("packedPFCandidates"), cut = cms.string("fromPV"))
+    
+        process.ak4PFJets = ak4PFJets.clone(src = 'packedPFCandidates', doAreaFastjet = True)
+        process.ak4PFJetsCHS = ak4PFJets.clone(src = 'chs', doAreaFastjet = True)
+        process.ak4GenJets = ak4GenJets.clone(src = 'packedGenParticles')
+
+        process.load("PhysicsTools.PatAlgos.producersLayer1.patCandidates_cff")
+        from PhysicsTools.PatAlgos.tools.jetTools import addJetCollection
+        addJetCollection(
+            process,
+            postfix   = "",
+            labelName = 'AK4PFCHS',
+            jetSource = cms.InputTag('ak4PFJetsCHS'),
+            pvSource = cms.InputTag('offlineSlimmedPrimaryVertices'),
+            pfCandidates = cms.InputTag('packedPFCandidates'),
+            svSource = cms.InputTag('slimmedSecondaryVertices'),
+            jetCorrections = ('AK4PFchs', cms.vstring(['L1FastJet', 'L2Relative', 'L3Absolute']), 'Type-2'),
+            btagDiscriminators = [ 'pfCombinedSecondaryVertexBJetTags', 'pfCombinedInclusiveSecondaryVertexV2BJetTags' ],
+            genJetCollection=cms.InputTag('ak4GenJets'),
+            genParticles=cms.InputTag('prunedGenParticles')
+        )
+
+
+        process.catJets.btagNames = cms.vstring()
+        process.catJets.src = cms.InputTag("patJetsAK4PFCHS")
 
         process.catElectrons.electronIDSources = cms.PSet(
             eleVetoIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-veto"),

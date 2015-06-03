@@ -92,6 +92,10 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
 
     if (btagNames_.size() == 0){
       aJet.setBDiscriminators(aPatJet.getPairDiscri());
+      // const std::vector<std::pair<std::string, float> > bpair = aPatJet.getPairDiscri();
+      // for (unsigned int bb =0; bb < bpair.size(); bb++){
+      // 	cout << bpair[bb].first <<endl;
+      // }
     }
     else {
       for(unsigned int i = 0; i < btagNames_.size(); i++){
