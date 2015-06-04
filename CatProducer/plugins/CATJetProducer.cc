@@ -102,9 +102,7 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
 	aJet.addBDiscriminatorPair(std::make_pair(btagNames_.at(i), aPatJet.bDiscriminator(btagNames_.at(i)) ));
       }
     }
-    cout << "jet pt " << aJet.pt()
-	 <<" eta " << aJet.eta()
-	 <<endl;
+    //cout << "jet pt " << aJet.pt() <<" eta " << aJet.eta() <<endl;
     
     //secondary vertex b-tagging information
     if( aPatJet.hasUserFloat("vtxMass") ) aJet.setVtxMass( aPatJet.userFloat("vtxMass") );
