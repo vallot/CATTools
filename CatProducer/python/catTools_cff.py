@@ -84,18 +84,18 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     
     if useMiniAOD:
         ## applying new jec on the fly
-        ## from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
-        ## process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
-        ##     connect = cms.string('sqlite_file:../data/PHYS14_V4_MC.db'),
-        ##     toGet = cms.VPSet(
-        ##         cms.PSet(record = cms.string("JetCorrectionsRecord"),
-        ##         tag = cms.string("JetCorrectorParametersCollection_PHYS14_V4_MC_AK4PF"),
-        ##         label= cms.untracked.string("AK4PF"))
-        ##     ))
-        ## process.es_prefer_jec = cms.ESPrefer("PoolDBESSource","jec")
+        from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
+        process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
+            connect = cms.string('sqlite_file:../data/PHYS14_V4_MC.db'),
+            toGet = cms.VPSet(
+                cms.PSet(record = cms.string("JetCorrectionsRecord"),
+                tag = cms.string("JetCorrectorParametersCollection_PHYS14_V4_MC_AK4PF"),
+                label= cms.untracked.string("AK4PF"))
+            ))
+        process.es_prefer_jec = cms.ESPrefer("PoolDBESSource","jec")
 
-        ## process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
-        ## process.catJets.src = cms.InputTag("patJetsUpdated")
+        process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
+        process.catJets.src = cms.InputTag("patJetsUpdated")
 
         ## from RecoJets.JetProducers.ak4PFJets_cfi import ak4PFJets
         ## from RecoJets.JetProducers.ak4GenJets_cfi import ak4GenJets
