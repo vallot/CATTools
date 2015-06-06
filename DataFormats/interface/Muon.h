@@ -189,7 +189,7 @@ namespace cat {
     /// SKTree variables ///
     
     float EcalVetoIso_, HcalVetoIso_;
-    float TrkVx, TrkVy_, TrkVz_;
+    float TrkVx_, TrkVy_, TrkVz_;
     float MatchedGenParticlePt_, MatchedGenParticleEta_, MatchedGenParticlePhi_;
     int IsTracker_;
     float CocktailPt_, CocktailEta_, CocktailPhi_, CocktailGlobalChi2_, CocktailTrkVtxDXY_, CocktailTrkVtxDZ_;
