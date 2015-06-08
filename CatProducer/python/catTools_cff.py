@@ -89,8 +89,8 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
             connect = cms.string('sqlite_file:../data/PHYS14_V4_MC.db'),
             toGet = cms.VPSet(
                 cms.PSet(record = cms.string("JetCorrectionsRecord"),
-                tag = cms.string("JetCorrectorParametersCollection_PHYS14_V4_MC_AK4PF"),
-                label= cms.untracked.string("AK4PF"))
+                tag = cms.string("JetCorrectorParametersCollection_PHYS14_V4_MC_AK4PFchs"),
+                label= cms.untracked.string("AK4PFchs"))
             ))
         process.es_prefer_jec = cms.ESPrefer("PoolDBESSource","jec")
 
