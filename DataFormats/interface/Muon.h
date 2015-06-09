@@ -124,7 +124,8 @@ namespace cat {
     float MuonSpecPhi() const { return MuonSpecPhi_; }
     int MuonSpecCharge() const { return MuonSpecCharge_; }
     float MuonSpecE() const { return MuonSpecE_; }
-    
+		float TrackerCharge() const { return TrackerCharge_; }   
+ 
     void setEcalVetoIso(float f) { EcalVetoIso_ = f; }
     void setHcalVetoIso(float f) { HcalVetoIso_ = f; }
     void setTrkVx(float f) { TrkVx_ = f; }
@@ -146,7 +147,7 @@ namespace cat {
     void setMuonSpecPhi(float f) {  MuonSpecPhi_ = f; }
     void setMuonSpecCharge(int i) {  MuonSpecCharge_ = i; }
     void setMuonSpecE(float f) {  MuonSpecE_ = f; }
-
+		void setTrackerCharge(float f) { TrackerCharge_ = f; }
     
   private:
 
@@ -196,6 +197,7 @@ namespace cat {
     int CocktailCharge_;
     float MuonSpecPt_, MuonSpecEta_, MuonSpecPhi_, MuonSpecE_;
     int MuonSpecCharge_;
+		float TrackerCharge_;
     
   };
 }
