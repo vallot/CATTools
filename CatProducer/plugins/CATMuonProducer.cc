@@ -155,13 +155,13 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
       aMuon.setTrkVx( aPatMuon.track()->vx() );
       aMuon.setTrkVy( aPatMuon.track()->vy() );
       aMuon.setTrkVz( aPatMuon.track()->vz() );
-			aMuon.setTrackerCharge( aPatMuon.track()->charge() );
+      aMuon.setTrackerCharge( aPatMuon.track()->charge() );
     }
     else{
       aMuon.setTrkVx( -999. );
       aMuon.setTrkVy( -999. );
       aMuon.setTrkVz( -999. );
-			aMuon.setTrackerCharge( -999. );
+      aMuon.setTrackerCharge( -999. );
     }
 		float genparPt = -999.;
 		float genparEta= -999.;
