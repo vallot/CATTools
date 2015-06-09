@@ -180,6 +180,7 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     aMuon.setMatchedGenParticleEta( genparEta );
     aMuon.setMatchedGenParticlePhi( genparPhi );
     aMuon.setIsTracker( aPatMuon.isTrackerMuon() );
+		/*
     /// Cocktail Muon ///
     double bct_vtxDistXY_   = -9999., bct_vtxDistZ_    = -9999.;
     if( aPatMuon.isGlobalMuon() ){
@@ -214,6 +215,7 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
       aMuon.setCocktailTrkVtxDXY( -999. );
       aMuon.setCocktailTrkVtxDZ( -999. );
     }
+		*/
     /// MuonSpec Muon ///
     if( aPatMuon.isStandAloneMuon() ){
       aMuon.setMuonSpecPt( aPatMuon.standAloneMuon()->pt() );
