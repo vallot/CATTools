@@ -163,9 +163,9 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
       aMuon.setTrkVz( -999. );
       aMuon.setTrackerCharge( -999. );
     }
-		float genparPt = -999.;
-		float genparEta= -999.;
-		float genparPhi= -999.;
+    float genparPt = -999.;
+    float genparEta= -999.;
+    float genparPhi= -999.;
     if(runOnMC_){
       //aPatMuon.genParticleRefs().size() should be 0 or 1
       for(uint igen = 0 ; igen < aPatMuon.genParticleRefs().size() ; ++igen ){
@@ -176,9 +176,9 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
         }
       }
     }
-		aMuon.setMatchedGenParticlePt( genparPt );
-		aMuon.setMatchedGenParticleEta( genparEta );
-		aMuon.setMatchedGenParticlePhi( genparPhi );
+    aMuon.setMatchedGenParticlePt( genparPt );
+    aMuon.setMatchedGenParticleEta( genparEta );
+    aMuon.setMatchedGenParticlePhi( genparPhi );
     aMuon.setIsTracker( aPatMuon.isTrackerMuon() );
     /// Cocktail Muon ///
     double bct_vtxDistXY_   = -9999., bct_vtxDistZ_    = -9999.;
