@@ -15,7 +15,7 @@
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "FWCore/Utilities/interface/isFinite.h"
-#include "DataFormats/MuonReco/interface/MuonCocktails.h" // for cocktail muon
+//#include "DataFormats/MuonReco/interface/MuonCocktails.h" // for cocktail muon
 
 using namespace edm;
 using namespace std;
@@ -180,7 +180,7 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     aMuon.setMatchedGenParticleEta( genparEta );
     aMuon.setMatchedGenParticlePhi( genparPhi );
     aMuon.setIsTracker( aPatMuon.isTrackerMuon() );
-		/*
+    /*
     /// Cocktail Muon ///
     double bct_vtxDistXY_   = -9999., bct_vtxDistZ_    = -9999.;
     if( aPatMuon.isGlobalMuon() ){
