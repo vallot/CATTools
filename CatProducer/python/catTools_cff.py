@@ -86,7 +86,7 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
         ## applying new jec on the fly
         from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
         process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
-            connect = cms.string('sqlite_file:../data/PHYS14_V4_MC.db'),
+            connect = cms.string('sqlite_fip:CATTools/CatProducer/data/PHYS14_V4_MC.db'),
             toGet = cms.VPSet(
                 cms.PSet(record = cms.string("JetCorrectionsRecord"),
                 tag = cms.string("JetCorrectorParametersCollection_PHYS14_V4_MC_AK4PFchs"),
