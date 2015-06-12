@@ -54,6 +54,7 @@ namespace cat {
     float deltaEtaTrkSC() const { return deltaEtaTrkSC_; }
 
     float sigmaIEtaIEta() const { return sigmaIEtaIEta_; }
+
     float hoe() const { return hoe_; }
     float caloEnergy() const { return caloEnergy_; }
     float eSuperClusterOverP() const { return eSuperClusterOverP_; }
@@ -63,6 +64,7 @@ namespace cat {
 
     int numberOfBrems() const { return numberOfBrems_; }
     float fbrem() const { return fbrem_; }
+
     float primaryVertexDXY() const { return primaryVertexDXY_; }
     float primaryVertexDXYError() const { return primaryVertexDXYError_; }
     float trackPt() const { return trackPt_; }
@@ -73,7 +75,7 @@ namespace cat {
     float vtxDistZ() const { return vtxDistZ_; } 
     float leadVtxDistXY() const { return leadVtxDistXY_; }
     float leadVtxDistZ() const { return leadVtxDistZ_; }
-
+    
     bool isPF() const { return isPF_; }
 
     float chargedHadronIso(float dR=0.3) const {
@@ -150,6 +152,7 @@ namespace cat {
 
     void setNumberOfBrems(int i) { numberOfBrems_ = i; }
     void setFbrem(float i) { fbrem_ = i; }
+
     void setPrimaryVertexDXY(float i) { primaryVertexDXY_ = i; }
     void setPrimaryVertexDXYError(float i) { primaryVertexDXYError_ = i; }
     void setTrackPt(float i) { trackPt_ = i; }

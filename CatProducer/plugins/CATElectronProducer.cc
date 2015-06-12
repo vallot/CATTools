@@ -16,6 +16,8 @@
 #include "FWCore/Utilities/interface/isFinite.h"
 #include "FWCore/Utilities/interface/transform.h"
 
+#include "RecoEgamma/EgammaTools/interface/ConversionTools.h" //
+
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "EgammaAnalysis/ElectronTools/interface/ElectronEffectiveArea.h"
 
@@ -166,6 +168,7 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     aElectron.setDeltaEtaTrkSC( aPatElectron.deltaEtaSuperClusterTrackAtVtx());
 
     aElectron.setSigmaIEtaIEta( aPatElectron.sigmaIetaIeta());
+
     aElectron.setHoE( aPatElectron.hadronicOverEm());
     aElectron.setCaloEnergy( aPatElectron.caloEnergy());
     aElectron.setESuperClusterOverP( aPatElectron.eSuperClusterOverP());
@@ -184,6 +187,11 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     int vertexIndex_ = -1;
     float vertexDistXY_ = -9999.;
     float vertexDistZ_ = -9999.;
+
+    aElectron.setPrimaryVertexDXY( fabs(aPatElectron.dB()));
+    aElectron.setPrimaryVertexDXYError( fabs(aPatElectron.edB()));
+    aElectron.setTrackPt( aPatElectron.gsfTrack()->pt());
+    aElectron.setTrackValidFractionOfHits( aPatElectron.gsfTrack()->validFraction());
 
     float vertex0DistXY_;
     float vertex0DistZ_;
@@ -222,6 +230,7 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     aElectron.setscPhi( aPatElectron.superCluster()->phi());
     aElectron.setscPt( aPatElectron.superCluster()->energy() / cosh(aPatElectron.superCluster()->eta()));
     aElectron.setscRawEnergy( aPatElectron.superCluster()->rawEnergy());
+
     double dxy = aPatElectron.gsfTrack()->dxy(pv.position());
     aElectron.setdxy( dxy ) ;
     double dz = aPatElectron.gsfTrack()->dz(pv.position());
@@ -273,7 +282,7 @@ bool cat::CATElectronProducer::mcMatch( const reco::Candidate::LorentzVector& le
     const reco::Candidate* mother = aGenPart.mother();
     while( mother != 0 ){
       if( abs(mother->pdgId()) == 23 || abs(mother->pdgId()) == 24 ) {
-        out = true;
+	out = true;
       }
       mother = mother->mother();
     }
