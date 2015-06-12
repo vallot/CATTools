@@ -21,16 +21,53 @@ namespace cat {
     Electron();
     Electron(const reco::LeafCandidate & aElectron); 
     virtual ~Electron();
-
+  
     float relIso(float dR=0.3 ) const {
       if( dR < 0.35) return relIso03_;
       else return relIso04_;
     }
     float scEta() const { return scEta_; }
+    float scPhi() const { return scPhi_; }
+    float scPt() const { return scPt_; }
+    float scRawEnergy() const { return scRawEnergy_; }
     float dxy() const { return dxy_; }
     float dz() const { return dz_; }
+    float rho() const { return rho_; }
     bool passConversionVeto() const { return passConversionVeto_; }
     bool isGsfCtfScPixChargeConsistent() const { return isGsfCtfScPixChargeConsistent_; }
+
+    bool isEB() const { return isEB_; }
+    bool isEE() const { return isEE_; }
+    bool trackerDrivenSeed() const { return trackerDrivenSeed_; }
+    bool ecalDrivenSeed() const { return ecalDrivenSeed_; }
+
+    float trkIsoDR03() const { return trkIsoDR03_; }
+    float ecalIsoDR03() const { return ecalIsoDR03_; }
+    float hcalIsoDR03() const { return hcalIsoDR03_; }
+    float trkIso() const { return trkIso_; }
+    float ecalIso() const { return ecalIso_; }
+    float hcalIso() const { return hcalIso_; }
+
+    float deltaPhiTrkSC() const { return deltaPhiTrkSC_; }
+    float deltaEtaTrkSC() const { return deltaEtaTrkSC_; }
+
+    float hoe() const { return hoe_; }
+    float caloEnergy() const { return caloEnergy_; }
+    float eSuperClusterOverP() const { return eSuperClusterOverP_; }
+    float trackVx() const { return trackVx_; }
+    float trackVy() const { return trackVy_; }
+    float trackVz() const { return trackVz_; }
+
+    int numberOfBrems() const { return numberOfBrems_; }
+    float primaryVertexDXY() const { return primaryVertexDXY_; }
+    float primaryVertexDXYError() const { return primaryVertexDXYError_; }
+    float trackPt() const { return trackPt_; }
+    float trackValidFractionOfHits() const { return trackValidFractionOfHits_; }
+
+    int vtxIndex() const { return vtxIndex_; }
+    float leadVtxDistXY() const { return leadVtxDistXY_; }
+    float leadVtxDistZ() const { return leadVtxDistZ_; }
+    
     bool isPF() const { return isPF_; }
 
     float chargedHadronIso(float dR=0.3) const {
@@ -63,17 +100,55 @@ namespace cat {
 
     bool mcMatched() const { return mcMatched_; }
 
+///////////////////////////////////
+
     void setrelIso(double dR, double chIso, double nhIso, double phIso, double AEff, double rhoIso, double ecalpt)
     {
       float relIso = ( chIso + std::max(0.0, nhIso + phIso - rhoIso*AEff) )/ ecalpt;
       if( dR < 0.35) relIso03_ = relIso; 
       else  relIso04_ = relIso; 
     }
-    void setscEta(float i) { scEta_ = i; }
+    void setscEta(float i) { scEta_ = i; } 
+    void setscPhi(float i) { scPhi_ = i; }
+    void setscPt(float i) { scPt_ = i; }
+    void setscRawEnergy(float i) { scRawEnergy_ = i; }
     void setdxy(float i) {  dxy_ = i; }
     void setdz(float i) {  dz_ = i; }
     void setPassConversionVeto(bool i) {  passConversionVeto_ = i; }
     void setIsGsfCtfScPixChargeConsistent(bool i) {  isGsfCtfScPixChargeConsistent_ = i; }
+
+    void setIsEB(bool i) { isEB_ = i; }
+    void setIsEE(bool i) { isEE_ = i; }
+    void setTrackerDrivenSeed(bool i) { trackerDrivenSeed_ = i; }
+    void setEcalDrivenSeed(bool i) { ecalDrivenSeed_ = i; }
+
+    void setTrkIsoDR03(float i) { trkIsoDR03_ = i; }
+    void setEcalIsoDR03(float i) { ecalIsoDR03_ = i; }
+    void setHcalIsoDR03(float i) { hcalIsoDR03_ = i; }
+    void setTrkIso(float i) { trkIso_ = i; }
+    void setEcalIso(float i) { ecalIso_ = i; }
+    void setHcalIso(float i) { hcalIso_ = i; }
+
+    void setDeltaPhiTrkSC(float i) { deltaPhiTrkSC_ = i; }
+    void setDeltaEtaTrkSC(float i) { deltaEtaTrkSC_ = i; }
+
+    void setHoE(float i) { hoe_ = i; }
+    void setCaloEnergy(float i) { caloEnergy_ = i; }
+    void setESuperClusterOverP(float i) { eSuperClusterOverP_ = i; }
+    void setTrackVx(float i) { trackVx_ = i; }
+    void setTrackVy(float i) { trackVy_ = i; }
+    void setTrackVz(float i) { trackVz_ = i; }
+
+    void setNumberOfBrems(int i) { numberOfBrems_ = i; }
+    void setPrimaryVertexDXY(float i) { primaryVertexDXY_ = i; }
+    void setPrimaryVertexDXYError(float i) { primaryVertexDXYError_ = i; }
+    void setTrackPt(float i) { trackPt_ = i; }
+    void setTrackValidFractionOfHits(float i) { trackValidFractionOfHits_ = i; }
+
+    void setVtxIndex(int i) { vtxIndex_ = i; }
+    void setLeadVtxDistXY(float i) { leadVtxDistXY_ = i; }
+    void setLeadVtxDistZ(float i) { leadVtxDistZ_ = i; }
+
     void setisPF(bool i) {  isPF_ = i; }
     void setrho(float i) { rho_ = i; }
 
@@ -95,13 +170,18 @@ namespace cat {
 
     void setShiftedEnDown(float f) { shiftedEnDown_ = f;}
     void setShiftedEnUp(float f) { shiftedEnUp_ = f;}
-    float shiftedEnDown() {return  shiftedEnDown_;}
-    float shiftedEnUp()   {return  shiftedEnUp_;}
+    float shiftedEnDown() const {return  shiftedEnDown_;}
+    float shiftedEnUp() const {return  shiftedEnUp_;}
 
   private:
 
     std::vector<pat::Electron::IdPair> electronIDs_;
     //std::vector<std::string> electronIDNames_;
+
+    bool isEB_;
+    bool isEE_;
+    bool trackerDrivenSeed_;
+    bool ecalDrivenSeed_;
 
     float relIso03_;
     float relIso04_;
@@ -117,10 +197,40 @@ namespace cat {
     float photonIso04_;
 
     float scEta_;
+    float scPhi_;
+    float scPt_;
+    float scRawEnergy_;
     float dxy_;
     float dz_;
     float rho_;
     
+    float trkIsoDR03_;
+    float ecalIsoDR03_;
+    float hcalIsoDR03_;
+    float trkIso_;
+    float ecalIso_;
+    float hcalIso_;
+
+    float deltaPhiTrkSC_;
+    float deltaEtaTrkSC_;
+
+    float hoe_;
+    float caloEnergy_;
+    float eSuperClusterOverP_;
+    float trackVx_;
+    float trackVy_;
+    float trackVz_;
+
+    int numberOfBrems_;
+    float primaryVertexDXY_;
+    float primaryVertexDXYError_;
+    float trackPt_;
+    float trackValidFractionOfHits_;
+
+    int vtxIndex_;
+    float leadVtxDistXY_;
+    float leadVtxDistZ_;
+
     bool mcMatched_;
     bool passConversionVeto_;
     bool isGsfCtfScPixChargeConsistent_;
