@@ -87,7 +87,6 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
   iEvent.getByToken(src_, src);
 
   Handle<reco::GenParticleCollection> genParticles;
-  iEvent.getByToken(mcLabel_,genParticles);
 
   Handle<reco::VertexCollection> recVtxs;
   iEvent.getByToken(vertexLabel_, recVtxs);
@@ -100,6 +99,7 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
   edm::Handle<edm::View<pat::Electron> > shiftedEnDownSrc;
   edm::Handle<edm::View<pat::Electron> > shiftedEnUpSrc;
   if (runOnMC_){
+    iEvent.getByToken(mcLabel_,genParticles);
     iEvent.getByToken(shiftedEnDownSrc_, shiftedEnDownSrc);
     iEvent.getByToken(shiftedEnUpSrc_, shiftedEnUpSrc);
   }
@@ -123,10 +123,9 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
       aElectron.setShiftedEnDown(shiftedEnDownSrc->at(j).pt() );
       aElectron.setShiftedEnUp(shiftedEnUpSrc->at(j).pt() );
       aElectron.setGenParticleRef(aPatElectron.genParticleRef());
+      bool mcMatched = mcMatch( aPatElectron.p4(), genParticles );
+      aElectron.setMCMatched( mcMatched );
     }
-
-    bool mcMatched = mcMatch( aPatElectron.p4(), genParticles );
-    aElectron.setMCMatched( mcMatched );
 
     aElectron.setChargedHadronIso04( aPatElectron.chargedHadronIso() );
     aElectron.setNeutralHadronIso04( aPatElectron.neutralHadronIso() );
