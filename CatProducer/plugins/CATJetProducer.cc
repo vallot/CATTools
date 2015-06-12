@@ -32,6 +32,7 @@ namespace cat {
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
     bool checkPFJetId(const pat::Jet & jet);
+    bool checkPFJetIdTight(const pat::Jet & jet);
     void getJER(const double jetEta, double& cJER, double& cJERUp, double& cJERDn) const;
       
     std::vector<const reco::Candidate *> getAncestors(const reco::Candidate &c);
@@ -102,9 +103,49 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
   for (const pat::Jet &aPatJet : *src) {
 
     bool looseId = checkPFJetId( aPatJet );
+    bool tightId = checkPFJetIdTight( aPatJet );
     
     cat::Jet aJet(aPatJet);
+
+    aJet.setChargedMultiplicity( aPatJet.chargedMultiplicity() );
+    aJet.setNeutralMultiplicity( aPatJet.neutralMultiplicity() );
+    aJet.setChargedHadronMultiplicity( aPatJet.chargedHadronMultiplicity() );
+    aJet.setNeutralHadronMultiplicity( aPatJet.neutralHadronMultiplicity() );
+    aJet.setMuonMultiplicity( aPatJet.muonMultiplicity() );
+    aJet.setElectronMultiplicity( aPatJet.electronMultiplicity() );
+    aJet.setPhotonMultiplicity( aPatJet.photonMultiplicity() );
+    aJet.setHFEMMultiplicity( aPatJet.HFEMMultiplicity() );
+    aJet.setHFHadronMultiplicity( aPatJet.HFHadronMultiplicity() );
+   
+    aJet.setNeutralEmEnergyFraction( aPatJet.neutralEmEnergyFraction() );
+    aJet.setNeutralHadronEnergyFraction( aPatJet.neutralHadronEnergyFraction() );
+    aJet.setChargedEmEnergyFraction( aPatJet.chargedEmEnergyFraction() );
+    aJet.setChargedHadronEnergyFraction( aPatJet.chargedHadronEnergyFraction() );
+    aJet.setHFEMEnergyFraction( aPatJet.HFEMEnergyFraction() );
+    aJet.setHFHadronEnergyFraction( aPatJet.HFHadronEnergyFraction() );
+    aJet.setChargedMuEnergyFraction( aPatJet.chargedMuEnergyFraction() );
+    aJet.setMuonEnergyFraction( aPatJet.muonEnergyFraction() );
+    aJet.setPhotonEnergyFraction( aPatJet.photonEnergyFraction() );
+    aJet.setElectronEnergyFraction( aPatJet.electronEnergy() / aPatJet.correctedJet("Uncorrected").energy() );
+
+    aJet.setCombinedSecondaryVertexBTag( aPatJet.bDiscriminator("combinedSecondaryVertexBJetTags") ); 
+    aJet.setTrackCountingHighPurBTag( aPatJet.bDiscriminator("trackCountingHighPurBJetTags") );
+    aJet.setJetProbabilityBTag( aPatJet.bDiscriminator("jetProbabilityBJetTags") );
+
+    aJet.setL1FastJetJEC( aPatJet.correctedJet("L1FastJet").pt() / aPatJet.correctedJet("Uncorrected").pt() );
+    aJet.setL2L3ResJEC( aPatJet.pt()/aPatJet.correctedJet("L3Absolute").pt() );
+    aJet.setL2RelJEC( aPatJet.correctedJet("L2Relative").pt() / aPatJet.correctedJet("L1FastJet").pt() );
+    aJet.setL3AbsJEC( aPatJet.correctedJet("L3Absolute").pt() / aPatJet.correctedJet("L2Relative").pt() );
+//    aJet.setL5BottomJEC( aPatJet.correctedJet("L5Flavor_bT").pt() / aPatJet.pt() );
+//    aJet.setL5CharmJEC( aPatJet.correctedJet("L5Flavor_cT").pt() / aPatJet.pt() );
+//    aJet.setL5UDSJEC( aPatJet.correctedJet("L5Flavor_qT").pt() / aPatJet.pt() );
+//    aJet.setL5GluonJEC( aPatJet.correctedJet("L5Flavor_gJ").pt() / aPatJet.pt() );
+//    Also will be added for L7Parton
+    aJet.setEnergyRaw( aPatJet.correctedJet("Uncorrected").energy() );
+    aJet.setPtRaw( aPatJet.correctedJet("Uncorrected").pt() );
+
     aJet.setLooseId( looseId );
+    aJet.setTightId( tightId );
 
     if( aPatJet.hasUserFloat("pileupJetId:fullDiscriminant") )
       aJet.setPileupJetId( aPatJet.userFloat("pileupJetId:fullDiscriminant") );
@@ -190,6 +231,19 @@ bool cat::CATJetProducer::checkPFJetId(const pat::Jet & jet){
        &&(jet.chargedEmEnergyFraction() < 0.99 || abs(jet.eta()) > 2.4)
        ) out = true;
 
+  return out;
+}
+
+bool cat::CATJetProducer::checkPFJetIdTight(const pat::Jet & jet){
+  //Tight PF Jet id
+  bool out = false;
+  if ( jet.neutralHadronEnergyFraction() < 0.90
+       &&jet.neutralEmEnergyFraction() < 0.90
+       &&jet.numberOfDaughters() > 1
+       &&(jet.chargedHadronEnergyFraction() > 0 || abs(jet.eta()) > 2.4)
+       &&(jet.chargedMultiplicity() > 0 || abs(jet.eta()) > 2.4)
+       &&(jet.chargedEmEnergyFraction() < 0.90 || abs(jet.eta()) > 2.4)
+       ) out = true;
   return out;
 }
 
