@@ -36,14 +36,13 @@ def catSetup(process, runOnMC=True, doSecVertex=True, runDependantMC=False):
     process.catSecVertexs.vertexLabel = cms.InputTag(catVertexSource)
 
     ## jet correction
-    jetCorrInputFile = 'PhysicsTools/PatUtils/data/Summer12_V2_DATA_AK5PF_UncertaintySources.txt'
-    #jetCorrInputFile = 'CATTools/CatProducer/prod/Winter14_V8/Winter14_V8_DATA_UncertaintySources_AK5PFchs.txt'
-
     if runDependantMC:
-        #jetCorrInputFile = 'CATTools/CatProducer/prod/Winter14_V8/Winter14_V8_DATA_UncertaintySources_AK5PFchs.txt'
-        dataBaseName='sqlite:Winter14_V5_DATA.db'
+        dataBaseName='sqlite:Winter14_V8_DATA.db'
+        dataBaseType='JetCorrectorParametersCollection_Winter14_V8_DATA_AK5PFchs'
         if runOnMC:
-            dataBaseName='sqlite:Winter14_V5_MC.db'            
+            dataBaseName='sqlite:Winter14_V8_MC.db'
+            dataBaseType='JetCorrectorParametersCollection_Winter14_V8_MC_AK5PFchs'
+            
         process.load("CondCore.DBCommon.CondDBCommon_cfi")
         process.jec = cms.ESSource("PoolDBESSource",
         DBParameters = cms.PSet(
@@ -53,7 +52,8 @@ def catSetup(process, runOnMC=True, doSecVertex=True, runDependantMC=False):
         toGet = cms.VPSet(
         cms.PSet(
             record = cms.string('JetCorrectionsRecord'),
-            tag    = cms.string('JetCorrectorParametersCollection_Winter14_V5_DATA_AK5PF'),
+            tag    = cms.string(dataBaseType),
+            label  = cms.untracked.string("AK5PFchs"),
             ),
         ), 
         connect = cms.string(dataBaseName)
@@ -80,53 +80,53 @@ def catSetup(process, runOnMC=True, doSecVertex=True, runDependantMC=False):
         ##                     jetCollection = cms.InputTag(catJetsSource),
         ##                     muonCollection = cms.InputTag(catMuonsSource),
         ##                     tauCollection = cms.InputTag(catTausSource),
+
         ## )
         ## process.patDefaultSequencePFlow += process.metUncertaintySequence
 
         ## added smeared and shifted jets
-        ## jetSmearFileName = 'PhysicsTools/PatUtils/data/pfJetResolutionMCtoDataCorrLUT.root'
-        ## jetSmearHistogram = 'pfJetResolutionMCtoDataCorrLUT'
-        ## varyByNsigmas = 1.0
+        jetSmearFileName = 'PhysicsTools/PatUtils/data/pfJetResolutionMCtoDataCorrLUT.root'
+        jetSmearHistogram = 'pfJetResolutionMCtoDataCorrLUT'
+        varyByNsigmas = 1.0
         
-        ## process.smearedJetsRes = cms.EDProducer("SmearedPATJetProducer",
-        ##     src = cms.InputTag(catJetsSource),
-        ##     dRmaxGenJetMatch = cms.string('TMath::Min(0.5, 0.1 + 0.3*TMath::Exp(-0.05*(genJetPt - 10.)))'),
-        ##     sigmaMaxGenJetMatch = cms.double(5.),                               
-        ##     inputFileName = cms.FileInPath(jetSmearFileName),
-        ##     lutName = cms.string(jetSmearHistogram),
-        ##     jetResolutions = jetResolutions.METSignificance_params,
-        ##     skipJetSelection = cms.string('jecSetsAvailable & abs(energy - correctedP4("Uncorrected").energy) > (5.*min(energy, correctedP4("Uncorrected").energy))'),
-        ##     skipRawJetPtThreshold = cms.double(10.), # GeV
-        ##     skipCorrJetPtThreshold = cms.double(1.e-2),
-        ##     )
-        ## process.smearedJetsResDown = process.smearedJetsRes.clone(
-        ##     shiftBy = cms.double(-1.*varyByNsigmas)
-        ## )
-        ## process.smearedJetsResUp = process.smearedJetsRes.clone(
-        ##     shiftBy = cms.double(+1.*varyByNsigmas)
-        ## )
-        ## process.p += process.smearedJetsRes + process.smearedJetsResDown + process.smearedJetsResUp
+        process.smearedJetsRes = cms.EDProducer("SmearedPATJetProducer",
+            src = cms.InputTag(catJetsSource),
+            dRmaxGenJetMatch = cms.string('TMath::Min(0.5, 0.1 + 0.3*TMath::Exp(-0.05*(genJetPt - 10.)))'),
+            sigmaMaxGenJetMatch = cms.double(5.),                               
+            inputFileName = cms.FileInPath(jetSmearFileName),
+            lutName = cms.string(jetSmearHistogram),
+            jetResolutions = jetResolutions.METSignificance_params,
+            skipJetSelection = cms.string('jecSetsAvailable & abs(energy - correctedP4("Uncorrected").energy) > (5.*min(energy, correctedP4("Uncorrected").energy))'),
+            skipRawJetPtThreshold = cms.double(10.), # GeV
+            skipCorrJetPtThreshold = cms.double(1.e-2),
+            )
+        process.smearedJetsResDown = process.smearedJetsRes.clone(
+            shiftBy = cms.double(-1.*varyByNsigmas)
+        )
+        process.smearedJetsResUp = process.smearedJetsRes.clone(
+            shiftBy = cms.double(+1.*varyByNsigmas)
+        )
+        process.p += process.smearedJetsRes + process.smearedJetsResDown + process.smearedJetsResUp
       
-        ## process.shiftedJetsEnUp = cms.EDProducer("ShiftedPATJetProducer",
-        ##     src = cms.InputTag(catJetsSource),
-        ##     jetCorrPayloadName = cms.string('AK5PF'),
-        ##     jetCorrInputFileName = cms.FileInPath(jetCorrInputFile),
-        ##     jetCorrUncertaintyTag = cms.string("SubTotalDataMC"),
-        ##     addResidualJES = cms.bool(True),
-        ##     jetCorrLabelUpToL3 = cms.string("ak5PFL1FastL2L3"),
-        ##     jetCorrLabelUpToL3Res = cms.string("ak5PFL1FastL2L3Residual"),                               
-        ##     shiftBy = cms.double(+1.*varyByNsigmas)
-        ## )
-        ## process.shiftedJetsEnDown = process.shiftedJetsEnUp.clone(
-        ##     shiftBy = cms.double(-1.*varyByNsigmas)
-        ## )
-        ## process.p += process.shiftedJetsEnUp + process.shiftedJetsEnDown
+        process.shiftedJetsEnUp = cms.EDProducer("ShiftedPATJetProducer",
+            src = cms.InputTag(catJetsSource),
+            jetCorrPayloadName = cms.string('AK5PFchs'),
+            jetCorrUncertaintyTag = cms.string("Uncertainty"),
+            addResidualJES = cms.bool(True),
+            jetCorrLabelUpToL3 = cms.string("ak5PFL1FastL2L3"),
+            jetCorrLabelUpToL3Res = cms.string("ak5PFL1FastL2L3Residual"),                               
+            shiftBy = cms.double(+1.*varyByNsigmas)
+        )
+        process.shiftedJetsEnDown = process.shiftedJetsEnUp.clone(
+            shiftBy = cms.double(-1.*varyByNsigmas)
+        )
+        process.p += process.shiftedJetsEnUp + process.shiftedJetsEnDown
 
-        ## process.catJets.shiftedEnDownSrc = cms.InputTag("shiftedJetsEnDown")
-        ## process.catJets.shiftedEnUpSrc = cms.InputTag("shiftedJetsEnUp")
-        ## process.catJets.smearedResSrc = cms.InputTag("smearedJetsRes")
-        ## process.catJets.smearedResDownSrc = cms.InputTag("smearedJetsResDown")
-        ## process.catJets.smearedResUpSrc = cms.InputTag("smearedJetsResUp")
+        process.catJets.shiftedEnDownSrc = cms.InputTag("shiftedJetsEnDown")
+        process.catJets.shiftedEnUpSrc = cms.InputTag("shiftedJetsEnUp")
+        process.catJets.smearedResSrc = cms.InputTag("smearedJetsRes")
+        process.catJets.smearedResDownSrc = cms.InputTag("smearedJetsResDown")
+        process.catJets.smearedResUpSrc = cms.InputTag("smearedJetsResUp")
 
     if not runOnMC:
         process.makeCatCandidates.remove(process.catGenJets)

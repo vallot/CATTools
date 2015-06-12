@@ -2,6 +2,7 @@ from CATTools.CatProducer.catTemplate_cfg import *
 ## some options
 doSecVertex=False # for jpsi candidates
 doTriggerSkim=True # for qcd trigger skim on data
+useRunDependantMC=True
     
 ## setting up arguements
 from FWCore.ParameterSet.VarParsing import VarParsing
@@ -33,7 +34,7 @@ catPatConfig(process, runOnMC, postfix, jetAlgo, doTriggerSkim)
 ####################################################################################################
 
 from CATTools.CatProducer.catSetup_cff import *
-catSetup(process, runOnMC, doSecVertex)
+catSetup(process, runOnMC, doSecVertex, useRunDependantMC)
 
 from CATTools.CatProducer.catEventContent_cff import catEventContentExtended
 process.out.outputCommands = catEventContentExtended
