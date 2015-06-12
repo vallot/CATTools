@@ -45,7 +45,6 @@ namespace cat {
 
   private:
     edm::EDGetTokenT<pat::JetCollection> src_;
-    // edm::EDGetTokenT<pat::JetCollection> corsrc_;
 
     const std::vector<std::string> btagNames_;
     std::string uncertaintyTag_, payloadName_;
@@ -58,7 +57,6 @@ namespace cat {
 
 cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
   src_(consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("src"))),
-  // corsrc_(consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("corsrc"))),
   btagNames_(iConfig.getParameter<std::vector<std::string> >("btagNames")),
   payloadName_(iConfig.getParameter<std::string>("payloadName"))
 {
@@ -73,8 +71,6 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
 
   edm::Handle<pat::JetCollection> src;
   iEvent.getByToken(src_, src);
-  // edm::Handle<pat::JetCollection> corsrc;
-  // iEvent.getByToken(corsrc_, corsrc);
 
   edm::ESHandle<JetCorrectorParametersCollection> JetCorParColl;
   if (payloadName_.size()){
@@ -84,66 +80,25 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
     jecUnc = new JetCorrectionUncertainty(JetCorPar);
   }
 
-  // //temp getting from txt file
-  // JetCorrectorParameters *ResJetPar = new JetCorrectorParameters("PHYS14_V4_MC_L2L3Residual_AK4PFchs.txt"); 
-  // JetCorrectorParameters *L3JetPar  = new JetCorrectorParameters("PHYS14_V4_MC_L3Absolute_AK4PFchs.txt");
-  // JetCorrectorParameters *L2JetPar  = new JetCorrectorParameters("PHYS14_V4_MC_L2Relative_AK4PFchs.txt");
-  // JetCorrectorParameters *L1JetPar  = new JetCorrectorParameters("PHYS14_V4_MC_L1FastJet_AK4PFchs.txt");
-  // //  Load the JetCorrectorParameter objects into a vector, IMPORTANT: THE ORDER MATTERS HERE !!!! 
-  // vector<JetCorrectorParameters> vPar;
-  // vPar.push_back(*L1JetPar);
-  // vPar.push_back(*L2JetPar);
-  // vPar.push_back(*L3JetPar);
-  // vPar.push_back(*ResJetPar);
-  // FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(vPar);
-  // edm::Handle<double> rhoH;
-  // iEvent.getByLabel(edm::InputTag("fixedGridRhoFastjetAll"), rhoH); // use for sync in 74X
-
   auto_ptr<vector<cat::Jet> >  out(new vector<cat::Jet>());
   for (const pat::Jet &aPatJet : *src) {
 
-    bool looseId = checkPFJetId( aPatJet );
-    bool tightId = checkPFJetIdTight( aPatJet );
-    
     cat::Jet aJet(aPatJet);
 
-    aJet.setChargedMultiplicity( aPatJet.chargedMultiplicity() );
-    aJet.setNeutralMultiplicity( aPatJet.neutralMultiplicity() );
-    aJet.setChargedHadronMultiplicity( aPatJet.chargedHadronMultiplicity() );
-    aJet.setNeutralHadronMultiplicity( aPatJet.neutralHadronMultiplicity() );
-    aJet.setMuonMultiplicity( aPatJet.muonMultiplicity() );
-    aJet.setElectronMultiplicity( aPatJet.electronMultiplicity() );
-    aJet.setPhotonMultiplicity( aPatJet.photonMultiplicity() );
-    aJet.setHFEMMultiplicity( aPatJet.HFEMMultiplicity() );
-    aJet.setHFHadronMultiplicity( aPatJet.HFHadronMultiplicity() );
-   
-    aJet.setNeutralEmEnergyFraction( aPatJet.neutralEmEnergyFraction() );
-    aJet.setNeutralHadronEnergyFraction( aPatJet.neutralHadronEnergyFraction() );
-    aJet.setChargedEmEnergyFraction( aPatJet.chargedEmEnergyFraction() );
-    aJet.setChargedHadronEnergyFraction( aPatJet.chargedHadronEnergyFraction() );
-    aJet.setHFEMEnergyFraction( aPatJet.HFEMEnergyFraction() );
-    aJet.setHFHadronEnergyFraction( aPatJet.HFHadronEnergyFraction() );
-    aJet.setChargedMuEnergyFraction( aPatJet.chargedMuEnergyFraction() );
-    aJet.setMuonEnergyFraction( aPatJet.muonEnergyFraction() );
-    aJet.setPhotonEnergyFraction( aPatJet.photonEnergyFraction() );
-    aJet.setElectronEnergyFraction( aPatJet.electronEnergy() / aPatJet.correctedJet("Uncorrected").energy() );
+    aJet.addJecFactorPair(std::make_pair("Uncorrected", aPatJet.jecFactor("Uncorrected") ) );
+    aJet.addJecFactorPair(std::make_pair("L1FastJet", aPatJet.jecFactor("L1FastJet") ) );
+    aJet.addJecFactorPair(std::make_pair("L2Relative", aPatJet.jecFactor("L2Relative") ) );
+    aJet.addJecFactorPair(std::make_pair("L3Absolute", aPatJet.jecFactor("L3Absolute") ) );
+    // aJet.addJecFactorPair(std::make_pair("L5Flavor_gJ", aPatJet.jecFactor("L5Flavor_gJ") ) );
+    // aJet.addJecFactorPair(std::make_pair("L5Flavor_qT", aPatJet.jecFactor("L5Flavor_qT") ) );
+    // aJet.addJecFactorPair(std::make_pair("L5Flavor_cT", aPatJet.jecFactor("L5Flavor_cT") ) );
+    // aJet.addJecFactorPair(std::make_pair("L5Flavor_bT", aPatJet.jecFactor("L5Flavor_bT") ) );
 
-    aJet.setCombinedSecondaryVertexBTag( aPatJet.bDiscriminator("combinedSecondaryVertexBJetTags") ); 
-    aJet.setTrackCountingHighPurBTag( aPatJet.bDiscriminator("trackCountingHighPurBJetTags") );
-    aJet.setJetProbabilityBTag( aPatJet.bDiscriminator("jetProbabilityBJetTags") );
-
-    aJet.setL1FastJetJEC( aPatJet.correctedJet("L1FastJet").pt() / aPatJet.correctedJet("Uncorrected").pt() );
-    aJet.setL2L3ResJEC( aPatJet.pt()/aPatJet.correctedJet("L3Absolute").pt() );
-    aJet.setL2RelJEC( aPatJet.correctedJet("L2Relative").pt() / aPatJet.correctedJet("L1FastJet").pt() );
-    aJet.setL3AbsJEC( aPatJet.correctedJet("L3Absolute").pt() / aPatJet.correctedJet("L2Relative").pt() );
-//    aJet.setL5BottomJEC( aPatJet.correctedJet("L5Flavor_bT").pt() / aPatJet.pt() );
-//    aJet.setL5CharmJEC( aPatJet.correctedJet("L5Flavor_cT").pt() / aPatJet.pt() );
-//    aJet.setL5UDSJEC( aPatJet.correctedJet("L5Flavor_qT").pt() / aPatJet.pt() );
-//    aJet.setL5GluonJEC( aPatJet.correctedJet("L5Flavor_gJ").pt() / aPatJet.pt() );
-//    Also will be added for L7Parton
-    aJet.setEnergyRaw( aPatJet.correctedJet("Uncorrected").energy() );
-    aJet.setPtRaw( aPatJet.correctedJet("Uncorrected").pt() );
-
+    if (aPatJet.isPFJet() )
+      aJet.setPFSpecific( aPatJet.pfSpecific() );
+    
+    bool looseId = checkPFJetId( aPatJet );
+    bool tightId = checkPFJetIdTight( aPatJet );
     aJet.setLooseId( looseId );
     aJet.setTightId( tightId );
 
@@ -153,9 +108,7 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
     if (btagNames_.size() == 0){
       aJet.setBDiscriminators(aPatJet.getPairDiscri());
       // const std::vector<std::pair<std::string, float> > bpair = aPatJet.getPairDiscri();
-      // for (unsigned int bb =0; bb < bpair.size(); bb++){
-      // 	cout << bpair[bb].first <<endl;
-      // }
+      // for (unsigned int bb =0; bb < bpair.size(); bb++){cout << bpair[bb].first <<endl;}
     }
     else {
       for(unsigned int i = 0; i < btagNames_.size(); i++){
@@ -163,7 +116,7 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
       }
     }
     //cout << "jet pt " << aJet.pt() <<" eta " << aJet.eta() <<endl;
-    
+
     //secondary vertex b-tagging information
     if( aPatJet.hasUserFloat("vtxMass") ) aJet.setVtxMass( aPatJet.userFloat("vtxMass") );
     if( aPatJet.hasUserFloat("vtxNtracks") ) aJet.setVtxNtracks( aPatJet.userFloat("vtxNtracks") );

@@ -5,6 +5,7 @@
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "CATTools/DataFormats/interface/Particle.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
+#include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
 
 // Define typedefs for convenience
 namespace cat {
@@ -43,38 +44,27 @@ namespace cat {
     bool trackerDrivenSeed() const { return trackerDrivenSeed_; }
     bool ecalDrivenSeed() const { return ecalDrivenSeed_; }
 
-    float trkIsoDR03() const { return trkIsoDR03_; }
-    float ecalIsoDR03() const { return ecalIsoDR03_; }
-    float hcalIsoDR03() const { return hcalIsoDR03_; }
-    float trkIso() const { return trkIso_; }
-    float ecalIso() const { return ecalIso_; }
-    float hcalIso() const { return hcalIso_; }
+    float dr03TkSumPt() const { return trkIsoDR03_; }
+    float dr03EcalRecHitSumEt() const { return ecalIsoDR03_; }
+    float dr03HcalTowerSumEt() const { return hcalIsoDR03_; }
+    float dr04TkSumPt() const { return trkIsoDR04_; }
+    float dr04EcalRecHitSumEt() const { return ecalIsoDR04_; }
+    float dr04HcalTowerSumEt() const { return hcalIsoDR04_; }
 
-    float deltaPhiTrkSC() const { return deltaPhiTrkSC_; }
-    float deltaEtaTrkSC() const { return deltaEtaTrkSC_; }
+    float deltaPhiSuperClusterTrackAtVtx() const { return deltaPhiTrkSC_; }
+    float deltaEtaSuperClusterTrackAtVtx() const { return deltaEtaTrkSC_; }
 
     float sigmaIEtaIEta() const { return sigmaIEtaIEta_; }
 
-    float hoe() const { return hoe_; }
+    float hadronicOverEm() const { return hoe_; }
     float caloEnergy() const { return caloEnergy_; }
     float eSuperClusterOverP() const { return eSuperClusterOverP_; }
-    float trackVx() const { return trackVx_; }
-    float trackVy() const { return trackVy_; }
-    float trackVz() const { return trackVz_; }
-
+    
     int numberOfBrems() const { return numberOfBrems_; }
     float fbrem() const { return fbrem_; }
 
-    float primaryVertexDXY() const { return primaryVertexDXY_; }
-    float primaryVertexDXYError() const { return primaryVertexDXYError_; }
-    float trackPt() const { return trackPt_; }
-    float trackValidFractionOfHits() const { return trackValidFractionOfHits_; }
-
-    int vtxIndex() const { return vtxIndex_; }
-    float vtxDistXY() const { return vtxDistXY_; }
-    float vtxDistZ() const { return vtxDistZ_; } 
-    float leadVtxDistXY() const { return leadVtxDistXY_; }
-    float leadVtxDistZ() const { return leadVtxDistZ_; }
+    float dB() const { return dB_; }
+    float edB() const { return edB_; }
     
     bool isPF() const { return isPF_; }
 
@@ -132,38 +122,27 @@ namespace cat {
     void setTrackerDrivenSeed(bool i) { trackerDrivenSeed_ = i; }
     void setEcalDrivenSeed(bool i) { ecalDrivenSeed_ = i; }
 
-    void setTrkIsoDR03(float i) { trkIsoDR03_ = i; }
-    void setEcalIsoDR03(float i) { ecalIsoDR03_ = i; }
-    void setHcalIsoDR03(float i) { hcalIsoDR03_ = i; }
-    void setTrkIso(float i) { trkIso_ = i; }
-    void setEcalIso(float i) { ecalIso_ = i; }
-    void setHcalIso(float i) { hcalIso_ = i; }
+    void setdr03TkSumPt(float i) { trkIsoDR03_ = i; }
+    void setdr03EcalRecHitSumEt(float i) { ecalIsoDR03_ = i; }
+    void setdr03HcalTowerSumEt(float i) { hcalIsoDR03_ = i; }
+    void setdr04TkSumPt(float i) { trkIsoDR04_ = i; }
+    void setdr04EcalRecHitSumEt(float i) { ecalIsoDR04_ = i; }
+    void setdr04HcalTowerSumEt(float i) { hcalIsoDR04_ = i; }
 
-    void setDeltaPhiTrkSC(float i) { deltaPhiTrkSC_ = i; }
-    void setDeltaEtaTrkSC(float i) { deltaEtaTrkSC_ = i; }
+    void setdeltaPhiSuperClusterTrackAtVtx(float i) { deltaPhiTrkSC_ = i; }
+    void setdeltaEtaSuperClusterTrackAtVtx(float i) { deltaEtaTrkSC_ = i; }
 
     void setSigmaIEtaIEta(float i) { sigmaIEtaIEta_ = i; }
-    void setHoE(float i) { hoe_ = i; }
+    void sethadronicOverEm(float i) { hoe_ = i; }
     void setCaloEnergy(float i) { caloEnergy_ = i; }
     void setESuperClusterOverP(float i) { eSuperClusterOverP_ = i; }
-    void setTrackVx(float i) { trackVx_ = i; }
-    void setTrackVy(float i) { trackVy_ = i; }
-    void setTrackVz(float i) { trackVz_ = i; }
 
     void setNumberOfBrems(int i) { numberOfBrems_ = i; }
     void setFbrem(float i) { fbrem_ = i; }
 
-    void setPrimaryVertexDXY(float i) { primaryVertexDXY_ = i; }
-    void setPrimaryVertexDXYError(float i) { primaryVertexDXYError_ = i; }
-    void setTrackPt(float i) { trackPt_ = i; }
-    void setTrackValidFractionOfHits(float i) { trackValidFractionOfHits_ = i; }
-
-    void setVtxIndex(int i) { vtxIndex_ = i; }
-    void setVtxDistXY(float i) { vtxDistXY_ = i; }
-    void setVtxDistZ(float i) { vtxDistZ_ = i; }
-    void setLeadVtxDistXY(float i) { leadVtxDistXY_ = i; }
-    void setLeadVtxDistZ(float i) { leadVtxDistZ_ = i; }
-
+    void setdB(float i) { dB_ = i; }
+    void setedB(float i) { edB_ = i; }
+    
     void setisPF(bool i) {  isPF_ = i; }
     void setrho(float i) { rho_ = i; }
 
@@ -189,11 +168,14 @@ namespace cat {
     float shiftedEnDown() const {return  shiftedEnDown_;}
     float shiftedEnUp() const {return  shiftedEnUp_;}
 
+    const reco::GsfTrack & gsfTrack() const {return  gsfTrack_;}
+    void setgsfTrack(const reco::GsfTrack & gsf) { gsfTrack_ = gsf;}    
+      
   private:
 
     std::vector<pat::Electron::IdPair> electronIDs_;
-    //std::vector<std::string> electronIDNames_;
-
+    reco::GsfTrack gsfTrack_;
+    
     bool isEB_;
     bool isEE_;
     bool trackerDrivenSeed_;
@@ -223,9 +205,9 @@ namespace cat {
     float trkIsoDR03_;
     float ecalIsoDR03_;
     float hcalIsoDR03_;
-    float trkIso_;
-    float ecalIso_;
-    float hcalIso_;
+    float trkIsoDR04_;
+    float ecalIsoDR04_;
+    float hcalIsoDR04_;
 
     float deltaPhiTrkSC_;
     float deltaEtaTrkSC_;
@@ -240,8 +222,8 @@ namespace cat {
 
     int numberOfBrems_;
     float fbrem_;
-    float primaryVertexDXY_;
-    float primaryVertexDXYError_;
+    float dB_;
+    float edB_;
     float trackPt_;
     float trackValidFractionOfHits_;
 
