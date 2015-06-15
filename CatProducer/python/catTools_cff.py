@@ -16,6 +16,18 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     process.load("CATTools.CatProducer.catCandidates_cff")        
     process.load("CATTools.CatProducer.recoEventInfo_cfi")
 
+    # for jec on the fly from db file
+    from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
+    process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
+        connect = cms.string('sqlite_fip:CATTools/CatProducer/data/PHYS14_V4_MC.db'),
+        toGet = cms.VPSet(
+            cms.PSet(record = cms.string("JetCorrectionsRecord"),
+            tag = cms.string("JetCorrectorParametersCollection_PHYS14_V4_MC_AK4PFchs"),
+            label= cms.untracked.string("AK4PFchs"))
+            ))
+    process.es_prefer_jec = cms.ESPrefer("PoolDBESSource","jec")
+
+
     if runOnMC:## Load MC dependent producers
         process.load("CATTools.CatProducer.pdfWeight_cff")
         process.load("CATTools.CatProducer.pileupWeight_cff")
@@ -84,16 +96,6 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     
     if useMiniAOD:
         ## applying new jec on the fly
-        from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
-        process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
-            connect = cms.string('sqlite_fip:CATTools/CatProducer/data/PHYS14_V4_MC.db'),
-            toGet = cms.VPSet(
-                cms.PSet(record = cms.string("JetCorrectionsRecord"),
-                tag = cms.string("JetCorrectorParametersCollection_PHYS14_V4_MC_AK4PFchs"),
-                label= cms.untracked.string("AK4PFchs"))
-            ))
-        process.es_prefer_jec = cms.ESPrefer("PoolDBESSource","jec")
-
         process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
         process.catJets.src = cms.InputTag("patJetsUpdated")
 
