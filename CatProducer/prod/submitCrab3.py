@@ -7,6 +7,7 @@ inputFile =""
 submit = False
 lumiMask =""
 globalTag =""
+crabcommand ='crab submit --wait -c crab.py'
 
 try:
     opts, args = getopt.getopt(sys.argv[1:],"hsi:n:l:g:",["requestName","inputFile","lumiMask","globalTag"])
@@ -38,18 +39,22 @@ if len(globalTag) == 0:
     print "need to define globalTag, -g <globalTag>"
     sys.exit()
 
-crabcommand ='crab submit --wait -c crab.py'
 print datasets
 for dataset in datasets:
     if len(dataset) < 10:
         continue
+
+    isMiniAOD="False"
+    datatype = dataset.strip().split("/")[-1]
+    if datatype == "MINIAOD" or datatype == "MINIAODSIM" :
+        isMiniAOD="True"
+
     isMC = True
     dataSplitting   = " Data.splitting='FileBased' "
     dataUnitsPerJob = " Data.unitsPerJob=1 "
     dataLumiMask    = ""
-    pyCfgParams     = "config.JobType.pyCfgParams = ['runOnMC=True','globalTag=%s']"%(globalTag)
+    pyCfgParams     = "config.JobType.pyCfgParams = ['runOnMC=True','useMiniAOD=%s','globalTag=%s']"%(isMiniAOD,globalTag)
     ### MC or Data?
-    datatype = dataset.strip().split("/")[-1]
     if datatype == "AOD" or datatype == "MINIAOD" :
         if len(lumiMask) == 0:
             print "need to define lumiMask, -l <lumiMask>"
@@ -58,7 +63,7 @@ for dataset in datasets:
         dataSplitting   = " Data.splitting='FileBased' "
         dataUnitsPerJob = " Data.unitsPerJob=20 "
         dataLumiMask    = " Data.lumiMask='%s'"%(lumiMask)
-        pyCfgParams     = "config.JobType.pyCfgParams = ['runOnMC=False','globalTag=%s']"%(globalTag)
+        pyCfgParams     = "config.JobType.pyCfgParams = ['runOnMC=False','useMiniAOD=%s','globalTag=%s']"%(isMiniAOD,globalTag)
 
     ## pyCfgParams cannot be set from cmd line yet
     shutil.copy2('crabConfig.py', 'crab.py')
