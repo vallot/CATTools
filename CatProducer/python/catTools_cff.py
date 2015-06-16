@@ -16,6 +16,18 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     process.load("CATTools.CatProducer.catCandidates_cff")        
     process.load("CATTools.CatProducer.recoEventInfo_cfi")
 
+    # for jec on the fly from db file
+    from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
+    process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
+        connect = cms.string('sqlite_fip:CATTools/CatProducer/data/PHYS14_V4_MC.db'),
+        toGet = cms.VPSet(
+            cms.PSet(record = cms.string("JetCorrectionsRecord"),
+            tag = cms.string("JetCorrectorParametersCollection_PHYS14_V4_MC_AK4PFchs"),
+            label= cms.untracked.string("AK4PFchs"))
+            ))
+    process.es_prefer_jec = cms.ESPrefer("PoolDBESSource","jec")
+
+
     if runOnMC:## Load MC dependent producers
         ## FIX ME - pile up and pdf weight
         process.load("CATTools.CatProducer.pdfWeight_cff")
@@ -81,7 +93,43 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
                     'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV51_cff']
     for idmod in my_id_modules:
         setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
+<<<<<<< HEAD
 
+=======
+    
+    if useMiniAOD:
+        ## applying new jec on the fly
+        process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
+        process.catJets.src = cms.InputTag("patJetsUpdated")
+
+        ## from RecoJets.JetProducers.ak4PFJets_cfi import ak4PFJets
+        ## from RecoJets.JetProducers.ak4GenJets_cfi import ak4GenJets
+
+        ## process.chs = cms.EDFilter("CandPtrSelector", src = cms.InputTag("packedPFCandidates"), cut = cms.string("fromPV"))
+    
+        ## process.ak4PFJets = ak4PFJets.clone(src = 'packedPFCandidates', doAreaFastjet = True)
+        ## process.ak4PFJetsCHS = ak4PFJets.clone(src = 'chs', doAreaFastjet = True)
+        ## process.ak4GenJets = ak4GenJets.clone(src = 'packedGenParticles')
+
+        ## process.load("PhysicsTools.PatAlgos.producersLayer1.patCandidates_cff")
+        ## from PhysicsTools.PatAlgos.tools.jetTools import addJetCollection
+        ## addJetCollection(
+        ##     process,
+        ##     postfix   = "",
+        ##     labelName = 'AK4PFCHS',
+        ##     jetSource = cms.InputTag('ak4PFJetsCHS'),
+        ##     pvSource = cms.InputTag('offlineSlimmedPrimaryVertices'),
+        ##     pfCandidates = cms.InputTag('packedPFCandidates'),
+        ##     svSource = cms.InputTag('slimmedSecondaryVertices'),
+        ##     jetCorrections = ('AK4PFchs', cms.vstring(['L1FastJet', 'L2Relative', 'L3Absolute']), 'Type-2'),
+        ##     btagDiscriminators = [ 'pfCombinedSecondaryVertexBJetTags', 'pfCombinedInclusiveSecondaryVertexV2BJetTags' ],
+        ##     genJetCollection=cms.InputTag('ak4GenJets'),
+        ##     genParticles=cms.InputTag('prunedGenParticles')
+        ## )
+
+        ## process.catJets.btagNames = cms.vstring()
+        ## process.catJets.src = cms.InputTag("patJetsAK4PFCHS")
+>>>>>>> a8c9187a86d6ea2f52e72ae96055d13e67eb6f27
 
     if useMiniAOD:
         process.catElectrons.electronIDSources = cms.PSet(
