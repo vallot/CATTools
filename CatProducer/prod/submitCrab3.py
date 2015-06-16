@@ -7,7 +7,7 @@ inputFile =""
 submit = False
 lumiMask =""
 globalTag =""
-crabcommand ='crab submit --wait -c crab.py'
+crabcommand ='crab submit -c crab.py'
 
 try:
     opts, args = getopt.getopt(sys.argv[1:],"hsi:n:l:g:",["requestName","inputFile","lumiMask","globalTag"])
