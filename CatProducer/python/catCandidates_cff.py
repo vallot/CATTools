@@ -119,9 +119,9 @@ makeCatCandidates =  cms.Sequence(
     catMuons*
     catElectrons*
     catJets*
-    catMETs*
-    catGenJets*
-    catMCParticles
+    catMETs
+#    catGenJets*
+#    catMCParticles
     #catPhotons*
     #catTaus*
     # MC information below
