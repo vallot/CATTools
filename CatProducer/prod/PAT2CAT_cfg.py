@@ -6,12 +6,12 @@ doSecVertex=True # for jpsi candidates
 from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing ('python')
 options.register('runOnMC', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runOnMC: 1  default")
-options.register('useMiniAOD', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "useMiniAOD: 1  default")
+options.register('useMiniAOD', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "useMiniAOD: 1  default")
 options.register('globalTag', '', VarParsing.multiplicity.singleton, VarParsing.varType.string, "globalTag: 1  default")
 
 options.parseArguments()
 runOnMC = options.runOnMC
-useMiniAOD = options.useMiniAOD
+useMiniAOD = options.useMiniAOD # Aren't we using miniAOD always? (either of miniAOD - > CAT or AOD -> miniAOD -> CAT) 
 globalTag = options.globalTag
 
 if globalTag:
@@ -31,12 +31,21 @@ if runOnMC:
         process.out.outputCommands.extend(catEventContentAODMC)
 
 process.maxEvents.input = options.maxEvents
+
+# better to have a default file here for test purpose
+process.source = cms.Source("PoolSource",
+    fileNames = cms.untracked.vstring(
+       # at CERN
+       '/store/caf/user/tjkim/mc/Phys14DR/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU4bx50_PHYS14_25_V1-v1/00000/069C95E6-4E7F-E411-AA3F-002618943869.root'
+       # to be added at KISTI
+       # '',
+    )
+)
+
 if options.inputFiles:
     process.source.fileNames = options.inputFiles
-else :
-    from PhysicsTools.PatAlgos.patInputFiles_cff import filesRelValTTbarPileUpGENSIMRECO
-    process.source.fileNames = filesRelValTTbarPileUpGENSIMRECO
-    
+#pat input files are removed because it would not work if useMiniAOD is on.    
+ 
 print "runOnMC =",runOnMC,"and useMiniAOD =",useMiniAOD
 print "process.GlobalTag.globaltag =",process.GlobalTag.globaltag
 
@@ -44,4 +53,4 @@ print "process.GlobalTag.globaltag =",process.GlobalTag.globaltag
 process.MessageLogger.cerr.threshold = ''
 if options.maxEvents < 0:
     process.MessageLogger.cerr.FwkReport.reportEvery = 1000
-process.options.wantSummary = False
+process.options.wantSummary = True 
