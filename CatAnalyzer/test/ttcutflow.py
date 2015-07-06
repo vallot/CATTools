@@ -5,7 +5,7 @@ ROOT.AutoLibraryLoader.enable()
 from DataFormats.FWLite import Events, Handle
 import os,sys
     
-events = Events("/pnfs/user/jlee/top/catTuple.root")
+events = Events("$CMSSW_BASE/src/CATTools/CatProducer/prod/catTuple.root")
 
 cut_lep_pt = 20.
 cut_lep_eta = 2.1

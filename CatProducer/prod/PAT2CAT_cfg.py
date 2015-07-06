@@ -14,12 +14,25 @@ runOnMC = options.runOnMC
 useMiniAOD = options.useMiniAOD
 globalTag = options.globalTag
 
+####################################################################
+#### setting up global tag
+####################################################################
+from Configuration.AlCa.autoCond import autoCond
+process.GlobalTag.globaltag = autoCond['run2_mc_FULL']
+if not runOnMC:
+    process.GlobalTag.globaltag = autoCond['run2_data']
 if globalTag:
     process.GlobalTag.globaltag = globalTag
 
+####################################################################
+#### setting up pat tools - miniaod step
+####################################################################
 from CATTools.CatProducer.patTools_cff import *
 patTool(process, runOnMC, useMiniAOD)
 
+####################################################################
+#### setting up cat tools
+####################################################################
 from CATTools.CatProducer.catTools_cff import *
 catTool(process, runOnMC, doSecVertex, useMiniAOD)
 
@@ -31,7 +44,10 @@ if runOnMC:
         process.out.outputCommands.extend(catEventContentAODMC)
 if doSecVertex:
     process.out.outputCommands.extend(catEventContentSecVertexs)
-        
+
+####################################################################
+#### cmsRun options
+####################################################################
 process.maxEvents.input = options.maxEvents
 if options.inputFiles:
     process.source.fileNames = options.inputFiles
