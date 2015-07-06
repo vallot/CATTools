@@ -83,7 +83,7 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
   for (const pat::Jet &aPatJet : *src) {
 
     bool looseId = checkPFJetId( aPatJet );
-    
+
     cat::Jet aJet(aPatJet);
     aJet.setLooseId( looseId );
 
