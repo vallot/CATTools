@@ -5,7 +5,8 @@ ROOT.AutoLibraryLoader.enable()
 from DataFormats.FWLite import Events, Handle
 import os,sys
     
-events = Events("$CMSSW_BASE/src/CATTools/CatProducer/prod/catTuple.root")
+#events = Events("$CMSSW_BASE/src/CATTools/CatProducer/prod/catTuple.root")
+events = Events("/cms/home/jlee/data/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/cat74v1_Phys14DR-PU20bx25_PHYS14_25_V1-v1/150616_191303/0000/catTuple_396.root")
 
 cut_lep_pt = 20.
 cut_lep_eta = 2.1
@@ -158,6 +159,7 @@ for iev,event in enumerate(events):
 #step5
     btag = 0
     for g,j in enumerate(selectedjets):
+        j.bDiscriminatorPrint()
         jets_CSVInclV2 = j.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags")
         if jets_CSVInclV2 <= 0.814:
             continue

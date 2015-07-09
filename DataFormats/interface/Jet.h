@@ -111,6 +111,7 @@ namespace cat {
     float bDiscriminator(const std::string &theLabel) const;
     /// get vector of paire labelname-disciValue
     const std::vector<std::pair<std::string, float> > & getPairDiscri() const {return pairDiscriVector_; }
+    void bDiscriminatorPrint() const;
     
     void setBDiscriminators(const std::vector<std::pair<std::string, float> > & ids) { pairDiscriVector_ = ids; }
     void addBDiscriminatorPair(const std::pair<std::string, float> & thePair) {

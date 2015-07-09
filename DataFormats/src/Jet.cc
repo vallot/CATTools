@@ -27,6 +27,13 @@ float Jet::bDiscriminator(const std::string & aLabel) const {
   return discriminator;
 }
 
+/// print all bjet Discriminators
+void Jet::bDiscriminatorPrint() const {
+  for(unsigned int i=0; i!=pairDiscriVector_.size(); i++){
+    std::cout << pairDiscriVector_[i].first << " = " << pairDiscriVector_[i].second << std::endl;
+  }
+}
+
 float Jet::jecFactor(const std::string & aLabel) const {
   float jec = 0.;
   for(unsigned int i=0; i!=jecFactor_.size(); i++){
