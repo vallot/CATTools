@@ -62,8 +62,6 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
         ## FIX ME - pile up and pdf weight
         process.load("CATTools.CatProducer.pdfWeight_cff")
         process.load("CATTools.CatProducer.pileupWeight_cff")
-        process.load("CATTools.CatProducer.pseudoTop_cfi")
-
         if not useMiniAOD:
             process.load("CATTools.CatProducer.genTopProducer_cfi")
             

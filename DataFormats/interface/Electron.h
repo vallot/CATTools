@@ -168,13 +168,13 @@ namespace cat {
     float shiftedEnDown() const {return  shiftedEnDown_;}
     float shiftedEnUp() const {return  shiftedEnUp_;}
 
-    const reco::GsfTrack & gsfTrack() const {return  gsfTrack_;}
-    void setgsfTrack(const reco::GsfTrack & gsf) { gsfTrack_ = gsf;}    
+    //    const reco::GsfTrack & gsfTrack() const {return  gsfTrack_;}
+    //    void setgsfTrack(const reco::GsfTrack & gsf) { gsfTrack_ = gsf;}    
       
   private:
 
     std::vector<pat::Electron::IdPair> electronIDs_;
-    reco::GsfTrack gsfTrack_;
+    //    reco::GsfTrack gsfTrack_;
     
     bool isEB_;
     bool isEE_;

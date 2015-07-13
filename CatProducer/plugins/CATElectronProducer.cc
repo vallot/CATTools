@@ -178,7 +178,7 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     aElectron.setdB( fabs(aPatElectron.dB()));
     aElectron.setedB( fabs(aPatElectron.edB()));
 
-    aElectron.setgsfTrack( reco::GsfTrack(*(aPatElectron.gsfTrack())));
+    //aElectron.setgsfTrack( reco::GsfTrack(*(aPatElectron.gsfTrack())));
 
     aElectron.setscEta( aPatElectron.superCluster()->eta());
     aElectron.setscPhi( aPatElectron.superCluster()->phi());

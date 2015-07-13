@@ -94,9 +94,6 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
     // aJet.addJecFactorPair(std::make_pair("L5Flavor_cT", aPatJet.jecFactor("L5Flavor_cT") ) );
     // aJet.addJecFactorPair(std::make_pair("L5Flavor_bT", aPatJet.jecFactor("L5Flavor_bT") ) );
 
-    if (aPatJet.isPFJet() )
-      aJet.setPFSpecific( aPatJet.pfSpecific() );
-    
     bool looseId = checkPFJetId( aPatJet );
     bool tightId = checkPFJetIdTight( aPatJet );
     aJet.setLooseId( looseId );
