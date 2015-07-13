@@ -53,6 +53,7 @@ for dataset in datasets:
     dataSplitting   = " Data.splitting='FileBased' "
     dataUnitsPerJob = " Data.unitsPerJob=1 "
     dataLumiMask    = ""
+    ### dirty way for now since crab3 doesnt allow lists to be passed by cmd line
     pyCfgParams     = "config.JobType.pyCfgParams = ['runOnMC=True','useMiniAOD=%s','globalTag=%s']"%(isMiniAOD,globalTag)
     ### MC or Data?
     if datatype == "AOD" or datatype == "MINIAOD" :

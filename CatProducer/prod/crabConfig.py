@@ -10,7 +10,7 @@ config.JobType.pluginName  = 'Analysis'
 config.JobType.psetName    = 'PAT2CAT_cfg.py'
 
 config.section_("Data")
-config.Data.publication  = True
+config.Data.publication  = False
 config.Data.publishDataName = 'cat'
 
 config.section_("Site")
