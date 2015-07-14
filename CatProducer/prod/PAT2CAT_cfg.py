@@ -39,11 +39,13 @@ catTool(process, runOnMC, doSecVertex, useMiniAOD)
 from CATTools.CatProducer.catEventContent_cff import *
 process.out.outputCommands = catEventContent
 if runOnMC:
+    process.load("TopQuarkAnalysis.TopEventProducers.producers.pseudoTop_cfi")
     process.out.outputCommands.extend(catEventContentMC)
     if not useMiniAOD:
         process.out.outputCommands.extend(catEventContentAODMC)
 if doSecVertex:
     process.out.outputCommands.extend(catEventContentSecVertexs)
+
 
 ####################################################################
 #### cmsRun options
