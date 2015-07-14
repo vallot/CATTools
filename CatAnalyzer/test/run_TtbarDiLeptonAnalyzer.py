@@ -17,6 +17,10 @@ process.ttll = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     electrons = cms.InputTag("catElectrons"),
     jets = cms.InputTag("catJets"),
     mets = cms.InputTag("catMETs"),
+    tmassbegin = cms.double(100),
+    tmassend   = cms.double(300),
+    tmassstep  = cms.double(  1),
+    neutrino_parameters = cms.vdouble(30.7137, 56.2880, 23.0744, 59.1015, 24.9145)
 )
 
 process.TFileService = cms.Service("TFileService",

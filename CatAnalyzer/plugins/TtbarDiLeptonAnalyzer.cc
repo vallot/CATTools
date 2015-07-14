@@ -15,6 +15,8 @@
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/MET.h"
 
+#include "TopQuarkAnalysis/TopKinFitter/interface/TtFullLepKinSolver.h"
+
 #include "TTree.h"
 #include "TFile.h"
 #include "TLorentzVector.h"
@@ -51,6 +53,10 @@ private:
   int b_nbjet;
   float b_MET, b_ll_mass;
 
+  TtFullLepKinSolver* solver;
+  double tmassbegin_, tmassend_, tmassstep_;
+  std::vector<double> nupars_;
+
 };
 //
 // constructors and destructor
@@ -63,6 +69,11 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   metToken_  = consumes<edm::View<cat::MET> >(iConfig.getParameter<edm::InputTag>("mets"));     
   vtxToken_  = consumes<reco::VertexCollection >(iConfig.getParameter<edm::InputTag>("vertices"));
 
+  tmassbegin_     = iConfig.getParameter<double>       ("tmassbegin");
+  tmassend_       = iConfig.getParameter<double>       ("tmassend");
+  tmassstep_      = iConfig.getParameter<double>       ("tmassstep");
+  nupars_         = iConfig.getParameter<std::vector<double> >("neutrino_parameters");
+  
   edm::Service<TFileService> fs;
   ttree_ = fs->make<TTree>("top", "top");
   ttree_->Branch("nbjet", &b_nbjet, "nbjet/I");
@@ -125,7 +136,13 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     if (j.pt() < 20 ) continue;
     b_nbjet++;
   }
-  
+
+  // // if (calcTopMass_) {
+  //   solver->SetConstraints(xconstraint, yconstraint);
+  //   solver->useWeightFromMC(useMCforBest_);
+  //   asol = solver->addKinSolInfo(&asol);
+  //   // }
+
   ttree_->Fill();
 }
 
@@ -165,6 +182,7 @@ std::vector<cat::Jet> TtbarDiLeptonAnalyzer::selectJets(const edm::View<cat::Jet
 void 
 TtbarDiLeptonAnalyzer::beginJob()
 {
+  solver = new TtFullLepKinSolver(tmassbegin_, tmassend_, tmassstep_, nupars_);
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
