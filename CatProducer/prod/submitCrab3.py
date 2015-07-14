@@ -43,7 +43,9 @@ print datasets
 for dataset in datasets:
     if len(dataset) < 10:
         continue
-
+    if dataset.startswith("#"):
+        continue
+    
     isMiniAOD="False"
     datatype = dataset.strip().split("/")[-1]
     if datatype == "MINIAOD" or datatype == "MINIAODSIM" :
