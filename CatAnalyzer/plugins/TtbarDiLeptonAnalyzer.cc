@@ -150,11 +150,15 @@ std::vector<cat::Muon> TtbarDiLeptonAnalyzer::selectMuons(const edm::View<cat::M
 {
   std::vector<cat::Muon> selmuons;
   for (auto mu : *muons) {
-    if (mu.pt() < 5 || !mu.isLooseMuon()) continue;
+    if (!mu.isTightMuon()) continue;
+    if (mu.pt() <= 20.) continue;
+    if (fabs(mu.eta()) >= 2.4) continue;
+    if (mu.relIso(0.4) >= 0.12) continue;
     printf("muon with pt %4.1f, POG loose id %d, tight id %d\n",
 	   mu.pt(), mu.isLooseMuon(), mu.isTightMuon());
     selmuons.push_back(mu);
   }
+
   return selmuons;
 }
 
