@@ -115,7 +115,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
   }
 
-  ll_mass = 90.;
+  b_ll_mass = 90.;
     
   auto met = mets->front();
   b_MET = met.pt();
