@@ -20,7 +20,7 @@ process.ttll = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     tmassbegin = cms.double(100),
     tmassend   = cms.double(300),
     tmassstep  = cms.double(  1),
-    neutrino_parameters = cms.vdouble(30.7137, 56.2880, 23.0744, 59.1015, 24.9145)
+    neutrino_parameters = cms.vdouble(27.23,53.88,19.92,53.89,19.9)
 )
 
 process.TFileService = cms.Service("TFileService",
@@ -28,4 +28,4 @@ process.TFileService = cms.Service("TFileService",
 ))
 
 process.p = cms.Path(process.ttll)
-#process.MessageLogger.cerr.FwkReport.reportEvery = 1000
+process.MessageLogger.cerr.FwkReport.reportEvery = 1000
