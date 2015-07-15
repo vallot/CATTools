@@ -82,7 +82,7 @@ namespace cat {
     void setIsGlobalMuon(bool d) { isGlobalMuon_ = d; }
     void setIsPFMuon(bool d) { isPFMuon_ = d; }
     void setIsTightMuon(bool d) { isTightMuon_ = d; }
-    void setIsMediumtMuon(bool d) { isMediumMuon_ = d; }
+    void setIsMediumMuon(bool d) { isMediumMuon_ = d; }
     void setIsLooseMuon(bool d) { isLooseMuon_ = d; }
     void setIsSoftMuon(bool d) { isSoftMuon_ = d; }
      
