@@ -179,7 +179,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       weight2 = nuSol2.weight;
       nu21 = leafToTLorentzVector(nuSol2.neutrino);
       nu22 = leafToTLorentzVector(nuSol2.neutrinoBar);
-      
+      if (weight1 > maxweight || weight2 > maxweight){
       if(weight1>weight2 && weight1>0){
 	maxweight = weight1; kinj1=(*jet1); kinj2=(*jet2); nu1 = nu11; nu2 = nu12; kin++;
 	top1 = recolep[0]+recojet1+nu11; top2 = recolep[1]+recojet2+nu12;
@@ -188,7 +188,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	maxweight = weight2; kinj1=(*jet2); kinj2=(*jet1); nu1 = nu21; nu2 = nu22; kin++;
 	top1 = recolep[0]+recojet2+nu21; top2 = recolep[1]+recojet1+nu22;
       }
-      
+      }
     }
   }
   b_maxweight = maxweight;
