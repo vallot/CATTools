@@ -15,9 +15,13 @@
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/MET.h"
 
+#include "TopQuarkAnalysis/TopKinFitter/interface/TtFullLepKinSolver.h"
+
 #include "TTree.h"
 #include "TFile.h"
 #include "TLorentzVector.h"
+
+using namespace std;
 
 class TtbarDiLeptonAnalyzer : public edm::EDAnalyzer {
 public:
@@ -37,9 +41,13 @@ private:
   virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
   virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
 
-  std::vector<cat::Muon> selectMuons(const edm::View<cat::Muon>* muons );
-  std::vector<cat::Electron> selectElecs(const edm::View<cat::Electron>* elecs );
-  std::vector<cat::Jet> selectJets(const edm::View<cat::Jet>* jets );
+  vector<cat::Muon> selectMuons(const edm::View<cat::Muon>* muons );
+  vector<cat::Electron> selectElecs(const edm::View<cat::Electron>* elecs );
+  vector<cat::Jet> selectJets(const edm::View<cat::Jet>* jets );
+  vector<cat::Jet> selectBJets(vector<cat::Jet> & jets );
+
+  TLorentzVector leafToTLorentzVector(reco::LeafCandidate & leaf)
+  {return TLorentzVector(leaf.px(), leaf.py(),leaf.pz(),leaf.energy());}
 
   edm::EDGetTokenT<edm::View<cat::Muon> >     muonToken_;
   edm::EDGetTokenT<edm::View<cat::Electron> > elecToken_;
@@ -49,7 +57,11 @@ private:
 
   TTree * ttree_;
   int b_nbjet;
-  float b_MET, b_ll_mass;
+  float b_MET, b_ll_mass, b_maxweight;
+
+  TtFullLepKinSolver* solver;
+  double tmassbegin_, tmassend_, tmassstep_;
+  vector<double> nupars_;
 
 };
 //
@@ -63,6 +75,11 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   metToken_  = consumes<edm::View<cat::MET> >(iConfig.getParameter<edm::InputTag>("mets"));     
   vtxToken_  = consumes<reco::VertexCollection >(iConfig.getParameter<edm::InputTag>("vertices"));
 
+  tmassbegin_     = iConfig.getParameter<double>       ("tmassbegin");
+  tmassend_       = iConfig.getParameter<double>       ("tmassend");
+  tmassstep_      = iConfig.getParameter<double>       ("tmassstep");
+  nupars_         = iConfig.getParameter<vector<double> >("neutrino_parameters");
+  
   edm::Service<TFileService> fs;
   ttree_ = fs->make<TTree>("top", "top");
   ttree_->Branch("nbjet", &b_nbjet, "nbjet/I");
@@ -83,7 +100,6 @@ TtbarDiLeptonAnalyzer::~TtbarDiLeptonAnalyzer()
 // ------------ method called for each event  ------------
 void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-  using namespace std;
   edm::Handle<reco::VertexCollection> vertices;
   iEvent.getByToken(vtxToken_, vertices);
   if (vertices->empty()) return; // skip the event if no PV found
@@ -102,52 +118,87 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   iEvent.getByToken(metToken_, mets);
 
 
-  std::vector<cat::Muon> selectedMuons = selectMuons( muons.product() );
-  std::vector<cat::Electron> selectedElectrons = selectElecs( electrons.product() );
-  std::vector<cat::Jet> selectedJets = selectJets( jets.product() );
+  vector<cat::Muon> selectedMuons = selectMuons( muons.product() );
+  vector<cat::Electron> selectedElectrons = selectElecs( electrons.product() );
+  vector<cat::Jet> selectedJets = selectJets( jets.product() );
+  vector<cat::Jet> selectedBJets = selectBJets( selectedJets );
 
+  //  printf("selectedMuons %lu, selectedElectrons %lu, selectedJets %lu, selectedBJets %lu\n",selectedMuons.size(), selectedElectrons.size(), selectedJets.size(), selectedBJets.size() );
 
-  cout << "selectedMuons.size() " << selectedMuons.size() <<endl;
-  for (auto lep : selectedMuons){
-    cout << "lep->pt() " << lep.pt()
-  	 << " lep.pdgId() " << lep.pdgId()
-  	 <<endl;
+  vector<TLorentzVector> recolep; 
+  for (auto lep : selectedMuons){ recolep.push_back(lep.tlv());}
+  for (auto lep : selectedElectrons){recolep.push_back(lep.tlv());}
 
-  }
-
-  b_ll_mass = 90.;
-    
-  auto met = mets->front();
-  b_MET = met.pt();
-    
-  b_nbjet = 0;
-  for (auto j : selectedJets){
-    if (j.pt() < 20 ) continue;
-    b_nbjet++;
-  }
+  if (recolep.size() < 2) return;
   
+  TLorentzVector met = mets->front().tlv();
+
+  b_ll_mass = 90.;  
+  b_MET = met.Pt();    
+  b_nbjet = selectedBJets.size();
+  
+  ////////////////////////////////////////////////////////  KIN  /////////////////////////////////////
+  int kin=0; TLorentzVector nu1, nu2, top1, top2;
+  double maxweight=0;
+  cat::Jet kinj1, kinj2;
+
+  for (auto jet1 = selectedJets.begin(), end = selectedJets.end(); jet1 != end; ++jet1){
+    for (auto jet2 = next(jet1); jet2 != end; ++jet2){
+
+      double weight1 =0; double weight2 =0;
+      TLorentzVector nu11, nu12, nu21, nu22;
+      TLorentzVector recojet1= jet1->tlv();
+      TLorentzVector recojet2= jet2->tlv();
+      
+      double xconstraint = recolep[0].Px()+recolep[1].Px()+ (recojet1).Px() + (recojet2).Px() +met.Px();
+      double yconstraint = recolep[0].Py()+recolep[1].Py()+ (recojet2).Py() + (recojet1).Py() +met.Py();
+      
+      solver->SetConstraints(xconstraint, yconstraint);
+      TtFullLepKinSolver::NeutrinoSolution nuSol= solver->getNuSolution( recolep[0], recolep[1] , recojet1, recojet2);
+      weight1 = nuSol.weight;
+      nu11 = leafToTLorentzVector(nuSol.neutrino);
+      nu12 = leafToTLorentzVector(nuSol.neutrinoBar);
+      
+      TtFullLepKinSolver::NeutrinoSolution nuSol2= solver->getNuSolution( recolep[0], recolep[1] , recojet2, recojet1);
+      weight2 = nuSol2.weight;
+      nu21 = leafToTLorentzVector(nuSol2.neutrino);
+      nu22 = leafToTLorentzVector(nuSol2.neutrinoBar);
+      
+      if(weight1>weight2 && weight1>0){
+	maxweight = weight1; kinj1=(*jet1); kinj2=(*jet2); nu1 = nu11; nu2 = nu12; kin++;
+	top1 = recolep[0]+recojet1+nu11; top2 = recolep[1]+recojet2+nu12;
+      }
+      else if(weight2>weight1 && weight2>0){
+	maxweight = weight2; kinj1=(*jet2); kinj2=(*jet1); nu1 = nu21; nu2 = nu22; kin++;
+	top1 = recolep[0]+recojet2+nu21; top2 = recolep[1]+recojet1+nu22;
+      }
+      
+    }
+  }
+  b_maxweight = maxweight;
+  //  printf("maxweight %f, top1.M() %f, top2.M() %f \n",maxweight, top1.M(), top2.M() );
+
   ttree_->Fill();
 }
 
-std::vector<cat::Muon> TtbarDiLeptonAnalyzer::selectMuons(const edm::View<cat::Muon>* muons )
+vector<cat::Muon> TtbarDiLeptonAnalyzer::selectMuons(const edm::View<cat::Muon>* muons )
 {
-  std::vector<cat::Muon> selmuons;
+  vector<cat::Muon> selmuons;
   for (auto mu : *muons) {
     if (!mu.isTightMuon()) continue;
     if (mu.pt() <= 20.) continue;
     if (fabs(mu.eta()) >= 2.4) continue;
     if (mu.relIso(0.4) >= 0.12) continue;
-    printf("muon with pt %4.1f, POG loose id %d, tight id %d\n",
-	   mu.pt(), mu.isLooseMuon(), mu.isTightMuon());
+    //    printf("muon with pt %4.1f, POG loose id %d, tight id %d\n",mu.pt(), mu.isLooseMuon(), mu.isTightMuon());
     selmuons.push_back(mu);
   }
 
   return selmuons;
 }
 
-std::vector<cat::Electron> TtbarDiLeptonAnalyzer::selectElecs(const edm::View<cat::Electron>* elecs )
+vector<cat::Electron> TtbarDiLeptonAnalyzer::selectElecs(const edm::View<cat::Electron>* elecs )
 {
-  std::vector<cat::Electron> selelecs;
+  vector<cat::Electron> selelecs;
   for (auto el : *elecs) {
     if (el.pt() < 5) continue;
     selelecs.push_back(el);
@@ -155,9 +206,9 @@ std::vector<cat::Electron> TtbarDiLeptonAnalyzer::selectElecs(const edm::View<ca
   return selelecs;
 }
 
-std::vector<cat::Jet> TtbarDiLeptonAnalyzer::selectJets(const edm::View<cat::Jet>* jets )
+vector<cat::Jet> TtbarDiLeptonAnalyzer::selectJets(const edm::View<cat::Jet>* jets )
 {
-  std::vector<cat::Jet> seljets;
+  vector<cat::Jet> seljets;
   for (auto jet : *jets) {
     if (jet.pt() < 5) continue;
     seljets.push_back(jet);
@@ -165,10 +216,21 @@ std::vector<cat::Jet> TtbarDiLeptonAnalyzer::selectJets(const edm::View<cat::Jet
   return seljets;
 }
 
+vector<cat::Jet> TtbarDiLeptonAnalyzer::selectBJets(vector<cat::Jet> & jets )
+{
+  vector<cat::Jet> selBjets;
+  for (auto jet : jets) {
+    if (jet.pt() < 5) continue;
+    selBjets.push_back(jet);
+  }
+  return selBjets;
+}
+
 // ------------ method called once each job just before starting event loop  ------------
 void 
 TtbarDiLeptonAnalyzer::beginJob()
 {
+  solver = new TtFullLepKinSolver(tmassbegin_, tmassend_, tmassstep_, nupars_);
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
