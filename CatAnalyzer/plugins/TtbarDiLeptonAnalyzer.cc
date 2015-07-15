@@ -43,8 +43,9 @@ private:
 
   vector<cat::Muon> selectMuons(const edm::View<cat::Muon>* muons );
   vector<cat::Electron> selectElecs(const edm::View<cat::Electron>* elecs );
-  vector<cat::Jet> selectJets(const edm::View<cat::Jet>* jets );
+  vector<cat::Jet> selectJets(const edm::View<cat::Jet>* jets, vector<TLorentzVector> recolep);
   vector<cat::Jet> selectBJets(vector<cat::Jet> & jets );
+  float passingSteps(int channel, float met, float ll_mass, float ll_charge, int selectedJets_size, int btag);
 
   TLorentzVector leafToTLorentzVector(reco::LeafCandidate & leaf)
   {return TLorentzVector(leaf.px(), leaf.py(),leaf.pz(),leaf.energy());}
@@ -56,7 +57,7 @@ private:
   edm::EDGetTokenT<reco::VertexCollection >   vtxToken_;
 
   TTree * ttree_;
-  int b_nbjet;
+  int b_njet, b_nbjet, b_step, b_channel;
   float b_MET, b_ll_mass, b_maxweight;
 
   TtFullLepKinSolver* solver;
@@ -82,9 +83,12 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   
   edm::Service<TFileService> fs;
   ttree_ = fs->make<TTree>("top", "top");
+  ttree_->Branch("njet", &b_njet, "njet/I");
   ttree_->Branch("nbjet", &b_nbjet, "nbjet/I");
   ttree_->Branch("ll_mass", &b_ll_mass, "ll_mass/F");
   ttree_->Branch("MET", &b_MET, "MET/F");
+  ttree_->Branch("channel", &b_channel, "channel/I");
+  ttree_->Branch("step", &b_step, "njet/I");
 
 }
 TtbarDiLeptonAnalyzer::~TtbarDiLeptonAnalyzer()
@@ -120,22 +124,34 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
   vector<cat::Muon> selectedMuons = selectMuons( muons.product() );
   vector<cat::Electron> selectedElectrons = selectElecs( electrons.product() );
-  vector<cat::Jet> selectedJets = selectJets( jets.product() );
+
+  vector<TLorentzVector> recolep; 
+  for (auto lep : selectedMuons){ recolep.push_back(lep.tlv()); }
+  for (auto lep : selectedElectrons){ recolep.push_back(lep.tlv()); }
+  if (recolep.size() < 2) return;
+
+  float channel = selectedElectrons.size();
+
+  float ll_charge = 0. ;
+  if (channel == 0) ll_charge = selectedMuons[0].charge()*selectedMuons[1].charge();
+  if (channel == 1) ll_charge = selectedMuons[0].charge()*selectedElectrons[0].charge();
+  if (channel == 2) ll_charge = selectedElectrons[0].charge()*selectedElectrons[1].charge();
+
+  vector<cat::Jet> selectedJets = selectJets( jets.product(), recolep );
   vector<cat::Jet> selectedBJets = selectBJets( selectedJets );
 
   //  printf("selectedMuons %lu, selectedElectrons %lu, selectedJets %lu, selectedBJets %lu\n",selectedMuons.size(), selectedElectrons.size(), selectedJets.size(), selectedBJets.size() );
 
-  vector<TLorentzVector> recolep; 
-  for (auto lep : selectedMuons){ recolep.push_back(lep.tlv());}
-  for (auto lep : selectedElectrons){recolep.push_back(lep.tlv());}
-
-  if (recolep.size() < 2) return;
-  
   TLorentzVector met = mets->front().tlv();
 
-  b_ll_mass = 90.;  
-  b_MET = met.Pt();    
+  b_ll_mass = (recolep[0]+recolep[1]).M();  
+  b_MET = met.Pt(); 
+  b_njet = selectedJets.size();
   b_nbjet = selectedBJets.size();
+  b_channel = channel;
+
+  float step = passingSteps( channel, met.Pt(), (recolep[0]+recolep[1]).M(), ll_charge, selectedJets.size(), selectedBJets.size() );
+  b_step = step;
   
   ////////////////////////////////////////////////////////  KIN  /////////////////////////////////////
   int kin=0; TLorentzVector nu1, nu2, top1, top2;
@@ -177,6 +193,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   }
   b_maxweight = maxweight;
   //  printf("maxweight %f, top1.M() %f, top2.M() %f \n",maxweight, top1.M(), top2.M() );
+  printf("%2d, %2d, %2d, %2d, %6.2f, %6.2f, %6.2f\n", b_njet, b_nbjet, b_step, b_channel, b_MET, b_ll_mass, b_maxweight);
 
   ttree_->Fill();
 }
@@ -189,7 +206,7 @@ vector<cat::Muon> TtbarDiLeptonAnalyzer::selectMuons(const edm::View<cat::Muon>*
     if (mu.pt() <= 20.) continue;
     if (fabs(mu.eta()) >= 2.4) continue;
     if (mu.relIso(0.4) >= 0.12) continue;
-    //    printf("muon with pt %4.1f, POG loose id %d, tight id %d\n",mu.pt(), mu.isLooseMuon(), mu.isTightMuon());
+    //printf("muon with pt %4.1f, POG loose id %d, tight id %d\n", mu.pt(), mu.isLooseMuon(), mu.isTightMuon());
     selmuons.push_back(mu);
   }
 
@@ -200,17 +217,31 @@ vector<cat::Electron> TtbarDiLeptonAnalyzer::selectElecs(const edm::View<cat::El
 {
   vector<cat::Electron> selelecs;
   for (auto el : *elecs) {
+    if (!el.electronID("cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-medium")) continue;
+    if (!el.passConversionVeto()) continue;
+    if (!el.isPF()) continue;
+    if (el.pt() <= 20.) continue;
+    if ((fabs(el.scEta()) <= 1.4442) && (el.relIso(0.3) >= 0.1649)) continue;
+    if ((fabs(el.scEta()) >= 1.566) && (el.relIso(0.3) >= 0.2075)) continue;
+    if ((fabs(el.scEta()) > 1.4442) && (fabs(el.scEta()) < 1.566)) continue;
+    if (fabs(el.eta()) >= 2.5) continue;
     if (el.pt() < 5) continue;
+    //printf("electron with pt %4.1f\n", el.pt());
     selelecs.push_back(el);
   }
   return selelecs;
 }
 
-vector<cat::Jet> TtbarDiLeptonAnalyzer::selectJets(const edm::View<cat::Jet>* jets )
+vector<cat::Jet> TtbarDiLeptonAnalyzer::selectJets(const edm::View<cat::Jet>* jets, vector<TLorentzVector> recolep )
 {
   vector<cat::Jet> seljets;
   for (auto jet : *jets) {
-    if (jet.pt() < 5) continue;
+	if (!jet.LooseId()) continue;
+	if (jet.pt() <= 30.) continue;
+	if (fabs(jet.eta()) >= 2.4)	continue;
+    if (jet.tlv().DeltaR(recolep[0]) <= 0.4) continue;
+    if (jet.tlv().DeltaR(recolep[1]) <= 0.4) continue;
+   // printf("jet with pt %4.1f\n", jet.pt());
     seljets.push_back(jet);
   }
   return seljets;
@@ -220,10 +251,37 @@ vector<cat::Jet> TtbarDiLeptonAnalyzer::selectBJets(vector<cat::Jet> & jets )
 {
   vector<cat::Jet> selBjets;
   for (auto jet : jets) {
-    if (jet.pt() < 5) continue;
+	float jets_CSVInclV2 = jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
+	if (jets_CSVInclV2 <= 0.814) continue;	
+    //printf("b jet with pt %4.1f\n", jet.pt());
     selBjets.push_back(jet);
   }
   return selBjets;
+}
+
+float TtbarDiLeptonAnalyzer::passingSteps(int channel, float met, float ll_mass, float ll_charge, int selectedJets_size, int btag)
+{
+  int step = 0;
+  if (ll_mass <= 20.) return step;
+  if (ll_charge > 0.) return step;
+  step = 1;
+  if (channel != 1){
+	if ((ll_mass > 76) and (ll_mass < 106)) return step;
+  }
+  step = 2;
+  if (selectedJets_size < 2) return step;
+  step = 3;
+  if (channel == 1){
+	step = 4;
+  }
+  else{
+	if (met <= 40.) return step;
+  }
+  step = 4;
+  if (btag <= 0) return step;
+  step = 5;
+
+  return step;
 }
 
 // ------------ method called once each job just before starting event loop  ------------
