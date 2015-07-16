@@ -97,8 +97,6 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     }
     ++j;
 
-    double pt    = aPatMuon.pt() ;
-
     double chIso04 = aPatMuon.pfIsolationR04().sumChargedHadronPt;
     double nhIso04 = aPatMuon.pfIsolationR04().sumNeutralHadronEt;
     double phIso04 = aPatMuon.pfIsolationR04().sumPhotonEt;
@@ -107,7 +105,6 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     aMuon.setNeutralHadronIso04( nhIso04 );
     aMuon.setPhotonIso04( phIso04 );
     aMuon.setPUChargedHadronIso04( puIso04 );
-    aMuon.setrelIso(0.4, chIso04, nhIso04, phIso04, puIso04, pt);
 
     double chIso03 = aPatMuon.pfIsolationR03().sumChargedHadronPt;
     double nhIso03 = aPatMuon.pfIsolationR03().sumNeutralHadronEt;
@@ -117,16 +114,9 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     aMuon.setNeutralHadronIso03( nhIso03 );
     aMuon.setPhotonIso03( phIso03 );
     aMuon.setPUChargedHadronIso03( puIso03 );
-    aMuon.setrelIso(0.3, chIso03, nhIso03, phIso03, puIso03, pt);
     
-    // cout << "aPatMuon.chargedHadronIso() " << aPatMuon.chargedHadronIso()
-    // 	 << " aPatMuon.pfIsolationR04 " <<  aPatMuon.pfIsolationR04().sumChargedHadronPt
-    // 	 << endl;
-
     aMuon.setIsGlobalMuon( aPatMuon.isGlobalMuon() );
     aMuon.setIsPFMuon( aPatMuon.isPFMuon() );
-    aMuon.setIsTightMuon( aPatMuon.isTightMuon(pv) );
-    aMuon.setIsLooseMuon( aPatMuon.isLooseMuon() );
     aMuon.setIsSoftMuon( aPatMuon.isSoftMuon(pv) );
 
     if (runOnMC_){
@@ -159,68 +149,13 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
       aMuon.setTrkVx( aPatMuon.track()->vx() );
       aMuon.setTrkVy( aPatMuon.track()->vy() );
       aMuon.setTrkVz( aPatMuon.track()->vz() );
-      aMuon.setTrackerCharge( aPatMuon.track()->charge() );
     }
     else{
       aMuon.setTrkVx( -999. );
       aMuon.setTrkVy( -999. );
       aMuon.setTrkVz( -999. );
-      aMuon.setTrackerCharge( -999. );
     }
     aMuon.setIsTracker( aPatMuon.isTrackerMuon() );
-    /// Cocktail Muon ///
-    // double bct_vtxDistXY_   = -9999., bct_vtxDistZ_    = -9999.;
-    // if( aPatMuon.isGlobalMuon() ){
-    //   reco::TrackRef cocktail_track = ( muon::tevOptimized( aPatMuon.combinedMuon(),
-    //                                                         aPatMuon.track(),
-    //                                                         aPatMuon.tpfmsTrack(),
-    //                                                         aPatMuon.pickyTrack(),
-    //                                                         aPatMuon.dytTrack(),
-    //                                                         200., 17., 40., 0.25) ).first;      
-    //   aMuon.setCocktailPt( cocktail_track->pt() );
-    //   aMuon.setCocktailEta( cocktail_track->eta() );
-    //   aMuon.setCocktailPhi( cocktail_track->phi() );
-    //   aMuon.setCocktailGlobalChi2( cocktail_track->normalizedChi2() );
-    //   aMuon.setCocktailCharge( cocktail_track->charge() );
-    //   if( recVtxs.isValid() ){
-    //     double bct_bestdist3D = 999999.;
-    //     for( reco::VertexCollection::const_iterator v_it=recVtxs->begin() ; v_it!=recVtxs->end() ; ++v_it ){
-    //       double bct_distXY = cocktail_track->dxy(v_it->position());
-    //       double bct_distZ  = cocktail_track->dz(v_it->position());
-    //       double bct_dist3D = sqrt( pow(bct_distXY,2) + pow(bct_distZ,2) );
-    //       if( bct_dist3D < bct_bestdist3D ){
-    //         bct_bestdist3D = bct_dist3D;
-    //         bct_vtxDistXY_   = bct_distXY;
-    //         bct_vtxDistZ_    = bct_distZ;
-    //       }
-    //     }
-    //   }
-    //   aMuon.setCocktailTrkVtxDXY( bct_vtxDistXY_ );
-    //   aMuon.setCocktailTrkVtxDZ( bct_vtxDistZ_ );
-    // }
-    // else{
-    //   aMuon.setCocktailPt( -999. );
-    //   aMuon.setCocktailEta( -999. );
-    //   aMuon.setCocktailPhi( -999. );
-    //   aMuon.setCocktailGlobalChi2( -999. );
-    //   aMuon.setCocktailCharge( -999. );
-    //   aMuon.setCocktailTrkVtxDXY( -999. );
-    //   aMuon.setCocktailTrkVtxDZ( -999. );
-    // }
-    /// MuonSpec Muon ///
-    if( aPatMuon.isStandAloneMuon() ){
-      aMuon.setMuonSpecPt( aPatMuon.standAloneMuon()->pt() );
-      aMuon.setMuonSpecEta( aPatMuon.standAloneMuon()->eta() );
-      aMuon.setMuonSpecPhi( aPatMuon.standAloneMuon()->phi() );
-      aMuon.setMuonSpecCharge( aPatMuon.standAloneMuon()->charge() );
-    }
-    else{
-      aMuon.setMuonSpecPt( -999. );
-      aMuon.setMuonSpecEta( -999. );
-      aMuon.setMuonSpecPhi( -999. );
-      aMuon.setMuonSpecCharge( -999. );
-      aMuon.setMuonSpecE( -999. );
-    }
     
     out->push_back(aMuon);
   }

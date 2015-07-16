@@ -24,14 +24,8 @@ namespace cat {
 
     /// cat default variables ///
     
-    float relIso(float dR=0.3 ) const {
-      if( dR < 0.35) return relIso03_;
-      else return relIso04_;
-    }
     bool isGlobalMuon() const { return isGlobalMuon_; }
     bool isPFMuon() const { return isPFMuon_; }
-    bool isTightMuon() const { return isTightMuon_; }
-    bool isLooseMuon() const { return isLooseMuon_; } 
     bool isSoftMuon() const { return isSoftMuon_; } 
 
     bool mcMatched() const { return mcMatched_; }
@@ -46,11 +40,6 @@ namespace cat {
     float dxy() const { return dxy_; }
     float dz() const { return dz_; }
 
-    void setrelIso(float dR, double chIso, double nhIso, double phIso, double puIso, double pt) {
-      float relIso = ( chIso + std::max( 0.0, nhIso + phIso - 0.5 * puIso) ) / pt;
-      if( dR < 0.35) relIso03_ = relIso; 
-      else  relIso04_ = relIso; 
-    }
     float chargedHadronIso(float dR=0.3) const {
       if( dR < 0.35) return chargedHadronIso03_;
       else return chargedHadronIso04_;
@@ -80,8 +69,6 @@ namespace cat {
 
     void setIsGlobalMuon(bool d) { isGlobalMuon_ = d; }
     void setIsPFMuon(bool d) { isPFMuon_ = d; }
-    void setIsTightMuon(bool d) { isTightMuon_ = d; }
-    void setIsLooseMuon(bool d) { isLooseMuon_ = d; }
     void setIsSoftMuon(bool d) { isSoftMuon_ = d; }
      
     void setMCMatched(bool m) { mcMatched_ = m; }
@@ -109,19 +96,6 @@ namespace cat {
     float TrkVy() const { return TrkVy_; }
     float TrkVz() const { return TrkVz_; }
     int IsTracker() const { return IsTracker_; }
-    float CocktailPt() const { return CocktailPt_; }
-    float CocktailEta() const { return CocktailEta_; }
-    float CocktailPhi() const { return CocktailPhi_; }
-    float CocktailGlobalChi2() const { return CocktailGlobalChi2_; }
-    float CocktailTrkVtxDXY() const { return CocktailTrkVtxDXY_; }
-    float CocktailTrkVtxDZ() const { return CocktailTrkVtxDZ_; }
-    int CocktailCharge() const { return CocktailCharge_; }
-    float MuonSpecPt() const { return MuonSpecPt_; }
-    float MuonSpecEta() const { return MuonSpecEta_; }
-    float MuonSpecPhi() const { return MuonSpecPhi_; }
-    int MuonSpecCharge() const { return MuonSpecCharge_; }
-    float MuonSpecE() const { return MuonSpecE_; }
-		int TrackerCharge() const { return TrackerCharge_; }   
  
     void setEcalVetoIso(float f) { EcalVetoIso_ = f; }
     void setHcalVetoIso(float f) { HcalVetoIso_ = f; }
@@ -129,27 +103,11 @@ namespace cat {
     void setTrkVy(float f) { TrkVy_ = f; }
     void setTrkVz(float f) { TrkVz_ = f; }
     void setIsTracker(int i) { IsTracker_ = i; }
-    void setCocktailPt(float f) {  CocktailPt_ = f; }
-    void setCocktailEta(float f) {  CocktailEta_ = f; }
-    void setCocktailPhi(float f) {  CocktailPhi_ = f; }
-    void setCocktailGlobalChi2(float f) {  CocktailGlobalChi2_ = f; }
-    void setCocktailTrkVtxDXY(float f) {  CocktailTrkVtxDXY_ = f; }
-    void setCocktailTrkVtxDZ(float f) {  CocktailTrkVtxDZ_ = f; }
-    void setCocktailCharge(int i) {  CocktailCharge_ = i; }
-    void setMuonSpecPt(float f) {  MuonSpecPt_ = f; }
-    void setMuonSpecEta(float f) {  MuonSpecEta_ = f; }
-    void setMuonSpecPhi(float f) {  MuonSpecPhi_ = f; }
-    void setMuonSpecCharge(int i) {  MuonSpecCharge_ = i; }
-    void setMuonSpecE(float f) {  MuonSpecE_ = f; }
-		void setTrackerCharge(int i) { TrackerCharge_ = i; }
     
   private:
 
     /// cat default variables ///
     
-    float relIso03_;
-    float relIso04_;
-
     float chargedHadronIso03_;
     float puChargedHadronIso03_;
     float neutralHadronIso03_;
@@ -162,8 +120,6 @@ namespace cat {
 
     bool isGlobalMuon_; 
     bool isPFMuon_; 
-    bool isTightMuon_; 
-    bool isLooseMuon_; 
     bool isSoftMuon_;
 
     bool mcMatched_;
@@ -186,11 +142,6 @@ namespace cat {
     float EcalVetoIso_, HcalVetoIso_;
     float TrkVx_, TrkVy_, TrkVz_;
     int IsTracker_;
-    float CocktailPt_, CocktailEta_, CocktailPhi_, CocktailGlobalChi2_, CocktailTrkVtxDXY_, CocktailTrkVtxDZ_;
-    int CocktailCharge_;
-    float MuonSpecPt_, MuonSpecEta_, MuonSpecPhi_, MuonSpecE_;
-    int MuonSpecCharge_;
-		int TrackerCharge_;
     
   };
 }
