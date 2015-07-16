@@ -32,6 +32,7 @@ namespace cat {
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
     bool checkPFJetId(const pat::Jet & jet);
+    bool checkPFJetIdTight(const pat::Jet & jet);
     void getJER(const double jetEta, double& cJER, double& cJERUp, double& cJERDn) const;
       
     std::vector<const reco::Candidate *> getAncestors(const reco::Candidate &c);
@@ -82,22 +83,31 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
   auto_ptr<vector<cat::Jet> >  out(new vector<cat::Jet>());
   for (const pat::Jet &aPatJet : *src) {
 
-    bool looseId = checkPFJetId( aPatJet );
-
     cat::Jet aJet(aPatJet);
-    aJet.setLooseId( looseId );
 
+    bool looseId = checkPFJetId( aPatJet );
+    bool tightId = checkPFJetIdTight( aPatJet );
+    aJet.setLooseId( looseId );
+    aJet.setTightId( tightId );
+    
     if( aPatJet.hasUserFloat("pileupJetId:fullDiscriminant") )
       aJet.setPileupJetId( aPatJet.userFloat("pileupJetId:fullDiscriminant") );
 
+    //    aJet.addBDiscriminatorPair( aPatJet.bDiscriminator(btagNames_.at(0)) );
+
     if (btagNames_.size() == 0){
       aJet.setBDiscriminators(aPatJet.getPairDiscri());
+      // const std::vector<std::pair<std::string, float> > bpair = aPatJet.getPairDiscri();
+      // for (unsigned int i =0; i < bpair.size(); i++){
+      // 	cout << bpair[i].first <<endl;
+      // }
     }
     else {
       for(unsigned int i = 0; i < btagNames_.size(); i++){
-	aJet.addBDiscriminatorPair(std::make_pair(btagNames_.at(i), aPatJet.bDiscriminator(btagNames_.at(i)) ));
+    	aJet.addBDiscriminatorPair(std::make_pair(btagNames_.at(i), aPatJet.bDiscriminator(btagNames_.at(i)) ));
       }
     }
+    //cout << "jet pt " << aJet.pt() <<" eta " << aJet.eta() <<endl;
 
     //secondary vertex b-tagging information
     if( aPatJet.hasUserFloat("vtxMass") ) aJet.setVtxMass( aPatJet.userFloat("vtxMass") );
@@ -111,7 +121,7 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
     aJet.setPartonPdgId(partonPdgId);
 
     // setting JEC uncertainty
-    if (jecUnc){
+    if (payloadName_.size()){
       jecUnc->setJetEta(aJet.eta());
       jecUnc->setJetPt(aJet.pt()); // here you must use the CORRECTED jet pt
       double unc = jecUnc->getUncertainty(true);
@@ -166,6 +176,19 @@ bool cat::CATJetProducer::checkPFJetId(const pat::Jet & jet){
        &&(jet.chargedEmEnergyFraction() < 0.99 || abs(jet.eta()) > 2.4)
        ) out = true;
 
+  return out;
+}
+
+bool cat::CATJetProducer::checkPFJetIdTight(const pat::Jet & jet){
+  //Tight PF Jet id
+  bool out = false;
+  if ( jet.neutralHadronEnergyFraction() < 0.90
+       &&jet.neutralEmEnergyFraction() < 0.90
+       &&jet.numberOfDaughters() > 1
+       &&(jet.chargedHadronEnergyFraction() > 0 || abs(jet.eta()) > 2.4)
+       &&(jet.chargedMultiplicity() > 0 || abs(jet.eta()) > 2.4)
+       &&(jet.chargedEmEnergyFraction() < 0.90 || abs(jet.eta()) > 2.4)
+       ) out = true;
   return out;
 }
 

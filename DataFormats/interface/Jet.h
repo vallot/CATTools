@@ -5,6 +5,7 @@
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "CATTools/DataFormats/interface/Particle.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
+#include "DataFormats/PatCandidates/interface/JetCorrFactors.h"
 
 #include <string>
 #include <boost/array.hpp>
@@ -26,6 +27,7 @@ namespace cat {
     virtual ~Jet();
 
     bool LooseId() const { return LooseId_; }
+    bool TightId() const { return TightId_; }
     float pileupJetId() const { return pileupJetId_; }
 
     /// \return secondary vertex b-tagging information
@@ -41,8 +43,8 @@ namespace cat {
     // pdgId of the matched MC parton from hard scattering (i.e. the closest quark or gluon of status == 3)
     int partonPdgId() const{ return partonPdgId_;}
 
-
-    void setLooseId(bool id) { LooseId_ = id; } 
+    void setLooseId(bool id) { LooseId_ = id; }
+    void setTightId(bool id) { TightId_ = id; }
     void setPileupJetId(float f) { pileupJetId_ = f;}
 
     void setVtxMass(float f) { vtxMass_ = f;}
@@ -55,10 +57,13 @@ namespace cat {
     void setPartonPdgId(int i) { partonPdgId_ = i; }
 
     float bDiscriminator(const std::string &theLabel) const;
+    const std::vector<std::pair<std::string, float> > & getPairDiscri() const {return pairDiscriVector_; }
+    void bDiscriminatorPrint() const;
+    
     void setBDiscriminators(const std::vector<std::pair<std::string, float> > & ids) { pairDiscriVector_ = ids; }
-    void addBDiscriminatorPair(const std::pair<std::string, float> & thePair) {
-      pairDiscriVector_.push_back(thePair);
-    }
+    void addBDiscriminatorPair(const std::pair<std::string, float> & thePair) {pairDiscriVector_.push_back(thePair);}
+    /* void addBDiscriminatorPair(float f) { pairDiscriVector_ = f;} */
+    /* float bDiscriminator() const {return  pairDiscriVector_;} */
 
     void setShiftedEnDown(float f) { shiftedEnDown_ = f;}
     void setShiftedEnUp(float f) { shiftedEnUp_ = f;}
@@ -77,13 +82,16 @@ namespace cat {
     //edm::FwdRef<reco::GenJetCollection> const & genJetFwdRef() const { return genJetFwdRef_; }
 
   private:
+
     edm::FwdRef<reco::GenJetCollection>  genJetFwdRef_;
 
-    bool LooseId_; 
+    bool LooseId_;
+    bool TightId_;
     float pileupJetId_;
 
     /// b tagging discriminators
     std::vector<std::pair<std::string, float> >  pairDiscriVector_;
+    //float pairDiscriVector_;
      /// b tagging information
     float vtxMass_;
     int vtxNtracks_;

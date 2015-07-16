@@ -15,7 +15,7 @@
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "FWCore/Utilities/interface/isFinite.h"
-//#include "DataFormats/MuonReco/interface/MuonCocktails.h" // for cocktail muon
+#include "DataFormats/MuonReco/interface/MuonCocktails.h" // for cocktail muon
 
 using namespace edm;
 using namespace std;
@@ -99,25 +99,29 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
 
     double pt    = aPatMuon.pt() ;
 
-    double chIso04 = aPatMuon.chargedHadronIso();
-    double nhIso04 = aPatMuon.neutralHadronIso();
-    double phIso04 = aPatMuon.photonIso();
-    double puIso04 = aPatMuon.puChargedHadronIso();
+    double chIso04 = aPatMuon.pfIsolationR04().sumChargedHadronPt;
+    double nhIso04 = aPatMuon.pfIsolationR04().sumNeutralHadronEt;
+    double phIso04 = aPatMuon.pfIsolationR04().sumPhotonEt;
+    double puIso04 = aPatMuon.pfIsolationR04().sumPUPt;
     aMuon.setChargedHadronIso04( chIso04 );
     aMuon.setNeutralHadronIso04( nhIso04 );
     aMuon.setPhotonIso04( phIso04 );
     aMuon.setPUChargedHadronIso04( puIso04 );
     aMuon.setrelIso(0.4, chIso04, nhIso04, phIso04, puIso04, pt);
 
-    double chIso03 = aPatMuon.userIsolation("pat::User1Iso");
-    double nhIso03 = aPatMuon.userIsolation("pat::User2Iso");
-    double phIso03 = aPatMuon.userIsolation("pat::User3Iso");
-    double puIso03 = aPatMuon.userIsolation("pat::User4Iso");
+    double chIso03 = aPatMuon.pfIsolationR03().sumChargedHadronPt;
+    double nhIso03 = aPatMuon.pfIsolationR03().sumNeutralHadronEt;
+    double phIso03 = aPatMuon.pfIsolationR03().sumPhotonEt;
+    double puIso03 = aPatMuon.pfIsolationR03().sumPUPt;
     aMuon.setChargedHadronIso03( chIso03 );
     aMuon.setNeutralHadronIso03( nhIso03 );
     aMuon.setPhotonIso03( phIso03 );
     aMuon.setPUChargedHadronIso03( puIso03 );
     aMuon.setrelIso(0.3, chIso03, nhIso03, phIso03, puIso03, pt);
+    
+    // cout << "aPatMuon.chargedHadronIso() " << aPatMuon.chargedHadronIso()
+    // 	 << " aPatMuon.pfIsolationR04 " <<  aPatMuon.pfIsolationR04().sumChargedHadronPt
+    // 	 << endl;
 
     aMuon.setIsGlobalMuon( aPatMuon.isGlobalMuon() );
     aMuon.setIsPFMuon( aPatMuon.isPFMuon() );
@@ -146,91 +150,7 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     aMuon.setDxy( dxy );
     double dz = aPatMuon.muonBestTrack()->dz(pv.position()); // fabs() removed
     aMuon.setDz( dz ); 
- 
-    /// SKTree variables ///
-    
-    aMuon.setEcalVetoIso( aPatMuon.isolationR03().emVetoEt );
-    aMuon.setHcalVetoIso( aPatMuon.isolationR03().hadVetoEt );
-    if( aPatMuon.track().isNonnull() && aPatMuon.track().isAvailable() ){
-      aMuon.setTrkVx( aPatMuon.track()->vx() );
-      aMuon.setTrkVy( aPatMuon.track()->vy() );
-      aMuon.setTrkVz( aPatMuon.track()->vz() );
-      aMuon.setTrackerCharge( aPatMuon.track()->charge() );
-    }
-    else{
-      aMuon.setTrkVx( -999. );
-      aMuon.setTrkVy( -999. );
-      aMuon.setTrkVz( -999. );
-      aMuon.setTrackerCharge( -999. );
-    }
-    float genparPt = -999.;
-    float genparEta= -999.;
-    float genparPhi= -999.;
-    if(runOnMC_){
-      //aPatMuon.genParticleRefs().size() should be 0 or 1
-      for(uint igen = 0 ; igen < aPatMuon.genParticleRefs().size() ; ++igen ){
-        if(aPatMuon.genParticleRef(igen).isNonnull()){
-          genparPt = aPatMuon.genParticle(igen)->pt();
-          genparEta= aPatMuon.genParticle(igen)->eta();
-          genparPhi= aPatMuon.genParticle(igen)->phi();
-        }
-      }
-    }
-    aMuon.setMatchedGenParticlePt( genparPt );
-    aMuon.setMatchedGenParticleEta( genparEta );
-    aMuon.setMatchedGenParticlePhi( genparPhi );
-    aMuon.setIsTracker( aPatMuon.isTrackerMuon() );
-    /*
-    /// Cocktail Muon ///
-    double bct_vtxDistXY_   = -9999., bct_vtxDistZ_    = -9999.;
-    if( aPatMuon.isGlobalMuon() ){
-      reco::TrackRef cocktail_track = (muon::tevOptimized(aPatMuon, 200, 17., 40., 0.25)).first;
-      aMuon.setCocktailPt( cocktail_track->pt() );
-      aMuon.setCocktailEta( cocktail_track->eta() );
-      aMuon.setCocktailPhi( cocktail_track->phi() );
-      aMuon.setCocktailGlobalChi2( cocktail_track->normalizedChi2() );
-      aMuon.setCocktailCharge( cocktail_track->charge() );
-      if( recVtxs.isValid() ){
-        double bct_bestdist3D = 999999.;
-        for( reco::VertexCollection::const_iterator v_it=recVtxs->begin() ; v_it!=recVtxs->end() ; ++v_it ){
-          double bct_distXY = cocktail_track->dxy(v_it->position());
-          double bct_distZ  = cocktail_track->dz(v_it->position());
-          double bct_dist3D = sqrt( pow(bct_distXY,2) + pow(bct_distZ,2) );
-          if( bct_dist3D < bct_bestdist3D ){
-            bct_bestdist3D = bct_dist3D;
-            bct_vtxDistXY_   = bct_distXY;
-            bct_vtxDistZ_    = bct_distZ;
-          }
-        }
-      }
-      aMuon.setCocktailTrkVtxDXY( bct_vtxDistXY_ );
-      aMuon.setCocktailTrkVtxDZ( bct_vtxDistZ_ );
-    }
-    else{
-      aMuon.setCocktailPt( -999. );
-      aMuon.setCocktailEta( -999. );
-      aMuon.setCocktailPhi( -999. );
-      aMuon.setCocktailGlobalChi2( -999. );
-      aMuon.setCocktailCharge( -999. );
-      aMuon.setCocktailTrkVtxDXY( -999. );
-      aMuon.setCocktailTrkVtxDZ( -999. );
-    }
-		*/
-    /// MuonSpec Muon ///
-    if( aPatMuon.isStandAloneMuon() ){
-      aMuon.setMuonSpecPt( aPatMuon.standAloneMuon()->pt() );
-      aMuon.setMuonSpecEta( aPatMuon.standAloneMuon()->eta() );
-      aMuon.setMuonSpecPhi( aPatMuon.standAloneMuon()->phi() );
-      aMuon.setMuonSpecCharge( aPatMuon.standAloneMuon()->charge() );
-    }
-    else{
-      aMuon.setMuonSpecPt( -999. );
-      aMuon.setMuonSpecEta( -999. );
-      aMuon.setMuonSpecPhi( -999. );
-      aMuon.setMuonSpecCharge( -999. );
-      aMuon.setMuonSpecE( -999. );
-    }
-    
+
     out->push_back(aMuon);
   }
 
