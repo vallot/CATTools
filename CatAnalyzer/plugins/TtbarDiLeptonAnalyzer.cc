@@ -55,6 +55,7 @@ private:
   edm::EDGetTokenT<edm::View<cat::Jet> >      jetToken_;
   edm::EDGetTokenT<edm::View<cat::MET> >      metToken_;
   edm::EDGetTokenT<reco::VertexCollection >   vtxToken_;
+  edm::EDGetTokenT<reco::GenParticleCollection> mcLabel_;
 
   TTree * ttree_;
   int b_njet, b_nbjet, b_step, b_channel;
@@ -63,7 +64,8 @@ private:
   TtFullLepKinSolver* solver;
   double tmassbegin_, tmassend_, tmassstep_;
   vector<double> nupars_;
-
+  
+  bool runOnMC_;
 };
 //
 // constructors and destructor
@@ -75,6 +77,7 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   jetToken_  = consumes<edm::View<cat::Jet> >(iConfig.getParameter<edm::InputTag>("jets"));
   metToken_  = consumes<edm::View<cat::MET> >(iConfig.getParameter<edm::InputTag>("mets"));     
   vtxToken_  = consumes<reco::VertexCollection >(iConfig.getParameter<edm::InputTag>("vertices"));
+  mcLabel_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcLabel"));
 
   tmassbegin_     = iConfig.getParameter<double>       ("tmassbegin");
   tmassend_       = iConfig.getParameter<double>       ("tmassend");
@@ -93,8 +96,8 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
 }
 TtbarDiLeptonAnalyzer::~TtbarDiLeptonAnalyzer()
 {
-   // do anything here that needs to be done at desctruction time
-   // (e.g. close files, deallocate resources etc.)
+  // do anything here that needs to be done at desctruction time
+  // (e.g. close files, deallocate resources etc.)
 }
 
 //
@@ -104,6 +107,8 @@ TtbarDiLeptonAnalyzer::~TtbarDiLeptonAnalyzer()
 // ------------ method called for each event  ------------
 void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
+  runOnMC_ = !iEvent.isRealData();
+
   edm::Handle<reco::VertexCollection> vertices;
   iEvent.getByToken(vtxToken_, vertices);
   if (vertices->empty()) return; // skip the event if no PV found
@@ -120,8 +125,15 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
   edm::Handle<edm::View<cat::MET> > mets;
   iEvent.getByToken(metToken_, mets);
-
-
+  
+  edm::Handle<reco::GenParticleCollection> genParticles;
+  if (runOnMC_){
+    iEvent.getByToken(mcLabel_,genParticles);
+    for (auto g : *genParticles) {
+      cout <<"g.pt() " << g.pt() <<endl; 
+    }
+  }
+  
   vector<cat::Muon> selectedMuons = selectMuons( muons.product() );
   vector<cat::Electron> selectedElectrons = selectElecs( electrons.product() );
 
@@ -180,14 +192,14 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       nu21 = leafToTLorentzVector(nuSol2.neutrino);
       nu22 = leafToTLorentzVector(nuSol2.neutrinoBar);
       if (weight1 > maxweight || weight2 > maxweight){
-      if(weight1>weight2 && weight1>0){
-	maxweight = weight1; kinj1=(*jet1); kinj2=(*jet2); nu1 = nu11; nu2 = nu12; kin++;
-	top1 = recolep[0]+recojet1+nu11; top2 = recolep[1]+recojet2+nu12;
-      }
-      else if(weight2>weight1 && weight2>0){
-	maxweight = weight2; kinj1=(*jet2); kinj2=(*jet1); nu1 = nu21; nu2 = nu22; kin++;
-	top1 = recolep[0]+recojet2+nu21; top2 = recolep[1]+recojet1+nu22;
-      }
+	if(weight1>weight2 && weight1>0){
+	  maxweight = weight1; kinj1=(*jet1); kinj2=(*jet2); nu1 = nu11; nu2 = nu12; kin++;
+	  top1 = recolep[0]+recojet1+nu11; top2 = recolep[1]+recojet2+nu12;
+	}
+	else if(weight2>weight1 && weight2>0){
+	  maxweight = weight2; kinj1=(*jet2); kinj2=(*jet1); nu1 = nu21; nu2 = nu22; kin++;
+	  top1 = recolep[0]+recojet2+nu21; top2 = recolep[1]+recojet1+nu22;
+	}
       }
     }
   }
@@ -236,12 +248,12 @@ vector<cat::Jet> TtbarDiLeptonAnalyzer::selectJets(const edm::View<cat::Jet>* je
 {
   vector<cat::Jet> seljets;
   for (auto jet : *jets) {
-	if (!jet.LooseId()) continue;
-	if (jet.pt() <= 30.) continue;
-	if (fabs(jet.eta()) >= 2.4)	continue;
+    if (!jet.LooseId()) continue;
+    if (jet.pt() <= 30.) continue;
+    if (fabs(jet.eta()) >= 2.4)	continue;
     if (jet.tlv().DeltaR(recolep[0]) <= 0.4) continue;
     if (jet.tlv().DeltaR(recolep[1]) <= 0.4) continue;
-   // printf("jet with pt %4.1f\n", jet.pt());
+    // printf("jet with pt %4.1f\n", jet.pt());
     seljets.push_back(jet);
   }
   return seljets;
@@ -251,8 +263,8 @@ vector<cat::Jet> TtbarDiLeptonAnalyzer::selectBJets(vector<cat::Jet> & jets )
 {
   vector<cat::Jet> selBjets;
   for (auto jet : jets) {
-	float jets_CSVInclV2 = jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
-	if (jets_CSVInclV2 <= 0.814) continue;	
+    float jets_CSVInclV2 = jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
+    if (jets_CSVInclV2 <= 0.814) continue;	
     //printf("b jet with pt %4.1f\n", jet.pt());
     selBjets.push_back(jet);
   }
@@ -266,16 +278,16 @@ float TtbarDiLeptonAnalyzer::passingSteps(int channel, float met, float ll_mass,
   if (ll_charge > 0.) return step;
   step = 1;
   if (channel != 1){
-	if ((ll_mass > 76) and (ll_mass < 106)) return step;
+    if ((ll_mass > 76) and (ll_mass < 106)) return step;
   }
   step = 2;
   if (selectedJets_size < 2) return step;
   step = 3;
   if (channel == 1){
-	step = 4;
+    step = 4;
   }
   else{
-	if (met <= 40.) return step;
+    if (met <= 40.) return step;
   }
   step = 4;
   if (btag <= 0) return step;
