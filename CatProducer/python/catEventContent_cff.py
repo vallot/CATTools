@@ -3,6 +3,7 @@ import FWCore.ParameterSet.Config as cms
 catEventContent = cms.untracked.vstring()
 catEventContentMC = cms.untracked.vstring()
 catEventContentAODMC = cms.untracked.vstring()
+catEventContentSecVertexs = cms.untracked.vstring()
 
 catEventContent.extend([
     'drop *',
@@ -11,7 +12,6 @@ catEventContent.extend([
     'keep *_catPhotons_*_*',
     'keep *_catJets_*_*',
     'keep *_catMETs_*_*',
-    'keep *_catSecVertexs_*_*',
     'keep *_offlineSlimmedPrimaryVertices_*_*',
     'keep *_recoEventInfo_*_*',
     'drop *_shifted*_*_*',
@@ -29,4 +29,8 @@ catEventContentMC.extend([
 
 catEventContentAODMC.extend([
     'keep *_catGenTops_*_*',
+    ])
+
+catEventContentSecVertexs.extend([
+    'keep *_catSecVertexs_*_*',
     ])

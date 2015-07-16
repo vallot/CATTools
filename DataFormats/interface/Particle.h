@@ -5,6 +5,8 @@
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "DataFormats/PatCandidates/interface/Particle.h"
 
+#include "TLorentzVector.h"
+
 // Define typedefs for convenience
 namespace cat {
   class Particle;
@@ -24,6 +26,8 @@ namespace cat {
     const reco::GenParticle * genParticle() const {return genParticleRef_.get();}
     void setGenParticleRef(reco::GenParticleRef gj){ genParticleRef_ = gj;}
 
+    TLorentzVector tlv() const {return TLorentzVector(this->px(), this->py(),this->pz(),this->energy());}
+      
   private:
 
     reco::GenParticleRef  genParticleRef_;

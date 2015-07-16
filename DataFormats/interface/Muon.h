@@ -31,6 +31,7 @@ namespace cat {
     bool isGlobalMuon() const { return isGlobalMuon_; }
     bool isPFMuon() const { return isPFMuon_; }
     bool isTightMuon() const { return isTightMuon_; }
+    bool isMediumMuon() const { return isMediumMuon_; }
     bool isLooseMuon() const { return isLooseMuon_; } 
     bool isSoftMuon() const { return isSoftMuon_; } 
 
@@ -81,6 +82,7 @@ namespace cat {
     void setIsGlobalMuon(bool d) { isGlobalMuon_ = d; }
     void setIsPFMuon(bool d) { isPFMuon_ = d; }
     void setIsTightMuon(bool d) { isTightMuon_ = d; }
+    void setIsMediumMuon(bool d) { isMediumMuon_ = d; }
     void setIsLooseMuon(bool d) { isLooseMuon_ = d; }
     void setIsSoftMuon(bool d) { isSoftMuon_ = d; }
      
@@ -108,9 +110,6 @@ namespace cat {
     float TrkVx() const { return TrkVx_; }
     float TrkVy() const { return TrkVy_; }
     float TrkVz() const { return TrkVz_; }
-    float MatchedGenParticlePt() const { return MatchedGenParticlePt_; }
-    float MatchedGenParticleEta() const { return MatchedGenParticleEta_; }
-    float MatchedGenParticlePhi() const { return MatchedGenParticlePhi_; }
     int IsTracker() const { return IsTracker_; }
     float CocktailPt() const { return CocktailPt_; }
     float CocktailEta() const { return CocktailEta_; }
@@ -124,16 +123,13 @@ namespace cat {
     float MuonSpecPhi() const { return MuonSpecPhi_; }
     int MuonSpecCharge() const { return MuonSpecCharge_; }
     float MuonSpecE() const { return MuonSpecE_; }
-		float TrackerCharge() const { return TrackerCharge_; }   
+		int TrackerCharge() const { return TrackerCharge_; }   
  
     void setEcalVetoIso(float f) { EcalVetoIso_ = f; }
     void setHcalVetoIso(float f) { HcalVetoIso_ = f; }
     void setTrkVx(float f) { TrkVx_ = f; }
     void setTrkVy(float f) { TrkVy_ = f; }
     void setTrkVz(float f) { TrkVz_ = f; }
-    void setMatchedGenParticlePt(float f) { MatchedGenParticlePt_ = f; }
-    void setMatchedGenParticleEta(float f) { MatchedGenParticleEta_ = f; }
-    void setMatchedGenParticlePhi(float f) { MatchedGenParticlePhi_ = f; }
     void setIsTracker(int i) { IsTracker_ = i; }
     void setCocktailPt(float f) {  CocktailPt_ = f; }
     void setCocktailEta(float f) {  CocktailEta_ = f; }
@@ -147,7 +143,7 @@ namespace cat {
     void setMuonSpecPhi(float f) {  MuonSpecPhi_ = f; }
     void setMuonSpecCharge(int i) {  MuonSpecCharge_ = i; }
     void setMuonSpecE(float f) {  MuonSpecE_ = f; }
-		void setTrackerCharge(float f) { TrackerCharge_ = f; }
+		void setTrackerCharge(int i) { TrackerCharge_ = i; }
     
   private:
 
@@ -169,6 +165,7 @@ namespace cat {
     bool isGlobalMuon_; 
     bool isPFMuon_; 
     bool isTightMuon_; 
+    bool isMediumMuon_;
     bool isLooseMuon_; 
     bool isSoftMuon_;
 
@@ -191,13 +188,12 @@ namespace cat {
     
     float EcalVetoIso_, HcalVetoIso_;
     float TrkVx_, TrkVy_, TrkVz_;
-    float MatchedGenParticlePt_, MatchedGenParticleEta_, MatchedGenParticlePhi_;
     int IsTracker_;
     float CocktailPt_, CocktailEta_, CocktailPhi_, CocktailGlobalChi2_, CocktailTrkVtxDXY_, CocktailTrkVtxDZ_;
     int CocktailCharge_;
     float MuonSpecPt_, MuonSpecEta_, MuonSpecPhi_, MuonSpecE_;
     int MuonSpecCharge_;
-		float TrackerCharge_;
+		int TrackerCharge_;
     
   };
 }
