@@ -98,8 +98,8 @@ namespace cat {
 
     void setShiftedEnDown(float f) { shiftedEnDown_ = f;}
     void setShiftedEnUp(float f) { shiftedEnUp_ = f;}
-    float shiftedEnDown() {return  shiftedEnDown_;}
-    float shiftedEnUp()   {return  shiftedEnUp_;}
+    float shiftedEnDown() const {return  shiftedEnDown_;}
+    float shiftedEnUp() const {return  shiftedEnUp_;}
 
     /// SKTree variables ///
     
