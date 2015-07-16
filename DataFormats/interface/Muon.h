@@ -23,9 +23,15 @@ namespace cat {
     virtual ~Muon();
 
     /// cat default variables ///
-    
+   
+    float relIso(float dR=0.3 ) const {
+      if( dR < 0.35) return relIso03_;
+      else return relIso04_;
+    } 
     bool isGlobalMuon() const { return isGlobalMuon_; }
     bool isPFMuon() const { return isPFMuon_; }
+    bool isTightMuon() const { return isTightMuon_; }
+    bool isLooseMuon() const { return isLooseMuon_; } 
     bool isSoftMuon() const { return isSoftMuon_; } 
 
     bool mcMatched() const { return mcMatched_; }
@@ -40,6 +46,11 @@ namespace cat {
     float dxy() const { return dxy_; }
     float dz() const { return dz_; }
 
+    void setrelIso(float dR, double chIso, double nhIso, double phIso, double puIso, double pt) {
+      float relIso = ( chIso + std::max( 0.0, nhIso + phIso - 0.5 * puIso) ) / pt;
+      if( dR < 0.35) relIso03_ = relIso; 
+      else  relIso04_ = relIso; 
+    }
     float chargedHadronIso(float dR=0.3) const {
       if( dR < 0.35) return chargedHadronIso03_;
       else return chargedHadronIso04_;
@@ -69,6 +80,8 @@ namespace cat {
 
     void setIsGlobalMuon(bool d) { isGlobalMuon_ = d; }
     void setIsPFMuon(bool d) { isPFMuon_ = d; }
+    void setIsTightMuon(bool d) { isTightMuon_ = d; }
+    void setIsLooseMuon(bool d) { isLooseMuon_ = d; }
     void setIsSoftMuon(bool d) { isSoftMuon_ = d; }
      
     void setMCMatched(bool m) { mcMatched_ = m; }
@@ -95,19 +108,26 @@ namespace cat {
     float TrkVx() const { return TrkVx_; }
     float TrkVy() const { return TrkVy_; }
     float TrkVz() const { return TrkVz_; }
-    int IsTracker() const { return IsTracker_; }
- 
+    float MatchedGenParticlePt() const { return MatchedGenParticlePt_; }
+    float MatchedGenParticleEta() const { return MatchedGenParticleEta_; }
+    float MatchedGenParticlePhi() const { return MatchedGenParticlePhi_; }
+   
     void setEcalVetoIso(float f) { EcalVetoIso_ = f; }
     void setHcalVetoIso(float f) { HcalVetoIso_ = f; }
     void setTrkVx(float f) { TrkVx_ = f; }
     void setTrkVy(float f) { TrkVy_ = f; }
     void setTrkVz(float f) { TrkVz_ = f; }
-    void setIsTracker(int i) { IsTracker_ = i; }
-    
+    void setMatchedGenParticlePt(float f) { MatchedGenParticlePt_ = f; }
+    void setMatchedGenParticleEta(float f) { MatchedGenParticleEta_ = f; }
+    void setMatchedGenParticlePhi(float f) { MatchedGenParticlePhi_ = f; }    
+
   private:
 
     /// cat default variables ///
     
+    float relIso03_;
+    float relIso04_;
+
     float chargedHadronIso03_;
     float puChargedHadronIso03_;
     float neutralHadronIso03_;
@@ -120,6 +140,8 @@ namespace cat {
 
     bool isGlobalMuon_; 
     bool isPFMuon_; 
+    bool isTightMuon_; 
+    bool isLooseMuon_;
     bool isSoftMuon_;
 
     bool mcMatched_;
@@ -141,8 +163,8 @@ namespace cat {
     
     float EcalVetoIso_, HcalVetoIso_;
     float TrkVx_, TrkVy_, TrkVz_;
-    int IsTracker_;
-    
+    float MatchedGenParticlePt_, MatchedGenParticleEta_, MatchedGenParticlePhi_; 
+
   };
 }
 

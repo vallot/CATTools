@@ -97,6 +97,8 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     }
     ++j;
 
+    double pt = aPatMuon.pt() ;
+
     double chIso04 = aPatMuon.pfIsolationR04().sumChargedHadronPt;
     double nhIso04 = aPatMuon.pfIsolationR04().sumNeutralHadronEt;
     double phIso04 = aPatMuon.pfIsolationR04().sumPhotonEt;
@@ -105,6 +107,7 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     aMuon.setNeutralHadronIso04( nhIso04 );
     aMuon.setPhotonIso04( phIso04 );
     aMuon.setPUChargedHadronIso04( puIso04 );
+    aMuon.setrelIso(0.4, chIso04, nhIso04, phIso04, puIso04, pt);
 
     double chIso03 = aPatMuon.pfIsolationR03().sumChargedHadronPt;
     double nhIso03 = aPatMuon.pfIsolationR03().sumNeutralHadronEt;
@@ -114,9 +117,12 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     aMuon.setNeutralHadronIso03( nhIso03 );
     aMuon.setPhotonIso03( phIso03 );
     aMuon.setPUChargedHadronIso03( puIso03 );
+    aMuon.setrelIso(0.3, chIso03, nhIso03, phIso03, puIso03, pt);
     
     aMuon.setIsGlobalMuon( aPatMuon.isGlobalMuon() );
     aMuon.setIsPFMuon( aPatMuon.isPFMuon() );
+    aMuon.setIsTightMuon( aPatMuon.isTightMuon(pv) );
+    aMuon.setIsLooseMuon( aPatMuon.isLooseMuon() );
     aMuon.setIsSoftMuon( aPatMuon.isSoftMuon(pv) );
 
     if (runOnMC_){
@@ -155,8 +161,23 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
       aMuon.setTrkVy( -999. );
       aMuon.setTrkVz( -999. );
     }
-    aMuon.setIsTracker( aPatMuon.isTrackerMuon() );
-    
+    float genparPt = -999.;
+    float genparEta= -999.;
+    float genparPhi= -999.;
+    if(runOnMC_){
+      //aPatMuon.genParticleRefs().size() should be 0 or 1
+      for(uint igen = 0 ; igen < aPatMuon.genParticleRefs().size() ; ++igen ){
+        if(aPatMuon.genParticleRef(igen).isNonnull()){
+          genparPt = aPatMuon.genParticle(igen)->pt();
+          genparEta= aPatMuon.genParticle(igen)->eta();
+          genparPhi= aPatMuon.genParticle(igen)->phi();
+        }
+      }
+    }
+    aMuon.setMatchedGenParticlePt( genparPt );
+    aMuon.setMatchedGenParticleEta( genparEta );
+    aMuon.setMatchedGenParticlePhi( genparPhi ); 
+
     out->push_back(aMuon);
   }
 
