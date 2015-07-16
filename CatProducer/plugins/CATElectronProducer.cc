@@ -14,6 +14,10 @@
 #include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
 #include "FWCore/Utilities/interface/isFinite.h"
+#include "FWCore/Utilities/interface/transform.h"
+
+#include "RecoEgamma/EgammaTools/interface/ConversionTools.h"
+#include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
 
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "EgammaAnalysis/ElectronTools/interface/ElectronEffectiveArea.h"
@@ -35,30 +39,41 @@ namespace cat {
   private:
     float getEffArea( float dR, float scEta );
 
-    edm::EDGetTokenT<pat::ElectronCollection> src_;
-    edm::EDGetTokenT<pat::ElectronCollection> shiftedEnDownSrc_;
-    edm::EDGetTokenT<pat::ElectronCollection> shiftedEnUpSrc_;
+    edm::EDGetTokenT<edm::View<pat::Electron> > src_;
+    edm::EDGetTokenT<edm::View<pat::Electron> > shiftedEnDownSrc_;
+    edm::EDGetTokenT<edm::View<pat::Electron> > shiftedEnUpSrc_;
     edm::EDGetTokenT<reco::VertexCollection> vertexLabel_;
     edm::EDGetTokenT<reco::GenParticleCollection> mcLabel_;
     edm::EDGetTokenT<reco::BeamSpot> beamLineSrc_;
     edm::EDGetTokenT<double> rhoLabel_;
     bool runOnMC_;
  
-    std::vector<std::string> electronIDNames_;
+    typedef std::pair<std::string, edm::InputTag> NameTag;
+    std::vector<NameTag> elecIDSrcs_;
+    std::vector<edm::EDGetTokenT<edm::ValueMap<bool> > > elecIDTokens_;
   };
 
 } // namespace
 
 cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig) :
-  src_(consumes<pat::ElectronCollection>(iConfig.getParameter<edm::InputTag>("src"))),
-  shiftedEnDownSrc_(consumes<pat::ElectronCollection>(iConfig.getParameter<edm::InputTag>("shiftedEnDownSrc"))),
-  shiftedEnUpSrc_(consumes<pat::ElectronCollection>(iConfig.getParameter<edm::InputTag>("shiftedEnUpSrc"))),
+  src_(consumes<edm::View<pat::Electron> >(iConfig.getParameter<edm::InputTag>("src"))),
+  shiftedEnDownSrc_(consumes<edm::View<pat::Electron> >(iConfig.getParameter<edm::InputTag>("shiftedEnDownSrc"))),
+  shiftedEnUpSrc_(consumes<edm::View<pat::Electron> >(iConfig.getParameter<edm::InputTag>("shiftedEnUpSrc"))),
   vertexLabel_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexLabel"))),
   mcLabel_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcLabel"))),
   beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc"))),
   rhoLabel_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoLabel")))
 {
   produces<std::vector<cat::Electron> >();
+  if (iConfig.existsAs<edm::ParameterSet>("electronIDSources")) {
+    edm::ParameterSet idps = iConfig.getParameter<edm::ParameterSet>("electronIDSources");
+    std::vector<std::string> names = idps.getParameterNamesForType<edm::InputTag>();
+    for (std::vector<std::string>::const_iterator it = names.begin(), ed = names.end(); it != ed; ++it) {
+      auto inputTag = idps.getParameter<edm::InputTag>(*it);
+      elecIDSrcs_.push_back(NameTag(inputTag.instance(), inputTag));
+    }
+    elecIDTokens_ = edm::vector_transform(elecIDSrcs_, [this](NameTag const & tag){return mayConsume<edm::ValueMap<bool> >(tag.second);});
+  }
 }
 
 void 
@@ -68,11 +83,10 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
 
   runOnMC_ = !iEvent.isRealData();
 
-  Handle<pat::ElectronCollection> src;
+  Handle<edm::View<pat::Electron> > src;
   iEvent.getByToken(src_, src);
 
   Handle<reco::GenParticleCollection> genParticles;
-  iEvent.getByToken(mcLabel_,genParticles);
 
   Handle<reco::VertexCollection> recVtxs;
   iEvent.getByToken(vertexLabel_, recVtxs);
@@ -82,67 +96,111 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
   iEvent.getByToken(rhoLabel_, rhoHandle);
   double rhoIso = std::max(*(rhoHandle.product()), 0.0);
 
-  edm::Handle<pat::ElectronCollection> shiftedEnDownSrc;
-  edm::Handle<pat::ElectronCollection> shiftedEnUpSrc;
+  edm::Handle<edm::View<pat::Electron> > shiftedEnDownSrc;
+  edm::Handle<edm::View<pat::Electron> > shiftedEnUpSrc;
   if (runOnMC_){
+    iEvent.getByToken(mcLabel_,genParticles);
     iEvent.getByToken(shiftedEnDownSrc_, shiftedEnDownSrc);
     iEvent.getByToken(shiftedEnUpSrc_, shiftedEnUpSrc);
+  }
+  
+  std::vector<edm::Handle<edm::ValueMap<bool> > > idhandles;
+  std::vector<pat::Electron::IdPair>               ids;
+  idhandles.resize(elecIDSrcs_.size());
+  ids.resize(elecIDSrcs_.size());
+  for (size_t i = 0; i < elecIDSrcs_.size(); ++i) {
+    iEvent.getByToken(elecIDTokens_[i], idhandles[i]);
+    ids[i].first = elecIDSrcs_[i].first;
   }
 
   auto_ptr<vector<cat::Electron> >  out(new vector<cat::Electron>());
   int j = 0;
   for (const pat::Electron &aPatElectron : *src){
     cat::Electron aElectron(aPatElectron);
+    auto elecsRef = src->refAt(j);
 
     if (runOnMC_){
       aElectron.setShiftedEnDown(shiftedEnDownSrc->at(j).pt() );
       aElectron.setShiftedEnUp(shiftedEnUpSrc->at(j).pt() );
       aElectron.setGenParticleRef(aPatElectron.genParticleRef());
+      bool mcMatched = mcMatch( aPatElectron.p4(), genParticles );
+      aElectron.setMCMatched( mcMatched );
     }
-    ++j;
-
-    bool mcMatched = mcMatch( aPatElectron.p4(), genParticles );
-    aElectron.setMCMatched( mcMatched );
 
     aElectron.setChargedHadronIso04( aPatElectron.chargedHadronIso() );
     aElectron.setNeutralHadronIso04( aPatElectron.neutralHadronIso() );
     aElectron.setPhotonIso04( aPatElectron.photonIso() );
     aElectron.setPUChargedHadronIso04( aPatElectron.puChargedHadronIso() );
 
-    aElectron.setChargedHadronIso03( aPatElectron.userIsolation("pat::User1Iso") );
-    aElectron.setNeutralHadronIso03( aPatElectron.userIsolation("pat::User2Iso") );
-    aElectron.setPhotonIso03( aPatElectron.userIsolation("pat::User3Iso") );
-    aElectron.setPUChargedHadronIso03( aPatElectron.userIsolation("pat::User4Iso") );
-
+    aElectron.setChargedHadronIso03( aPatElectron.pfIsolationVariables().sumChargedHadronPt );
+    aElectron.setNeutralHadronIso03( aPatElectron.pfIsolationVariables().sumNeutralHadronEt );
+    aElectron.setPhotonIso03( aPatElectron.pfIsolationVariables().sumPhotonEt );
+    aElectron.setPUChargedHadronIso03( aPatElectron.pfIsolationVariables().sumPUPt );
+ 
     float scEta = aPatElectron.superCluster()->eta();
     double ecalpt = aPatElectron.ecalDrivenMomentum().pt();
 
     double elEffArea04 = getEffArea( 0.4, scEta);
-    double chIso04 = aPatElectron.chargedHadronIso();
-    double nhIso04 = aPatElectron.neutralHadronIso();
-    double phIso04 = aPatElectron.photonIso();
+    double chIso04 = aElectron.chargedHadronIso(0.4);
+    double nhIso04 = aElectron.neutralHadronIso(0.4);
+    double phIso04 = aElectron.photonIso(0.4);
     aElectron.setrelIso(0.4, chIso04, nhIso04, phIso04, elEffArea04, rhoIso, ecalpt);
 
     double elEffArea03 = getEffArea( 0.3, scEta);
-    double chIso03 = aPatElectron.userIsolation("pat::User1Iso");
-    double nhIso03 = aPatElectron.userIsolation("pat::User2Iso");
-    double phIso03 = aPatElectron.userIsolation("pat::User3Iso");
+    double chIso03 = aElectron.chargedHadronIso(0.3);
+    double nhIso03 = aElectron.neutralHadronIso(0.3);
+    double phIso03 = aElectron.photonIso(0.3);
     aElectron.setrelIso(0.3, chIso03, nhIso03, phIso03, elEffArea03, rhoIso, ecalpt);
-    
+
+    aElectron.setdr03TkSumPt(         aPatElectron.dr03TkSumPt());
+    aElectron.setdr03EcalRecHitSumEt( aPatElectron.dr03EcalRecHitSumEt());
+    aElectron.setdr03HcalTowerSumEt(  aPatElectron.dr03HcalTowerSumEt());
+    aElectron.setdr04TkSumPt(         aPatElectron.dr04TkSumPt());
+    aElectron.setdr04EcalRecHitSumEt( aPatElectron.dr04EcalRecHitSumEt());
+    aElectron.setdr04HcalTowerSumEt(  aPatElectron.dr04HcalTowerSumEt());
+
+    aElectron.setIsEB( aPatElectron.isEB());
+    aElectron.setIsEE( aPatElectron.isEE());
+    aElectron.setTrackerDrivenSeed( aPatElectron.trackerDrivenSeed());
+    aElectron.setEcalDrivenSeed( aPatElectron.ecalDrivenSeed());
+
+    aElectron.setdeltaPhiSuperClusterTrackAtVtx( aPatElectron.deltaPhiSuperClusterTrackAtVtx());
+    aElectron.setdeltaEtaSuperClusterTrackAtVtx( aPatElectron.deltaEtaSuperClusterTrackAtVtx());
+
+    aElectron.setSigmaIEtaIEta( aPatElectron.sigmaIetaIeta());
+
+    aElectron.sethadronicOverEm( aPatElectron.hadronicOverEm());
+    aElectron.setCaloEnergy( aPatElectron.caloEnergy());
+    aElectron.setESuperClusterOverP( aPatElectron.eSuperClusterOverP());
+    aElectron.setNumberOfBrems( aPatElectron.numberOfBrems());
+    aElectron.setFbrem( aPatElectron.fbrem());
+
+    aElectron.setdB( fabs(aPatElectron.dB()));
+    aElectron.setedB( fabs(aPatElectron.edB()));
+
+    aElectron.setgsfTrack( reco::GsfTrack(*(aPatElectron.gsfTrack())));
+
     aElectron.setscEta( aPatElectron.superCluster()->eta());
-    double dxy = fabs(aPatElectron.gsfTrack()->dxy(pv.position()));
-    aElectron.setdxy( dxy ) ;
-    double dz = fabs(aPatElectron.gsfTrack()->dz(pv.position()));
-    aElectron.setdz( dz ) ;
+    aElectron.setscPhi( aPatElectron.superCluster()->phi());
+    aElectron.setscPt( aPatElectron.superCluster()->energy() / cosh(aPatElectron.superCluster()->eta()));
+    aElectron.setscRawEnergy( aPatElectron.superCluster()->rawEnergy());
 
     aElectron.setrho( rhoIso) ;
     
     aElectron.setPassConversionVeto( aPatElectron.passConversionVeto() );
     aElectron.setIsGsfCtfScPixChargeConsistent( aPatElectron.isGsfCtfScPixChargeConsistent());
+    aElectron.setIsGsfScPixChargeConsistent( aPatElectron.isGsfScPixChargeConsistent());
+    aElectron.setIsGsfCtfChargeConsistent( aPatElectron.isGsfCtfChargeConsistent());
 
     aElectron.setElectronIDs(aPatElectron.electronIDs());
+    // for additional electron pids
+    for (size_t i = 0; i < elecIDSrcs_.size(); ++i){
+      ids[i].second = (*idhandles[i])[elecsRef];
+      aElectron.setElectronID(ids[i]);
+    }
 
     out->push_back(aElectron);
+    ++j;
   }
   iEvent.put(out);
 }
@@ -173,7 +231,7 @@ bool cat::CATElectronProducer::mcMatch( const reco::Candidate::LorentzVector& le
     const reco::Candidate* mother = aGenPart.mother();
     while( mother != 0 ){
       if( abs(mother->pdgId()) == 23 || abs(mother->pdgId()) == 24 ) {
-        out = true;
+	out = true;
       }
       mother = mother->mother();
     }

@@ -30,7 +30,7 @@ namespace cat {
   class GenTop : public reco::LeafCandidate{
   public:
     GenTop();
-    GenTop(const reco::GenParticle & aGenTop); 
+    /* GenTop(const reco::GenParticle & aGenTop);  */
     GenTop(const reco::Candidate & aGenTop); 
     virtual ~GenTop();
    

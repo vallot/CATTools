@@ -15,6 +15,7 @@
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "FWCore/Utilities/interface/isFinite.h"
+#include "DataFormats/MuonReco/interface/MuonCocktails.h" // for cocktail muon
 
 using namespace edm;
 using namespace std;
@@ -88,6 +89,8 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
   for (const pat::Muon & aPatMuon : *src) {
     cat::Muon aMuon(aPatMuon);
 
+    /// cat default variables ///
+    
     if (runOnMC_){
       aMuon.setShiftedEnDown(shiftedEnDownSrc->at(j).pt() );
       aMuon.setShiftedEnUp(shiftedEnUpSrc->at(j).pt() );
@@ -143,11 +146,82 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
       aMuon.setNumberOfValidPixelHits( aPatMuon.innerTrack()->hitPattern().numberOfValidPixelHits() );
       aMuon.setTackerLayersWithMeasurement( aPatMuon.innerTrack()->hitPattern().trackerLayersWithMeasurement() ); 
     }
-    double dxy = fabs(aPatMuon.muonBestTrack()->dxy(pv.position()));
+    double dxy = aPatMuon.muonBestTrack()->dxy(pv.position()); // fabs() removed
     aMuon.setDxy( dxy );
-    double dz = fabs(aPatMuon.muonBestTrack()->dz(pv.position()));
+    double dz = aPatMuon.muonBestTrack()->dz(pv.position()); // fabs() removed
     aMuon.setDz( dz ); 
  
+    /// SKTree variables ///
+    
+    aMuon.setEcalVetoIso( aPatMuon.isolationR03().emVetoEt );
+    aMuon.setHcalVetoIso( aPatMuon.isolationR03().hadVetoEt );
+    if( aPatMuon.track().isNonnull() && aPatMuon.track().isAvailable() ){
+      aMuon.setTrkVx( aPatMuon.track()->vx() );
+      aMuon.setTrkVy( aPatMuon.track()->vy() );
+      aMuon.setTrkVz( aPatMuon.track()->vz() );
+      aMuon.setTrackerCharge( aPatMuon.track()->charge() );
+    }
+    else{
+      aMuon.setTrkVx( -999. );
+      aMuon.setTrkVy( -999. );
+      aMuon.setTrkVz( -999. );
+      aMuon.setTrackerCharge( -999. );
+    }
+    aMuon.setIsTracker( aPatMuon.isTrackerMuon() );
+    /// Cocktail Muon ///
+    // double bct_vtxDistXY_   = -9999., bct_vtxDistZ_    = -9999.;
+    // if( aPatMuon.isGlobalMuon() ){
+    //   reco::TrackRef cocktail_track = ( muon::tevOptimized( aPatMuon.combinedMuon(),
+    //                                                         aPatMuon.track(),
+    //                                                         aPatMuon.tpfmsTrack(),
+    //                                                         aPatMuon.pickyTrack(),
+    //                                                         aPatMuon.dytTrack(),
+    //                                                         200., 17., 40., 0.25) ).first;      
+    //   aMuon.setCocktailPt( cocktail_track->pt() );
+    //   aMuon.setCocktailEta( cocktail_track->eta() );
+    //   aMuon.setCocktailPhi( cocktail_track->phi() );
+    //   aMuon.setCocktailGlobalChi2( cocktail_track->normalizedChi2() );
+    //   aMuon.setCocktailCharge( cocktail_track->charge() );
+    //   if( recVtxs.isValid() ){
+    //     double bct_bestdist3D = 999999.;
+    //     for( reco::VertexCollection::const_iterator v_it=recVtxs->begin() ; v_it!=recVtxs->end() ; ++v_it ){
+    //       double bct_distXY = cocktail_track->dxy(v_it->position());
+    //       double bct_distZ  = cocktail_track->dz(v_it->position());
+    //       double bct_dist3D = sqrt( pow(bct_distXY,2) + pow(bct_distZ,2) );
+    //       if( bct_dist3D < bct_bestdist3D ){
+    //         bct_bestdist3D = bct_dist3D;
+    //         bct_vtxDistXY_   = bct_distXY;
+    //         bct_vtxDistZ_    = bct_distZ;
+    //       }
+    //     }
+    //   }
+    //   aMuon.setCocktailTrkVtxDXY( bct_vtxDistXY_ );
+    //   aMuon.setCocktailTrkVtxDZ( bct_vtxDistZ_ );
+    // }
+    // else{
+    //   aMuon.setCocktailPt( -999. );
+    //   aMuon.setCocktailEta( -999. );
+    //   aMuon.setCocktailPhi( -999. );
+    //   aMuon.setCocktailGlobalChi2( -999. );
+    //   aMuon.setCocktailCharge( -999. );
+    //   aMuon.setCocktailTrkVtxDXY( -999. );
+    //   aMuon.setCocktailTrkVtxDZ( -999. );
+    // }
+    /// MuonSpec Muon ///
+    if( aPatMuon.isStandAloneMuon() ){
+      aMuon.setMuonSpecPt( aPatMuon.standAloneMuon()->pt() );
+      aMuon.setMuonSpecEta( aPatMuon.standAloneMuon()->eta() );
+      aMuon.setMuonSpecPhi( aPatMuon.standAloneMuon()->phi() );
+      aMuon.setMuonSpecCharge( aPatMuon.standAloneMuon()->charge() );
+    }
+    else{
+      aMuon.setMuonSpecPt( -999. );
+      aMuon.setMuonSpecEta( -999. );
+      aMuon.setMuonSpecPhi( -999. );
+      aMuon.setMuonSpecCharge( -999. );
+      aMuon.setMuonSpecE( -999. );
+    }
+    
     out->push_back(aMuon);
   }
 
@@ -199,3 +273,4 @@ bool cat::CATMuonProducer::MatchObjects( const reco::Candidate::LorentzVector& p
 #include "FWCore/Framework/interface/MakerMacros.h"
 using namespace cat;
 DEFINE_FWK_MODULE(CATMuonProducer);
+

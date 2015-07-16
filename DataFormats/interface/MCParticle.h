@@ -20,7 +20,7 @@ namespace cat {
   class MCParticle : public reco::LeafCandidate{
   public:
     MCParticle();
-    MCParticle(const reco::GenParticle & aMCParticle); 
+    //    MCParticle(const reco::GenParticle & aMCParticle); 
     MCParticle(const reco::Candidate & aMCParticle); 
     virtual ~MCParticle();
     

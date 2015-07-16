@@ -1,12 +1,12 @@
 from CATTools.CatProducer.catTemplate_cfg import *
 ## some options
-doSecVertex=True # for jpsi candidates
+doSecVertex=False # for jpsi candidates
     
 ## setting up arguements
 from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing ('python')
 options.register('runOnMC', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runOnMC: 1  default")
-options.register('useMiniAOD', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "useMiniAOD: 1  default")
+options.register('useMiniAOD', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "useMiniAOD: 1  default")
 options.register('globalTag', '', VarParsing.multiplicity.singleton, VarParsing.varType.string, "globalTag: 1  default")
 
 options.parseArguments()
@@ -14,12 +14,25 @@ runOnMC = options.runOnMC
 useMiniAOD = options.useMiniAOD
 globalTag = options.globalTag
 
+####################################################################
+#### setting up global tag
+####################################################################
+from Configuration.AlCa.autoCond import autoCond
+process.GlobalTag.globaltag = autoCond['run2_mc_FULL']
+if not runOnMC:
+    process.GlobalTag.globaltag = autoCond['run2_data']
 if globalTag:
-    process.GlobalTag.globaltag = cms.string(globalTag)
+    process.GlobalTag.globaltag = globalTag
 
+####################################################################
+#### setting up pat tools - miniaod step
+####################################################################
 from CATTools.CatProducer.patTools_cff import *
 patTool(process, runOnMC, useMiniAOD)
 
+####################################################################
+#### setting up cat tools
+####################################################################
 from CATTools.CatProducer.catTools_cff import *
 catTool(process, runOnMC, doSecVertex, useMiniAOD)
 
@@ -29,10 +42,19 @@ if runOnMC:
     process.out.outputCommands.extend(catEventContentMC)
     if not useMiniAOD:
         process.out.outputCommands.extend(catEventContentAODMC)
+if doSecVertex:
+    process.out.outputCommands.extend(catEventContentSecVertexs)
 
+####################################################################
+#### cmsRun options
+####################################################################
 process.maxEvents.input = options.maxEvents
-process.source.fileNames = options.inputFiles
-
+if options.inputFiles:
+    process.source.fileNames = options.inputFiles
+else :
+    from PhysicsTools.PatAlgos.patInputFiles_cff import filesRelValTTbarPileUpGENSIMRECO
+    process.source.fileNames = filesRelValTTbarPileUpGENSIMRECO
+    
 print "runOnMC =",runOnMC,"and useMiniAOD =",useMiniAOD
 print "process.GlobalTag.globaltag =",process.GlobalTag.globaltag
 
