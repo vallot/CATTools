@@ -17,6 +17,8 @@ process.ttll = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     electrons = cms.InputTag("catElectrons"),
     jets = cms.InputTag("catJets"),
     mets = cms.InputTag("catMETs"),
+    mcLabel = cms.InputTag("prunedGenParticles"),
+
     tmassbegin = cms.double(100),
     tmassend   = cms.double(300),
     tmassstep  = cms.double(  1),
