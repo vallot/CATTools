@@ -57,14 +57,13 @@ namespace cat {
     void setPartonPdgId(int i) { partonPdgId_ = i; }
 
     float bDiscriminator(const std::string &theLabel) const;
-    /// get vector of paire labelname-disciValue
     const std::vector<std::pair<std::string, float> > & getPairDiscri() const {return pairDiscriVector_; }
     void bDiscriminatorPrint() const;
     
     void setBDiscriminators(const std::vector<std::pair<std::string, float> > & ids) { pairDiscriVector_ = ids; }
-    void addBDiscriminatorPair(const std::pair<std::string, float> & thePair) {
-      pairDiscriVector_.push_back(thePair);
-    }
+    void addBDiscriminatorPair(const std::pair<std::string, float> & thePair) {pairDiscriVector_.push_back(thePair);}
+    /* void addBDiscriminatorPair(float f) { pairDiscriVector_ = f;} */
+    /* float bDiscriminator() const {return  pairDiscriVector_;} */
 
     void setShiftedEnDown(float f) { shiftedEnDown_ = f;}
     void setShiftedEnUp(float f) { shiftedEnUp_ = f;}
@@ -82,24 +81,17 @@ namespace cat {
     void setGenJetRef(const edm::FwdRef<reco::GenJetCollection> & gj){ genJetFwdRef_ = gj;}
     //edm::FwdRef<reco::GenJetCollection> const & genJetFwdRef() const { return genJetFwdRef_; }
 
-    void addJecFactorPair(const std::pair<std::string, float> & thePair) {
-      jecFactor_.push_back(thePair);
-    }
-    float jecFactor(const std::string &theLabel) const;
-    Jet correctedJet(const std::string &theLabel) const;
-
   private:
-
-    std::vector<std::pair<std::string, float> >   jecFactor_;
 
     edm::FwdRef<reco::GenJetCollection>  genJetFwdRef_;
 
-    bool LooseId_; 
+    bool LooseId_;
     bool TightId_;
     float pileupJetId_;
 
     /// b tagging discriminators
     std::vector<std::pair<std::string, float> >  pairDiscriVector_;
+    //float pairDiscriVector_;
      /// b tagging information
     float vtxMass_;
     int vtxNtracks_;

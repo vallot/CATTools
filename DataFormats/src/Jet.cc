@@ -33,21 +33,3 @@ void Jet::bDiscriminatorPrint() const {
     std::cout << pairDiscriVector_[i].first << " = " << pairDiscriVector_[i].second << std::endl;
   }
 }
-
-float Jet::jecFactor(const std::string & aLabel) const {
-  float jec = 0.;
-  for(unsigned int i=0; i!=jecFactor_.size(); i++){
-    if(jecFactor_[i].first == aLabel){
-      jec = jecFactor_[i].second;
-    }
-  }
-  return jec;
-}
-
-Jet Jet::correctedJet(const std::string &theLabel) const {
-  float jec = jecFactor(theLabel);
-  Jet correctedJet(*this);
-  //rescale p4 of the jet
-  correctedJet.setP4(jec*p4());
-  return correctedJet;
-}

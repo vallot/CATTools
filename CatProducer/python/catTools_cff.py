@@ -12,6 +12,8 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     catMCsource = "prunedGenParticles"
     catBeamSpot = "offlineBeamSpot"
     catRho = "fixedGridRhoAll"
+    btagNames = cms.vstring("pfCombinedInclusiveSecondaryVertexV2BJetTags")
+    ePidNames = cms.vstring()
 
     process.load("CATTools.CatProducer.catCandidates_cff")        
     process.load("CATTools.CatProducer.recoEventInfo_cfi")
@@ -94,6 +96,7 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
                 
     process.catJets.src = cms.InputTag(catJetsSource)
     process.catJets.genJetMatch = cms.InputTag("patJetGenJetMatch")
+    process.catJets.btagNames = btagNames
     process.catTaus.src = cms.InputTag(catTausSource)
     process.catTaus.genJetMatch = cms.InputTag("tauGenJetMatch")
     process.catMuons.src = cms.InputTag(catMuonsSource)
@@ -101,6 +104,7 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     process.catMuons.vertexLabel = cms.InputTag(catVertexSource)
     process.catMuons.beamLineSrc = cms.InputTag(catBeamSpot)
     process.catElectrons.src = cms.InputTag(catElectronsSource)
+    process.catElectrons.ePidNames = ePidNames
     process.catElectrons.vertexLabel = cms.InputTag(catVertexSource)
     process.catElectrons.mcLabel = cms.InputTag(catMCsource)
     process.catElectrons.beamLineSrc = cms.InputTag(catBeamSpot)

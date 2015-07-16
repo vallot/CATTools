@@ -45,6 +45,7 @@ if runOnMC:
 if doSecVertex:
     process.out.outputCommands.extend(catEventContentSecVertexs)
 
+print process.out.outputCommands
 ####################################################################
 #### cmsRun options
 ####################################################################
