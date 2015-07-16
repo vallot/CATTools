@@ -46,35 +46,35 @@ namespace cat {
     int partonPdgId() const{ return partonPdgId_;}
 
     // ---- PF Jet specific information ----
-    float photonEnergy () const {return pfSpecific().mPhotonEnergy;}
-    float photonEnergyFraction () const {return photonEnergy()/correctedJet("Uncorrected").energy();}
-    float electronEnergy () const {return pfSpecific().mElectronEnergy;}
-    float electronEnergyFraction () const {return electronEnergy()/correctedJet("Uncorrected").energy();}
-    float muonEnergy () const {return pfSpecific().mMuonEnergy;}
-    float muonEnergyFraction () const {return muonEnergy()/correctedJet("Uncorrected").energy();}
-    float HFHadronEnergy () const {return pfSpecific().mHFHadronEnergy;}
-    float HFHadronEnergyFraction () const {return HFHadronEnergy()/correctedJet("Uncorrected").energy();}
-    float HFEMEnergy () const {return pfSpecific().mHFEMEnergy;}
-    float HFEMEnergyFraction () const {return HFEMEnergy()/correctedJet("Uncorrected").energy();}
+//    float photonEnergy () const {return pfSpecific().mPhotonEnergy;}
+//    float photonEnergyFraction () const {return photonEnergy()/correctedJet("Uncorrected").energy();}
+//    float electronEnergy () const {return pfSpecific().mElectronEnergy;}
+//    float electronEnergyFraction () const {return electronEnergy()/correctedJet("Uncorrected").energy();}
+//    float muonEnergy () const {return pfSpecific().mMuonEnergy;}
+//    float muonEnergyFraction () const {return muonEnergy()/correctedJet("Uncorrected").energy();}
+//    float HFHadronEnergy () const {return pfSpecific().mHFHadronEnergy;}
+//    float HFHadronEnergyFraction () const {return HFHadronEnergy()/correctedJet("Uncorrected").energy();}
+//    float HFEMEnergy () const {return pfSpecific().mHFEMEnergy;}
+//    float HFEMEnergyFraction () const {return HFEMEnergy()/correctedJet("Uncorrected").energy();}
 
-    int chargedHadronMultiplicity () const {return pfSpecific().mChargedHadronMultiplicity;}
-    int neutralHadronMultiplicity () const {return pfSpecific().mNeutralHadronMultiplicity;}
-    int photonMultiplicity () const {return pfSpecific().mPhotonMultiplicity;}
-    int electronMultiplicity () const {return pfSpecific().mElectronMultiplicity;}
-    int HFHadronMultiplicity () const {return pfSpecific().mHFHadronMultiplicity;}
-    int HFEMMultiplicity () const {return pfSpecific().mHFEMMultiplicity;}
-    float chargedMuEnergy () const {return pfSpecific().mChargedMuEnergy;}
-    float chargedMuEnergyFraction () const {return chargedMuEnergy()/correctedJet("Uncorrected").energy();}
+//    int chargedHadronMultiplicity () const {return pfSpecific().mChargedHadronMultiplicity;}
+//    int neutralHadronMultiplicity () const {return pfSpecific().mNeutralHadronMultiplicity;}
+//    int photonMultiplicity () const {return pfSpecific().mPhotonMultiplicity;}
+//    int electronMultiplicity () const {return pfSpecific().mElectronMultiplicity;}
+//    int HFHadronMultiplicity () const {return pfSpecific().mHFHadronMultiplicity;}
+//    int HFEMMultiplicity () const {return pfSpecific().mHFEMMultiplicity;}
+//    float chargedMuEnergy () const {return pfSpecific().mChargedMuEnergy;}
+//    float chargedMuEnergyFraction () const {return chargedMuEnergy()/correctedJet("Uncorrected").energy();}
     int neutralMultiplicity () const {return pfSpecific().mNeutralMultiplicity;}
-    float hoEnergy () const {return pfSpecific().mHOEnergy;}
-    float hoEnergyFraction () const {return hoEnergy()/correctedJet("Uncorrected").energy();}
+//    float hoEnergy () const {return pfSpecific().mHOEnergy;}
+//    float hoEnergyFraction () const {return hoEnergy()/correctedJet("Uncorrected").energy();}
 
     // ---- JPT or PF Jet specific information ----
     float chargedHadronEnergy() const {return pfSpecific().mChargedHadronEnergy; }
     float neutralHadronEnergy() const {return pfSpecific().mNeutralHadronEnergy; }
     float chargedEmEnergy() const {return pfSpecific().mChargedEmEnergy; }
     float neutralEmEnergy() const {return pfSpecific().mNeutralEmEnergy; }    
-    int muonMultiplicity() const {return pfSpecific().mMuonMultiplicity; }
+//    int muonMultiplicity() const {return pfSpecific().mMuonMultiplicity; }
     int chargedMultiplicity() const {return pfSpecific().mChargedMultiplicity; }
 
     /// chargedHadronEnergyFraction (relative to uncorrected jet energy)
