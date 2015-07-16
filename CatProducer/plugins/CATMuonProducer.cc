@@ -126,7 +126,6 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     aMuon.setIsGlobalMuon( aPatMuon.isGlobalMuon() );
     aMuon.setIsPFMuon( aPatMuon.isPFMuon() );
     aMuon.setIsTightMuon( aPatMuon.isTightMuon(pv) );
-    aMuon.setIsMediumMuon( aPatMuon.isMediumMuon() );
     aMuon.setIsLooseMuon( aPatMuon.isLooseMuon() );
     aMuon.setIsSoftMuon( aPatMuon.isSoftMuon(pv) );
 
@@ -151,7 +150,7 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     aMuon.setDxy( dxy );
     double dz = aPatMuon.muonBestTrack()->dz(pv.position()); // fabs() removed
     aMuon.setDz( dz ); 
-     
+
     out->push_back(aMuon);
   }
 

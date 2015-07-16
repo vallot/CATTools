@@ -64,10 +64,10 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
         ## FIX ME - pile up and pdf weight
         process.load("CATTools.CatProducer.pdfWeight_cff")
         process.load("CATTools.CatProducer.pileupWeight_cff")
+
         if not useMiniAOD:
             process.load("CATTools.CatProducer.genTopProducer_cfi")
             
-  
         ## FIX ME very out of date!
         ## using MEtUncertainties to get lepton shifts
         ## Need to update - Jet calculation was old, would most likely be the same for leptons

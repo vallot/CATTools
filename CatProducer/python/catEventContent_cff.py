@@ -23,8 +23,8 @@ catEventContentMC.extend([
     'keep *_slimmedGenJets_*_*',
     'keep *_pdfWeight_*_*',
     'keep *_pileupWeight_*_*',
-    'keep *_pseudoTop_*_*',
-    'keep *_partonTop_*_*',
+    #'keep *_pseudoTop_*_*',
+    #'keep *_partonTop_*_*',
     ])
 
 catEventContentAODMC.extend([
