@@ -129,8 +129,22 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   edm::Handle<reco::GenParticleCollection> genParticles;
   if (runOnMC_){
     iEvent.getByToken(mcLabel_,genParticles);
-    for (auto g : *genParticles) {
-      cout <<"g.pt() " << g.pt() <<endl; 
+    for (auto g : *genParticles)
+    {
+      if (g.pdgId() == 6)
+      {
+        bool isLast = true;
+        auto p = g.daughter(0);
+        while (isLast)
+        {
+            if (p->pdgId() != p->daughter(0)->pdgId()) isLast = false;
+            p = p->daughter(0);
+            //p = *q;
+            //reco::GenParticle* g = g.daughter(0);
+        }
+        cout <<"p.pdgId() " << p->pdgId() <<endl; 
+        cout <<"p.daughter().pdgId() " << p->daughter(0)->pdgId() <<endl; 
+      }
     }
   }
   
