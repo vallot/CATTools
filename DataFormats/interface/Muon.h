@@ -108,18 +108,12 @@ namespace cat {
     float TrkVx() const { return TrkVx_; }
     float TrkVy() const { return TrkVy_; }
     float TrkVz() const { return TrkVz_; }
-    float MatchedGenParticlePt() const { return MatchedGenParticlePt_; }
-    float MatchedGenParticleEta() const { return MatchedGenParticleEta_; }
-    float MatchedGenParticlePhi() const { return MatchedGenParticlePhi_; }
-   
+
     void setEcalVetoIso(float f) { EcalVetoIso_ = f; }
     void setHcalVetoIso(float f) { HcalVetoIso_ = f; }
     void setTrkVx(float f) { TrkVx_ = f; }
     void setTrkVy(float f) { TrkVy_ = f; }
     void setTrkVz(float f) { TrkVz_ = f; }
-    void setMatchedGenParticlePt(float f) { MatchedGenParticlePt_ = f; }
-    void setMatchedGenParticleEta(float f) { MatchedGenParticleEta_ = f; }
-    void setMatchedGenParticlePhi(float f) { MatchedGenParticlePhi_ = f; }    
 
   private:
 
@@ -163,7 +157,6 @@ namespace cat {
     
     float EcalVetoIso_, HcalVetoIso_;
     float TrkVx_, TrkVy_, TrkVz_;
-    float MatchedGenParticlePt_, MatchedGenParticleEta_, MatchedGenParticlePhi_; 
 
   };
 }
