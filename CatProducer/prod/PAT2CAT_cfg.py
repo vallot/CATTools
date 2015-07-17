@@ -63,7 +63,7 @@ process.source = cms.Source("PoolSource",
 if options.inputFiles:
     process.source.fileNames = options.inputFiles
 #pat input files are removed because it would not work if useMiniAOD is on.    
- 
+
 print "runOnMC =",runOnMC,"and useMiniAOD =",useMiniAOD
 print "process.GlobalTag.globaltag =",process.GlobalTag.globaltag
 

@@ -2,16 +2,20 @@ import FWCore.ParameterSet.Config as cms
 
 def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     catJetsSource = "slimmedJets"
+    catJetsPuppiSource = "slimmedJetsPuppi"
     catGenJetsSource = "slimmedGenJets"
+    catMETsSource = "slimmedMETs"
+    catMETsPuppiSource = "slimmedMETsPuppi"
     catMuonsSource = "slimmedMuons"
     catElectronsSource = "slimmedElectrons"
     catPhotonsSource = "slimmedPhotons"
     catTausSource = "slimmedTaus"
-    catMETsSource = "slimmedMETs"
     catVertexSource = "offlineSlimmedPrimaryVertices"
     catMCsource = "prunedGenParticles"
     catBeamSpot = "offlineBeamSpot"
     catRho = "fixedGridRhoAll"
+    btagNames = cms.vstring("pfCombinedInclusiveSecondaryVertexV2BJetTags")
+    ePidNames = cms.vstring()
 
     process.load("CATTools.CatProducer.catCandidates_cff")        
     process.load("CATTools.CatProducer.recoEventInfo_cfi")
@@ -62,10 +66,10 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
         ## FIX ME - pile up and pdf weight
         process.load("CATTools.CatProducer.pdfWeight_cff")
         process.load("CATTools.CatProducer.pileupWeight_cff")
+
         if not useMiniAOD:
             process.load("CATTools.CatProducer.genTopProducer_cfi")
             
-  
         ## FIX ME very out of date!
         ## using MEtUncertainties to get lepton shifts
         ## Need to update - Jet calculation was old, would most likely be the same for leptons
@@ -94,6 +98,7 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
                 
     process.catJets.src = cms.InputTag(catJetsSource)
     process.catJets.genJetMatch = cms.InputTag("patJetGenJetMatch")
+    process.catJets.btagNames = btagNames
     process.catTaus.src = cms.InputTag(catTausSource)
     process.catTaus.genJetMatch = cms.InputTag("tauGenJetMatch")
     process.catMuons.src = cms.InputTag(catMuonsSource)
@@ -101,6 +106,7 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     process.catMuons.vertexLabel = cms.InputTag(catVertexSource)
     process.catMuons.beamLineSrc = cms.InputTag(catBeamSpot)
     process.catElectrons.src = cms.InputTag(catElectronsSource)
+    process.catElectrons.ePidNames = ePidNames
     process.catElectrons.vertexLabel = cms.InputTag(catVertexSource)
     process.catElectrons.mcLabel = cms.InputTag(catMCsource)
     process.catElectrons.beamLineSrc = cms.InputTag(catBeamSpot)
@@ -110,3 +116,8 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     process.catSecVertexs.muonSrc = cms.InputTag(catMuonsSource)
     process.catSecVertexs.elecSrc = cms.InputTag(catElectronsSource)
     process.catSecVertexs.vertexLabel = cms.InputTag(catVertexSource)
+
+    process.catJetsPuppi.src = cms.InputTag(catJetsPuppiSource)
+    process.catJetsPuppi.genJetMatch = cms.InputTag("patJetGenJetMatch")
+    process.catJetsPuppi.btagNames = btagNames
+    process.catMETsPuppi.src = cms.InputTag(catMETsPuppiSource)

@@ -28,45 +28,7 @@ namespace cat {
       else return relIso04_;
     }
     float scEta() const { return scEta_; }
-    float scPhi() const { return scPhi_; }
-    float scPt() const { return scPt_; }
-    float scRawEnergy() const { return scRawEnergy_; }
-    float dxy() const { return dxy_; }
-    float dz() const { return dz_; }
-    float rho() const { return rho_; }
     bool passConversionVeto() const { return passConversionVeto_; }
-    bool isGsfCtfScPixChargeConsistent() const { return isGsfCtfScPixChargeConsistent_; }
-    bool isGsfScPixChargeConsistent() const { return isGsfScPixChargeConsistent_; }
-    bool isGsfCtfChargeConsistent() const { return isGsfCtfChargeConsistent_; }
-
-    bool isEB() const { return isEB_; }
-    bool isEE() const { return isEE_; }
-    bool trackerDrivenSeed() const { return trackerDrivenSeed_; }
-    bool ecalDrivenSeed() const { return ecalDrivenSeed_; }
-
-    float dr03TkSumPt() const { return trkIsoDR03_; }
-    float dr03EcalRecHitSumEt() const { return ecalIsoDR03_; }
-    float dr03HcalTowerSumEt() const { return hcalIsoDR03_; }
-    float dr04TkSumPt() const { return trkIsoDR04_; }
-    float dr04EcalRecHitSumEt() const { return ecalIsoDR04_; }
-    float dr04HcalTowerSumEt() const { return hcalIsoDR04_; }
-
-    float deltaPhiSuperClusterTrackAtVtx() const { return deltaPhiTrkSC_; }
-    float deltaEtaSuperClusterTrackAtVtx() const { return deltaEtaTrkSC_; }
-
-    float sigmaIEtaIEta() const { return sigmaIEtaIEta_; }
-
-    float hadronicOverEm() const { return hoe_; }
-    float caloEnergy() const { return caloEnergy_; }
-    float eSuperClusterOverP() const { return eSuperClusterOverP_; }
-    
-    int numberOfBrems() const { return numberOfBrems_; }
-    float fbrem() const { return fbrem_; }
-
-    float dB() const { return dB_; }
-    float edB() const { return edB_; }
-    
-    bool isPF() const { return isPF_; }
 
     float chargedHadronIso(float dR=0.3) const {
       if( dR < 0.35) return chargedHadronIso03_;
@@ -98,8 +60,6 @@ namespace cat {
 
     bool mcMatched() const { return mcMatched_; }
 
-///////////////////////////////////
-
     void setrelIso(double dR, double chIso, double nhIso, double phIso, double AEff, double rhoIso, double ecalpt)
     {
       float relIso = ( chIso + std::max(0.0, nhIso + phIso - rhoIso*AEff) )/ ecalpt;
@@ -107,44 +67,7 @@ namespace cat {
       else  relIso04_ = relIso; 
     }
     void setscEta(float i) { scEta_ = i; } 
-    void setscPhi(float i) { scPhi_ = i; }
-    void setscPt(float i) { scPt_ = i; }
-    void setscRawEnergy(float i) { scRawEnergy_ = i; }
-    void setdxy(float i) {  dxy_ = i; }
-    void setdz(float i) {  dz_ = i; }
     void setPassConversionVeto(bool i) {  passConversionVeto_ = i; }
-    void setIsGsfCtfScPixChargeConsistent(bool i) {  isGsfCtfScPixChargeConsistent_ = i; }
-    void setIsGsfScPixChargeConsistent(bool i) {  isGsfScPixChargeConsistent_ = i; }
-    void setIsGsfCtfChargeConsistent(bool i) {  isGsfCtfChargeConsistent_ = i; }
-
-    void setIsEB(bool i) { isEB_ = i; }
-    void setIsEE(bool i) { isEE_ = i; }
-    void setTrackerDrivenSeed(bool i) { trackerDrivenSeed_ = i; }
-    void setEcalDrivenSeed(bool i) { ecalDrivenSeed_ = i; }
-
-    void setdr03TkSumPt(float i) { trkIsoDR03_ = i; }
-    void setdr03EcalRecHitSumEt(float i) { ecalIsoDR03_ = i; }
-    void setdr03HcalTowerSumEt(float i) { hcalIsoDR03_ = i; }
-    void setdr04TkSumPt(float i) { trkIsoDR04_ = i; }
-    void setdr04EcalRecHitSumEt(float i) { ecalIsoDR04_ = i; }
-    void setdr04HcalTowerSumEt(float i) { hcalIsoDR04_ = i; }
-
-    void setdeltaPhiSuperClusterTrackAtVtx(float i) { deltaPhiTrkSC_ = i; }
-    void setdeltaEtaSuperClusterTrackAtVtx(float i) { deltaEtaTrkSC_ = i; }
-
-    void setSigmaIEtaIEta(float i) { sigmaIEtaIEta_ = i; }
-    void sethadronicOverEm(float i) { hoe_ = i; }
-    void setCaloEnergy(float i) { caloEnergy_ = i; }
-    void setESuperClusterOverP(float i) { eSuperClusterOverP_ = i; }
-
-    void setNumberOfBrems(int i) { numberOfBrems_ = i; }
-    void setFbrem(float i) { fbrem_ = i; }
-
-    void setdB(float i) { dB_ = i; }
-    void setedB(float i) { edB_ = i; }
-    
-    void setisPF(bool i) {  isPF_ = i; }
-    void setrho(float i) { rho_ = i; }
 
     void setChargedHadronIso03(float i) { chargedHadronIso03_ = i; }
     void setPUChargedHadronIso03(float i) { puChargedHadronIso03_ = i; }
@@ -168,19 +91,13 @@ namespace cat {
     float shiftedEnDown() const {return  shiftedEnDown_;}
     float shiftedEnUp() const {return  shiftedEnUp_;}
 
-    //    const reco::GsfTrack & gsfTrack() const {return  gsfTrack_;}
-    //    void setgsfTrack(const reco::GsfTrack & gsf) { gsfTrack_ = gsf;}    
-      
+    bool isPF() const{ return isPF_; }
+    void setIsPF(bool hasPFCandidate) { isPF_ = hasPFCandidate ; }
+
   private:
 
     std::vector<pat::Electron::IdPair> electronIDs_;
-    //    reco::GsfTrack gsfTrack_;
     
-    bool isEB_;
-    bool isEE_;
-    bool trackerDrivenSeed_;
-    bool ecalDrivenSeed_;
-
     float relIso03_;
     float relIso04_;
 
@@ -195,50 +112,10 @@ namespace cat {
     float photonIso04_;
 
     float scEta_;
-    float scPhi_;
-    float scPt_;
-    float scRawEnergy_;
-    float dxy_;
-    float dz_;
-    float rho_;
-    
-    float trkIsoDR03_;
-    float ecalIsoDR03_;
-    float hcalIsoDR03_;
-    float trkIsoDR04_;
-    float ecalIsoDR04_;
-    float hcalIsoDR04_;
-
-    float deltaPhiTrkSC_;
-    float deltaEtaTrkSC_;
-
-    float sigmaIEtaIEta_;
-    float hoe_;
-    float caloEnergy_;
-    float eSuperClusterOverP_;
-    float trackVx_;
-    float trackVy_;
-    float trackVz_;
-
-    int numberOfBrems_;
-    float fbrem_;
-    float dB_;
-    float edB_;
-    float trackPt_;
-    float trackValidFractionOfHits_;
-
-    int vtxIndex_;
-    float vtxDistXY_;
-    float vtxDistZ_;
-    float leadVtxDistXY_;
-    float leadVtxDistZ_;
+    bool isPF_;
 
     bool mcMatched_;
     bool passConversionVeto_;
-    bool isGsfCtfScPixChargeConsistent_;
-    bool isGsfScPixChargeConsistent_;
-    bool isGsfCtfChargeConsistent_;
-    bool isPF_;
 
     float shiftedEnDown_;
     float shiftedEnUp_;

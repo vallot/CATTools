@@ -51,6 +51,8 @@ namespace cat {
     typedef std::pair<std::string, edm::InputTag> NameTag;
     std::vector<NameTag> elecIDSrcs_;
     std::vector<edm::EDGetTokenT<edm::ValueMap<bool> > > elecIDTokens_;
+    const std::vector<std::string> ePidNames_;
+
   };
 
 } // namespace
@@ -62,7 +64,8 @@ cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig)
   vertexLabel_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexLabel"))),
   mcLabel_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcLabel"))),
   beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc"))),
-  rhoLabel_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoLabel")))
+  rhoLabel_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoLabel"))),
+  ePidNames_(iConfig.getParameter<std::vector<std::string> >("ePidNames"))
 {
   produces<std::vector<cat::Electron> >();
   if (iConfig.existsAs<edm::ParameterSet>("electronIDSources")) {
@@ -126,6 +129,7 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
       bool mcMatched = mcMatch( aPatElectron.p4(), genParticles );
       aElectron.setMCMatched( mcMatched );
     }
+    aElectron.setIsPF( aPatElectron.isPF() );
 
     aElectron.setChargedHadronIso04( aPatElectron.chargedHadronIso() );
     aElectron.setNeutralHadronIso04( aPatElectron.neutralHadronIso() );
@@ -152,47 +156,18 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     double phIso03 = aElectron.photonIso(0.3);
     aElectron.setrelIso(0.3, chIso03, nhIso03, phIso03, elEffArea03, rhoIso, ecalpt);
 
-    aElectron.setdr03TkSumPt(         aPatElectron.dr03TkSumPt());
-    aElectron.setdr03EcalRecHitSumEt( aPatElectron.dr03EcalRecHitSumEt());
-    aElectron.setdr03HcalTowerSumEt(  aPatElectron.dr03HcalTowerSumEt());
-    aElectron.setdr04TkSumPt(         aPatElectron.dr04TkSumPt());
-    aElectron.setdr04EcalRecHitSumEt( aPatElectron.dr04EcalRecHitSumEt());
-    aElectron.setdr04HcalTowerSumEt(  aPatElectron.dr04HcalTowerSumEt());
-
-    aElectron.setIsEB( aPatElectron.isEB());
-    aElectron.setIsEE( aPatElectron.isEE());
-    aElectron.setTrackerDrivenSeed( aPatElectron.trackerDrivenSeed());
-    aElectron.setEcalDrivenSeed( aPatElectron.ecalDrivenSeed());
-
-    aElectron.setdeltaPhiSuperClusterTrackAtVtx( aPatElectron.deltaPhiSuperClusterTrackAtVtx());
-    aElectron.setdeltaEtaSuperClusterTrackAtVtx( aPatElectron.deltaEtaSuperClusterTrackAtVtx());
-
-    aElectron.setSigmaIEtaIEta( aPatElectron.sigmaIetaIeta());
-
-    aElectron.sethadronicOverEm( aPatElectron.hadronicOverEm());
-    aElectron.setCaloEnergy( aPatElectron.caloEnergy());
-    aElectron.setESuperClusterOverP( aPatElectron.eSuperClusterOverP());
-    aElectron.setNumberOfBrems( aPatElectron.numberOfBrems());
-    aElectron.setFbrem( aPatElectron.fbrem());
-
-    aElectron.setdB( fabs(aPatElectron.dB()));
-    aElectron.setedB( fabs(aPatElectron.edB()));
-
-    //aElectron.setgsfTrack( reco::GsfTrack(*(aPatElectron.gsfTrack())));
-
     aElectron.setscEta( aPatElectron.superCluster()->eta());
-    aElectron.setscPhi( aPatElectron.superCluster()->phi());
-    aElectron.setscPt( aPatElectron.superCluster()->energy() / cosh(aPatElectron.superCluster()->eta()));
-    aElectron.setscRawEnergy( aPatElectron.superCluster()->rawEnergy());
-
-    aElectron.setrho( rhoIso) ;
-    
     aElectron.setPassConversionVeto( aPatElectron.passConversionVeto() );
-    aElectron.setIsGsfCtfScPixChargeConsistent( aPatElectron.isGsfCtfScPixChargeConsistent());
-    aElectron.setIsGsfScPixChargeConsistent( aPatElectron.isGsfScPixChargeConsistent());
-    aElectron.setIsGsfCtfChargeConsistent( aPatElectron.isGsfCtfChargeConsistent());
 
-    aElectron.setElectronIDs(aPatElectron.electronIDs());
+    if (ePidNames_.size() == 0 && elecIDSrcs_.size() == 0){
+      aElectron.setElectronIDs(aPatElectron.electronIDs());
+    }
+    else {
+      for(unsigned int i = 0; i < ePidNames_.size(); i++){
+	pat::Electron::IdPair pid(ePidNames_.at(i), aPatElectron.electronID(ePidNames_.at(i)));
+	aElectron.setElectronID(pid);
+      }
+    }
     // for additional electron pids
     for (size_t i = 0; i < elecIDSrcs_.size(); ++i){
       ids[i].second = (*idhandles[i])[elecsRef];

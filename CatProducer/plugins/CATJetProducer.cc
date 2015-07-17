@@ -85,31 +85,26 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
 
     cat::Jet aJet(aPatJet);
 
-    aJet.addJecFactorPair(std::make_pair("Uncorrected", aPatJet.jecFactor("Uncorrected") ) );
-    aJet.addJecFactorPair(std::make_pair("L1FastJet", aPatJet.jecFactor("L1FastJet") ) );
-    aJet.addJecFactorPair(std::make_pair("L2Relative", aPatJet.jecFactor("L2Relative") ) );
-    aJet.addJecFactorPair(std::make_pair("L3Absolute", aPatJet.jecFactor("L3Absolute") ) );
-    // aJet.addJecFactorPair(std::make_pair("L5Flavor_gJ", aPatJet.jecFactor("L5Flavor_gJ") ) );
-    // aJet.addJecFactorPair(std::make_pair("L5Flavor_qT", aPatJet.jecFactor("L5Flavor_qT") ) );
-    // aJet.addJecFactorPair(std::make_pair("L5Flavor_cT", aPatJet.jecFactor("L5Flavor_cT") ) );
-    // aJet.addJecFactorPair(std::make_pair("L5Flavor_bT", aPatJet.jecFactor("L5Flavor_bT") ) );
-
     bool looseId = checkPFJetId( aPatJet );
     bool tightId = checkPFJetIdTight( aPatJet );
     aJet.setLooseId( looseId );
     aJet.setTightId( tightId );
-
+    
     if( aPatJet.hasUserFloat("pileupJetId:fullDiscriminant") )
       aJet.setPileupJetId( aPatJet.userFloat("pileupJetId:fullDiscriminant") );
+
+    //    aJet.addBDiscriminatorPair( aPatJet.bDiscriminator(btagNames_.at(0)) );
 
     if (btagNames_.size() == 0){
       aJet.setBDiscriminators(aPatJet.getPairDiscri());
       // const std::vector<std::pair<std::string, float> > bpair = aPatJet.getPairDiscri();
-      // for (unsigned int bb =0; bb < bpair.size(); bb++){cout << bpair[bb].first <<endl;}
+      // for (unsigned int i =0; i < bpair.size(); i++){
+      // 	cout << bpair[i].first <<endl;
+      // }
     }
     else {
       for(unsigned int i = 0; i < btagNames_.size(); i++){
-	aJet.addBDiscriminatorPair(std::make_pair(btagNames_.at(i), aPatJet.bDiscriminator(btagNames_.at(i)) ));
+    	aJet.addBDiscriminatorPair(std::make_pair(btagNames_.at(i), aPatJet.bDiscriminator(btagNames_.at(i)) ));
       }
     }
     //cout << "jet pt " << aJet.pt() <<" eta " << aJet.eta() <<endl;
