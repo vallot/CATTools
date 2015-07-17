@@ -5,13 +5,14 @@ process = cms.Process("TtbarDiLeptonAnalyzer")
 process.load("FWCore.MessageService.MessageLogger_cfi")
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
+process.partonTop = cms.EDProducer("PartonTopProducer",genParticles = cms.InputTag("prunedGenParticles"))
+
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 #for i in xrange(1,101):
 #    process.source.fileNames.append('file:/cms/data/xrd/store/user/jlee/TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/cat74v2_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v1/150713_164609/0000/catTuple_%d.root' % i)
 
-process.source.fileNames.append('file:/pnfs/user/jlee/cat74/src/CATTools/CatProducer/prod/catTuple.root')
-
-process.partonTop = cms.EDProducer("PartonTopProducer",genParticles = cms.InputTag("prunedGenParticles"))
+process.source.fileNames.append('file:/pnfs/user/jlee/scratch/RunIISpring15DR74/TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/Asympt50ns_MCRUN2_74_V9A-v1/catTuple.root')
+#process.source.fileNames.append('file:/cms/data/xrd/store/user/jlee/TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/cat74v2_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v1/150713_164609/0000/catTuple_1.root')
 
 process.ttll = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     vertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
