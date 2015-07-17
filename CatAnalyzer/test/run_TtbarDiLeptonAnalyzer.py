@@ -21,6 +21,8 @@ process.ttll = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     jets = cms.InputTag("catJets"),
     mets = cms.InputTag("catMETs"),
     mcLabel = cms.InputTag("prunedGenParticles"),
+    partonTop_channel = cms.InputTag("partonTop","channel"),
+    partonTop_modes = cms.InputTag("partonTop", "modes"),
 
     tmassbegin = cms.double(100),
     tmassend   = cms.double(300),
