@@ -3,7 +3,7 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("TtbarDiLeptonAnalyzer")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(30) )
 
 process.partonTop = cms.EDProducer("PartonTopProducer",genParticles = cms.InputTag("prunedGenParticles"))
 
