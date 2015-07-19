@@ -10,6 +10,8 @@
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+
 #include "CATTools/DataFormats/interface/Muon.h"
 #include "CATTools/DataFormats/interface/Electron.h"
 #include "CATTools/DataFormats/interface/Jet.h"
@@ -135,39 +137,29 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
   if (runOnMC_){
     iEvent.getByToken(mcLabel_,genParticles);
-    /*
-    for (auto g : *genParticles)
-    {
-      if (g.pdgId() == 6)
-      {
-        if (g.numberOfDaughters() == 0) continue;
-//        const reco::GenParticle* partonTop1 = &g;
-//        const reco::Candidate* p = partonTop1->daughter(0);
-        const reco::Candidate* p = &g->daughter(0);
-//        cout <<"partonW1->pdgId() " << partonW1->pdgId() <<endl; 
-//        cout <<"g.pdgId() " << g.pdgId() <<endl; 
-//        cout <<"there's g.daughter" <<endl; 
-//        auto p = g.daughter(0);
-//        reco::Candidate* p = g.daughter(0);
- //       cout <<"p.pdgId() " << p->pdgId() <<endl; 
-        bool isLast = true;
-        while (isLast)
-        {
-          if (p->pdgId() != p->daughter(0)->pdgId()) isLast = false;
-          p = p->daughter(0);
-        }
-        cout <<"p.pdgId() " << p->pdgId() <<endl; 
-        cout <<"p.daughter().pdgId() " << p->daughter(0)->pdgId() <<endl; 
+    
+    for (const reco::GenParticle & g : *genParticles){
+      const reco::Candidate* wPlus=0;
+      if (g.pdgId() == 6){
+	for (unsigned int i = 0; i < g.numberOfDaughters(); ++i){
+	  if (g.daughter(i)->pdgId()  == 24){
+	    wPlus = g.daughter(i);
+	    break;
+	  }
+	}
+      }
+      if (wPlus){
+	cout <<"wPlus.pdgId() " << wPlus->pdgId() <<endl; 
+	cout <<"wPlus.daughter(0).pdgId() " << wPlus->daughter(0)->pdgId() <<endl; 
       }
     }
-    */
+    
     iEvent.getByToken(partonTop_channel_, partonTop_channel);
     iEvent.getByToken(partonTop_modes_, partonTop_modes);
     cout << "partonTop_channel "<< *partonTop_channel<<endl;
-    for (auto m : *partonTop_modes){
-      cout << "partonTop_mode "<< m<<endl;
+    if (partonTop_modes->size()){
+      cout << "partonTop_mode    " << (*partonTop_modes)[0] << " & "<< (*partonTop_modes)[1] <<endl;
     }
-	
   }
   vector<cat::Muon> selectedMuons = selectMuons( muons.product() );
   vector<cat::Electron> selectedElectrons = selectElecs( electrons.product() );
@@ -240,7 +232,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   }
   b_maxweight = maxweight;
   //  printf("maxweight %f, top1.M() %f, top2.M() %f \n",maxweight, top1.M(), top2.M() );
- // printf("%2d, %2d, %2d, %2d, %6.2f, %6.2f, %6.2f\n", b_njet, b_nbjet, b_step, b_channel, b_MET, b_ll_mass, b_maxweight);
+  // printf("%2d, %2d, %2d, %2d, %6.2f, %6.2f, %6.2f\n", b_njet, b_nbjet, b_step, b_channel, b_MET, b_ll_mass, b_maxweight);
 
   ttree_->Fill();
 }
