@@ -63,6 +63,7 @@ private:
   edm::EDGetTokenT<vector<int> > partonTop_modes_;
 
   TTree * ttree_;
+  int b_genChannel, b_genMode1, b_genMode2, b_partonChannel, b_partonMode1, b_partonMode2;
   int b_njet, b_nbjet, b_step, b_channel;
   float b_MET, b_ll_mass, b_maxweight;
 
@@ -71,10 +72,10 @@ private:
   vector<double> nupars_;
   
   bool runOnMC_;
-  produces<int>("channel");
-  produces<std::vector<int> >("modes");
-  enum TTbarMode { CH_NONE = 0, CH_FULLHADRON = 1, CH_SEMILEPTON, CH_FULLLEPTON };
-  enum DecayMode { CH_HADRON = 1, CH_MUON, CH_ELECTRON, CH_TAU_HADRON, CH_TAU_MUON, CH_TAU_ELECTRON };
+  int gen_channel;
+  std::vector<int> gen_modes;
+  //enum TTbarMode { CH_NONE = 0, CH_FULLHADRON = 1, CH_SEMILEPTON, CH_FULLLEPTON };
+  //enum DecayMode { CH_HADRON = 1, CH_MUON, CH_ELECTRON, CH_TAU_HADRON, CH_TAU_MUON, CH_TAU_ELECTRON };
 };
 //
 // constructors and destructor
@@ -97,6 +98,12 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   
   edm::Service<TFileService> fs;
   ttree_ = fs->make<TTree>("top", "top");
+  ttree_->Branch("gen_channel", &b_genChannel, "gen_channel/I");
+  ttree_->Branch("gen_mode1", &b_genMode1, "gen_mode1/I");
+  ttree_->Branch("gen_mode2", &b_genMode2, "gen_mode2/I");
+  ttree_->Branch("parton_channel", &b_partonChannel, "parton_channel/I");
+  ttree_->Branch("parton_mode1", &b_partonMode1, "parton_mode1/I");
+  ttree_->Branch("parton_mode2", &b_partonMode2, "parton_mode2/I");
   ttree_->Branch("njet", &b_njet, "njet/I");
   ttree_->Branch("nbjet", &b_nbjet, "nbjet/I");
   ttree_->Branch("ll_mass", &b_ll_mass, "ll_mass/F");
@@ -118,6 +125,12 @@ TtbarDiLeptonAnalyzer::~TtbarDiLeptonAnalyzer()
 // ------------ method called for each event  ------------
 void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
+  b_genMode1 = -100;
+  b_genMode2 = -100; 
+  b_partonChannel = -100; 
+  b_partonMode1 = -100; 
+  b_partonMode2 = -100; 
+
   runOnMC_ = !iEvent.isRealData();
 
   edm::Handle<reco::VertexCollection> vertices;
@@ -141,42 +154,63 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   edm::Handle<vector<int> > partonTop_modes;
 
   if (runOnMC_){
+
+    int nMuon = 0;
+    int nElectron = 0;
+
     iEvent.getByToken(mcLabel_,genParticles);  
     for (const reco::GenParticle & g : *genParticles){
       const reco::Candidate* w=0;
+      const reco::Candidate* wLast=0;    
+      const reco::Candidate* lep=0;
       if (fabs(g.pdgId()) == 6){ 
         for (unsigned int i = 0; i < g.numberOfDaughters(); ++i){
-          if (fabs(g.daughter(i)->pdgId())  == 24){
-              w = g.daughter(i);
-              break;
-          }
+          if (fabs(g.daughter(i)->pdgId())  == 24){ w = g.daughter(i); break; }
         }
       }
-      if (w){
-        const reco::Candidate* wLast=getLast(w);
-        const reco::Candidate* lepPlus=0;
-        const reco::Candidate* lepMinus=0;
-        for (unsigned int i = 0; i < wLast->numberOfDaughters(); ++i){
-            if ((fabs(wLast->daughter(i)->pdgId()) == 11) || (fabs(wLast->daughter(i)->pdgId()) == 13) || (fabs(wLast->daughter(i)->pdgId()) == 15)){
-                if (wLast->daughter(i)->pdgId() >0){ lepPlus=wLast->daughter(i);}
-                else { lepMinus=wLast->daughter(i);}
-                break;
-            }
+      if (!w){ continue; }
+      wLast=getLast(w);
+      for (unsigned int i = 0; i < wLast->numberOfDaughters(); ++i){
+        if ((fabs(wLast->daughter(i)->pdgId()) == 11) || (fabs(wLast->daughter(i)->pdgId()) == 13) || (fabs(wLast->daughter(i)->pdgId()) == 15)){
+            lep = wLast->daughter(i);
+            break;
         }
-        if(lepPlus) { cout <<"lepPlus.pdgId() "<< lepPlus->pdgId() <<endl; }
-        if(lepMinus) { cout <<"lepMinus.pdgId() "<< lepMinus->pdgId() <<endl; }
+      }
+
+      if (lep){
+          int mode = 1;
+          if ( fabs(lep->pdgId()) == 13){ ++nMuon; mode = 2; }
+          else if ( fabs(lep->pdgId()) == 11){ ++nElectron; mode = 3; }
+          else if ( fabs(lep->pdgId()) == 15){
+              for (unsigned int i = 0; i < lep->numberOfDaughters(); ++i){
+                  if ( fabs(lep->daughter(i)->pdgId()) == 13 ) { mode = 5; break;}
+                  else if ( fabs(lep->daughter(i)->pdgId()) == 11 ) { mode = 6; break;}
+                  mode = 4;
+              }
+          }
+          gen_modes.push_back(mode);
       }
     }
-    if (lepPlus->pdgId() == 11) { modes.push_back(CH_ELECTRON) };
-    if (lepPlus->pdgId() == 11) { modes.push_back(CH_ELECTRON) };
-    
+
+    if ( gen_modes.size() == 0 ) { gen_modes.push_back(0); }
+    if ( gen_modes.size() == 1 ) { gen_modes.push_back(0); }
+
+    gen_channel = 0;
+    const int nLepton = nElectron + nMuon;
+    gen_channel = nLepton+1;
+
+//    cout << "gen_channel       "<< gen_channel<<endl;
+//    cout << "gen_mode          "<< (gen_modes)[0] << " & "<< (gen_modes)[1] <<endl;
+    b_genChannel = gen_channel; 
+    b_genMode1 = gen_modes[0]; 
+    b_genMode2 = gen_modes[1]; 
 
     iEvent.getByToken(partonTop_channel_, partonTop_channel);
     iEvent.getByToken(partonTop_modes_, partonTop_modes);
-    cout << "partonTop_channel "<< *partonTop_channel<<endl;
-    if (partonTop_modes->size()){
-      cout << "partonTop_mode    " << (*partonTop_modes)[0] << " & "<< (*partonTop_modes)[1] <<endl;
-    }
+    b_partonChannel = *partonTop_channel; 
+    b_partonMode1 = (*partonTop_modes)[0]; 
+    b_partonMode2 = (*partonTop_modes)[1]; 
+
   }
   vector<cat::Muon> selectedMuons = selectMuons( muons.product() );
   vector<cat::Electron> selectedElectrons = selectElecs( electrons.product() );
@@ -208,7 +242,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
   float step = passingSteps( channel, met.Pt(), (recolep[0]+recolep[1]).M(), ll_charge, selectedJets.size(), selectedBJets.size() );
   b_step = step;
-  
+
   ////////////////////////////////////////////////////////  KIN  /////////////////////////////////////
   int kin=0; TLorentzVector nu1, nu2, top1, top2;
   double maxweight=0;
