@@ -29,7 +29,7 @@ if options.dataset == 6:
     datadir ="/store/group/CAT/SingleMuon/v7-3-0_Run2015B-PromptReco-v1/150720_060727/0000/"
 if options.dataset == 7:
     savename ="DoubleMuon"
-    datadir ="/store/group/CAT/DoubleMuon/v7-3-0_Run2015B-PromptReco-v1/150720_060849/0000"
+    datadir ="/store/group/CAT/DoubleMuon/v7-3-0_Run2015B-PromptReco-v1/150720_060849/0000/"
 
 savename+=".root"
 
