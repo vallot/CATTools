@@ -125,12 +125,14 @@ TtbarDiLeptonAnalyzer::~TtbarDiLeptonAnalyzer()
 // ------------ method called for each event  ------------
 void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-  b_genMode1 = -100;
-  b_genMode2 = -100; 
-  b_partonChannel = -100; 
-  b_partonMode1 = -100; 
-  b_partonMode2 = -100; 
-
+  
+  b_genChannel = -1; 
+  b_genMode1 = -1;
+  b_genMode2 = -1; 
+  b_partonChannel = -1; 
+  b_partonMode1 = -1; 
+  b_partonMode2 = -1; 
+  
   runOnMC_ = !iEvent.isRealData();
 
   edm::Handle<reco::VertexCollection> vertices;
@@ -157,6 +159,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
     int nMuon = 0;
     int nElectron = 0;
+    gen_modes.clear();
 
     iEvent.getByToken(mcLabel_,genParticles);  
     for (const reco::GenParticle & g : *genParticles){
@@ -168,12 +171,13 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
           if (fabs(g.daughter(i)->pdgId())  == 24){ w = g.daughter(i); break; }
         }
       }
-      if (!w){ continue; }
-      wLast=getLast(w);
-      for (unsigned int i = 0; i < wLast->numberOfDaughters(); ++i){
-        if ((fabs(wLast->daughter(i)->pdgId()) == 11) || (fabs(wLast->daughter(i)->pdgId()) == 13) || (fabs(wLast->daughter(i)->pdgId()) == 15)){
+      if (w){
+        wLast=getLast(w);
+        for (unsigned int i = 0; i < wLast->numberOfDaughters(); ++i){
+          if ((fabs(wLast->daughter(i)->pdgId()) == 11) || (fabs(wLast->daughter(i)->pdgId()) == 13) || (fabs(wLast->daughter(i)->pdgId()) == 15)){
             lep = wLast->daughter(i);
             break;
+          }
         }
       }
 
@@ -199,17 +203,19 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     const int nLepton = nElectron + nMuon;
     gen_channel = nLepton+1;
 
-//    cout << "gen_channel       "<< gen_channel<<endl;
-//    cout << "gen_mode          "<< (gen_modes)[0] << " & "<< (gen_modes)[1] <<endl;
-    b_genChannel = gen_channel; 
-    b_genMode1 = gen_modes[0]; 
-    b_genMode2 = gen_modes[1]; 
-
     iEvent.getByToken(partonTop_channel_, partonTop_channel);
     iEvent.getByToken(partonTop_modes_, partonTop_modes);
-    b_partonChannel = *partonTop_channel; 
-    b_partonMode1 = (*partonTop_modes)[0]; 
-    b_partonMode2 = (*partonTop_modes)[1]; 
+//    if (*partonTop_channel ==3) {
+        b_genChannel = gen_channel; 
+        b_genMode1 = gen_modes[0]; 
+        b_genMode2 = gen_modes[1]; 
+
+        b_partonChannel = *partonTop_channel; 
+        b_partonMode1 = (*partonTop_modes)[0]; 
+        b_partonMode2 = (*partonTop_modes)[1]; 
+  //  }
+    //cout << "parton_channel   "<< *partonTop_channel<<endl;
+    //cout << "parton_mode      "<< (*partonTop_modes)[0] << " & "<< (*partonTop_modes)[1] <<endl;
 
   }
   vector<cat::Muon> selectedMuons = selectMuons( muons.product() );
