@@ -1,7 +1,8 @@
 import FWCore.ParameterSet.Config as cms
 from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing ('python')
-options.register('dataset', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "dataset: 1  default")
+options.register('dataset', 1, VarParsing.multiplicity.singleton, VarParsing.varType.int, "dataset: 1  default")
+options.parseArguments()
 
 process = cms.Process("h2muAnalyzer")
 savename ="h2mu"
@@ -10,7 +11,6 @@ datadir ="/store/group/CAT/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythi
 if options.dataset == 1:
     savename ="DYJetsToLL_M-50"
     datadir ="/store/group/CAT/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-3-0_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v2/150720_065744/0000/"
-
 if options.dataset == 2:
     savename ="TTJets_TuneCUETP8M1_13TeV-madgraphMLM"
     datadir ="/store/group/CAT/TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/v7-3-0_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v1/150720_065809/0000/"
@@ -29,8 +29,7 @@ if options.dataset == 6:
     datadir ="/store/group/CAT/SingleMuon/v7-3-0_Run2015B-PromptReco-v1/150720_060727/0000/"
 if options.dataset == 7:
     savename ="DoubleMuon"
-    datadir ="/store/group/CAT/DoubleMuon/v7-3-0_Run2015B-PromptReco-v1/150720_060849/0000"
-
+    datadir ="/store/group/CAT/DoubleMuon/v7-3-0_Run2015B-PromptReco-v1/150720_060849/0000/"
 
 savename+=".root"
 
@@ -56,4 +55,4 @@ process.TFileService = cms.Service("TFileService",
 ))
 
 process.p = cms.Path(process.h2mu)
-process.MessageLogger.cerr.FwkReport.reportEvery = 1000
+process.MessageLogger.cerr.FwkReport.reportEvery = 50000
