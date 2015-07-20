@@ -48,6 +48,7 @@ private:
   vector<cat::Jet> selectJets(const edm::View<cat::Jet>* jets, vector<TLorentzVector> recolep);
   vector<cat::Jet> selectBJets(vector<cat::Jet> & jets );
   float passingSteps(int channel, float met, float ll_mass, float ll_charge, int selectedJets_size, int btag);
+  const reco::Candidate* getLast(const reco::Candidate* p);
 
   TLorentzVector leafToTLorentzVector(reco::LeafCandidate & leaf)
   {return TLorentzVector(leaf.px(), leaf.py(),leaf.pz(),leaf.energy());}
@@ -70,6 +71,10 @@ private:
   vector<double> nupars_;
   
   bool runOnMC_;
+  produces<int>("channel");
+  produces<std::vector<int> >("modes");
+  enum TTbarMode { CH_NONE = 0, CH_FULLHADRON = 1, CH_SEMILEPTON, CH_FULLLEPTON };
+  enum DecayMode { CH_HADRON = 1, CH_MUON, CH_ELECTRON, CH_TAU_HADRON, CH_TAU_MUON, CH_TAU_ELECTRON };
 };
 //
 // constructors and destructor
@@ -136,24 +141,36 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   edm::Handle<vector<int> > partonTop_modes;
 
   if (runOnMC_){
-    iEvent.getByToken(mcLabel_,genParticles);
-    
+    iEvent.getByToken(mcLabel_,genParticles);  
     for (const reco::GenParticle & g : *genParticles){
-      const reco::Candidate* wPlus=0;
-      if (g.pdgId() == 6){
-	for (unsigned int i = 0; i < g.numberOfDaughters(); ++i){
-	  if (g.daughter(i)->pdgId()  == 24){
-	    wPlus = g.daughter(i);
-	    break;
-	  }
-	}
+      const reco::Candidate* w=0;
+      if (fabs(g.pdgId()) == 6){ 
+        for (unsigned int i = 0; i < g.numberOfDaughters(); ++i){
+          if (fabs(g.daughter(i)->pdgId())  == 24){
+              w = g.daughter(i);
+              break;
+          }
+        }
       }
-      if (wPlus){
-	cout <<"wPlus.pdgId() " << wPlus->pdgId() <<endl; 
-	cout <<"wPlus.daughter(0).pdgId() " << wPlus->daughter(0)->pdgId() <<endl; 
+      if (w){
+        const reco::Candidate* wLast=getLast(w);
+        const reco::Candidate* lepPlus=0;
+        const reco::Candidate* lepMinus=0;
+        for (unsigned int i = 0; i < wLast->numberOfDaughters(); ++i){
+            if ((fabs(wLast->daughter(i)->pdgId()) == 11) || (fabs(wLast->daughter(i)->pdgId()) == 13) || (fabs(wLast->daughter(i)->pdgId()) == 15)){
+                if (wLast->daughter(i)->pdgId() >0){ lepPlus=wLast->daughter(i);}
+                else { lepMinus=wLast->daughter(i);}
+                break;
+            }
+        }
+        if(lepPlus) { cout <<"lepPlus.pdgId() "<< lepPlus->pdgId() <<endl; }
+        if(lepMinus) { cout <<"lepMinus.pdgId() "<< lepMinus->pdgId() <<endl; }
       }
     }
+    if (lepPlus->pdgId() == 11) { modes.push_back(CH_ELECTRON) };
+    if (lepPlus->pdgId() == 11) { modes.push_back(CH_ELECTRON) };
     
+
     iEvent.getByToken(partonTop_channel_, partonTop_channel);
     iEvent.getByToken(partonTop_modes_, partonTop_modes);
     cout << "partonTop_channel "<< *partonTop_channel<<endl;
@@ -235,6 +252,16 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   // printf("%2d, %2d, %2d, %2d, %6.2f, %6.2f, %6.2f\n", b_njet, b_nbjet, b_step, b_channel, b_MET, b_ll_mass, b_maxweight);
 
   ttree_->Fill();
+}
+
+const reco::Candidate* TtbarDiLeptonAnalyzer::getLast(const reco::Candidate* p)
+{
+  for ( size_t i=0, n=p->numberOfDaughters(); i<n; ++i )
+  {
+    const reco::Candidate* dau = p->daughter(i);
+    if ( p->pdgId() == dau->pdgId() ) return getLast(dau);
+  }
+  return p;
 }
 
 vector<cat::Muon> TtbarDiLeptonAnalyzer::selectMuons(const edm::View<cat::Muon>* muons )
