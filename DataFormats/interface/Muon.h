@@ -31,6 +31,7 @@ namespace cat {
     bool isGlobalMuon() const { return isGlobalMuon_; }
     bool isPFMuon() const { return isPFMuon_; }
     bool isTightMuon() const { return isTightMuon_; }
+    bool isMediumMuon() const { return isMediumMuon_; }
     bool isLooseMuon() const { return isLooseMuon_; } 
     bool isSoftMuon() const { return isSoftMuon_; } 
 
@@ -81,6 +82,7 @@ namespace cat {
     void setIsGlobalMuon(bool d) { isGlobalMuon_ = d; }
     void setIsPFMuon(bool d) { isPFMuon_ = d; }
     void setIsTightMuon(bool d) { isTightMuon_ = d; }
+    void setIsMediumMuon(bool d) { isMediumMuon_ = d; }
     void setIsLooseMuon(bool d) { isLooseMuon_ = d; }
     void setIsSoftMuon(bool d) { isSoftMuon_ = d; }
      
@@ -119,6 +121,7 @@ namespace cat {
     bool isGlobalMuon_; 
     bool isPFMuon_; 
     bool isTightMuon_; 
+    bool isMediumMuon_; 
     bool isLooseMuon_; 
     bool isSoftMuon_;
 
