@@ -26,7 +26,7 @@ public:
   enum DecayMode { CH_HADRON = 1, CH_MUON, CH_ELECTRON, CH_TAU_HADRON, CH_TAU_MUON, CH_TAU_ELECTRON };
 
 private:
-  const reco::Candidate* getLast(const reco::Candidate* p);
+  const reco::Candidate* getLast(const reco::Candidate* p) const;
   reco::GenParticleRef buildGenParticle(const reco::Candidate* p, reco::GenParticleRefProd& refHandle,
                                         std::auto_ptr<reco::GenParticleCollection>& outColl) const;
 
@@ -87,6 +87,12 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
     const reco::Candidate* t = tQuarks.at(i);
     const reco::Candidate* tLast = getLast(t);
     reco::GenParticleRef tRef = buildGenParticle(tLast, partonRefHandle, partons);
+  }
+
+  for ( int i=0, n=tQuarks.size(); i<n; ++i )
+  {
+    const reco::Candidate* tLast = getLast(tQuarks.at(i));
+    reco::GenParticleRef tRef(partonRefHandle, i);
 
     const reco::Candidate* w = 0;
     const reco::Candidate* b = 0;
@@ -95,7 +101,7 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
       const reco::Candidate* dau = tLast->daughter(j);
       const unsigned int dauAbsId = abs(dau->pdgId());
       if ( dauAbsId == 24 and !w ) w = dau;
-      else if ( dauAbsId == 5 and !b ) b = dau;
+      else if ( dauAbsId < 6 and !b ) b = dau;
     }
     if ( !w or !b ) continue;
     reco::GenParticleRef wRef = buildGenParticle(w, partonRefHandle, partons);
@@ -195,12 +201,24 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
   event.put(modes, "modes");
 }
 
-const reco::Candidate* PartonTopProducer::getLast(const reco::Candidate* p)
+const reco::Candidate* PartonTopProducer::getLast(const reco::Candidate* p) const
 {
+  int nDecay = 0;
+  std::vector<const reco::Candidate*> sameCopies;
   for ( size_t i=0, n=p->numberOfDaughters(); i<n; ++i )
   {
     const reco::Candidate* dau = p->daughter(i);
-    if ( p->pdgId() == dau->pdgId() ) return getLast(dau);
+    const int dauId = dau->pdgId();
+    if ( dauId == 22 or dauId == 21 ) continue;
+    if ( p->pdgId() == dau->pdgId() ) sameCopies.push_back(dau);
+    else ++nDecay;
+  }
+  if ( nDecay == 0 )
+  {
+    for ( const auto dau : sameCopies )
+    {
+      if ( p->pdgId() == dau->pdgId() ) return getLast(dau);
+    }
   }
   return p;
 }
