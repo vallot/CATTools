@@ -75,7 +75,7 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
 
   // Collect top quarks and unstable B-hadrons
   std::vector<const reco::Candidate*> tQuarks;
-  std::vector<const reco::Candidate*> qcdParticles;
+  std::vector<int> qcdParticleIdxs;
   for ( size_t i=0, n=genParticleHandle->size(); i<n; ++i )
   {
     const reco::Candidate& p = genParticleHandle->at(i);
@@ -107,7 +107,7 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
       }
       if ( toKeep )
       {
-        qcdParticles.push_back(&p);
+        qcdParticleIdxs.push_back(i);
       }
     }
   }
@@ -190,7 +190,14 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
           {
             cout << "--------------------------------------" << endl;
             cout << "TAU decay with more than 1 leptons!!!, nDau=" << tauLast->numberOfDaughters() << endl;
-            cout << " dau = " << lepFromTau->pdgId() << " skipped = " << dau->pdgId() << endl;
+            cout << " dau : " << lepFromTau->pdgId() << ", pt=" << lepFromTau->pt() << " eta=" << lepFromTau->eta() << " phi=" << lepFromTau->phi() << endl;
+            if ( lepFromTau->pt() > dau->pt() ) cout << " skipped ";
+            else
+            {
+              cout << " switching to ";
+              lepFromTau = dau;
+            }
+            cout << j << "th lepton : " << dau->pdgId() << ", pt=" << dau->pt() << " eta=" << dau->eta() << " phi=" << dau->phi() << endl;
             cout << "--------------------------------------" << endl;
           }
         }
@@ -230,12 +237,12 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
 
   // Make genJets using particles after PS, but before hadronization
   std::vector<fastjet::PseudoJet> fjInputs;
-  fjInputs.reserve(qcdParticles.size());
-  for ( const reco::Candidate* p : qcdParticles )
+  fjInputs.reserve(qcdParticleIdxs.size());
+  for ( int i : qcdParticleIdxs )
   {
-    fjInputs.push_back(fastjet::PseudoJet(p->px(), p->py(), p->pz(), p->energy()));
-    const int index = p-(&*genParticleHandle->begin());
-    fjInputs.back().set_user_index(index);
+    const auto& p = genParticleHandle->at(i);
+    fjInputs.push_back(fastjet::PseudoJet(p.px(), p.py(), p.pz(), p.energy()));
+    fjInputs.back().set_user_index(i);
   }
   fastjet::ClusterSequence fjClusterSeq(fjInputs, *fjDef_);
   std::vector<fastjet::PseudoJet> fjJets = fastjet::sorted_by_pt(fjClusterSeq.inclusive_jets(jetMinPt_));
