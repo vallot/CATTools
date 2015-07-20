@@ -87,6 +87,12 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
     const reco::Candidate* t = tQuarks.at(i);
     const reco::Candidate* tLast = getLast(t);
     reco::GenParticleRef tRef = buildGenParticle(tLast, partonRefHandle, partons);
+  }
+
+  for ( int i=0, n=tQuarks.size(); i<n; ++i )
+  {
+    const reco::Candidate* tLast = getLast(tQuarks.at(i));
+    reco::GenParticleRef tRef(partonRefHandle, i);
 
     const reco::Candidate* w = 0;
     const reco::Candidate* b = 0;
@@ -95,7 +101,7 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
       const reco::Candidate* dau = tLast->daughter(j);
       const unsigned int dauAbsId = abs(dau->pdgId());
       if ( dauAbsId == 24 and !w ) w = dau;
-      else if ( dauAbsId == 5 and !b ) b = dau;
+      else if ( dauAbsId < 6 and !b ) b = dau;
     }
     if ( !w or !b ) continue;
     reco::GenParticleRef wRef = buildGenParticle(w, partonRefHandle, partons);
