@@ -10,6 +10,8 @@
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+
 #include "CATTools/DataFormats/interface/Muon.h"
 #include "CATTools/DataFormats/interface/Electron.h"
 #include "CATTools/DataFormats/interface/Jet.h"
@@ -56,6 +58,8 @@ private:
   edm::EDGetTokenT<edm::View<cat::MET> >      metToken_;
   edm::EDGetTokenT<reco::VertexCollection >   vtxToken_;
   edm::EDGetTokenT<reco::GenParticleCollection> mcLabel_;
+  edm::EDGetTokenT<int>          partonTop_channel_;
+  edm::EDGetTokenT<vector<int> > partonTop_modes_;
 
   TTree * ttree_;
   int b_njet, b_nbjet, b_step, b_channel;
@@ -78,6 +82,8 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   metToken_  = consumes<edm::View<cat::MET> >(iConfig.getParameter<edm::InputTag>("mets"));     
   vtxToken_  = consumes<reco::VertexCollection >(iConfig.getParameter<edm::InputTag>("vertices"));
   mcLabel_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcLabel"));
+  partonTop_channel_ = consumes<int>(iConfig.getParameter<edm::InputTag>("partonTop_channel"));
+  partonTop_modes_   = consumes<vector<int> >(iConfig.getParameter<edm::InputTag>("partonTop_modes"));
 
   tmassbegin_     = iConfig.getParameter<double>       ("tmassbegin");
   tmassend_       = iConfig.getParameter<double>       ("tmassend");
@@ -125,15 +131,36 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
   edm::Handle<edm::View<cat::MET> > mets;
   iEvent.getByToken(metToken_, mets);
-  
   edm::Handle<reco::GenParticleCollection> genParticles;
+  edm::Handle<int> partonTop_channel;
+  edm::Handle<vector<int> > partonTop_modes;
+
   if (runOnMC_){
     iEvent.getByToken(mcLabel_,genParticles);
-    for (auto g : *genParticles) {
-      cout <<"g.pt() " << g.pt() <<endl; 
+    
+    for (const reco::GenParticle & g : *genParticles){
+      const reco::Candidate* wPlus=0;
+      if (g.pdgId() == 6){
+	for (unsigned int i = 0; i < g.numberOfDaughters(); ++i){
+	  if (g.daughter(i)->pdgId()  == 24){
+	    wPlus = g.daughter(i);
+	    break;
+	  }
+	}
+      }
+      if (wPlus){
+	cout <<"wPlus.pdgId() " << wPlus->pdgId() <<endl; 
+	cout <<"wPlus.daughter(0).pdgId() " << wPlus->daughter(0)->pdgId() <<endl; 
+      }
+    }
+    
+    iEvent.getByToken(partonTop_channel_, partonTop_channel);
+    iEvent.getByToken(partonTop_modes_, partonTop_modes);
+    cout << "partonTop_channel "<< *partonTop_channel<<endl;
+    if (partonTop_modes->size()){
+      cout << "partonTop_mode    " << (*partonTop_modes)[0] << " & "<< (*partonTop_modes)[1] <<endl;
     }
   }
-  
   vector<cat::Muon> selectedMuons = selectMuons( muons.product() );
   vector<cat::Electron> selectedElectrons = selectElecs( electrons.product() );
 
@@ -205,7 +232,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   }
   b_maxweight = maxweight;
   //  printf("maxweight %f, top1.M() %f, top2.M() %f \n",maxweight, top1.M(), top2.M() );
-  printf("%2d, %2d, %2d, %2d, %6.2f, %6.2f, %6.2f\n", b_njet, b_nbjet, b_step, b_channel, b_MET, b_ll_mass, b_maxweight);
+  // printf("%2d, %2d, %2d, %2d, %6.2f, %6.2f, %6.2f\n", b_njet, b_nbjet, b_step, b_channel, b_MET, b_ll_mass, b_maxweight);
 
   ttree_->Fill();
 }

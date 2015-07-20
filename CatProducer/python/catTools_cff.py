@@ -2,12 +2,14 @@ import FWCore.ParameterSet.Config as cms
 
 def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     catJetsSource = "slimmedJets"
+    catJetsPuppiSource = "slimmedJetsPuppi"
     catGenJetsSource = "slimmedGenJets"
+    catMETsSource = "slimmedMETs"
+    catMETsPuppiSource = "slimmedMETsPuppi"
     catMuonsSource = "slimmedMuons"
     catElectronsSource = "slimmedElectrons"
     catPhotonsSource = "slimmedPhotons"
     catTausSource = "slimmedTaus"
-    catMETsSource = "slimmedMETs"
     catVertexSource = "offlineSlimmedPrimaryVertices"
     catMCsource = "prunedGenParticles"
     catBeamSpot = "offlineBeamSpot"
@@ -114,3 +116,8 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     process.catSecVertexs.muonSrc = cms.InputTag(catMuonsSource)
     process.catSecVertexs.elecSrc = cms.InputTag(catElectronsSource)
     process.catSecVertexs.vertexLabel = cms.InputTag(catVertexSource)
+
+    process.catJetsPuppi.src = cms.InputTag(catJetsPuppiSource)
+    process.catJetsPuppi.genJetMatch = cms.InputTag("patJetGenJetMatch")
+    process.catJetsPuppi.btagNames = btagNames
+    process.catMETsPuppi.src = cms.InputTag(catMETsPuppiSource)
