@@ -156,12 +156,11 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   edm::Handle<vector<int> > partonTop_modes;
 
   if (runOnMC_){
-
     int nMuon = 0;
     int nElectron = 0;
     gen_modes.clear();
 
-    iEvent.getByToken(mcLabel_,genParticles);  
+    iEvent.getByToken(mcLabel_,genParticles); 
     for (const reco::GenParticle & g : *genParticles){
       const reco::Candidate* w=0;
       const reco::Candidate* wLast=0;    
@@ -205,7 +204,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
     iEvent.getByToken(partonTop_channel_, partonTop_channel);
     iEvent.getByToken(partonTop_modes_, partonTop_modes);
-//    if (*partonTop_channel ==3) {
+    if ((*partonTop_modes).size() > 2) {
         b_genChannel = gen_channel; 
         b_genMode1 = gen_modes[0]; 
         b_genMode2 = gen_modes[1]; 
@@ -213,10 +212,9 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         b_partonChannel = *partonTop_channel; 
         b_partonMode1 = (*partonTop_modes)[0]; 
         b_partonMode2 = (*partonTop_modes)[1]; 
-  //  }
+    }
     //cout << "parton_channel   "<< *partonTop_channel<<endl;
     //cout << "parton_mode      "<< (*partonTop_modes)[0] << " & "<< (*partonTop_modes)[1] <<endl;
-
   }
   vector<cat::Muon> selectedMuons = selectMuons( muons.product() );
   vector<cat::Electron> selectedElectrons = selectElecs( electrons.product() );
