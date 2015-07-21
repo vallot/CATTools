@@ -1,5 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
+#ref. https://github.com/cms-sw/cmssw/blob/CMSSW_7_6_X/PhysicsTools/JetMCAlgos/test/matchGenHFHadrons.py#L60
 def genHFTool(process, useMiniAOD = True):
     # Setting input particle collections to be used by the tools
     genParticleCollection = ''
@@ -58,4 +59,8 @@ def genHFTool(process, useMiniAOD = True):
     process.matchGenCHadron = matchGenCHadron.clone(
         genParticles = genParticleCollection
     )
-    
+
+    from CATTools.CatProducer.GenTtbarCategorizer_cfi import *
+    process.GenTtbarCategories = categorizeGenTtbar.clone(
+       genJets = genJetCollection
+    )    
