@@ -222,8 +222,11 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   vector<TLorentzVector> recolep; 
   for (auto lep : selectedMuons){ recolep.push_back(lep.tlv()); }
   for (auto lep : selectedElectrons){ recolep.push_back(lep.tlv()); }
-  if (recolep.size() != 2) return;
-
+  if (recolep.size() != 2){
+    ttree_->Fill();
+    return;
+  }
+  
   float channel = selectedElectrons.size();
 
   float ll_charge = 0. ;
