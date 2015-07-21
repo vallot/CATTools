@@ -44,6 +44,7 @@ for i in mcfilelist:
     tempdraw = plotvar +" >> temp" +samplename
     tree.Draw(tempdraw)
     temphist = ROOT.gDirectory.Get("temp" +samplename)
+    # untill better way to get nentries
     scale = mcfilelist[i]*datalumi / temphist.GetEntries()
     print mcfilelist[i]
     histo = copy.deepcopy(hist_maker(samplename, plotvar, bin_set, x_name, y_name, tree, plotvar, tcut))
