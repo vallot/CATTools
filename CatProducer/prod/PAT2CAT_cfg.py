@@ -36,8 +36,8 @@ patTool(process, runOnMC, useMiniAOD)
 from CATTools.CatProducer.catTools_cff import *
 catTool(process, runOnMC, doSecVertex, useMiniAOD)
 
-from CATTools.CatProducer.catGetHFHadronMatching_cff import *
-genHFTool(process, runOnMC,  useMiniAOD)
+from CATTools.CatProducer.catGenHFHadronMatching_cff import *
+genHFTool(process, useMiniAOD)
 
 from CATTools.CatProducer.catEventContent_cff import *
 process.out.outputCommands = catEventContent
