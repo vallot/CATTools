@@ -131,8 +131,13 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_genMode2 = -1; 
   b_partonChannel = -1; 
   b_partonMode1 = -1; 
-  b_partonMode2 = -1; 
-  
+  b_partonMode2 = -1;
+  b_njet = -1;
+  b_nbjet = -1;
+  b_ll_mass = -9;
+  b_channel = -1;
+  b_step = -1;
+ 
   runOnMC_ = !iEvent.isRealData();
 
   edm::Handle<reco::VertexCollection> vertices;
