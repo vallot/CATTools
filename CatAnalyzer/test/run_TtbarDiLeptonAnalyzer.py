@@ -12,8 +12,9 @@ process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 #    process.source.fileNames.append('file:/cms/data/xrd/store/user/jlee/TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/cat74v2_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v1/150713_164609/0000/catTuple_%d.root' % i)
 
 #process.source.fileNames.append('file:/pnfs/user/jlee/scratch/RunIISpring15DR74/TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/Asympt50ns_MCRUN2_74_V9A-v1/catTuple.root')
-process.source.fileNames.append('file:/store/group/CAT/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-3-0_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v2/150720_065744/0000/catTuple_1.root')
- 
+#process.source.fileNames.append('file:/store/group/CAT/SingleMuon/v7-3-0_Run2015B-PromptReco-v1/150720_060727/0000/catTuple_1.root')
+process.source.fileNames.append('file:/store/group/CAT/WZ_TuneCUETP8M1_13TeV-pythia8/v7-3-0_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v2/150720_070007/0000/catTuple_1.root')
+
 process.ttll = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     vertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
     muons = cms.InputTag("catMuons"),
@@ -34,5 +35,6 @@ process.TFileService = cms.Service("TFileService",
     fileName = cms.string("top.root"
 ))
 
+#process.p = cms.Path(process.ttll)
 process.p = cms.Path(process.partonTop + process.ttll)
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000

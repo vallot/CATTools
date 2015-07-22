@@ -132,6 +132,12 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_partonChannel = -1; 
   b_partonMode1 = -1; 
   b_partonMode2 = -1; 
+  b_ll_mass = -1;  
+  b_MET = -1; 
+  b_njet = -1;
+  b_nbjet = -1;
+  b_channel = -1;
+  b_step = -1;
   
   runOnMC_ = !iEvent.isRealData();
 
@@ -204,7 +210,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
     iEvent.getByToken(partonTop_channel_, partonTop_channel);
     iEvent.getByToken(partonTop_modes_, partonTop_modes);
-    if ((*partonTop_modes).size() > 2) {
+    if ((*partonTop_modes).size() >= 2) {
         b_genChannel = gen_channel; 
         b_genMode1 = gen_modes[0]; 
         b_genMode2 = gen_modes[1]; 
