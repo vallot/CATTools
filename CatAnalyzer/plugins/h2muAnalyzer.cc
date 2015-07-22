@@ -63,8 +63,8 @@ private:
   TTree * ttree_;
   int b_njet, b_step, b_channel;
   float b_MET;
-  float b_mu1_pt, b_mu1_eta, b_mu1_phi;
-  float b_mu2_pt, b_mu2_eta, b_mu2_phi;
+  float b_lep1_pt, b_lep1_eta, b_lep1_phi;
+  float b_lep2_pt, b_lep2_eta, b_lep2_phi;
   float b_ll_pt, b_ll_eta, b_ll_phi, b_ll_m;
   int b_jetcat_f_hier;  
   int b_jetcat_GC;
@@ -95,13 +95,13 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("isMedium", &b_isMedium, "isMedium/B");
   ttree_->Branch("isTight", &b_isTight, "isTight/B");
 
-  ttree_->Branch("mu1_pt", &b_mu1_pt, "mu1_pt/F");
-  ttree_->Branch("mu1_eta", &b_mu1_eta, "mu1_eta/F");
-  ttree_->Branch("mu1_phi", &b_mu1_phi, "mu1_phi/F");
+  ttree_->Branch("mu1_pt", &b_lep1_pt, "mu1_pt/F");
+  ttree_->Branch("mu1_eta", &b_lep1_eta, "mu1_eta/F");
+  ttree_->Branch("mu1_phi", &b_lep1_phi, "mu1_phi/F");
 
-  ttree_->Branch("mu2_pt", &b_mu2_pt, "mu2_pt/F");
-  ttree_->Branch("mu2_eta", &b_mu2_eta, "mu2_eta/F");
-  ttree_->Branch("mu2_phi", &b_mu2_phi, "mu2_phi/F");
+  ttree_->Branch("mu2_pt", &b_lep2_pt, "mu2_pt/F");
+  ttree_->Branch("mu2_eta", &b_lep2_eta, "mu2_eta/F");
+  ttree_->Branch("mu2_phi", &b_lep2_phi, "mu2_phi/F");
 
   ttree_->Branch("ll_pt", &b_ll_pt, "ll_pt/F");
   ttree_->Branch("ll_eta", &b_ll_eta, "ll_eta/F");
@@ -167,8 +167,8 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 
   b_njet = -1; b_step = 0; b_channel = -1;
   b_MET = -1;
-  b_mu1_pt = -9; b_mu1_eta = -9; b_mu1_phi = -9;
-  b_mu2_pt = -9; b_mu2_eta = -9; b_mu2_phi = -9;
+  b_lep1_pt = -9; b_lep1_eta = -9; b_lep1_phi = -9;
+  b_lep2_pt = -9; b_lep2_eta = -9; b_lep2_phi = -9;
   b_ll_pt = -9; b_ll_eta = -9; b_ll_phi = -9; b_ll_m = -9;
   b_isMedium = 0; b_isTight = 0;
 
@@ -181,13 +181,13 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
     return;
   }
 
-  b_mu1_pt = selectedMuons[0].pt();
-  b_mu1_eta = selectedMuons[0].eta();
-  b_mu1_phi = selectedMuons[0].phi();
+  b_lep1_pt = selectedMuons[0].pt();
+  b_lep1_eta = selectedMuons[0].eta();
+  b_lep1_phi = selectedMuons[0].phi();
 
-  b_mu2_pt = selectedMuons[1].pt();
-  b_mu2_eta = selectedMuons[1].eta();
-  b_mu2_phi = selectedMuons[1].phi();
+  b_lep2_pt = selectedMuons[1].pt();
+  b_lep2_eta = selectedMuons[1].eta();
+  b_lep2_phi = selectedMuons[1].phi();
 
   b_isMedium = 0;
   b_isTight = (selectedMuons[0].isTightMuon() && selectedMuons[1].isTightMuon());
@@ -221,7 +221,7 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   
   // -----------------------------  Jet Category  -----------------------------------
   b_jetcat_f_hier = JetCategory(selectedJets, b_MET, b_ll_pt);
-  b_jetcat_GC = JetCat_GC(b_mu1_eta, b_mu2_eta);
+  b_jetcat_GC = JetCat_GC(b_lep1_eta, b_lep2_eta);
    
   ttree_->Fill();
 }
