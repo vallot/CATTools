@@ -17,14 +17,14 @@ bin_set = [250, 0, 250]
 x_name = "a.u."
 y_name = "M [GeV]"
 
-mcfilelist = {'DYJetsToLL_M-50':6025.2 ,
-              'TTJets_TuneCUETP8M1_13TeV-madgraphMLM':831.8,
-              'ZZ_TuneCUETP8M1_13TeV':31.8,
-              'WW_TuneCUETP8M1_13TeV':65.9,
-              'WZ_TuneCUETP8M1_13TeV':118.7}
+mcfilelist = {'mc_DYJets_merged':6025.2 ,
+              'mc_TTJets_mad_merged':831.8,
+              'mc_ZZ_merged':31.8,
+              'mc_WW_merged':65.9,
+              'mc_WZ_merged':118.7}
 
 rdfilelist = [#'DoubleMuon',
-               'SingleMuon']
+               'data_MuonEG_merged']
 
 hs = ROOT.THStack(plotvar,plotvar)
 h_rd = ROOT.TH1F(plotvar, plotvar, bin_set[0], bin_set[1], bin_set[2])
@@ -39,7 +39,7 @@ for i in mcfilelist:
     print rootfilename
     samplename = i.strip().split("_")[0]
     tt = ROOT.TFile(rootfilename)
-    tree = tt.h2mu.Get("tree")
+    tree = tt.ttll.Get("top")
     # untill better way to get nentries
     tempdraw = plotvar +" >> temp" +samplename
     tree.Draw(tempdraw)
@@ -58,7 +58,7 @@ for i in rdfilelist:
     print rootfilename
     samplename = i.strip().split("_")[0]
     tt = ROOT.TFile(rootfilename)
-    tree = tt.h2mu.Get("tree")
+    tree = tt.ttll.Get("top")
     histo = copy.deepcopy(hist_maker(samplename, plotvar, bin_set, x_name, y_name, tree, plotvar, tcut))
     h_rd.Add(histo)
     
@@ -70,4 +70,3 @@ canvas.SaveAs(plotvar+".root")
 canvas.SaveAs(plotvar+".eps")
 
 #dilepmass = ROOT.gDirectory.Get("dilepmass")
-
