@@ -46,6 +46,9 @@ private:
   vector<cat::Jet> selectJets(const edm::View<cat::Jet>* jets, vector<TLorentzVector> recolep);
   vector<cat::Jet> selectBJets(vector<cat::Jet> & jets );
   float passingSteps(int channel, float met, float ll_mass, float ll_charge, int selectedJets_size);
+  float preSelect(vector<cat::Jet> seljets, float MET);
+  float JetCategory(vector<cat::Jet> seljets, float MET, float ll_pt);
+  float JetCat_GC(float mu1_eta, float mu2_eta);
 
   TLorentzVector leafToTLorentzVector(reco::LeafCandidate & leaf)
   {return TLorentzVector(leaf.px(), leaf.py(),leaf.pz(),leaf.energy());}
@@ -63,6 +66,9 @@ private:
   float b_mu1_pt, b_mu1_eta, b_mu1_phi;
   float b_mu2_pt, b_mu2_eta, b_mu2_phi;
   float b_ll_pt, b_ll_eta, b_ll_phi, b_ll_m;
+  float b_jetcat_f_hier;  
+  float b_jetcat_GC;
+
   bool b_isMedium, b_isTight;
   
   bool runOnMC_;
@@ -102,6 +108,13 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("ll_phi", &b_ll_phi, "ll_phi/F");
   ttree_->Branch("ll_m", &b_ll_m, "ll_m/F");
 
+  //final hierachy
+  //(e.g. In case of 0,1jet, Tight and Loose.Otherwise 2jet include VBF Tight, ggF Tight, Loose)
+  ttree_->Branch("jetcat_f_hier", &b_jetcat_f_hier, "jetcat_f_hier/F");
+  
+  //Geometrical Categorization
+  //only included 0jet and 1jet
+  ttree_->Branch("jetcat_GC", &b_jetcat_GC, "jetcat_GC/F");
 }
 h2muAnalyzer::~h2muAnalyzer()
 {
@@ -159,6 +172,8 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   b_ll_pt = -9; b_ll_eta = -9; b_ll_phi = -9; b_ll_m = -9;
   b_isMedium = 0; b_isTight = 0;
 
+  b_jetcat_f_hier = -9;
+  b_jetcat_GC = -9;  
   vector<cat::Muon> selectedMuons = selectMuons( muons.product() );
 
   if (selectedMuons.size() < 2){
@@ -204,6 +219,10 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 
   //  float step = passingSteps( channel, met.Pt(), (recolep[0]+recolep[1]).M(), ll_charge, selectedJets.size() );
   
+  // -----------------------------  Jet Category  -----------------------------------
+  b_jetcat_f_hier = JetCategory(selectedJets, b_MET, b_ll_pt);
+  b_jetcat_GC = JetCat_GC(b_mu1_eta, b_mu2_eta);
+   
   ttree_->Fill();
 }
 
@@ -278,6 +297,59 @@ float h2muAnalyzer::passingSteps(int channel, float met, float ll_mass, float ll
   step = 4;
 
   return step;
+}
+
+float h2muAnalyzer::preSelect(vector<cat::Jet> seljets, float MET)
+{
+  njets = seljets.size();
+  if (njet>1){
+    if (seljets[0].pt()>40 && seljets[1].pt()>30 && MET<40){
+      return 3;
+    }    
+  }
+  if (njet==1){
+    return 2;
+  }
+  if (njet==0){
+    return 1;
+  }
+}
+
+float h2muAnalyzer::JetCategory(vector<cat::Jet> seljets, float MET, float ll_pt)
+{
+  float presel = preSelect(seljets, MET);
+  if (presel==1){
+    if (b_ll_pt<=10){return 1;}
+    else{return 2;}
+  }
+  if (presel==2){
+    if (b_ll_pt<=10){return 3;}
+    else{return 4;}
+  }
+  if (presel==3){
+    TLorentzVector M_jets = seljets[0].tlv() + seljets[1].tlv();
+    auto delta_eta = seljets[0].eta()-seljets[1].eta();
+    bool VBF_Tight = (M_jets.M() > 650 && abs(delta_eta) > 3.5);
+    bool ggF_Tight = (M_jets.M() > 250 && ll_pt > 50);
+    if (VBF_Tight || ggF_Tight){
+        if (!ggF_Tight){return 5;} //not ggF_Tight but only VBF_Tight
+        if (!VBF_Tight){return 6;}//also contrast of above
+        if (VBF_Tight && ggF_Tight){return 7;}
+    }
+    else {return 8;}
+  }
+}
+
+float h2muAnalyzer::JetCat_GC(float mu1_eta, float mu2_eta)
+{
+  float eta_mu[2] = {abs(mu1_eta),abs(mu2_eta)};
+  float GC=0;
+  for(int i=0; i<2; i++){
+    if (eta_mu[i] < 0.8) GC += 1;
+    if (eta_mu[i] > 0.8 && eta_mu[i] < 1.6) GC += 10;
+    if (eta_mu[i] > 1.6 && eta_mu[i] < 2.4) GC += 100;
+  }  
+  return GC;
 }
 
 // ------------ method called once each job just before starting event loop  ------------
