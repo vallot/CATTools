@@ -46,9 +46,9 @@ private:
   vector<cat::Jet> selectJets(const edm::View<cat::Jet>* jets, vector<TLorentzVector> recolep);
   vector<cat::Jet> selectBJets(vector<cat::Jet> & jets );
   float passingSteps(int channel, float met, float ll_mass, float ll_charge, int selectedJets_size);
-  float preSelect(vector<cat::Jet> seljets, float MET);
-  float JetCategory(vector<cat::Jet> seljets, float MET, float ll_pt);
-  float JetCat_GC(float mu1_eta, float mu2_eta);
+  int preSelect(vector<cat::Jet> seljets, float MET);
+  int JetCategory(vector<cat::Jet> seljets, float MET, float ll_pt);
+  int JetCat_GC(float mu1_eta, float mu2_eta);
 
   TLorentzVector leafToTLorentzVector(reco::LeafCandidate & leaf)
   {return TLorentzVector(leaf.px(), leaf.py(),leaf.pz(),leaf.energy());}
@@ -66,8 +66,8 @@ private:
   float b_mu1_pt, b_mu1_eta, b_mu1_phi;
   float b_mu2_pt, b_mu2_eta, b_mu2_phi;
   float b_ll_pt, b_ll_eta, b_ll_phi, b_ll_m;
-  float b_jetcat_f_hier;  
-  float b_jetcat_GC;
+  int b_jetcat_f_hier;  
+  int b_jetcat_GC;
 
   bool b_isMedium, b_isTight;
   
@@ -110,11 +110,11 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
 
   //final hierachy
   //(e.g. In case of 0,1jet, Tight and Loose.Otherwise 2jet include VBF Tight, ggF Tight, Loose)
-  ttree_->Branch("jetcat_f_hier", &b_jetcat_f_hier, "jetcat_f_hier/F");
+  ttree_->Branch("jetcat_f_hier", &b_jetcat_f_hier, "jetcat_f_hier/I");
   
   //Geometrical Categorization
   //only included 0jet and 1jet
-  ttree_->Branch("jetcat_GC", &b_jetcat_GC, "jetcat_GC/F");
+  ttree_->Branch("jetcat_GC", &b_jetcat_GC, "jetcat_GC/I");
 }
 h2muAnalyzer::~h2muAnalyzer()
 {
@@ -299,9 +299,9 @@ float h2muAnalyzer::passingSteps(int channel, float met, float ll_mass, float ll
   return step;
 }
 
-float h2muAnalyzer::preSelect(vector<cat::Jet> seljets, float MET)
+int h2muAnalyzer::preSelect(vector<cat::Jet> seljets, float MET)
 {
-  njets = seljets.size();
+  int njet = seljets.size();
   if (njet>1){
     if (seljets[0].pt()>40 && seljets[1].pt()>30 && MET<40){
       return 3;
@@ -313,11 +313,12 @@ float h2muAnalyzer::preSelect(vector<cat::Jet> seljets, float MET)
   if (njet==0){
     return 1;
   }
+  return 0;
 }
 
-float h2muAnalyzer::JetCategory(vector<cat::Jet> seljets, float MET, float ll_pt)
+int h2muAnalyzer::JetCategory(vector<cat::Jet> seljets, float MET, float ll_pt)
 {
-  float presel = preSelect(seljets, MET);
+  int presel = preSelect(seljets, MET);
   if (presel==1){
     if (b_ll_pt<=10){return 1;}
     else{return 2;}
@@ -338,9 +339,10 @@ float h2muAnalyzer::JetCategory(vector<cat::Jet> seljets, float MET, float ll_pt
     }
     else {return 8;}
   }
+  return 0;
 }
 
-float h2muAnalyzer::JetCat_GC(float mu1_eta, float mu2_eta)
+int h2muAnalyzer::JetCat_GC(float mu1_eta, float mu2_eta)
 {
   float eta_mu[2] = {abs(mu1_eta),abs(mu2_eta)};
   float GC=0;
