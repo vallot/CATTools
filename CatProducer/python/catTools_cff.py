@@ -17,6 +17,8 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     btagNames = cms.vstring("pfCombinedInclusiveSecondaryVertexV2BJetTags")
     ePidNames = cms.vstring()
 
+    process.nEventsTotal = cms.EDProducer("EventCountProducer")
+    #process.p = cms.Path(process.nEventsTotal)
     process.load("CATTools.CatProducer.catCandidates_cff")        
     process.load("CATTools.CatProducer.recoEventInfo_cfi")
 #######################################################################    
