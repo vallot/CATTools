@@ -42,13 +42,16 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
 # getting jec from file for jec on the fly from db file
 # currently only for mc
     if runOnMC:
+        #era = "PHYS14_V4_MC"
+        era = "Summer15_50nsV2_MC"
         from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
         process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
-            connect = cms.string('sqlite_fip:CATTools/CatProducer/data/Summer15_50nsV2_MC.db'),
+            connect = cms.string('sqlite_fip:CATTools/CatProducer/data/'+era+'.db'),
             toGet = cms.VPSet(
-            cms.PSet(record = cms.string("JetCorrectionsRecord"),
-            tag = cms.string("JetCorrectorParametersCollection_Summer15_50nsV2_MC_AK4PFchs"),
-            label= cms.untracked.string("AK4PFchs"))
+                cms.PSet(
+                    record = cms.string("JetCorrectionsRecord"),
+                    tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PFchs"),
+                    label= cms.untracked.string("AK4PFchs"))
             ))
         process.es_prefer_jec = cms.ESPrefer("PoolDBESSource","jec")
 ## applying new jec on the fly
