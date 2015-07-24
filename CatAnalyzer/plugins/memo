@@ -1,0 +1,8 @@
+22/07/15
+
+''For TtbarDilepton Analysis''
+-> have to do something about 3 lepton situation. (veto? or choose by pT?)
+-> change the name of jobs, so can draw stacks easily.
+-> try to draw 'njet', 'nbjet' plot, and compare with Dr. roh's or jason's results.
+-> would be much nicer if set channel numbers equal for CAT and GEN, PartonTOP like ee 1, em 2, mm 3 (for mode too)
+
