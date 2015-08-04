@@ -60,8 +60,16 @@ for dataset in datasets:
     ### MC or Data?
     if datatype == "AOD" or datatype == "MINIAOD" :
         if len(lumiMask) == 0:
-            print "need to define lumiMask, -l <lumiMask>"
-            sys.exit()
+            print "NOTE! no lumiMask was selected!"
+            print "NOTE! no lumiMask was selected!"
+            print "NOTE! no lumiMask was selected!"
+            print "NOTE! no lumiMask was selected!"
+            print "NOTE! no lumiMask was selected!"
+            print "NOTE! no lumiMask was selected!"
+            print "NOTE! no lumiMask was selected!"
+            print "NOTE! no lumiMask was selected!"
+            print "NOTE! no lumiMask was selected!"
+            print "NOTE! no lumiMask was selected!"
         isMC = False
         dataSplitting   = " Data.splitting='LumiBased' "
         dataUnitsPerJob = " Data.unitsPerJob=10 "
