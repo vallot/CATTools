@@ -7,11 +7,12 @@ catEventContentSecVertexs = cms.untracked.vstring()
 
 catEventContent.extend([
     'drop *',
+    'keep *_nEventsTotal_*_*',
     'keep *_catMuons_*_*',
     'keep *_catElectrons_*_*',
     'keep *_catPhotons_*_*',
-    'keep *_catJets_*_*',
-    'keep *_catMETs_*_*',
+    'keep *_catJets*_*_*',
+    'keep *_catMETs*_*_*',
     'keep recoVertexs_offlineSlimmedPrimaryVertices_*_*',
     'keep *_recoEventInfo_*_*',
     'drop *_shifted*_*_*',

@@ -63,8 +63,8 @@ for dataset in datasets:
             print "need to define lumiMask, -l <lumiMask>"
             sys.exit()
         isMC = False
-        dataSplitting   = " Data.splitting='FileBased' "
-        dataUnitsPerJob = " Data.unitsPerJob=20 "
+        dataSplitting   = " Data.splitting='LumiBased' "
+        dataUnitsPerJob = " Data.unitsPerJob=10 "
         dataLumiMask    = " Data.lumiMask='%s'"%(lumiMask)
         pyCfgParams     = "config.JobType.pyCfgParams = ['runOnMC=False','useMiniAOD=%s','globalTag=%s']"%(isMiniAOD,globalTag)
 

@@ -2,12 +2,14 @@ import FWCore.ParameterSet.Config as cms
 
 def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     catJetsSource = "slimmedJets"
+    catJetsPuppiSource = "slimmedJetsPuppi"
     catGenJetsSource = "slimmedGenJets"
+    catMETsSource = "slimmedMETs"
+    catMETsPuppiSource = "slimmedMETsPuppi"
     catMuonsSource = "slimmedMuons"
     catElectronsSource = "slimmedElectrons"
     catPhotonsSource = "slimmedPhotons"
     catTausSource = "slimmedTaus"
-    catMETsSource = "slimmedMETs"
     catVertexSource = "offlineSlimmedPrimaryVertices"
     catMCsource = "prunedGenParticles"
     catBeamSpot = "offlineBeamSpot"
@@ -15,19 +17,43 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     btagNames = cms.vstring("pfCombinedInclusiveSecondaryVertexV2BJetTags")
     ePidNames = cms.vstring()
 
+    process.nEventsTotal = cms.EDProducer("EventCountProducer")
+    #process.p = cms.Path(process.nEventsTotal)
     process.load("CATTools.CatProducer.catCandidates_cff")        
     process.load("CATTools.CatProducer.recoEventInfo_cfi")
+#######################################################################    
+# adding pfMVAMet
+    process.load("RecoJets.JetProducers.ak4PFJets_cfi")
+    process.ak4PFJets.src = cms.InputTag("packedPFCandidates")
+    from JetMETCorrections.Configuration.DefaultJEC_cff import ak4PFJetsL1FastL2L3
+    process.load("RecoMET.METPUSubtraction.mvaPFMET_cff")
+    process.pfMVAMEt.srcPFCandidates = cms.InputTag("packedPFCandidates")
+    process.pfMVAMEt.srcVertices = cms.InputTag("offlineSlimmedPrimaryVertices")
+    process.puJetIdForPFMVAMEt.jec =  cms.string('AK4PF')
+    process.puJetIdForPFMVAMEt.vertexes = cms.InputTag("offlineSlimmedPrimaryVertices")
+    process.puJetIdForPFMVAMEt.rho = cms.InputTag("fixedGridRhoFastjetAll")
+    process.load("PhysicsTools.PatAlgos.producersLayer1.metProducer_cfi")
+    process.patMETsPfMva = process.patMETs.clone()
+    process.patMETsPfMva.addGenMET    = cms.bool(False)
+    process.patMETsPfMva.metSource  = cms.InputTag("pfMVAMEt")
+    process.patMETsPfMva.muonSource = cms.InputTag(catMuonsSource)
+    process.catMETsPfMva = process.catMETs.clone()
+    process.catMETsPfMva.src = cms.InputTag("patMETsPfMva")
+#######################################################################
 #######################################################################    
 # getting jec from file for jec on the fly from db file
 # currently only for mc
     if runOnMC:
+        #era = "PHYS14_V4_MC"
+        era = "Summer15_50nsV2_MC"
         from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
         process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
-            connect = cms.string('sqlite_fip:CATTools/CatProducer/data/PHYS14_V4_MC.db'),
+            connect = cms.string('sqlite_fip:CATTools/CatProducer/data/'+era+'.db'),
             toGet = cms.VPSet(
-            cms.PSet(record = cms.string("JetCorrectionsRecord"),
-            tag = cms.string("JetCorrectorParametersCollection_PHYS14_V4_MC_AK4PFchs"),
-            label= cms.untracked.string("AK4PFchs"))
+                cms.PSet(
+                    record = cms.string("JetCorrectionsRecord"),
+                    tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PFchs"),
+                    label= cms.untracked.string("AK4PFchs"))
             ))
         process.es_prefer_jec = cms.ESPrefer("PoolDBESSource","jec")
 ## applying new jec on the fly
@@ -59,7 +85,6 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
             eleHEEPIdMap = cms.InputTag("egmGsfElectronIDs:heepElectronID-HEEPV51"),
         )
 #######################################################################    
-
     if runOnMC:## Load MC dependent producers
         ## FIX ME - pile up and pdf weight
         process.load("CATTools.CatProducer.pdfWeight_cff")
@@ -114,3 +139,10 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     process.catSecVertexs.muonSrc = cms.InputTag(catMuonsSource)
     process.catSecVertexs.elecSrc = cms.InputTag(catElectronsSource)
     process.catSecVertexs.vertexLabel = cms.InputTag(catVertexSource)
+
+    process.catJetsPuppi.src = cms.InputTag(catJetsPuppiSource)
+    process.catJetsPuppi.genJetMatch = cms.InputTag("patJetGenJetMatch")
+    process.catJetsPuppi.btagNames = btagNames
+    process.catMETsPuppi.src = cms.InputTag(catMETsPuppiSource)
+
+    

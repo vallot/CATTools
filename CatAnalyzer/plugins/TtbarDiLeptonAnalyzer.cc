@@ -10,6 +10,8 @@
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+
 #include "CATTools/DataFormats/interface/Muon.h"
 #include "CATTools/DataFormats/interface/Electron.h"
 #include "CATTools/DataFormats/interface/Jet.h"
@@ -46,6 +48,7 @@ private:
   vector<cat::Jet> selectJets(const edm::View<cat::Jet>* jets, vector<TLorentzVector> recolep);
   vector<cat::Jet> selectBJets(vector<cat::Jet> & jets );
   float passingSteps(int channel, float met, float ll_mass, float ll_charge, int selectedJets_size, int btag);
+  const reco::Candidate* getLast(const reco::Candidate* p);
 
   TLorentzVector leafToTLorentzVector(reco::LeafCandidate & leaf)
   {return TLorentzVector(leaf.px(), leaf.py(),leaf.pz(),leaf.energy());}
@@ -56,16 +59,27 @@ private:
   edm::EDGetTokenT<edm::View<cat::MET> >      metToken_;
   edm::EDGetTokenT<reco::VertexCollection >   vtxToken_;
   edm::EDGetTokenT<reco::GenParticleCollection> mcLabel_;
+  edm::EDGetTokenT<int>          partonTop_channel_;
+  edm::EDGetTokenT<vector<int> > partonTop_modes_;
 
   TTree * ttree_;
+  int b_genChannel, b_genMode1, b_genMode2, b_partonChannel, b_partonMode1, b_partonMode2;
   int b_njet, b_nbjet, b_step, b_channel;
-  float b_MET, b_ll_mass, b_maxweight;
+  float b_MET, b_maxweight;
+
+  float b_lep1_pt, b_lep1_eta, b_lep1_phi;
+  float b_lep2_pt, b_lep2_eta, b_lep2_phi;
+  float b_ll_pt, b_ll_eta, b_ll_phi, b_ll_m;
 
   TtFullLepKinSolver* solver;
   double tmassbegin_, tmassend_, tmassstep_;
   vector<double> nupars_;
   
   bool runOnMC_;
+  int gen_channel;
+  std::vector<int> gen_modes;
+  //enum TTbarMode { CH_NONE = 0, CH_FULLHADRON = 1, CH_SEMILEPTON, CH_FULLLEPTON };
+  //enum DecayMode { CH_HADRON = 1, CH_MUON, CH_ELECTRON, CH_TAU_HADRON, CH_TAU_MUON, CH_TAU_ELECTRON };
 };
 //
 // constructors and destructor
@@ -78,6 +92,8 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   metToken_  = consumes<edm::View<cat::MET> >(iConfig.getParameter<edm::InputTag>("mets"));     
   vtxToken_  = consumes<reco::VertexCollection >(iConfig.getParameter<edm::InputTag>("vertices"));
   mcLabel_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcLabel"));
+  partonTop_channel_ = consumes<int>(iConfig.getParameter<edm::InputTag>("partonTop_channel"));
+  partonTop_modes_   = consumes<vector<int> >(iConfig.getParameter<edm::InputTag>("partonTop_modes"));
 
   tmassbegin_     = iConfig.getParameter<double>       ("tmassbegin");
   tmassend_       = iConfig.getParameter<double>       ("tmassend");
@@ -85,13 +101,31 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   nupars_         = iConfig.getParameter<vector<double> >("neutrino_parameters");
   
   edm::Service<TFileService> fs;
-  ttree_ = fs->make<TTree>("top", "top");
+  ttree_ = fs->make<TTree>("tree", "tree");
+  ttree_->Branch("gen_channel", &b_genChannel, "gen_channel/I");
+  ttree_->Branch("gen_mode1", &b_genMode1, "gen_mode1/I");
+  ttree_->Branch("gen_mode2", &b_genMode2, "gen_mode2/I");
+  ttree_->Branch("parton_channel", &b_partonChannel, "parton_channel/I");
+  ttree_->Branch("parton_mode1", &b_partonMode1, "parton_mode1/I");
+  ttree_->Branch("parton_mode2", &b_partonMode2, "parton_mode2/I");
   ttree_->Branch("njet", &b_njet, "njet/I");
   ttree_->Branch("nbjet", &b_nbjet, "nbjet/I");
-  ttree_->Branch("ll_mass", &b_ll_mass, "ll_mass/F");
   ttree_->Branch("MET", &b_MET, "MET/F");
   ttree_->Branch("channel", &b_channel, "channel/I");
   ttree_->Branch("step", &b_step, "njet/I");
+
+  ttree_->Branch("mu1_pt", &b_lep1_pt, "mu1_pt/F");
+  ttree_->Branch("mu1_eta", &b_lep1_eta, "mu1_eta/F");
+  ttree_->Branch("mu1_phi", &b_lep1_phi, "mu1_phi/F");
+
+  ttree_->Branch("mu2_pt", &b_lep2_pt, "mu2_pt/F");
+  ttree_->Branch("mu2_eta", &b_lep2_eta, "mu2_eta/F");
+  ttree_->Branch("mu2_phi", &b_lep2_phi, "mu2_phi/F");
+
+  ttree_->Branch("ll_pt", &b_ll_pt, "ll_pt/F");
+  ttree_->Branch("ll_eta", &b_ll_eta, "ll_eta/F");
+  ttree_->Branch("ll_phi", &b_ll_phi, "ll_phi/F");
+  ttree_->Branch("ll_m", &b_ll_m, "ll_m/F");
 
 }
 TtbarDiLeptonAnalyzer::~TtbarDiLeptonAnalyzer()
@@ -107,6 +141,22 @@ TtbarDiLeptonAnalyzer::~TtbarDiLeptonAnalyzer()
 // ------------ method called for each event  ------------
 void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
+  
+  b_genChannel = -1; 
+  b_genMode1 = -1;
+  b_genMode2 = -1; 
+  b_partonChannel = -1; 
+  b_partonMode1 = -1; 
+  b_partonMode2 = -1; 
+  b_MET = -1; 
+  b_njet = -1;
+  b_nbjet = -1;
+  b_channel = -1;
+  b_step = -1;
+  b_lep1_pt = -9; b_lep1_eta = -9; b_lep1_phi = -9;
+  b_lep2_pt = -9; b_lep2_eta = -9; b_lep2_phi = -9;
+  b_ll_pt = -9; b_ll_eta = -9; b_ll_phi = -9; b_ll_m = -9;
+
   runOnMC_ = !iEvent.isRealData();
 
   edm::Handle<reco::VertexCollection> vertices;
@@ -125,23 +175,89 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
   edm::Handle<edm::View<cat::MET> > mets;
   iEvent.getByToken(metToken_, mets);
-  
   edm::Handle<reco::GenParticleCollection> genParticles;
+  edm::Handle<int> partonTop_channel;
+  edm::Handle<vector<int> > partonTop_modes;
+
   if (runOnMC_){
-    iEvent.getByToken(mcLabel_,genParticles);
-    for (auto g : *genParticles) {
-      cout <<"g.pt() " << g.pt() <<endl; 
+    int nMuon = 0;
+    int nElectron = 0;
+    gen_modes.clear();
+
+    iEvent.getByToken(mcLabel_,genParticles); 
+    for (const reco::GenParticle & g : *genParticles){
+      const reco::Candidate* w=0;
+      const reco::Candidate* wLast=0;    
+      const reco::Candidate* lep=0;
+      if (fabs(g.pdgId()) == 6){ 
+        for (unsigned int i = 0; i < g.numberOfDaughters(); ++i){
+          if (fabs(g.daughter(i)->pdgId())  == 24){ w = g.daughter(i); break; }
+        }
+      }
+      if (w){
+        wLast=getLast(w);
+        for (unsigned int i = 0; i < wLast->numberOfDaughters(); ++i){
+          if ((fabs(wLast->daughter(i)->pdgId()) == 11) || (fabs(wLast->daughter(i)->pdgId()) == 13) || (fabs(wLast->daughter(i)->pdgId()) == 15)){
+            lep = wLast->daughter(i);
+            break;
+          }
+        }
+      }
+
+      if (lep){
+          int mode = 1;
+          if ( fabs(lep->pdgId()) == 13){ ++nMuon; mode = 2; }
+          else if ( fabs(lep->pdgId()) == 11){ ++nElectron; mode = 3; }
+          else if ( fabs(lep->pdgId()) == 15){
+              for (unsigned int i = 0; i < lep->numberOfDaughters(); ++i){
+                  if ( fabs(lep->daughter(i)->pdgId()) == 13 ) { mode = 5; break;}
+                  else if ( fabs(lep->daughter(i)->pdgId()) == 11 ) { mode = 6; break;}
+                  mode = 4;
+              }
+          }
+          gen_modes.push_back(mode);
+      }
     }
+
+    if ( gen_modes.size() == 0 ) { gen_modes.push_back(0); }
+    if ( gen_modes.size() == 1 ) { gen_modes.push_back(0); }
+
+    gen_channel = 0;
+    const int nLepton = nElectron + nMuon;
+    gen_channel = nLepton+1;
+
+    iEvent.getByToken(partonTop_channel_, partonTop_channel);
+    iEvent.getByToken(partonTop_modes_, partonTop_modes);
+    if ((*partonTop_modes).size() >= 2) {
+        b_genChannel = gen_channel; 
+        b_genMode1 = gen_modes[0]; 
+        b_genMode2 = gen_modes[1]; 
+
+        b_partonChannel = *partonTop_channel; 
+        b_partonMode1 = (*partonTop_modes)[0]; 
+        b_partonMode2 = (*partonTop_modes)[1]; 
+    }
+    //cout << "parton_channel   "<< *partonTop_channel<<endl;
+    //cout << "parton_mode      "<< (*partonTop_modes)[0] << " & "<< (*partonTop_modes)[1] <<endl;
   }
-  
   vector<cat::Muon> selectedMuons = selectMuons( muons.product() );
   vector<cat::Electron> selectedElectrons = selectElecs( electrons.product() );
 
   vector<TLorentzVector> recolep; 
   for (auto lep : selectedMuons){ recolep.push_back(lep.tlv()); }
   for (auto lep : selectedElectrons){ recolep.push_back(lep.tlv()); }
-  if (recolep.size() < 2) return;
+  if (recolep.size() != 2){
+    ttree_->Fill();
+    return;
+  }
 
+  b_lep1_pt = recolep[0].Pt();
+  b_lep1_eta = recolep[0].Eta();
+  b_lep1_phi = recolep[0].Phi();
+  b_lep2_pt = recolep[1].Pt();
+  b_lep2_eta = recolep[1].Eta();
+  b_lep2_phi = recolep[1].Phi();
+  
   float channel = selectedElectrons.size();
 
   float ll_charge = 0. ;
@@ -155,8 +271,13 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   //  printf("selectedMuons %lu, selectedElectrons %lu, selectedJets %lu, selectedBJets %lu\n",selectedMuons.size(), selectedElectrons.size(), selectedJets.size(), selectedBJets.size() );
 
   TLorentzVector met = mets->front().tlv();
+  
+  TLorentzVector tlv_ll = recolep[0]+recolep[1];
+  b_ll_pt = tlv_ll.Pt();
+  b_ll_eta = tlv_ll.Eta();
+  b_ll_phi = tlv_ll.Phi();
+  b_ll_m = tlv_ll.M();
 
-  b_ll_mass = (recolep[0]+recolep[1]).M();  
   b_MET = met.Pt(); 
   b_njet = selectedJets.size();
   b_nbjet = selectedBJets.size();
@@ -164,7 +285,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
   float step = passingSteps( channel, met.Pt(), (recolep[0]+recolep[1]).M(), ll_charge, selectedJets.size(), selectedBJets.size() );
   b_step = step;
-  
+
   ////////////////////////////////////////////////////////  KIN  /////////////////////////////////////
   int kin=0; TLorentzVector nu1, nu2, top1, top2;
   double maxweight=0;
@@ -205,9 +326,19 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   }
   b_maxweight = maxweight;
   //  printf("maxweight %f, top1.M() %f, top2.M() %f \n",maxweight, top1.M(), top2.M() );
-  printf("%2d, %2d, %2d, %2d, %6.2f, %6.2f, %6.2f\n", b_njet, b_nbjet, b_step, b_channel, b_MET, b_ll_mass, b_maxweight);
+  // printf("%2d, %2d, %2d, %2d, %6.2f, %6.2f, %6.2f\n", b_njet, b_nbjet, b_step, b_channel, b_MET, b_ll_mass, b_maxweight);
 
   ttree_->Fill();
+}
+
+const reco::Candidate* TtbarDiLeptonAnalyzer::getLast(const reco::Candidate* p)
+{
+  for ( size_t i=0, n=p->numberOfDaughters(); i<n; ++i )
+  {
+    const reco::Candidate* dau = p->daughter(i);
+    if ( p->pdgId() == dau->pdgId() ) return getLast(dau);
+  }
+  return p;
 }
 
 vector<cat::Muon> TtbarDiLeptonAnalyzer::selectMuons(const edm::View<cat::Muon>* muons )
