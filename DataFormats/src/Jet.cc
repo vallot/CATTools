@@ -26,3 +26,10 @@ float Jet::bDiscriminator(const std::string & aLabel) const {
   }
   return discriminator;
 }
+
+/// print all bjet Discriminators
+void Jet::bDiscriminatorPrint() const {
+  for(unsigned int i=0; i!=pairDiscriVector_.size(); i++){
+    std::cout << pairDiscriVector_[i].first << " = " << pairDiscriVector_[i].second << std::endl;
+  }
+}

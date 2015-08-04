@@ -16,7 +16,7 @@ process.source.fileNames = [
 '/store/mc/Phys14DR/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU20bx25_PHYS14_25_V1-v1/00000/00C90EFC-3074-E411-A845-002590DB9262.root',
 ]
 
-process.load("CATTools.CatProducer.pseudoTop_cfi")
+process.load("CATTools.CatProducer.pseudoTop_cff")
 
 process.out = cms.OutputModule("PoolOutputModule", 
     fileName = cms.untracked.string("out.root"),

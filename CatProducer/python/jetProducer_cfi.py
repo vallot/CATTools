@@ -28,3 +28,9 @@ catJets = cms.EDProducer("CATJetProducer",
 ##  #     'softPFMuonByPtBJetTags', #12
 ##     ),
 )
+
+catJetsPuppi = cms.EDProducer("CATJetProducer",
+    src = cms.InputTag("slimmedJetsPuppi."),
+    btagNames = cms.vstring(),
+    payloadName = cms.string(""), 
+)

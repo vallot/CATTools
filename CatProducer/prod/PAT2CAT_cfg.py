@@ -1,6 +1,6 @@
 from CATTools.CatProducer.catTemplate_cfg import *
 ## some options
-doSecVertex=True # for jpsi candidates
+doSecVertex=False # for jpsi candidates
     
 ## setting up arguements
 from FWCore.ParameterSet.VarParsing import VarParsing
@@ -11,17 +11,33 @@ options.register('globalTag', '', VarParsing.multiplicity.singleton, VarParsing.
 
 options.parseArguments()
 runOnMC = options.runOnMC
-useMiniAOD = options.useMiniAOD # Aren't we using miniAOD always? (either of miniAOD - > CAT or AOD -> miniAOD -> CAT) 
+useMiniAOD = options.useMiniAOD
 globalTag = options.globalTag
 
+####################################################################
+#### setting up global tag
+####################################################################
+from Configuration.AlCa.autoCond import autoCond
+process.GlobalTag.globaltag = autoCond['run2_mc_FULL']
+if not runOnMC:
+    process.GlobalTag.globaltag = autoCond['run2_data']
 if globalTag:
-    process.GlobalTag.globaltag = cms.string(globalTag)
+    process.GlobalTag.globaltag = globalTag
 
+####################################################################
+#### setting up pat tools - miniaod step
+####################################################################
 from CATTools.CatProducer.patTools_cff import *
 patTool(process, runOnMC, useMiniAOD)
 
+####################################################################
+#### setting up cat tools
+####################################################################
 from CATTools.CatProducer.catTools_cff import *
 catTool(process, runOnMC, doSecVertex, useMiniAOD)
+
+from CATTools.CatProducer.catGenHFHadronMatching_cff import *
+genHFTool(process, useMiniAOD)
 
 from CATTools.CatProducer.catEventContent_cff import *
 process.out.outputCommands = catEventContent
@@ -29,7 +45,12 @@ if runOnMC:
     process.out.outputCommands.extend(catEventContentMC)
     if not useMiniAOD:
         process.out.outputCommands.extend(catEventContentAODMC)
+if doSecVertex:
+    process.out.outputCommands.extend(catEventContentSecVertexs)
 
+####################################################################
+#### cmsRun options
+####################################################################
 process.maxEvents.input = options.maxEvents
 
 # better to have a default file here for test purpose
@@ -45,7 +66,7 @@ process.source = cms.Source("PoolSource",
 if options.inputFiles:
     process.source.fileNames = options.inputFiles
 #pat input files are removed because it would not work if useMiniAOD is on.    
- 
+
 print "runOnMC =",runOnMC,"and useMiniAOD =",useMiniAOD
 print "process.GlobalTag.globaltag =",process.GlobalTag.globaltag
 

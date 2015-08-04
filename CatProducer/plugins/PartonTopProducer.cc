@@ -4,6 +4,9 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+#include "fastjet/JetDefinition.hh"
+#include "fastjet/ClusterSequence.hh"
+#include "RecoJets/JetProducers/interface/JetSpecific.h"
 
 #include "CommonTools/Utils/interface/PtComparator.h"
 
@@ -26,23 +29,35 @@ public:
   enum DecayMode { CH_HADRON = 1, CH_MUON, CH_ELECTRON, CH_TAU_HADRON, CH_TAU_MUON, CH_TAU_ELECTRON };
 
 private:
-  const reco::Candidate* getLast(const reco::Candidate* p);
+  const reco::Candidate* getLast(const reco::Candidate* p) const;
   reco::GenParticleRef buildGenParticle(const reco::Candidate* p, reco::GenParticleRefProd& refHandle,
                                         std::auto_ptr<reco::GenParticleCollection>& outColl) const;
 
   typedef reco::Particle::LorentzVector LorentzVector;
 
+  const double jetMinPt_, jetMaxEta_;
+  typedef fastjet::JetDefinition JetDef;
+  std::shared_ptr<JetDef> fjDef_;
+  const reco::Particle::Point genVertex_;
+
 private:
   edm::EDGetTokenT<edm::View<reco::Candidate> > genParticleToken_;
 };
 
-PartonTopProducer::PartonTopProducer(const edm::ParameterSet& pset)
+PartonTopProducer::PartonTopProducer(const edm::ParameterSet& pset):
+  jetMinPt_(pset.getParameter<double>("jetMinPt")),
+  jetMaxEta_(pset.getParameter<double>("jetMaxEta")),
+  genVertex_(0,0,0)
 {
   genParticleToken_ = consumes<edm::View<reco::Candidate> >(pset.getParameter<edm::InputTag>("genParticles"));
+  const double jetConeSize = pset.getParameter<double>("jetConeSize");
+  fjDef_ = std::shared_ptr<JetDef>(new JetDef(fastjet::antikt_algorithm, jetConeSize));
 
   produces<reco::GenParticleCollection>();
   produces<int>("channel");
   produces<std::vector<int> >("modes");
+
+  produces<reco::GenJetCollection>("qcdJets");
 }
 
 void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventSetup)
@@ -56,15 +71,18 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
   std::auto_ptr<int> channel(new int(CH_NONE));
   std::auto_ptr<std::vector<int> > modes(new std::vector<int>());
 
+  std::auto_ptr<reco::GenJetCollection> qcdJets(new reco::GenJetCollection);
+
   // Collect top quarks and unstable B-hadrons
   std::vector<const reco::Candidate*> tQuarks;
+  std::vector<int> qcdParticleIdxs;
   for ( size_t i=0, n=genParticleHandle->size(); i<n; ++i )
   {
     const reco::Candidate& p = genParticleHandle->at(i);
     const int status = p.status();
     if ( status == 1 ) continue;
 
-    // Collect parton level objects. Ignore gluons and photons
+    // Collect parton level objects.
     const int absPdgId = abs(p.pdgId());
     if ( absPdgId == 6 )
     {
@@ -78,6 +96,20 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
       }
       if ( toKeep ) tQuarks.push_back(&p);
     }
+    else if ( absPdgId < 6 or absPdgId == 21 )
+    {
+      // QCD particles : select one after parton shower, before hadronization
+      bool toKeep = true;
+      for ( size_t j=0, m=p.numberOfDaughters(); j<m; ++j )
+      {
+        const int absDauId = abs(p.daughter(j)->pdgId());
+        if ( absDauId < 6 or absPdgId == 21 ) { toKeep = false; break; }
+      }
+      if ( toKeep )
+      {
+        qcdParticleIdxs.push_back(i);
+      }
+    }
   }
   // Build top quark decay tree in parton level
   // Also determine decay mode from parton level information
@@ -87,6 +119,12 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
     const reco::Candidate* t = tQuarks.at(i);
     const reco::Candidate* tLast = getLast(t);
     reco::GenParticleRef tRef = buildGenParticle(tLast, partonRefHandle, partons);
+  }
+
+  for ( int i=0, n=tQuarks.size(); i<n; ++i )
+  {
+    const reco::Candidate* tLast = getLast(tQuarks.at(i));
+    reco::GenParticleRef tRef(partonRefHandle, i);
 
     const reco::Candidate* w = 0;
     const reco::Candidate* b = 0;
@@ -95,7 +133,7 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
       const reco::Candidate* dau = tLast->daughter(j);
       const unsigned int dauAbsId = abs(dau->pdgId());
       if ( dauAbsId == 24 and !w ) w = dau;
-      else if ( dauAbsId == 5 and !b ) b = dau;
+      else if ( dauAbsId < 6 and !b ) b = dau;
     }
     if ( !w or !b ) continue;
     reco::GenParticleRef wRef = buildGenParticle(w, partonRefHandle, partons);
@@ -152,7 +190,14 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
           {
             cout << "--------------------------------------" << endl;
             cout << "TAU decay with more than 1 leptons!!!, nDau=" << tauLast->numberOfDaughters() << endl;
-            cout << " dau = " << lepFromTau->pdgId() << " skipped = " << dau->pdgId() << endl;
+            cout << " dau : " << lepFromTau->pdgId() << ", pt=" << lepFromTau->pt() << " eta=" << lepFromTau->eta() << " phi=" << lepFromTau->phi() << endl;
+            if ( lepFromTau->pt() > dau->pt() ) cout << " skipped ";
+            else
+            {
+              cout << " switching to ";
+              lepFromTau = dau;
+            }
+            cout << j << "th lepton : " << dau->pdgId() << ", pt=" << dau->pt() << " eta=" << dau->eta() << " phi=" << dau->phi() << endl;
             cout << "--------------------------------------" << endl;
           }
         }
@@ -190,17 +235,61 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
     else if ( nLepton == 2 ) *channel = CH_FULLLEPTON;
   }
 
+  // Make genJets using particles after PS, but before hadronization
+  std::vector<fastjet::PseudoJet> fjInputs;
+  fjInputs.reserve(qcdParticleIdxs.size());
+  for ( int i : qcdParticleIdxs )
+  {
+    const auto& p = genParticleHandle->at(i);
+    fjInputs.push_back(fastjet::PseudoJet(p.px(), p.py(), p.pz(), p.energy()));
+    fjInputs.back().set_user_index(i);
+  }
+  fastjet::ClusterSequence fjClusterSeq(fjInputs, *fjDef_);
+  std::vector<fastjet::PseudoJet> fjJets = fastjet::sorted_by_pt(fjClusterSeq.inclusive_jets(jetMinPt_));
+  qcdJets->reserve(fjJets.size());
+  for ( auto& fjJet : fjJets )
+  {
+    if ( abs(fjJet.eta()) > jetMaxEta_ ) continue;
+    const auto& fjCons = fjJet.constituents();
+    std::vector<reco::CandidatePtr> cons;
+    cons.reserve(fjCons.size());
+    for ( auto con : fjCons )
+    {
+      const size_t index = con.user_index();
+      cons.push_back(genParticleHandle->ptrAt(index));
+    }
+
+    const LorentzVector jetP4(fjJet.px(), fjJet.py(), fjJet.pz(), fjJet.E());
+    reco::GenJet qcdJet;
+    reco::writeSpecific(qcdJet, jetP4, genVertex_, cons, eventSetup);
+
+    qcdJets->push_back(qcdJet);
+  }
+
   event.put(partons);
   event.put(channel, "channel");
   event.put(modes, "modes");
+  event.put(qcdJets, "qcdJets");
 }
 
-const reco::Candidate* PartonTopProducer::getLast(const reco::Candidate* p)
+const reco::Candidate* PartonTopProducer::getLast(const reco::Candidate* p) const
 {
+  int nDecay = 0;
+  std::vector<const reco::Candidate*> sameCopies;
   for ( size_t i=0, n=p->numberOfDaughters(); i<n; ++i )
   {
     const reco::Candidate* dau = p->daughter(i);
-    if ( p->pdgId() == dau->pdgId() ) return getLast(dau);
+    const int dauId = dau->pdgId();
+    if ( dauId == 22 or dauId == 21 ) continue;
+    if ( p->pdgId() == dau->pdgId() ) sameCopies.push_back(dau);
+    else ++nDecay;
+  }
+  if ( nDecay == 0 )
+  {
+    for ( const auto dau : sameCopies )
+    {
+      if ( p->pdgId() == dau->pdgId() ) return getLast(dau);
+    }
   }
   return p;
 }

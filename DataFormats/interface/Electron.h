@@ -5,6 +5,7 @@
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "CATTools/DataFormats/interface/Particle.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
+#include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
 
 // Define typedefs for convenience
 namespace cat {
@@ -21,17 +22,13 @@ namespace cat {
     Electron();
     Electron(const reco::LeafCandidate & aElectron); 
     virtual ~Electron();
-
+  
     float relIso(float dR=0.3 ) const {
       if( dR < 0.35) return relIso03_;
       else return relIso04_;
     }
     float scEta() const { return scEta_; }
-    float dxy() const { return dxy_; }
-    float dz() const { return dz_; }
     bool passConversionVeto() const { return passConversionVeto_; }
-    bool isGsfCtfScPixChargeConsistent() const { return isGsfCtfScPixChargeConsistent_; }
-    bool isPF() const { return isPF_; }
 
     float chargedHadronIso(float dR=0.3) const {
       if( dR < 0.35) return chargedHadronIso03_;
@@ -69,13 +66,8 @@ namespace cat {
       if( dR < 0.35) relIso03_ = relIso; 
       else  relIso04_ = relIso; 
     }
-    void setscEta(float i) { scEta_ = i; }
-    void setdxy(float i) {  dxy_ = i; }
-    void setdz(float i) {  dz_ = i; }
+    void setscEta(float i) { scEta_ = i; } 
     void setPassConversionVeto(bool i) {  passConversionVeto_ = i; }
-    void setIsGsfCtfScPixChargeConsistent(bool i) {  isGsfCtfScPixChargeConsistent_ = i; }
-    void setisPF(bool i) {  isPF_ = i; }
-    void setrho(float i) { rho_ = i; }
 
     void setChargedHadronIso03(float i) { chargedHadronIso03_ = i; }
     void setPUChargedHadronIso03(float i) { puChargedHadronIso03_ = i; }
@@ -92,17 +84,20 @@ namespace cat {
     float electronID(const std::string& name) const;
     float electronID(const char* name) const { return electronID( std::string(name) );}
     void setElectronIDs(const std::vector<pat::Electron::IdPair> & ids) { electronIDs_ = ids; }
+    void setElectronID(pat::Electron::IdPair ids) { electronIDs_.push_back(ids); }
 
     void setShiftedEnDown(float f) { shiftedEnDown_ = f;}
     void setShiftedEnUp(float f) { shiftedEnUp_ = f;}
-    float shiftedEnDown() {return  shiftedEnDown_;}
-    float shiftedEnUp()   {return  shiftedEnUp_;}
+    float shiftedEnDown() const {return  shiftedEnDown_;}
+    float shiftedEnUp() const {return  shiftedEnUp_;}
+
+    bool isPF() const{ return isPF_; }
+    void setIsPF(bool hasPFCandidate) { isPF_ = hasPFCandidate ; }
 
   private:
 
     std::vector<pat::Electron::IdPair> electronIDs_;
-    //std::vector<std::string> electronIDNames_;
-
+    
     float relIso03_;
     float relIso04_;
 
@@ -117,14 +112,10 @@ namespace cat {
     float photonIso04_;
 
     float scEta_;
-    float dxy_;
-    float dz_;
-    float rho_;
-    
+    bool isPF_;
+
     bool mcMatched_;
     bool passConversionVeto_;
-    bool isGsfCtfScPixChargeConsistent_;
-    bool isPF_;
 
     float shiftedEnDown_;
     float shiftedEnUp_;
