@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 catJets = cms.EDProducer("CATJetProducer",
-    src = cms.InputTag("selectedPatJetsPFlow"),
+    src = cms.InputTag("slimmedJets"),
     btagNames = cms.vstring(),
     ## payloadName should be AK4PFchs, but PHYS14_25_V2 does not have uncertainty 
     payloadName = cms.string(""), 
