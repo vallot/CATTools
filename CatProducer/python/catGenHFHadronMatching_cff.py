@@ -55,12 +55,12 @@ def genHFTool(process, useMiniAOD = True):
    
     # Plugin for analysing C hadrons
     # MUST use the same particle collection as in selectedHadronsAndPartons
-    from PhysicsTools.JetMCAlgos.sequences.GenHFHadronMatching_cff import matchGenCHadron
+    process.load("PhysicsTools.JetMCAlgos.sequences.GenHFHadronMatching_cff")
     process.matchGenCHadron = matchGenCHadron.clone(
         genParticles = genParticleCollection
     )
 
-    from CATTools.CatProducer.GenTtbarCategorizer_cfi import *
+    process.load("CATTools.CatProducer.GenTtbarCategorizer_cfi")
     process.GenTtbarCategories = categorizeGenTtbar.clone(
        genJets = genJetCollection
     )    
