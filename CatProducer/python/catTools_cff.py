@@ -103,6 +103,7 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
         ## FIX ME - pile up and pdf weight
         process.load("CATTools.CatProducer.pdfWeight_cff")
         process.load("CATTools.CatProducer.pileupWeight_cff")
+        process.pileupWeight.vertex = cms.InputTag(catVertexSource)
 
         if not useMiniAOD:
             process.load("CATTools.CatProducer.genTopProducer_cfi")
@@ -159,4 +160,3 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     process.catJetsPuppi.btagNames = btagNames
     process.catMETsPuppi.src = cms.InputTag(catMETsPuppiSource)
     process.catVertex.vertexLabel = cms.InputTag(catVertexSource)
-    process.pileupWeight.vertex = cms.InputTag(catVertexSource)
