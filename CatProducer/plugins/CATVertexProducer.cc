@@ -6,7 +6,6 @@
 #include "DataFormats/Common/interface/Association.h"
 #include "DataFormats/Common/interface/RefToPtr.h"
 
-#include "CATTools/DataFormats/interface/Vertex.h"
 #include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"

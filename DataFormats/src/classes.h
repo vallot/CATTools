@@ -11,7 +11,6 @@
 #include "CATTools/DataFormats/interface/GenTop.h"
 #include "CATTools/DataFormats/interface/MCParticle.h"
 #include "CATTools/DataFormats/interface/SecVertex.h"
-#include "CATTools/DataFormats/interface/Vertex.h"
 #include "DataFormats/Common/interface/ValueMap.h"
 
 #include <vector>
@@ -94,12 +93,6 @@ namespace {
     edm::Wrapper<cat::SecVertex> svw;
     edm::Wrapper<std::vector<cat::SecVertex> > svvw;
     edm::Ptr<cat::SecVertex> svPtr;
-
-    cat::Vertex cpvi_;
-    std::vector<cat::Vertex> cpviv;
-    edm::Wrapper<cat::Vertex> cpviw;
-    edm::Wrapper<std::vector<cat::Vertex> > cpvivw;
-    edm::Ptr<cat::Vertex> cpviPtr;
 
     edm::Wrapper<reco::CompositePtrCandidateCollection> a1;
     edm::reftobase::Holder<reco::Candidate, reco::CompositePtrCandidateRef> a2;
