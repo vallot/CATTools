@@ -88,14 +88,12 @@ void PileupWeightProducer::produce(edm::Event& event, const edm::EventSetup& eve
   std::auto_ptr<double> weightUp(new double(1.));
   std::auto_ptr<double> weightDn(new double(1.));
 
-  do
+  if ( !event.isRealData() )
   {
-    if ( event.isRealData() ) break;
     if ( isStandardWeight_ )
     {
       edm::Handle<std::vector<PileupSummaryInfo> > puHandle;
       event.getByToken(puToken_, puHandle);
-      if ( !puHandle.isValid() ) break;
 
       for ( auto& puInfo : *puHandle )
       {
@@ -119,7 +117,6 @@ void PileupWeightProducer::produce(edm::Event& event, const edm::EventSetup& eve
     {
       edm::Handle<reco::VertexCollection> vertexHandle;
       event.getByToken(vertexToken_, vertexHandle);
-      if ( !vertexHandle.isValid() ) break;
 
       const int nPVBin = std::min(simpleWeights_.size(), vertexHandle->size()) - 1;
       if ( nPVBin >= 0 )
@@ -129,7 +126,7 @@ void PileupWeightProducer::produce(edm::Event& event, const edm::EventSetup& eve
         *weightDn = simpleWeights_[nPVBin];
       }
     }
-  } while ( false );
+  }
 
   event.put(nTrueIntr, "nTrueInteraction");
   event.put(weight  , "");
