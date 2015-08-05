@@ -68,6 +68,8 @@ PileupWeightProducer::PileupWeightProducer(const edm::ParameterSet& pset):
   }
   else
   {
+    std::cerr << "!!PileupWeightProducer!! We are using NON STANDARD method for the pileup reweight.\n"
+              << "                         This weight values are directly from reco vertex\n";
     vertexToken_ = consumes<reco::VertexCollection>(pset.getParameter<edm::InputTag>("vertex"));
     simpleWeights_ = pset.getParameter<std::vector<double> >("simpleWeights");
     const double sumW = std::accumulate(simpleWeights_.begin(), simpleWeights_.end(), 0);
