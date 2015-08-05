@@ -21,7 +21,7 @@ def genHFTool(process, useMiniAOD = True):
     # Producing own jets for testing purposes
     process.load("RecoJets.JetProducers.ak4GenJets_cfi")
     process.ak4GenJetsCustom = process.ak4GenJets.clone(
-        src = genJetInputParticleCollection,
+        src = cms.InputTag(genJetInputParticleCollection),
         rParam = cms.double(0.4),
         jetAlgorithm = cms.string("AntiKt")
     )
@@ -37,8 +37,8 @@ def genHFTool(process, useMiniAOD = True):
     # More details on the tool: https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideBTagMCTools#New_jet_flavour_definition
     process.load("PhysicsTools.JetMCAlgos.sequences.GenHFHadronMatching_cff")
     process.genJetFlavourPlusLeptonInfos.jets = genJetCollection
-    process.genJetFlavourPlusLeptonInfos.jets = rParam = cms.double(0.4)
-    process.genJetFlavourPlusLeptonInfos.jets = jetAlgorithm = cms.string("AntiKt")
+    process.genJetFlavourPlusLeptonInfos.rParam = cms.double(0.4)
+    process.genJetFlavourPlusLeptonInfos.jetAlgorithm = cms.string("AntiKt")
    
     # Plugin for analysing B hadrons
     # MUST use the same particle collection as in selectedHadronsAndPartons
@@ -52,5 +52,5 @@ def genHFTool(process, useMiniAOD = True):
 
     process.load("CATTools.CatProducer.GenTtbarCategorizer_cfi")
     process.GenTtbarCategories = process.categorizeGenTtbar.clone(
-       genJets = genJetCollection
+       genJets = cms.InputTag(genJetCollection)
     )
