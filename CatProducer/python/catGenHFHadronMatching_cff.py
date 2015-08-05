@@ -21,7 +21,7 @@ def genHFTool(process, useMiniAOD = True):
     # Producing own jets for testing purposes
     process.load("RecoJets.JetProducers.ak4GenJets_cfi")
     process.ak4GenJetsCustom = process.ak4GenJets.clone(
-        src = genJetInputParticleCollection,
+        src = cms.InputTag(genJetInputParticleCollection),
         rParam = cms.double(0.4),
         jetAlgorithm = cms.string("AntiKt")
     )
@@ -52,5 +52,5 @@ def genHFTool(process, useMiniAOD = True):
 
     process.load("CATTools.CatProducer.GenTtbarCategorizer_cfi")
     process.GenTtbarCategories = process.categorizeGenTtbar.clone(
-       genJets = genJetCollection
+       genJets = cms.InputTag(genJetCollection)
     )
