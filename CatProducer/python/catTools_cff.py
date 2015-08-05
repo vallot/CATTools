@@ -20,7 +20,6 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     process.nEventsTotal = cms.EDProducer("EventCountProducer")
     #process.p = cms.Path(process.nEventsTotal)
     process.load("CATTools.CatProducer.catCandidates_cff")        
-    process.load("CATTools.CatProducer.recoEventInfo_cfi")
 #######################################################################    
 # adding pfMVAMet
     process.load("RecoJets.JetProducers.ak4PFJets_cfi")
@@ -159,5 +158,5 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     process.catJetsPuppi.genJetMatch = cms.InputTag("patJetGenJetMatch")
     process.catJetsPuppi.btagNames = btagNames
     process.catMETsPuppi.src = cms.InputTag(catMETsPuppiSource)
-
+    process.catVertexInfo.vertexLabel = cms.InputTag(catVertexSource)
     
