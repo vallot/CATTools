@@ -98,11 +98,11 @@ void RecoEventInfoProducer::produce(edm::Event& event, const edm::EventSetup& ev
   const int nPV = vertexHandle->size();
   double pvX = 0, pvY = 0, pvZ = 0;
   if ( nPV > 0 )
-    {
-      pvX = vertexHandle->at(0).x();
-      pvY = vertexHandle->at(0).y();
-      pvZ = vertexHandle->at(0).z();
-    }
+  {
+    pvX = vertexHandle->at(0).x();
+    pvY = vertexHandle->at(0).y();
+    pvZ = vertexHandle->at(0).z();
+  }
   event.put(std::auto_ptr<int>(new int(nPV)), "pvN");
   event.put(std::auto_ptr<double>(new double(pvX)), "pvX");
   event.put(std::auto_ptr<double>(new double(pvY)), "pvY");
@@ -116,28 +116,28 @@ void RecoEventInfoProducer::produce(edm::Event& event, const edm::EventSetup& ev
   const edm::TriggerNames &trigNames = event.triggerNames(*triggerBits);
 
   for ( auto key = hltGroup_.begin(); key != hltGroup_.end(); ++key )
-    {
-      const std::string& hltGroupName = key->first;
-      const strings& hltPaths = key->second;
+  {
+    const std::string& hltGroupName = key->first;
+    const strings& hltPaths = key->second;
 
-      int psValue = 0;
-      for ( auto& hltPath : hltPaths )
-	{
-	  const strings hltPathsWithV = HLTConfigProvider::restoreVersion(trigNames.triggerNames(), hltPath);
-	  if ( hltPathsWithV.empty() ) continue;
-	  const std::string& trigName = hltPathsWithV[0];
-	  unsigned int trigIndex = trigNames.triggerIndex(trigName);
-	  if ( trigIndex < triggerBits->size() ){
-	    if ( triggerBits->accept(trigIndex) ) {
-	      // const std::pair<int,int> prescales = hltConfig_.prescaleValues(event, eventSetup, trigName);
-	      // psValue = prescales.first * prescales.second;
-	      psValue = triggerPrescales->getPrescaleForIndex(trigIndex);
-	      break;
-	    }
-	  }
-	}
-      event.put(std::auto_ptr<int>(new int (psValue)), "HLT"+hltGroupName);
+    int psValue = 0;
+    for ( auto& hltPath : hltPaths )
+    {
+      const strings hltPathsWithV = HLTConfigProvider::restoreVersion(trigNames.triggerNames(), hltPath);
+      if ( hltPathsWithV.empty() ) continue;
+      const std::string& trigName = hltPathsWithV[0];
+      unsigned int trigIndex = trigNames.triggerIndex(trigName);
+      if ( trigIndex < triggerBits->size() ){
+        if ( triggerBits->accept(trigIndex) ) {
+          // const std::pair<int,int> prescales = hltConfig_.prescaleValues(event, eventSetup, trigName);
+          // psValue = prescales.first * prescales.second;
+          psValue = triggerPrescales->getPrescaleForIndex(trigIndex);
+          break;
+        }
+      }
     }
+    event.put(std::auto_ptr<int>(new int (psValue)), "HLT"+hltGroupName);
+  }
 
   // // for full list of trigger names that pass
   // for (unsigned int i = 4, n = triggerBits->size(); i < n-3; ++i) {

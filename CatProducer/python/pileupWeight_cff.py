@@ -1,10 +1,13 @@
 import FWCore.ParameterSet.Config as cms
 
 pileupWeight = cms.EDProducer("PileupWeightProducer",
+    isStandardWeight = cms.bool(True),
     pileupMC = cms.vdouble(),
     pileupRD = cms.vdouble(),
     pileupUp = cms.vdouble(),
     pileupDn = cms.vdouble(),
+    vertex = cms.InputTag("slimmedOfflinePrimaryVertices"),
+    simpleWeights = cms.vdouble(),
 )
 
 pileupWeightMap = {
@@ -129,7 +132,10 @@ pileupWeightMap = {
 }
 
 ## Put values
-pileupWeight.pileupMC = pileupWeightMap["Summer12_S10"]
-pileupWeight.pileupRD = pileupWeightMap["Run2012"]
-pileupWeight.pileupUp = pileupWeightMap["Run2012Up"]
-pileupWeight.pileupDn = pileupWeightMap["Run2012Dn"]
+#pileupWeight.pileupMC = pileupWeightMap["Summer12_S10"]
+#pileupWeight.pileupRD = pileupWeightMap["Run2012"]
+#pileupWeight.pileupUp = pileupWeightMap["Run2012Up"]
+#pileupWeight.pileupDn = pileupWeightMap["Run2012Dn"]
+
+pileupWeight.isStandardWeight = False
+pileupWeight.simpleWeights = []
