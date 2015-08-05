@@ -95,11 +95,11 @@ namespace {
     edm::Wrapper<std::vector<cat::SecVertex> > svvw;
     edm::Ptr<cat::SecVertex> svPtr;
 
-    cat::Vertex pvi_;
-    std::vector<cat::Vertex> pviv;
-    edm::Wrapper<cat::Vertex> pviw;
-    edm::Wrapper<std::vector<cat::Vertex> > pvivw;
-    edm::Ptr<cat::Vertex> pviPtr;
+    cat::Vertex cpvi_;
+    std::vector<cat::Vertex> cpviv;
+    edm::Wrapper<cat::Vertex> cpviw;
+    edm::Wrapper<std::vector<cat::Vertex> > cpvivw;
+    edm::Ptr<cat::Vertex> cpviPtr;
 
     edm::Wrapper<reco::CompositePtrCandidateCollection> a1;
     edm::reftobase::Holder<reco::Candidate, reco::CompositePtrCandidateRef> a2;
