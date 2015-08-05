@@ -66,11 +66,11 @@
   <class name="edm::Wrapper<std::vector<cat::SecVertex> >"/>
   <class name="edm::Ptr<cat::SecVertex>"/>
 
-  <class name="cat::VertexInfo"/>
-  <class name="std::vector<cat::VertexInfo>"/>
-  <class name="edm::Wrapper<cat::VertexInfo>"/>
-  <class name="edm::Wrapper<std::vector<cat::VertexInfo> >"/>
-  <class name="edm::Ptr<cat::VertexInfo>"/>
+  <class name="cat::Vertex"/>
+  <class name="std::vector<cat::Vertex>"/>
+  <class name="edm::Wrapper<cat::Vertex>"/>
+  <class name="edm::Wrapper<std::vector<cat::Vertex> >"/>
+  <class name="edm::Ptr<cat::Vertex>"/>
 
   <class name="reco::CompositePtrCandidateCollection" />
   <class name="edm::Wrapper<reco::CompositePtrCandidateCollection>" />

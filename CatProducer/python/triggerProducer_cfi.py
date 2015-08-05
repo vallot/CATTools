@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-catTriggerInfo = cms.EDProducer("CATTriggerInfoProducer",
+catTrigger = cms.EDProducer("CATTriggerProducer",
     triggerResults = cms.InputTag("TriggerResults", "", "HLT"),
     prescales = cms.InputTag("patTrigger"),
     PreScaled = cms.vstring(),

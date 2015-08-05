@@ -22,10 +22,10 @@
 #include <vector>
 #include <string>
 
-class CATTriggerInfoProducer : public edm::EDProducer
+class CATTriggerProducer : public edm::EDProducer
 {
 public:
-  CATTriggerInfoProducer(const edm::ParameterSet& pset);
+  CATTriggerProducer(const edm::ParameterSet& pset);
   void produce(edm::Event& event, const edm::EventSetup& eventSetup) override;
   void beginRun(const edm::Run& run, const edm::EventSetup& eventSetup) override;
 
@@ -43,7 +43,7 @@ private:
   //HLTConfigProvider hltConfig_;
 };
 
-CATTriggerInfoProducer::CATTriggerInfoProducer(const edm::ParameterSet& pset)
+CATTriggerProducer::CATTriggerProducer(const edm::ParameterSet& pset)
 {
   edm::InputTag hltLabel = pset.getParameter<edm::InputTag>("triggerResults");
   processName_ = hltLabel.process();
@@ -71,23 +71,23 @@ CATTriggerInfoProducer::CATTriggerInfoProducer(const edm::ParameterSet& pset)
   }
 }
 
-void CATTriggerInfoProducer::beginRun(const edm::Run& run, const edm::EventSetup& eventSetup)
+void CATTriggerProducer::beginRun(const edm::Run& run, const edm::EventSetup& eventSetup)
 {
   // bool changed = true;
   // if ( !hltConfig_.init(run, eventSetup, processName_, changed) ) 
   // {
-  //   edm::LogError("CATTriggerInfoProducer") << "HLT config extraction failure with process name " << processName_;
+  //   edm::LogError("CATTriggerProducer") << "HLT config extraction failure with process name " << processName_;
   // }
 
   // if ( changed ) 
   // {
-  //   edm::LogError("CATTriggerInfoProducer") << "HLT config has changed " << processName_;
+  //   edm::LogError("CATTriggerProducer") << "HLT config has changed " << processName_;
   //  // The HLT config has actually changed wrt the previous Run, hence rebook your
   //  // histograms or do anything else dependent on the revised HLT config
   // }
 }
 
-void CATTriggerInfoProducer::produce(edm::Event& event, const edm::EventSetup& eventSetup)
+void CATTriggerProducer::produce(edm::Event& event, const edm::EventSetup& eventSetup)
 {
   edm::Handle<edm::TriggerResults> triggerBits;
   edm::Handle<pat::PackedTriggerPrescales> triggerPrescales;
@@ -134,5 +134,5 @@ void CATTriggerInfoProducer::produce(edm::Event& event, const edm::EventSetup& e
 
 }
 
-DEFINE_FWK_MODULE(CATTriggerInfoProducer);
+DEFINE_FWK_MODULE(CATTriggerProducer);
 

@@ -1,5 +1,5 @@
-#ifndef CATTools_VertexInfo_H
-#define CATTools_VertexInfo_H 
+#ifndef CATTools_Vertex_H
+#define CATTools_Vertex_H 
 
 #include "DataFormats/Candidate/interface/CandidateFwd.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
@@ -7,13 +7,14 @@
 
 namespace cat {
 
-  class VertexInfo {
+  class Vertex {
   public:
     typedef math::XYZPoint Point;
-    VertexInfo();
-    virtual ~VertexInfo();
+    Vertex();
+    virtual ~Vertex();
     
-    int numberOfVertex() const { return numberOfVertex_;}
+    int nPV() const { return nPV_;}
+    int nGoodPV() const { return nGoodPV_;}
     bool isValid() const { return validity_;}
     bool isFake() const { return isFake_;}
     Point position() const { return position_;}
@@ -24,7 +25,8 @@ namespace cat {
     float y() const { return position_.Y(); }
     float z() const { return position_.Z(); }
 
-    void setnumberOfVertex(int i) { numberOfVertex_ = i; }
+    void setnPV(int i) { nPV_ = i; }
+    void setnGoodPV(int i) { nGoodPV_ = i; }
     void setvalidity(bool i) { validity_ = i; }
     void setisFake(bool i) { isFake_ = i; }
     void setposition(const Point & i) { position_ = i; }
@@ -32,7 +34,7 @@ namespace cat {
     void setndof(float i) { ndof_ = i; }
 
   private:
-    int numberOfVertex_;
+    int nPV_, nGoodPV_;
     bool validity_,isFake_;
     Point position_;
     float chi2_, ndof_;
