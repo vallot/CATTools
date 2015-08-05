@@ -63,9 +63,8 @@ cat::CATVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
 	 ( (maxd0 <=0 ) || fabs(vtx.position().rho()) <= maxd0 ) &&
 	 !(vtx.isFake() ) ){
       if (nGoodPV == 0){
-	reco::Vertex * newpv = new reco::Vertex(vtx);
-	newpv->removeTracks();
-	out_->push_back(*newpv);
+	out_->push_back(vtx);
+	out_->back().removeTracks();
       }
       nGoodPV++;
     }
