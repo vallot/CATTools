@@ -159,4 +159,4 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     process.catJetsPuppi.btagNames = btagNames
     process.catMETsPuppi.src = cms.InputTag(catMETsPuppiSource)
     process.catVertex.vertexLabel = cms.InputTag(catVertexSource)
-    
+    process.pileupWeight.vertex = cms.InputTag(catVertexSource)

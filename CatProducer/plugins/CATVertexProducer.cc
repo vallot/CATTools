@@ -25,7 +25,7 @@ namespace cat {
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
   private:
-    cat::Vertex *out_;
+    reco::VertexCollection *out_;
 
     edm::EDGetTokenT<reco::VertexCollection> vertexLabel_;
     unsigned int minNDOF;
@@ -42,7 +42,9 @@ cat::CATVertexProducer::CATVertexProducer(const edm::ParameterSet & iConfig) :
   minNDOF = iConfig.getParameter<unsigned int>("minimumNDOF");
   maxAbsZ = iConfig.getParameter<double>("maxAbsZ");
   maxd0 = iConfig.getParameter<double>("maxd0");
-  produces<cat::Vertex >();
+  produces<reco::VertexCollection >();
+  produces<int >("nGoodPV");
+  produces<int >("nPV");
 }
 
 void 
@@ -51,32 +53,26 @@ cat::CATVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
   Handle<reco::VertexCollection> recVtxs;
   iEvent.getByToken(vertexLabel_,recVtxs);
 
-  out_ = new cat::Vertex();
+  int nPV = recVtxs->size();
+  int nGoodPV = 0;
+  out_ = new reco::VertexCollection();
 
-  out_->setnPV(recVtxs->size());
-  if (!recVtxs->empty()){
-
-    int nGoodPV = 0;
-    for (auto &vtx : *recVtxs){
-      if ( vtx.ndof() > minNDOF && 
-	   ( (maxAbsZ <=0 ) || fabs(vtx.z()) <= maxAbsZ ) &&
-	   ( (maxd0 <=0 ) || fabs(vtx.position().rho()) <= maxd0 ) &&
-	   !(vtx.isFake() ) ){
-      	if (nGoodPV == 0){
-	  reco::Vertex pv = recVtxs->at(0);
-	  out_->setposition(pv.position());
-	  out_->setvalidity(pv.isValid());
-	  out_->setisFake(pv.isFake());
-	  out_->setndof(pv.ndof());
-	  out_->setchi2(pv.chi2());
-	}
-	nGoodPV++;
+  for (auto &vtx : *recVtxs){
+    if ( vtx.ndof() > minNDOF && 
+	 ( (maxAbsZ <=0 ) || fabs(vtx.z()) <= maxAbsZ ) &&
+	 ( (maxd0 <=0 ) || fabs(vtx.position().rho()) <= maxd0 ) &&
+	 !(vtx.isFake() ) ){
+      if (nGoodPV == 0){
+	out_->push_back(vtx);
+	out_->back().removeTracks();
       }
+      nGoodPV++;
     }
-    
-    out_->setnGoodPV(nGoodPV);
   }
-  auto_ptr<cat::Vertex> out(out_);
+  
+  iEvent.put(std::auto_ptr<int>(new int (nGoodPV)), "nGoodPV");
+  iEvent.put(std::auto_ptr<int>(new int (nPV)), "nPV");
+  auto_ptr<reco::VertexCollection> out(out_);
   iEvent.put(out); 
 }
 
