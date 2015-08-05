@@ -158,5 +158,5 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     process.catJetsPuppi.genJetMatch = cms.InputTag("patJetGenJetMatch")
     process.catJetsPuppi.btagNames = btagNames
     process.catMETsPuppi.src = cms.InputTag(catMETsPuppiSource)
-    process.catVertexInfo.vertexLabel = cms.InputTag(catVertexSource)
+    process.catVertex.vertexLabel = cms.InputTag(catVertexSource)
     
