@@ -20,7 +20,6 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     process.nEventsTotal = cms.EDProducer("EventCountProducer")
     #process.p = cms.Path(process.nEventsTotal)
     process.load("CATTools.CatProducer.catCandidates_cff")        
-    process.load("CATTools.CatProducer.recoEventInfo_cfi")
 #######################################################################    
 # adding pfMVAMet
     process.load("RecoJets.JetProducers.ak4PFJets_cfi")
@@ -53,13 +52,28 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
                 cms.PSet(
                     record = cms.string("JetCorrectionsRecord"),
                     tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PFchs"),
-                    label= cms.untracked.string("AK4PFchs"))
+                    label= cms.untracked.string("AK4PFchs")),
+                cms.PSet(
+                    record = cms.string("JetCorrectionsRecord"),
+                    tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PUPPI"),
+                    label= cms.untracked.string("AK4PUPPI")),
             ))
         process.es_prefer_jec = cms.ESPrefer("PoolDBESSource","jec")
 ## applying new jec on the fly
         if useMiniAOD:
             process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
             catJetsSource = "patJetsUpdated"
+            ### updating puppi jet jec
+            process.patJetPuppiCorrFactorsUpdated = process.patJetCorrFactorsUpdated.clone(
+                payload = cms.string('AK4PUPPI'),
+                src = cms.InputTag(catJetsPuppiSource),
+            )
+            process.patJetsPuppiUpdated = process.patJetsUpdated.clone(
+                jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetPuppiCorrFactorsUpdated")),
+                jetSource = cms.InputTag(catJetsPuppiSource),
+            )
+            catJetsPuppiSource = "patJetsPuppiUpdated"
+
 #######################################################################
 #######################################################################    
 ## for egamma pid temp 
@@ -144,5 +158,5 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     process.catJetsPuppi.genJetMatch = cms.InputTag("patJetGenJetMatch")
     process.catJetsPuppi.btagNames = btagNames
     process.catMETsPuppi.src = cms.InputTag(catMETsPuppiSource)
-
+    process.catVertexInfo.vertexLabel = cms.InputTag(catVertexSource)
     
