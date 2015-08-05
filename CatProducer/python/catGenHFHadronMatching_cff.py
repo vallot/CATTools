@@ -13,15 +13,14 @@ def genHFTool(process, useMiniAOD = True):
         genParticleCollection = 'genParticles'
         genJetInputParticleCollection = 'genParticlesForJets'
         ## producing a subset of genParticles to be used for jet clustering in AOD
-        from RecoJets.Configuration.GenJetParticles_cff import genParticlesForJets
-        process.genParticlesForJets = genParticlesForJets.clone()
+        process.load("RecoJets.Configuration.GenJetParticles_cff")
    
     # Supplies PDG ID to real name resolution of MC particles
     process.load("SimGeneral.HepPDTESSource.pythiapdt_cfi")
     
     # Producing own jets for testing purposes
-    from RecoJets.JetProducers.ak4GenJets_cfi import ak4GenJets
-    process.ak4GenJetsCustom = ak4GenJets.clone(
+    process.load("RecoJets.JetProducers.ak4GenJets_cfi")
+    process.ak4GenJetsCustom = process.ak4GenJets.clone(
         src = genJetInputParticleCollection,
         rParam = cms.double(0.4),
         jetAlgorithm = cms.string("AntiKt")
@@ -29,38 +28,29 @@ def genHFTool(process, useMiniAOD = True):
    
     # Ghost particle collection used for Hadron-Jet association 
     # MUST use proper input particle collection
-    from PhysicsTools.JetMCAlgos.HadronAndPartonSelector_cfi import selectedHadronsAndPartons
-    process.selectedHadronsAndPartons = selectedHadronsAndPartons.clone(
-        particles = genParticleCollection
-    )
+    process.load("PhysicsTools.JetMCAlgos.HadronAndPartonSelector_cfi")
+    process.selectedHadronsAndPartons.particles = genParticleCollection
    
     # Input particle collection for matching to gen jets (partons + leptons) 
     # MUST use use proper input jet collection: the jets to which hadrons should be associated
     # rParam and jetAlgorithm MUST match those used for jets to be associated with hadrons
     # More details on the tool: https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideBTagMCTools#New_jet_flavour_definition
-    from PhysicsTools.JetMCAlgos.sequences.GenHFHadronMatching_cff import genJetFlavourPlusLeptonInfos
-    process.genJetFlavourPlusLeptonInfos = genJetFlavourPlusLeptonInfos.clone(
-        jets = genJetCollection,
-        rParam = cms.double(0.4),
-        jetAlgorithm = cms.string("AntiKt")
-    )
-   
+    process.load("PhysicsTools.JetMCAlgos.sequences.GenHFHadronMatching_cff")
+    process.genJetFlavourPlusLeptonInfos.jets = genJetCollection
+    process.genJetFlavourPlusLeptonInfos.jets = rParam = cms.double(0.4)
+    process.genJetFlavourPlusLeptonInfos.jets = jetAlgorithm = cms.string("AntiKt")
    
     # Plugin for analysing B hadrons
     # MUST use the same particle collection as in selectedHadronsAndPartons
-    from PhysicsTools.JetMCAlgos.sequences.GenHFHadronMatching_cff import matchGenBHadron
-    process.matchGenBHadron = matchGenBHadron.clone(
-        genParticles = genParticleCollection
-    )
+    process.load("PhysicsTools.JetMCAlgos.sequences.GenHFHadronMatching_cff")
+    process.matchGenBHadron.genParticles = genParticleCollection
    
     # Plugin for analysing C hadrons
     # MUST use the same particle collection as in selectedHadronsAndPartons
     process.load("PhysicsTools.JetMCAlgos.sequences.GenHFHadronMatching_cff")
-    process.matchGenCHadron = matchGenCHadron.clone(
-        genParticles = genParticleCollection
-    )
+    process.matchGenCHadron.genParticles = genParticleCollection
 
     process.load("CATTools.CatProducer.GenTtbarCategorizer_cfi")
-    process.GenTtbarCategories = categorizeGenTtbar.clone(
+    process.GenTtbarCategories = process.categorizeGenTtbar.clone(
        genJets = genJetCollection
-    )    
+    )
