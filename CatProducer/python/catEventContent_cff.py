@@ -28,7 +28,7 @@ catEventContentMC.extend([
     #'keep *_matchGenBHadron_*_*',
     #'keep *_matchGenCHadron_*_*',
     'keep *_GenTtbarCategories_*_*',
-    #'keep *_pseudoTop_*_*',
+    'keep *_pseudoTop_*_*',
     #'keep *_partonTop_*_*',
     ])
 
