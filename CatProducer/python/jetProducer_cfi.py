@@ -34,3 +34,6 @@ catJetsPuppi = cms.EDProducer("CATJetProducer",
     btagNames = cms.vstring(),
     payloadName = cms.string(""), 
 )
+
+#There is a CMS rule that we are supposed to use one module per cfi file.  
+

@@ -23,10 +23,14 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     process.load("CATTools.CatProducer.recoEventInfo_cfi")
 #######################################################################    
 # adding pfMVAMet
-    #process.load("RecoJets.JetProducers.ak4PFJets_cfi")
-    #process.ak4PFJets.src = cms.InputTag("packedPFCandidates") <-- why do we need to rebuld the jet here? This prevents from running over AODSIM (Tae Jeong) 
+    process.load("RecoJets.JetProducers.ak4PFJets_cfi")
+    process.ak4PFJetsForPFMVAMet = process.ak4PFJets.clone()
+    process.ak4PFJetsForPFMVAMet.src = cms.InputTag("packedPFCandidates")
+    #This is temporary solution to avoid the circular dependenc error. Hope the recipe for miniAOD is available soon.(Tae Jeong) 
+    #https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideUnscheduledExecution#Circular_Dependence_Errors
     from JetMETCorrections.Configuration.DefaultJEC_cff import ak4PFJetsL1FastL2L3
     process.load("RecoMET.METPUSubtraction.mvaPFMET_cff")
+    process.pfMVAMEt.srcUncorrJets = cms.InputTag("ak4PFJetsForPFMVAMet")
     process.pfMVAMEt.srcPFCandidates = cms.InputTag("packedPFCandidates")
     process.pfMVAMEt.srcVertices = cms.InputTag("offlineSlimmedPrimaryVertices")
     process.puJetIdForPFMVAMEt.jec =  cms.string('AK4PF')
