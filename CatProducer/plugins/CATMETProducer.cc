@@ -50,6 +50,7 @@ cat::CATMETProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
 
   for (const pat::MET & aPatMET : *src) {
     cat::MET aMET(aPatMET);
+    aMET.setSumEt(aPatMET.sumEt());
     out->push_back(aMET);
   }
 
