@@ -4,7 +4,7 @@
 #include "DataFormats/Candidate/interface/CandidateFwd.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "DataFormats/PatCandidates/interface/Particle.h"
-
+#include "TLorentzVector.h"
 // Define typedefs for convenience
 namespace cat {
   class Particle;
@@ -20,7 +20,7 @@ namespace cat {
     Particle();
     Particle(const reco::LeafCandidate & aParticle); 
     virtual ~Particle();
-    
+    TLorentzVector tlv() const {return TLorentzVector(this->px(), this->py(),this->pz(),this->energy());} 
   private:
 
   };
