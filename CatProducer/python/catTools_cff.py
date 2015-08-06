@@ -32,6 +32,8 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     process.pfMVAMEt.srcUncorrJets = cms.InputTag("ak4PFJetsForPFMVAMet")
     process.pfMVAMEt.srcPFCandidates = cms.InputTag("packedPFCandidates")
     process.pfMVAMEt.srcVertices = cms.InputTag("offlineSlimmedPrimaryVertices")
+    process.pfMVAMEt.srcCorrJets = cms.InputTag("calibratedAK4PFJetsForPFMVAMEt")
+    process.calibratedAK4PFJetsForPFMVAMEt.src = cms.InputTag("ak4PFJetsForPFMVAMet")
     process.puJetIdForPFMVAMEt.jec =  cms.string('AK4PF')
     process.puJetIdForPFMVAMEt.vertexes = cms.InputTag("offlineSlimmedPrimaryVertices")
     process.puJetIdForPFMVAMEt.rho = cms.InputTag("fixedGridRhoFastjetAll")
@@ -53,6 +55,10 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
         process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
             connect = cms.string('sqlite_fip:CATTools/CatProducer/data/'+era+'.db'),
             toGet = cms.VPSet(
+                cms.PSet(
+                    record = cms.string("JetCorrectionsRecord"),
+                    tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PF"),
+                    label= cms.untracked.string("AK4PF")),
                 cms.PSet(
                     record = cms.string("JetCorrectionsRecord"),
                     tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PFchs"),
