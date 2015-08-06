@@ -63,8 +63,8 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
                 isGlobal = cms.string("isGlobalMuon"),
                 isLoose = cms.string("isLooseMuon"),
                 isTight = cms.string("isTightMuon"),
-                dxy = cms.string("dxy"),
-                dz = cms.string("dz"),
+                #dxy = cms.string("dxy"),
+                #dz = cms.string("dz"),
                 q = cms.string("charge"),
                 #matched = cms.string("mcMatched"),
             ),
@@ -97,12 +97,12 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
                 nhIso04 = cms.string("neutralHadronIso(0.4)"),
                 phIso04 = cms.string("photonIso(0.4)"),
                 puChIso04 = cms.string("puChargedHadronIso(0.4)"), 
-                rhoIso03 = cms.string("rho"),
+                #rhoIso03 = cms.string("rho"),
                 scEta = cms.string("scEta"),
-                dxy = cms.string("dxy"),
-                dz = cms.string("dz"),
+                #dxy = cms.string("dxy"),
+                #dz = cms.string("dz"),
                 q = cms.string("charge"),
-                isGsfCtfScPixChargeConsistent = cms.string("isGsfCtfScPixChargeConsistent"),
+                #isGsfCtfScPixChargeConsistent = cms.string("isGsfCtfScPixChargeConsistent"),
             ),
             selections = cms.untracked.PSet(
                 isPassBaseId = cms.string("passConversionVeto && isPF && gsfTrack.hitPattern.numberOfLostHits('MISSING_INNER_HITS') <= 0"),
@@ -292,8 +292,10 @@ process.TFileService = cms.Service("TFileService",
     fileName = cms.string("ntuple.root"),
 )
 
+process.load("CATTools.CatProducer.pseudoTop_cff")
 process.p = cms.Path(
     process.nEventsTotal*
+    process.partonTop*
     process.ntuple
 )
 
