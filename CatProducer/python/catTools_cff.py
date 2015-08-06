@@ -23,8 +23,8 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     process.load("CATTools.CatProducer.recoEventInfo_cfi")
 #######################################################################    
 # adding pfMVAMet
-    process.load("RecoJets.JetProducers.ak4PFJets_cfi")
-    process.ak4PFJets.src = cms.InputTag("packedPFCandidates")
+    #process.load("RecoJets.JetProducers.ak4PFJets_cfi")
+    #process.ak4PFJets.src = cms.InputTag("packedPFCandidates") <-- why do we need to rebuld the jet here? This prevents from running over AODSIM (Tae Jeong) 
     from JetMETCorrections.Configuration.DefaultJEC_cff import ak4PFJetsL1FastL2L3
     process.load("RecoMET.METPUSubtraction.mvaPFMET_cff")
     process.pfMVAMEt.srcPFCandidates = cms.InputTag("packedPFCandidates")
