@@ -36,19 +36,19 @@ patTool(process, runOnMC, useMiniAOD)
 from CATTools.CatProducer.catTools_cff import *
 catTool(process, runOnMC, doSecVertex, useMiniAOD)
 
-from CATTools.CatProducer.catGenHFHadronMatching_cff import *
-genHFTool(process, useMiniAOD)
-
 from CATTools.CatProducer.catEventContent_cff import *
 process.out.outputCommands = catEventContent
 if runOnMC:
+    from CATTools.CatProducer.catGenHFHadronMatching_cff import *
+    genHFTool(process, useMiniAOD)
+    process.load("TopQuarkAnalysis.TopEventProducers.producers.pseudoTop_cfi")
     process.out.outputCommands.extend(catEventContentMC)
     if not useMiniAOD:
         process.out.outputCommands.extend(catEventContentAODMC)
 if doSecVertex:
     process.out.outputCommands.extend(catEventContentSecVertexs)
 
-print process.out.outputCommands
+
 ####################################################################
 #### cmsRun options
 ####################################################################
@@ -67,7 +67,7 @@ process.source = cms.Source("PoolSource",
 if options.inputFiles:
     process.source.fileNames = options.inputFiles
 #pat input files are removed because it would not work if useMiniAOD is on.    
- 
+
 print "runOnMC =",runOnMC,"and useMiniAOD =",useMiniAOD
 print "process.GlobalTag.globaltag =",process.GlobalTag.globaltag
 

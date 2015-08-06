@@ -60,11 +60,19 @@ for dataset in datasets:
     ### MC or Data?
     if datatype == "AOD" or datatype == "MINIAOD" :
         if len(lumiMask) == 0:
-            print "need to define lumiMask, -l <lumiMask>"
-            sys.exit()
+            print "NOTE! no lumiMask was selected!"
+            print "NOTE! no lumiMask was selected!"
+            print "NOTE! no lumiMask was selected!"
+            print "NOTE! no lumiMask was selected!"
+            print "NOTE! no lumiMask was selected!"
+            print "NOTE! no lumiMask was selected!"
+            print "NOTE! no lumiMask was selected!"
+            print "NOTE! no lumiMask was selected!"
+            print "NOTE! no lumiMask was selected!"
+            print "NOTE! no lumiMask was selected!"
         isMC = False
-        dataSplitting   = " Data.splitting='FileBased' "
-        dataUnitsPerJob = " Data.unitsPerJob=20 "
+        dataSplitting   = " Data.splitting='LumiBased' "
+        dataUnitsPerJob = " Data.unitsPerJob=10 "
         dataLumiMask    = " Data.lumiMask='%s'"%(lumiMask)
         pyCfgParams     = "config.JobType.pyCfgParams = ['runOnMC=False','useMiniAOD=%s','globalTag=%s']"%(isMiniAOD,globalTag)
 
