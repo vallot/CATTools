@@ -56,13 +56,19 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     process.load('CommonTools/PileupAlgos/Puppi_cff')
     process.puppi.candName = cms.InputTag('packedPFCandidates')
     process.puppi.vertexName = cms.InputTag('offlineSlimmedPrimaryVertices')
+    # remaking puppi jets
     from JMEAnalysis.JetToolbox.jetToolbox_cff import jetToolbox
     jetToolbox( process, 'ak4', 'ak4JetSubs', 'out', PUMethod='Puppi', JETCorrLevels = ['L1FastJet', 'L2Relative', 'L3Absolute'] ) 
+    catJetsPuppiSource = "selectedPatJetsAK4PFPuppi"
+    # remaking puppi met
     from RecoMET.METProducers.PFMET_cfi import pfMet
     process.pfMetPuppi = pfMet.clone();
     process.pfMetPuppi.src = cms.InputTag('puppi')
-    catJetsPuppiSource = "selectedPatJetsAK4PFPuppi"
-    catMETsPuppiSource = "pfMetPuppi"
+    process.patPfMetPuppi = process.patMETs.clone()
+    process.patPfMetPuppi.addGenMET    = cms.bool(False)
+    process.patPfMetPuppi.metSource  = cms.InputTag("pfMetPuppi")
+    process.patPfMetPuppi.muonSource = cms.InputTag(catMuonsSource)
+    catMETsPuppiSource = "patPfMetPuppi"
 
     # for puppi isolation
     #process.packedPFCandidatesWoMuon  = cms.EDFilter("CandPtrSelector", src = cms.InputTag("packedPFCandidates"), cut = cms.string("fromPV>=2 && abs(pdgId)!=13 " ) )
@@ -110,7 +116,6 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
             catJetsPuppiSource = "patJetsPuppiUpdated"
 
 #######################################################################
-#######################################################################    
 ## for egamma pid temp 
 ## https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2#Recipe_for_regular_users_for_74X
     from PhysicsTools.SelectorUtils.tools.vid_id_tools import DataFormat,switchOnVIDElectronIdProducer,setupAllVIDIdsInModule,setupVIDElectronSelection
