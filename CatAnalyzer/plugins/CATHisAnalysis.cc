@@ -228,9 +228,9 @@ void CATHisAnalysis::analyze( const edm::Event& iEvent, const edm::EventSetup&)
     const auto& met = metHandle->at(i);
 
     hMet_phi_  ->Fill( met.phi() );
-    hMet_eta_  ->Fill( met.eta() );
+    //hMet_eta_  ->Fill( met.eta() );
     hMet_pt_   ->Fill( met.pt() );
-    hMet_mass_ ->Fill( met.mass() );
+    //hMet_mass_ ->Fill( met.mass() );
   }
 
   edm::Handle<edm::View<TMuon> > muonHandle;

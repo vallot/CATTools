@@ -6,7 +6,8 @@ using namespace cat;
 MET::MET() {
 }
 
-MET::MET(const reco::LeafCandidate & aMET) : Particle( aMET ) {
+MET::MET(float px, float py, float sumEt) {
+  px_ = px; py_ = py; sumEt_ = sumEt;
 }
 
 /// destructor

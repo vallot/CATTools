@@ -18,8 +18,52 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     ePidNames = cms.vstring()
 
     process.nEventsTotal = cms.EDProducer("EventCountProducer")
-    #process.p = cms.Path(process.nEventsTotal)
-    process.load("CATTools.CatProducer.catCandidates_cff")        
+    process.nEventsFiltered = cms.EDProducer("EventCountProducer")
+    process.load("CATTools.CatProducer.catCandidates_cff")
+#######################################################################
+#https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2
+    ## Hcal HBHE
+    process.load('CommonTools.RecoAlgos.HBHENoiseFilterResultProducer_cfi')
+    process.HBHENoiseFilterResultProducer.minZeros = cms.int32(99999)
+    process.ApplyBaselineHBHENoiseFilter = cms.EDFilter('BooleanFlagFilter',
+        inputLabel = cms.InputTag('HBHENoiseFilterResultProducer','HBHENoiseFilterResult'),
+        reverseDecision = cms.bool(False)
+    )
+
+    process.p = cms.Path(
+        process.nEventsTotal*
+        process.HBHENoiseFilterResultProducer* #produces HBHE bools
+        process.ApplyBaselineHBHENoiseFilter*  #reject events based
+        process.nEventsFiltered
+    )
+#######################################################################
+# https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
+# recompute the T1 PFMET
+    from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
+    runMetCorAndUncFromMiniAOD( process, isData= not runOnMC )
+
+# MET without HF
+    process.noHFCands = cms.EDFilter("CandPtrSelector",
+                                     src=cms.InputTag("packedPFCandidates"),
+                                     cut=cms.string("abs(pdgId)!=1 && abs(pdgId)!=2 && abs(eta)<3.0")
+                                     )
+    runMetCorAndUncFromMiniAOD( process, isData=not runOnMC, pfCandColl=cms.InputTag("noHFCands"), postfix="NoHF")
+    process.catMETsNoHF = process.catMETs.clone()
+    process.catMETsNoHF.src = cms.InputTag("slimmedMETsNoHF")
+    
+    ## no residuals currently available 
+    process.patPFMetT1T2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+    process.patPFMetT1T2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+    process.patPFMetT2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+    process.patPFMetT2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+    process.shiftedPatJetEnDown.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+    process.shiftedPatJetEnUp.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+    process.patPFMetT1T2CorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+    process.patPFMetT1T2SmearCorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+    process.patPFMetT2CorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+    process.patPFMetT2SmearCorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+    process.shiftedPatJetEnDownNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+    process.shiftedPatJetEnUpNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
 #######################################################################    
 # adding pfMVAMet
     process.load("RecoJets.JetProducers.ak4PFJets_cfi")
@@ -74,7 +118,6 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     #process.packedPFCandidatesWoMuon  = cms.EDFilter("CandPtrSelector", src = cms.InputTag("packedPFCandidates"), cut = cms.string("fromPV>=2 && abs(pdgId)!=13 " ) )
     #process.particleFlowNoMuonPUPPI.candName         = 'packedPFCandidatesWoMuon'
     #process.particleFlowNoMuonPUPPI.vertexName       = 'offlineSlimmedPrimaryVertices'
-    
 #######################################################################    
 # getting jec from file for jec on the fly from db file
 # currently only for mc
@@ -147,27 +190,11 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
 
         if not useMiniAOD:
             process.load("CATTools.CatProducer.genTopProducer_cfi")
-            
-        ## FIX ME very out of date!
-        ## using MEtUncertainties to get lepton shifts
-        ## Need to update - Jet calculation was old, would most likely be the same for leptons
-        from PhysicsTools.PatUtils.tools.runType1PFMEtUncertainties import runType1PFMEtUncertainties
-        runType1PFMEtUncertainties(process,
-                                    addToPatDefaultSequence=False,
-                                    jetCollection=catJetsSource,
-                                    electronCollection=catElectronsSource,
-                                    photonCollection=catPhotonsSource,
-                                    muonCollection=catMuonsSource,
-                                    tauCollection=catTausSource,
-                                    makeType1p2corrPFMEt=True,
-                                    outputModule=None,
-                                    jecUncertaintyFile=None,
-                                    )
-        
-        process.catMuons.shiftedEnDownSrc = cms.InputTag("shiftedSlimmedMuonsEnDown")
-        process.catMuons.shiftedEnUpSrc = cms.InputTag("shiftedSlimmedMuonsEnUp")
-        process.catElectrons.shiftedEnDownSrc = cms.InputTag("shiftedSlimmedElectronsEnDown")
-        process.catElectrons.shiftedEnUpSrc = cms.InputTag("shiftedSlimmedElectronsEnUp")
+                    
+        process.catMuons.shiftedEnDownSrc = cms.InputTag("shiftedPatMuonEnDown")
+        process.catMuons.shiftedEnUpSrc = cms.InputTag("shiftedPatMuonEnUp")
+        process.catElectrons.shiftedEnDownSrc = cms.InputTag("shiftedPatElectronEnDown")
+        process.catElectrons.shiftedEnUpSrc = cms.InputTag("shiftedPatElectronEnUp")
 
     if doSecVertex:
         from TrackingTools.TransientTrack.TransientTrackBuilder_cfi import TransientTrackBuilderESProducer

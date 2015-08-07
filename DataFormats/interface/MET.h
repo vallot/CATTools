@@ -3,8 +3,9 @@
 
 #include "DataFormats/Candidate/interface/CandidateFwd.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
-#include "CATTools/DataFormats/interface/Particle.h"
-#include "DataFormats/PatCandidates/interface/MET.h"
+#include "DataFormats/PatCandidates/interface/Particle.h"
+#include "DataFormats/Math/interface/LorentzVector.h"
+#include "TLorentzVector.h"
 
 // Define typedefs for convenience
 namespace cat {
@@ -16,17 +17,26 @@ namespace cat {
 
 namespace cat {
 
-  class MET : public Particle{
+  class MET {
   public:
+    typedef math::XYZTLorentzVector LorentzVector;
+    
     MET();
-    MET(const reco::LeafCandidate & aMET); 
+    MET(float px, float py, float sumEt);
     virtual ~MET();
 
-    float sumEt() const { return sumet_; }
-    void setSumEt(float f){ sumet_ = f; }
-    
+    void set(float px, float py, float sumEt) { px_ = px; py_ = py; sumEt_ = sumEt;}
+
+    float sumEt() const { return sumEt_; }
+    float px() const { return px_; }
+    float py() const { return py_; }
+    float pt() const { return sqrt(px_*px_ + py_*py_); }
+    float phi() const { return px_ == 0.0 && py_ == 0.0 ? 0.0 : TMath::ATan2(py_,px_); }
+    TLorentzVector tlv() const {return TLorentzVector(px_, py_, 0.0, this->pt() );}
+    LorentzVector p4()  const {return LorentzVector(px_, py_, 0.0, this->pt() ) ;}
   private:
-    float sumet_;
+
+    float sumEt_, px_, py_;
 
   };
 }
