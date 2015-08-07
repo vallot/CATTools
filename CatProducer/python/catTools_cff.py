@@ -58,15 +58,17 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     process.puppi.vertexName = cms.InputTag('offlineSlimmedPrimaryVertices')
     from JMEAnalysis.JetToolbox.jetToolbox_cff import jetToolbox
     jetToolbox( process, 'ak4', 'ak4JetSubs', 'out', PUMethod='Puppi', JETCorrLevels = ['L1FastJet', 'L2Relative', 'L3Absolute'] ) 
-    process.packedPFCandidatesWoMuon  = cms.EDFilter("CandPtrSelector", src = cms.InputTag("packedPFCandidates"), cut = cms.string("fromPV>=2 && abs(pdgId)!=13 " ) )
-    process.particleFlowNoMuonPUPPI.candName         = 'packedPFCandidatesWoMuon'
-    process.particleFlowNoMuonPUPPI.vertexName       = 'offlineSlimmedPrimaryVertices'
     from RecoMET.METProducers.PFMET_cfi import pfMet
     process.pfMetPuppi = pfMet.clone();
     process.pfMetPuppi.src = cms.InputTag('puppi')
     catJetsPuppiSource = "selectedPatJetsAK4PFPuppi"
     catMETsPuppiSource = "pfMetPuppi"
 
+    # for puppi isolation
+    #process.packedPFCandidatesWoMuon  = cms.EDFilter("CandPtrSelector", src = cms.InputTag("packedPFCandidates"), cut = cms.string("fromPV>=2 && abs(pdgId)!=13 " ) )
+    #process.particleFlowNoMuonPUPPI.candName         = 'packedPFCandidatesWoMuon'
+    #process.particleFlowNoMuonPUPPI.vertexName       = 'offlineSlimmedPrimaryVertices'
+    
 #######################################################################    
 # getting jec from file for jec on the fly from db file
 # currently only for mc
