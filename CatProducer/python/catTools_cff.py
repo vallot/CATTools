@@ -33,6 +33,12 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     process.pfMVAMEt.srcPFCandidates = cms.InputTag("packedPFCandidates")
     process.pfMVAMEt.srcVertices = cms.InputTag("offlineSlimmedPrimaryVertices")
     process.pfMVAMEt.srcCorrJets = cms.InputTag("calibratedAK4PFJetsForPFMVAMEt")
+    process.pfMVAMEt.inputFileNames = cms.PSet(
+        U     = cms.FileInPath('RecoMET/METPUSubtraction/data/gbru_7_4_X_miniAOD_50NS_July2015.root'),
+        DPhi  = cms.FileInPath('RecoMET/METPUSubtraction/data/gbrphi_7_4_X_miniAOD_50NS_July2015.root'),
+        CovU1 = cms.FileInPath('RecoMET/METPUSubtraction/data/gbru1cov_7_4_X_miniAOD_50NS_July2015.root'),
+        CovU2 = cms.FileInPath('RecoMET/METPUSubtraction/data/gbru2cov_7_4_X_miniAOD_50NS_July2015.root')
+    )
     process.calibratedAK4PFJetsForPFMVAMEt.src = cms.InputTag("ak4PFJetsForPFMVAMet")
     process.puJetIdForPFMVAMEt.jec =  cms.string('AK4PF')
     process.puJetIdForPFMVAMEt.vertexes = cms.InputTag("offlineSlimmedPrimaryVertices")
@@ -69,6 +75,7 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
                     label= cms.untracked.string("AK4PUPPI")),
             ))
         process.es_prefer_jec = cms.ESPrefer("PoolDBESSource","jec")
+        print "JEC based on", process.jec.connect
 ## applying new jec on the fly
         if useMiniAOD:
             process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
