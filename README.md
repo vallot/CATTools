@@ -25,7 +25,7 @@ git submodule update
 cd ..
 
 scram setup lhapdf
-scram b -j 20
+scram b -j 8
 
 cd CATTools/CatProducer/prod
 
