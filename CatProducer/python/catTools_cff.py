@@ -2,9 +2,9 @@ import FWCore.ParameterSet.Config as cms
 
 def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     catJetsSource = "slimmedJets"
-    catJetsPuppiSource = "slimmedJetsPuppi"
     catGenJetsSource = "slimmedGenJets"
     catMETsSource = "slimmedMETs"
+    catJetsPuppiSource = "slimmedJetsPuppi"
     catMETsPuppiSource = "slimmedMETsPuppi"
     catMuonsSource = "slimmedMuons"
     catElectronsSource = "slimmedElectrons"
@@ -51,6 +51,22 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     process.catMETsPfMva = process.catMETs.clone()
     process.catMETsPfMva.src = cms.InputTag("patMETsPfMva")
 #######################################################################
+# redoing puppi from miniAOD as recommended
+# https://twiki.cern.ch/twiki/bin/view/CMS/PUPPI
+    process.load('CommonTools/PileupAlgos/Puppi_cff')
+    process.puppi.candName = cms.InputTag('packedPFCandidates')
+    process.puppi.vertexName = cms.InputTag('offlineSlimmedPrimaryVertices')
+    from JMEAnalysis.JetToolbox.jetToolbox_cff import jetToolbox
+    jetToolbox( process, 'ak4', 'ak4JetSubs', 'out', PUMethod='Puppi', JETCorrLevels = ['L1FastJet', 'L2Relative', 'L3Absolute'] ) 
+    process.packedPFCandidatesWoMuon  = cms.EDFilter("CandPtrSelector", src = cms.InputTag("packedPFCandidates"), cut = cms.string("fromPV>=2 && abs(pdgId)!=13 " ) )
+    process.particleFlowNoMuonPUPPI.candName         = 'packedPFCandidatesWoMuon'
+    process.particleFlowNoMuonPUPPI.vertexName       = 'offlineSlimmedPrimaryVertices'
+    from RecoMET.METProducers.PFMET_cfi import pfMet
+    process.pfMetPuppi = pfMet.clone();
+    process.pfMetPuppi.src = cms.InputTag('puppi')
+    catJetsPuppiSource = "selectedPatJetsAK4PFPuppi"
+    catMETsPuppiSource = "pfMetPuppi"
+
 #######################################################################    
 # getting jec from file for jec on the fly from db file
 # currently only for mc
