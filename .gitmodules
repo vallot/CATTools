@@ -1,0 +1,3 @@
+[submodule "CommonTools/scripts"]
+	path = CommonTools/scripts
+	url = https://github.com/cms-kr/hep-tools
