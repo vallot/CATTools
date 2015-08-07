@@ -77,4 +77,4 @@ print "process.GlobalTag.globaltag =",process.GlobalTag.globaltag
 process.MessageLogger.cerr.threshold = ''
 if options.maxEvents < 0:
     process.MessageLogger.cerr.FwkReport.reportEvery = 1000
-process.options.wantSummary = True 
+process.options.wantSummary = False
