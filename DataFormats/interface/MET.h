@@ -22,8 +22,11 @@ namespace cat {
     MET(const reco::LeafCandidate & aMET); 
     virtual ~MET();
 
+    float sumEt() const { return sumet_; }
+    void setSumEt(float f){ sumet_ = f; }
+    
   private:
-
+    float sumet_;
 
   };
 }
