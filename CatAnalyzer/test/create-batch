@@ -54,9 +54,9 @@ class TheJobConfig():
             queue = "8nh"
         elif 'sscc.uos' in hostName:
             self.site = "UOS"
-            self.scheduler = "CONDOR"
+            self.scheduler = "PBS"
             opts['-g'] = True ## Enforce to carry grid certificate
-            #queue = "batch"
+            queue = "batch"
         elif hostName.startswith('ccp'): ## CCP should be BEFORE KNU T2/T3
             self.site = "CCP"
             self.scheduler = "PBS"
@@ -154,6 +154,8 @@ class TheJobConfig():
             f = f.strip('\',"')
             if len(f) < 5: continue
             if '#' == f[0] or '.root' != f[-5:]: continue
+            if not f.startswith('/store/'):
+                f = "file:"+f
             self.files.append(f)
         nFiles = len(self.files)
         if nFiles == 0:
@@ -217,7 +219,7 @@ class TheJobConfig():
         ## Checking voms proxy
         if self.doGrid:
             print "@@ Checking grid certificate to access files..."
-            if os.system("voms-proxy-info -exists --valid 8:00") != 0:
+            if os.system("voms-proxy-info -exists --hours 8") != 0:
                 os.system("voms-proxy-init -voms cms --valid 144:00")
             uid = os.getuid()
             shutil.copy2("/tmp/x509up_u%d" % uid, "%s/x509up_u%d" % (self.jobDir, uid))
@@ -316,20 +318,10 @@ mkdir -p /tmp/${{USER}}/PBS_${{PBS_JOBID}}
 cd /tmp/${{USER}}/PBS_${{PBS_JOBID}}
 tar xzf {0}/job.tgz
 cd {1}
-PROXY_CA=/tmp/${{USER}}/PBS_${{PBS_JOBID}}/{1}/x509up_u`id -u`
-echo ${{PROXY_CA}}
-voms-proxy-info -exists --valid 8:00
-TIMEVALID=$?
-if [ -f ${{PROXY_CA}} ] && [ ${{TIMEVALID}} -eq 1 ]; then
-  echo "copy proxy ca to /tmp" 
-  cp -f ${{PROXY_CA}} /tmp
-else
-  if [ ! -f ${{PROXY_CA}} ]; then
-    echo "Can not find proxy CA"
-  fi
-  if [ ${{TIMEVALID}} -eq 1 ]; then
-    echo "Sufficient valid time"
-  fi
+voms-proxy-info -exists --hours $1
+if [[ -f {1}/x509up_u`id -u` && $? -eq 1 ]]
+then 
+  cp -f {1}/x509up_u`id -u` /tmp 
 fi 
 scram build ProjectRename
 eval `scram runtime -sh`
@@ -386,14 +378,8 @@ if [ _$CMS_PATH == _ ]; then
   source $CMS_PATH/cmsset_default.sh
 fi
 
-hostname
 tar xzf job.tgz
-cd {1}""".format(self.jobDir, self.jobBase, os.environ['CMS_PATH'],self.additional_options)
-        if (self.doGrid) :
-          print>>fout,"""
-cp x509up_u`id -u` /tmp/x509up_u`id -u`"""
-
-        print>>fout,"""
+cd {1}
 scram build ProjectRename
 eval `scram runtime -sh`
 echo BEGIN `date` cmsRun job_${{SECTION}}_cfg.py #>> {0}/submit.log
@@ -439,8 +425,6 @@ done""" % (' '.join(self.outFileNames), self.transferCmd, self.dest)
         print>>jdlOut, """executable = run.sh
 universe   = vanilla
 arguments  = $(Process)
-requirements = OpSysMajorVer == 6
-
 log = condor.log
 
 getenv     = True
@@ -471,9 +455,6 @@ transfer_input_files = job.tgz"""
         if self.doSubmit:
             print "@@ Submitting jobs..."
             if self.site == "UOS":
-              if os.environ['HOSTNAME'].startswith("gate2") :
-                os.system("cd %s;./submit.sh; cd -" % self.jobDir)
-              else :
                 os.system("ssh uosaf0008 'cd %s;./submit.sh'" % self.jobDir)
             elif self.site == "CERN" and not os.environ['HOSTNAME'].startswith("lxplus"):
                 os.system("ssh lxplus.cern.ch 'cd %s;./submit.sh'" % self.jobDir)

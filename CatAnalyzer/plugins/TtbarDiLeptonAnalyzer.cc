@@ -64,7 +64,7 @@ private:
 
   TTree * ttree_;
   int b_genChannel, b_genMode1, b_genMode2, b_partonChannel, b_partonMode1, b_partonMode2;
-  int b_njet, b_nbjet, b_step, b_channel;
+  int b_njet, b_nbjet, b_step, b_channel, b_inPhase;
   float b_MET, b_maxweight;
 
   float b_lep1_pt, b_lep1_eta, b_lep1_phi;
@@ -108,20 +108,20 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("parton_channel", &b_partonChannel, "parton_channel/I");
   ttree_->Branch("parton_mode1", &b_partonMode1, "parton_mode1/I");
   ttree_->Branch("parton_mode2", &b_partonMode2, "parton_mode2/I");
+
   ttree_->Branch("njet", &b_njet, "njet/I");
   ttree_->Branch("nbjet", &b_nbjet, "nbjet/I");
   ttree_->Branch("MET", &b_MET, "MET/F");
   ttree_->Branch("channel", &b_channel, "channel/I");
-  ttree_->Branch("step", &b_step, "njet/I");
+  ttree_->Branch("step", &b_step, "step/I");
+  ttree_->Branch("inPhase", &b_inPhase, "inPhase/I");
 
-  ttree_->Branch("mu1_pt", &b_lep1_pt, "mu1_pt/F");
-  ttree_->Branch("mu1_eta", &b_lep1_eta, "mu1_eta/F");
-  ttree_->Branch("mu1_phi", &b_lep1_phi, "mu1_phi/F");
-
-  ttree_->Branch("mu2_pt", &b_lep2_pt, "mu2_pt/F");
-  ttree_->Branch("mu2_eta", &b_lep2_eta, "mu2_eta/F");
-  ttree_->Branch("mu2_phi", &b_lep2_phi, "mu2_phi/F");
-
+  ttree_->Branch("lep1_pt", &b_lep1_pt, "lep1_pt/F");
+  ttree_->Branch("lep1_eta", &b_lep1_eta, "lep1_eta/F");
+  ttree_->Branch("lep1_phi", &b_lep1_phi, "lep1_phi/F");
+  ttree_->Branch("lep2_pt", &b_lep2_pt, "lep2_pt/F");
+  ttree_->Branch("lep2_eta", &b_lep2_eta, "lep2_eta/F");
+  ttree_->Branch("lep2_phi", &b_lep2_phi, "lep2_phi/F");
   ttree_->Branch("ll_pt", &b_ll_pt, "ll_pt/F");
   ttree_->Branch("ll_eta", &b_ll_eta, "ll_eta/F");
   ttree_->Branch("ll_phi", &b_ll_phi, "ll_phi/F");
@@ -153,6 +153,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_nbjet = -1;
   b_channel = -1;
   b_step = -1;
+  b_inPhase = 0;
   b_lep1_pt = -9; b_lep1_eta = -9; b_lep1_phi = -9;
   b_lep2_pt = -9; b_lep2_eta = -9; b_lep2_phi = -9;
   b_ll_pt = -9; b_ll_eta = -9; b_ll_phi = -9; b_ll_m = -9;
@@ -226,13 +227,19 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     const int nLepton = nElectron + nMuon;
     gen_channel = nLepton+1;
 
+	b_genChannel = gen_channel; 
+	b_genMode1 = gen_modes[0]; 
+	b_genMode2 = gen_modes[1]; 
+
     iEvent.getByToken(partonTop_channel_, partonTop_channel);
     iEvent.getByToken(partonTop_modes_, partonTop_modes);
-    if ((*partonTop_modes).size() >= 2) {
-        b_genChannel = gen_channel; 
-        b_genMode1 = gen_modes[0]; 
-        b_genMode2 = gen_modes[1]; 
-
+    if ( (*partonTop_modes).size() == 0 ) {
+		b_partonMode1 = 0;
+		b_partonMode2 = 0;
+	}
+    else if ( (*partonTop_modes).size() == 1 ) { b_partonMode2 = 0; }
+//    if ((*partonTop_modes).size() >= 2) {
+	else{
         b_partonChannel = *partonTop_channel; 
         b_partonMode1 = (*partonTop_modes)[0]; 
         b_partonMode2 = (*partonTop_modes)[1]; 
@@ -257,6 +264,8 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_lep2_pt = recolep[1].Pt();
   b_lep2_eta = recolep[1].Eta();
   b_lep2_phi = recolep[1].Phi();
+
+  if ((recolep[0].Pt() > 20) && (recolep[1].Pt() > 20) && (fabs(recolep[0].Eta()) < 2.4) && (fabs(recolep[1].Eta()) < 2.4)) b_inPhase = 1;
   
   float channel = selectedElectrons.size();
 
@@ -345,7 +354,8 @@ vector<cat::Muon> TtbarDiLeptonAnalyzer::selectMuons(const edm::View<cat::Muon>*
 {
   vector<cat::Muon> selmuons;
   for (auto mu : *muons) {
-    if (!mu.isTightMuon()) continue;
+    if (!mu.isMediumMuon()) continue;
+    //if (!mu.isTightMuon()) continue;
     if (mu.pt() <= 20.) continue;
     if (fabs(mu.eta()) >= 2.4) continue;
     if (mu.relIso(0.4) >= 0.12) continue;
