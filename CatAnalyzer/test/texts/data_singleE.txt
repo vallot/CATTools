@@ -1,4 +1,0 @@
-/store/group/CAT/SingleElectron/v7-3-0_Run2015B-PromptReco-v1/150720_060753/0000/catTuple_1.root
-/store/group/CAT/SingleElectron/v7-3-0_Run2015B-PromptReco-v1/150720_060753/0000/catTuple_2.root
-/store/group/CAT/SingleElectron/v7-3-0_Run2015B-PromptReco-v1/150720_060753/0000/catTuple_3.root
-/store/group/CAT/SingleElectron/v7-3-0_Run2015B-PromptReco-v1/150720_060753/0000/catTuple_4.root

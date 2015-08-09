@@ -1,6 +1,0 @@
-/store/group/CAT/DoubleEG/v7-3-0_Run2015B-PromptReco-v1/150720_060819/0000/catTuple_1.root
-/store/group/CAT/DoubleEG/v7-3-0_Run2015B-PromptReco-v1/150720_060819/0000/catTuple_2.root
-/store/group/CAT/DoubleEG/v7-3-0_Run2015B-PromptReco-v1/150720_060819/0000/catTuple_3.root
-/store/group/CAT/DoubleEG/v7-3-0_Run2015B-PromptReco-v1/150720_060819/0000/catTuple_4.root
-/store/group/CAT/DoubleEG/v7-3-0_Run2015B-PromptReco-v1/150720_060819/0000/catTuple_5.root
-/store/group/CAT/DoubleEG/v7-3-0_Run2015B-PromptReco-v1/150720_060819/0000/catTuple_6.root
