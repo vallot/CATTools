@@ -43,7 +43,7 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
         pvX   = cms.PSet(src = cms.InputTag("recoEventInfo","pvX")),
         pvY   = cms.PSet(src = cms.InputTag("recoEventInfo","pvY")),
         pvZ   = cms.PSet(src = cms.InputTag("recoEventInfo","pvZ")),
-   ),
+    ),
     doubles = cms.PSet(
         pdfWeight = cms.PSet(src = cms.InputTag("pdfWeight")),
     ),
