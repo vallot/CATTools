@@ -36,7 +36,7 @@ lumiIdx = csvRD[0].index("Integrated luminosity (fb-1)")
 for l in csvRD[1:]:
     if len(l) == 0 or len(l[0]) == 0: continue
     ds.append({'title':l[titleIdx],
-               'lumi':l[lumiIdx],
+               'lumi':float(l[lumiIdx]),
                'path':l[pathIdx]})
 
 nameIdx = csvMC[0].index("Name")
@@ -48,17 +48,18 @@ for l in csvMC[1:]:
     if len(l) == 0 or len(l[0]) == 0: continue
     ds.append({'title':l[titleIdx],
                'name':l[nameIdx],
-               'xsec':l[xsecIdx],
-               'nevt':l[nevtIdx],
+               'xsec':float(l[xsecIdx]),
+               'nevt':int(l[nevtIdx]),
                'path':l[pathIdx]})
 
 for d in ds:
     p = d['path']
-    ll = []#set(subprocess.check_output(cmd + p, shell=True).strip().split('\n'))
+    ll = set(subprocess.check_output(cmd + p, shell=True).strip().split('\n'))
     fl = []
     size = 0
     for ff in ll:
         t = ff.strip().split()
+        if len(t) == 0: continue
         fname = os.path.basename(t[-1])
         if not fname.endswith('.root'): continue
         size += int(t[1])
@@ -68,8 +69,10 @@ for d in ds:
     d['files'] = fl
     d['size'] = size
 
+outDir = os.environ["CMSSW_BASE"]+"/src/CATTools/CatAnalyzer/data"
+if not os.path.exists(outDir): os.makedirs(outDir)
 import json
-f = open("samples.json", "w")
+f = open("%s/samples.json" % outDir, "w")
 print>>f, json.dumps(ds)
 
 #print ds
