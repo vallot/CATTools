@@ -17,7 +17,10 @@ git cms-merge-topic cms-met:METCorUnc74X
 git clone git@github.com:cms-jet/JetToolbox.git JMEAnalysis/JetToolbox -b jetToolbox_74X
 git clone git@github.com:rfriese/RecoMET-METPUSubtraction RecoMET/METPUSubtraction/data -b 74X-13TeV-Summer15-July2015
 
-git clone git@github.com:vallot/CATTools.git -b v7-3-3
+git clone https://github.com/vallot/CATTools.git -n
+cd CATTools
+git co -b v733 v7-3-3
+cd ..
 
 cd CATTools
 git submodule init
