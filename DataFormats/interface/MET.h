@@ -17,26 +17,24 @@ namespace cat {
 
 namespace cat {
 
-  class MET {
+  class MET : public reco::LeafCandidate {
   public:
     typedef math::XYZTLorentzVector LorentzVector;
     
-    MET();
-    MET(float px, float py, float sumEt);
-    virtual ~MET();
+    MET() {};
+    MET(float px, float py, float sumEt) { set(px, py, sumEt); };
+    virtual ~MET() {};
 
-    void set(float px, float py, float sumEt) { px_ = px; py_ = py; sumEt_ = sumEt;}
+    void set(float px, float py, float sumEt) {
+      setP4(LorentzVector(px, py, 0, std::hypot(px, py)));
+      sumEt_ = sumEt;
+    }
 
     float sumEt() const { return sumEt_; }
-    float px() const { return px_; }
-    float py() const { return py_; }
-    float pt() const { return sqrt(px_*px_ + py_*py_); }
-    float phi() const { return px_ == 0.0 && py_ == 0.0 ? 0.0 : TMath::ATan2(py_,px_); }
-    TLorentzVector tlv() const {return TLorentzVector(px_, py_, 0.0, this->pt() );}
-    LorentzVector p4()  const {return LorentzVector(px_, py_, 0.0, this->pt() ) ;}
-  private:
+    TLorentzVector tlv() const {return TLorentzVector(px(), py(), 0.0, pt());}
 
-    float sumEt_, px_, py_;
+  private:
+    float sumEt_;
 
   };
 }
