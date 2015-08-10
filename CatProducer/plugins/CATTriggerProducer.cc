@@ -36,38 +36,35 @@ private:
 
   edm::EDGetTokenT<edm::TriggerResults> triggerBits_;
   edm::EDGetTokenT<pat::PackedTriggerPrescales> triggerPrescales_;
+  edm::EDGetTokenT<edm::TriggerResults> metFilterBitsPAT_;
+  edm::EDGetTokenT<edm::TriggerResults> metFilterBitsRECO_;
 
-  std::string processName_;
   pairstrings hltNames_;
-  pairstrings pshltNames_;
+  pairstrings metFilterNames_;
   //HLTConfigProvider hltConfig_;
 };
 
-CATTriggerProducer::CATTriggerProducer(const edm::ParameterSet& pset)
+CATTriggerProducer::CATTriggerProducer(const edm::ParameterSet& pset):
+  triggerBits_(consumes<edm::TriggerResults>(pset.getParameter<edm::InputTag>("bits"))),
+  triggerPrescales_(consumes<pat::PackedTriggerPrescales>(pset.getParameter<edm::InputTag>("prescales"))),
+  metFilterBitsPAT_(consumes<edm::TriggerResults>(pset.getParameter<edm::InputTag>("metFilterBitsPAT"))),
+  metFilterBitsRECO_(consumes<edm::TriggerResults>(pset.getParameter<edm::InputTag>("metFilterBitsRECO")))
 {
-  edm::InputTag hltLabel = pset.getParameter<edm::InputTag>("triggerResults");
-  processName_ = hltLabel.process();
-  triggerBits_ = consumes<edm::TriggerResults>(hltLabel);
-  triggerPrescales_ = consumes<pat::PackedTriggerPrescales>(pset.getParameter<edm::InputTag>("prescales"));
-
   const boost::regex matchVersion("_v[0-9\\*]+$"); // regexp from HLTrigger/HLTCore/HLTConfigProvider
 
-  // for unprescaled triggers
-  for ( auto& hltPath : pset.getParameter<strings>("unPreScaled") ){
+  std::cout << "List of Triggers to Save" << std::endl;
+  for ( auto& hltPath : pset.getParameter<strings>("hltPathNames") ){
     hltPath = boost::regex_replace(hltPath, matchVersion, "");
     std::string hltSavedAs = hltPath;
-    std::replace( hltSavedAs.begin(), hltSavedAs.end(), '_', '-' );
-    produces<bool>( hltSavedAs );
+    hltSavedAs.erase(std::remove(hltSavedAs.begin(), hltSavedAs.end(), '_'), hltSavedAs.end());
+    std::cout << " " << hltPath << std::endl;
+    produces<int >( hltSavedAs );
     hltNames_.push_back(std::make_pair(hltPath, hltSavedAs));
   }
-  
-  // for prescaled triggers
-  for ( auto& hltPath : pset.getParameter<strings>("PreScaled") ){
-    hltPath = boost::regex_replace(hltPath, matchVersion, "");
-    std::string hltSavedAs = hltPath;
-    std::replace( hltSavedAs.begin(), hltSavedAs.end(), '_', '-' );
-    produces<int>( hltSavedAs );
-    pshltNames_.push_back(std::make_pair(hltPath, hltSavedAs));
+  for ( auto& hltPath : pset.getParameter<strings>("metFilterNames") ){
+    std::cout << " " << hltPath << std::endl;
+    produces<bool >( hltPath );
+    metFilterNames_.push_back(std::make_pair("Flag_"+hltPath, hltPath));
   }
 }
 
@@ -98,38 +95,41 @@ void CATTriggerProducer::produce(edm::Event& event, const edm::EventSetup& event
 
   for ( auto& hltPath : hltNames_ ){
     const strings hltPathsWithV = HLTConfigProvider::restoreVersion(trigNames.triggerNames(), hltPath.first);
-    bool passTrigger = false;
-    if ( hltPathsWithV.empty() ) continue;
-    const std::string& trigName = hltPathsWithV[0];
-    unsigned int trigIndex = trigNames.triggerIndex(trigName);
-    if ( trigIndex < triggerBits->size() ){
-      if ( triggerBits->accept(trigIndex) ) {
-	passTrigger = true;
-	break;
-      }
-    }
-    event.put(std::auto_ptr<bool>(new bool (passTrigger)), hltPath.second);
-  }
-
-  for ( auto& hltPath : pshltNames_ ){
-    const strings hltPathsWithV = HLTConfigProvider::restoreVersion(trigNames.triggerNames(), hltPath.first);
     int psValue = 0;
-    if ( hltPathsWithV.empty() ) continue;
+    if ( hltPathsWithV.empty() ){
+      //std::cout << "Warning:: trigger does not exist "<< hltPath.first << std::endl;
+      continue;
+    }
     const std::string& trigName = hltPathsWithV[0];
     unsigned int trigIndex = trigNames.triggerIndex(trigName);
     if ( trigIndex < triggerBits->size() ){
       if ( triggerBits->accept(trigIndex) ) {
 	psValue = triggerPrescales->getPrescaleForIndex(trigIndex);
-	break;
       }
     }
     event.put(std::auto_ptr<int>(new int (psValue)), hltPath.second);
   }
+
+
+  edm::Handle<edm::TriggerResults> metFilterBits;
+  if (!event.getByToken(metFilterBitsPAT_, metFilterBits)){
+    event.getByToken(metFilterBitsRECO_, metFilterBits);
+  }
   
-  // // for full list of trigger names that pass
-  // for (unsigned int i = 4, n = triggerBits->size(); i < n-3; ++i) {
-  //   if (triggerBits->accept(i))
-  //     std::cout << i << " trigname "<<trigNames.triggerName(i) << ", prescale " << triggerPrescales->getPrescaleForIndex(i) << std::endl;
+  const edm::TriggerNames &metFilterNames = event.triggerNames(*metFilterBits);
+
+  for ( auto& hltPath : metFilterNames_ ){
+    bool passMet = false;
+    unsigned int trigIndex = metFilterNames.triggerIndex(hltPath.first);
+    if ( trigIndex < metFilterBits->size() ){
+      passMet = true;
+    }
+    event.put(std::auto_ptr<bool>(new bool (passMet)), hltPath.second);
+  }
+  
+  // // for full list of metFilterger names that pass
+  // for (unsigned int i = 0, n = metFilterBits->size(); i < n-3; ++i) {
+  //   std::cout << i << " metFiltername "<<metFilterNames.triggerName(i)<< std::endl;
   // }
 
 }
