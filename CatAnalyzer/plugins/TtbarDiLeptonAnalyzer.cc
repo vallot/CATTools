@@ -47,7 +47,7 @@ private:
   vector<cat::Electron> selectElecs(const edm::View<cat::Electron>* elecs );
   vector<cat::Jet> selectJets(const edm::View<cat::Jet>* jets, vector<TLorentzVector> recolep);
   vector<cat::Jet> selectBJets(vector<cat::Jet> & jets );
-  float passingSteps(int channel, float met, float ll_mass, float ll_charge, int selectedJets_size, int btag);
+  int passingSteps(int channel, float met, float ll_mass, float ll_charge, int selectedJets_size, int btag);
   const reco::Candidate* getLast(const reco::Candidate* p);
 
   TLorentzVector leafToTLorentzVector(reco::LeafCandidate & leaf)
@@ -283,8 +283,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_nbjet = selectedBJets.size();
   b_channel = channel;
 
-  float step = passingSteps( channel, met.Pt(), (recolep[0]+recolep[1]).M(), ll_charge, selectedJets.size(), selectedBJets.size() );
-  b_step = step;
+  b_step = passingSteps( channel, met.Pt(), (recolep[0]+recolep[1]).M(), ll_charge, selectedJets.size(), selectedBJets.size() );
 
   ////////////////////////////////////////////////////////  KIN  /////////////////////////////////////
   int kin=0; TLorentzVector nu1, nu2, top1, top2;
@@ -402,7 +401,7 @@ vector<cat::Jet> TtbarDiLeptonAnalyzer::selectBJets(vector<cat::Jet> & jets )
   return selBjets;
 }
 
-float TtbarDiLeptonAnalyzer::passingSteps(int channel, float met, float ll_mass, float ll_charge, int selectedJets_size, int btag)
+int TtbarDiLeptonAnalyzer::passingSteps(int channel, float met, float ll_mass, float ll_charge, int selectedJets_size, int btag)
 {
   int step = 0;
   if (ll_mass <= 20.) return step;
