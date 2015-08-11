@@ -32,7 +32,7 @@ csvMC = list(csv.reader(urlopen(gdocbase % "1rWM3AlFKO8IJVaeoQkWZYWwSvicQ1QCXYSz
 ds = []
 titleIdx = csvRD[0].index("Title")
 pathIdx = csvRD[0].index("Path")
-lumiIdx = csvRD[0].index("Integrated luminosity (fb-1)")
+lumiIdx = csvRD[0].index("Integrated luminosity (pb-1)")
 for l in csvRD[1:]:
     if len(l) == 0 or len(l[0]) == 0: continue
     ds.append({'title':l[titleIdx],
