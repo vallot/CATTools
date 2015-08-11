@@ -1,6 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
-pdfWeight = cms.EDProducer("PDFWeightsProducer",
+genWeight = cms.EDProducer("PDFWeightsProducer",
+    lheEvent = cms.InputTag("externalLHEProducer"),
     genEventInfo = cms.InputTag("generator"),
     pdfName = cms.string("NNPDF30_nlo_as_0118"),
     generatedPdfName = cms.string("NNPDF30_nlo_as_0118"),
