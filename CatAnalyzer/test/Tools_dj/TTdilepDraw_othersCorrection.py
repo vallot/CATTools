@@ -8,7 +8,7 @@ def histMaker(tree, name, tcut, plotvar, bin_set):
 	tree.Project(name, plotvar, tcut)
 	return hist
 
-datalumi = 7.3
+datalumi = 40.2
 crosssection = 831.8
 
 #input values here

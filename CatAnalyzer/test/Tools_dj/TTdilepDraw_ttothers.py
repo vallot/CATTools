@@ -8,7 +8,7 @@ def histMaker(tree, name, tcut, plotvar, bin_set):
 	tree.Project(name, plotvar, tcut)
 	return hist
 
-datalumi = 7.3
+datalumi = 40.2
 crosssection = 831.8
 
 #input values here
@@ -55,9 +55,9 @@ for j, ch in enumerate(channels):
 		hs.Add(histo)
 		leg.AddEntry(histo, name[i]+"  "+str(num), "f")
 
-	hs.SetMaximum(0.4)
-	if j == 0:
-		hs.SetMaximum(1)
+#	hs.SetMaximum(0.4)
+#	if j == 0:
+#		hs.SetMaximum(1)
 	hs.Draw()
 	hs.GetXaxis().SetTitle(x_name)
 	hs.GetXaxis().SetTitleSize(0.044)

@@ -13,8 +13,7 @@ def hist_maker(name, title, bin_set, x_name, y_name, tr, br, cut):
 
 plotvar = sys.argv[1]
 
-datalumi = 7.3
-#datalumi = 49.5
+datalumi = 40.2
 
 mcfilelist = ['TTJets_TuneCUETP8M1_13TeV-madgraphMLM',
               'WJetsToLNu_TuneCUETP8M1_13TeV',
@@ -27,12 +26,11 @@ mcfilelist = ['TTJets_TuneCUETP8M1_13TeV-madgraphMLM',
 mcval_l = [831.8, 61526.7, 35.6, 35.6, 31.8, 65.9, 118.7, 6025.2]
 color_l = [2, 0, 3, 5, 7, 7, 7, 4]
 
-rdfilelist = [#'data_MuonEG_merged']
-              'MuonEG']
+rdfilelist = ['MuonEG']
 
 plotvar_l = ["ll_m", "njet", "MET", "nbjet"]
 bin_set_l = [[38, 20, 400], [10, 0, 10], [30,0,300], [6, 0, 6]]
-x_name_l = ["M(ll) [GeV]   ", "Jet Multiplicity   ", "Missing Et[GeV/c]   ", "b Jet Multiplicity   "]
+x_name_l = ["ElMu M(ll) [GeV]   ", "ElMu Jet Multiplicity   ", "ElMu Missing Et[GeV/c]   ", "ElMu b Jet Multiplicity   "]
 
 bin_set = bin_set_l[plotvar_l.index(plotvar)]
 x_name = x_name_l[plotvar_l.index(plotvar)]
@@ -46,6 +44,7 @@ if plotvar == "ll_m":
     h_rd = ROOT.TH1F(plotvar, plotvar, 8, massbin)
 else: h_rd = ROOT.TH1F(plotvar, plotvar, bin_set[0], bin_set[1], bin_set[2])
 h_rd.SetMarkerStyle(20)
+
 leg = ROOT.TLegend(0.57,0.5,0.88,0.88)
 leg.SetTextSize(0.035)
 leg.SetTextFont(42)
@@ -61,12 +60,15 @@ for i, f in enumerate(mcfilelist):
     samplenames.append(samplename)
     tt = ROOT.TFile(rootfilename)
     tree = tt.ttll.Get("tree")
+    """
 	# untill better way to get nentries
     tempdraw = plotvar +" >> temp" +samplename
     tree.Draw(tempdraw)
     temphist = ROOT.gDirectory.Get("temp" +samplename)
     # untill better way to get nentries
     scale = mcval_l[i]*datalumi / temphist.GetEntries()
+    """
+    scale = mcval_l[i]*datalumi / tree.GetEntries()
     if samplename == "TTJets":
         histo1 = copy.deepcopy(hist_maker(samplename, plotvar, bin_set, x_name, y_name, tree, plotvar, tcut+" && parton_channel == 3"))
         histo2 = copy.deepcopy(hist_maker(samplename+" others", plotvar, bin_set, x_name, y_name, tree, plotvar, tcut+" && parton_channel != 3"))
@@ -74,6 +76,7 @@ for i, f in enumerate(mcfilelist):
         histo2.SetFillColor(6)
         histo1.Scale(scale)
         histo2.Scale(scale)
+        num = histo1.GetEntries()+histo2.GetEntries()
         mchist_l.append(histo1) 
         mchist_l.append(histo2) 
     else:
@@ -82,7 +85,6 @@ for i, f in enumerate(mcfilelist):
         histo.Scale(scale)
         mchist_l.append(histo)
 
-"""
 for i in rdfilelist:
     rootfilename = i+".root"
 
@@ -92,7 +94,6 @@ for i in rdfilelist:
     tree = tt.ttll.Get("tree")
     histo = copy.deepcopy(hist_maker(samplename, plotvar, bin_set, x_name, y_name, tree, plotvar, tcut))
     h_rd.Add(histo)
-"""   
 
 canvas = ROOT.TCanvas(plotvar,plotvar, 600, 600)
 #canvas.SetLogy(1)
@@ -108,7 +109,7 @@ leg.AddEntry(mchist_l[4], "Single top W", "f")
 leg.AddEntry(mchist_l[3], "Single topbar W", "f")
 leg.AddEntry(mchist_l[2], samplenames[1], "f")
 leg.AddEntry(mchist_l[1], samplenames[0]+" others", "f")
-leg.AddEntry(mchist_l[0], samplenames[0], "f")
+leg.AddEntry(mchist_l[0], samplenames[0]+str(num), "f")
       
 hs.Draw()
 hs.SetTitle("")
@@ -119,7 +120,7 @@ hs.GetYaxis().SetTitle(y_name)
 hs.GetYaxis().CenterTitle()
 hs.GetYaxis().SetTitleSize(0.044)
 hs.GetYaxis().SetLabelSize(0.03)
-#h_rd.Draw("epsame")
+h_rd.Draw("epsame")
 
 tex1 = ROOT.TLatex(0.56,0.92,"%.1f pb^{-1},   #sqrt{s} = 13 TeV"%(datalumi))
 tex1.SetNDC()
@@ -134,6 +135,6 @@ tex2.SetTextSize(0.042)
 tex2.Draw("same")
 
 leg.Draw("same")
-canvas.SaveAs(plotvar+".root")
+#canvas.SaveAs(plotvar+".root")
 canvas.SaveAs(plotvar+".png")
 
