@@ -29,17 +29,20 @@ public:
 
 private:
   bool doReweightPdf_;
-  std::string pdfName_;
+  const std::string pdfName_;
   std::string generatedPdfName_;
-  edm::EDGetTokenT<LHEEventProduct> lheToken_;
-  edm::EDGetTokenT<GenEventInfoProduct> genInfoToken_;
+  const edm::EDGetTokenT<LHEEventProduct> lheToken_;
+  const edm::EDGetTokenT<GenEventInfoProduct> genInfoToken_;
+  const int lheWeightIndex_, genWeightIndex_;
 };
 
-GenWeightsProducer::GenWeightsProducer(const edm::ParameterSet& pset)
+GenWeightsProducer::GenWeightsProducer(const edm::ParameterSet& pset):
+  pdfName_(pset.getParameter<std::string>("pdfName")),
+  lheToken_(consumes<LHEEventProduct>(pset.getParameter<edm::InputTag>("lheEvent"))),
+  genInfoToken_(consumes<GenEventInfoProduct>(pset.getParameter<edm::InputTag>("genEventInfo"))),
+  lheWeightIndex_(pset.getParameter<int>("lheWeightIndex")),
+  genWeightIndex_(pset.getParameter<int>("genWeightIndex"))
 {
-  lheToken_ = consumes<LHEEventProduct>(pset.getParameter<edm::InputTag>("lheEvent"));
-  genInfoToken_ = consumes<GenEventInfoProduct>(pset.getParameter<edm::InputTag>("genEventInfo"));
-  pdfName_ = pset.getParameter<std::string>("pdfName");
 
   doReweightPdf_ = false;
   if ( pset.existsAs<std::string>("generatedPdfName") )
@@ -48,14 +51,14 @@ GenWeightsProducer::GenWeightsProducer(const edm::ParameterSet& pset)
     if ( generatedPdfName_ != pdfName_ ) doReweightPdf_ = true;
   }
 
-  produces<std::vector<double> >("genWeights");
-  produces<std::vector<double> >("lheWeights");
-  produces<std::vector<double> >("pdfWeights");
+  produces<float>("genWeight");
+  produces<float>("lheWeight");
+  produces<std::vector<float> >("pdfWeights");
   produces<int>("id1");
   produces<int>("id2");
-  produces<double>("x1");
-  produces<double>("x2");
-  produces<double>("Q");
+  produces<float>("x1");
+  produces<float>("x2");
+  produces<float>("Q");
 
 }
 
@@ -67,16 +70,13 @@ void GenWeightsProducer::beginJob()
 
 void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& eventSetup)
 {
-  std::auto_ptr<std::vector<double> > lheWeights(new std::vector<double>);
-  std::auto_ptr<std::vector<double> > genWeights(new std::vector<double>);
-  std::auto_ptr<std::vector<double> > pdfWeights(new std::vector<double>);
+  float lheWeight = 1, genWeight = 1;
+  std::auto_ptr<std::vector<float> > pdfWeights(new std::vector<float>);
   if ( event.isRealData() )
   {
-    lheWeights->push_back(1);
-    genWeights->push_back(1);
     pdfWeights->push_back(1); // no reweighting
-    event.put(lheWeights, "lheWeights");
-    event.put(genWeights, "genWeights");
+    event.put(std::auto_ptr<float>(new float(lheWeight)), "lheWeight");
+    event.put(std::auto_ptr<float>(new float(genWeight)), "genWeight");
     event.put(pdfWeights, "pdfWeights");
   }
 
@@ -86,45 +86,45 @@ void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& event
   edm::Handle<GenEventInfoProduct> genInfoHandle;
   event.getByToken(genInfoToken_, genInfoHandle);
 
-  if ( lheHandle.isValid() ) for ( auto x : lheHandle->weights() ) lheWeights->push_back(x.wgt);
-  for ( auto x : genInfoHandle->weights() ) genWeights->push_back(x);
+  if ( lheHandle.isValid() ) lheWeight = lheHandle->weights().at(lheWeightIndex_).wgt;
+  genWeight = genInfoHandle->weights().at(genWeightIndex_);
 
   const float q = genInfoHandle->pdf()->scalePDF;
   const int id1 = genInfoHandle->pdf()->id.first;
   const int id2 = genInfoHandle->pdf()->id.second;
-  const double x1 = genInfoHandle->pdf()->x.first;
-  const double x2 = genInfoHandle->pdf()->x.second;
+  const float x1 = genInfoHandle->pdf()->x.first;
+  const float x2 = genInfoHandle->pdf()->x.second;
 
   const int generatedPdfIdx = doReweightPdf_ ? 2 : 1;
-  const double xpdf1 = LHAPDF::xfx(generatedPdfIdx, x1, q, id1);
-  const double xpdf2 = LHAPDF::xfx(generatedPdfIdx, x2, q, id2);
-  const double w0 = xpdf1*xpdf2;
+  const float xpdf1 = LHAPDF::xfx(generatedPdfIdx, x1, q, id1);
+  const float xpdf2 = LHAPDF::xfx(generatedPdfIdx, x2, q, id2);
+  const float w0 = xpdf1*xpdf2;
 
   if ( !doReweightPdf_ ) pdfWeights->push_back(1);
   else
   {
-    const double xpdf1_new = LHAPDF::xfx(1, x1, q, id1);
-    const double xpdf2_new = LHAPDF::xfx(1, x2, q, id2);
-    const double w_new = xpdf1_new*xpdf2_new;
+    const float xpdf1_new = LHAPDF::xfx(1, x1, q, id1);
+    const float xpdf2_new = LHAPDF::xfx(1, x2, q, id2);
+    const float w_new = xpdf1_new*xpdf2_new;
     pdfWeights->push_back(w_new/w0);
   }
 
   for ( unsigned int i=1, n=LHAPDF::numberPDF(1); i<=n; ++i )
   {
     LHAPDF::usePDFMember(1, i);
-    const double xpdf1_syst = LHAPDF::xfx(1, x1, q, id1);
-    const double xpdf2_syst = LHAPDF::xfx(1, x2, q, id2);
+    const float xpdf1_syst = LHAPDF::xfx(1, x1, q, id1);
+    const float xpdf2_syst = LHAPDF::xfx(1, x2, q, id2);
     pdfWeights->push_back(xpdf1_syst*xpdf2_syst/w0);
   }
 
-  event.put(lheWeights, "lheWeights");
-  event.put(genWeights, "genWeights");
+  event.put(std::auto_ptr<float>(new float(lheWeight)), "lheWeight");
+  event.put(std::auto_ptr<float>(new float(genWeight)), "genWeight");
   event.put(pdfWeights, "pdfWeights");
   event.put(std::auto_ptr<int>(new int(id1)), "id1");
   event.put(std::auto_ptr<int>(new int(id2)), "id2");
-  event.put(std::auto_ptr<double>(new double(x1)), "x1");
-  event.put(std::auto_ptr<double>(new double(x2)), "x2");
-  event.put(std::auto_ptr<double>(new double(q)), "Q");
+  event.put(std::auto_ptr<float>(new float(x1)), "x1");
+  event.put(std::auto_ptr<float>(new float(x2)), "x2");
+  event.put(std::auto_ptr<float>(new float(q)), "Q");
 
 }
 
