@@ -36,7 +36,7 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
         HLTSingleMu = cms.PSet(src = cms.InputTag("recoEventInfo","HLTSingleMu")),
         HLTSingleEl = cms.PSet(src = cms.InputTag("recoEventInfo","HLTSingleEl")),
     ),
-    double = cms.PSet(
+    float = cms.PSet(
         puWeight   = cms.PSet(src = cms.InputTag("pileupWeight")),
         puWeightUp = cms.PSet(src = cms.InputTag("pileupWeight", "up")),
         puWeightDn = cms.PSet(src = cms.InputTag("pileupWeight", "dn")),
@@ -44,7 +44,7 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
         pvY   = cms.PSet(src = cms.InputTag("recoEventInfo","pvY")),
         pvZ   = cms.PSet(src = cms.InputTag("recoEventInfo","pvZ")),
     ),
-    doubles = cms.PSet(
+    floats = cms.PSet(
         pdfWeight = cms.PSet(src = cms.InputTag("pdfWeight")),
     ),
     cands = cms.PSet(

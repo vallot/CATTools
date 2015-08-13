@@ -186,7 +186,7 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
 #######################################################################    
     if runOnMC:## Load MC dependent producers
         ## FIX ME - pile up and pdf weight
-        process.load("CATTools.CatProducer.pdfWeight_cff")
+        process.load("CATTools.CatProducer.genWeight_cff")
         process.load("CATTools.CatProducer.pileupWeight_cff")
         process.pileupWeight.vertex = cms.InputTag(catVertexSource)
 
