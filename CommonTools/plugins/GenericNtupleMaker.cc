@@ -137,6 +137,7 @@ public:
 
 private:
   typedef edm::ParameterSet PSet;
+  typedef std::vector<bool> vbool;
   typedef std::vector<int> vint;
   typedef std::vector<double> vdouble;
   typedef std::vector<std::string> strings;
@@ -149,9 +150,11 @@ private:
   std::vector<std::vector<VmapToken> > vmapTokens_;
   std::vector<edm::EDGetTokenT<edm::MergeableCounter> > eventCounterTokens_;
 
+  FlatConsumers<bool> boolCSet_;
   FlatConsumers<int> intCSet_;
   FlatConsumers<double> doubleCSet_;
   FlatConsumers<float> floatCSet_;
+  VectorConsumers<bool> vboolCSet_;
   VectorConsumers<int> vintCSet_;
   VectorConsumers<double> vdoubleCSet_;
   VectorConsumers<float> vfloatCSet_;
@@ -193,9 +196,11 @@ GenericNtupleMaker::GenericNtupleMaker(const edm::ParameterSet& pset)
   tree_->Branch("lumi" , &lumiNumber_ , "lumi/I" );
   tree_->Branch("event", &eventNumber_, "event/I");
 
+  boolCSet_.init(pset, "bool", consumesCollector(), tree_, "O");
   intCSet_.init(pset, "int", consumesCollector(), tree_, "I");
   doubleCSet_.init(pset, "double", consumesCollector(), tree_, "D");
   floatCSet_.init(pset, "float", consumesCollector(), tree_, "F");
+  vboolCSet_.init(pset, "bools", consumesCollector(), tree_);
   vintCSet_.init(pset, "ints", consumesCollector(), tree_);
   vdoubleCSet_.init(pset, "doubles", consumesCollector(), tree_);
   vfloatCSet_.init(pset, "floats", consumesCollector(), tree_);
@@ -265,9 +270,11 @@ void GenericNtupleMaker::analyze(const edm::Event& event, const edm::EventSetup&
   lumiNumber_  = event.luminosityBlock();
   eventNumber_ = event.id().event();
 
+  nFailure += boolCSet_.load(event);
   nFailure += intCSet_.load(event);
   nFailure += doubleCSet_.load(event);
   nFailure += floatCSet_.load(event);
+  nFailure += vboolCSet_.load(event);
   nFailure += vintCSet_.load(event);
   nFailure += vdoubleCSet_.load(event);
   nFailure += vfloatCSet_.load(event);
@@ -329,6 +336,7 @@ void GenericNtupleMaker::analyze(const edm::Event& event, const edm::EventSetup&
   //else if ( failureMode_ == FAILUREMODE::SKIP ); // don't fill and continue memory cleanup
 
   // Clear up after filling tree
+  vboolCSet_.clear();
   vintCSet_.clear();
   vdoubleCSet_.clear();
 

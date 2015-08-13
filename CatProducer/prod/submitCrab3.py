@@ -71,8 +71,8 @@ for dataset in datasets:
             print "NOTE! no lumiMask was selected!"
             print "NOTE! no lumiMask was selected!"
         isMC = False
-        dataSplitting   = " Data.splitting='LumiBased' "
-        dataUnitsPerJob = " Data.unitsPerJob=10 "
+        #dataSplitting   = " Data.splitting='LumiBased' "
+        #dataUnitsPerJob = " Data.unitsPerJob=10 "
         dataLumiMask    = " Data.lumiMask='%s'"%(lumiMask)
         pyCfgParams     = "config.JobType.pyCfgParams = ['runOnMC=False','useMiniAOD=%s','globalTag=%s']"%(isMiniAOD,globalTag)
 

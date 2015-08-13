@@ -77,18 +77,18 @@ PileupWeightProducer::PileupWeightProducer(const edm::ParameterSet& pset):
   }
 
   produces<int>("nTrueInteraction");
-  produces<double>("");
-  produces<double>("up");
-  produces<double>("dn");
+  produces<float>("");
+  produces<float>("up");
+  produces<float>("dn");
 
 }
 
 void PileupWeightProducer::produce(edm::Event& event, const edm::EventSetup& eventSetup)
 {
   std::auto_ptr<int> nTrueIntr(new int(-1));
-  std::auto_ptr<double> weight(new double(1.));
-  std::auto_ptr<double> weightUp(new double(1.));
-  std::auto_ptr<double> weightDn(new double(1.));
+  std::auto_ptr<float> weight(new float(1.));
+  std::auto_ptr<float> weightUp(new float(1.));
+  std::auto_ptr<float> weightDn(new float(1.));
 
   if ( !event.isRealData() )
   {

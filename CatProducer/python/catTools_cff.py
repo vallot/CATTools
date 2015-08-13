@@ -14,8 +14,10 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     catMCsource = "prunedGenParticles"
     catBeamSpot = "offlineBeamSpot"
     catRho = "fixedGridRhoAll"
-    btagNames = cms.vstring("pfCombinedInclusiveSecondaryVertexV2BJetTags")
     ePidNames = cms.vstring()
+    btagNames = cms.vstring("pfCombinedInclusiveSecondaryVertexV2BJetTags")
+    #JECUncertainlyPayload = cms.string("AK4PFchs")
+    JECUncertainlyPayload = cms.string("")
 
     process.nEventsTotal = cms.EDProducer("EventCountProducer")
     process.nEventsFiltered = cms.EDProducer("EventCountProducer")
@@ -184,7 +186,7 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
 #######################################################################    
     if runOnMC:## Load MC dependent producers
         ## FIX ME - pile up and pdf weight
-        process.load("CATTools.CatProducer.pdfWeight_cff")
+        process.load("CATTools.CatProducer.genWeight_cff")
         process.load("CATTools.CatProducer.pileupWeight_cff")
         process.pileupWeight.vertex = cms.InputTag(catVertexSource)
 
@@ -204,6 +206,7 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     process.catJets.src = cms.InputTag(catJetsSource)
     process.catJets.genJetMatch = cms.InputTag("patJetGenJetMatch")
     process.catJets.btagNames = btagNames
+    process.catJets.payloadName = JECUncertainlyPayload
     process.catTaus.src = cms.InputTag(catTausSource)
     process.catTaus.genJetMatch = cms.InputTag("tauGenJetMatch")
     process.catMuons.src = cms.InputTag(catMuonsSource)
@@ -225,5 +228,6 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     process.catJetsPuppi.src = cms.InputTag(catJetsPuppiSource)
     process.catJetsPuppi.genJetMatch = cms.InputTag("patJetGenJetMatch")
     process.catJetsPuppi.btagNames = btagNames
+    process.catJetsPuppi.payloadName = JECUncertainlyPayload    
     process.catMETsPuppi.src = cms.InputTag(catMETsPuppiSource)
     process.catVertex.vertexLabel = cms.InputTag(catVertexSource)

@@ -14,7 +14,7 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 10000
 process.source = cms.Source("PoolSource",
       fileNames = cms.untracked.vstring(
 #'/store/user/youn/cat710_phy14_ttbar_2025_aod/catTuple_972.root'
-'file:catTuple.root'
+'file:catTuple_1.root'
 #'file:/cms/home/youn/work/cattool/tag711/cat/src/CATTools/CatProducer/prod/catTuple.root'
 #          '/store/user/jlee/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/Phys14DR-PU20bx25_PHYS14_25_V1-v1/141219_091640/0000/catTuple_1.root',
 #          '/store/user/jlee/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/Phys14DR-PU20bx25_PHYS14_25_V1-v1/141219_091640/0000/catTuple_2.root',
@@ -36,15 +36,15 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
         HLTSingleMu = cms.PSet(src = cms.InputTag("recoEventInfo","HLTSingleMu")),
         HLTSingleEl = cms.PSet(src = cms.InputTag("recoEventInfo","HLTSingleEl")),
     ),
-    double = cms.PSet(
+    float = cms.PSet(
         puWeight   = cms.PSet(src = cms.InputTag("pileupWeight")),
         puWeightUp = cms.PSet(src = cms.InputTag("pileupWeight", "up")),
         puWeightDn = cms.PSet(src = cms.InputTag("pileupWeight", "dn")),
         pvX   = cms.PSet(src = cms.InputTag("recoEventInfo","pvX")),
         pvY   = cms.PSet(src = cms.InputTag("recoEventInfo","pvY")),
         pvZ   = cms.PSet(src = cms.InputTag("recoEventInfo","pvZ")),
-   ),
-    doubles = cms.PSet(
+    ),
+    floats = cms.PSet(
         pdfWeight = cms.PSet(src = cms.InputTag("pdfWeight")),
     ),
     cands = cms.PSet(
