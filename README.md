@@ -19,7 +19,7 @@ git clone https://github.com/rfriese/RecoMET-METPUSubtraction.git RecoMET/METPUS
 
 git clone https://github.com/vallot/CATTools.git -n
 cd CATTools
-git co -b v733 v7-3-3
+git checkout -b v733 v7-3-3
 cd ..
 
 cd CATTools
