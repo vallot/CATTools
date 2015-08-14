@@ -16,8 +16,8 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     catRho = "fixedGridRhoAll"
     ePidNames = cms.vstring()
     btagNames = cms.vstring("pfCombinedInclusiveSecondaryVertexV2BJetTags")
-    #JECUncertainlyPayload = cms.string("AK4PFchs")
-    JECUncertainlyPayload = cms.string("")
+    JECUncertainlyPayload = cms.string("AK4PFchs")
+    #JECUncertainlyPayload = cms.string("")
 
     process.nEventsTotal = cms.EDProducer("EventCountProducer")
     process.nEventsFiltered = cms.EDProducer("EventCountProducer")
