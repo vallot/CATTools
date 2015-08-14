@@ -141,10 +141,10 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
                 record = cms.string("JetCorrectionsRecord"),
                 tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PFchs"),
                 label= cms.untracked.string("AK4PFchs")),
-            #cms.PSet(
-            #    record = cms.string("JetCorrectionsRecord"),
-            #    tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PUPPI"),
-            #    label= cms.untracked.string("AK4PUPPI")),
+            cms.PSet(
+                record = cms.string("JetCorrectionsRecord"),
+                tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PFPuppi"),
+                label= cms.untracked.string("AK4PFPuppi")),
     ))
     process.es_prefer_jec = cms.ESPrefer("PoolDBESSource","jec")
     print "JEC based on", process.jec.connect
@@ -153,15 +153,15 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
         process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
         catJetsSource = "patJetsUpdated"
         ### updating puppi jet jec
-        #process.patJetPuppiCorrFactorsUpdated = process.patJetCorrFactorsUpdated.clone(
-        #payload = cms.string('AK4PUPPI'),
-        #    src = cms.InputTag(catJetsPuppiSource),
-        #)
-        #process.patJetsPuppiUpdated = process.patJetsUpdated.clone(
-        #    jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetPuppiCorrFactorsUpdated")),
-        #    jetSource = cms.InputTag(catJetsPuppiSource),
-        #)
-        #catJetsPuppiSource = "patJetsPuppiUpdated"
+        process.patJetPuppiCorrFactorsUpdated = process.patJetCorrFactorsUpdated.clone(
+        payload = cms.string('AK4PFPuppi'),
+            src = cms.InputTag(catJetsPuppiSource),
+        )
+        process.patJetsPuppiUpdated = process.patJetsUpdated.clone(
+            jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetPuppiCorrFactorsUpdated")),
+            jetSource = cms.InputTag(catJetsPuppiSource),
+        )
+        catJetsPuppiSource = "patJetsPuppiUpdated"
 
 #######################################################################
 ## for egamma pid temp 
