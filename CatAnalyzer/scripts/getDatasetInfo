@@ -25,9 +25,11 @@ cmd = "xrd %s ls %s" % (xrdhost, xrdbase)
 
 from urllib import urlopen
 import csv
-gdocbase = "https://docs.google.com/spreadsheets/d/%s&single=true&output=csv"
-csvRD = list(csv.reader(urlopen(gdocbase % "1rWM3AlFKO8IJVaeoQkWZYWwSvicQ1QCXYSzH74QyZqE/pub?gid=0").readlines()))
-csvMC = list(csv.reader(urlopen(gdocbase % "1rWM3AlFKO8IJVaeoQkWZYWwSvicQ1QCXYSzH74QyZqE/pub?gid=1289302456").readlines()))
+gdocbase = "https://docs.google.com/spreadsheets/d/1rWM3AlFKO8IJVaeoQkWZYWwSvicQ1QCXYSzH74QyZqE"
+print "Retrieving dataset info from google doc..."
+print "Source URL =", gdocbase
+csvRD = list(csv.reader(urlopen(gdocbase + "/pub?gid=0&single=true&output=csv").readlines()))
+csvMC = list(csv.reader(urlopen(gdocbase + "/pub?gid=1289302456&single=true&output=csv").readlines()))
 
 ds = []
 titleIdx = csvRD[0].index("Title")
@@ -73,6 +75,7 @@ outDir = os.environ["CMSSW_BASE"]+"/src/CATTools/CatAnalyzer/data"
 if not os.path.exists(outDir): os.makedirs(outDir)
 import json
 f = open("%s/samples.json" % outDir, "w")
+print "Saving results to %s/samples.json" % outDir
 print>>f, json.dumps(ds)
 
 #print ds
