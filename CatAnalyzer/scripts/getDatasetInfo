@@ -21,7 +21,7 @@ elif "uos" in hostname:
 else:
     print "Hostname", hostname, "not supported"
     sys.exit()
-cmd = "xrd %s ls %s" % (xrdhost, xrdbase)
+cmd = "xrd %s ls s" % (xrdhost)
 
 from urllib import urlopen
 import csv
@@ -54,22 +54,33 @@ for l in csvMC[1:]:
                'nevt':int(l[nevtIdx]),
                'path':l[pathIdx]})
 
-for d in ds:
-    p = d['path']
-    ll = set(subprocess.check_output(cmd + p, shell=True).strip().split('\n'))
-    fl = []
+def listxrd(path):
+    cmd = "xrd %s ls " % xrdhost
     size = 0
-    for ff in ll:
-        t = ff.strip().split()
-        if len(t) == 0: continue
-        fname = os.path.basename(t[-1])
-        if not fname.endswith('.root'): continue
-        size += int(t[1])
-        fl.append(fname)
-    fl.sort()
+    l = set()
+    for x in subprocess.check_output(cmd + xrdbase + path, shell=True).strip().split('\n'):
+        xx = x.split()
+        if len(xx) == 0: continue
+        xpath = xx[-1]
+        if len(xpath) == 0: continue
+        xsize = int(xx[1])
+        if xpath.startswith(xrdbase): xpath = xpath[len(xrdbase):]
+        if xpath in l: continue
+        l.add(xpath)
+        size += xsize
+    return l, size
 
-    d['files'] = fl
-    d['size'] = size
+for d in ds:
+    pp = d['path']
+    d['files'] = []
+    d['size'] = 0
+    for dd in listxrd(pp)[0]:
+        files, size = listxrd(dd)
+        d['size'] += size
+        for ff in files:
+            ff = ff[len(pp)+1:]
+            d['files'].append(ff)
+    d['files'].sort()
 
 outDir = os.environ["CMSSW_BASE"]+"/src/CATTools/CatAnalyzer/data"
 if not os.path.exists(outDir): os.makedirs(outDir)
