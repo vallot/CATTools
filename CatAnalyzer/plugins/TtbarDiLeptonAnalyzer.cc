@@ -61,7 +61,15 @@ private:
   edm::EDGetTokenT<reco::GenParticleCollection> mcLabel_;
   edm::EDGetTokenT<int>          partonTop_channel_;
   edm::EDGetTokenT<vector<int> > partonTop_modes_;
+  edm::EDGetTokenT<reco::GenParticleCollection > partonTop_genParticles_;
 
+  edm::EDGetTokenT<vector<reco::GenJet>      > pseudoTop_jets_;
+  edm::EDGetTokenT<vector<reco::GenJet>      > pseudoTop_leptons_;
+  edm::EDGetTokenT<vector<reco::GenParticle> > pseudoTop_;
+  edm::EDGetTokenT<vector<reco::GenParticle> > pseudoTop_neutrinos_;
+  edm::EDGetTokenT<vector<reco::MET>         > pseudoTop_mets_;
+
+  
   TTree * ttree_;
   int b_genChannel, b_genMode1, b_genMode2, b_partonChannel, b_partonMode1, b_partonMode2;
   int b_njet, b_nbjet, b_step, b_channel, b_inPhase;
@@ -94,6 +102,12 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   mcLabel_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcLabel"));
   partonTop_channel_ = consumes<int>(iConfig.getParameter<edm::InputTag>("partonTop_channel"));
   partonTop_modes_   = consumes<vector<int> >(iConfig.getParameter<edm::InputTag>("partonTop_modes"));
+  partonTop_genParticles_   = consumes<reco::GenParticleCollection >(iConfig.getParameter<edm::InputTag>("partonTop_genParticles"));
+  pseudoTop_jets_      = consumes<vector<reco::GenJet>      >(iConfig.getParameter<edm::InputTag>("pseudoTop_jets"));
+  pseudoTop_leptons_   = consumes<vector<reco::GenJet>      >(iConfig.getParameter<edm::InputTag>("pseudoTop_leptons"));
+  pseudoTop_           = consumes<vector<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("pseudoTop"));
+  pseudoTop_neutrinos_ = consumes<vector<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("pseudoTop_neutrinos"));
+  pseudoTop_mets_      = consumes<vector<reco::MET>         >(iConfig.getParameter<edm::InputTag>("pseudoTop_mets"));
 
   tmassbegin_     = iConfig.getParameter<double>       ("tmassbegin");
   tmassend_       = iConfig.getParameter<double>       ("tmassend");
@@ -177,8 +191,6 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   edm::Handle<edm::View<cat::MET> > mets;
   iEvent.getByToken(metToken_, mets);
   edm::Handle<reco::GenParticleCollection> genParticles;
-  edm::Handle<int> partonTop_channel;
-  edm::Handle<vector<int> > partonTop_modes;
 
   if (runOnMC_){
     int nMuon = 0;
@@ -206,17 +218,17 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       }
 
       if (lep){
-          int mode = 1;
-          if ( fabs(lep->pdgId()) == 13){ ++nMuon; mode = 2; }
-          else if ( fabs(lep->pdgId()) == 11){ ++nElectron; mode = 3; }
-          else if ( fabs(lep->pdgId()) == 15){
-              for (unsigned int i = 0; i < lep->numberOfDaughters(); ++i){
-                  if ( fabs(lep->daughter(i)->pdgId()) == 13 ) { mode = 5; break;}
-                  else if ( fabs(lep->daughter(i)->pdgId()) == 11 ) { mode = 6; break;}
-                  mode = 4;
-              }
-          }
-          gen_modes.push_back(mode);
+	int mode = 1;
+	if ( fabs(lep->pdgId()) == 13){ ++nMuon; mode = 2; }
+	else if ( fabs(lep->pdgId()) == 11){ ++nElectron; mode = 3; }
+	else if ( fabs(lep->pdgId()) == 15){
+	  for (unsigned int i = 0; i < lep->numberOfDaughters(); ++i){
+	    if ( fabs(lep->daughter(i)->pdgId()) == 13 ) { mode = 5; break;}
+	    else if ( fabs(lep->daughter(i)->pdgId()) == 11 ) { mode = 6; break;}
+	    mode = 4;
+	  }
+	}
+	gen_modes.push_back(mode);
       }
     }
 
@@ -227,25 +239,55 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     const int nLepton = nElectron + nMuon;
     gen_channel = nLepton+1;
 
-	b_genChannel = gen_channel; 
-	b_genMode1 = gen_modes[0]; 
-	b_genMode2 = gen_modes[1]; 
-
+    b_genChannel = gen_channel; 
+    b_genMode1 = gen_modes[0]; 
+    b_genMode2 = gen_modes[1]; 
+	
+    edm::Handle<int> partonTop_channel;
+    edm::Handle<vector<int> > partonTop_modes;
+    edm::Handle<reco::GenParticleCollection > partonTop_genParticles;    
     iEvent.getByToken(partonTop_channel_, partonTop_channel);
     iEvent.getByToken(partonTop_modes_, partonTop_modes);
+    iEvent.getByToken(partonTop_genParticles_, partonTop_genParticles);
+    for (const reco::GenParticle & g : *partonTop_genParticles){
+      cout << "parton_genParticles   "<< g.pdgId() <<endl;
+    }
     if ( (*partonTop_modes).size() == 0 ) {
-		b_partonMode1 = 0;
-		b_partonMode2 = 0;
-	}
+      b_partonMode1 = 0;
+      b_partonMode2 = 0;
+    }
     else if ( (*partonTop_modes).size() == 1 ) { b_partonMode2 = 0; }
-//    if ((*partonTop_modes).size() >= 2) {
-	else{
-        b_partonChannel = *partonTop_channel; 
-        b_partonMode1 = (*partonTop_modes)[0]; 
-        b_partonMode2 = (*partonTop_modes)[1]; 
+    //    if ((*partonTop_modes).size() >= 2) {
+    else{
+      b_partonChannel = *partonTop_channel; 
+      b_partonMode1 = (*partonTop_modes)[0]; 
+      b_partonMode2 = (*partonTop_modes)[1]; 
     }
     //cout << "parton_channel   "<< *partonTop_channel<<endl;
     //cout << "parton_mode      "<< (*partonTop_modes)[0] << " & "<< (*partonTop_modes)[1] <<endl;
+
+    edm::Handle<vector<reco::GenJet>      > pseudoTop_jets;
+    edm::Handle<vector<reco::GenJet>      > pseudoTop_leptons;
+    edm::Handle<vector<reco::GenParticle> > pseudoTop;
+    edm::Handle<vector<reco::GenParticle> > pseudoTop_neutrinos;
+    edm::Handle<vector<reco::MET>         > pseudoTop_mets;
+    iEvent.getByToken(pseudoTop_jets_     , pseudoTop_jets);
+    iEvent.getByToken(pseudoTop_leptons_  , pseudoTop_leptons);
+    iEvent.getByToken(pseudoTop_          , pseudoTop);
+    iEvent.getByToken(pseudoTop_neutrinos_, pseudoTop_neutrinos);
+    iEvent.getByToken(pseudoTop_mets_     , pseudoTop_mets);
+    for (const reco::GenJet & g : *pseudoTop_jets){
+      cout << "pseudoTop_jets   "<< g.pt() <<endl;
+    }
+    for (const reco::GenJet & g : *pseudoTop_leptons){
+      cout << "pseudoTop_leptons   "<< g.pt() <<endl;
+    }
+    for (const reco::GenParticle & g : *pseudoTop){
+      cout << "pseudoTop   "<< g.pt() <<endl;
+    }
+    for (const reco::GenParticle & g : *pseudoTop_neutrinos){
+      cout << "pseudoTop_neutrinos   "<< g.pt() <<endl;
+    }
   }
   vector<cat::Muon> selectedMuons = selectMuons( muons.product() );
   vector<cat::Electron> selectedElectrons = selectElecs( electrons.product() );
@@ -342,10 +384,10 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 const reco::Candidate* TtbarDiLeptonAnalyzer::getLast(const reco::Candidate* p)
 {
   for ( size_t i=0, n=p->numberOfDaughters(); i<n; ++i )
-  {
-    const reco::Candidate* dau = p->daughter(i);
-    if ( p->pdgId() == dau->pdgId() ) return getLast(dau);
-  }
+    {
+      const reco::Candidate* dau = p->daughter(i);
+      if ( p->pdgId() == dau->pdgId() ) return getLast(dau);
+    }
   return p;
 }
 
