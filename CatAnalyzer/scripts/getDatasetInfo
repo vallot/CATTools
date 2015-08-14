@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+saveJSON = False
+
 import sys, os
 
 import subprocess
@@ -32,12 +34,14 @@ csvRD = list(csv.reader(urlopen(gdocbase + "/pub?gid=0&single=true&output=csv").
 csvMC = list(csv.reader(urlopen(gdocbase + "/pub?gid=1289302456&single=true&output=csv").readlines()))
 
 ds = []
+nameIdx = csvRD[0].index("Name")
 titleIdx = csvRD[0].index("Title")
 pathIdx = csvRD[0].index("Path")
 lumiIdx = csvRD[0].index("Integrated luminosity (pb-1)")
 for l in csvRD[1:]:
     if len(l) == 0 or len(l[0]) == 0: continue
     ds.append({'title':l[titleIdx],
+               'name':l[nameIdx],
                'lumi':float(l[lumiIdx]),
                'path':l[pathIdx]})
 
@@ -71,6 +75,7 @@ def listxrd(path):
     return l, size
 
 for d in ds:
+    print d['name']
     pp = d['path']
     d['files'] = []
     d['size'] = 0
@@ -78,15 +83,27 @@ for d in ds:
         files, size = listxrd(dd)
         d['size'] += size
         for ff in files:
+            if not ff.endswith(".root"): continue
             ff = ff[len(pp)+1:]
             d['files'].append(ff)
     d['files'].sort()
 
 outDir = os.environ["CMSSW_BASE"]+"/src/CATTools/CatAnalyzer/data"
 if not os.path.exists(outDir): os.makedirs(outDir)
-import json
-f = open("%s/samples.json" % outDir, "w")
-print "Saving results to %s/samples.json" % outDir
-print>>f, json.dumps(ds)
+
+if saveJSON:
+    import json
+    f = open("%s/samples.json" % outDir, "w")
+    print "Saving results to %s/samples.json" % outDir
+    print>>f, json.dumps(ds)
+else:
+    for d in ds:
+        f = open("%s/samples_%s.txt" % (outDir, d['name']), "w")
+        for key in d:
+            if key == "files": continue
+            print>>f, "#", key, "=", d[key]
+        for ff in d['files']:
+            print>>f, os.path.join(d['path'], ff)
+        f.close()
 
 #print ds
