@@ -123,42 +123,45 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
 #######################################################################    
 # getting jec from file for jec on the fly from db file
 # currently only for mc
+    era = "Summer15_50nsV4"
     if runOnMC:
-        #era = "PHYS14_V4_MC"
-        era = "Summer15_50nsV2_MC"
-        from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
-        process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
-            connect = cms.string('sqlite_fip:CATTools/CatProducer/data/'+era+'.db'),
-            toGet = cms.VPSet(
-                cms.PSet(
-                    record = cms.string("JetCorrectionsRecord"),
-                    tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PF"),
-                    label= cms.untracked.string("AK4PF")),
-                cms.PSet(
-                    record = cms.string("JetCorrectionsRecord"),
-                    tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PFchs"),
-                    label= cms.untracked.string("AK4PFchs")),
-                cms.PSet(
-                    record = cms.string("JetCorrectionsRecord"),
-                    tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PUPPI"),
-                    label= cms.untracked.string("AK4PUPPI")),
-            ))
-        process.es_prefer_jec = cms.ESPrefer("PoolDBESSource","jec")
-        print "JEC based on", process.jec.connect
+        era = era+"_MC"
+    else:
+        era = era+"_DATA"
+        
+    from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
+    process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
+        connect = cms.string('sqlite_fip:CATTools/CatProducer/data/'+era+'.db'),
+        toGet = cms.VPSet(
+            cms.PSet(
+                record = cms.string("JetCorrectionsRecord"),
+                tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PF"),
+                label= cms.untracked.string("AK4PF")),
+            cms.PSet(
+                record = cms.string("JetCorrectionsRecord"),
+                tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PFchs"),
+                label= cms.untracked.string("AK4PFchs")),
+            #cms.PSet(
+            #    record = cms.string("JetCorrectionsRecord"),
+            #    tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PUPPI"),
+            #    label= cms.untracked.string("AK4PUPPI")),
+    ))
+    process.es_prefer_jec = cms.ESPrefer("PoolDBESSource","jec")
+    print "JEC based on", process.jec.connect
 ## applying new jec on the fly
-        if useMiniAOD:
-            process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
-            catJetsSource = "patJetsUpdated"
-            ### updating puppi jet jec
-            process.patJetPuppiCorrFactorsUpdated = process.patJetCorrFactorsUpdated.clone(
-                payload = cms.string('AK4PUPPI'),
-                src = cms.InputTag(catJetsPuppiSource),
-            )
-            process.patJetsPuppiUpdated = process.patJetsUpdated.clone(
-                jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetPuppiCorrFactorsUpdated")),
-                jetSource = cms.InputTag(catJetsPuppiSource),
-            )
-            catJetsPuppiSource = "patJetsPuppiUpdated"
+    if useMiniAOD:
+        process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
+        catJetsSource = "patJetsUpdated"
+        ### updating puppi jet jec
+        #process.patJetPuppiCorrFactorsUpdated = process.patJetCorrFactorsUpdated.clone(
+        #payload = cms.string('AK4PUPPI'),
+        #    src = cms.InputTag(catJetsPuppiSource),
+        #)
+        #process.patJetsPuppiUpdated = process.patJetsUpdated.clone(
+        #    jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetPuppiCorrFactorsUpdated")),
+        #    jetSource = cms.InputTag(catJetsPuppiSource),
+        #)
+        #catJetsPuppiSource = "patJetsPuppiUpdated"
 
 #######################################################################
 ## for egamma pid temp 
