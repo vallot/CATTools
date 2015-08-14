@@ -14,8 +14,8 @@ git cms-addpkg RecoMET/METPUSubtraction
 git cms-merge-topic jhgoh:PseudoTop
 git cms-merge-topic nhanvtran:puppi-etadep-746p2-v8
 git cms-merge-topic cms-met:METCorUnc74X
-git clone git@github.com:cms-jet/JetToolbox.git JMEAnalysis/JetToolbox -b jetToolbox_74X
-git clone git@github.com:rfriese/RecoMET-METPUSubtraction RecoMET/METPUSubtraction/data -b 74X-13TeV-Summer15-July2015
+git clone https://github.com/cms-jet/JetToolbox.git JMEAnalysis/JetToolbox -b jetToolbox_74X
+git clone https://github.com/rfriese/RecoMET-METPUSubtraction.git RecoMET/METPUSubtraction/data -b 74X-13TeV-Summer15-July2015
 
 git clone https://github.com/vallot/CATTools.git -n
 cd CATTools
