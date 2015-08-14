@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-saveJSON = False
-
 import sys, os
 
 import subprocess
@@ -75,7 +73,6 @@ def listxrd(path):
     return l, size
 
 for d in ds:
-    print d['name']
     pp = d['path']
     d['files'] = []
     d['size'] = 0
@@ -91,19 +88,18 @@ for d in ds:
 outDir = os.environ["CMSSW_BASE"]+"/src/CATTools/CatAnalyzer/data"
 if not os.path.exists(outDir): os.makedirs(outDir)
 
-if saveJSON:
-    import json
-    f = open("%s/samples.json" % outDir, "w")
-    print "Saving results to %s/samples.json" % outDir
-    print>>f, json.dumps(ds)
-else:
-    for d in ds:
-        f = open("%s/samples_%s.txt" % (outDir, d['name']), "w")
-        for key in d:
-            if key == "files": continue
-            print>>f, "#", key, "=", d[key]
-        for ff in d['files']:
-            print>>f, os.path.join(d['path'], ff)
-        f.close()
+import json
+f = open("%s/dataset.json" % outDir, "w")
+print "Saving dataset info to %s/dataset.json" % outDir
+print>>f, json.dumps(ds)
+f.close()
+for d in ds:
+    print "Saving a dataset info to %s/dataset_%s.txt" % (outDir, d['name'])
+    f = open("%s/dataset_%s.txt" % (outDir, d['name']), "w")
+    for key in d:
+        if key == "files": continue
+        print>>f, "#", key, "=", d[key]
+    for ff in d['files']:
+        print>>f, os.path.join(d['path'], ff)
+    f.close()
 
-#print ds
