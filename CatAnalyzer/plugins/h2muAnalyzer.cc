@@ -21,6 +21,8 @@
 #include "TFile.h"
 #include "TLorentzVector.h"
 
+#define _USE_MATH_DEFINES
+#include <cmath>
 using namespace std;
 
 class h2muAnalyzer : public edm::EDAnalyzer {
@@ -61,6 +63,8 @@ private:
   edm::EDGetTokenT<reco::GenParticleCollection> mcLabel_;
 
   TTree * ttree_;
+  TTree * t2;
+
   int b_njet, b_step, b_channel;
   float b_MET;
   float b_lep1_pt, b_lep1_eta, b_lep1_phi;
@@ -70,7 +74,10 @@ private:
   int b_jetcat_GC;
 
   bool b_isMedium, b_isTight;
-  
+  float b_gen_lep_pt, b_gen_lep_eta, b_gen_lep_phi;
+  float b_reco_lep_pt, b_reco_lep_eta, b_reco_lep_phi;
+  float b_resolution;  
+
   bool runOnMC_;
 };
 //
@@ -87,6 +94,7 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
   
   edm::Service<TFileService> fs;
   ttree_ = fs->make<TTree>("tree", "tree");
+  t2 = fs->make<TTree>("tree2","tree2");
   ttree_->Branch("njet", &b_njet, "njet/I");
   ttree_->Branch("MET", &b_MET, "MET/F");
   ttree_->Branch("channel", &b_channel, "channel/I");
@@ -115,6 +123,15 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
   //Geometrical Categorization
   //only included 0jet and 1jet
   ttree_->Branch("jetcat_GC", &b_jetcat_GC, "jetcat_GC/I");
+
+  //tree2. we should use this for efficiency of recomuon per genmuon.
+  t2 ->Branch("gen_lep_pt", &b_gen_lep_pt, "gen_lep_pt/F");
+  t2 ->Branch("gen_lep_eta", &b_gen_lep_eta, "gen_lep_eta/F");
+  t2 ->Branch("gen_lep_phi", &b_gen_lep_phi, "gen_lep_phi/F");
+  t2 ->Branch("reco_lep_pt", &b_reco_lep_pt, "reco_lep_pt/F");
+  t2 ->Branch("reco_lep_eta", &b_reco_lep_eta, "reco_lep_eta/F");
+  t2 ->Branch("reco_lep_phi", &b_reco_lep_phi, "reco_lep_phi/F");
+  t2 ->Branch("resolution", &b_resolution, "resolution/F");
 }
 h2muAnalyzer::~h2muAnalyzer()
 {
@@ -150,20 +167,6 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 
   edm::Handle<reco::GenParticleCollection> genParticles;
 
-  if (runOnMC_){
-    iEvent.getByToken(mcLabel_,genParticles);
-    // for (const reco::GenParticle & g : *genParticles){
-    //   const reco::Candidate* wPlus=0;
-    //   if (g.pdgId() == 23){
-    // 	for (unsigned int i = 0; i < g.numberOfDaughters(); ++i){
-    // 	  if (g.daughter(i)->pdgId()  == 24){
-    // 	    wPlus = g.daughter(i);
-    // 	    break;
-    // 	  }
-    // 	}
-    //   }
-    // }    
-  }
 
   b_njet = -1; b_step = 0; b_channel = -1;
   b_MET = -1;
@@ -174,11 +177,49 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 
   b_jetcat_f_hier = -9;
   b_jetcat_GC = -9;  
+
+
   vector<cat::Muon> selectedMuons = selectMuons( muons.product() );
 
   if (selectedMuons.size() < 2){
     ttree_->Fill();
     return;
+  }
+
+  if (runOnMC_){
+    iEvent.getByToken(mcLabel_,genParticles);
+    for (const reco::GenParticle & g : *genParticles){
+      b_gen_lep_pt = -9; b_gen_lep_eta = -9; b_gen_lep_phi = -9;
+      b_reco_lep_pt = -9; b_reco_lep_eta = -9; b_reco_lep_phi = -9;
+      b_resolution = -9;  
+      bool isfromZboson = false;
+      const reco::Candidate* wPlus=0;
+      if (abs(g.pdgId()) == 13 && g.pt()<=20.){
+     	  for (unsigned int i = 0; i < g.numberOfMothers(); ++i){
+     	    if (g.mother(i)->pdgId()  == 23){ //In case of pdgId() = 23, indicate Z-boson. if it's 25, that become higgs.
+     	      isfromZboson = true;
+     	    }
+      	}
+      if (!isfromZboson) {
+        t2->Fill();
+        continue;
+      }
+      b_gen_lep_pt = g.pt();
+      b_gen_lep_eta = g.eta();
+      b_gen_lep_phi = g.phi();
+      
+      for (auto m : *selectedMuons){
+        dr = deltaR(g.eta(), g.phi(), m.eta(), m.phi());
+        if (dr < 0.1){
+          b_reco_lep_pt = g.pt();
+          b_reco_lep_eta = g.eta();
+          b_reco_lep_phi = g.phi();
+          b_resolution = (m.pt()-g.pt())/g.pt();
+          break;
+        }
+      t2->Fill();
+      }
+    }    
   }
 
   b_lep1_pt = selectedMuons[0].pt();
@@ -189,7 +230,7 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   b_lep2_eta = selectedMuons[1].eta();
   b_lep2_phi = selectedMuons[1].phi();
 
-  b_isMedium = 0;
+  b_isMedium = (selectedMuons[0].isMediumMuon() && selectedMuons[1].isMediumMuon());
   b_isTight = (selectedMuons[0].isTightMuon() && selectedMuons[1].isTightMuon());
   
 
@@ -354,6 +395,19 @@ int h2muAnalyzer::JetCat_GC(float mu1_eta, float mu2_eta)
   return GC;
 }
 
+float h2muAnalyzer::deltaR(float e1,float p1,float e2,float p2)
+{
+  float de = e1-e2;
+  float dp = p1-p2;
+  if (dp > M_PI){
+    dp -= 2 * M_PI;
+  }
+  if (dp < -M_PI){
+    dp += 2 * M_PI;
+  }
+  float result = sqrt(de*de + dp*dp);
+  return result;
+}
 // ------------ method called once each job just before starting event loop  ------------
 void 
 h2muAnalyzer::beginJob()
