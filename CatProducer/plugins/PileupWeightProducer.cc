@@ -1,5 +1,5 @@
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/Framework/interface/Event.h"
@@ -20,13 +20,13 @@
 
 using namespace std;
 
-class PileupWeightProducer : public edm::EDProducer
+class PileupWeightProducer : public edm::stream::EDProducer<>
 {
 public:
   PileupWeightProducer(const edm::ParameterSet& pset);
   ~PileupWeightProducer() {};
 
-  void produce(edm::Event& event, const edm::EventSetup& eventSetup);
+  void produce(edm::Event& event, const edm::EventSetup& eventSetup) override;
 
 private:
   edm::LumiReWeighting lumiWeights_, lumiWeightsUp_, lumiWeightsDn_;

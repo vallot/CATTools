@@ -1,5 +1,5 @@
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
@@ -22,11 +22,11 @@ namespace cat {
 
 bool GreaterByPtPtr(reco::CandidatePtr a, reco::CandidatePtr b) { return a->pt() > b->pt(); }
 
-class TTbarDileptonProducer : public edm::EDProducer 
+class TTbarDileptonProducer : public edm::stream::EDProducer<>
 {
 public:
   TTbarDileptonProducer(const edm::ParameterSet& pset);
-  virtual ~TTbarDileptonProducer();
+  virtual ~TTbarDileptonProducer() {};
   void produce(edm::Event & event, const edm::EventSetup&) override;
 
 private:
@@ -47,7 +47,7 @@ private:
   enum CHANNEL {
     CH_NONE=0, CH_MUMU, CH_ELEL, CH_MUEL
   };
-  KinematicSolver* solver_;
+  std::unique_ptr<KinematicSolver> solver_;
 
 };
 
@@ -64,11 +64,11 @@ TTbarDileptonProducer::TTbarDileptonProducer(const edm::ParameterSet& pset)
 
   auto solverName = pset.getParameter<std::string>("solver");
   std::transform(solverName.begin(), solverName.end(), solverName.begin(), ::toupper);
-  if      ( solverName == "CMSKIN" ) solver_ = new CMSKinSolver();
-  else if ( solverName == "MT2"    ) solver_ = new MT2Solver();
-  else if ( solverName == "MAOS"   ) solver_ = new MAOSSolver();
-  else if ( solverName == "NUWGT"  ) solver_ = new NuWeightSolver();
-  else solver_ = new TTDileptonSolver(); // A dummy solver
+  if      ( solverName == "CMSKIN" ) solver_.reset(new CMSKinSolver());
+  else if ( solverName == "MT2"    ) solver_.reset(new MT2Solver());
+  else if ( solverName == "MAOS"   ) solver_.reset(new MAOSSolver());
+  else if ( solverName == "NUWGT"  ) solver_.reset(new NuWeightSolver());
+  else solver_.reset(new TTDileptonSolver()); // A dummy solver
 
   produces<CRCandColl>();
   produces<int>("channel");
@@ -82,12 +82,7 @@ TTbarDileptonProducer::TTbarDileptonProducer(const edm::ParameterSet& pset)
   //produces<edm::RefVector<cat::Jet> >("addJets");
 }
 
-TTbarDileptonProducer::~TTbarDileptonProducer()
-{
-  if ( solver_ ) delete solver_;
-}
-
-void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&) 
+void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
 {
   std::auto_ptr<CRCandColl> cands(new CRCandColl);
   auto candsRefProd = event.getRefBeforePut<CRCandColl>();

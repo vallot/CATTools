@@ -1,5 +1,5 @@
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
@@ -16,12 +16,12 @@ using namespace reco;
 
 namespace cat {
 
-  class CATVertexProducer : public edm::EDProducer {
+  class CATVertexProducer : public edm::stream::EDProducer<> {
   public:
     explicit CATVertexProducer(const edm::ParameterSet & iConfig);
     virtual ~CATVertexProducer() { }
 
-    virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
+    void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
 
   private:
     reco::VertexCollection *out_;

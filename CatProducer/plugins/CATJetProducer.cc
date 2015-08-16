@@ -1,5 +1,5 @@
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
@@ -24,12 +24,12 @@ using namespace std;
 
 namespace cat {
 
-  class CATJetProducer : public edm::EDProducer {
+  class CATJetProducer : public edm::stream::EDProducer<> {
   public:
     explicit CATJetProducer(const edm::ParameterSet & iConfig);
     virtual ~CATJetProducer() { }
 
-    virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
+    void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
 
     bool checkPFJetId(const pat::Jet & jet);
     bool checkPFJetIdTight(const pat::Jet & jet);

@@ -56,11 +56,10 @@ class CMSKinSolver : public KinematicSolver
 {
 public:
   CMSKinSolver();
-  ~CMSKinSolver();
   void solve(const LorentzVector input[]) override;
 
 protected:
-  TtFullLepKinSolver* solver_;
+  std::unique_ptr<TtFullLepKinSolver> solver_;
 
 };
 
