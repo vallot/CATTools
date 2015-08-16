@@ -51,6 +51,7 @@ private:
   int preSelect(vector<cat::Jet> seljets, float MET);
   int JetCategory(vector<cat::Jet> seljets, float MET, float ll_pt);
   int JetCat_GC(float mu1_eta, float mu2_eta);
+  float deltaR(float e1, float p1, float e2, float p2);
 
   TLorentzVector leafToTLorentzVector(reco::LeafCandidate & leaf)
   {return TLorentzVector(leaf.px(), leaf.py(),leaf.pz(),leaf.energy());}
@@ -193,13 +194,13 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
       b_reco_lep_pt = -9; b_reco_lep_eta = -9; b_reco_lep_phi = -9;
       b_resolution = -9;  
       bool isfromZboson = false;
-      const reco::Candidate* wPlus=0;
       if (abs(g.pdgId()) == 13 && g.pt()<=20.){
      	  for (unsigned int i = 0; i < g.numberOfMothers(); ++i){
      	    if (g.mother(i)->pdgId()  == 23){ //In case of pdgId() = 23, indicate Z-boson. if it's 25, that become higgs.
      	      isfromZboson = true;
      	    }
       	}
+      }
       if (!isfromZboson) {
         t2->Fill();
         continue;
@@ -208,8 +209,8 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
       b_gen_lep_eta = g.eta();
       b_gen_lep_phi = g.phi();
       
-      for (auto m : *selectedMuons){
-        dr = deltaR(g.eta(), g.phi(), m.eta(), m.phi());
+      for (auto m : selectedMuons){
+        float dr = deltaR(g.eta(), g.phi(), m.eta(), m.phi());
         if (dr < 0.1){
           b_reco_lep_pt = g.pt();
           b_reco_lep_eta = g.eta();
