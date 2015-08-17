@@ -18,11 +18,6 @@ process.partonTop = cms.EDProducer("PartonTopProducer",
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 
-"""
-for i in xrange(1,101):
-#    process.source.fileNames.append('file:/cms/data/xrd/store/user/jlee/TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/cat74v2_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v1/150713_164609/0000/catTuple_%d.root' % i)
-	process.source.fileNames.append('file:/cms/scratch/CAT/TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/v7-3-0_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v1/150720_065809/0000/catTuple_%d.root'%i)
-"""
 #process.source.fileNames.append('file:/cms/scratch/CAT/MuonEG/v7-3-0_Run2015B-PromptReco-v1/150720_060935/0000/catTuple_1.root')
 process.source.fileNames.append('/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-3-4_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v4/150810_215031/0000/catTuple_101.root')
 #process.source.fileNames.append('file:/afs/cern.ch/user/j/jlee/test/cat74/src/CATTools/CatProducer/prod/catTuple.root')
