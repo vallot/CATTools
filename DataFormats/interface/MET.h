@@ -3,9 +3,7 @@
 
 #include "DataFormats/Candidate/interface/CandidateFwd.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
-#include "DataFormats/PatCandidates/interface/Particle.h"
-#include "DataFormats/Math/interface/LorentzVector.h"
-#include "TLorentzVector.h"
+#include "CATTools/DataFormats/interface/Particle.h"
 
 // Define typedefs for convenience
 namespace cat {
@@ -17,21 +15,15 @@ namespace cat {
 
 namespace cat {
 
-  class MET : public reco::LeafCandidate {
+  class MET : public Particle {
   public:
-    typedef math::XYZTLorentzVector LorentzVector;
     
     MET() {};
-    MET(float px, float py, float sumEt) { set(px, py, sumEt); };
+    MET(const reco::LeafCandidate & aMet);
+    MET(const reco::LeafCandidate & aMet, float sumEt);
     virtual ~MET() {};
 
-    void set(float px, float py, float sumEt) {
-      setP4(LorentzVector(px, py, 0, std::hypot(px, py)));
-      sumEt_ = sumEt;
-    }
-
     float sumEt() const { return sumEt_; }
-    TLorentzVector tlv() const {return TLorentzVector(px(), py(), 0.0, pt());}
 
   private:
     float sumEt_;
