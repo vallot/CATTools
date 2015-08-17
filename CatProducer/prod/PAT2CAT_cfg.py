@@ -39,11 +39,15 @@ catTool(process, runOnMC, doSecVertex, useMiniAOD)
 from CATTools.CatProducer.catEventContent_cff import *
 process.out.outputCommands = catEventContent
 if runOnMC:
+    from CATTools.CatProducer.catGenHFHadronMatching_cff import *
+    genHFTool(process, useMiniAOD)
+    process.load("TopQuarkAnalysis.TopEventProducers.producers.pseudoTop_cfi")
     process.out.outputCommands.extend(catEventContentMC)
     if not useMiniAOD:
         process.out.outputCommands.extend(catEventContentAODMC)
 if doSecVertex:
     process.out.outputCommands.extend(catEventContentSecVertexs)
+
 
 ####################################################################
 #### cmsRun options
@@ -54,7 +58,9 @@ process.maxEvents.input = options.maxEvents
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
        # at CERN
-       '/store/caf/user/tjkim/mc/Phys14DR/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU4bx50_PHYS14_25_V1-v1/00000/069C95E6-4E7F-E411-AA3F-002618943869.root'
+       '/store/relval/CMSSW_7_4_6_patch6/RelValTTbar_13/MINIAODSIM/MCRUN2_74_V9-v1/00000/2403409D-1225-E511-B64E-0025905A6132.root'
+       # AODSIM
+       #'/store/relval/CMSSW_7_4_6_patch6/RelValTTbar_13/GEN-SIM-RECO/MCRUN2_74_V9-v1/00000/54F6E09C-1225-E511-842B-0025905A612E.root'
        # to be added at KISTI
        # '',
     )
@@ -71,4 +77,4 @@ print "process.GlobalTag.globaltag =",process.GlobalTag.globaltag
 process.MessageLogger.cerr.threshold = ''
 if options.maxEvents < 0:
     process.MessageLogger.cerr.FwkReport.reportEvery = 1000
-process.options.wantSummary = True 
+process.options.wantSummary = False

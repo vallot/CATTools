@@ -26,8 +26,12 @@ namespace cat {
     Jet(const reco::LeafCandidate & aJet); 
     virtual ~Jet();
 
-    bool LooseId() const { return LooseId_; }
-    bool TightId() const { return TightId_; }
+    bool LooseId() const { return looseJetID_; }// temp for backward comp
+    bool TightId() const { return tightJetID_; }// temp for backward comp
+    bool looseJetID() const { return looseJetID_; }
+    bool tightJetID() const { return tightJetID_; }
+    bool tightLepVetoJetID() const { return tightLepVetoJetID_; }
+    
     float pileupJetId() const { return pileupJetId_; }
 
     /// \return secondary vertex b-tagging information
@@ -43,8 +47,10 @@ namespace cat {
     // pdgId of the matched MC parton from hard scattering (i.e. the closest quark or gluon of status == 3)
     int partonPdgId() const{ return partonPdgId_;}
 
-    void setLooseId(bool id) { LooseId_ = id; }
-    void setTightId(bool id) { TightId_ = id; }
+    void setLooseJetID(bool id) { looseJetID_ = id; }
+    void setTightJetID(bool id) { tightJetID_ = id; }
+    void setTightLepVetoJetID(bool id) { tightLepVetoJetID_ = id; }
+    
     void setPileupJetId(float f) { pileupJetId_ = f;}
 
     void setVtxMass(float f) { vtxMass_ = f;}
@@ -85,8 +91,10 @@ namespace cat {
 
     edm::FwdRef<reco::GenJetCollection>  genJetFwdRef_;
 
-    bool LooseId_;
-    bool TightId_;
+    bool looseJetID_;
+    bool tightJetID_;
+    bool tightLepVetoJetID_;
+    
     float pileupJetId_;
 
     /// b tagging discriminators

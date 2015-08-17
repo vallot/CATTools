@@ -7,3 +7,5 @@ from CATTools.CatProducer.jetProducer_cfi import *
 from CATTools.CatProducer.metProducer_cfi import *
 from CATTools.CatProducer.tauProducer_cfi import *
 from CATTools.CatProducer.secondaryVertexProducer_cfi import *
+from CATTools.CatProducer.vertexProducer_cfi import *
+from CATTools.CatProducer.triggerProducer_cfi import *

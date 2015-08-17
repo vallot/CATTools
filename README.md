@@ -5,14 +5,32 @@ for cms analysis
 
 Test file : catTuple.root can be found in /afs/cern.ch/user/j/jlee/public/catTuple.root
 ```bash
-scram p -n cat CMSSW CMSSW_7_4_0_patch1
-cd cat/src
+scram p -n cat74 CMSSW CMSSW_7_4_7_patch2
+cd cat74/src
 cmsenv
-git-cms-addpkg FWCore/Version
-git clone git@github.com:vallot/CATTools.git -b cat75x
+git cms-addpkg TopQuarkAnalysis/TopEventProducers
+git cms-addpkg CommonTools/PileupAlgos
+git cms-addpkg RecoMET/METPUSubtraction
+git cms-merge-topic jhgoh:PseudoTop
+git cms-merge-topic nhanvtran:puppi-etadep-746p2-v8
+git cms-merge-topic cms-met:METCorUnc74X
+git clone git@github.com:cms-jet/JetToolbox.git JMEAnalysis/JetToolbox -b jetToolbox_74X
+git clone git@github.com:rfriese/RecoMET-METPUSubtraction RecoMET/METPUSubtraction/data -b 74X-13TeV-Summer15-July2015
+
+git clone https://github.com/vallot/CATTools.git -n
+cd CATTools
+git co -b v733 v7-3-3
+cd ..
+
+cd CATTools
+git submodule init
+git submodule update
+cd ..
+
 scram setup lhapdf
 scram b -j 8
-cd $SRT_CMSSW_BASE_SCRAMRTDEL/src/CATTools/CatProducer/prod
+
+cd CATTools/CatProducer/prod
 
 cmsRun PAT2CAT_cfg.py 
 
