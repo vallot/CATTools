@@ -53,7 +53,7 @@ filelist2 = []
 for i in filelist1:
     filelist2.append(i.split(".")[0])
 filenames = [0,0,0,0,0,0,0]
-date = "20150817"
+date = "20150820"
 for i in filelist2:#replace 'filelist2' replace to 'filelist1'
     if (('DYJets' in i) and ( date in i)):filenames[0]=i
     if (('TTJets' in i) and ( date in i)):filenames[1]=i
@@ -104,7 +104,7 @@ jetcat_GC = ["BB","BO","BE","OO","OE","EE"]
 jetcat_GC_cut = [BB,BO,BE,OO,OE,EE]
 
 ##### initial cut
-init_cut = ["(step == 2 && isTight)","(step == 2 && isMedium)"]
+init_cut = ["(lep_isTight)","(lep_isMedium)"]
 init_config = ["-Tight","-Medium"]
 
 ##### variables
@@ -126,7 +126,7 @@ h_eff = []
 for i in range(3):
     h_eff_tmp = []
     for j in range(len(filenames)):
-        h_eff_tmp.append(ini_hist_maker(name_l[i], title_l[i], bin_set_l[i], x_name_l[i], y_name_l[i]))
+        h_eff_tmp.append(ini_hist_maker(name_l[i]+"%d"%j, title_l[i], bin_set_l[i], x_name_l[i], y_name_l[i]))
     h_eff.append(h_eff_tmp)
 #####
 
@@ -164,7 +164,7 @@ for init_i, init_loop in enumerate(init_cut):
             histo.SetLineColor(j)
             histo.Scale(scale)
             leg1.AddEntry(h_eff[0][j-2], samplename,"f")
-            TypeOfMuons(init_i, pt_i, h_gen_t, h_reco_t, h_gen_m, h_reco_m, histo)
+            TypeOfMuons(pt_i, init_i, h_gen_t, h_reco_t, h_gen_m, h_reco_m, histo)
             print histo
             tt.Close()
     if init_i == 0:
@@ -179,13 +179,11 @@ for init_i, init_loop in enumerate(init_cut):
     ####
     h_eff[0][0].SetStats(0)
     h_eff[0][0].Divide(h_reco[0],h_gen[0], 1.0, 1.0, "B")
-    h_eff[0][0].GetYaxis().SetRangeUser(0.3,1.1)
     h_eff[0][0].Draw("E1")
     for i in range(len(mcfilelist)-1):
         h_eff[0][i+1].SetStats(0)
         h_eff[0][i+1].Divide(h_reco[i+1],h_gen[i+1], 1.0, 1.0, "B")
         h_eff[0][i+1].SetLineColor(st_color[i])
-        h_eff[0][i+1].GetYaxis().SetRangeUser(0.3,1.1)
         h_eff[0][i+1].Draw("E1same")
     leg1.Draw("same")
 
@@ -197,6 +195,7 @@ del h_gen_t[:]
 del h_reco_t[:]
 del h_gen_m[:]
 del h_reco_m[:]
+del h_gen, h_reco
 
 ## eta-eff
 for init_i, init_loop in enumerate(init_cut):
@@ -226,7 +225,7 @@ for init_i, init_loop in enumerate(init_cut):
             histo.SetLineColor(j)
             histo.Scale(scale)
             leg1.AddEntry(h_eff[1][j-2], samplename,"f")
-            TypeOfMuons(init_i, pt_i, h_gen_t, h_reco_t, h_gen_m, h_reco_m, histo)
+            TypeOfMuons(eta_i, init_i, h_gen_t, h_reco_t, h_gen_m, h_reco_m, histo)
             print histo
             tt.Close()
     if init_i == 0:
@@ -280,12 +279,14 @@ for hist_i,i in enumerate(mcfilelist):
             scale = mcfilelist[i]*datalumi / temphist.GetEntries()
             print mcfilelist[i]
             histo = copy.deepcopy(hist_maker(samplename, title, bin_set_l[2], x_name_l[2], y_name_l[2], tree, rsl_loop, tcut))
-            histo.SetLineColor(init_i+1)
+            histo.SetLineColor(init_i+2)
             histo.Scale(scale)
             leg.AddEntry(h_eff[2][hist_i], samplename,"f")
             h_eff[2][hist_i].Add(histo)
             print histo
             tt.Close()
+        h_eff[2][hist_i].SetStats(0)
+        h_eff[2][hist_i].Sumw2(False)
         h_eff[2][hist_i].Draw()
         leg.Draw("same")
         canvas.SaveAs(currentdir+saveddir+"/"+title+"_"+i.strip().split("_")[0]+".root")
