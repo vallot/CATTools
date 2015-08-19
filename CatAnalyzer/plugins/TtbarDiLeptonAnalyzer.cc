@@ -199,6 +199,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     int nMuon = 0;
     int nElectron = 0;
     gen_modes.clear();
+	pseudoTop_modes.clear();
 
     iEvent.getByToken(mcLabel_,genParticles); 
     for (const reco::GenParticle & g : *genParticles){
@@ -263,7 +264,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       b_partonMode2 = (*partonTop_modes)[1]; 
     }
     //cout << "parton_channel   "<< *partonTop_channel<<endl;
-    //cout << "parton_mode      "<< (*partonTop_modes)[0] << " & "<< (*partonTop_modes)[1] <<endl;
+    cout << "parton_mode       "<< (*partonTop_modes)[0] << " & "<< (*partonTop_modes)[1] <<endl;
 
     edm::Handle<vector<reco::GenJet>      > pseudoTop_jets;
     edm::Handle<vector<reco::GenJet>      > pseudoTop_leptons;
@@ -302,13 +303,47 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 		pseudoTop_modes.push_back(mode);
     }
 
-	/*
     if ( pseudoTop_modes.size() < 2 ){
 		for (const reco::GenParticle & g : *pseudoTop_neutrinos){
 		  if (fabs(g.pdgId()) == 16){
 			  pseudoTop_modes.push_back(4);
 		  }
 		}
+    }
+
+	/*
+    for (const reco::GenParticle & g : *pseudoTop){
+      const reco::Candidate* w=0;
+      const reco::Candidate* wLast=0;    
+      const reco::Candidate* lep=0;
+      if (fabs(g.pdgId()) == 6){ 
+        for (unsigned int i = 0; i < g.numberOfDaughters(); ++i){
+          if (fabs(g.daughter(i)->pdgId())  == 24){ w = g.daughter(i); break; }
+        }
+      }
+      if (w){
+        wLast=getLast(w);
+        for (unsigned int i = 0; i < wLast->numberOfDaughters(); ++i){
+          if ((fabs(wLast->daughter(i)->pdgId()) == 11) || (fabs(wLast->daughter(i)->pdgId()) == 13) || (fabs(wLast->daughter(i)->pdgId()) == 15)){
+            lep = wLast->daughter(i);
+            break;
+          }
+        }
+      }
+
+      if (lep){
+		int mode = 1;
+		if ( fabs(lep->pdgId()) == 13){ mode = 2; }
+		else if ( fabs(lep->pdgId()) == 11){ mode = 3; }
+		else if ( fabs(lep->pdgId()) == 15){
+		  for (unsigned int i = 0; i < lep->numberOfDaughters(); ++i){
+			if ( fabs(lep->daughter(i)->pdgId()) == 13 ) { mode = 5; break;}
+			else if ( fabs(lep->daughter(i)->pdgId()) == 11 ) { mode = 6; break;}
+			mode = 4;
+		  }
+		}
+		pseudoTop_modes.push_back(mode);
+      }
     }
 	*/
 
