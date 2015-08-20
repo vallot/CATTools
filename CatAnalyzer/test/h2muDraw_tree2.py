@@ -240,13 +240,13 @@ for init_i, init_loop in enumerate(init_cut):
     ####
     h_eff[1][0].SetStats(0)
     h_eff[1][0].Divide(h_reco[0],h_gen[0], 1.0, 1.0, "B")
-    h_eff[1][0].GetYaxis().SetRangeUser(0.3,1.1)
+    #h_eff[1][0].GetYaxis().SetRangeUser(0.3,1.1)
     h_eff[1][0].Draw("E1")
     for i in range(len(mcfilelist)-1):
         h_eff[1][i+1].SetStats(0)
         h_eff[1][i+1].Divide(h_reco[i+1],h_gen[i+1], 1.0, 1.0, "B")
         h_eff[1][i+1].SetLineColor(st_color[i])
-        h_eff[1][i+1].GetYaxis().SetRangeUser(0.3,1.1)
+        #h_eff[1][i+1].GetYaxis().SetRangeUser(0.3,1.1)
         h_eff[1][i+1].Draw("E1same")
     leg1.Draw("same")
 
@@ -256,16 +256,18 @@ for init_i, init_loop in enumerate(init_cut):
     del leg1
 
 ## resoultion
-#j=1
+
 for hist_i,i in enumerate(mcfilelist):
     for rsl_i, rsl_loop in enumerate(plotvar_rsl):
         title = rsl_loop
-        canvas = ROOT.TCanvas(title,title)
+        h_rsl = [] 
         leg = ROOT.TLegend(0.7,0.7,0.9,0.9)
         leg1 = ROOT.TLegend(0.5,0.35,0.7,0.55)
         logscale = False
+        j=1
         for init_i, init_loop in enumerate(init_cut):
             tcut=init_loop
+            j=j+1
             rootfilename = i+".root"
             print rootfilename
             samplename = i.strip().split("_")[0]+init_config[init_i]
@@ -279,15 +281,21 @@ for hist_i,i in enumerate(mcfilelist):
             scale = mcfilelist[i]*datalumi / temphist.GetEntries()
             print mcfilelist[i]
             histo = copy.deepcopy(hist_maker(samplename, title, bin_set_l[2], x_name_l[2], y_name_l[2], tree, rsl_loop, tcut))
-            histo.SetLineColor(init_i+2)
+            histo.SetLineColor(j)
             histo.Scale(scale)
-            leg.AddEntry(h_eff[2][hist_i], samplename,"f")
-            h_eff[2][hist_i].Add(histo)
+            h_rsl.append(histo)
+            leg.AddEntry(histo, samplename,"f")
             print histo
             tt.Close()
-        h_eff[2][hist_i].SetStats(0)
+        #h_eff[2][hist_i].SetLabelOffset(0.5,"X")
+        canvas = ROOT.TCanvas(title,title)
+        h_eff[2][hist_i].Add(h_rsl[0])
+        h_eff[2][hist_i].SetLineColor(2)
         h_eff[2][hist_i].Sumw2(False)
+        h_eff[2][hist_i].SetStats(0)
         h_eff[2][hist_i].Draw()
+        h_rsl[1].Sumw2(False)
+        h_rsl[1].Draw("same")
         leg.Draw("same")
         canvas.SaveAs(currentdir+saveddir+"/"+title+"_"+i.strip().split("_")[0]+".root")
         canvas.SaveAs(currentdir+saveddir+"/"+title+"_"+i.strip().split("_")[0]+".eps")

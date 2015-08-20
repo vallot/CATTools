@@ -73,11 +73,12 @@ private:
   float b_ll_pt, b_ll_eta, b_ll_phi, b_ll_m;
   int b_jetcat_f_hier;  
   int b_jetcat_GC;
-
   bool b_isMedium, b_isTight;
+
   float b_gen_lep_pt, b_gen_lep_eta, b_gen_lep_phi;
   float b_reco_lep_pt, b_reco_lep_eta, b_reco_lep_phi;
   float b_resolution;  
+  bool b_lep_isMedium, b_lep_isTight;
 
   bool runOnMC_;
 };
@@ -133,6 +134,9 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
   t2 ->Branch("reco_lep_eta", &b_reco_lep_eta, "reco_lep_eta/F");
   t2 ->Branch("reco_lep_phi", &b_reco_lep_phi, "reco_lep_phi/F");
   t2 ->Branch("resolution", &b_resolution, "resolution/F");
+  t2 ->Branch("lep_isMedium", &b_lep_isMedium, "lep_isMedium/B");
+  t2 ->Branch("lep_isTight", &b_lep_isTight, "lep_isTight/B");
+ 
 }
 h2muAnalyzer::~h2muAnalyzer()
 {
@@ -179,28 +183,27 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   b_jetcat_f_hier = -9;
   b_jetcat_GC = -9;  
 
+  b_gen_lep_pt = -9; b_gen_lep_eta = -9; b_gen_lep_phi = -9;
+  b_reco_lep_pt = -9; b_reco_lep_eta = -9; b_reco_lep_phi = -9;
+  b_resolution = -9;  
+  b_lep_isMedium = 0; b_lep_isTight = 0;  
 
   vector<cat::Muon> selectedMuons = selectMuons( muons.product() );
 
-  if (selectedMuons.size() < 2){
-    ttree_->Fill();
-    return;
-  }
 
   if (runOnMC_){
     iEvent.getByToken(mcLabel_,genParticles);
     for (const reco::GenParticle & g : *genParticles){
-      b_gen_lep_pt = -9; b_gen_lep_eta = -9; b_gen_lep_phi = -9;
-      b_reco_lep_pt = -9; b_reco_lep_eta = -9; b_reco_lep_phi = -9;
-      b_resolution = -9;  
       bool isfromZboson = false;
-      if (abs(g.pdgId()) == 13 && g.pt()<=20.){
-     	  for (unsigned int i = 0; i < g.numberOfMothers(); ++i){
-     	    if (g.mother(i)->pdgId()  == 23){ //In case of pdgId() = 23, indicate Z-boson. if it's 25, that become higgs.
-     	      isfromZboson = true;
-     	    }
-      	}
+      if (abs(g.pdgId())!=13 || g.pt()<=20.){
+        continue;
       }
+     	for (unsigned int i = 0; i < g.numberOfMothers(); ++i){
+     	  if (g.mother(i)->pdgId()  == 23){ //In case of pdgId() = 23, indicate Z-boson. if it's 25, that becomes higgs.
+     	    isfromZboson = true;
+     	  }
+      }
+      
       if (!isfromZboson) {
         t2->Fill();
         continue;
@@ -210,6 +213,8 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
       b_gen_lep_phi = g.phi();
       
       for (auto m : selectedMuons){
+        b_lep_isMedium = m.isMediumMuon();
+        b_lep_isTight = m.isTightMuon();
         float dr = deltaR(g.eta(), g.phi(), m.eta(), m.phi());
         if (dr < 0.1){
           b_reco_lep_pt = g.pt();
@@ -221,6 +226,11 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
       t2->Fill();
       }
     }    
+  }
+
+  if (selectedMuons.size() < 2){
+    ttree_->Fill();
+    return;
   }
 
   b_lep1_pt = selectedMuons[0].pt();
