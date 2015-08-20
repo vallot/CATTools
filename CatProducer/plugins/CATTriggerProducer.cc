@@ -112,14 +112,16 @@ void CATTriggerProducer::produce(edm::Event& event, const edm::EventSetup& event
     event.put(std::auto_ptr<int>(new int (psValue)), hltPath.second);    
   }
 
-  // save all ele and mu triggers
+  // save only ele and mu triggers that pass
   std::vector< std::pair < std::string, int > > *alltriggers = new std::vector< std::pair < std::string, int > >();
   for( unsigned int i=0; i<trigNames.size(); ++i ){
     if (trigNames.triggerName(i).find("HLT_Ele") == 0 
 	|| trigNames.triggerName(i).find("HLT_DoubleEle") == 0 
 	|| trigNames.triggerName(i).find("HLT_Mu") == 0 ){
-      int psValue = int(triggerBits->accept(i)) * triggerPrescales->getPrescaleForIndex(i);
-      alltriggers->push_back(std::make_pair(trigNames.triggerName(i), psValue));
+      if ( triggerBits->accept(i) ) {
+	int psValue = int(triggerBits->accept(i)) * triggerPrescales->getPrescaleForIndex(i);
+	alltriggers->push_back(std::make_pair(trigNames.triggerName(i), psValue));
+      }
     }
   }
   event.put(std::auto_ptr<std::vector< std::pair < std::string, int > >>(alltriggers));
