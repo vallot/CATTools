@@ -33,6 +33,7 @@ private:
   typedef std::vector<double> doubles;
   typedef std::vector< std::string > strings;
   typedef std::vector< std::pair < std::string, std::string> > pairstrings;
+  typedef std::vector< std::pair < std::string, int > > stringint;
 
   edm::EDGetTokenT<edm::TriggerResults> triggerBits_;
   edm::EDGetTokenT<pat::PackedTriggerPrescales> triggerPrescales_;
@@ -61,6 +62,9 @@ CATTriggerProducer::CATTriggerProducer(const edm::ParameterSet& pset):
     produces<int >( hltSavedAs );
     hltNames_.push_back(std::make_pair(hltPath, hltSavedAs));
   }
+  produces<int >( hltSavedAs );
+  produces<stringint>();
+
   for ( auto& hltPath : pset.getParameter<strings>("metFilterNames") ){
     std::cout << " " << hltPath << std::endl;
     produces<bool >( hltPath );
@@ -107,10 +111,22 @@ void CATTriggerProducer::produce(edm::Event& event, const edm::EventSetup& event
 	psValue = triggerPrescales->getPrescaleForIndex(trigIndex);
       }
     }
-    event.put(std::auto_ptr<int>(new int (psValue)), hltPath.second);
+    event.put(std::auto_ptr<int>(new int (psValue)), hltPath.second);    
   }
 
+  // save all ele and mu triggers
+  stringint alltriggers = new stringint();
+  for( unsigned int i=0; i<trigNames.size(); ++i ){
+    if (trigNames.triggerName(i).find("HLT_Ele") == 0 
+	|| trigNames.triggerName(i).find("HLT_DoubleEle") == 0 
+	|| trigNames.triggerName(i).find("HLT_Mu") == 0 ){
+      int psValue = int(triggerBits->accept(i)) * triggerPrescales->getPrescaleForIndex(i);
+      alltriggers->push_back(std::make_pair(trigNames.triggerName(i), psValue));
+    }
+  }
+  event.put(std::auto_ptr<stringint>(alltriggers));
 
+  // save filter info
   edm::Handle<edm::TriggerResults> metFilterBits;
   if (!event.getByToken(metFilterBitsPAT_, metFilterBits)){
     event.getByToken(metFilterBitsRECO_, metFilterBits);
