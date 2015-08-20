@@ -30,6 +30,7 @@ process.ttll = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     jets = cms.InputTag("catJets"),
     mets = cms.InputTag("catMETs"),
     mcLabel = cms.InputTag("prunedGenParticles"),
+    triggers = cms.InputTag("catTrigger"),
     
     partonTop_channel = cms.InputTag("partonTop","channel"),
     partonTop_modes = cms.InputTag("partonTop", "modes"),

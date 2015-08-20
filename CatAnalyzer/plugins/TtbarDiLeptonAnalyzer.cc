@@ -69,6 +69,8 @@ private:
   edm::EDGetTokenT<vector<reco::GenParticle> > pseudoTop_neutrinos_;
   edm::EDGetTokenT<vector<reco::MET>         > pseudoTop_mets_;
 
+  edm::EDGetTokenT<vector<pair<string, int> > > triggers_;
+
   
   TTree * ttree_;
   int b_genChannel, b_genMode1, b_genMode2, b_partonChannel, b_partonMode1, b_partonMode2;
@@ -108,6 +110,7 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   pseudoTop_           = consumes<vector<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("pseudoTop"));
   pseudoTop_neutrinos_ = consumes<vector<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("pseudoTop_neutrinos"));
   pseudoTop_mets_      = consumes<vector<reco::MET>         >(iConfig.getParameter<edm::InputTag>("pseudoTop_mets"));
+  triggers_      = consumes<vector<pair<string, int> > >(iConfig.getParameter<edm::InputTag>("triggers"));
 
   tmassbegin_     = iConfig.getParameter<double>       ("tmassbegin");
   tmassend_       = iConfig.getParameter<double>       ("tmassend");
@@ -192,6 +195,13 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   iEvent.getByToken(metToken_, mets);
   edm::Handle<reco::GenParticleCollection> genParticles;
 
+  edm::Handle<vector<pair<string, int>>> triggers;
+  iEvent.getByToken(triggers_, triggers);
+  cout << " List of triggers in File "<< endl;
+  for (auto &t: *triggers){
+    cout << t.first << " " << t.second << endl;
+  }
+  
   if (runOnMC_){
     int nMuon = 0;
     int nElectron = 0;
