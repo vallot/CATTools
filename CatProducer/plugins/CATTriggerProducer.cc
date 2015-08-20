@@ -62,7 +62,6 @@ CATTriggerProducer::CATTriggerProducer(const edm::ParameterSet& pset):
     produces<int >( hltSavedAs );
     hltNames_.push_back(std::make_pair(hltPath, hltSavedAs));
   }
-  produces<int >( hltSavedAs );
   produces<stringint>();
 
   for ( auto& hltPath : pset.getParameter<strings>("metFilterNames") ){
@@ -115,7 +114,7 @@ void CATTriggerProducer::produce(edm::Event& event, const edm::EventSetup& event
   }
 
   // save all ele and mu triggers
-  stringint alltriggers = new stringint();
+  stringint *alltriggers = new stringint();
   for( unsigned int i=0; i<trigNames.size(); ++i ){
     if (trigNames.triggerName(i).find("HLT_Ele") == 0 
 	|| trigNames.triggerName(i).find("HLT_DoubleEle") == 0 
