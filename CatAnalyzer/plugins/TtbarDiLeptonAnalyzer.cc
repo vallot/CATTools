@@ -197,10 +197,6 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
   edm::Handle<vector<pair<string, int>>> triggers;
   iEvent.getByToken(triggers_, triggers);
-  cout << " List of triggers in File "<< endl;
-  for (auto &t: *triggers){
-    cout << t.first << " " << t.second << endl;
-  }
   
   if (runOnMC_){
     int nMuon = 0;
@@ -320,6 +316,25 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   if ((recolep[0].Pt() > 20) && (recolep[1].Pt() > 20) && (fabs(recolep[0].Eta()) < 2.4) && (fabs(recolep[1].Eta()) < 2.4)) b_inPhase = 1;
   
   float channel = selectedElectrons.size();
+       
+  int tri=0;
+  for (auto &t: *triggers){
+    if (t.first.find("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v") == 0 ||
+	t.first.find("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v") == 0 )
+      if (channel == 2) tri = 1;
+    
+    if (t.first.find("HLT_Mu17_Mu8_DZ_v") == 0 ||
+	t.first.find("HLT_Mu17_TkMu8_DZ_v") == 0 ||	
+	t.first.find("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v") == 0 ||	
+	t.first.find("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v") == 0 ||
+	t.first.find("HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v") == 0 )
+      if (channel == 0) tri = 1;
+    
+    if (t.first.find("HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v") == 0 ||
+	t.first.find("HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v") == 0 )
+      if (channel == 1) tri = 1;
+    if (tri) cout << t.first << endl;
+  }
 
   float ll_charge = 0. ;
   if (channel == 0) ll_charge = selectedMuons[0].charge()*selectedMuons[1].charge();
