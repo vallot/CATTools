@@ -73,7 +73,9 @@ private:
 
   
   TTree * ttree_;
-  int b_genChannel, b_genMode1, b_genMode2, b_partonChannel, b_partonMode1, b_partonMode2;
+  int b_genChannel, b_genMode1, b_genMode2;
+  int b_partonChannel, b_partonMode1, b_partonMode2;
+  int b_pseudoTopChannel, b_pseudoTopMode1, b_pseudoTopMode2;
   int b_njet, b_nbjet, b_step, b_channel, b_inPhase;
   float b_MET, b_maxweight;
 
@@ -88,6 +90,7 @@ private:
   bool runOnMC_;
   int gen_channel;
   std::vector<int> gen_modes;
+  std::vector<int> pseudoTop_modes;
   //enum TTbarMode { CH_NONE = 0, CH_FULLHADRON = 1, CH_SEMILEPTON, CH_FULLLEPTON };
   //enum DecayMode { CH_HADRON = 1, CH_MUON, CH_ELECTRON, CH_TAU_HADRON, CH_TAU_MUON, CH_TAU_ELECTRON };
 };
@@ -125,6 +128,9 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("parton_channel", &b_partonChannel, "parton_channel/I");
   ttree_->Branch("parton_mode1", &b_partonMode1, "parton_mode1/I");
   ttree_->Branch("parton_mode2", &b_partonMode2, "parton_mode2/I");
+  ttree_->Branch("pseudoTop_channel", &b_pseudoTopChannel, "pseudoTop_channel/I");
+  ttree_->Branch("pseudoTop_mode1", &b_pseudoTopMode1, "pseudoTop_mode1/I");
+  ttree_->Branch("pseudoTop_mode2", &b_pseudoTopMode2, "pseudoTop_mode2/I");
 
   ttree_->Branch("njet", &b_njet, "njet/I");
   ttree_->Branch("nbjet", &b_nbjet, "nbjet/I");
@@ -159,12 +165,9 @@ TtbarDiLeptonAnalyzer::~TtbarDiLeptonAnalyzer()
 void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   
-  b_genChannel = -1; 
-  b_genMode1 = -1;
-  b_genMode2 = -1; 
-  b_partonChannel = -1; 
-  b_partonMode1 = -1; 
-  b_partonMode2 = -1; 
+  b_genChannel = -1; b_genMode1 = -1; b_genMode2 = -1; 
+  b_partonChannel = -1; b_partonMode1 = -1; b_partonMode2 = -1; 
+  b_pseudoTopChannel = -1; b_pseudoTopMode1 = -1; b_pseudoTopMode2 = -1; 
   b_MET = -1; 
   b_njet = -1;
   b_nbjet = -1;
@@ -197,15 +200,12 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
   edm::Handle<vector<pair<string, int>>> triggers;
   iEvent.getByToken(triggers_, triggers);
-  cout << " List of triggers in File "<< endl;
-  for (auto &t: *triggers){
-    cout << t.first << " " << t.second << endl;
-  }
   
   if (runOnMC_){
     int nMuon = 0;
     int nElectron = 0;
     gen_modes.clear();
+	pseudoTop_modes.clear();
 
     iEvent.getByToken(mcLabel_,genParticles); 
     for (const reco::GenParticle & g : *genParticles){
@@ -228,17 +228,17 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       }
 
       if (lep){
-	int mode = 1;
-	if ( fabs(lep->pdgId()) == 13){ ++nMuon; mode = 2; }
-	else if ( fabs(lep->pdgId()) == 11){ ++nElectron; mode = 3; }
-	else if ( fabs(lep->pdgId()) == 15){
-	  for (unsigned int i = 0; i < lep->numberOfDaughters(); ++i){
-	    if ( fabs(lep->daughter(i)->pdgId()) == 13 ) { mode = 5; break;}
-	    else if ( fabs(lep->daughter(i)->pdgId()) == 11 ) { mode = 6; break;}
-	    mode = 4;
-	  }
-	}
-	gen_modes.push_back(mode);
+		int mode = 1;
+		if ( fabs(lep->pdgId()) == 13){ ++nMuon; mode = 2; }
+		else if ( fabs(lep->pdgId()) == 11){ ++nElectron; mode = 3; }
+		else if ( fabs(lep->pdgId()) == 15){
+		  for (unsigned int i = 0; i < lep->numberOfDaughters(); ++i){
+			if ( fabs(lep->daughter(i)->pdgId()) == 13 ) { mode = 5; break;}
+			else if ( fabs(lep->daughter(i)->pdgId()) == 11 ) { mode = 6; break;}
+			mode = 4;
+		  }
+		}
+		gen_modes.push_back(mode);
       }
     }
 
@@ -259,22 +259,18 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     iEvent.getByToken(partonTop_channel_, partonTop_channel);
     iEvent.getByToken(partonTop_modes_, partonTop_modes);
     iEvent.getByToken(partonTop_genParticles_, partonTop_genParticles);
-    for (const reco::GenParticle & g : *partonTop_genParticles){
-      cout << "parton_genParticles   "<< g.pdgId() <<endl;
-    }
     if ( (*partonTop_modes).size() == 0 ) {
       b_partonMode1 = 0;
       b_partonMode2 = 0;
     }
     else if ( (*partonTop_modes).size() == 1 ) { b_partonMode2 = 0; }
-    //    if ((*partonTop_modes).size() >= 2) {
     else{
       b_partonChannel = *partonTop_channel; 
       b_partonMode1 = (*partonTop_modes)[0]; 
       b_partonMode2 = (*partonTop_modes)[1]; 
     }
     //cout << "parton_channel   "<< *partonTop_channel<<endl;
-    //cout << "parton_mode      "<< (*partonTop_modes)[0] << " & "<< (*partonTop_modes)[1] <<endl;
+    cout << "parton_mode       "<< (*partonTop_modes)[0] << " & "<< (*partonTop_modes)[1] <<endl;
 
     edm::Handle<vector<reco::GenJet>      > pseudoTop_jets;
     edm::Handle<vector<reco::GenJet>      > pseudoTop_leptons;
@@ -286,11 +282,13 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     iEvent.getByToken(pseudoTop_          , pseudoTop);
     iEvent.getByToken(pseudoTop_neutrinos_, pseudoTop_neutrinos);
     iEvent.getByToken(pseudoTop_mets_     , pseudoTop_mets);
-    for (const reco::GenJet & g : *pseudoTop_jets){
-      cout << "pseudoTop_jets   "<< g.pt() <<endl;
-    }
+
+	/*
     for (const reco::GenJet & g : *pseudoTop_leptons){
       cout << "pseudoTop_leptons   "<< g.pt() <<endl;
+    }
+    for (const reco::GenJet & g : *pseudoTop_jets){
+      cout << "pseudoTop_jets   "<< g.pt() <<endl;
     }
     for (const reco::GenParticle & g : *pseudoTop){
       cout << "pseudoTop   "<< g.pt() <<endl;
@@ -298,7 +296,70 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     for (const reco::GenParticle & g : *pseudoTop_neutrinos){
       cout << "pseudoTop_neutrinos   "<< g.pt() <<endl;
     }
+	*/
+	if ((*pseudoTop_leptons).size() == 2){
+		if (((*pseudoTop_leptons)[0].pt() > 20) && ((*pseudoTop_leptons)[1].pt() > 20) && (fabs((*pseudoTop_leptons)[0].eta()) < 2.4) && (fabs((*pseudoTop_leptons)[1].eta()) < 2.4)) b_inPhase = 1;
+	}
+
+	int mode = 0;
+    pseudoTop_modes.clear();
+    for (const reco::GenJet & g : *pseudoTop_leptons){
+		if ( fabs(g.pdgId()) == 13){ mode = 2; }
+		else if ( fabs(g.pdgId()) == 11){ mode = 3; }
+		pseudoTop_modes.push_back(mode);
+    }
+
+    if ( pseudoTop_modes.size() < 2 ){
+		for (const reco::GenParticle & g : *pseudoTop_neutrinos){
+		  if (fabs(g.pdgId()) == 16){
+			  pseudoTop_modes.push_back(4);
+		  }
+		}
+    }
+
+	/*
+    for (const reco::GenParticle & g : *pseudoTop){
+      const reco::Candidate* w=0;
+      const reco::Candidate* wLast=0;    
+      const reco::Candidate* lep=0;
+      if (fabs(g.pdgId()) == 6){ 
+        for (unsigned int i = 0; i < g.numberOfDaughters(); ++i){
+          if (fabs(g.daughter(i)->pdgId())  == 24){ w = g.daughter(i); break; }
+        }
+      }
+      if (w){
+        wLast=getLast(w);
+        for (unsigned int i = 0; i < wLast->numberOfDaughters(); ++i){
+          if ((fabs(wLast->daughter(i)->pdgId()) == 11) || (fabs(wLast->daughter(i)->pdgId()) == 13) || (fabs(wLast->daughter(i)->pdgId()) == 15)){
+            lep = wLast->daughter(i);
+            break;
+          }
+        }
+      }
+
+      if (lep){
+		int mode = 1;
+		if ( fabs(lep->pdgId()) == 13){ mode = 2; }
+		else if ( fabs(lep->pdgId()) == 11){ mode = 3; }
+		else if ( fabs(lep->pdgId()) == 15){
+		  for (unsigned int i = 0; i < lep->numberOfDaughters(); ++i){
+			if ( fabs(lep->daughter(i)->pdgId()) == 13 ) { mode = 5; break;}
+			else if ( fabs(lep->daughter(i)->pdgId()) == 11 ) { mode = 6; break;}
+			mode = 4;
+		  }
+		}
+		pseudoTop_modes.push_back(mode);
+      }
+    }
+	*/
+
+    if ( pseudoTop_modes.size() == 0 ) { pseudoTop_modes.push_back(0); }
+    if ( pseudoTop_modes.size() == 1 ) { pseudoTop_modes.push_back(0); }
+    b_pseudoTopMode1 = pseudoTop_modes[0]; 
+    b_pseudoTopMode2 = pseudoTop_modes[1]; 
+
   }
+
   vector<cat::Muon> selectedMuons = selectMuons( muons.product() );
   vector<cat::Electron> selectedElectrons = selectElecs( electrons.product() );
 
@@ -317,9 +378,26 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_lep2_eta = recolep[1].Eta();
   b_lep2_phi = recolep[1].Phi();
 
-  if ((recolep[0].Pt() > 20) && (recolep[1].Pt() > 20) && (fabs(recolep[0].Eta()) < 2.4) && (fabs(recolep[1].Eta()) < 2.4)) b_inPhase = 1;
-  
   float channel = selectedElectrons.size();
+       
+  int tri=0;
+  for (auto &t: *triggers){
+    if (t.first.find("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v") == 0 ||
+	t.first.find("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v") == 0 )
+      if (channel == 2) tri = 1;
+    
+    if (t.first.find("HLT_Mu17_Mu8_DZ_v") == 0 ||
+	t.first.find("HLT_Mu17_TkMu8_DZ_v") == 0 ||	
+	t.first.find("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v") == 0 ||	
+	t.first.find("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v") == 0 ||
+	t.first.find("HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v") == 0 )
+      if (channel == 0) tri = 1;
+    
+    if (t.first.find("HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v") == 0 ||
+	t.first.find("HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v") == 0 )
+      if (channel == 1) tri = 1;
+    if (tri) cout << t.first << endl;
+  }
 
   float ll_charge = 0. ;
   if (channel == 0) ll_charge = selectedMuons[0].charge()*selectedMuons[1].charge();
