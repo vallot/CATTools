@@ -94,6 +94,9 @@ namespace {
     edm::Wrapper<std::vector<cat::SecVertex> > svvw;
     edm::Ptr<cat::SecVertex> svPtr;
 
+    std::vector< std::pair < std::string, int > > vsi;
+    edm::Wrapper<std::vector< std::pair < std::string, int > > > vsiw;
+
     edm::Wrapper<reco::CompositePtrCandidateCollection> a1;
     edm::reftobase::Holder<reco::Candidate, reco::CompositePtrCandidateRef> a2;
     edm::reftobase::RefHolder<reco::CompositePtrCandidateRef> a3;
