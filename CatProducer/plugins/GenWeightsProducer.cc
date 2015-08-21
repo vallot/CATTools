@@ -33,7 +33,7 @@ private:
   std::string generatedPdfName_;
   const edm::EDGetTokenT<LHEEventProduct> lheToken_;
   const edm::EDGetTokenT<GenEventInfoProduct> genInfoToken_;
-  const int lheWeightIndex_, genWeightIndex_;
+  const unsigned int lheWeightIndex_, genWeightIndex_;
 };
 
 GenWeightsProducer::GenWeightsProducer(const edm::ParameterSet& pset):
