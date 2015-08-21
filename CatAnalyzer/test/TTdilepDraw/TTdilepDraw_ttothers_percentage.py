@@ -26,7 +26,7 @@ filename = ["", "mm_", "em_","ee_"]
 ########### user input end #############
  
 y_name = "Number of Events"
-tt = ROOT.TFile("TTJets_TuneCUETP8M1_13TeV-madgraphMLM.root")
+tt = ROOT.TFile("TT_TuneCUETP8M1_13TeV-powheg.root")
 tree = tt.ttll.Get("tree")
 
 for j, ch in enumerate(channels):
