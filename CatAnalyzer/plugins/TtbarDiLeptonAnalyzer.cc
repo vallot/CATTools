@@ -74,12 +74,14 @@ private:
   int b_genChannel, b_genMode1, b_genMode2;
   int b_partonChannel, b_partonMode1, b_partonMode2;
   int b_pseudoTopChannel, b_pseudoTopMode1, b_pseudoTopMode2;
-  int b_njet, b_nbjet, b_step, b_channel, b_inPhase;
+  int b_njet, b_nbjet, b_step, b_channel, b_lepinPhase, b_jetinPhase;
   float b_MET, b_maxweight;
 
   float b_lep1_pt, b_lep1_eta, b_lep1_phi;
   float b_lep2_pt, b_lep2_eta, b_lep2_phi;
   float b_ll_pt, b_ll_eta, b_ll_phi, b_ll_m;
+  float b_top1_pt, b_top1_eta, b_top1_phi;
+  float b_top2_pt, b_top2_eta, b_top2_phi;
 
   TtFullLepKinSolver* solver;
   double tmassbegin_, tmassend_, tmassstep_;
@@ -134,7 +136,8 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("MET", &b_MET, "MET/F");
   ttree_->Branch("channel", &b_channel, "channel/I");
   ttree_->Branch("step", &b_step, "step/I");
-  ttree_->Branch("inPhase", &b_inPhase, "inPhase/I");
+  ttree_->Branch("lepinPhase", &b_lepinPhase, "lepinPhase/I");
+  ttree_->Branch("jetinPhase", &b_jetinPhase, "jetinPhase/I");
 
   ttree_->Branch("lep1_pt", &b_lep1_pt, "lep1_pt/F");
   ttree_->Branch("lep1_eta", &b_lep1_eta, "lep1_eta/F");
@@ -146,6 +149,13 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("ll_eta", &b_ll_eta, "ll_eta/F");
   ttree_->Branch("ll_phi", &b_ll_phi, "ll_phi/F");
   ttree_->Branch("ll_m", &b_ll_m, "ll_m/F");
+
+  ttree_->Branch("top1_pt", &b_top1_pt, "top1_pt/F");
+  ttree_->Branch("top1_eta", &b_top1_eta, "top1_eta/F");
+  ttree_->Branch("top1_phi", &b_top1_pt, "top1_phi/F");
+  ttree_->Branch("top2_pt", &b_top2_pt, "top2_pt/F");
+  ttree_->Branch("top2_eta", &b_top2_eta, "top2_eta/F");
+  ttree_->Branch("top2_phi", &b_top2_pt, "top2_phi/F");
 
 }
 TtbarDiLeptonAnalyzer::~TtbarDiLeptonAnalyzer()
@@ -170,16 +180,18 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_nbjet = -1;
   b_channel = -1;
   b_step = -1;
-  b_inPhase = 0;
+  b_lepinPhase = 0; b_jetinPhase = 0;
   b_lep1_pt = -9; b_lep1_eta = -9; b_lep1_phi = -9;
   b_lep2_pt = -9; b_lep2_eta = -9; b_lep2_phi = -9;
   b_ll_pt = -9; b_ll_eta = -9; b_ll_phi = -9; b_ll_m = -9;
+  b_top1_pt = -9; b_top1_eta = -9; b_top1_phi = -9;
+  b_top2_pt = -9; b_top2_eta = -9; b_top2_phi = -9;
 
   runOnMC_ = !iEvent.isRealData();
 
   edm::Handle<reco::VertexCollection> vertices;
   iEvent.getByToken(vtxToken_, vertices);
-  if (vertices->empty()) return; // skip the event if no PV found
+  //if (vertices->empty()) return; // skip the event if no PV found
   const reco::Vertex &PV = vertices->front();
 
   edm::Handle<edm::View<cat::Muon> > muons;
@@ -292,7 +304,11 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     }
 	*/
 	if ((*pseudoTop_leptons).size() == 2){
-		if (((*pseudoTop_leptons)[0].pt() > 20) && ((*pseudoTop_leptons)[1].pt() > 20) && (fabs((*pseudoTop_leptons)[0].eta()) < 2.4) && (fabs((*pseudoTop_leptons)[1].eta()) < 2.4)) b_inPhase = 1;
+		if (((*pseudoTop_leptons)[0].pt() > 20) && ((*pseudoTop_leptons)[1].pt() > 20) && (fabs((*pseudoTop_leptons)[0].eta()) < 2.4) && (fabs((*pseudoTop_leptons)[1].eta()) < 2.4)) b_lepinPhase = 1;
+	}
+
+	if ((*pseudoTop_jets).size() == 2){
+		if (((*pseudoTop_jets)[0].pt() > 30) && ((*pseudoTop_jets)[1].pt() > 30) && (fabs((*pseudoTop_jets)[0].eta()) < 2.4) && (fabs((*pseudoTop_jets)[1].eta()) < 2.4)) b_jetinPhase = 1;
 	}
 
 	int mode = 0;
@@ -310,42 +326,6 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 		  }
 		}
     }
-
-	/*
-    for (const reco::GenParticle & g : *pseudoTop){
-      const reco::Candidate* w=0;
-      const reco::Candidate* wLast=0;    
-      const reco::Candidate* lep=0;
-      if (fabs(g.pdgId()) == 6){ 
-        for (unsigned int i = 0; i < g.numberOfDaughters(); ++i){
-          if (fabs(g.daughter(i)->pdgId())  == 24){ w = g.daughter(i); break; }
-        }
-      }
-      if (w){
-        wLast=getLast(w);
-        for (unsigned int i = 0; i < wLast->numberOfDaughters(); ++i){
-          if ((fabs(wLast->daughter(i)->pdgId()) == 11) || (fabs(wLast->daughter(i)->pdgId()) == 13) || (fabs(wLast->daughter(i)->pdgId()) == 15)){
-            lep = wLast->daughter(i);
-            break;
-          }
-        }
-      }
-
-      if (lep){
-		int mode = 1;
-		if ( fabs(lep->pdgId()) == 13){ mode = 2; }
-		else if ( fabs(lep->pdgId()) == 11){ mode = 3; }
-		else if ( fabs(lep->pdgId()) == 15){
-		  for (unsigned int i = 0; i < lep->numberOfDaughters(); ++i){
-			if ( fabs(lep->daughter(i)->pdgId()) == 13 ) { mode = 5; break;}
-			else if ( fabs(lep->daughter(i)->pdgId()) == 11 ) { mode = 6; break;}
-			mode = 4;
-		  }
-		}
-		pseudoTop_modes.push_back(mode);
-      }
-    }
-	*/
 
     if ( pseudoTop_modes.size() == 0 ) { pseudoTop_modes.push_back(0); }
     if ( pseudoTop_modes.size() == 1 ) { pseudoTop_modes.push_back(0); }
@@ -437,6 +417,14 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       }
     }
   }
+
+  b_top1_pt = top1.Pt();
+  b_top1_eta = top1.Eta();
+  b_top1_phi = top1.Phi();
+  b_top2_pt = top2.Pt();
+  b_top2_eta = top2.Eta();
+  b_top2_phi = top2.Phi();
+
   b_maxweight = maxweight;
   //  printf("maxweight %f, top1.M() %f, top2.M() %f \n",maxweight, top1.M(), top2.M() );
   // printf("%2d, %2d, %2d, %2d, %6.2f, %6.2f, %6.2f\n", b_njet, b_nbjet, b_step, b_channel, b_MET, b_ll_mass, b_maxweight);
@@ -458,8 +446,8 @@ vector<cat::Muon> TtbarDiLeptonAnalyzer::selectMuons(const edm::View<cat::Muon>*
 {
   vector<cat::Muon> selmuons;
   for (auto mu : *muons) {
-    if (!mu.isMediumMuon()) continue;
-    //if (!mu.isTightMuon()) continue;
+    //if (!mu.isMediumMuon()) continue;
+    if (!mu.isTightMuon()) continue;
     if (mu.pt() <= 20.) continue;
     if (fabs(mu.eta()) >= 2.4) continue;
     if (mu.relIso(0.4) >= 0.12) continue;

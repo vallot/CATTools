@@ -11,7 +11,7 @@ user_input = sys.argv[1]
 
 if "results_merged" not in os.listdir(os.getcwd()):
     os.system("mkdir results_merged")
-    print "'rewsults_merged' has been created."
+    print "'results_merged' has been created."
 
 if user_input == "all":
     dir_list = [x for x in os.listdir(os.getcwd()) if (os.path.isdir(x) and x != "results_merged")]
