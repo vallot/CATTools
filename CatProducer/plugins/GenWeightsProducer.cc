@@ -86,8 +86,8 @@ void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& event
   edm::Handle<GenEventInfoProduct> genInfoHandle;
   event.getByToken(genInfoToken_, genInfoHandle);
 
-  if ( lheHandle.isValid() ) lheWeight = lheHandle->weights().at(lheWeightIndex_).wgt;
-  genWeight = genInfoHandle->weights().at(genWeightIndex_);
+  if ( lheHandle.isValid() and lheHandle->weights().size() > lheWeightIndex_ ) lheWeight = lheHandle->weights().at(lheWeightIndex_).wgt;
+  if ( genInfoHandle->weights().size() > genWeightIndex_ ) genWeight = genInfoHandle->weights().at(genWeightIndex_);
 
   const float q = genInfoHandle->pdf()->scalePDF;
   const int id1 = genInfoHandle->pdf()->id.first;
