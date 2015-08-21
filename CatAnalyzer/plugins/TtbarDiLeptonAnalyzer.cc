@@ -84,6 +84,7 @@ private:
   float b_ll_pt, b_ll_eta, b_ll_phi, b_ll_m;
   float b_top1_pt, b_top1_eta, b_top1_phi;
   float b_top2_pt, b_top2_eta, b_top2_phi;
+  float b_tri;
 
   TtFullLepKinSolver* solver;
   double tmassbegin_, tmassend_, tmassstep_;
@@ -160,6 +161,8 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("top2_eta", &b_top2_eta, "top2_eta/F");
   ttree_->Branch("top2_phi", &b_top2_pt, "top2_phi/F");
 
+  ttree_->Branch("tri", &b_tri, "tri/F");
+
 }
 TtbarDiLeptonAnalyzer::~TtbarDiLeptonAnalyzer()
 {
@@ -189,6 +192,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_ll_pt = -9; b_ll_eta = -9; b_ll_phi = -9; b_ll_m = -9;
   b_top1_pt = -9; b_top1_eta = -9; b_top1_phi = -9;
   b_top2_pt = -9; b_top2_eta = -9; b_top2_phi = -9;
+  b_tri = -9;
 
   runOnMC_ = !iEvent.isRealData();
 
@@ -282,7 +286,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       b_partonMode2 = (*partonTop_modes)[1]; 
     }
     //cout << "parton_channel   "<< *partonTop_channel<<endl;
-    cout << "parton_mode       "<< (*partonTop_modes)[0] << " & "<< (*partonTop_modes)[1] <<endl;
+    //cout << "parton_mode       "<< (*partonTop_modes)[0] << " & "<< (*partonTop_modes)[1] <<endl;
 
     edm::Handle<vector<reco::GenJet>      > pseudoTop_jets;
     edm::Handle<vector<reco::GenJet>      > pseudoTop_leptons;
@@ -376,6 +380,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     if (t.first.find("HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v") == 0 ||
 	t.first.find("HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v") == 0 )
       if (channel == 1) tri = 1;
+	b_tri = tri;
     if (tri) cout << t.first << endl;
   }
 
