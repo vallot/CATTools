@@ -161,6 +161,7 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
             jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetPuppiCorrFactorsUpdated")),
             jetSource = cms.InputTag(catJetsPuppiSource),
         )
+        process.patJetCorrFactorsAK4PFPuppi.payload = cms.string('AK4PFPuppi')
         catJetsPuppiSource = "patJetsPuppiUpdated"
 
 #######################################################################
