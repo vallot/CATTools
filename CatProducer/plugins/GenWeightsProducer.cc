@@ -32,7 +32,7 @@ private:
   std::string generatedPdfName_;
   const edm::EDGetTokenT<LHEEventProduct> lheToken_;
   const edm::EDGetTokenT<GenEventInfoProduct> genInfoToken_;
-  const int lheWeightIndex_, genWeightIndex_;
+  const unsigned int lheWeightIndex_, genWeightIndex_;
 };
 
 GenWeightsProducer::GenWeightsProducer(const edm::ParameterSet& pset):
@@ -81,8 +81,8 @@ void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& event
   edm::Handle<GenEventInfoProduct> genInfoHandle;
   event.getByToken(genInfoToken_, genInfoHandle);
 
-  if ( lheHandle.isValid() ) lheWeight = lheHandle->weights().at(lheWeightIndex_).wgt;
-  genWeight = genInfoHandle->weights().at(genWeightIndex_);
+  if ( lheHandle.isValid() and lheHandle->weights().size() > lheWeightIndex_ ) lheWeight = lheHandle->weights().at(lheWeightIndex_).wgt;
+  if ( genInfoHandle->weights().size() > genWeightIndex_ ) genWeight = genInfoHandle->weights().at(genWeightIndex_);
 
   const float q = genInfoHandle->pdf()->scalePDF;
   const int id1 = genInfoHandle->pdf()->id.first;
