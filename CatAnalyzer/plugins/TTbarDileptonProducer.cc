@@ -20,8 +20,6 @@ using namespace std;
 
 namespace cat {
 
-bool GreaterByPtPtr(reco::CandidatePtr a, reco::CandidatePtr b) { return a->pt() > b->pt(); }
-
 class TTbarDileptonProducer : public edm::EDProducer 
 {
 public:
@@ -126,7 +124,7 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
     reco::CandidatePtr electronPtr = reco::CandidatePtr(electronHandle, i);
     leptons.push_back(electronPtr);
   }
-  std::sort(leptons.begin(), leptons.end(), GreaterByPtPtr);
+  std::sort(leptons.begin(), leptons.end(), [](reco::CandidatePtr a, reco::CandidatePtr b){return a->pt() > b->pt();});
 
   edm::Handle<edm::View<TJet> > jetHandle;
   event.getByToken(jetToken_, jetHandle);
