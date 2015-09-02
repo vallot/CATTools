@@ -31,8 +31,6 @@ namespace cat {
 
     virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
 
-    bool checkPFJetId(const pat::Jet & jet);
-    bool checkPFJetIdTight(const pat::Jet & jet);
     void getJER(const double jetEta, double& cJER, double& cJERUp, double& cJERDn) const;
       
     std::vector<const reco::Candidate *> getAncestors(const reco::Candidate &c);
@@ -85,10 +83,30 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
 
     cat::Jet aJet(aPatJet);
 
-    bool looseId = checkPFJetId( aPatJet );
-    bool tightId = checkPFJetIdTight( aPatJet );
-    aJet.setLooseId( looseId );
-    aJet.setTightId( tightId );
+    ///https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetID
+    float NHF = aPatJet.neutralHadronEnergyFraction();
+    float NEMF = aPatJet.neutralEmEnergyFraction();
+    float CHF = aPatJet.chargedHadronEnergyFraction();
+    float MUF = aPatJet.muonEnergyFraction();
+    float CEMF = aPatJet.chargedEmEnergyFraction();
+    int NumConst = aPatJet.chargedMultiplicity()+aPatJet.neutralMultiplicity();
+    int NumNeutralParticle =aPatJet.neutralMultiplicity();
+    int CHM = aPatJet.chargedMultiplicity();
+    float eta = aPatJet.eta();
+    
+    bool looseJetID = (NHF<0.99 && NEMF<0.99 && NumConst>1) && ((abs(eta)<=2.4 && CHF>0 && CHM>0 && CEMF<0.99) || abs(eta)>2.4) && abs(eta)<=3.0;
+    bool tightJetID = (NHF<0.90 && NEMF<0.90 && NumConst>1) && ((abs(eta)<=2.4 && CHF>0 && CHM>0 && CEMF<0.99) || abs(eta)>2.4) && abs(eta)<=3.0;
+    bool tightLepVetoJetID = (NHF<0.90 && NEMF<0.90 && NumConst>1 && MUF<0.8) && ((abs(eta)<=2.4 && CHF>0 && CHM>0 && CEMF<0.90) || abs(eta)>2.4) && abs(eta)<=3.0;
+    
+    if (fabs(eta) > 3.){
+      looseJetID = (NEMF<0.90 && NumNeutralParticle>10 && abs(eta)>3.0 );
+      tightJetID = (NEMF<0.90 && NumNeutralParticle>10 && abs(eta)>3.0 );
+      tightLepVetoJetID = false;
+    }
+    
+    aJet.setLooseJetID( looseJetID );
+    aJet.setTightJetID( tightJetID );
+    aJet.setTightLepVetoJetID( tightLepVetoJetID );
     
     if( aPatJet.hasUserFloat("pileupJetId:fullDiscriminant") )
       aJet.setPileupJetId( aPatJet.userFloat("pileupJetId:fullDiscriminant") );
@@ -160,36 +178,9 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
     out->push_back(aJet);
   }
 
+  if (jecUnc) delete jecUnc;
+  
   iEvent.put(out);
-}
-
-bool cat::CATJetProducer::checkPFJetId(const pat::Jet & jet){
-  //Loose PF Jet id
-  ///https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetID
-  //debug
-  bool out = false;
-  if ( jet.neutralHadronEnergyFraction() < 0.99
-       &&jet.neutralEmEnergyFraction() < 0.99
-       &&jet.numberOfDaughters() > 1
-       &&(jet.chargedHadronEnergyFraction() > 0 || abs(jet.eta()) > 2.4)
-       &&(jet.chargedMultiplicity() > 0 || abs(jet.eta()) > 2.4)
-       &&(jet.chargedEmEnergyFraction() < 0.99 || abs(jet.eta()) > 2.4)
-       ) out = true;
-
-  return out;
-}
-
-bool cat::CATJetProducer::checkPFJetIdTight(const pat::Jet & jet){
-  //Tight PF Jet id
-  bool out = false;
-  if ( jet.neutralHadronEnergyFraction() < 0.90
-       &&jet.neutralEmEnergyFraction() < 0.90
-       &&jet.numberOfDaughters() > 1
-       &&(jet.chargedHadronEnergyFraction() > 0 || abs(jet.eta()) > 2.4)
-       &&(jet.chargedMultiplicity() > 0 || abs(jet.eta()) > 2.4)
-       &&(jet.chargedEmEnergyFraction() < 0.90 || abs(jet.eta()) > 2.4)
-       ) out = true;
-  return out;
 }
 
 void cat::CATJetProducer::getJER(const double jetEta, double& cJER, double& cJERUp, double& cJERDn) const{
