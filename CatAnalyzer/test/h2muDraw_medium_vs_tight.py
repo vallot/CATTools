@@ -26,14 +26,15 @@ filelist2 = []
 for i in filelist1:
     filelist2.append(i.split(".")[0])
 filenames = [0,0,0,0,0,0,0]
+date = "20150817"
 for i in filelist2:#replace 'filelist2' replace to 'filelist1'
-    if 'DYJets' in i:filenames[0]=i
-    if 'TTJets' in i:filenames[1]=i
-    if 'ZZ' in i:filenames[2]=i
-    if 'WW' in i:filenames[3]=i
-    if 'WZ' in i:filenames[4]=i
-    if 'Double' in i:filenames[5]=i
-    if 'Single' in i:filenames[6]=i
+    if (('DYJets' in i) and ( date in i)):filenames[0]=i
+    if (('TTJets' in i) and ( date in i)):filenames[1]=i
+    if (('ZZ' in i) and ( date in i)):filenames[2]=i
+    if (('WW' in i) and ( date in i)):filenames[3]=i
+    if (('WZ' in i) and ( date in i)):filenames[4]=i
+    if (('Double' in i) and ( date in i)):filenames[5]=i
+    if (('Single' in i) and ( date in i)):filenames[6]=i
 '''
 mcfilelist = {'mc_DYJets_merged':6025.2 ,
               'mc_TTJets_mad_merged':831.8,

@@ -78,7 +78,7 @@ private:
   float b_gen_lep_pt, b_gen_lep_eta, b_gen_lep_phi;
   float b_reco_lep_pt, b_reco_lep_eta, b_reco_lep_phi;
   float b_resolution;  
-  bool b_lep_isMedium, b_lep_isTight;
+  bool b_lep_isLoose, b_lep_isMedium, b_lep_isTight;
 
   bool runOnMC_;
 };
@@ -134,6 +134,7 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
   t2 ->Branch("reco_lep_eta", &b_reco_lep_eta, "reco_lep_eta/F");
   t2 ->Branch("reco_lep_phi", &b_reco_lep_phi, "reco_lep_phi/F");
   t2 ->Branch("resolution", &b_resolution, "resolution/F");
+  t2 ->Branch("lep_isLoose", &b_lep_isLoose, "lep_isLoose/B");
   t2 ->Branch("lep_isMedium", &b_lep_isMedium, "lep_isMedium/B");
   t2 ->Branch("lep_isTight", &b_lep_isTight, "lep_isTight/B");
  
@@ -186,7 +187,7 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   b_gen_lep_pt = -9; b_gen_lep_eta = -9; b_gen_lep_phi = -9;
   b_reco_lep_pt = -9; b_reco_lep_eta = -9; b_reco_lep_phi = -9;
   b_resolution = -9;  
-  b_lep_isMedium = 0; b_lep_isTight = 0;  
+  b_lep_isLoose = 0; b_lep_isMedium = 0; b_lep_isTight = 0;  
 
   vector<cat::Muon> selectedMuons = selectMuons( muons.product() );
 
@@ -204,6 +205,11 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
      	  }
       }
       
+      b_gen_lep_pt = -9; b_gen_lep_eta = -9; b_gen_lep_phi = -9;
+      b_reco_lep_pt = -9; b_reco_lep_eta = -9; b_reco_lep_phi = -9;
+      b_resolution = -9;  
+      b_lep_isLoose = 0; b_lep_isMedium = 0; b_lep_isTight = 0;  
+      
       if (!isfromZboson) {
         t2->Fill();
         continue;
@@ -213,18 +219,22 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
       b_gen_lep_phi = g.phi();
       
       for (auto m : selectedMuons){
+        b_lep_isLoose = m.isLooseMuon();
         b_lep_isMedium = m.isMediumMuon();
         b_lep_isTight = m.isTightMuon();
         float dr = deltaR(g.eta(), g.phi(), m.eta(), m.phi());
         if (dr < 0.1){
-          b_reco_lep_pt = g.pt();
-          b_reco_lep_eta = g.eta();
-          b_reco_lep_phi = g.phi();
+          //b_reco_lep_pt = g.pt();
+          //b_reco_lep_eta = g.eta();
+          //b_reco_lep_phi = g.phi();
+          b_reco_lep_pt = m.pt();
+          b_reco_lep_eta = m.eta();
+          b_reco_lep_phi = m.phi();
           b_resolution = (m.pt()-g.pt())/g.pt();
           break;
         }
-      t2->Fill();
       }
+      t2->Fill();
     }    
   }
 

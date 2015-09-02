@@ -22,13 +22,13 @@ def ini_hist_maker(name, title, bin_set, x_name, y_name):
     hist.GetXaxis().SetTitle(x_name)
     hist.GetYaxis().SetTitle(y_name)
     return hist
-def TypeOfMuons(type1, type2, h_gen_t, h_reco_t, h_gen_m, h_reco_m, histo):
-    ## Usage ###############
-    ########################
-    # num      0       1   #
-    # type1   gen    reco  #
-    # type2  tight  medium #
-    ########################
+def TypeOfMuons(type1, type2, h_gen_t, h_reco_t, h_gen_m, h_reco_m, h_gen_l, h_reco_l,histo):
+    ## Usage #####################
+    ##############################
+    # num      0       1      2  #
+    # type1   gen    reco        #
+    # type2  tight  medium  loose#
+    ##############################
     if (type1 == 0 and type2 == 0):
         h_gen_t.append(histo)
         return h_gen_t
@@ -41,6 +41,12 @@ def TypeOfMuons(type1, type2, h_gen_t, h_reco_t, h_gen_m, h_reco_m, histo):
     if (type1 == 1 and type2 == 1):
         h_reco_m.append(histo)    
         return h_reco_m
+    if (type1 == 0 and type2 == 2):
+        h_gen_l.append(histo)
+        return h_gen_l
+    if (type1 == 1 and type2 == 2):
+        h_reco_l.append(histo)    
+        return h_reco_l
 
 datalumi = 49.502
 currentdir = os.getcwd()
@@ -53,7 +59,7 @@ filelist2 = []
 for i in filelist1:
     filelist2.append(i.split(".")[0])
 filenames = [0,0,0,0,0,0,0]
-date = "20150820"
+date = "20150821"
 for i in filelist2:#replace 'filelist2' replace to 'filelist1'
     if (('DYJets' in i) and ( date in i)):filenames[0]=i
     if (('TTJets' in i) and ( date in i)):filenames[1]=i
@@ -105,7 +111,7 @@ jetcat_GC_cut = [BB,BO,BE,OO,OE,EE]
 
 ##### initial cut
 init_cut = ["(lep_isTight)","(lep_isMedium)","(lep_isLoose)"]
-init_config = ["-Tight","-Medium"]
+init_config = ["-Tight","-Medium","-Loose"]
 
 ##### variables
 plotvar_pt = ["gen_lep_pt","reco_lep_pt"]
@@ -134,19 +140,23 @@ h_gen_t = []
 h_reco_t = []
 h_gen_m = []
 h_reco_m = []
+h_gen_l = []
+h_reco_l = []
 os.chdir(resultdir)
 
 ## pt-eff
+j=1
+leg = ROOT.TLegend(0.7,0.7,0.9,0.9)
+leg1 = ROOT.TLegend(0.5,0.35,0.7,0.55)
 for init_i, init_loop in enumerate(init_cut):
     for pt_i, pt_loop in enumerate(plotvar_pt):
         title = pt_loop
         canvas = ROOT.TCanvas(title,title)
-        leg = ROOT.TLegend(0.7,0.7,0.9,0.9)
-        leg1 = ROOT.TLegend(0.5,0.35,0.7,0.55)
         logscale = False
         tcut = init_loop
-        j=1
         for i in mcfilelist:
+            if not 'DY' in i:
+                continue
             j=j+1
             rootfilename = i+".root"
             print rootfilename
@@ -163,51 +173,50 @@ for init_i, init_loop in enumerate(init_cut):
             histo = copy.deepcopy(hist_maker(samplename, title, bin_set_l[0], x_name_l[0], y_name_l[0], tree, pt_loop, tcut))
             histo.SetLineColor(j)
             histo.Scale(scale)
-            leg1.AddEntry(h_eff[0][j-2], samplename,"f")
-            TypeOfMuons(pt_i, init_i, h_gen_t, h_reco_t, h_gen_m, h_reco_m, histo)
+            TypeOfMuons(pt_i, init_i, h_gen_t, h_reco_t, h_gen_m, h_reco_m, h_gen_l, h_reco_l, histo)
             print histo
             tt.Close()
-    if init_i == 0:
-        h_gen = h_gen_t
-        h_reco = h_reco_t
-    if init_i == 1:
-        h_gen = h_gen_m
-        h_reco = h_reco_m
-    #### plot style ####
-    st_marker = [20,25]
-    st_color = [2,6,7,8,9]
-    ####
-    h_eff[0][0].SetStats(0)
-    h_eff[0][0].Divide(h_reco[0],h_gen[0], 1.0, 1.0, "B")
-    h_eff[0][0].Draw("E1")
-    for i in range(len(mcfilelist)-1):
-        h_eff[0][i+1].SetStats(0)
-        h_eff[0][i+1].Divide(h_reco[i+1],h_gen[i+1], 1.0, 1.0, "B")
-        h_eff[0][i+1].SetLineColor(st_color[i])
-        h_eff[0][i+1].Draw("E1same")
-    leg1.Draw("same")
+#### plot style ####
+st_marker = [20,25]
+st_color = [2,6,7,8,9]
+st_gen_tml = [h_gen_t,h_gen_m,h_gen_l]
+st_reco_tml = [h_reco_t,h_reco_m,h_reco_l]
+st_draw = ["","same","same"]
+samplename = filenames[0].strip().split("_")[0]
+####
+for i in range(3):
+    h_eff[0][i].SetStats(0)
+    h_eff[0][i].Divide(st_reco_tml[i][0],st_gen_tml[i][0], 1.0, 1.0, "B")
+    h_eff[0][i].SetLineColor(st_color[i])
+    h_eff[0][i].Draw("E1%s"%st_draw[i])
+    leg1.AddEntry(h_eff[0][i],samplename+init_config[i],"f")
+leg1.Draw("same")
 
-    canvas.SaveAs(currentdir+saveddir+"/"+title+init_config[init_i]+".root")
-    canvas.SaveAs(currentdir+saveddir+"/"+title+init_config[init_i]+".eps")
-    canvas.SaveAs(currentdir+saveddir+"/"+title+init_config[init_i]+".png")
-    del leg1
+canvas.SaveAs(currentdir+saveddir+"/"+"pt_vs"+".root")
+canvas.SaveAs(currentdir+saveddir+"/"+"pt_vs"+".eps")
+canvas.SaveAs(currentdir+saveddir+"/"+"pt_vs"+".png")
+del leg1
+
 del h_gen_t[:]
 del h_reco_t[:]
 del h_gen_m[:]
 del h_reco_m[:]
-del h_gen, h_reco
+del h_gen_l[:]
+del h_reco_l[:]
 
 ## eta-eff
+j=1
+leg = ROOT.TLegend(0.7,0.7,0.9,0.9)
+leg1 = ROOT.TLegend(0.5,0.35,0.7,0.55)
 for init_i, init_loop in enumerate(init_cut):
     for eta_i, eta_loop in enumerate(plotvar_eta):
         title = eta_loop
         canvas = ROOT.TCanvas(title,title)
-        leg = ROOT.TLegend(0.7,0.7,0.9,0.9)
-        leg1 = ROOT.TLegend(0.5,0.35,0.7,0.55)
         logscale = False
         tcut = init_loop
-        j=1
         for i in mcfilelist:
+            if not 'DY' in i:
+                continue
             j=j+1
             rootfilename = i+".root"
             print rootfilename
@@ -224,36 +233,28 @@ for init_i, init_loop in enumerate(init_cut):
             histo = copy.deepcopy(hist_maker(samplename, title, bin_set_l[1], x_name_l[1], y_name_l[1], tree, eta_loop, tcut))
             histo.SetLineColor(j)
             histo.Scale(scale)
-            leg1.AddEntry(h_eff[1][j-2], samplename,"f")
-            TypeOfMuons(eta_i, init_i, h_gen_t, h_reco_t, h_gen_m, h_reco_m, histo)
+            TypeOfMuons(eta_i, init_i, h_gen_t, h_reco_t, h_gen_m, h_reco_m, h_gen_l,h_reco_l,histo)
             print histo
             tt.Close()
-    if init_i == 0:
-        h_gen = h_gen_t
-        h_reco = h_reco_t
-    if init_i == 1:
-        h_gen = h_gen_m
-        h_reco = h_reco_m
-    #### plot style ####
-    st_marker = [20,25]
-    st_color = [2,6,7,8,9]
-    ####
-    h_eff[1][0].SetStats(0)
-    h_eff[1][0].Divide(h_reco[0],h_gen[0], 1.0, 1.0, "B")
-    #h_eff[1][0].GetYaxis().SetRangeUser(0.3,1.1)
-    h_eff[1][0].Draw("E1")
-    for i in range(len(mcfilelist)-1):
-        h_eff[1][i+1].SetStats(0)
-        h_eff[1][i+1].Divide(h_reco[i+1],h_gen[i+1], 1.0, 1.0, "B")
-        h_eff[1][i+1].SetLineColor(st_color[i])
-        #h_eff[1][i+1].GetYaxis().SetRangeUser(0.3,1.1)
-        h_eff[1][i+1].Draw("E1same")
-    leg1.Draw("same")
-
-    canvas.SaveAs(currentdir+saveddir+"/"+title+init_config[init_i]+".root")
-    canvas.SaveAs(currentdir+saveddir+"/"+title+init_config[init_i]+".eps")
-    canvas.SaveAs(currentdir+saveddir+"/"+title+init_config[init_i]+".png")
-    del leg1
+#### plot style ####
+st_marker = [20,25]
+st_color = [2,6,7,8,9]
+st_gen_tml = [h_gen_t,h_gen_m,h_gen_l]
+st_reco_tml = [h_reco_t,h_reco_m,h_reco_l]
+st_draw = ["","same","same"]
+samplename = filenames[0].strip().split("_")[0]
+####
+for i in range(3):
+    h_eff[1][i].SetStats(0)
+    h_eff[1][i].Divide(st_reco_tml[i][0],st_gen_tml[i][0], 1.0, 1.0, "B")
+    h_eff[1][i].SetLineColor(st_color[i])
+    h_eff[1][i].Draw("E1%s"%st_draw[i])
+    leg1.AddEntry(h_eff[1][i],samplename+init_config[i],"f")
+leg1.Draw("same")
+canvas.SaveAs(currentdir+saveddir+"/"+"eta_vs"+".root")
+canvas.SaveAs(currentdir+saveddir+"/"+"eta_vs"+".eps")
+canvas.SaveAs(currentdir+saveddir+"/"+"eta_vs"+".png")
+del leg1
 
 ## resoultion
 
@@ -299,9 +300,9 @@ for hist_i,i in enumerate(mcfilelist):
         h_rsl[2].Sumw2(False)
         h_rsl[2].Draw("same")
         leg.Draw("same")
-        canvas.SaveAs(currentdir+saveddir+"/"+title+"_"+i.strip().split("_")[0]+".root")
-        canvas.SaveAs(currentdir+saveddir+"/"+title+"_"+i.strip().split("_")[0]+".eps")
-        canvas.SaveAs(currentdir+saveddir+"/"+title+"_"+i.strip().split("_")[0]+".png")
+        canvas.SaveAs(currentdir+saveddir+"/"+title+"_"+i.strip().split("_")[0]+"_test2"+".root")
+        canvas.SaveAs(currentdir+saveddir+"/"+title+"_"+i.strip().split("_")[0]+"_test2"+".eps")
+        canvas.SaveAs(currentdir+saveddir+"/"+title+"_"+i.strip().split("_")[0]+"_test2"+".png")
         del leg
          
     #j=j+1
