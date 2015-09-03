@@ -25,7 +25,7 @@ private:
 
 CATTriggerPacker::CATTriggerPacker(const edm::ParameterSet& pset):
   catTriggerToken_(consumes<stringintpairs>(pset.getParameter<edm::InputTag>("src"))),
-  triggersToMatch(pset.getParameter<strings>("triggersToMatch"))
+  triggersToMatch_(pset.getParameter<strings>("triggersToMatch"))
 {
   produces<int>("and");
   produces<int>("or");
@@ -42,7 +42,7 @@ void CATTriggerPacker::produce(edm::Event& event, const edm::EventSetup&)
     bool isMatched = false;
     for ( const auto& toMatch : triggersToMatch_ )
     {
-      if ( pathName.find(pathName.begin(), pathName.end(), toMatch) != pathName.end() )
+      if ( pathName.find(toMatch) != std::string::npos )
       {
         isMatched = true;
         break;
