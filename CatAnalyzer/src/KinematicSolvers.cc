@@ -1,5 +1,6 @@
 #include "CATTools/CatAnalyzer/interface/KinematicSolvers.h"
 #include "TopQuarkAnalysis/TopKinFitter/interface/TtFullLepKinSolver.h"
+#include "CATTools/CatAnalyzer/interface/TopKinSolverUtils.h"
 #include <boost/assign/std/vector.hpp> // for 'operator+=()'
 #include <gsl/gsl_multimin.h>
 #include <gsl/gsl_errno.h>
@@ -188,6 +189,21 @@ void CMSKinSolver::solve(const KinematicSolver::LorentzVector input[])
   values_.push_back((t1+t2).mass());
   values_.push_back(t1.mass());
   values_.push_back(t2.mass());
+}
+
+void DESYMassLoopSolver::solve(const KinematicSolver::LorentzVector input[])
+{
+  quality_ = -1e9;
+  values_.clear();
+
+  std::vector<double> sol;
+  KinSolverUtils::solve_quartic(c0, c1, c2, c3, c3, sol);
+}
+
+void DESYSmearedSolver::solve(const KinematicSolver::LorentzVector input[])
+{
+  quality_ = -1e9;
+  values_.clear();
 }
 
 namespace CATNuWeight
