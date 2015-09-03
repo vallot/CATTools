@@ -2,6 +2,10 @@
 #include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 
+#include <boost/regex.hpp>
+#include <vector>
+#include <string>
+
 class CATTriggerPacker : public edm::stream::EDProducer<>
 {
 public:
@@ -9,22 +13,20 @@ public:
   void produce(edm::Event& event, const edm::EventSetup&) override;
 
 private:
-  typedef std::vector<bool> vbool;
-  typedef std::vector<int> vint;
+  //typedef std::vector<bool> vbool;
+  //typedef std::vector<int> vint;
+  typedef std::vector< std::string > strings;
+  typedef std::vector<std::pair<std::string, int> > stringintpairs;
 
-  std::vector<edm::EDGetTokenT<bool> > boolTokens_;
-  std::vector<edm::EDGetTokenT<int> > intTokens_;
+  edm::EDGetTokenT<stringintpairs> catTriggerToken_;
+  strings triggersToMatch_;
 
 };
 
-CATTriggerPacker::CATTriggerPacker(const edm::ParameterSet& pset)
+CATTriggerPacker::CATTriggerPacker(const edm::ParameterSet& pset):
+  catTriggerToken_(consumes<stringintpairs>(pset.getParameter<edm::InputTag>("src"))),
+  triggersToMatch_(pset.getParameter<strings>("triggersToMatch"))
 {
-  for ( auto x : pset.getParameter<std::vector<edm::InputTag> >("srcs") )
-  {
-    boolTokens_.push_back(consumes<bool>(x));
-    intTokens_.push_back(consumes<int>(x));
-  }
-
   produces<int>("and");
   produces<int>("or");
 }
@@ -32,26 +34,32 @@ CATTriggerPacker::CATTriggerPacker(const edm::ParameterSet& pset)
 void CATTriggerPacker::produce(edm::Event& event, const edm::EventSetup&)
 {
   int minPS = INT_MAX, resultByAnd = 1;
-  for ( const auto& tok : boolTokens_ )
+  edm::Handle<stringintpairs> catTriggerHandle;
+  event.getByToken(catTriggerToken_, catTriggerHandle);
+  for ( const auto& catTrigger : *catTriggerHandle )
   {
-    edm::Handle<bool> handle;
-    if ( !event.getByToken(tok, handle) ) continue;
-    resultByAnd *= *handle;
-    if ( *handle ) minPS = 1;
-  }
+    const auto& pathName = catTrigger.first;
+    bool isMatched = false;
+    for ( const auto& toMatch : triggersToMatch_ )
+    {
+      if ( pathName.find(toMatch) != std::string::npos )
+      {
+        isMatched = true;
+        break;
+      }
+    }
+    if ( !isMatched ) continue;
+    const int result = catTrigger.second;
 
-  for ( const auto& tok : intTokens_ )
-  {
-    edm::Handle<int> handle;
-    if ( !event.getByToken(tok, handle) ) continue;
-    resultByAnd *= *handle;
-    if ( *handle ) minPS = std::min(minPS, *handle);
+    resultByAnd *= result;
+    if ( result ) minPS = std::min(minPS, result);
   }
 
   if ( minPS == INT_MAX ) minPS = 0;
 
   event.put(std::auto_ptr<int>(new int(resultByAnd)), "and");
   event.put(std::auto_ptr<int>(new int(minPS)), "or");
+
 }
 
 DEFINE_FWK_MODULE(CATTriggerPacker);
