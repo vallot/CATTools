@@ -153,8 +153,7 @@ void MAOSSolver::solve(const KinematicSolver::LorentzVector input[])
 
 CMSKinSolver::CMSKinSolver()
 {
-  std::vector<double> nuPars;
-  nuPars += 30.7137,56.2880,23.0744,59.1015,24.9145;
+  std::vector<double> nuPars = {30.7137,56.2880,23.0744,59.1015,24.9145};
   solver_ = new TtFullLepKinSolver(100, 300, 1, nuPars);
 }
 
@@ -196,8 +195,27 @@ void DESYMassLoopSolver::solve(const KinematicSolver::LorentzVector input[])
   quality_ = -1e9;
   values_.clear();
 
-  std::vector<double> sol;
-  KinSolverUtils::solve_quartic(c0, c1, c2, c3, c3, sol);
+  const double metX = input[0].px(), metY = input[0].py();
+  auto l1 = input[1], l2 = input[2];
+  auto b1 = input[3], b2 = input[4];
+
+  const double l1E = l1.energy(), b1E = b1.energy();
+  const double l2E = l2.energy(), b2E = b2.energy();
+  const double a4 = (b1E*l1.pz()-l1E*b1.pz())/l1E/(b1E+l1E);
+  const double b4 = (b2E*l2.pz()-l2E*b2.pz())/l2E/(b2E+l2E);
+
+  std::vector<double> koef, cache, sols;
+  for ( double mTop = 100; mTop < 300.5; mTop += 1 ) {
+    KinSolverUtils::findCoeffs(mTop, 80.4, l1, l2, b1, b2, metX, metY, koef, cache);
+    KinSolverUtils::solve_quartic(koef, a4, b4, sols);
+    //const int nSol = sols.size();
+    double nu1xyz[3], nu2xyz[3];
+    for ( const double& sol : sols ) {
+      KinSolverUtils::getNuPxPyPz(sol, cache, nu1xyz, nu2xyz);
+      //nu1_.set(nu1xyz[0], nu1xyz[1], nu1xyz[2], 0 /*FIXME add E*/);
+      //nu2_.set(nu2xyz[0], nu2xyz[1], nu2xyz[2], 0 /*FIXME add E*/);
+    }
+  }
 }
 
 void DESYSmearedSolver::solve(const KinematicSolver::LorentzVector input[])
