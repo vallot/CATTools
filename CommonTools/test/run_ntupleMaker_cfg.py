@@ -42,11 +42,11 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
     failureMode = cms.untracked.string("keep"), # choose one among keep/skip/error
     eventCounters = cms.vstring("nEventsTotal"), #"nEventsTotal", "nEventsClean", "nEventsPAT"),
     int = cms.PSet(
-        HLTMu17TrkIsoVVLMu8TrkIsoVVLDZ            =   cms.PSet(src = cms.InputTag("simpleTriggerMaker", "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v*",                         )),
-        HLTMu17TrkIsoVVLTkMu8TrkIsoVVLDZ          =   cms.PSet(src = cms.InputTag("simpleTriggerMaker", "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v*",                       )),
-        HLTEle17Ele12CaloIdLTrackIdLIsoVLDZ        =   cms.PSet(src = cms.InputTag("simpleTriggerMaker", "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*",                   )),
-        HLTMu17TrkIsoVVLEle12CaloIdLTrackIdLIsoVL  =   cms.PSet(src = cms.InputTag("simpleTriggerMaker", "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v*",             )),
-        HLTMu8TrkIsoVVLEle17CaloIdLTrackIdLIsoVL   =   cms.PSet(src = cms.InputTag("simpleTriggerMaker", "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v*"               )),
+        HLTMu17TrkIsoVVLMu8TrkIsoVVLDZ            =   cms.PSet(src = cms.InputTag("simpleTriggerMaker", "HLTMu17TrkIsoVVLMu8TrkIsoVVLDZ",                         )),
+        HLTMu17TrkIsoVVLTkMu8TrkIsoVVLDZ          =   cms.PSet(src = cms.InputTag("simpleTriggerMaker", "HLTMu17TrkIsoVVLTkMu8TrkIsoVVLDZ",                       )),
+        HLTEle17Ele12CaloIdLTrackIdLIsoVLDZ        =   cms.PSet(src = cms.InputTag("simpleTriggerMaker", "HLTEle17Ele12CaloIdLTrackIdLIsoVLDZ",                   )),
+        HLTMu17TrkIsoVVLEle12CaloIdLTrackIdLIsoVL  =   cms.PSet(src = cms.InputTag("simpleTriggerMaker", "HLTMu17TrkIsoVVLEle12CaloIdLTrackIdLIsoVL",             )),
+        HLTMu8TrkIsoVVLEle17CaloIdLTrackIdLIsoVL   =   cms.PSet(src = cms.InputTag("simpleTriggerMaker", "HLTMu8TrkIsoVVLEle17CaloIdLTrackIdLIsoVL"               )),
    
         #HLTDoubleEle33CaloIdLGsfTrkIdVL             =   cms.PSet(src = cms.InputTag("catTrigger", "HLTDoubleEle33CaloIdLGsfTrkIdVL"             )),
         #HLTEle12CaloIdLTrackIdLIsoVL                =   cms.PSet(src = cms.InputTag("catTrigger", "HLTEle12CaloIdLTrackIdLIsoVL"                )),
