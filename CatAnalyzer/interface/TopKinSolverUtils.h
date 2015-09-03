@@ -14,7 +14,10 @@ struct KinSolverUtils {
 
   static inline bool isZero(const double x) { return std::abs(x) < 1e-5; };
   //void print(const std::vector<TtFullLepSolution>& sols);
-  static void findCoeffs(const double* kfs);
+  static void findCoeffs(const double mTop, const double mW,
+                         const LorentzVector& l1, const LorentzVector& l2,
+                         const LorentzVector& b1, const LorentzVector& b2,
+                         double* kfs);
   static void solve_quartic(const double h0, const double h1, const double h2, const double h3, const double h4,
       const double a4, const double b4,
       std::vector<double>& v);
