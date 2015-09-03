@@ -207,6 +207,7 @@ GenericNtupleMaker::GenericNtupleMaker(const edm::ParameterSet& pset)
   vboolCSet_.init(pset, "bools", consumesCollector(), tree_);
   vintCSet_.init(pset, "ints", consumesCollector(), tree_);
   vdoubleCSet_.init(pset, "doubles", consumesCollector(), tree_);
+  vfloatCSet_.init(pset, "floats", consumesCollector(), tree_);
   vstringCSet_.init(pset, "strings", consumesCollector(), tree_);
 
   PSet candPSets = pset.getParameter<PSet>("cands");
