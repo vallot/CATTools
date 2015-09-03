@@ -138,7 +138,8 @@ void CATTriggerProducer::produce(edm::Event& event, const edm::EventSetup& event
     bool passMet = false;
     unsigned int trigIndex = metFilterNames.triggerIndex(hltPath.first);
     if ( trigIndex < metFilterBits->size() ){
-      passMet = true;
+      if ( metFilterBits->accept(trigIndex) )
+	passMet = true;
     }
     event.put(std::auto_ptr<bool>(new bool (passMet)), hltPath.second);
   }
