@@ -1,4 +1,5 @@
 import FWCore.ParameterSet.Config as cms
+import FWCore.PythonUtilities.LumiList as LumiList
 
 process = cms.Process("TtbarDiLeptonAnalyzer")
 process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
@@ -7,6 +8,7 @@ process.options.allowUnscheduled = cms.untracked.bool(True)
 process.load("FWCore.MessageService.MessageLogger_cfi")
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
+"""
 ###### discard this line when use for data sample ##########
 process.partonTop = cms.EDProducer("PartonTopProducer",
     genParticles = cms.InputTag("prunedGenParticles"),
@@ -14,14 +16,15 @@ process.partonTop = cms.EDProducer("PartonTopProducer",
     jetMaxEta = cms.double(2.5),
     jetConeSize = cms.double(0.4),
 )
-###### discard this line when use for data sample ##########
+###### discard this line when use for data sample ###########
+"""
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 
-#process.source.fileNames.append('file:/afs/cern.ch/user/j/jlee/cat74/src/CATTools/CatProducer/prod/catTuple.root')
-#process.source.fileNames.append('/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-3-4_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v4/150810_215031/0000/catTuple_101.root')
-process.source.fileNames.append('/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-3-6_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v4/150820_215807/0000/catTuple_193.root')
-#process.source.fileNames.append('file:/afs/cern.ch/user/j/jlee/test/cat74/src/CATTools/CatProducer/prod/catTuple.root')
+process.source.fileNames.append('/store/group/CAT/SingleMuon/v7-3-6_Run2015B-17Jul2015-v1/150820_215426/0000/catTuple_6.root')
+#process.source.fileNames.append('/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-3-6_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v4/150820_215807/0000/catTuple_193.root')
+
+process.source.lumisToProcess = LumiList.LumiList(filename = 'Cert_246908-251883_13TeV_PromptReco_Collisions15_JSON_v2.txt').getVLuminosityBlockRange()
 
 process.ttll = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     vertices = cms.InputTag("catVertex"),
