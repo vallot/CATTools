@@ -27,7 +27,10 @@ process.source = cms.Source("PoolSource",
 )
 
 process.nEventsTotal = cms.EDProducer("EventCountProducer")
-process.simpleTriggerMaker = cms.EDProducer("SimpleTriggerMaker",
+process.catHLT = cms.EDProducer("CATTriggerPacker",
+    srcs = cms.VInputTag(
+        cms.InputTag("catTrigger", ""),
+    ),
     InputTriggerLabel  = cms.InputTag("catTrigger"),
     hltPathNames = cms.vstring(
      "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v*",
@@ -42,11 +45,11 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
     failureMode = cms.untracked.string("keep"), # choose one among keep/skip/error
     eventCounters = cms.vstring("nEventsTotal"), #"nEventsTotal", "nEventsClean", "nEventsPAT"),
     int = cms.PSet(
-        HLTMu17TrkIsoVVLMu8TrkIsoVVLDZ            =   cms.PSet(src = cms.InputTag("simpleTriggerMaker", "HLTMu17TrkIsoVVLMu8TrkIsoVVLDZ",                         )),
-        HLTMu17TrkIsoVVLTkMu8TrkIsoVVLDZ          =   cms.PSet(src = cms.InputTag("simpleTriggerMaker", "HLTMu17TrkIsoVVLTkMu8TrkIsoVVLDZ",                       )),
-        HLTEle17Ele12CaloIdLTrackIdLIsoVLDZ        =   cms.PSet(src = cms.InputTag("simpleTriggerMaker", "HLTEle17Ele12CaloIdLTrackIdLIsoVLDZ",                   )),
-        HLTMu17TrkIsoVVLEle12CaloIdLTrackIdLIsoVL  =   cms.PSet(src = cms.InputTag("simpleTriggerMaker", "HLTMu17TrkIsoVVLEle12CaloIdLTrackIdLIsoVL",             )),
-        HLTMu8TrkIsoVVLEle17CaloIdLTrackIdLIsoVL   =   cms.PSet(src = cms.InputTag("simpleTriggerMaker", "HLTMu8TrkIsoVVLEle17CaloIdLTrackIdLIsoVL"               )),
+        HLTMu17TrkIsoVVLMu8TrkIsoVVLDZ            =   cms.PSet(src = cms.InputTag("catHLT", "HLTMu17TrkIsoVVLMu8TrkIsoVVLDZ",                         )),
+        HLTMu17TrkIsoVVLTkMu8TrkIsoVVLDZ          =   cms.PSet(src = cms.InputTag("catHLT", "HLTMu17TrkIsoVVLTkMu8TrkIsoVVLDZ",                       )),
+        HLTEle17Ele12CaloIdLTrackIdLIsoVLDZ        =   cms.PSet(src = cms.InputTag("catHLT", "HLTEle17Ele12CaloIdLTrackIdLIsoVLDZ",                   )),
+        HLTMu17TrkIsoVVLEle12CaloIdLTrackIdLIsoVL  =   cms.PSet(src = cms.InputTag("catHLT", "HLTMu17TrkIsoVVLEle12CaloIdLTrackIdLIsoVL",             )),
+        HLTMu8TrkIsoVVLEle17CaloIdLTrackIdLIsoVL   =   cms.PSet(src = cms.InputTag("catHLT", "HLTMu8TrkIsoVVLEle17CaloIdLTrackIdLIsoVL"               )),
    
         #HLTDoubleEle33CaloIdLGsfTrkIdVL             =   cms.PSet(src = cms.InputTag("catTrigger", "HLTDoubleEle33CaloIdLGsfTrkIdVL"             )),
         #HLTEle12CaloIdLTrackIdLIsoVL                =   cms.PSet(src = cms.InputTag("catTrigger", "HLTEle12CaloIdLTrackIdLIsoVL"                )),
@@ -135,7 +138,7 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
                 idLoose = cms.string("electronID('cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-loose')"), 
                 idMedium = cms.string("electronID('cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-medium')"), 
                 idTight = cms.string("electronID('cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-tight')"), 
-                idTeto = cms.string("electronID('cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-veto')"),
+                idVeto = cms.string("electronID('cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-veto')"),
                 relIso03 = cms.string("relIso(0.3)"),
                 relIso04 = cms.string("relIso(0.4)"),
                 chIso03 = cms.string("chargedHadronIso(0.3)"),
@@ -387,7 +390,7 @@ process.load("CATTools.CatProducer.pseudoTop_cff")
 process.p = cms.Path(
     process.nEventsTotal*
     process.partonTop*
-    process.simpleTriggerMaker*
+    process.catHLT*
     process.ntuple
 )
 

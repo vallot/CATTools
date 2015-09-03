@@ -142,8 +142,6 @@ private:
   typedef std::vector<double> vdouble;
   typedef std::vector<std::string> strings;
 
-  typedef std::vector<std::pair<std::string,int> > pairstringints;
-
   typedef edm::View<reco::LeafCandidate> CandView;
   typedef edm::ValueMap<double> Vmap;
   typedef edm::EDGetTokenT<CandView> CandToken;
