@@ -1,24 +1,29 @@
 #ifndef CATTools_CatAnalysis_TopKinSolverUtils_H
 #include <iostream>
+#include <cmath>
+#include <vector>
 
-namespace KinSolver {
+struct KinSolverUtils {
 
-const double mB = 4.8;
-const double mL = 0.0;
-const double mV = 0.0;
+  constexpr static double pi = std::asin(-1);
+  constexpr static double mB = 4.8;
+  constexpr static double mL = 0.0;
+  constexpr static double mV = 0.0;
 
-class TtFullLepSolution;
+  //class TtFullLepSolution;
 
-void print(const std::vector<TtFullLepSolution>& sols);
-void findCoeffs(const double* kfs);
-void eqn_quartic(const double h0, const double h1, const double h2, const double h3, const double h4,
-                 std::vector<double>& v);
-void eqn_cubic(const double a, const double b, const double c, const double d,
-               std::vector<double>& v);
-void eqn_quadratic(const double a, const double b, const double c,
-                   std::vector<double>& v);
-void eqn_linear(const double a, const double b,
-                std::vector<double>& v);
+  static inline bool isZero(const double x) { return std::abs(x) < 1e-5; };
+  //void print(const std::vector<TtFullLepSolution>& sols);
+  static void findCoeffs(const double* kfs);
+  static void solve_quartic(const double h0, const double h1, const double h2, const double h3, const double h4,
+      const double a4, const double b4,
+      std::vector<double>& v);
+  static void solve_cubic(const double a, const double b, const double c, const double d,
+      std::vector<double>& v);
+  static void solve_quadratic(const double a, const double b, const double c,
+      std::vector<double>& v);
+  static void solve_linear(const double a, const double b,
+      std::vector<double>& v);
 
 };
 
