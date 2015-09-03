@@ -28,16 +28,13 @@ process.source = cms.Source("PoolSource",
 
 process.nEventsTotal = cms.EDProducer("EventCountProducer")
 process.catHLT = cms.EDProducer("CATTriggerPacker",
-    srcs = cms.VInputTag(
-        cms.InputTag("catTrigger", ""),
-    ),
-    InputTriggerLabel  = cms.InputTag("catTrigger"),
-    hltPathNames = cms.vstring(
-     "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v*",
-     "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v*",
-     "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*",
-     "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v*",
-     "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v*"
+    src = cms.InputTag("catTrigger"),
+    triggersToMatch = cms.vstring(
+     "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",
+     "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",
+     "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
+     "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",
+     "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v"
     ),
 )
 
