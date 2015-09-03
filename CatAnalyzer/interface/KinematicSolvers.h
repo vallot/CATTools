@@ -64,6 +64,24 @@ protected:
 
 };
 
+class DESYMassLoopSolver : public KinematicSolver
+{
+public:
+  DESYMassLoopSolver();
+  void solve(const LorentzVector input[]) override;
+
+protected:
+};
+
+class DESYSmearedSolver : public KinematicSolver
+{
+public:
+  DESYSmearedSolver();
+  void solve(const LorentzVector input[]) override;
+
+protected:
+};
+
 // Neutrino weighting method (from thesis by Temple)
 class NuWeightSolver : public KinematicSolver
 {
