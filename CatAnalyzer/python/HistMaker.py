@@ -26,7 +26,7 @@ class HistMaker(object):
         self.chain = TChain("%s/%s" % (modName, treeName))
         if hasattr(inFileNames, 'split'): inFileNames = inFileNames.split(',')
         for fName in inFileNames:
-            f = TFile(fName)
+            f = TFile.Open(fName)
             if None == f: continue
             self.chain.Add(fName)
             self.isOK = True
