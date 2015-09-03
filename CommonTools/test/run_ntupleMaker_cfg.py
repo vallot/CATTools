@@ -27,42 +27,42 @@ process.source = cms.Source("PoolSource",
 )
 
 process.nEventsTotal = cms.EDProducer("EventCountProducer")
-process.catHLT = cms.EDProducer("CATTriggerPacker",
-    src = cms.InputTag("catTrigger"),
-    triggersToMatch = cms.vstring(
-     "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",
-     "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",
-     "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
-     "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",
-     "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v"
-    ),
-)
+process.catHLTMu17TrkIsoVVLMu8TrkIsoVVLDZ           = cms.EDProducer("CATTriggerPacker", src = cms.InputTag("catTrigger"),
+     triggersToMatch = cms.vstring("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v"))
+process.catHLTMu17TrkIsoVVLTkMu8TrkIsoVVLDZ         = cms.EDProducer("CATTriggerPacker", src = cms.InputTag("catTrigger"),
+     triggersToMatch = cms.vstring("HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v"          ))
+process.catHLTEle17Ele12CaloIdLTrackIdLIsoVLDZ      = cms.EDProducer("CATTriggerPacker", src = cms.InputTag("catTrigger"), 
+     triggersToMatch = cms.vstring("HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v"      ))
+process.catHLTMu17TrkIsoVVLEle12CaloIdLTrackIdLIsoV = cms.EDProducer("CATTriggerPacker", src = cms.InputTag("catTrigger"), 
+     triggersToMatch = cms.vstring("HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v"))
+process.catHLTMu8TrkIsoVVLEle17CaloIdLTrackIdLIsoV  = cms.EDProducer("CATTriggerPacker", src = cms.InputTag("catTrigger"), 
+     triggersToMatch = cms.vstring("HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v" ))
 
 process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
     failureMode = cms.untracked.string("keep"), # choose one among keep/skip/error
     eventCounters = cms.vstring("nEventsTotal"), #"nEventsTotal", "nEventsClean", "nEventsPAT"),
     int = cms.PSet(
-        HLTMu17TrkIsoVVLMu8TrkIsoVVLDZ            =   cms.PSet(src = cms.InputTag("catHLT", "HLTMu17TrkIsoVVLMu8TrkIsoVVLDZ",                         )),
-        HLTMu17TrkIsoVVLTkMu8TrkIsoVVLDZ          =   cms.PSet(src = cms.InputTag("catHLT", "HLTMu17TrkIsoVVLTkMu8TrkIsoVVLDZ",                       )),
-        HLTEle17Ele12CaloIdLTrackIdLIsoVLDZ        =   cms.PSet(src = cms.InputTag("catHLT", "HLTEle17Ele12CaloIdLTrackIdLIsoVLDZ",                   )),
-        HLTMu17TrkIsoVVLEle12CaloIdLTrackIdLIsoVL  =   cms.PSet(src = cms.InputTag("catHLT", "HLTMu17TrkIsoVVLEle12CaloIdLTrackIdLIsoVL",             )),
-        HLTMu8TrkIsoVVLEle17CaloIdLTrackIdLIsoVL   =   cms.PSet(src = cms.InputTag("catHLT", "HLTMu8TrkIsoVVLEle17CaloIdLTrackIdLIsoVL"               )),
+        HLTMu17TrkIsoVVLMu8TrkIsoVVLDZ             =   cms.PSet(src = cms.InputTag("catHLTMu17TrkIsoVVLMu8TrkIsoVVLDZ",           "or"   )),
+        HLTMu17TrkIsoVVLTkMu8TrkIsoVVLDZ           =   cms.PSet(src = cms.InputTag("catHLTMu17TrkIsoVVLTkMu8TrkIsoVVLDZ",         "or"   )),
+        HLTEle17Ele12CaloIdLTrackIdLIsoVLDZ        =   cms.PSet(src = cms.InputTag("catHLTEle17Ele12CaloIdLTrackIdLIsoVLDZ",      "or"   )),
+        HLTMu17TrkIsoVVLEle12CaloIdLTrackIdLIsoVL  =   cms.PSet(src = cms.InputTag("catHLTMu17TrkIsoVVLEle12CaloIdLTrackIdLIsoVL","or"   )),
+        HLTMu8TrkIsoVVLEle17CaloIdLTrackIdLIsoVL   =   cms.PSet(src = cms.InputTag("catHLTMu8TrkIsoVVLEle17CaloIdLTrackIdLIsoVL"  "or"   )),
    
         #HLTDoubleEle33CaloIdLGsfTrkIdVL             =   cms.PSet(src = cms.InputTag("catTrigger", "HLTDoubleEle33CaloIdLGsfTrkIdVL"             )),
         #HLTEle12CaloIdLTrackIdLIsoVL                =   cms.PSet(src = cms.InputTag("catTrigger", "HLTEle12CaloIdLTrackIdLIsoVL"                )),
         #HLTEle16Ele12Ele8CaloIdLTrackIdL            =   cms.PSet(src = cms.InputTag("catTrigger", "HLTEle16Ele12Ele8CaloIdLTrackIdL"            )),
         #HLTEle17CaloIdLTrackIdLIsoVL                =   cms.PSet(src = cms.InputTag("catTrigger", "HLTEle17CaloIdLTrackIdLIsoVL"                )),
-        #HLTEle17Ele12CaloIdLTrackIdLIsoVLDZ         =   cms.PSet(src = cms.InputTag("catTrigger", "HLTEle17Ele12CaloIdLTrackIdLIsoVLDZ"         )),
+        HLTEle17Ele12CaloIdLTrackIdLIsoVLDZold         =   cms.PSet(src = cms.InputTag("catTrigger", "HLTEle17Ele12CaloIdLTrackIdLIsoVLDZ"         )),
         #HLTEle23Ele12CaloIdLTrackIdLIsoVL           =   cms.PSet(src = cms.InputTag("catTrigger", "HLTEle23Ele12CaloIdLTrackIdLIsoVL"           )),
         #HLTEle23Ele12CaloIdLTrackIdLIsoVLDZ         =   cms.PSet(src = cms.InputTag("catTrigger", "HLTEle23Ele12CaloIdLTrackIdLIsoVLDZ"         )),
         #HLTEle27eta2p1WPLooseGsfTriCentralPFJet30   =   cms.PSet(src = cms.InputTag("catTrigger", "HLTEle27eta2p1WPLooseGsfTriCentralPFJet30"   )),
         #HLTMu17Mu8DZ                                =   cms.PSet(src = cms.InputTag("catTrigger", "HLTMu17Mu8DZ"                                )),
         #HLTMu17TkMu8DZ                              =   cms.PSet(src = cms.InputTag("catTrigger", "HLTMu17TkMu8DZ"                              )),
-        #HLTMu17TrkIsoVVLEle12CaloIdLTrackIdLIsoVL   =   cms.PSet(src = cms.InputTag("catTrigger", "HLTMu17TrkIsoVVLEle12CaloIdLTrackIdLIsoVL"   )),
+        HLTMu17TrkIsoVVLEle12CaloIdLTrackIdLIsoVLold   =   cms.PSet(src = cms.InputTag("catTrigger", "HLTMu17TrkIsoVVLEle12CaloIdLTrackIdLIsoVL"   )),
         #HLTMu17TrkIsoVVLMu8TrkIsoVVL                =   cms.PSet(src = cms.InputTag("catTrigger", "HLTMu17TrkIsoVVLMu8TrkIsoVVL"                )),
-        #HLTMu17TrkIsoVVLMu8TrkIsoVVLDZ              =   cms.PSet(src = cms.InputTag("catTrigger", "HLTMu17TrkIsoVVLMu8TrkIsoVVLDZ"              )),
+        HLTMu17TrkIsoVVLMu8TrkIsoVVLDZold              =   cms.PSet(src = cms.InputTag("catTrigger", "HLTMu17TrkIsoVVLMu8TrkIsoVVLDZ"              )),
         #HLTMu17TrkIsoVVLTkMu8TrkIsoVVL              =   cms.PSet(src = cms.InputTag("catTrigger", "HLTMu17TrkIsoVVLTkMu8TrkIsoVVL"              )),
-        #HLTMu8TrkIsoVVLEle17CaloIdLTrackIdLIsoVL    =   cms.PSet(src = cms.InputTag("catTrigger", "HLTMu8TrkIsoVVLEle17CaloIdLTrackIdLIsoVL"    )),
+        HLTMu8TrkIsoVVLEle17CaloIdLTrackIdLIsoVLold    =   cms.PSet(src = cms.InputTag("catTrigger", "HLTMu8TrkIsoVVLEle17CaloIdLTrackIdLIsoVL"    )),
 
         nGoodPV           =   cms.PSet(src = cms.InputTag("catVertex"   , "nGoodPV"          )),
         nPV               =   cms.PSet(src = cms.InputTag("catVertex"   , "nPV"              )),
@@ -387,7 +387,11 @@ process.load("CATTools.CatProducer.pseudoTop_cff")
 process.p = cms.Path(
     process.nEventsTotal*
     process.partonTop*
-    process.catHLT*
+    process.catHLTMu17TrkIsoVVLMu8TrkIsoVVLDZ*
+    process.catHLTMu17TrkIsoVVLTkMu8TrkIsoVVLDZ*
+    process.catHLTEle17Ele12CaloIdLTrackIdLIsoVLDZ*
+    process.catHLTMu17TrkIsoVVLEle12CaloIdLTrackIdLIsoV*
+    process.catHLTMu8TrkIsoVVLEle17CaloIdLTrackIdLIsoV*
     process.ntuple
 )
 
