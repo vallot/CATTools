@@ -123,7 +123,7 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
 #######################################################################    
 # getting jec from file for jec on the fly from db file
 # currently only for mc
-    era = "Summer15_50nsV4"
+    era = "Summer15_50nsV5"
     if runOnMC:
         era = era+"_MC"
     else:
