@@ -54,12 +54,16 @@ saveddir = '/PLOTS'
 if not os.path.isdir(currentdir+saveddir):
     os.mkdir(currentdir+saveddir)
 filelist1 = os.listdir("./results_merged")
+#filelist1 = os.listdir("./")
 resultdir = "./results_merged/"
+#resultdir = "./"
 filelist2 = []
 for i in filelist1:
+    if not '.root' in i:continue
     filelist2.append(i.split(".")[0])
 filenames = [0,0,0,0,0,0,0]
-date = "20150821"
+date = "20150905"
+#date = ''
 for i in filelist2:#replace 'filelist2' replace to 'filelist1'
     if (('DYJets' in i) and ( date in i)):filenames[0]=i
     if (('TTJets' in i) and ( date in i)):filenames[1]=i
@@ -109,9 +113,14 @@ EE = "(jetcat_GC == 200)"
 jetcat_GC = ["BB","BO","BE","OO","OE","EE"]
 jetcat_GC_cut = [BB,BO,BE,OO,OE,EE]
 
+
 ##### initial cut
 init_cut = ["(lep_isTight)","(lep_isMedium)","(lep_isLoose)"]
 init_config = ["-Tight","-Medium","-Loose"]
+
+##### eta cut
+eta_cut = ["(gen_lep_eta < 2.4)","(gen_lep_eta < 0.8)","(gen_lep_eta > 0.8)*(gen_lep_eta < 1.5)","(gen_lep_eta > 1.5)*(gen_lep_eta < 2.4)"]
+eta_config = ["all","barrel","overlap","endcap"]
 
 ##### variables
 plotvar_pt = ["gen_lep_pt","reco_lep_pt"]
@@ -153,7 +162,11 @@ for init_i, init_loop in enumerate(init_cut):
         title = pt_loop
         canvas = ROOT.TCanvas(title,title)
         logscale = False
-        tcut = init_loop
+        if pt_i==0:
+            tcut = ''
+        else:
+            tcut = init_loop
+        print tcut
         for i in mcfilelist:
             if not 'DY' in i:
                 continue
@@ -192,9 +205,9 @@ for i in range(3):
     leg1.AddEntry(h_eff[0][i],samplename+init_config[i],"f")
 leg1.Draw("same")
 
-canvas.SaveAs(currentdir+saveddir+"/"+"pt_vs"+".root")
-canvas.SaveAs(currentdir+saveddir+"/"+"pt_vs"+".eps")
-canvas.SaveAs(currentdir+saveddir+"/"+"pt_vs"+".png")
+canvas.SaveAs(currentdir+saveddir+"/"+"pt_vs2"+".root")
+canvas.SaveAs(currentdir+saveddir+"/"+"pt_vs2"+".eps")
+canvas.SaveAs(currentdir+saveddir+"/"+"pt_vs2"+".png")
 del leg1
 
 del h_gen_t[:]
@@ -213,7 +226,10 @@ for init_i, init_loop in enumerate(init_cut):
         title = eta_loop
         canvas = ROOT.TCanvas(title,title)
         logscale = False
-        tcut = init_loop
+        if eta_i==0:
+            tcut = ''
+        else:
+            tcut = init_loop
         for i in mcfilelist:
             if not 'DY' in i:
                 continue
@@ -251,9 +267,9 @@ for i in range(3):
     h_eff[1][i].Draw("E1%s"%st_draw[i])
     leg1.AddEntry(h_eff[1][i],samplename+init_config[i],"f")
 leg1.Draw("same")
-canvas.SaveAs(currentdir+saveddir+"/"+"eta_vs"+".root")
-canvas.SaveAs(currentdir+saveddir+"/"+"eta_vs"+".eps")
-canvas.SaveAs(currentdir+saveddir+"/"+"eta_vs"+".png")
+canvas.SaveAs(currentdir+saveddir+"/"+"eta_vs2"+".root")
+canvas.SaveAs(currentdir+saveddir+"/"+"eta_vs2"+".eps")
+canvas.SaveAs(currentdir+saveddir+"/"+"eta_vs2"+".png")
 del leg1
 
 ## resoultion
@@ -262,7 +278,7 @@ for hist_i,i in enumerate(mcfilelist):
     for rsl_i, rsl_loop in enumerate(plotvar_rsl):
         title = rsl_loop
         h_rsl = [] 
-        leg = ROOT.TLegend(0.7,0.7,0.9,0.9)
+        leg = ROOT.TLegend(0.6,0.6,0.9,0.9)
         leg1 = ROOT.TLegend(0.5,0.35,0.7,0.55)
         logscale = False
         j=1
@@ -284,8 +300,12 @@ for hist_i,i in enumerate(mcfilelist):
             histo = copy.deepcopy(hist_maker(samplename, title, bin_set_l[2], x_name_l[2], y_name_l[2], tree, rsl_loop, tcut))
             histo.SetLineColor(j)
             histo.Scale(scale)
+            histo.Fit("gaus","0","",-0.05,0.05)
+            fitresult = ROOT.TVirtualFitter.GetFitter()
+            sig = fitresult.GetParameter(2)
+            print sig
             h_rsl.append(histo)
-            leg.AddEntry(histo, samplename,"f")
+            leg.AddEntry(histo, samplename+", %4.4f%%"%(sig*100),"f")
             print histo
             tt.Close()
         #h_eff[2][hist_i].SetLabelOffset(0.5,"X")
@@ -300,9 +320,9 @@ for hist_i,i in enumerate(mcfilelist):
         h_rsl[2].Sumw2(False)
         h_rsl[2].Draw("same")
         leg.Draw("same")
-        canvas.SaveAs(currentdir+saveddir+"/"+title+"_"+i.strip().split("_")[0]+"_test2"+".root")
-        canvas.SaveAs(currentdir+saveddir+"/"+title+"_"+i.strip().split("_")[0]+"_test2"+".eps")
-        canvas.SaveAs(currentdir+saveddir+"/"+title+"_"+i.strip().split("_")[0]+"_test2"+".png")
+        canvas.SaveAs(currentdir+saveddir+"/"+title+"_"+i.strip().split("_")[0]+"_test3"+".root")
+        canvas.SaveAs(currentdir+saveddir+"/"+title+"_"+i.strip().split("_")[0]+"_test3"+".eps")
+        canvas.SaveAs(currentdir+saveddir+"/"+title+"_"+i.strip().split("_")[0]+"_test3"+".png")
         del leg
          
     #j=j+1

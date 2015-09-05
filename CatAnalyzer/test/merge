@@ -21,7 +21,7 @@ else: dir_list = os.listdir(pwd+user_input)
 failed_list = []
 for d in dir_list:
     print pwd+user_input+d
-    root_list = [x for x in os.listdir(pwd+user_input+d) if (("DY" in x) and x.endswith(".root"))]
+    root_list = [x for x in os.listdir(pwd+user_input+d) if (("h2mu" in x) and x.endswith(".root"))]
     file_names = ""
     for x in root_list:
         file_names += " %s/%s"%(pwd+user_input+d,x)

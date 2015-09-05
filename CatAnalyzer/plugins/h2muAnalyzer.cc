@@ -184,11 +184,6 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   b_jetcat_f_hier = -9;
   b_jetcat_GC = -9;  
 
-  b_gen_lep_pt = -9; b_gen_lep_eta = -9; b_gen_lep_phi = -9;
-  b_reco_lep_pt = -9; b_reco_lep_eta = -9; b_reco_lep_phi = -9;
-  b_resolution = -9;  
-  b_lep_isLoose = 0; b_lep_isMedium = 0; b_lep_isTight = 0;  
-
   vector<cat::Muon> selectedMuons = selectMuons( muons.product() );
 
 
@@ -209,7 +204,7 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
       b_reco_lep_pt = -9; b_reco_lep_eta = -9; b_reco_lep_phi = -9;
       b_resolution = -9;  
       b_lep_isLoose = 0; b_lep_isMedium = 0; b_lep_isTight = 0;  
-      
+ 
       if (!isfromZboson) {
         t2->Fill();
         continue;
@@ -224,12 +219,9 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
         b_lep_isTight = m.isTightMuon();
         float dr = deltaR(g.eta(), g.phi(), m.eta(), m.phi());
         if (dr < 0.1){
-          //b_reco_lep_pt = g.pt();
-          //b_reco_lep_eta = g.eta();
-          //b_reco_lep_phi = g.phi();
-          b_reco_lep_pt = m.pt();
-          b_reco_lep_eta = m.eta();
-          b_reco_lep_phi = m.phi();
+          b_reco_lep_pt = g.pt();
+          b_reco_lep_eta = g.eta();
+          b_reco_lep_phi = g.phi();
           b_resolution = (m.pt()-g.pt())/g.pt();
           break;
         }
@@ -410,8 +402,8 @@ int h2muAnalyzer::JetCat_GC(float mu1_eta, float mu2_eta)
   float GC=0;
   for(int i=0; i<2; i++){
     if (eta_mu[i] < 0.8) GC += 1;
-    if (eta_mu[i] > 0.8 && eta_mu[i] < 1.6) GC += 10;
-    if (eta_mu[i] > 1.6 && eta_mu[i] < 2.4) GC += 100;
+    if (eta_mu[i] > 0.8 && eta_mu[i] < 1.5) GC += 10;
+    if (eta_mu[i] > 1.5 && eta_mu[i] < 2.4) GC += 100;
   }  
   return GC;
 }

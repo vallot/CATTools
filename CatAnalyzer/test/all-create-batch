@@ -5,6 +5,8 @@ def findrt(dir_f, f_txt):
     init_dirs = len(dir_f.split('/'))
     dir_list = []            
     for (path, dir, files) in os.walk(dir_f):
+        if 'fail' in path:
+            continue 
         if init_dirs == len(path.split('/')):
             for i in range(len(dir)):
                 dir_list.append(dir[i].split("_")[0])
@@ -14,8 +16,11 @@ def findrt(dir_f, f_txt):
                 for filename in files:
                     ext = os.path.splitext(filename)[-1]
                     if ext == '.root':
+                        repath = path
                         #print("%s/%s" % (path, filename))
-                        f_txt.write("%s/%s\n" % (path, filename))
+                        if path.startswith('/xrootd/'):
+                            repath = path.replace('/xrootd/','/')
+                        f_txt.write("%s/%s\n" % (repath, filename))
 
 ## execute script location
 absdes = os.getcwd()
@@ -27,16 +32,24 @@ if not os.path.isdir('./texts'):
     os.mkdir('./texts')
 os.chdir('./texts')
 f_name = ['DYJetsToLL_M-50','TTJets_TuneCUETP8M1_13TeV-madgraphMLM','ZZ_TuneCUETP8M1_13TeV','WZ_TuneCUETP8M1_13TeV','WW_TuneCUETP8M1_13TeV','SingleMuon','DoubleMuon']
-path = "/cms/scratch/CAT"
+path = "/xrootd/store/group/CAT"
 dirs = os.listdir(path)
 for i in f_name:
+    isRealdata = 0
+    if ('Single' in i) or ('Double' in i):
+        isRealdata = 1
     f_txt = open(i+".txt","w")
     for dn in dirs:
         if dn.find(i)==0:
             dirs2 = os.listdir(path+"/"+dn)
             for d2n in range(len(dirs2)):
-                if (dirs2[d2n].split('_')[0] == 'v7-3-2'):
-                    findrt(path+"/"+dn+"/"+dirs2[d2n],f_txt)
+                if (dirs2[d2n].split('_')[0] == 'v7-3-6'):
+                    if isRealdata==1:
+                        if 'Prompt' in dirs2[d2n]:
+                            findrt(path+"/"+dn+"/"+dirs2[d2n],f_txt)
+                        else: continue
+                    else:
+                        findrt(path+"/"+dn+"/"+dirs2[d2n],f_txt)
     f_txt.close()
 os.chdir("../")
 now = time.localtime()
