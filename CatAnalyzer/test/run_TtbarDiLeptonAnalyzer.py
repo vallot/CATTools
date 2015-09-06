@@ -21,18 +21,31 @@ process.partonTop = cms.EDProducer("PartonTopProducer",
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 
-process.source.fileNames.append('/store/group/CAT/SingleMuon/v7-3-6_Run2015B-17Jul2015-v1/150820_215426/0000/catTuple_6.root')
 #process.source.fileNames.append('/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-3-6_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v4/150820_215807/0000/catTuple_193.root')
+process.source.fileNames.append('/store/group/CAT/MuonEG/v7-3-6_Run2015B-17Jul2015-v1/150820_215608/0000/catTuple_1.root')
+#process.source.fileNames.append('/store/group/CAT/MuonEG/v7-3-6_Run2015B-17Jul2015-v1/150820_215608/0000/catTuple_2.root')
 
-process.source.lumisToProcess = LumiList.LumiList(filename = 'Cert_246908-251883_13TeV_PromptReco_Collisions15_JSON_v2.txt').getVLuminosityBlockRange()
+#for i in xrange(1,30):
+#	process.source.fileNames.append('/store/group/CAT/MuonEG/v7-3-6_Run2015B-PromptReco-v1/150820_215352/0000/catTuple_%d.root' % i)
+ 
+#process.source.lumisToProcess = LumiList.LumiList(filename = 'rereco_JSON.txt').getVLuminosityBlockRange()
+process.source.lumisToProcess = LumiList.LumiList(filename = 'prompt_JSON.txt').getVLuminosityBlockRange()
 
 process.ttll = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
+    goodVertices = cms.InputTag("catTrigger", "goodVertices"),
+    CSCTightHaloFilter = cms.InputTag("catTrigger", "CSCTightHaloFilter"),
+    HBHENoiseFilter = cms.InputTag("catTrigger", "HBHENoiseFilter"),
+    eeBadScFilter = cms.InputTag("catTrigger", "eeBadScFilter"),
+    HLTMu17TrkIsoVVLEle12CaloIdLTrackIdLIsoVL = cms.InputTag("catTrigger", "HLTMu17TrkIsoVVLEle12CaloIdLTrackIdLIsoVL"),
+    HLTMu8TrkIsoVVLEle17CaloIdLTrackIdLIsoVL = cms.InputTag("catTrigger", "HLTMu8TrkIsoVVLEle17CaloIdLTrackIdLIsoVL"),
+
     vertices = cms.InputTag("catVertex"),
     #vertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
     muons = cms.InputTag("catMuons"),
     electrons = cms.InputTag("catElectrons"),
     jets = cms.InputTag("catJets"),
     mets = cms.InputTag("catMETs"),
+    noHFmets = cms.InputTag("catMETsNoHF"),
     mcLabel = cms.InputTag("prunedGenParticles"),
     triggers = cms.InputTag("catTrigger"),
     
