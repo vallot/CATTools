@@ -1,12 +1,10 @@
 #include "CATTools/CatAnalyzer/interface/KinematicSolvers.h"
 #include "TopQuarkAnalysis/TopKinFitter/interface/TtFullLepKinSolver.h"
 #include "CATTools/CatAnalyzer/interface/TopKinSolverUtils.h"
-#include <boost/assign/std/vector.hpp> // for 'operator+=()'
 #include <gsl/gsl_multimin.h>
 #include <gsl/gsl_errno.h>
 
 using namespace cat;
-using namespace boost::assign;
 using namespace std;
 
 void TTDileptonSolver::solve(const KinematicSolver::LorentzVector input[])
@@ -153,14 +151,8 @@ void MAOSSolver::solve(const KinematicSolver::LorentzVector input[])
 
 CMSKinSolver::CMSKinSolver()
 {
-  std::vector<double> nuPars;
-  nuPars += 30.7137,56.2880,23.0744,59.1015,24.9145;
-  solver_ = new TtFullLepKinSolver(100, 300, 1, nuPars);
-}
-
-CMSKinSolver::~CMSKinSolver()
-{
-  if ( solver_ ) delete solver_;
+  std::vector<double> nuPars = {30.7137,56.2880,23.0744,59.1015,24.9145};
+  solver_.reset(new TtFullLepKinSolver(100, 300, 1, nuPars));
 }
 
 void CMSKinSolver::solve(const KinematicSolver::LorentzVector input[])

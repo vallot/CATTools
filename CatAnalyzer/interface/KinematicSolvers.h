@@ -2,6 +2,8 @@
 #define CATTools_CatAnalyzer_KinematicSolvers_H
 
 #include "DataFormats/Candidate/interface/Candidate.h"
+#include <memory>
+
 class TtFullLepKinSolver;
 
 namespace cat {
@@ -48,20 +50,16 @@ class MAOSSolver : public MT2Solver
 public:
   MAOSSolver(): MT2Solver() {};
   void solve(const LorentzVector input[]) override;
-
-protected:
 };
 
 class CMSKinSolver : public KinematicSolver
 {
 public:
   CMSKinSolver();
-  ~CMSKinSolver();
   void solve(const LorentzVector input[]) override;
 
 protected:
-  TtFullLepKinSolver* solver_;
-
+  std::unique_ptr<TtFullLepKinSolver> solver_;
 };
 
 class DESYMassLoopSolver : public KinematicSolver
@@ -69,8 +67,6 @@ class DESYMassLoopSolver : public KinematicSolver
 public:
   DESYMassLoopSolver();
   void solve(const LorentzVector input[]) override;
-
-protected:
 };
 
 class DESYSmearedSolver : public KinematicSolver
@@ -78,8 +74,6 @@ class DESYSmearedSolver : public KinematicSolver
 public:
   DESYSmearedSolver();
   void solve(const LorentzVector input[]) override;
-
-protected:
 };
 
 // Neutrino weighting method (from thesis by Temple)
