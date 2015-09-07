@@ -11,7 +11,7 @@
      [Notes on implementation]
 */
 //
-// Original Author:  Javier Brochero Cifuentes,512 1-001,+41227670488,
+// Original Author:  Javier Brochero Cifuentes,512 1-001,+41789428316
 //         Created:  Tue Feb  3 09:52:55 CET 2015
 // $Id$
 //
@@ -34,12 +34,18 @@
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 
-
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "CATTools/DataFormats/interface/Muon.h"
 #include "CATTools/DataFormats/interface/Electron.h"
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/MET.h"
 #include "CATTools/DataFormats/interface/SecVertex.h"
+
+#include "DataFormats/Common/interface/TriggerResults.h"
+#include "DataFormats/HLTReco/interface/TriggerEventWithRefs.h"
+#include "DataFormats/HLTReco/interface/TriggerEvent.h"
+//#include "CATTools/CatAnalyzer/interface/TriggerBitChecker.h"
+
 
 #include "DataFormats/Candidate/interface/LeafCandidate.h"
 #include "DataFormats/Candidate/interface/CompositePtrCandidate.h"
@@ -48,6 +54,8 @@
 #include "DataFormats/Candidate/interface/CompositePtrCandidate.h"
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
 
+// b-tagging Eff
+//#include "CATTools/CatAnalyzer/interface/BTagSFUtil.h"
 
 #include "TH1.h"
 #include "TTree.h"
@@ -75,16 +83,27 @@ private:
   virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
   virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
   
-  bool IsTightMuon(const cat::Muon & i_muon_candidate);
+  //----------------------------------------------------------------
+  bool IsTightMuon    (const cat::Muon     & i_muon_candidate);
+  bool IsLooseMuon    (const cat::Muon     & i_muon_candidate);
   bool IsTightElectron(const cat::Electron & i_electron_candidate);
+  bool IsLooseElectron(const cat::Electron & i_electron_candidate);
   
-  edm::EDGetTokenT<edm::View<cat::Muon> > muonToken_;
-  edm::EDGetTokenT<edm::View<cat::Electron> > electronToken_;
-  edm::EDGetTokenT<edm::View<cat::Jet> > jetToken_;
-  edm::EDGetTokenT<edm::View<cat::MET> > metToken_;
-  edm::EDGetTokenT<std::vector<reco::Vertex> > pvToken_;
-  edm::EDGetTokenT<double> puWeight_;
+  bool isMC_;
+  // TTbarMC_ == 0, No ttbar 
+  // TTbarMC_ == 1, ttbar Signal 
+  // TTbarMC_ == 2, ttbar Background
+  int TTbarMC_;
 
+  edm::EDGetTokenT<edm::View<reco::GenParticle> >  genToken_;
+  edm::EDGetTokenT<edm::View<cat::Muon> >          muonToken_;
+  edm::EDGetTokenT<edm::View<cat::Electron> >      electronToken_;
+  edm::EDGetTokenT<edm::View<cat::Jet> >           jetToken_;
+  edm::EDGetTokenT<edm::View<cat::MET> >           metToken_;
+  edm::EDGetTokenT<int>                            pvToken_;
+  edm::EDGetTokenT<float>                          puWeight_;
+  edm::EDGetTokenT<bool>                           trigger_;
+  
   // ----------member data ---------------------------
 
   TTree *vallot = new TTree();
@@ -102,9 +121,11 @@ private:
 
   // PU/Vertices
   float b_PUWeight; 
-  int b_nPV, b_nGoodPV;
+  int b_nGoodPV;
 
   int b_Channel;
+
+  bool b_Trigger;
 
   // MET
   float b_MET, b_MET_phi;
@@ -120,8 +141,6 @@ private:
   std::vector<float> *b_Jet_py;
   std::vector<float> *b_Jet_pz;
   std::vector<float> *b_Jet_E;
-  // ID
-  std::vector<bool> *b_Jet_LooseID;
   // Flavour
   std::vector<int> *b_Jet_partonFlavour;
   std::vector<int> *b_Jet_hadronFlavour;
@@ -147,16 +166,21 @@ private:
 //
 // constructors and destructor
 //
-TtbarSingleLeptonAnalyzer::TtbarSingleLeptonAnalyzer(const edm::ParameterSet& iConfig)
+TtbarSingleLeptonAnalyzer::TtbarSingleLeptonAnalyzer(const edm::ParameterSet& iConfig):
+  isMC_    (iConfig.getUntrackedParameter<bool>("sampleLabel",  true)),
+  TTbarMC_ (iConfig.getUntrackedParameter<int>("TTbarSampleLabel", 0))
 {
    //now do what ever initialization is needed
-  muonToken_ = consumes<edm::View<cat::Muon> >(iConfig.getParameter<edm::InputTag>("muonLabel"));
-  electronToken_ = consumes<edm::View<cat::Electron> >(iConfig.getParameter<edm::InputTag>("electronLabel"));
-  jetToken_ = consumes<edm::View<cat::Jet> >(iConfig.getParameter<edm::InputTag>("jetLabel"));
-  metToken_ = consumes<edm::View<cat::MET> >(iConfig.getParameter<edm::InputTag>("metLabel"));     
-  pvToken_ = consumes<std::vector<reco::Vertex> >(iConfig.getParameter<edm::InputTag>("pvLabel"));
-  puWeight_ = consumes<double>(iConfig.getParameter<edm::InputTag>("puWeight"));
-
+  genToken_      = consumes<edm::View<reco::GenParticle> >  (iConfig.getParameter<edm::InputTag>("genLabel"));
+  muonToken_     = consumes<edm::View<cat::Muon> >          (iConfig.getParameter<edm::InputTag>("muonLabel"));
+  electronToken_ = consumes<edm::View<cat::Electron> >      (iConfig.getParameter<edm::InputTag>("electronLabel"));
+  jetToken_      = consumes<edm::View<cat::Jet> >           (iConfig.getParameter<edm::InputTag>("jetLabel"));
+  metToken_      = consumes<edm::View<cat::MET> >           (iConfig.getParameter<edm::InputTag>("metLabel"));     
+  pvToken_       = consumes<int>                            (iConfig.getParameter<edm::InputTag>("pvLabel"));
+  puWeight_      = consumes<float>                          (iConfig.getParameter<edm::InputTag>("puWeight"));
+  trigger_       = consumes<bool>                           (iConfig.getParameter<edm::InputTag>("trigLabel"));
+    
+    
   edm::Service<TFileService> fs;
   vallot = fs->make<TTree>("vallot", "TopTree");
   
@@ -165,8 +189,9 @@ TtbarSingleLeptonAnalyzer::TtbarSingleLeptonAnalyzer(const edm::ParameterSet& iC
   vallot->Branch("luminumber", &b_Lumi_Number, "Lumi_Number/I");
 
   vallot->Branch("PUWeight", &b_PUWeight, "PUWeight/F");
-  vallot->Branch("PV",       &b_nPV,      "nPV/I");
   vallot->Branch("GoodPV",   &b_nGoodPV,  "nGoodPV/I");
+
+  vallot->Branch("trigger",  &b_Trigger,  "Trigger/B");
 
   vallot->Branch("channel",  &b_Channel,  "Channel/I");
 
@@ -183,8 +208,6 @@ TtbarSingleLeptonAnalyzer::TtbarSingleLeptonAnalyzer(const edm::ParameterSet& iC
   vallot->Branch("jet_pz", "std::vector<float>", &b_Jet_pz);
   vallot->Branch("jet_E" , "std::vector<float>", &b_Jet_E );
 
-  vallot->Branch("jet_LooseID", "std::vector<bool>", &b_Jet_LooseID);
-  
   vallot->Branch("jet_partonFlavour", "std::vector<int>", &b_Jet_partonFlavour);
   vallot->Branch("jet_hadronFlavour", "std::vector<int>", &b_Jet_hadronFlavour);
   
@@ -221,8 +244,6 @@ void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Eve
   b_Jet_py = new std::vector<float>;
   b_Jet_pz = new std::vector<float>;
   b_Jet_E  = new std::vector<float>;
-
-  b_Jet_LooseID = new std::vector<bool>;
   
   b_Jet_partonFlavour = new std::vector<int>;
   b_Jet_hadronFlavour = new std::vector<int>;
@@ -251,51 +272,102 @@ void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Eve
   // PU Info
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  edm::Handle<double> PUWeight;
 
-  iEvent.getByToken(puWeight_, PUWeight);
-  b_PUWeight = *PUWeight;
+  if(isMC_) {
+    edm::Handle<float> PUWeight;
+    
+    iEvent.getByToken(puWeight_, PUWeight);
+    b_PUWeight = *PUWeight;
+  }
+  else b_PUWeight = 1;
 
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  // Generated Particles (For Pythia8)
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+
+  bool nGenLep = 0;
+
+  if(TTbarMC_ > 0) {
+
+    edm::Handle<edm::View<reco::GenParticle> > genParticles;
+    iEvent.getByToken(genToken_, genParticles);
+    
+    // Gen Status: http://home.thep.lu.se/~torbjorn/pythia81html/ParticleProperties.html
+    // abs(id) == 6  // t-Quark
+    // abs(id) == 5  // b-Quark
+    // abs(id) == 24 // W-Boson
+    // abs(id) == 15 // Tau
+    // abs(id) == 11 // Electron
+    // abs(id) == 13 // Muon
+    
+    for (unsigned int i = 0; i < genParticles->size(); i++){
+      
+      const reco::Candidate & gp = (*genParticles)[i];
+      int id = gp.pdgId();
+      
+      const reco::Candidate *mom;
+      const reco::Candidate *itmom;
+      const reco::Candidate *mommom;
+      mom = (&gp)->mother();
+
+      int momid = 0;
+      int mommomid = 0;
+
+      if(mom !=0){
+	momid    = mom->pdgId();
+	mommomid = momid;
+
+	itmom = (&gp)->mother();
+	// This loop searches the mother's mom of the particle
+	while (momid == mommomid){
+	  mommom = itmom->mother();      
+	  if(mommom != 0) mommomid = mommom->pdgId();	
+	  else mommomid = 0;
+
+	  if(momid == mommomid) itmom = mommom->mother();
+ 	} // while(mom == mommom)
+      } // if(mom !=0)
+      
+      // Leptons coming from a W, where W comes from a t
+      if ((abs(id) == 13 || abs(id) == 11 || abs(id) == 15) &&
+	  fabs(momid) == 24 && fabs(mommomid) == 6){   
+
+	// Electrons and Muons
+	if(abs(id) == 13 || abs(id) == 11) nGenLep++;	
+	
+	// Taus
+	if(abs(id) == 15){
+	  for(unsigned int h = 0; h <  gp.numberOfDaughters(); h++) {
+	    const reco::Candidate *gd = gp.daughter(h);
+	    int taudauid = gd->pdgId();
+
+	    if(abs(taudauid) == 13 || abs(taudauid) == 11) nGenLep++;		  
+	  } // for(taus' daughters)
+	} // if(taus)
+      } // if (t->W->lnu)      
+    } // for(genParticles) 
+
+  } // if(TTbarMC>0)
+  
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   // Primary Vertex Info
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
 
-  edm::Handle< std::vector<reco::Vertex> > pvHandle;
+  edm::Handle<int> pvHandle;
   iEvent.getByToken( pvToken_, pvHandle );
-  reco::Vertex primaryVertex;
 
-  int n_vtxs = 0;
-  // Loop over vertices
-  if (pvHandle->size() != 0) {
-    for (unsigned int i=0; i< pvHandle->size(); i++) {
-     reco::Vertex vtx = pvHandle->at(i);
-     if ( fabs(vtx.z())        < 24 &&
-	  vtx.position().Rho() < 2  &&
-	  vtx.ndof()           > 4  &&
-	  !(vtx.isFake())              ) {
-       n_vtxs ++;
-     }
-    }// for(vertex)
-  } // if(vertex)
-  
-  b_nPV = pvHandle->size();
-  b_nGoodPV = n_vtxs;  
-
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  // Secondary Vertex Info
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  
-  //do we need this?
+  b_nGoodPV = *pvHandle;  
  
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   // Missing E_T
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
+
   Handle<edm::View<cat::MET> > MET;
   iEvent.getByToken(metToken_, MET);
 
@@ -309,17 +381,19 @@ void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Eve
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
 
-
   std::vector<cat::Electron> selectedElectrons; 
+  std::vector<cat::Electron> vetoElectrons; 
 
   Handle<edm::View<cat::Electron> > electrons;
   iEvent.getByToken(electronToken_, electrons); 
  
   for (unsigned int i = 0; i < electrons->size() ; i++) { 
     const cat::Electron & electron = electrons->at(i);
-    if( IsTightElectron( electron ) ) selectedElectrons.push_back( electron );
-  }
 
+    if( IsTightElectron( electron ) ) selectedElectrons.push_back( electron );
+    else if( IsLooseElectron( electron ) ) vetoElectrons.push_back( electron ); // does not Include selected electrons
+
+  }
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -328,41 +402,73 @@ void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Eve
   //---------------------------------------------------------------------------
 
   std::vector<cat::Muon> selectedMuons; 
+  std::vector<cat::Muon> vetoMuons; 
 
   Handle<edm::View<cat::Muon> > muons;
   iEvent.getByToken(muonToken_, muons); 
  
   for (unsigned int i = 0; i < muons->size() ; i++) { 
     const cat::Muon & muon = muons->at(i);
+
     if( IsTightMuon( muon) ) selectedMuons.push_back( muon);
+    else if( IsLooseMuon( muon) ) vetoMuons.push_back( muon); // does not Include selected muons
+
   }
 
   //---------------------------------------------------------------------------
-  //----------------------------------------------------------------
+  //---------------------------------------------------------------------------
   // Channel Selection
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
 
   TLorentzVector lepton;
-  int ch_tag  =999;
+  int ch_tag  = 999;
 
-  if(selectedMuons.size() == 1 && selectedElectrons.size() == 0){
+  if(selectedMuons.size()     == 1 && 
+     vetoMuons.size()         == 0 &&
+     selectedElectrons.size() == 0 && 
+     vetoElectrons.size()     == 0){
     lepton.SetPxPyPzE(selectedMuons[0].px(), selectedMuons[0].py(), selectedMuons[0].pz(), selectedMuons[0].energy());
     ch_tag = 0; //muon + jets
   }
 
-  if(selectedMuons.size() == 0 && selectedElectrons.size() == 1){
+  if(selectedMuons.size()     == 0 && 
+     vetoMuons.size()         == 0 &&
+     selectedElectrons.size() == 1 && 
+     vetoElectrons.size()     == 0){
     lepton.SetPxPyPzE(selectedElectrons[0].px(), selectedElectrons[0].py(), selectedElectrons[0].pz(), selectedElectrons[0].energy());
     ch_tag = 1; //electron + jets
   }
 
-
   //---------------------------------------------------------------------------
-  //----------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  // HLTrigger
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+
+  //  edm::Handle<bool> TriggerBits;
+
+  // iEvent.getByToken(trigger_, TriggerBits);
+  // b_Trigger = *TriggerBits;
+
+  b_Trigger = true; // Problems in v7-3-2
+  
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
   // Fill Tree with events that have ONLY one lepton
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
 
+  // Check Gen Level for ttbar sample
+  if (TTbarMC_ >0){
+    if(TTbarMC_ == 1){ // Signal ttbar event
+      if(nGenLep != 1) ch_tag = 999; 
+    }
+    if(TTbarMC_ == 2){ // Background ttbar event
+      if(nGenLep == 1) ch_tag = 999; 
+    }
+  } // if(TTbarMC_ >0)
+  
   if (ch_tag<2){ // Single lepton event 
 
     b_Channel  = ch_tag;
@@ -382,49 +488,60 @@ void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Eve
     iEvent.getByToken(jetToken_, jets);  
     
     for (unsigned int i = 0; i < jets->size() ; i++) {
+      
+      const cat::Jet & jet = jets->at(i);
+      
+      bool goodJet  = false;
+      bool cleanJet = false; 
 
-        const cat::Jet & jet = jets->at(i);
+      // Jet Selection
+      if(fabs(jet.eta()) < 2.4 && jet.pt() > 20 && jet.LooseId()) goodJet = true;
+      // Jet Cleaning
+      TLorentzVector vjet(jet.px(), jet.py(), jet.pz(), jet.energy());
+      double dr_LepJet = vjet.DeltaR(lepton);
+      if(dr_LepJet > 0.4) cleanJet = true; 	  
 
-        if(fabs(jet.eta()) < 2.4 && jet.pt() > 20 ){
+      if(goodJet && cleanJet){
+	// Basic variables
+	b_Jet_px->push_back(jet.px());
+	b_Jet_py->push_back(jet.py());
+	b_Jet_pz->push_back(jet.pz());
+	b_Jet_E ->push_back(jet.energy());
 	
-	    // Basic variables
-	    b_Jet_px->push_back(jet.px());
-	    b_Jet_py->push_back(jet.py());
-	    b_Jet_pz->push_back(jet.pz());
-	    b_Jet_E ->push_back(jet.energy());
-
-	    // Jet ID (Loose)
-	    b_Jet_LooseID ->push_back(jet.LooseId());
-
-	    // Parton Flavour
-	    b_Jet_partonFlavour->push_back(jet.partonFlavour()); 
-	    b_Jet_hadronFlavour->push_back(jet.hadronFlavour());
+	// Parton Flavour
+	b_Jet_partonFlavour->push_back(jet.partonFlavour()); 
+	b_Jet_hadronFlavour->push_back(jet.hadronFlavour());
 	
-	    // Smeared and Shifted
-	    b_Jet_smearedRes     ->push_back(jet.smearedRes() ); 
-	    b_Jet_smearedResDown ->push_back(jet.smearedResDown());
-	    b_Jet_smearedResUp   ->push_back(jet.smearedResUp());
-	    b_Jet_shiftedEnUp    ->push_back(jet.shiftedEnUp());
-	    b_Jet_shiftedEnDown  ->push_back(jet.shiftedEnDown());
-
-	    // b-tag discriminant
-	    float jet_btagDis_CSV = jet.bDiscriminator("combinedInclusiveSecondaryVertexV2BJetTags");
-	    b_Jet_CSV ->push_back(jet_btagDis_CSV);
+	// Smeared and Shifted
+	b_Jet_smearedRes     ->push_back(jet.smearedRes() ); 
+	b_Jet_smearedResDown ->push_back(jet.smearedResDown());
+	b_Jet_smearedResUp   ->push_back(jet.smearedResUp());
+	b_Jet_shiftedEnUp    ->push_back(jet.shiftedEnUp());
+	b_Jet_shiftedEnDown  ->push_back(jet.shiftedEnDown());
 	
-        }
+	// b-tag discriminant
+	float jet_btagDis_CSV = jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
+	b_Jet_CSV ->push_back(jet_btagDis_CSV);
+
+	// BTagSFUtil *fBTagSF;   //The BTag SF utility
+	// fBTagSF = new BTagSFUtil("CSVv2", "Medium", 0);
+
+	// if (fBTagSF->IsTagged(jet_btagDis_CSV, -999999, jet.pt(), jet.eta()) ){
+	//    std::cout << "Is btag Jet....." << std::endl;
+	// }
+      }
     }
     
+    // Fill Tree with event at 1 lepton cut level
     vallot->Fill();
     
   } // if(ch_tag)
-
+  
   delete b_Jet_px;
   delete b_Jet_py;
   delete b_Jet_pz;
   delete b_Jet_E;
 
-  delete b_Jet_LooseID;
-  
   delete b_Jet_partonFlavour;
   delete b_Jet_hadronFlavour;
   
@@ -453,32 +570,48 @@ bool TtbarSingleLeptonAnalyzer::IsTightMuon(const cat::Muon & i_muon_candidate)
 {
   bool GoodMuon=true;
   
-  // Tight cut already defined into CAT::Muon
-  //GoodMuon &= (i_muon_candidate->isTightMuon());
+  // Tight selection already defined into CAT::Muon
+  GoodMuon &= (i_muon_candidate.isTightMuon());
   
   GoodMuon &= (i_muon_candidate.isPFMuon());       // PF
   GoodMuon &= (i_muon_candidate.pt()> 20);         // pT
+  GoodMuon &= (fabs(i_muon_candidate.eta())< 2.1); // eta
+  
+  //----------------------------------------------------------------------------------------------------
+  //------------- The Relative Isolation is already calculated in the CAT object -----------------------
+  //----------------------------------------------------------------------------------------------------
+  // relIso( R ) already includes PU subtraction
+  // float relIso = ( chIso + std::max(0.0, nhIso + phIso - 0.5*PUIso) )/ ecalpt;
+
+  GoodMuon &=( i_muon_candidate.relIso( 0.4 ) < 0.12 );
+
+  //----------------------------------------------------------------------------------------------------
+  //----------------------------------------------------------------------------------------------------
+
+  return GoodMuon;
+}
+//------------- Loose Muon Selection -----------------------
+bool TtbarSingleLeptonAnalyzer::IsLooseMuon(const cat::Muon & i_muon_candidate)
+{
+  bool GoodMuon=true;
+  
+  // Loose selection already defined into CAT::Muon
+  GoodMuon &= (i_muon_candidate.isLooseMuon());
+  
+  GoodMuon &= (i_muon_candidate.isPFMuon());       // PF
+  GoodMuon &= (i_muon_candidate.pt()> 15);         // pT
   GoodMuon &= (fabs(i_muon_candidate.eta())< 2.4); // eta
 
-  GoodMuon &=(i_muon_candidate.isGlobalMuon());
-  GoodMuon &=(i_muon_candidate.isPFMuon());  
-  GoodMuon &=(i_muon_candidate.normalizedChi2() < 10);  
-  GoodMuon &=(i_muon_candidate.numberOfValidMuonHits() > 0);  
-  GoodMuon &=(i_muon_candidate.numberOfMatchedStations() > 1);  
-  GoodMuon &=(fabs(i_muon_candidate.dxy()) < 0.2); //mm
-  GoodMuon &=(fabs(i_muon_candidate.dz()) < 0.5); //mm
-  GoodMuon &=(i_muon_candidate.numberOfValidPixelHits() > 0);
-  GoodMuon &=(i_muon_candidate.trackerLayersWithMeasurement() > 5);
+  //----------------------------------------------------------------------------------------------------
+  //------------- The Relative Isolation is already calculated in the CAT object -----------------------
+  //----------------------------------------------------------------------------------------------------
+  // relIso( R ) already includes PU subtraction
+  // float relIso = ( chIso + std::max(0.0, nhIso + phIso - 0.5*PUIso) )/ ecalpt;
 
-  float PFIsoMuon=999.;
-  PFIsoMuon = i_muon_candidate.chargedHadronIso(0.3) +
-              std::max(0.0, i_muon_candidate.neutralHadronIso(0.3) + 
-	                    i_muon_candidate.photonIso(0.3) - 
-	                    0.5*i_muon_candidate.puChargedHadronIso(0.3));
-    
-  PFIsoMuon = PFIsoMuon/i_muon_candidate.pt();
-  
-  GoodMuon &=( PFIsoMuon<0.12 );
+  GoodMuon &=( i_muon_candidate.relIso( 0.4 ) < 0.12 );
+
+  //----------------------------------------------------------------------------------------------------
+  //----------------------------------------------------------------------------------------------------
 
   return GoodMuon;
 }
@@ -490,43 +623,50 @@ bool TtbarSingleLeptonAnalyzer::IsTightElectron(const cat::Electron & i_electron
 
   GoodElectron &= (i_electron_candidate.isPF() );            // PF
   GoodElectron &= (i_electron_candidate.pt() > 20);          // pT
-  GoodElectron &= (fabs(i_electron_candidate.eta()) < 2.4);  // eta
-  GoodElectron &= (fabs(i_electron_candidate.eta()) < 1.4442 || 
-		   fabs(i_electron_candidate.eta()) > 1.566);
-
-  GoodElectron &= i_electron_candidate.passConversionVeto();
+  GoodElectron &= (fabs(i_electron_candidate.eta()) < 2.1);  // eta
+  GoodElectron &= (fabs(i_electron_candidate.scEta()) < 1.4442 || // eta Super-Cluster 
+		   fabs(i_electron_candidate.scEta()) > 1.566);
 
   // From https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2
-  GoodElectron &= i_electron_candidate.electronID("cutBasedElectronID-CSA14-PU20bx25-V0-standalone-medium") > 0.0;
+  GoodElectron &= i_electron_candidate.electronID("cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-loose") > 0.0;
 
-//----------------------------------------------------------------------------------------------------
-//------------- The Relative Isolation is already calculated in the CAT object -----------------------
-//----------------------------------------------------------------------------------------------------
-  // Effective Area Parametrization
-  // Last recommendation: https://twiki.cern.ch/twiki/bin/viewauth/CMS/SWGuideMuonId2015 Slide 8
-  // Double_t AEff03 = 0.;
-
-  // if      (fabs(i_electron_candidate->eta()) < 0.8)                                                 AEff03 = 0.1013;
-  // else if (fabs(i_electron_candidate->eta()) >= 0.8   && fabs(i_electron_candidate->eta()) < 1.3)   AEff03 = 0.0988; 
-  // else if (fabs(i_electron_candidate->eta()) >= 1.3   && fabs(i_electron_candidate->eta()) < 2.0)   AEff03 = 0.0572; 
-  // else if (fabs(i_electron_candidate->eta()) >= 2.0   && fabs(i_electron_candidate->eta()) < 2.2)   AEff03 = 0.0842; 
-  // else if (fabs(i_electron_candidate->eta()) >= 2.2)                                                AEff03 = 0.1530; 
-  
-  // float PFIsoElectron = ( i_electron_candidate->chargedHadronIso( 0.3 ) +
-  // 			  std::max(0.0, 
-  // 				   i_electron_candidate->neutralHadronIso( 0.3 ) +
-  // 				   i_electron_candidate->photonIso( 0.3 ) -  
-  // 				   AEff03*1
-  // 				   )
-  // 			  );
-//----------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------
-
-
+  //----------------------------------------------------------------------------------------------------
+  //------------- The Relative Isolation is already calculated in the CAT object -----------------------
+  //----------------------------------------------------------------------------------------------------
   // relIso( R ) already includes AEff and RhoIso
   // float relIso = ( chIso + std::max(0.0, nhIso + phIso - rhoIso*AEff) )/ ecalpt;
+
   GoodElectron &=( i_electron_candidate.relIso( 0.3 ) < 0.12 );
 
+  // Effective Area Parametrization can be found in:
+  // Last recommendation: https://twiki.cern.ch/twiki/bin/viewauth/CMS/SWGuideMuonId2015 Slide 8
+  //----------------------------------------------------------------------------------------------------
+  //----------------------------------------------------------------------------------------------------
+
+  return GoodElectron;
+
+}
+//------------- Loose Electron Selection -----------------------
+bool TtbarSingleLeptonAnalyzer::IsLooseElectron(const cat::Electron & i_electron_candidate)
+{
+  bool GoodElectron=true;
+
+  GoodElectron &= (i_electron_candidate.isPF() );            // PF
+  GoodElectron &= (i_electron_candidate.pt() > 15);          // pT
+  GoodElectron &= (fabs(i_electron_candidate.eta()) < 2.4);  // eta
+  GoodElectron &= (fabs(i_electron_candidate.scEta()) < 1.4442 || // eta Super-Cluster 
+		   fabs(i_electron_candidate.scEta()) > 1.566);
+
+  // From https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2
+  GoodElectron &= i_electron_candidate.electronID("cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-medium") > 0.0;
+
+  //----------------------------------------------------------------------------------------------------
+  //------------- The Relative Isolation is already calculated in the CAT object -----------------------
+  //----------------------------------------------------------------------------------------------------
+  GoodElectron &=( i_electron_candidate.relIso( 0.3 ) < 0.12 );
+  //----------------------------------------------------------------------------------------------------
+  //----------------------------------------------------------------------------------------------------
+  
   return GoodElectron;
 
 }
