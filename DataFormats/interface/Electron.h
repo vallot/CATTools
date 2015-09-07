@@ -60,6 +60,8 @@ namespace cat {
 
     bool mcMatched() const { return mcMatched_; }
 
+    int snuID() const {return snuID_;}
+
     void setrelIso(double dR, double chIso, double nhIso, double phIso, double AEff, double rhoIso, double ecalpt)
     {
       float relIso = ( chIso + std::max(0.0, nhIso + phIso - rhoIso*AEff) )/ ecalpt;
@@ -81,6 +83,8 @@ namespace cat {
 
     void setMCMatched(bool m) { mcMatched_ = m; }
 
+    void setSNUID(int id) {snuID_ = id;}
+    
     float electronID(const std::string& name) const;
     float electronID(const char* name) const { return electronID( std::string(name) );}
     void setElectronIDs(const std::vector<pat::Electron::IdPair> & ids) { electronIDs_ = ids; }
@@ -120,6 +124,7 @@ namespace cat {
     float shiftedEnDown_;
     float shiftedEnUp_;
 
+    int snuID_;
   };
 }
 
