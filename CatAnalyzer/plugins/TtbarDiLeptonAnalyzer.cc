@@ -408,29 +408,24 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   }
 
   if (recolep.size() >= 3){
-    cout << "new event" << endl;
 	vector<TLorentzVector> maxpair;
 	float sum = 0;
 	for (auto lep1 : recolep){
 	  for (auto lep2 : recolep){
 		if (lep1 != lep2){
 		  float sumtmp = lep1.Pt() + lep2.Pt();
-		  cout << "1. sum:  " << sum << "   tmp:  " << sumtmp << endl;
 		  if (sumtmp > sum){
 			maxpair.clear();
 		    maxpair.push_back(lep1);
 		    maxpair.push_back(lep2);
 		    sum = sumtmp;
 		  }
-		  cout << "2. sum:  " << sum << "   tmp:  " << sumtmp << endl;
 		}
 	  }
 	}
 	recolep.clear();
 	recolep.push_back(maxpair[0]);
 	recolep.push_back(maxpair[1]);
-	cout << recolep[0].Pt()+recolep[1].Pt() << endl;
-
 	b_is3lep = 1;
   }
 
@@ -488,6 +483,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_nbjet = selectedBJets.size();
   b_channel = channel;
 
+  /*
   for (auto jet : selectedJets) {
     TLorentzVector tlv_jet = jet.tlv();
 	b_jet_pt = tlv_jet.Pt();
@@ -496,6 +492,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	b_jet_m = tlv_jet.M();
     b_jet_CSVInclV2 = jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
   }
+  */
 
   b_step = passingSteps( channel, met.Pt(), (recolep[0]+recolep[1]).M(), ll_charge, selectedJets.size(), selectedBJets.size() );
 
@@ -582,14 +579,13 @@ vector<cat::Electron> TtbarDiLeptonAnalyzer::selectElecs(const edm::View<cat::El
 {
   vector<cat::Electron> selelecs;
   for (auto el : *elecs) {
+    //if (!el.electronID("cutBasedElectronID-Spring15-50ns-V1-standalone-medium")) continue;
     if (!el.electronID("cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-medium")) continue;
     if (!el.passConversionVeto()) continue;
     if (!el.isPF()) continue;
     if (el.pt() <= 20.) continue;
-    if ((fabs(el.scEta()) <= 1.4442) && (el.relIso(0.3) >= 0.1649)) continue;
-    if ((fabs(el.scEta()) >= 1.566) && (el.relIso(0.3) >= 0.2075)) continue;
-    if ((fabs(el.scEta()) > 1.4442) && (fabs(el.scEta()) < 1.566)) continue;
-    if (fabs(el.eta()) >= 2.5) continue;
+    if ((fabs(el.scEta()) >= 1.4442) && (fabs(el.scEta()) <= 1.566)) continue;
+    if ((fabs(el.scEta()) > 1.566) && (fabs(el.eta()) >= 2.4)) continue;
     //if (el.pt() < 5) continue;
     //printf("electron with pt %4.1f\n", el.pt());
     selelecs.push_back(el);
@@ -601,6 +597,7 @@ vector<cat::Jet> TtbarDiLeptonAnalyzer::selectJets(const edm::View<cat::Jet>* je
 {
   vector<cat::Jet> seljets;
   for (auto jet : *jets) {
+	cout << "jet " << jet.pt() << endl;
     if (!jet.LooseId()) continue;
     if (jet.pt() <= 30.) continue;
     if (fabs(jet.eta()) >= 2.4)	continue;
@@ -628,7 +625,7 @@ int TtbarDiLeptonAnalyzer::passingSteps(int channel, float met, float ll_mass, f
 {
   int step = 0;
   if (ll_mass <= 20.) return step;
-  if (ll_charge > 0.) return step;
+  if (ll_charge >= 0.) return step;
   step = 1;
   if (channel != 1){
     if ((ll_mass > 76) and (ll_mass < 106)) return step;

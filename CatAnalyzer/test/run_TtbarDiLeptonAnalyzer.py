@@ -22,7 +22,8 @@ process.partonTop = cms.EDProducer("PartonTopProducer",
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 
 #process.source.fileNames.append('/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-3-6_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v4/150820_215807/0000/catTuple_193.root')
-process.source.fileNames.append('/store/group/CAT/MuonEG/v7-3-6_Run2015B-17Jul2015-v1/150820_215608/0000/catTuple_1.root')
+process.source.fileNames.append('/store/group/CAT/MuonEG/desySync_Run2015B-17Jul2015-v1/150905_193954/0000/catTuple_1.root')
+#process.source.fileNames.append('/store/group/CAT/MuonEG/v7-3-6_Run2015B-17Jul2015-v1/150820_215608/0000/catTuple_1.root')
 #process.source.fileNames.append('/store/group/CAT/MuonEG/v7-3-6_Run2015B-17Jul2015-v1/150820_215608/0000/catTuple_2.root')
 
 #for i in xrange(1,30):
