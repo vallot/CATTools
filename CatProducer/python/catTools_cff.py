@@ -103,8 +103,11 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     process.puppi.candName = cms.InputTag('packedPFCandidates')
     process.puppi.vertexName = cms.InputTag('offlineSlimmedPrimaryVertices')
     # remaking puppi jets
+    JETCorrLevels = ['L1FastJet', 'L2Relative', 'L3Absolute']
+    if not runOnMC:
+        JETCorrLevels = ['L1FastJet', 'L2Relative', 'L3Absolute', 'L2L3Residual']
     from JMEAnalysis.JetToolbox.jetToolbox_cff import jetToolbox
-    jetToolbox( process, 'ak4', 'ak4JetSubs', 'out', PUMethod='Puppi', JETCorrLevels = ['L1FastJet', 'L2Relative', 'L3Absolute'] ) 
+    jetToolbox( process, 'ak4', 'ak4JetSubs', 'out', PUMethod='Puppi', JETCorrLevels = JETCorrLevels ) 
     catJetsPuppiSource = "selectedPatJetsAK4PFPuppi"
     # remaking puppi met
     from RecoMET.METProducers.PFMET_cfi import pfMet
@@ -123,7 +126,7 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
 #######################################################################    
 # getting jec from file for jec on the fly from db file
 # currently only for mc
-    era = "Summer15_50nsV4"
+    era = "Summer15_50nsV5"
     if runOnMC:
         era = era+"_MC"
     else:
@@ -161,6 +164,7 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
             jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetPuppiCorrFactorsUpdated")),
             jetSource = cms.InputTag(catJetsPuppiSource),
         )
+        process.patJetCorrFactorsAK4PFPuppi.payload = cms.string('AK4PFPuppi')
         catJetsPuppiSource = "patJetsPuppiUpdated"
 
 #######################################################################
@@ -173,18 +177,18 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
         dataFormat = DataFormat.MiniAOD
     
     switchOnVIDElectronIdProducer(process, dataFormat)    
-    my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_PHYS14_PU20bx25_V2_cff',
-                    'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV51_cff']
+    my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_50ns_V1_cff',
+                    'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV60_cff']
     for idmod in my_id_modules:
         setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
 
     if useMiniAOD:
         process.catElectrons.electronIDSources = cms.PSet(
-            eleVetoIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-veto"),
-            eleLooseIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-loose"),
-            eleMediumIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-medium"),
-            eleTightIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-tight"),
-            eleHEEPIdMap = cms.InputTag("egmGsfElectronIDs:heepElectronID-HEEPV51"),
+            eleVetoIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-50ns-V1-standalone-veto"),
+            eleLooseIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-50ns-V1-standalone-loose"),
+            eleMediumIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-50ns-V1-standalone-medium"),
+            eleTightIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-50ns-V1-standalone-tight"),
+            eleHEEPIdMap = cms.InputTag("egmGsfElectronIDs:heepElectronID-HEEPV60"),
         )
 #######################################################################    
     if runOnMC:## Load MC dependent producers

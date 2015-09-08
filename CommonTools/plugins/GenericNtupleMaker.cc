@@ -49,6 +49,13 @@ public:
       values_.push_back(new std::vector<T>);
       tree->Branch(name.c_str(), values_.back());
     }
+    const auto labels = pset.getParameterNamesForType<edm::InputTag>();
+    for ( auto& name : labels )
+    {
+      tokens_.push_back(iC.consumes<std::vector<T> >(pset.getParameter<edm::InputTag>(name)));
+      values_.push_back(new std::vector<T>);
+      tree->Branch(name.c_str(), values_.back());
+    }
   }
 
   int load(const edm::Event& event)
@@ -98,6 +105,13 @@ public:
     {
       const auto ipset = pset.getParameter<PSet>(name);
       tokens_.push_back(iC.consumes<T>(ipset.getParameter<edm::InputTag>("src")));
+      values_.push_back(new T);
+      tree->Branch(name.c_str(), values_.back(), (name+"/"+typeNameStr).c_str());
+    }
+    const auto labels = pset.getParameterNamesForType<edm::InputTag>();
+    for ( auto& name : labels )
+    {
+      tokens_.push_back(iC.consumes<T>(pset.getParameter<edm::InputTag>(name)));
       values_.push_back(new T);
       tree->Branch(name.c_str(), values_.back(), (name+"/"+typeNameStr).c_str());
     }
@@ -346,6 +360,7 @@ void GenericNtupleMaker::analyze(const edm::Event& event, const edm::EventSetup&
   vboolCSet_.clear();
   vintCSet_.clear();
   vdoubleCSet_.clear();
+  vfloatCSet_.clear();
 
   for ( size_t iCand=0; iCand<nCand; ++iCand )
   {
