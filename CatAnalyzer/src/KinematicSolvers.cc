@@ -230,7 +230,7 @@ void DESYMassLoopSolver::solve(const KinematicSolver::LorentzVector input[])
 
 DESYSmearedSolver::DESYSmearedSolver()
 {
-  TFile* f = TFile::Open(edm::FileInPath("CATTools/CatAnalyzer/data/kinInput.root").fullPath().c_str());
+  TFile* f = TFile::Open(edm::FileInPath("CATTools/CatAnalyzer/data/desyKinRecoInput.root").fullPath().c_str());
 
   h_jetEres_.reset(dynamic_cast<TH1*>(f->Get("h_jetEres")));
   h_jetAres_.reset(dynamic_cast<TH1*>(f->Get("h_jetAres")));
