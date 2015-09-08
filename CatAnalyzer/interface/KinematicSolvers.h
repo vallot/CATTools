@@ -77,7 +77,7 @@ public:
   void solve(const LorentzVector input[]) override;
 
 protected:
-  math::XYZTLorentzVector getSmearedLV(const math::XYZTLorentzVector& v, const double er, const double ar);
+  math::XYZTLorentzVector getSmearedLV(const math::XYZTLorentzVector& v, const double fE, const double dRot);
 
   std::unique_ptr<TH1> h_jetEres_, h_jetAres_;
   std::unique_ptr<TH1> h_lepEres_, h_lepAres_;

@@ -113,26 +113,8 @@ void KinSolverUtils::getNuPxPyPzE(const double px, const std::vector<double>& p,
   nu2sol[3] = sqrt(nu2sol[0]*nu2sol[0] + nu2sol[1]*nu2sol[1] + nu2sol[2]*nu2sol[2] + mV*mV);
 }
 
-KinSolverUtils::LV KinSolverUtils::getSmearedLV(const LV& lv0, const double es, const double as)
-{
-  if ( isZero(es) or isZero(lv0.P()) )
-  {
-    return LV(0,0,0,0);
-  }
-  const double e0 = lv0.energy();
-  const double xb = sqrt(es*es*e0*e0-lv0.M2())/lv0.P();
-
-  // Rescale at the first step
-  double x = lv0.px()*xb, y = lv0.py()*xb, z = lv0.pz()*xb;
-  double e = e0*xb;
-
-  // Apply rotation
-
-  return LV(x, y, z, e);
-}
-
 void KinSolverUtils::solve_linear(const double a, const double b,
-                std::vector<double>& v) {
+                                  std::vector<double>& v) {
   v.clear();
   if ( a == 0 ) return;
 
@@ -140,7 +122,7 @@ void KinSolverUtils::solve_linear(const double a, const double b,
 }
 
 void KinSolverUtils::solve_quadratic(const double a, const double b, const double c,
-                   std::vector<double>& v) {
+                                     std::vector<double>& v) {
   if ( isZero(a) ) return solve_linear(b, c, v);
 
   v.clear();

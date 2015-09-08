@@ -5,6 +5,7 @@
 #include <gsl/gsl_multimin.h>
 #include <gsl/gsl_errno.h>
 #include "TFile.h"
+#include "TRandom3.h"
 
 using namespace cat;
 using namespace std;
@@ -312,13 +313,26 @@ void DESYSmearedSolver::solve(const KinematicSolver::LorentzVector input[])
   }
 }
 
-math::XYZTLorentzVector DESYSmearedSolver::getSmearedLV(const math::XYZTLorentzVector& v,
-                                                        const double er, const double ar)
+math::XYZTLorentzVector DESYSmearedSolver::getSmearedLV(const math::XYZTLorentzVector& lv0,
+                                                        const double fE, const double dRot)
 {
-  math::XYZTLorentzVector out;
-  if ( v.P() <= 0 or er <= 0 ) return out;
-  return out;
+  // Rescale at the first step
+  const double e = fE*lv0.energy();
+  const double p = sqrt(std::max(0., e*e-lv0.M2()));
+  if ( KinSolverUtils::isZero(e) or KinSolverUtils::isZero(p) ) return math::XYZTLorentzVector();
+
+  // Apply rotation
+  const double localPhi = gRandom->Uniform(-TMath::Pi(), TMath::Pi());
+  const double theta = lv0.Theta() + dRot*cos(localPhi);
+  const double phi = lv0.Phi() + dRot*sin(localPhi);
+
+  const double pz = p*cos(theta);
+  const double px = p*sin(theta)*cos(phi);
+  const double py = p*sin(theta)*sin(phi);
+
+  return math::XYZTLorentzVector(px, py, pz, e);
 }
+
 
 namespace CATNuWeight
 {
