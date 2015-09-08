@@ -115,12 +115,12 @@ void KinSolverUtils::getNuPxPyPzE(const double px, const std::vector<double>& p,
 
 KinSolverUtils::LV KinSolverUtils::getSmearedLV(const LV& lv0, const double es, const double as)
 {
-  if ( isZero(es) or isZero(lv0.p()) )
+  if ( isZero(es) or isZero(lv0.P()) )
   {
     return LV(0,0,0,0);
   }
   const double e0 = lv0.energy();
-  const double xb = sqrt(es*es*e0*e0-lv0.m2())/lv0.p();
+  const double xb = sqrt(es*es*e0*e0-lv0.M2())/lv0.P();
 
   // Rescale at the first step
   double x = lv0.px()*xb, y = lv0.py()*xb, z = lv0.pz()*xb;

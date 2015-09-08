@@ -3,6 +3,7 @@
 
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include <memory>
+#include "TH1.h"
 
 class TtFullLepKinSolver;
 
@@ -74,6 +75,14 @@ class DESYSmearedSolver : public KinematicSolver
 public:
   DESYSmearedSolver();
   void solve(const LorentzVector input[]) override;
+
+protected:
+  math::XYZTLorentzVector getSmearedLV(const math::XYZTLorentzVector& v, const double er, const double ar);
+
+  std::unique_ptr<TH1> h_jetEres_, h_jetAres_;
+  std::unique_ptr<TH1> h_lepEres_, h_lepAres_;
+  std::unique_ptr<TH1> h_wmass_;
+  std::unique_ptr<TH1> h_mbl_w_;
 };
 
 // Neutrino weighting method (from thesis by Temple)

@@ -1,8 +1,10 @@
 #include "CATTools/CatAnalyzer/interface/KinematicSolvers.h"
 #include "TopQuarkAnalysis/TopKinFitter/interface/TtFullLepKinSolver.h"
 #include "CATTools/CatAnalyzer/interface/TopKinSolverUtils.h"
+#include "FWCore/ParameterSet/interface/FileInPath.h"
 #include <gsl/gsl_multimin.h>
 #include <gsl/gsl_errno.h>
+#include "TFile.h"
 
 using namespace cat;
 using namespace std;
@@ -190,17 +192,17 @@ void DESYMassLoopSolver::solve(const KinematicSolver::LorentzVector input[])
 
   const double metX = input[0].px(), metY = input[0].py();
   const auto& l1 = input[1], l2 = input[2];
-  const auto& b1 = input[3], b2 = input[4];
-  const auto visSum = l1+l2+b1+b2;
+  const auto& j1 = input[3], j2 = input[4];
+  const auto visSum = l1+l2+j1+j2;
 
-  const double l1E = l1.energy(), b1E = b1.energy();
-  const double l2E = l2.energy(), b2E = b2.energy();
-  const double a4 = (b1E*l1.pz()-l1E*b1.pz())/l1E/(b1E+l1E);
-  const double b4 = (b2E*l2.pz()-l2E*b2.pz())/l2E/(b2E+l2E);
+  const double l1E = l1.energy(), j1E = j1.energy();
+  const double l2E = l2.energy(), j2E = j2.energy();
+  const double a4 = (j1E*l1.pz()-l1E*j1.pz())/l1E/(j1E+l1E);
+  const double b4 = (j2E*l2.pz()-l2E*j2.pz())/l2E/(j2E+l2E);
 
   std::vector<double> koef, cache, sols;
   for ( double mTop = 100; mTop < 300.5; mTop += 1 ) {
-    KinSolverUtils::findCoeffs(mTop, 80.4, 80.4, l1, l2, b1, b2, metX, metY, koef, cache);
+    KinSolverUtils::findCoeffs(mTop, 80.4, 80.4, l1, l2, j1, j2, metX, metY, koef, cache);
     KinSolverUtils::solve_quartic(koef, a4, b4, sols);
     //const int nSol = sols.size();
     double nu1sol[4], nu2sol[4];
@@ -220,10 +222,31 @@ void DESYMassLoopSolver::solve(const KinematicSolver::LorentzVector input[])
       if ( weight < quality_ ) continue;
 
       quality_ = weight;
-      nu1_.set(nu1xyz[0], nu1xyz[1], nu1xyz[2], nu1E);
-      nu2_.set(nu2xyz[0], nu2xyz[1], nu2xyz[2], nu2E);
+      nu1_.SetPxPyPzE(nu1sol[0], nu1sol[1], nu1sol[2], nu1sol[3]);
+      nu2_.SetPxPyPzE(nu2sol[0], nu2sol[1], nu2sol[2], nu2sol[3]);
     }
   }
+}
+
+DESYSmearedSolver::DESYSmearedSolver()
+{
+  TFile* f = TFile::Open(edm::FileInPath("CATTools/CatAnalyzer/data/kinInput.root").fullPath().c_str());
+
+  h_jetEres_.reset(dynamic_cast<TH1*>(f->Get("h_jetEres")));
+  h_jetAres_.reset(dynamic_cast<TH1*>(f->Get("h_jetAres")));
+  h_lepEres_.reset(dynamic_cast<TH1*>(f->Get("h_lepEres")));
+  h_lepAres_.reset(dynamic_cast<TH1*>(f->Get("h_lepAres")));
+  h_wmass_.reset(dynamic_cast<TH1*>(f->Get("h_wmass")));
+  h_mbl_w_.reset(dynamic_cast<TH1*>(f->Get("h_mbl_w")));
+
+  h_jetEres_->SetDirectory(0);
+  h_jetAres_->SetDirectory(0);
+  h_lepEres_->SetDirectory(0);
+  h_lepAres_->SetDirectory(0);
+  h_wmass_->SetDirectory(0);
+  h_mbl_w_->SetDirectory(0);
+
+  f->Close();
 }
 
 void DESYSmearedSolver::solve(const KinematicSolver::LorentzVector input[])
@@ -233,23 +256,23 @@ void DESYSmearedSolver::solve(const KinematicSolver::LorentzVector input[])
 
   const double metX = input[0].px(), metY = input[0].py();
   const auto& l1 = input[1], l2 = input[2];
-  const auto& b1 = input[3], b2 = input[4];
+  const auto& j1 = input[3], j2 = input[4];
 
   // Skip if L+B mass is large in Smeared solution case
-  const double mbl1 = (l1+b1).mass();
-  const double mbl2 = (l2+b2).mass();
+  const double mbl1 = (l1+j1).mass();
+  const double mbl2 = (l2+j2).mass();
   if ( mbl1 > 180. or mbl2 > 180. ) return;
-  const auto visSum = l1+l2+b1+b2;
+  const auto visSum = l1+l2+j1+j2;
 
-  const double l1E = l1.energy(), b1E = b1.energy();
-  const double l2E = l2.energy(), b2E = b2.energy();
-  const double a4 = (b1E*l1.pz()-l1E*b1.pz())/l1E/(b1E+l1E);
-  const double b4 = (b2E*l2.pz()-l2E*b2.pz())/l2E/(b2E+l2E);
+  const double l1E = l1.energy(), j1E = j1.energy();
+  const double l2E = l2.energy(), j2E = j2.energy();
+  const double a4 = (j1E*l1.pz()-l1E*j1.pz())/l1E/(j1E+l1E);
+  const double b4 = (j2E*l2.pz()-l2E*j2.pz())/l2E/(j2E+l2E);
 
   std::vector<double> koef, cache, sols;
   // Try 100 times with energy/angle smearing. Take weighted average of solutions
   const double mTopInput = 172.5;
-  double sumW = 0., maxSumW = 0;
+  //double sumW = 0., maxSumW = 0;
   // Set random seed using kinematics (follow DESY code)
   //const unsigned int seed = std::abs(static_cast<int>(1E6*j1.pt()/j2.pt() * sin(1E6*(l1.pt() + 2.*l2.pt()))));
   //gsl_rng_mt19937
@@ -267,7 +290,7 @@ void DESYSmearedSolver::solve(const KinematicSolver::LorentzVector input[])
     const double newmetY = metY - (-visSum.py() + newj1.py() + newj2.py() + newl1.py() + newl2.py());
 
     KinSolverUtils::findCoeffs(mTopInput, h_wmass_->GetRandom(), h_wmass_->GetRandom(),
-                               newl1, newl2, newb1, newb2, newmetX, newmetY, koef, cache);
+                               newl1, newl2, newj1, newj2, newmetX, newmetY, koef, cache);
     KinSolverUtils::solve_quartic(koef, a4, b4, sols);
     //const int nSol = sols.size();
     double nu1sol[4], nu2sol[4];
@@ -277,14 +300,24 @@ void DESYSmearedSolver::solve(const KinematicSolver::LorentzVector input[])
 
       // Compute weight by m(B,L)
       const double w1 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin(mbl1));
+      const double w2 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin(mbl2));
+      const double weight = w1*w2;
 
       if ( weight < quality_ ) continue;
 
       quality_ = weight;
-      nu1_.set(nu1xyz[0], nu1xyz[1], nu1xyz[2], nu1E);
-      nu2_.set(nu2xyz[0], nu2xyz[1], nu2xyz[2], nu2E);
+      nu1_.SetPxPyPzE(nu1sol[0], nu1sol[1], nu1sol[2], nu1sol[3]);
+      nu2_.SetPxPyPzE(nu2sol[0], nu2sol[1], nu2sol[2], nu2sol[3]);
     }
   }
+}
+
+math::XYZTLorentzVector DESYSmearedSolver::getSmearedLV(const math::XYZTLorentzVector& v,
+                                                        const double er, const double ar)
+{
+  math::XYZTLorentzVector out;
+  if ( v.P() <= 0 or er <= 0 ) return out;
+  return out;
 }
 
 namespace CATNuWeight
