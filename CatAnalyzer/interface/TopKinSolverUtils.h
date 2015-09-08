@@ -22,6 +22,7 @@ struct KinSolverUtils {
                          std::vector<double>& koeff, std::vector<double>& cachedPars);
   static void getNuPxPyPz(const double nuPx, const std::vector<double>& cachedPars,
                           double* nu1xyz, double* nu2xyz);
+  static LV getSmearedLV(const LV& lv0, const double es, const double as);
   static void solve_quartic(const std::vector<double>& h, const double a4, const double b4,
                             std::vector<double>& v);
   static void solve_cubic(const double a, const double b, const double c, const double d,

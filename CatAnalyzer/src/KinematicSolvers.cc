@@ -189,8 +189,9 @@ void DESYMassLoopSolver::solve(const KinematicSolver::LorentzVector input[])
   values_.clear();
 
   const double metX = input[0].px(), metY = input[0].py();
-  auto l1 = input[1], l2 = input[2];
-  auto b1 = input[3], b2 = input[4];
+  const auto& l1 = input[1], l2 = input[2];
+  const auto& b1 = input[3], b2 = input[4];
+  const auto visSum = l1+l2+b1+b2;
 
   const double l1E = l1.energy(), b1E = b1.energy();
   const double l2E = l2.energy(), b2E = b2.energy();
@@ -199,14 +200,28 @@ void DESYMassLoopSolver::solve(const KinematicSolver::LorentzVector input[])
 
   std::vector<double> koef, cache, sols;
   for ( double mTop = 100; mTop < 300.5; mTop += 1 ) {
-    KinSolverUtils::findCoeffs(mTop, 80.4, l1, l2, b1, b2, metX, metY, koef, cache);
+    KinSolverUtils::findCoeffs(mTop, 80.4, 80.4, l1, l2, b1, b2, metX, metY, koef, cache);
     KinSolverUtils::solve_quartic(koef, a4, b4, sols);
     //const int nSol = sols.size();
-    double nu1xyz[3], nu2xyz[3];
+    double nu1sol[4], nu2sol[4];
     for ( const double& sol : sols ) {
-      KinSolverUtils::getNuPxPyPz(sol, cache, nu1xyz, nu2xyz);
-      //nu1_.set(nu1xyz[0], nu1xyz[1], nu1xyz[2], 0 /*FIXME add E*/);
-      //nu2_.set(nu2xyz[0], nu2xyz[1], nu2xyz[2], 0 /*FIXME add E*/);
+      // Recompute neutrino four momentum
+      KinSolverUtils::getNuPxPyPzE(sol, cache, nu1sol, nu2sol);
+
+      // Compute weight
+      // This was originally Landau2D(nuE, nubarE)
+      // but most recent code returns 1/mTTbar
+      const double ttX = visSum.px()+nu1sol[0]+nu2sol[0];
+      const double ttY = visSum.py()+nu1sol[1]+nu2sol[1];
+      const double ttZ = visSum.pz()+nu1sol[2]+nu2sol[2];
+      const double ttE = visSum.E()+nu1sol[3]+nu2sol[3];
+      const double weight = 1/sqrt(ttE*ttE-ttX*ttX-ttY*ttY-ttZ*ttZ);
+
+      if ( weight < quality_ ) continue;
+
+      quality_ = weight;
+      nu1_.set(nu1xyz[0], nu1xyz[1], nu1xyz[2], nu1E);
+      nu2_.set(nu2xyz[0], nu2xyz[1], nu2xyz[2], nu2E);
     }
   }
 }
@@ -215,6 +230,61 @@ void DESYSmearedSolver::solve(const KinematicSolver::LorentzVector input[])
 {
   quality_ = -1e9;
   values_.clear();
+
+  const double metX = input[0].px(), metY = input[0].py();
+  const auto& l1 = input[1], l2 = input[2];
+  const auto& b1 = input[3], b2 = input[4];
+
+  // Skip if L+B mass is large in Smeared solution case
+  const double mbl1 = (l1+b1).mass();
+  const double mbl2 = (l2+b2).mass();
+  if ( mbl1 > 180. or mbl2 > 180. ) return;
+  const auto visSum = l1+l2+b1+b2;
+
+  const double l1E = l1.energy(), b1E = b1.energy();
+  const double l2E = l2.energy(), b2E = b2.energy();
+  const double a4 = (b1E*l1.pz()-l1E*b1.pz())/l1E/(b1E+l1E);
+  const double b4 = (b2E*l2.pz()-l2E*b2.pz())/l2E/(b2E+l2E);
+
+  std::vector<double> koef, cache, sols;
+  // Try 100 times with energy/angle smearing. Take weighted average of solutions
+  const double mTopInput = 172.5;
+  double sumW = 0., maxSumW = 0;
+  // Set random seed using kinematics (follow DESY code)
+  //const unsigned int seed = std::abs(static_cast<int>(1E6*j1.pt()/j2.pt() * sin(1E6*(l1.pt() + 2.*l2.pt()))));
+  //gsl_rng_mt19937
+  //gRandom->SetSeed(seed);
+  for ( int i=0; i<100; ++i )
+  {
+    // Generate smearing factors for jets and leptons
+    const auto newj1 = getSmearedLV(j1, h_jetEres_->GetRandom(), h_jetAres_->GetRandom());
+    const auto newj2 = getSmearedLV(j2, h_jetEres_->GetRandom(), h_jetAres_->GetRandom());
+    const auto newl1 = getSmearedLV(l1, h_lepEres_->GetRandom(), h_lepAres_->GetRandom());
+    const auto newl2 = getSmearedLV(l2, h_lepEres_->GetRandom(), h_lepAres_->GetRandom());
+
+    // new MET = old MET + MET correction; MET correction = - (Vis. Pxy sum)
+    const double newmetX = metX - (-visSum.px() + newj1.px() + newj2.px() + newl1.px() + newl2.px());
+    const double newmetY = metY - (-visSum.py() + newj1.py() + newj2.py() + newl1.py() + newl2.py());
+
+    KinSolverUtils::findCoeffs(mTopInput, h_wmass_->GetRandom(), h_wmass_->GetRandom(),
+                               newl1, newl2, newb1, newb2, newmetX, newmetY, koef, cache);
+    KinSolverUtils::solve_quartic(koef, a4, b4, sols);
+    //const int nSol = sols.size();
+    double nu1sol[4], nu2sol[4];
+    for ( const double& sol : sols ) {
+      // Recompute neutrino four momentum
+      KinSolverUtils::getNuPxPyPzE(sol, cache, nu1sol, nu2sol);
+
+      // Compute weight by m(B,L)
+      const double w1 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin(mbl1));
+
+      if ( weight < quality_ ) continue;
+
+      quality_ = weight;
+      nu1_.set(nu1xyz[0], nu1xyz[1], nu1xyz[2], nu1E);
+      nu2_.set(nu2xyz[0], nu2xyz[1], nu2xyz[2], nu2E);
+    }
+  }
 }
 
 namespace CATNuWeight
