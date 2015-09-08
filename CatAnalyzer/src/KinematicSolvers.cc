@@ -233,12 +233,12 @@ DESYSmearedSolver::DESYSmearedSolver()
 {
   TFile* f = TFile::Open(edm::FileInPath("CATTools/CatAnalyzer/data/desyKinRecoInput.root").fullPath().c_str());
 
-  h_jetEres_.reset(dynamic_cast<TH1*>(f->Get("h_jetEres")));
-  h_jetAres_.reset(dynamic_cast<TH1*>(f->Get("h_jetAres")));
-  h_lepEres_.reset(dynamic_cast<TH1*>(f->Get("h_lepEres")));
-  h_lepAres_.reset(dynamic_cast<TH1*>(f->Get("h_lepAres")));
-  h_wmass_.reset(dynamic_cast<TH1*>(f->Get("h_wmass")));
-  h_mbl_w_.reset(dynamic_cast<TH1*>(f->Get("h_mbl_w")));
+  h_jetEres_.reset(dynamic_cast<TH1*>(f->Get("KinReco_fE_jet_step7")));
+  h_jetAres_.reset(dynamic_cast<TH1*>(f->Get("KinReco_d_angle_jet_step7")));
+  h_lepEres_.reset(dynamic_cast<TH1*>(f->Get("KinReco_fE_lep_step7")));
+  h_lepAres_.reset(dynamic_cast<TH1*>(f->Get("KinReco_d_angle_lep_step7")));
+  h_wmass_.reset(dynamic_cast<TH1*>(f->Get("KinReco_W_mass_step0")));
+  h_mbl_w_.reset(dynamic_cast<TH1*>(f->Get("KinReco_mbl_true_step0")));
 
   h_jetEres_->SetDirectory(0);
   h_jetAres_->SetDirectory(0);
