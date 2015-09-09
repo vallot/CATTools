@@ -49,6 +49,8 @@ namespace cat {
     bool runOnMC_;
  
     typedef std::pair<std::string, edm::InputTag> NameTag;
+    typedef math::XYZPoint Point;
+
     std::vector<NameTag> elecIDSrcs_;
     std::vector<edm::EDGetTokenT<edm::ValueMap<bool> > > elecIDTokens_;
     const std::vector<std::string> ePidNames_;
@@ -169,38 +171,16 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
       }
     }
     
-
-    
     // for additional electron pids
     for (size_t i = 0; i < elecIDSrcs_.size(); ++i){
       ids[i].second = (*idhandles[i])[elecsRef];
       aElectron.setElectronID(ids[i]);
     }
-
-
-    // Find the first vertex in the collection that passes
-    // good quality criteria  (for dx/dz)
-    
-    reco::VertexCollection::const_iterator firstGoodVertex = recVtxs->end();
-    int firstGoodVertexIdx = 0;
-    for (reco::VertexCollection::const_iterator vtx = recVtxs->begin(); 
-	 vtx != recVtxs->end(); ++vtx, ++firstGoodVertexIdx) {
-      bool isFake = vtx->isFake();
-      // Check the goodness
-      if ( !isFake
-	   &&  vtx->ndof()>=4. && vtx->position().Rho()<=2.0
-	   && fabs(vtx->position().Z())<=24.0) {
-	firstGoodVertex = vtx;
-	break;
-      }
-    }
-    if ( firstGoodVertex==recVtxs->end() )
-      return; // skip event if there are no good PVs
-    
-
-    reco::GsfTrackRef theTrack = aPatElectron.gsfTrack();
-    float dz =  theTrack->dz( firstGoodVertex->position() );
-    
+        
+    reco::GsfTrackRef theTrack = aPatElectron.gsfTrack();    
+    aElectron.setDxy( theTrack->dxy(pv.position()) );
+    aElectron.setDz( theTrack->dz(pv.position()) );
+    aElectron.setVertex(Point(theTrack->vx(),theTrack->vy(),theTrack->vz()));
     
     float eoverp = -999.;
     // |1/E-1/p| = |1/E - EoverPinner/E| is computed below
@@ -214,7 +194,7 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
       eoverp = fabs(1.0/aPatElectron.ecalEnergy() - aPatElectron.eSuperClusterOverP()/aPatElectron.ecalEnergy() ) ;
     }
     
-    int snu_id = getSNUID(aPatElectron.full5x5_sigmaIetaIeta(), abs(aPatElectron.deltaEtaSuperClusterTrackAtVtx() ), abs(aPatElectron.deltaPhiSuperClusterTrackAtVtx() ), aPatElectron.hcalOverEcal(), eoverp, abs(dz) , aPatElectron.gsfTrack()->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS), aPatElectron.passConversionVeto(),aPatElectron.superCluster()->eta() );
+    int snu_id = getSNUID(aPatElectron.full5x5_sigmaIetaIeta(), abs(aPatElectron.deltaEtaSuperClusterTrackAtVtx() ), abs(aPatElectron.deltaPhiSuperClusterTrackAtVtx() ), aPatElectron.hcalOverEcal(), eoverp, abs(aElectron.dz()) , aPatElectron.gsfTrack()->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS), aPatElectron.passConversionVeto(),aPatElectron.superCluster()->eta() );
     
     aElectron.setSNUID(snu_id);
     

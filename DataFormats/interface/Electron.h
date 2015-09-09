@@ -22,7 +22,10 @@ namespace cat {
     Electron();
     Electron(const reco::LeafCandidate & aElectron); 
     virtual ~Electron();
-  
+
+    float dxy() const { return dxy_; }
+    float dz() const { return dz_; }
+
     float relIso(float dR=0.3 ) const {
       if( dR < 0.35) return relIso03_;
       else return relIso04_;
@@ -98,6 +101,9 @@ namespace cat {
     bool isPF() const{ return isPF_; }
     void setIsPF(bool hasPFCandidate) { isPF_ = hasPFCandidate ; }
 
+    void setDz(float d) { dz_ = d; }
+    void setDxy(float d) { dxy_ = d; }
+
   private:
 
     std::vector<pat::Electron::IdPair> electronIDs_;
@@ -123,6 +129,9 @@ namespace cat {
 
     float shiftedEnDown_;
     float shiftedEnUp_;
+
+    float dz_;
+    float dxy_;
 
     int snuID_;
   };

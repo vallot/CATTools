@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
+def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCrossing=25):
     catJetsSource = "slimmedJets"
     catGenJetsSource = "slimmedGenJets"
     catMETsSource = "slimmedMETs"
@@ -11,6 +11,7 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     catPhotonsSource = "slimmedPhotons"
     catTausSource = "slimmedTaus"
     catVertexSource = "offlineSlimmedPrimaryVertices"
+    catVertex = "catVertex"
     catMCsource = "prunedGenParticles"
     catBeamSpot = "offlineBeamSpot"
     catRho = "fixedGridRhoAll"
@@ -103,11 +104,11 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     process.puppi.candName = cms.InputTag('packedPFCandidates')
     process.puppi.vertexName = cms.InputTag('offlineSlimmedPrimaryVertices')
     # remaking puppi jets
-    JETCorrLevels = ['L1FastJet', 'L2Relative', 'L3Absolute']
+    jcl = ['L1FastJet', 'L2Relative', 'L3Absolute']
     if not runOnMC:
-        JETCorrLevels = ['L1FastJet', 'L2Relative', 'L3Absolute', 'L2L3Residual']
+        jcl = ['L1FastJet', 'L2Relative', 'L3Absolute', 'L2L3Residual']
     from JMEAnalysis.JetToolbox.jetToolbox_cff import jetToolbox
-    jetToolbox( process, 'ak4', 'ak4JetSubs', 'out', PUMethod='Puppi', JETCorrLevels = JETCorrLevels ) 
+    jetToolbox( process, 'ak4', 'ak4JetSubs', 'out', PUMethod='Puppi', JETCorrLevels = jcl ) 
     catJetsPuppiSource = "selectedPatJetsAK4PFPuppi"
     # remaking puppi met
     from RecoMET.METProducers.PFMET_cfi import pfMet
@@ -218,11 +219,11 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True):
     process.catTaus.genJetMatch = cms.InputTag("tauGenJetMatch")
     process.catMuons.src = cms.InputTag(catMuonsSource)
     process.catMuons.mcLabel = cms.InputTag(catMCsource)
-    process.catMuons.vertexLabel = cms.InputTag(catVertexSource)
+    process.catMuons.vertexLabel = cms.InputTag(catVertex)
     process.catMuons.beamLineSrc = cms.InputTag(catBeamSpot)
     process.catElectrons.src = cms.InputTag(catElectronsSource)
     process.catElectrons.ePidNames = ePidNames
-    process.catElectrons.vertexLabel = cms.InputTag(catVertexSource)
+    process.catElectrons.vertexLabel = cms.InputTag(catVertex)
     process.catElectrons.mcLabel = cms.InputTag(catMCsource)
     process.catElectrons.beamLineSrc = cms.InputTag(catBeamSpot)
     process.catElectrons.rhoLabel = cms.InputTag(catRho)
