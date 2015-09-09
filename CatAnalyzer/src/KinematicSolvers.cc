@@ -10,7 +10,7 @@
 using namespace cat;
 using namespace std;
 
-void TTDileptonSolver::solve(const KinematicSolver::LorentzVector input[])
+void TTDileptonSolver::solve(const LV input[])
 {
   quality_ = -1e9; // default value
   values_.clear();
@@ -73,7 +73,7 @@ double fminimize(const gsl_vector* xx, void* p)
 
 }
 
-void MT2Solver::solve(const KinematicSolver::LorentzVector input[])
+void MT2Solver::solve(const LV input[])
 {
   using namespace CATMT2;
 
@@ -135,8 +135,8 @@ void MT2Solver::solve(const KinematicSolver::LorentzVector input[])
 
   const double ew1 = sqrt(mwsqr + qx1*qx1 + qy1*qy1);
   const double ew2 = sqrt(mwsqr + qx2*qx2 + qy2*qy2);
-  KinematicSolver::LorentzVector w1(qx1, qy1, 0, ew1);
-  KinematicSolver::LorentzVector w2(qx2, qy2, 0, ew2);
+  LV w1(qx1, qy1, 0, ew1);
+  LV w2(qx2, qy2, 0, ew2);
   nu1_ = w1-l1;
   nu2_ = w2-l2;
 
@@ -144,7 +144,7 @@ void MT2Solver::solve(const KinematicSolver::LorentzVector input[])
 
 }
 
-void MAOSSolver::solve(const KinematicSolver::LorentzVector input[])
+void MAOSSolver::solve(const LV input[])
 {
   MT2Solver::solve(input); // run the MT2 solver at the first step.
 
@@ -158,7 +158,7 @@ CMSKinSolver::CMSKinSolver()
   solver_.reset(new TtFullLepKinSolver(100, 300, 1, nuPars));
 }
 
-void CMSKinSolver::solve(const KinematicSolver::LorentzVector input[])
+void CMSKinSolver::solve(const LV input[])
 {
   quality_ = -1e9; // default value
   values_.clear();
@@ -179,14 +179,14 @@ void CMSKinSolver::solve(const KinematicSolver::LorentzVector input[])
   nu1_ = nuSol.neutrino.p4();
   nu2_ = nuSol.neutrinoBar.p4();
 
-  const LorentzVector t1 = input[1]+input[3]+nu1_;
-  const LorentzVector t2 = input[2]+input[4]+nu2_;
+  const LV t1 = input[1]+input[3]+nu1_;
+  const LV t2 = input[2]+input[4]+nu2_;
   values_.push_back((t1+t2).mass());
   values_.push_back(t1.mass());
   values_.push_back(t2.mass());
 }
 
-void DESYMassLoopSolver::solve(const KinematicSolver::LorentzVector input[])
+void DESYMassLoopSolver::solve(const LV input[])
 {
   quality_ = -1e9;
   values_.clear();
@@ -250,7 +250,7 @@ DESYSmearedSolver::DESYSmearedSolver()
   f->Close();
 }
 
-void DESYSmearedSolver::solve(const KinematicSolver::LorentzVector input[])
+void DESYSmearedSolver::solve(const LV input[])
 {
   quality_ = -1e9;
   values_.clear();
@@ -313,13 +313,13 @@ void DESYSmearedSolver::solve(const KinematicSolver::LorentzVector input[])
   }
 }
 
-math::XYZTLorentzVector DESYSmearedSolver::getSmearedLV(const math::XYZTLorentzVector& lv0,
-                                                        const double fE, const double dRot)
+LV DESYSmearedSolver::getSmearedLV(const LV& lv0,
+                                   const double fE, const double dRot)
 {
   // Rescale at the first step
   const double e = fE*lv0.energy();
   const double p = sqrt(std::max(0., e*e-lv0.M2()));
-  if ( KinSolverUtils::isZero(e) or KinSolverUtils::isZero(p) ) return math::XYZTLorentzVector();
+  if ( KinSolverUtils::isZero(e) or KinSolverUtils::isZero(p) ) return LV();
 
   // Apply rotation
   const double localPhi = gRandom->Uniform(-TMath::Pi(), TMath::Pi());
@@ -330,15 +330,15 @@ math::XYZTLorentzVector DESYSmearedSolver::getSmearedLV(const math::XYZTLorentzV
   const double px = p*sin(theta)*cos(phi);
   const double py = p*sin(theta)*sin(phi);
 
-  return math::XYZTLorentzVector(px, py, pz, e);
+  return LV(px, py, pz, e);
 }
 
 
 namespace CATNuWeight
 {
 
-bool computeNuPxPy(const KinematicSolver::LorentzVector& lep,
-                   const KinematicSolver::LorentzVector& jet,
+bool computeNuPxPy(const LV& lep,
+                   const LV& jet,
                    const double mT, const double nuEta,
                    double& nuPx1, double& nuPy1, double& nuPx2, double& nuPy2)
 {
@@ -393,10 +393,10 @@ bool computeNuPxPy(const KinematicSolver::LorentzVector& lep,
   return true;
 }
 
-double nuWeight(const KinematicSolver::LorentzVector& l1,
-                const KinematicSolver::LorentzVector& l2,
-                const KinematicSolver::LorentzVector& j1,
-                const KinematicSolver::LorentzVector& j2,
+double nuWeight(const LV& l1,
+                const LV& l2,
+                const LV& j1,
+                const LV& j2,
                 const double metX, const double metY,
                 const double sigmaEXsqr, const double sigmaEYsqr,
                 const double mt, const double nu1Eta, const double nu2Eta,
@@ -436,10 +436,10 @@ double fminimize(const gsl_vector* xx, void* p)
   const double nu2Eta = gsl_vector_get(xx, 2);
 
   double* p0 = (double*) p;
-  KinematicSolver::LorentzVector l1(p0[ 0], p0[ 1], p0[ 2], p0[ 3]);
-  KinematicSolver::LorentzVector l2(p0[ 4], p0[ 5], p0[ 6], p0[ 7]);
-  KinematicSolver::LorentzVector j1(p0[ 8], p0[ 9], p0[10], p0[11]);
-  KinematicSolver::LorentzVector j2(p0[12], p0[13], p0[14], p0[15]);
+  LV l1(p0[ 0], p0[ 1], p0[ 2], p0[ 3]);
+  LV l2(p0[ 4], p0[ 5], p0[ 6], p0[ 7]);
+  LV j1(p0[ 8], p0[ 9], p0[10], p0[11]);
+  LV j2(p0[12], p0[13], p0[14], p0[15]);
   const double metX = p0[16], metY = p0[17];
   const double sigmaEXsqr = p0[18], sigmaEYsqr = p0[19];
 
@@ -453,7 +453,7 @@ double fminimize(const gsl_vector* xx, void* p)
 
 }
 
-void NuWeightSolver::solve(const KinematicSolver::LorentzVector input[])
+void NuWeightSolver::solve(const LV input[])
 {
   using namespace CATNuWeight;
 
@@ -542,11 +542,11 @@ void NuWeightSolver::solve(const KinematicSolver::LorentzVector input[])
 
   const double bestPz1 = hypot(bestPx1, bestPy1)*sinh(bestEta1);
   const double bestPz2 = hypot(bestPx2, bestPy2)*sinh(bestEta2);
-  nu1_ = LorentzVector(bestPx1, bestPy1, bestPz1, sqrt(bestPx1*bestPx1+bestPy1*bestPy1+bestPz1*bestPz1));
-  nu2_ = LorentzVector(bestPx2, bestPy2, bestPz2, sqrt(bestPx2*bestPx2+bestPy2*bestPy2+bestPz2*bestPz2));
+  nu1_ = LV(bestPx1, bestPy1, bestPz1, sqrt(bestPx1*bestPx1+bestPy1*bestPy1+bestPz1*bestPz1));
+  nu2_ = LV(bestPx2, bestPy2, bestPz2, sqrt(bestPx2*bestPx2+bestPy2*bestPy2+bestPz2*bestPz2));
 
-  const LorentzVector t1 = l1+j1+nu1_;
-  const LorentzVector t2 = l2+j2+nu2_;
+  const LV t1 = l1+j1+nu1_;
+  const LV t2 = l2+j2+nu2_;
   values_.push_back((t1+t2).mass());
   values_.push_back(t1.mass());
   values_.push_back(t2.mass());
