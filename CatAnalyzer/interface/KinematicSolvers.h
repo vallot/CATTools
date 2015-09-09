@@ -66,7 +66,6 @@ protected:
 class DESYMassLoopSolver : public KinematicSolver
 {
 public:
-  DESYMassLoopSolver();
   void solve(const LorentzVector input[]) override;
 };
 

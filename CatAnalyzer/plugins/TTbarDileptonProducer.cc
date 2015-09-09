@@ -63,6 +63,8 @@ TTbarDileptonProducer::TTbarDileptonProducer(const edm::ParameterSet& pset)
   auto solverName = pset.getParameter<std::string>("solver");
   std::transform(solverName.begin(), solverName.end(), solverName.begin(), ::toupper);
   if      ( solverName == "CMSKIN" ) solver_ = new CMSKinSolver();
+  else if ( solverName == "DESYMassLoop" ) solver_ = new DESYMassLoopSolver();
+  else if ( solverName == "DESYSmeared" ) solver_ = new DESYSmearedSolver();
   else if ( solverName == "MT2"    ) solver_ = new MT2Solver();
   else if ( solverName == "MAOS"   ) solver_ = new MAOSSolver();
   else if ( solverName == "NUWGT"  ) solver_ = new NuWeightSolver();
