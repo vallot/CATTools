@@ -1,5 +1,5 @@
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
@@ -24,12 +24,12 @@ using namespace std;
 
 namespace cat {
 
-  class CATGenJetProducer : public edm::EDProducer {
+  class CATGenJetProducer : public edm::stream::EDProducer<> {
   public:
     explicit CATGenJetProducer(const edm::ParameterSet & iConfig);
     virtual ~CATGenJetProducer() { }
 
-    virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
+    void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
     
   private:
     edm::EDGetTokenT<reco::GenJetCollection> src_;

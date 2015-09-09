@@ -154,12 +154,7 @@ CMSKinSolver::CMSKinSolver()
 {
   std::vector<double> nuPars;
   nuPars += 30.7137,56.2880,23.0744,59.1015,24.9145;
-  solver_ = new TtFullLepKinSolver(100, 300, 1, nuPars);
-}
-
-CMSKinSolver::~CMSKinSolver()
-{
-  if ( solver_ ) delete solver_;
+  solver_.reset(new TtFullLepKinSolver(100, 300, 1, nuPars));
 }
 
 void CMSKinSolver::solve(const KinematicSolver::LorentzVector input[])

@@ -1,5 +1,5 @@
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/Framework/interface/Event.h"
@@ -22,7 +22,7 @@
 #include <vector>
 #include <string>
 
-class CATTriggerProducer : public edm::EDProducer
+class CATTriggerProducer : public edm::stream::EDProducer<>
 {
 public:
   CATTriggerProducer(const edm::ParameterSet& pset);

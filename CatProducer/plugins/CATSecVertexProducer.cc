@@ -1,5 +1,5 @@
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
@@ -29,12 +29,12 @@ using namespace reco;
 
 namespace cat {
 
-  class CATSecVertexProducer : public edm::EDProducer {
+  class CATSecVertexProducer : public edm::stream::EDProducer<> {
   public:
     explicit CATSecVertexProducer(const edm::ParameterSet & iConfig);
     virtual ~CATSecVertexProducer() { }
 
-    virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
+    void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
 
   private:
     void fitTransientTracks(reco::Vertex goodPV, std::vector<TransientTrack> transTracks, int pdgId) const;
