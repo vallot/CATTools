@@ -38,6 +38,45 @@ private:
   edm::EDGetTokenT<edm::View<TMET> > metToken_;
 
 private:
+  bool isGoodMuon(const TMuon& mu)
+  {
+    if ( mu.pt() <= 20 or std::abs(mu.eta()) >= 2.4 ) return false;
+    if ( mu.relIso(0.4) >= 0.12 ) return false;
+    if ( !mu.isTightMuon() ) return false;
+    return true;
+  }
+  bool isVetoMuon(const TMuon& mu)
+  {
+    if ( mu.pt() <= 20 or std::abs(mu.eta()) >= 2.4 ) return false;
+    if ( mu.relIso(0.4) >= 0.2 ) return false;
+    if ( !mu.isLooseMuon() ) return false;
+    return true;
+  }
+  bool isGoodElectron(const TElectron& el)
+  {
+    if ( el.pt() <= 20 or std::abs(el.eta()) >= 2.4 ) return false;
+    //if ( el.relIso(0.3) >= 0.11 ) return false;
+    //if ( !el.electronID("egmGsfElectronIDs:cutBasedElectronID-Spring15-50ns-V1-standalone-medium") ) return false;
+    if ( !el.electronID("cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-medium") ) return false;
+    if ( !el.isPF() or !el.passConversionVeto() ) return false;
+    const double scEta = std::abs(el.scEta());
+    if ( scEta >= 1.4442 and scEta <= 1.566 ) return false;
+    return true;
+  }
+  bool isVetoElectron(const TElectron& el)
+  {
+    if ( el.pt()  <= 20 or std::abs(el.eta()) >= 2.4 ) return false;
+    //if ( !el.electronID("egmGsfElectronIDs:cutBasedElectronID-Spring15-50ns-V1-standalone-veto") ) return false;
+    if ( !el.electronID("cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-veto") ) return false;
+    const double scEta = std::abs(el.scEta());
+    if ( scEta >= 1.4442 and scEta <= 1.566 ) return false;
+    const double relIso03 = el.relIso(0.3);
+    if ( scEta <= 1.4442 and relIso03 >= 0.1649 ) return false;
+    if ( scEta >= 1.566  and relIso03 >= 0.2075 ) return false;
+    return true;
+  }
+
+private:
   typedef reco::Candidate::LorentzVector LorentzVector;
   typedef reco::CompositePtrCandidate CRCand;
   typedef std::vector<CRCand> CRCandColl;
@@ -107,26 +146,29 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
   edm::Handle<edm::View<TElectron> > electronHandle;
   event.getByToken(electronToken_, electronHandle);
 
-  std::vector<reco::CandidatePtr> leptons;
+  std::vector<reco::CandidatePtr> leptons, vetoLeptons;
   for ( int i=0, n=muonHandle->size(); i<n; ++i )
   {
     auto& p = muonHandle->at(i);
-    if ( p.pt() < 20 or abs(p.eta()) > 2.4 ) continue;
-    if ( p.relIso() > 0.15 ) continue;
+    if ( p.pt() < 20 or abs(p.eta()) >= 2.4 ) continue;
 
     reco::CandidatePtr muonPtr = reco::CandidatePtr(muonHandle, i);
-    leptons.push_back(muonPtr);
+
+    if ( isGoodMuon(p) ) leptons.push_back(muonPtr);
+    if ( isVetoMuon(p) ) vetoLeptons.push_back(muonPtr);
   }
   for ( int i=0, n=electronHandle->size(); i<n; ++i )
   {
     auto& p = electronHandle->at(i);
-    if ( p.pt() < 20 or abs(p.eta()) > 2.4 ) continue;
-    if ( p.relIso() > 0.15 ) continue;
+    if ( p.pt() < 20 or std::abs(p.eta()) > 2.4 ) continue;
 
     reco::CandidatePtr electronPtr = reco::CandidatePtr(electronHandle, i);
-    leptons.push_back(electronPtr);
+
+    if ( isGoodElectron(p) ) leptons.push_back(electronPtr);
+    if ( isVetoElectron(p) ) vetoLeptons.push_back(electronPtr);
   }
   std::sort(leptons.begin(), leptons.end(), [](reco::CandidatePtr a, reco::CandidatePtr b){return a->pt() > b->pt();});
+  std::sort(vetoLeptons.begin(), vetoLeptons.end(), [](reco::CandidatePtr a, reco::CandidatePtr b){return a->pt() > b->pt();});
 
   edm::Handle<edm::View<TJet> > jetHandle;
   event.getByToken(jetToken_, jetHandle);
@@ -255,6 +297,11 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
     }
   } while (false);
 
+  if ( !cands->empty() ) {
+    cout << "vvvvvvvvvvvvvvvvvvvvvvvvvv" << endl;
+    for ( auto& x : *cands ) { cout << x.pdgId() << ' ' << x.mass() << ' ' << x.pt() << ' ' << x.eta() << ' ' << x.phi() << endl; }
+    cout << "^^^^^^^^^^^^^^^^^^^^^^^^^^" << endl;
+  }
 
   event.put(cands);
   event.put(channel, "channel");

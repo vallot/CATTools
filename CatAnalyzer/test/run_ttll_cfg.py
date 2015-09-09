@@ -8,15 +8,16 @@ process.load("FWCore.MessageLogger.MessageLogger_cfi")
 #process.load("SimGeneral.HepPDTESSource.pythiapdt_cfi")
 
 process.options = cms.untracked.PSet(
-    wantSummary = cms.untracked.bool(True),
+#    wantSummary = cms.untracked.bool(True),
     allowUnscheduled = cms.untracked.bool(True),
 )
-#process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 process.MessageLogger.cerr.FwkReport.reportEvery = 10000
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 process.source.fileNames = [
-'root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-3-4_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v4/150810_215031/0000/catTuple_1.root',
+#'root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-3-4_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v4/150810_215031/0000/catTuple_1.root',
+'file:////store1/jhgoh/CAT/catTuple__TT_TuneCUETP8M1_13TeV-powheg-pythia8__V7-3-6.root',
 ]
 
 process.out = cms.OutputModule("PoolOutputModule",
@@ -31,10 +32,12 @@ process.out = cms.OutputModule("PoolOutputModule",
 
 process.ttbar = cms.EDProducer("TTbarDileptonProducer",
 #    solver = cms.string("Default"),
-#    solver = cms.string("CMSKIN"),
+    solver = cms.string("CMSKIN"),
 #    solver = cms.string("NUWGT"),
 #    solver = cms.string("MT2"),
-    solver = cms.string("DESYSmeared"),
+#    solver = cms.string("MAOS"),
+#    solver = cms.string("DESYSmeared"),
+#    solver = cms.string("DESYMassLoop"),
     muons = cms.InputTag("catMuons"),
     electrons = cms.InputTag("catElectrons"),
     jets = cms.InputTag("catJets"),

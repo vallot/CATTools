@@ -154,8 +154,10 @@ void MAOSSolver::solve(const LV input[])
 
 CMSKinSolver::CMSKinSolver()
 {
-  std::vector<double> nuPars = {30.7137,56.2880,23.0744,59.1015,24.9145};
-  solver_.reset(new TtFullLepKinSolver(100, 300, 1, nuPars));
+  //std::vector<double> nuPars = {30.7137,56.2880,23.0744,59.1015,24.9145}; // 7TeV pythia, from CMSSW default
+  //std::vector<double> nuPars = {30.641,57.941,22.344,57.533,22.232}; // ??, from DESY
+  std::vector<double> nuPars = {27.23,53.88,19.92,53.89,19.9}; // 13TeV 50ns powheg, by Youn.
+  solver_.reset(new TtFullLepKinSolver(100, 300, 0.5, nuPars));
 }
 
 void CMSKinSolver::solve(const LV input[])
