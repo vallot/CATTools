@@ -104,11 +104,9 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
     process.puppi.candName = cms.InputTag('packedPFCandidates')
     process.puppi.vertexName = cms.InputTag('offlineSlimmedPrimaryVertices')
     # remaking puppi jets
-    jcl = ['L1FastJet', 'L2Relative', 'L3Absolute']
-    if not runOnMC:
-        jcl = ['L1FastJet', 'L2Relative', 'L3Absolute', 'L2L3Residual']
     from JMEAnalysis.JetToolbox.jetToolbox_cff import jetToolbox
-    jetToolbox( process, 'ak4', 'ak4JetSubs', 'out', PUMethod='Puppi', JETCorrLevels = jcl ) 
+    jetToolbox( process, 'ak4', 'ak4JetSubs', 'out', PUMethod='Puppi', miniAOD = useMiniAOD, runOnMC = True,#due to bug in jetToolbox
+                JETCorrPayload='AK4PFPuppi', JETCorrLevels = ['L1FastJet', 'L2Relative', 'L3Absolute'] )#bug-JETCorrLevels overwritten in jetToolbox
     catJetsPuppiSource = "selectedPatJetsAK4PFPuppi"
     # remaking puppi met
     from RecoMET.METProducers.PFMET_cfi import pfMet
@@ -121,37 +119,42 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
     catMETsPuppiSource = "patPfMetPuppi"
 
     # for puppi isolation
-    #process.packedPFCandidatesWoMuon  = cms.EDFilter("CandPtrSelector", src = cms.InputTag("packedPFCandidates"), cut = cms.string("fromPV>=2 && abs(pdgId)!=13 " ) )
-    #process.particleFlowNoMuonPUPPI.candName         = 'packedPFCandidatesWoMuon'
-    #process.particleFlowNoMuonPUPPI.vertexName       = 'offlineSlimmedPrimaryVertices'
-#######################################################################    
+    ## process.packedPFCandidatesWoMuon  = cms.EDFilter("CandPtrSelector", src = cms.InputTag("packedPFCandidates"), cut = cms.string("fromPV>=2 && abs(pdgId)!=13 " ) )
+    ## process.particleFlowNoMuonPUPPI.candName         = 'packedPFCandidatesWoMuon'
+    ## process.particleFlowNoMuonPUPPI.vertexName       = 'offlineSlimmedPrimaryVertices'
+    #######################################################################    
 # getting jec from file for jec on the fly from db file
 # currently only for mc
+#### using GT JEC since 74X_mcRun2_asymptotic_v2 and 74X_dataRun2_v2 have the Summer15_25nsV2
+    useJECfile = False 
     era = "Summer15_25nsV2"
     if runOnMC:
         era = era+"_MC"
     else:
         era = era+"_DATA"
         
-    from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
-    process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
-        connect = cms.string('sqlite_fip:CATTools/CatProducer/data/'+era+'.db'),
-        toGet = cms.VPSet(
-            cms.PSet(
-                record = cms.string("JetCorrectionsRecord"),
-                tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PF"),
-                label= cms.untracked.string("AK4PF")),
-            cms.PSet(
-                record = cms.string("JetCorrectionsRecord"),
-                tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PFchs"),
-                label= cms.untracked.string("AK4PFchs")),
-            cms.PSet(
-                record = cms.string("JetCorrectionsRecord"),
-                tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PFPuppi"),
-                label= cms.untracked.string("AK4PFPuppi")),
-    ))
-    process.es_prefer_jec = cms.ESPrefer("PoolDBESSource","jec")
-    print "JEC based on", process.jec.connect
+    if useJECfile:
+        from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
+        process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
+            connect = cms.string('sqlite_fip:CATTools/CatProducer/data/'+era+'.db'),
+            toGet = cms.VPSet(
+                cms.PSet(
+                    record = cms.string("JetCorrectionsRecord"),
+                    tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PF"),
+                    label= cms.untracked.string("AK4PF")),
+                cms.PSet(
+                    record = cms.string("JetCorrectionsRecord"),
+                    tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PFchs"),
+                    label= cms.untracked.string("AK4PFchs")),
+                cms.PSet(
+                    record = cms.string("JetCorrectionsRecord"),
+                    tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PFPuppi"),
+                    label= cms.untracked.string("AK4PFPuppi")),
+            )
+        )
+        process.es_prefer_jec = cms.ESPrefer("PoolDBESSource","jec")
+        print "JEC based on", process.jec.connect
+    
 ## applying new jec on the fly
     if useMiniAOD:
         process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
@@ -165,7 +168,6 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
             jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetPuppiCorrFactorsUpdated")),
             jetSource = cms.InputTag(catJetsPuppiSource),
         )
-        process.patJetCorrFactorsAK4PFPuppi.payload = cms.string('AK4PFPuppi')
         catJetsPuppiSource = "patJetsPuppiUpdated"
 
 #######################################################################

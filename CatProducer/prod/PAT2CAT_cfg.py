@@ -79,4 +79,6 @@ if options.maxEvents < 0:
     process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.options.wantSummary = False
 
+## for debugging
+#process.source.skipEvents = cms.untracked.uint32(3000)
 #process.SimpleMemoryCheck = cms.Service("SimpleMemoryCheck",ignoreTotal = cms.untracked.int32(1) )
