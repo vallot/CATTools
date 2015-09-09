@@ -117,6 +117,7 @@ void CATTriggerProducer::produce(edm::Event& event, const edm::EventSetup& event
   for( unsigned int i=0; i<trigNames.size(); ++i ){
     if (trigNames.triggerName(i).find("HLT_Ele") == 0 
 	|| trigNames.triggerName(i).find("HLT_DoubleEle") == 0 
+	|| trigNames.triggerName(i).find("HLT_IsoMu") == 0 
 	|| trigNames.triggerName(i).find("HLT_Mu") == 0 ){
       if ( triggerBits->accept(i) ) {
 	int psValue = int(triggerBits->accept(i)) * triggerPrescales->getPrescaleForIndex(i);
