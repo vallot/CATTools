@@ -41,6 +41,8 @@ namespace cat {
     edm::EDGetTokenT<reco::BeamSpot> beamLineSrc_;
     bool runOnMC_;
 
+    typedef math::XYZPoint Point;
+
   };
 
 } // namespace
@@ -147,11 +149,11 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
       aMuon.setNumberOfValidPixelHits( aPatMuon.innerTrack()->hitPattern().numberOfValidPixelHits() );
       aMuon.setTackerLayersWithMeasurement( aPatMuon.innerTrack()->hitPattern().trackerLayersWithMeasurement() ); 
     }
-    double dxy = aPatMuon.muonBestTrack()->dxy(pv.position()); // fabs() removed
-    aMuon.setDxy( dxy );
-    double dz = aPatMuon.muonBestTrack()->dz(pv.position()); // fabs() removed
-    aMuon.setDz( dz ); 
-
+    
+    aMuon.setDxy( aPatMuon.muonBestTrack()->dxy(pv.position()) );
+    aMuon.setDz( aPatMuon.muonBestTrack()->dz(pv.position()) );
+    aMuon.setVertex(Point(aPatMuon.muonBestTrack()->vx(),aPatMuon.muonBestTrack()->vy(),aPatMuon.muonBestTrack()->vz()));
+    
     out->push_back(aMuon);
   }
 

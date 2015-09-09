@@ -56,6 +56,7 @@ cat::CATVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
   int nGoodPV = 0;
   out_ = new reco::VertexCollection();
 
+  // only save the first good vertex!
   for (auto &vtx : *recVtxs){
     if ( vtx.ndof() > minNDOF && 
 	 ( (maxAbsZ <=0 ) || fabs(vtx.z()) <= maxAbsZ ) &&
