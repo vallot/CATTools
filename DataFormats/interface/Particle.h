@@ -13,6 +13,7 @@ namespace cat {
   typedef std::vector<Particle>              ParticleCollection;
   typedef edm::Ref<ParticleCollection>       ParticleRef;
   typedef edm::RefVector<ParticleCollection> ParticleRefVector;
+  typedef math::XYZPoint Point;
 }
 
 namespace cat {
