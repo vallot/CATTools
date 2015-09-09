@@ -74,7 +74,9 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
 
   Handle<reco::VertexCollection> recVtxs;
   iEvent.getByToken(vertexLabel_,recVtxs);
-  reco::Vertex pv= recVtxs->at(0);
+  reco::Vertex pv;
+  if (recVtxs->size())
+    pv = recVtxs->at(0);
    
   reco::BeamSpot beamSpot = *beamSpotHandle;
   reco::TrackBase::Point beamPoint(beamSpot.x0(), beamSpot.y0(), beamSpot.z0());
