@@ -11,6 +11,7 @@ cmsenv
 git cms-addpkg TopQuarkAnalysis/TopEventProducers
 git cms-addpkg CommonTools/PileupAlgos
 git cms-addpkg RecoMET/METPUSubtraction
+git cms-merge-topic YoungKwonJo:NewGenHFHadronMatcher_cmssw747p2
 git cms-merge-topic jhgoh:PseudoTop
 git cms-merge-topic nhanvtran:puppi-etadep-746p2-v8
 git cms-merge-topic cms-met:METCorUnc74X
