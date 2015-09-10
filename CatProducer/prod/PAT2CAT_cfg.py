@@ -44,10 +44,11 @@ process.out.outputCommands = catEventContent
 if runOnMC:
     from CATTools.CatProducer.catGenHFHadronMatching_cff import *
     genHFTool(process, useMiniAOD)
-    process.load("TopQuarkAnalysis.TopEventProducers.producers.pseudoTop_cfi")
+    if runGenTop:
+        process.load("CATTools.CatProducer.mcTruthTop.mcTruthTop_cff")
+        if not useMiniAOD:
+            process.out.outputCommands.extend(catEventContentAODMC)
     process.out.outputCommands.extend(catEventContentMC)
-    if not useMiniAOD:
-        process.out.outputCommands.extend(catEventContentAODMC)
 if doSecVertex:
     process.out.outputCommands.extend(catEventContentSecVertexs)
 
@@ -57,17 +58,13 @@ if doSecVertex:
 ####################################################################
 process.maxEvents.input = options.maxEvents
 
-# better to have a default file here for test purpose
-process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring(
-       # at CERN
-       '/store/relval/CMSSW_7_4_6_patch6/RelValTTbar_13/MINIAODSIM/MCRUN2_74_V9-v1/00000/2403409D-1225-E511-B64E-0025905A6132.root'
-       # AODSIM
-       #'/store/relval/CMSSW_7_4_6_patch6/RelValTTbar_13/GEN-SIM-RECO/MCRUN2_74_V9-v1/00000/54F6E09C-1225-E511-842B-0025905A612E.root'
-       # to be added at KISTI
-       # '',
-    )
-)
+# Default file here for test purpose
+if useMiniAOD:
+    process.source.fileNames = ['/store/relval/CMSSW_7_4_6_patch6/RelValTTbar_13/MINIAODSIM/MCRUN2_74_V9-v1/00000/2403409D-1225-E511-B64E-0025905A6132.root']
+    ## Hack to run on relval sample
+    process.genMetExtractor.metSource = "slimmedMETs::RECO"
+else:
+    process.source.fileNames = ['/store/relval/CMSSW_7_4_6_patch6/RelValTTbar_13/GEN-SIM-RECO/MCRUN2_74_V9-v1/00000/54F6E09C-1225-E511-842B-0025905A612E.root']
 
 if options.inputFiles:
     process.source.fileNames = options.inputFiles
