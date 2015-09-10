@@ -8,11 +8,14 @@ options = VarParsing ('python')
 options.register('runOnMC', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runOnMC: 1  default")
 options.register('useMiniAOD', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "useMiniAOD: 1  default")
 options.register('globalTag', '', VarParsing.multiplicity.singleton, VarParsing.varType.string, "globalTag: 1  default")
+options.register('runGenTop', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runGenTop: 1  default")
 
 options.parseArguments()
 runOnMC = options.runOnMC
 useMiniAOD = options.useMiniAOD
 globalTag = options.globalTag
+if runOnMC: runGenTop = options.runGenTop
+else: runGenTop = False
 
 ####################################################################
 #### setting up global tag
