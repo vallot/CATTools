@@ -1,5 +1,5 @@
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
@@ -27,18 +27,18 @@ using namespace std;
 
 namespace cat {
 
-  class CATElectronProducer : public edm::EDProducer {
+  class CATElectronProducer : public edm::stream::EDProducer<> {
   public:
     explicit CATElectronProducer(const edm::ParameterSet & iConfig);
     virtual ~CATElectronProducer() { }
 
-    virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
+    void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
     bool mcMatch( const reco::Candidate::LorentzVector& lepton, const edm::Handle<reco::GenParticleCollection> & genParticles );
     bool MatchObjects( const reco::Candidate::LorentzVector& pasObj, const reco::Candidate::LorentzVector& proObj, bool exact );
 
   private:
     float getEffArea( float dR, float scEta );
-
+    int getSNUID(float, float, float, float, float, float, int, bool, float);
     edm::EDGetTokenT<edm::View<pat::Electron> > src_;
     edm::EDGetTokenT<edm::View<pat::Electron> > shiftedEnDownSrc_;
     edm::EDGetTokenT<edm::View<pat::Electron> > shiftedEnUpSrc_;
@@ -49,6 +49,8 @@ namespace cat {
     bool runOnMC_;
  
     typedef std::pair<std::string, edm::InputTag> NameTag;
+    typedef math::XYZPoint Point;
+
     std::vector<NameTag> elecIDSrcs_;
     std::vector<edm::EDGetTokenT<edm::ValueMap<bool> > > elecIDTokens_;
     const std::vector<std::string> ePidNames_;
@@ -168,17 +170,100 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
 	aElectron.setElectronID(pid);
       }
     }
+    
     // for additional electron pids
     for (size_t i = 0; i < elecIDSrcs_.size(); ++i){
       ids[i].second = (*idhandles[i])[elecsRef];
       aElectron.setElectronID(ids[i]);
     }
-
+        
+    reco::GsfTrackRef theTrack = aPatElectron.gsfTrack();    
+    aElectron.setDxy( theTrack->dxy(pv.position()) );
+    aElectron.setDz( theTrack->dz(pv.position()) );
+    aElectron.setVertex(Point(theTrack->vx(),theTrack->vy(),theTrack->vz()));
+    
+    float eoverp = -999.;
+    // |1/E-1/p| = |1/E - EoverPinner/E| is computed below
+    // The if protects against ecalEnergy == inf or zero
+    // (always the case for miniAOD for electrons <5 GeV)
+    if( aPatElectron.ecalEnergy() == 0 ){
+      eoverp = 1e30;
+    }else if( !std::isfinite(aPatElectron.ecalEnergy())){
+      eoverp = 1e30;
+    }else{
+      eoverp = fabs(1.0/aPatElectron.ecalEnergy() - aPatElectron.eSuperClusterOverP()/aPatElectron.ecalEnergy() ) ;
+    }
+    
+    int snu_id = getSNUID(aPatElectron.full5x5_sigmaIetaIeta(), abs(aPatElectron.deltaEtaSuperClusterTrackAtVtx() ), abs(aPatElectron.deltaPhiSuperClusterTrackAtVtx() ), aPatElectron.hcalOverEcal(), eoverp, abs(aElectron.dz()) , aPatElectron.gsfTrack()->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS), aPatElectron.passConversionVeto(),aPatElectron.superCluster()->eta() );
+    
+    aElectron.setSNUID(snu_id);
+    
     out->push_back(aElectron);
+
     ++j;
   }
   iEvent.put(out);
 }
+
+
+int cat::CATElectronProducer::getSNUID(float full5x5_sigmaIetaIeta, float deltaEtaSuperClusterTrackAtVtx, float deltaPhiSuperClusterTrackAtVtx, float hoverE, float eoverp, float dz, int exp_miss_innerhits, bool pass_conversion_veto, float sceta){
+  
+  //----------------------------------------------------------------------
+  // Barrel electron cut values
+  //----------------------------------------------------------------------
+  //Spring15 selection, 25ns selection
+  //string id [4] = {"veto", "loose","medium", "tight" };
+  
+  double l_b_sieie   [4] = { 0.0114, 0.0103, 0.0101 , 0.0101 };
+  double l_b_dEtaIn  [4] = { 0.0152, 0.0105, 0.0103,  0.00926};
+  double l_b_dPhiIn  [4] = { 0.216,  0.115,  0.0336,  0.0336};
+  double l_b_hoe     [4] = { 0.181,  0.104,  0.0876,  0.0597}; 
+  double l_b_dZ      [4] = { 0.472,  0.41,   0.373,   0.0466}; 
+  double l_b_ep      [4] = { 0.207,  0.102,  0.0174,  0.012};
+  int    l_b_missHits[4] = { 2,      2,      2,       2};
+
+  //----------------------------------------------------------------------
+  // Endcap electron cut values
+  //----------------------------------------------------------------------
+
+  double l_e_sieie   [4] = { 0.0352,  0.0301,  0.0283,  0.0279}; 
+  double l_e_dEtaIn  [4] = { 0.0113,  0.00814, 0.00733, 0.00724}; 
+  double l_e_dPhiIn  [4] = { 0.237,   0.182,   0.114,   0.0918};
+  double l_e_hoe     [4] = { 0.116,   0.0897,  0.0678,  0.0615};
+  double l_e_dZ      [4] = { 0.921,   0.822,   0.602,   0.417};
+  double l_e_ep      [4] = { 0.174,   0.126,   0.0898,  0.00999};
+  int    l_e_missHits[4] = { 3,       1,       1,       1}; 
+  
+  int flag_id=0;
+  for(int i=0; i < 4; i++){
+    bool pass_id=true;
+    if ( fabs(sceta) < 1.479 ){
+      if(full5x5_sigmaIetaIeta >= l_b_sieie[i])pass_id = false;
+      if(deltaEtaSuperClusterTrackAtVtx >= l_b_dEtaIn[i])pass_id = false;
+      if(deltaPhiSuperClusterTrackAtVtx >= l_b_dPhiIn[i])pass_id = false;
+      if(hoverE >= l_b_hoe[i])pass_id = false;
+      if(eoverp >= l_b_ep[i])pass_id = false;
+      if(fabs(dz) >=  l_b_dZ[i])pass_id = false;
+      if(exp_miss_innerhits > l_b_missHits[i])pass_id = false;
+      if(!pass_conversion_veto) pass_id = false;
+    }
+    else   if ( fabs(sceta) < 2.5 ){
+      if(full5x5_sigmaIetaIeta >= l_e_sieie[i])pass_id = false;
+      if(deltaEtaSuperClusterTrackAtVtx >= l_e_dEtaIn[i])pass_id = false;
+      if(deltaPhiSuperClusterTrackAtVtx>= l_e_dPhiIn[i])pass_id = false;
+      if(hoverE>= l_e_hoe[i])pass_id = false;
+      if(eoverp>= l_e_ep[i])pass_id = false;
+      if(fabs(dz) >=  l_e_dZ[i])pass_id = false;
+      if(exp_miss_innerhits > l_e_missHits[i])pass_id = false;
+      if(!pass_conversion_veto) pass_id = false;
+    }
+    if(pass_id)flag_id += pow(10,i);
+  }
+  
+  return flag_id;
+}
+
+
 
 float 
 cat::CATElectronProducer::getEffArea( float dR, float scEta) 

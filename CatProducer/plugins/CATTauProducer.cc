@@ -1,5 +1,5 @@
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
@@ -20,12 +20,12 @@ using namespace std;
 
 namespace cat {
 
-  class CATTauProducer : public edm::EDProducer {
+  class CATTauProducer : public edm::stream::EDProducer<> {
   public:
     explicit CATTauProducer(const edm::ParameterSet & iConfig);
     virtual ~CATTauProducer() { }
 
-    virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
+    void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
 
   private:
     edm::EDGetTokenT<pat::TauCollection> src_;

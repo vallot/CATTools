@@ -15,13 +15,16 @@ git cms-merge-topic jhgoh:PseudoTop
 git cms-merge-topic nhanvtran:puppi-etadep-746p2-v8
 git cms-merge-topic cms-met:METCorUnc74X
 git clone https://github.com/cms-jet/JetToolbox.git JMEAnalysis/JetToolbox -b jetToolbox_74X
-git clone https://github.com/rfriese/RecoMET-METPUSubtraction.git RecoMET/METPUSubtraction/data -b 74X-13TeV-Summer15-July2015
+git clone https://github.com/rfriese/RecoMET-METPUSubtraction RecoMET/METPUSubtraction/data -b 74X-13TeV-Summer15-July2015
+rm -rf RecoMET/METPUSubtraction/data/.git
+git cms-merge-topic ikrav:egm_id_747_v2
+git cms-merge-topic YoungKwonJo:NewGenHFHadronMatcher_cmssw747p2
 
 git clone https://github.com/vallot/CATTools.git -n
 cd CATTools
 git submodule init
 git submodule update
-git checkout -b v733 v7-3-3
+git checkout -b v740 v7-4-0
 cd ..
 
 scram setup lhapdf

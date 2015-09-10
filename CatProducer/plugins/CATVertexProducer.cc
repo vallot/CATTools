@@ -1,5 +1,5 @@
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
@@ -16,12 +16,12 @@ using namespace reco;
 
 namespace cat {
 
-  class CATVertexProducer : public edm::EDProducer {
+  class CATVertexProducer : public edm::stream::EDProducer<> {
   public:
     explicit CATVertexProducer(const edm::ParameterSet & iConfig);
     virtual ~CATVertexProducer() { }
 
-    virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
+    void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
 
   private:
     reco::VertexCollection *out_;
@@ -56,6 +56,7 @@ cat::CATVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
   int nGoodPV = 0;
   out_ = new reco::VertexCollection();
 
+  // only save the first good vertex!
   for (auto &vtx : *recVtxs){
     if ( vtx.ndof() > minNDOF && 
 	 ( (maxAbsZ <=0 ) || fabs(vtx.z()) <= maxAbsZ ) &&

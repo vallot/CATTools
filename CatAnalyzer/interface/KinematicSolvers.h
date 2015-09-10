@@ -1,7 +1,6 @@
 #ifndef CATTools_CatAnalyzer_KinematicSolvers_H
 #define CATTools_CatAnalyzer_KinematicSolvers_H
 
-//#include "DataFormats/Candidate/interface/Candidate.h"
 #include "Math/LorentzVector.h"
 #include <memory>
 #include "TH1.h"
