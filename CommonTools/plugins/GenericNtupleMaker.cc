@@ -155,6 +155,7 @@ private:
   typedef std::vector<int> vint;
   typedef std::vector<double> vdouble;
   typedef std::vector<std::string> strings;
+
   typedef edm::View<reco::LeafCandidate> CandView;
   typedef edm::ValueMap<double> Vmap;
   typedef edm::EDGetTokenT<CandView> CandToken;
@@ -168,10 +169,12 @@ private:
   FlatConsumers<int> intCSet_;
   FlatConsumers<double> doubleCSet_;
   FlatConsumers<float> floatCSet_;
+  //FlatConsumers<std::string> stringCSet_;
   VectorConsumers<bool> vboolCSet_;
   VectorConsumers<int> vintCSet_;
   VectorConsumers<double> vdoubleCSet_;
   VectorConsumers<float> vfloatCSet_;
+  VectorConsumers<std::string> vstringCSet_;
 
   typedef StringObjectFunction<reco::Candidate,true> CandFtn;
   typedef StringCutObjectSelector<reco::Candidate,true> CandSel;
@@ -214,10 +217,12 @@ GenericNtupleMaker::GenericNtupleMaker(const edm::ParameterSet& pset)
   intCSet_.init(pset, "int", consumesCollector(), tree_, "I");
   doubleCSet_.init(pset, "double", consumesCollector(), tree_, "D");
   floatCSet_.init(pset, "float", consumesCollector(), tree_, "F");
+  //stringCSet_.init(pset, "string", consumesCollector(), tree_, "F");
   vboolCSet_.init(pset, "bools", consumesCollector(), tree_);
   vintCSet_.init(pset, "ints", consumesCollector(), tree_);
   vdoubleCSet_.init(pset, "doubles", consumesCollector(), tree_);
   vfloatCSet_.init(pset, "floats", consumesCollector(), tree_);
+  vstringCSet_.init(pset, "strings", consumesCollector(), tree_);
 
   PSet candPSets = pset.getParameter<PSet>("cands");
   const strings candNames = candPSets.getParameterNamesForType<PSet>();
@@ -288,10 +293,12 @@ void GenericNtupleMaker::analyze(const edm::Event& event, const edm::EventSetup&
   nFailure += intCSet_.load(event);
   nFailure += doubleCSet_.load(event);
   nFailure += floatCSet_.load(event);
+  //nFailure += stringCSet_.load(event);
   nFailure += vboolCSet_.load(event);
   nFailure += vintCSet_.load(event);
   nFailure += vdoubleCSet_.load(event);
   nFailure += vfloatCSet_.load(event);
+  nFailure += vstringCSet_.load(event);
 
   const size_t nCand = candTokens_.size();
   for ( size_t iCand=0; iCand < nCand; ++iCand )
