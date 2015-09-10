@@ -42,31 +42,19 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
 #######################################################################
 # https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
 # recompute the T1 PFMET
+    jecUncertaintyFile = "CATTools/CatProducer/data/Summer15_25nsV2_DATA_UncertaintySources_AK4PFchs.txt"
     from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
-    runMetCorAndUncFromMiniAOD( process, isData= not runOnMC )
+    runMetCorAndUncFromMiniAOD( process, isData= not runOnMC, jecUncFile=jecUncertaintyFile)
 
 # MET without HF
     process.noHFCands = cms.EDFilter("CandPtrSelector",
                                      src=cms.InputTag("packedPFCandidates"),
                                      cut=cms.string("abs(pdgId)!=1 && abs(pdgId)!=2 && abs(eta)<3.0")
                                      )
-    runMetCorAndUncFromMiniAOD( process, isData=not runOnMC, pfCandColl=cms.InputTag("noHFCands"), postfix="NoHF")
+    runMetCorAndUncFromMiniAOD( process, isData=not runOnMC, jecUncFile=jecUncertaintyFile, pfCandColl=cms.InputTag("noHFCands"), postfix="NoHF")
     process.catMETsNoHF = process.catMETs.clone()
     process.catMETsNoHF.src = cms.InputTag("slimmedMETsNoHF")
-    
-    ## no residuals currently available 
-    process.patPFMetT1T2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-    process.patPFMetT1T2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-    process.patPFMetT2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-    process.patPFMetT2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-    process.shiftedPatJetEnDown.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
-    process.shiftedPatJetEnUp.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
-    process.patPFMetT1T2CorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
-    process.patPFMetT1T2SmearCorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
-    process.patPFMetT2CorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
-    process.patPFMetT2SmearCorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
-    process.shiftedPatJetEnDownNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
-    process.shiftedPatJetEnUpNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+
 #######################################################################    
 # adding pfMVAMet
     process.load("RecoJets.JetProducers.ak4PFJets_cfi")
