@@ -178,8 +178,10 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
     // Pick leading leptons.
     const reco::Candidate* lep1 = &*leptons.at(0);
     const reco::Candidate* lep2 = &*leptons.at(1);
-    if ( lep1->isMuon() and lep2->isMuon() ) *channel = CH_MUMU;
-    else if ( lep1->isElectron() and lep2->isElectron() ) *channel = CH_ELEL;
+    const int pdgId1 = std::abs(lep1->pdgId());
+    const int pdgId2 = std::abs(lep2->pdgId());
+    if ( pdgId1 == 13 and pdgId2 == 13 ) *channel = CH_MUMU;
+    else if ( pdgId1 == 11 and pdgId2 == 11 ) *channel = CH_ELEL;
     else *channel = CH_MUEL;
     const LorentzVector& lep1LVec = lep1->p4();
     const LorentzVector& lep2LVec = lep2->p4();
@@ -264,10 +266,8 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
 
     w1.addDaughter(leptons.at(0));
     w2.addDaughter(leptons.at(1));
-    if ( lep1->isElectron() ) nu1.setPdgId(12*lep1->charge());
-    else if ( lep1->isMuon() ) nu1.setPdgId(14*lep1->charge());
-    if ( lep2->isElectron() ) nu2.setPdgId(12*lep2->charge());
-    else if ( lep2->isMuon() ) nu2.setPdgId(14*lep2->charge());
+    nu1.setPdgId((pdgId1+1)*lep1->charge());
+    nu2.setPdgId((pdgId2+1)*lep2->charge());
 
     top1.addDaughter(selectedJet1);
     top2.addDaughter(selectedJet2);
@@ -291,12 +291,6 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
       out_mAddJJ->push_back(addJet2P4.mass());
     }
   } while (false);
-
-  if ( !cands->empty() ) {
-    cout << "vvvvvvvvvvvvvvvvvvvvvvvvvv" << endl;
-    for ( auto& x : *cands ) { cout << x.pdgId() << ' ' << x.mass() << ' ' << x.pt() << ' ' << x.eta() << ' ' << x.phi() << endl; }
-    cout << "^^^^^^^^^^^^^^^^^^^^^^^^^^" << endl;
-  }
 
   event.put(cands);
   event.put(channel, "channel");
