@@ -1,0 +1,4 @@
+#!/usr/bin/env python
+import os,sys
+for i in range(1,8):#1~7
+    os.system('cmsRun run_h2muAnalyzer2.py dataset=%d'%i)
