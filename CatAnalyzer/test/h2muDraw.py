@@ -23,14 +23,17 @@ filelist2 = []
 for i in filelist1:
     filelist2.append(i.split(".")[0])
 filenames = [0,0,0,0,0,0,0]
+
+date = "20150910"
+#date = ''
 for i in filelist2:#replace 'filelist2' replace to 'filelist1'
-    if 'DYJets' in i:filenames[0]=i
-    if 'TTJets' in i:filenames[1]=i
-    if 'ZZ' in i:filenames[2]=i
-    if 'WW' in i:filenames[3]=i
-    if 'WZ' in i:filenames[4]=i
-    if 'Double' in i:filenames[5]=i
-    if 'Single' in i:filenames[6]=i
+    if (('DYJets' in i) and ( date in i)):filenames[0]=i
+    if (('TTJets' in i) and ( date in i)):filenames[1]=i
+    if (('ZZ' in i) and ( date in i)):filenames[2]=i
+    if (('WW' in i) and ( date in i)):filenames[3]=i
+    if (('WZ' in i) and ( date in i)):filenames[4]=i
+    if (('Double' in i) and ( date in i)):filenames[5]=i
+    if (('Single' in i) and ( date in i)):filenames[6]=i
 '''
 mcfilelist = {'mc_DYJets_merged':6025.2 ,
               'mc_TTJets_mad_merged':831.8,
@@ -49,6 +52,7 @@ rdfilelist = [filenames[5],
               filenames[6]]
 mcfilelist_order = sorted(mcfilelist.keys(), key=lambda key_value: key_value[0])
 print mcfilelist
+re_mcfilelist = [filenames[3],filenames[1],filenames[2],filenames[0],filenames[4]]
 ## Jet Category cut
 jet0_tight = "(jetcat_f_hier == 1)"
 jet0_loose = "(jetcat_f_hier == 2)"
@@ -74,7 +78,7 @@ jetcat_GC_cut = [BB,BO,BE,OO,OE,EE]
 
 ## initial cut
 init_cuts = ["(step == 2 && isTight)","(step == 2 && isMedium)"]
-whatiscut = ["_tight","_medium"]
+whatiscut = ["_tight2","_medium2"]
 
 os.chdir(resultdir)
 for ps,init_cut in enumerate(init_cuts):
@@ -101,7 +105,7 @@ for ps,init_cut in enumerate(init_cuts):
         leg.AddEntry(h_rd,"Data","p")
         logscale = False
         j=1
-        for i in mcfilelist:
+        for i in re_mcfilelist:
             j=j+1
             rootfilename = i+".root"
             print rootfilename
@@ -137,11 +141,19 @@ for ps,init_cut in enumerate(init_cuts):
             
 
         canvas = ROOT.TCanvas(title,title)
+        t = ROOT.TText()
+        t.SetTextFont(42)
+        t.SetTextAlign(21)
         hs.Draw()
+        t.DrawTextNDC(.5,.95,"Dimuon mass")
+        hs.SetTitle()
+        hs.GetXaxis().SetTitle('M_{ll} [GeV]')
+        hs.GetYaxis().SetTitle('number of entries /1GeV')
         h_rd.Draw("psame")
         leg.Draw("same")
         if logscale:
             canvas.SetLogy()
+        canvas.Update()
         canvas.SaveAs(currentdir+saveddir+"/"+title+whatiscut[ps]+".root")
         canvas.SaveAs(currentdir+saveddir+"/"+title+whatiscut[ps]+".png")
 
