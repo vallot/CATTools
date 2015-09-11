@@ -1,19 +1,30 @@
 import FWCore.ParameterSet.Config as cms
-
+import os
 process = cms.Process("h2muAnalyzer")
-savename ="h2mu"
-datadir = "/xrootd/store/group/CAT/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-3-6_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v2/150820_215635/0000/"
-
-savename+=".root"
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
-process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
+datadir = '/xrootd/store/group/CAT/SingleMuon/v7-3-6_Run2015B-PromptReco-v1/150820_215216/0000/'
+process.source = cms.Source("PoolSource",
+    #fileNames = cms.untracked.vstring('/store/group/CAT/SingleMuon/v7-3-6_Run2015B-PromptReco-v1/150820_215216/0000/catTuple_51.root')
+    fileNames = cms.untracked.vstring()
+)
 
-import os
 for f in os.listdir(datadir):
-    process.source.fileNames.append("file:"+datadir)
+    process.source.fileNames.append("file:"+datadir+f)
+print process.source.fileNames
+runOnMC=True
+### for run data
+lumiFile = 'Cert_246908-255031_13TeV_PromptReco_Collisions15_50ns_JSON.txt'
+for i in process.source.fileNames:
+    if 'Run2015' in i:
+        runOnMC=False
+if not runOnMC:
+    from FWCore.PythonUtilities.LumiList import LumiList
+    lumiList = LumiList(os.environ["CMSSW_BASE"]+'/src/CATTools/CatProducer/prod/LumiMask/'+lumiFile)
+    process.source.lumisToProcess = lumiList.getVLuminosityBlockRange()
+    print process.source.lumisToProcess
 
 process.h2mu = cms.EDAnalyzer("h2muAnalyzer",
     vertices = cms.InputTag("catVertex"),
@@ -25,7 +36,7 @@ process.h2mu = cms.EDAnalyzer("h2muAnalyzer",
 )
 
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string(savename)
+    fileName = cms.string("h2mu.root")
 )
 
 process.p = cms.Path(process.h2mu)
