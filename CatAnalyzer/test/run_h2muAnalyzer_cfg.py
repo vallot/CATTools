@@ -7,12 +7,13 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 datadir = '/xrootd/store/group/CAT/SingleMuon/v7-3-6_Run2015B-PromptReco-v1/150820_215216/0000/'
 process.source = cms.Source("PoolSource",
-    #fileNames = cms.untracked.vstring('/store/group/CAT/SingleMuon/v7-3-6_Run2015B-PromptReco-v1/150820_215216/0000/catTuple_51.root')
-    fileNames = cms.untracked.vstring()
+    fileNames = cms.untracked.vstring('file:/afs/cern.ch/user/j/jlee/work/cat74/src/CATTools/CatProducer/prod/catTuple.root')
+    #fileNames = cms.untracked.vstring()
 )
 
-for f in os.listdir(datadir):
-    process.source.fileNames.append("file:"+datadir+f)
+#for f in os.listdir(datadir):
+#    process.source.fileNames.append("file:"+datadir+f)
+
 print process.source.fileNames
 runOnMC=True
 ### for run data
@@ -25,7 +26,7 @@ if not runOnMC:
     lumiList = LumiList(os.environ["CMSSW_BASE"]+'/src/CATTools/CatProducer/prod/LumiMask/'+lumiFile)
     process.source.lumisToProcess = lumiList.getVLuminosityBlockRange()
     print process.source.lumisToProcess
-
+        
 process.h2mu = cms.EDAnalyzer("h2muAnalyzer",
     vertices = cms.InputTag("catVertex"),
     muons = cms.InputTag("catMuons"),
@@ -33,6 +34,8 @@ process.h2mu = cms.EDAnalyzer("h2muAnalyzer",
     jets = cms.InputTag("catJets"),
     mets = cms.InputTag("catMETs"),
     mcLabel = cms.InputTag("prunedGenParticles"),
+    triggerBits = cms.InputTag("TriggerResults","","HLT"),
+    triggerObjects = cms.InputTag("selectedPatTrigger"),
 )
 
 process.TFileService = cms.Service("TFileService",
