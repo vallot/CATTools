@@ -17,6 +17,8 @@
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/MET.h"
 
+#include "CATTools/CatAnalyzer/interface/AnalysisHelper.h"
+
 #include "TTree.h"
 #include "TFile.h"
 #include "TLorentzVector.h"
@@ -49,14 +51,7 @@ private:
   int preSelect(vector<cat::Jet> seljets, float MET);
   int JetCategory(vector<cat::Jet> seljets, float MET, float ll_pt);
   int JetCat_GC(float mu1_eta, float mu2_eta);
-  float deltaR(float e1, float p1, float e2, float p2);
 
-  TLorentzVector leafToTLorentzVector(reco::LeafCandidate & leaf)
-  {return TLorentzVector(leaf.px(), leaf.py(),leaf.pz(),leaf.energy());}
-
-  bool triggerFired(const edm::TriggerNames &triggerNames, edm::Handle<edm::TriggerResults> triggerResultsHandle, TString trigname);
-  bool triggerMatched(const edm::TriggerNames &triggerNames, edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects, TString trigname, cat::Particle & recoObject);
-  
   edm::EDGetTokenT<edm::View<cat::Muon> >     muonToken_;
   edm::EDGetTokenT<edm::View<cat::Electron> > elecToken_;
   edm::EDGetTokenT<edm::View<cat::Jet> >      jetToken_;
@@ -163,12 +158,6 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 
   edm::Handle<edm::View<cat::MET> > mets;
   iEvent.getByToken(metToken_, mets);
-
-  edm::Handle<edm::TriggerResults> triggerBits;
-  edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
-  iEvent.getByToken(triggerBits_, triggerBits);
-  iEvent.getByToken(triggerObjects_, triggerObjects);
-  const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
  
   edm::Handle<reco::GenParticleCollection> genParticles;
 
@@ -214,7 +203,7 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
         b_lep_isLoose = m.isLooseMuon();
         b_lep_isMedium = m.isMediumMuon();
         b_lep_isTight = m.isTightMuon();
-        float dr = deltaR(g.eta(), g.phi(), m.eta(), m.phi());
+        float dr = AnalysisHelper::deltaR(g.eta(), g.phi(), m.eta(), m.phi());
         if (dr < 0.1){
           b_reco_lep_pt = g.pt();
           b_reco_lep_eta = g.eta();
@@ -257,13 +246,22 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   if (ll_charge < 0)
     b_step = 2;
 
+  edm::Handle<edm::TriggerResults> triggerBits;
+  edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
+  iEvent.getByToken(triggerBits_, triggerBits);
+  iEvent.getByToken(triggerObjects_, triggerObjects);
+  const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);  
+  AnalysisHelper trigHelper = AnalysisHelper(triggerNames, triggerBits, triggerObjects);
 
-  if (triggerFired(triggerNames, triggerBits, "HLT_IsoMu24_eta2p1_v") ){
+  //  if (triggerFired(triggerNames, triggerBits, "HLT_IsoMu24_eta2p1_v") ){
+  if (trigHelper.triggerFired("HLT_IsoMu24_eta2p1_v") ){
     b_step = 3;
     cout << "trigger fired"<<endl;
   }
-  if ( triggerMatched(triggerNames, triggerObjects, "HLT_IsoMu24_eta2p1_v", selectedMuons[0] )
-       || triggerMatched(triggerNames, triggerObjects, "HLT_IsoMu24_eta2p1_v", selectedMuons[1] ))
+  // if ( triggerMatched(triggerNames, triggerObjects, "HLT_IsoMu24_eta2p1_v", selectedMuons[0] )
+  //      || triggerMatched(triggerNames, triggerObjects, "HLT_IsoMu24_eta2p1_v", selectedMuons[1] ))
+  if ( trigHelper.triggerMatched("HLT_IsoMu24_eta2p1_v", selectedMuons[0] )
+       || trigHelper.triggerMatched("HLT_IsoMu24_eta2p1_v", selectedMuons[1] ))
     b_step = 4;
 
   TLorentzVector met = mets->front().tlv();
@@ -411,53 +409,6 @@ int h2muAnalyzer::JetCat_GC(float mu1_eta, float mu2_eta)
     if (eta_mu[i] > 1.5 && eta_mu[i] < 2.4) GC += 100;
   }  
   return GC;
-}
-
-float h2muAnalyzer::deltaR(float e1,float p1,float e2,float p2)
-{
-  float de = e1-e2;
-  float dp = p1-p2;
-  if (dp > M_PI){
-    dp -= 2 * M_PI;
-  }
-  if (dp < -M_PI){
-    dp += 2 * M_PI;
-  }
-  float result = sqrt(de*de + dp*dp);
-  return result;
-}
-
-bool h2muAnalyzer::triggerFired(const edm::TriggerNames &triggerNames, edm::Handle<edm::TriggerResults> triggerResultsHandle, TString trigname)
-{
-  // const unsigned int ntrigs = triggerResultsHandle->size();
-  // for (unsigned int itr=0; itr<ntrigs; itr++){
-  //   TString trigName=triggerNames.triggerName(itr);
-  //   if (!triggerResultsHandle->accept(itr)) continue;
-  //   if(trigName.Contains(trigname))      return true;
-  // }
-  return false;
-}
-
-bool h2muAnalyzer::triggerMatched(const edm::TriggerNames &triggerNames, edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects, TString trigname, cat::Particle & recoObject)
-{
-  for (pat::TriggerObjectStandAlone trigObj : *triggerObjects) { // note: not "const &" since we want to call unpackPathNames
-    trigObj.unpackPathNames(triggerNames);
-    std::vector<std::string> pathNamesAll  = trigObj.pathNames(false);
-    for (unsigned h = 0, n = pathNamesAll.size(); h < n; ++h) {
-      if ( pathNamesAll[h].find(trigname) == 0 ){
-	if (trigObj.hasPathName( pathNamesAll[h], true, true )){
-	  // found matching trigger
-	  TLorentzVector trigTLV;
-	  trigTLV.SetPtEtaPhiM(trigObj.pt(), trigObj.eta(), trigObj.phi(), 0);
-	  if ( trigTLV.DeltaR(recoObject.tlv()) < 0.1){
-	    std::cout << "\tTrigger trigObject:  pt " << trigObj.pt() << ", eta " << trigObj.eta() << ", phi " << trigObj.phi() << std::endl;
-	    return true;
-	  }
-	}
-      }
-    }
-  }
-  return false;
 }
 
 void h2muAnalyzer::beginJob(){}
