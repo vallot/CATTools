@@ -193,7 +193,7 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
         process.pileupWeight.vertex = cms.InputTag(catVertexSource)
 
         if not useMiniAOD:
-            process.load("CATTools.CatProducer.genTopProducer_cfi")
+            process.load("CATTools.CatProducer.mcTruthTop.genTopProducer_cfi")
                     
         process.catMuons.shiftedEnDownSrc = cms.InputTag("shiftedPatMuonEnDown")
         process.catMuons.shiftedEnUpSrc = cms.InputTag("shiftedPatMuonEnUp")
