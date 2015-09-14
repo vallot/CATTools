@@ -104,6 +104,7 @@ void CATTriggerProducer::produce(edm::Event& event, const edm::EventSetup& event
 
   pat::TriggerObjectStandAloneCollection *catTriggerObjects = new pat::TriggerObjectStandAloneCollection();
   for (pat::TriggerObjectStandAlone trigObj : *triggerObjects) { // note: not "const &" since we want to call unpackPathNames
+    bool keepTriggerObject = false;
     trigObj.unpackPathNames(trigNames);
     std::vector<std::string> pathNamesAll  = trigObj.pathNames(false);
     for (unsigned h = 0, n = pathNamesAll.size(); h < n; ++h) {
@@ -112,9 +113,13 @@ void CATTriggerProducer::produce(edm::Event& event, const edm::EventSetup& event
 	  || pathNamesAll[h].find("HLT_IsoMu") == 0 
 	  || pathNamesAll[h].find("HLT_Mu") == 0 ){	
 	if (trigObj.hasPathName( pathNamesAll[h], true, true )){
-	  catTriggerObjects->push_back(trigObj);
+	  keepTriggerObject = true;
 	}
       }
+    }
+    if (keepTriggerObject){
+      trigObj.packPathNames(trigNames);
+      catTriggerObjects->push_back(trigObj);
     }
   }
   
