@@ -16,7 +16,6 @@ catEventContent.extend([
     'keep *_catMETs*_*_*',
     'keep *_catVertex_*_*',
     'keep *_catTrigger_*_*',
-    'keep patTriggerObjectStandAlones_*_*_*',
     'keep edmTriggerResults_TriggerResults__HLT',
     'drop *_shifted*_*_*',
     'drop *_smeared*_*_*',

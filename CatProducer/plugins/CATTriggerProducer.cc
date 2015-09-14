@@ -41,6 +41,7 @@ private:
   edm::EDGetTokenT<edm::TriggerResults> metFilterBitsPAT_;
   edm::EDGetTokenT<edm::TriggerResults> metFilterBitsRECO_;
 
+  strings hltPaths_;
   pairstrings hltNames_;
   pairstrings metFilterNames_;
   //HLTConfigProvider hltConfig_;
@@ -55,6 +56,12 @@ CATTriggerProducer::CATTriggerProducer(const edm::ParameterSet& pset):
 {
   const boost::regex matchVersion("_v[0-9\\*]+$"); // regexp from HLTrigger/HLTCore/HLTConfigProvider
 
+  produces<pat::TriggerObjectStandAloneCollection >();
+
+  for ( auto& hltPath : pset.getParameter<strings>("hltPaths") ){
+    hltPaths_.push_back(hltPath);
+  }
+  
   std::cout << "List of Triggers to Save" << std::endl;
   for ( auto& hltPath : pset.getParameter<strings>("hltPathNames") ){
     hltPath = boost::regex_replace(hltPath, matchVersion, "");
@@ -65,8 +72,6 @@ CATTriggerProducer::CATTriggerProducer(const edm::ParameterSet& pset):
     hltNames_.push_back(std::make_pair(hltPath, hltSavedAs));
   }
   produces<std::vector< std::pair < std::string, int > >>();
-
-  produces<pat::TriggerObjectStandAloneCollection >();
 
   for ( auto& hltPath : pset.getParameter<strings>("metFilterNames") ){
     std::cout << " " << hltPath << std::endl;
@@ -108,12 +113,11 @@ void CATTriggerProducer::produce(edm::Event& event, const edm::EventSetup& event
     trigObj.unpackPathNames(trigNames);
     std::vector<std::string> pathNamesAll  = trigObj.pathNames(false);
     for (unsigned h = 0, n = pathNamesAll.size(); h < n; ++h) {
-      if (pathNamesAll[h].find("HLT_Ele") == 0 
-	  || pathNamesAll[h].find("HLT_DoubleEle") == 0 
-	  || pathNamesAll[h].find("HLT_IsoMu") == 0 
-	  || pathNamesAll[h].find("HLT_Mu") == 0 ){	
-	if (trigObj.hasPathName( pathNamesAll[h], true, true )){
-	  keepTriggerObject = true;
+      for ( auto& hltPath : hltPaths_ ){
+	if (pathNamesAll[h].find(hltPath) == 0){
+	  if (trigObj.hasPathName( pathNamesAll[h], true, true )){
+	    keepTriggerObject = true;
+	  }
 	}
       }
     }
@@ -145,13 +149,12 @@ void CATTriggerProducer::produce(edm::Event& event, const edm::EventSetup& event
   // save only ele and mu triggers that pass
   std::vector< std::pair < std::string, int > > *alltriggers = new std::vector< std::pair < std::string, int > >();
   for( unsigned int i=0; i<trigNames.size(); ++i ){
-    if (trigNames.triggerName(i).find("HLT_Ele") == 0 
-	|| trigNames.triggerName(i).find("HLT_DoubleEle") == 0 
-	|| trigNames.triggerName(i).find("HLT_IsoMu") == 0 
-	|| trigNames.triggerName(i).find("HLT_Mu") == 0 ){
-      if ( triggerBits->accept(i) ) {
-	int psValue = int(triggerBits->accept(i)) * triggerPrescales->getPrescaleForIndex(i);
-	alltriggers->push_back(std::make_pair(trigNames.triggerName(i), psValue));
+    for ( auto& hltPath : hltPaths_ ){
+      if (trigNames.triggerName(i).find(hltPath) == 0){
+	if ( triggerBits->accept(i) ) {
+	  int psValue = int(triggerBits->accept(i)) * triggerPrescales->getPrescaleForIndex(i);
+	  alltriggers->push_back(std::make_pair(trigNames.triggerName(i), psValue));
+	}
       }
     }
   }
