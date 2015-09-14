@@ -59,12 +59,13 @@ if doSecVertex:
 process.maxEvents.input = options.maxEvents
 
 # Default file here for test purpose
-if useMiniAOD:
-    process.source.fileNames = ['/store/relval/CMSSW_7_4_6_patch6/RelValTTbar_13/MINIAODSIM/MCRUN2_74_V9-v1/00000/2403409D-1225-E511-B64E-0025905A6132.root']
+if not options.inputFiles:
+    if useMiniAOD:
+        process.source.fileNames = ['/store/relval/CMSSW_7_4_6_patch6/RelValTTbar_13/MINIAODSIM/MCRUN2_74_V9-v1/00000/2403409D-1225-E511-B64E-0025905A6132.root']
     ## Hack to run on relval sample
-    process.genMetExtractor.metSource = "slimmedMETs::RECO"
-else:
-    process.source.fileNames = ['/store/relval/CMSSW_7_4_6_patch6/RelValTTbar_13/GEN-SIM-RECO/MCRUN2_74_V9-v1/00000/54F6E09C-1225-E511-842B-0025905A612E.root']
+        process.genMetExtractor.metSource = "slimmedMETs::RECO"
+    else:
+        process.source.fileNames = ['/store/relval/CMSSW_7_4_6_patch6/RelValTTbar_13/GEN-SIM-RECO/MCRUN2_74_V9-v1/00000/54F6E09C-1225-E511-842B-0025905A612E.root']
 
 if options.inputFiles:
     process.source.fileNames = options.inputFiles

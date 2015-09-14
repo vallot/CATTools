@@ -17,30 +17,26 @@
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/MET.h"
 
+#include "CATTools/CatAnalyzer/interface/AnalysisHelper.h"
+#include "DataFormats/Math/interface/deltaR.h"
+
 #include "TTree.h"
 #include "TFile.h"
 #include "TLorentzVector.h"
 
+#define _USE_MATH_DEFINES
+#include <cmath>
 using namespace std;
 
 class h2muAnalyzer : public edm::EDAnalyzer {
 public:
   explicit h2muAnalyzer(const edm::ParameterSet&);
   ~h2muAnalyzer();
-  
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
   
-  
 private:
-  virtual void beginJob() ;
   virtual void analyze(const edm::Event&, const edm::EventSetup&);
-  virtual void endJob() ;
   
-  virtual void beginRun(edm::Run const&, edm::EventSetup const&);
-  virtual void endRun(edm::Run const&, edm::EventSetup const&);
-  virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
-  virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
-
   vector<cat::Muon> selectMuons(const edm::View<cat::Muon>* muons );
   vector<cat::Electron> selectElecs(const edm::View<cat::Electron>* elecs );
   vector<cat::Jet> selectJets(const edm::View<cat::Jet>* jets, vector<TLorentzVector> recolep);
@@ -50,17 +46,18 @@ private:
   int JetCategory(vector<cat::Jet> seljets, float MET, float ll_pt);
   int JetCat_GC(float mu1_eta, float mu2_eta);
 
-  TLorentzVector leafToTLorentzVector(reco::LeafCandidate & leaf)
-  {return TLorentzVector(leaf.px(), leaf.py(),leaf.pz(),leaf.energy());}
-
   edm::EDGetTokenT<edm::View<cat::Muon> >     muonToken_;
   edm::EDGetTokenT<edm::View<cat::Electron> > elecToken_;
   edm::EDGetTokenT<edm::View<cat::Jet> >      jetToken_;
   edm::EDGetTokenT<edm::View<cat::MET> >      metToken_;
   edm::EDGetTokenT<reco::VertexCollection >   vtxToken_;
   edm::EDGetTokenT<reco::GenParticleCollection> mcLabel_;
+  edm::EDGetTokenT<edm::TriggerResults> triggerBits_;
+  edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjects_;
 
   TTree * ttree_;
+  TTree * t2;
+
   int b_njet, b_step, b_channel;
   float b_MET;
   float b_lep1_pt, b_lep1_eta, b_lep1_phi;
@@ -68,14 +65,15 @@ private:
   float b_ll_pt, b_ll_eta, b_ll_phi, b_ll_m;
   int b_jetcat_f_hier;  
   int b_jetcat_GC;
-
   bool b_isMedium, b_isTight;
-  
+
+  float b_gen_lep_pt, b_gen_lep_eta, b_gen_lep_phi;
+  float b_reco_lep_pt, b_reco_lep_eta, b_reco_lep_phi;
+  float b_resolution;  
+  bool b_lep_isLoose, b_lep_isMedium, b_lep_isTight;
+
   bool runOnMC_;
 };
-//
-// constructors and destructor
-//
 h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
 {
   muonToken_ = consumes<edm::View<cat::Muon> >(iConfig.getParameter<edm::InputTag>("muons"));
@@ -84,9 +82,12 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
   metToken_  = consumes<edm::View<cat::MET> >(iConfig.getParameter<edm::InputTag>("mets"));     
   vtxToken_  = consumes<reco::VertexCollection >(iConfig.getParameter<edm::InputTag>("vertices"));
   mcLabel_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcLabel"));
-  
+  triggerBits_ = consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerBits"));
+  triggerObjects_ = consumes<pat::TriggerObjectStandAloneCollection>(iConfig.getParameter<edm::InputTag>("triggerObjects"));
+
   edm::Service<TFileService> fs;
   ttree_ = fs->make<TTree>("tree", "tree");
+  t2 = fs->make<TTree>("tree2","tree2");
   ttree_->Branch("njet", &b_njet, "njet/I");
   ttree_->Branch("MET", &b_MET, "MET/F");
   ttree_->Branch("channel", &b_channel, "channel/I");
@@ -115,18 +116,22 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
   //Geometrical Categorization
   //only included 0jet and 1jet
   ttree_->Branch("jetcat_GC", &b_jetcat_GC, "jetcat_GC/I");
-}
-h2muAnalyzer::~h2muAnalyzer()
-{
-  // do anything here that needs to be done at desctruction time
-  // (e.g. close files, deallocate resources etc.)
-}
 
-//
-// member functions
-//
+  //tree2. we should use this for efficiency of recomuon per genmuon.
+  t2 ->Branch("gen_lep_pt", &b_gen_lep_pt, "gen_lep_pt/F");
+  t2 ->Branch("gen_lep_eta", &b_gen_lep_eta, "gen_lep_eta/F");
+  t2 ->Branch("gen_lep_phi", &b_gen_lep_phi, "gen_lep_phi/F");
+  t2 ->Branch("reco_lep_pt", &b_reco_lep_pt, "reco_lep_pt/F");
+  t2 ->Branch("reco_lep_eta", &b_reco_lep_eta, "reco_lep_eta/F");
+  t2 ->Branch("reco_lep_phi", &b_reco_lep_phi, "reco_lep_phi/F");
+  t2 ->Branch("resolution", &b_resolution, "resolution/F");
+  t2 ->Branch("lep_isLoose", &b_lep_isLoose, "lep_isLoose/B");
+  t2 ->Branch("lep_isMedium", &b_lep_isMedium, "lep_isMedium/B");
+  t2 ->Branch("lep_isTight", &b_lep_isTight, "lep_isTight/B");
+ 
+}
+h2muAnalyzer::~h2muAnalyzer(){}
 
-// ------------ method called for each event  ------------
 void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   runOnMC_ = !iEvent.isRealData();
@@ -147,23 +152,8 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 
   edm::Handle<edm::View<cat::MET> > mets;
   iEvent.getByToken(metToken_, mets);
-
+ 
   edm::Handle<reco::GenParticleCollection> genParticles;
-
-  if (runOnMC_){
-    iEvent.getByToken(mcLabel_,genParticles);
-    // for (const reco::GenParticle & g : *genParticles){
-    //   const reco::Candidate* wPlus=0;
-    //   if (g.pdgId() == 23){
-    // 	for (unsigned int i = 0; i < g.numberOfDaughters(); ++i){
-    // 	  if (g.daughter(i)->pdgId()  == 24){
-    // 	    wPlus = g.daughter(i);
-    // 	    break;
-    // 	  }
-    // 	}
-    //   }
-    // }    
-  }
 
   b_njet = -1; b_step = 0; b_channel = -1;
   b_MET = -1;
@@ -174,7 +164,51 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 
   b_jetcat_f_hier = -9;
   b_jetcat_GC = -9;  
+
   vector<cat::Muon> selectedMuons = selectMuons( muons.product() );
+
+  if (runOnMC_){
+    iEvent.getByToken(mcLabel_,genParticles);
+    for (const reco::GenParticle & g : *genParticles){
+      bool isfromZboson = false;
+      if (abs(g.pdgId())!=13 || g.pt()<=20.){
+        continue;
+      }
+      for (unsigned int i = 0; i < g.numberOfMothers(); ++i){
+	if (g.mother(i)->pdgId()  == 23){ //In case of pdgId() = 23, indicate Z-boson. if it's 25, that becomes higgs.
+	  isfromZboson = true;
+	}
+      }
+      
+      b_gen_lep_pt = -9; b_gen_lep_eta = -9; b_gen_lep_phi = -9;
+      b_reco_lep_pt = -9; b_reco_lep_eta = -9; b_reco_lep_phi = -9;
+      b_resolution = -9;  
+      b_lep_isLoose = 0; b_lep_isMedium = 0; b_lep_isTight = 0;  
+ 
+      if (!isfromZboson) {
+        t2->Fill();
+        continue;
+      }
+      b_gen_lep_pt = g.pt();
+      b_gen_lep_eta = g.eta();
+      b_gen_lep_phi = g.phi();
+      
+      for (auto m : selectedMuons){
+        b_lep_isLoose = m.isLooseMuon();
+        b_lep_isMedium = m.isMediumMuon();
+        b_lep_isTight = m.isTightMuon();
+        float dr = reco::deltaR(g.eta(), g.phi(), m.eta(), m.phi());
+        if (dr < 0.1){
+          b_reco_lep_pt = g.pt();
+          b_reco_lep_eta = g.eta();
+          b_reco_lep_phi = g.phi();
+          b_resolution = (m.pt()-g.pt())/g.pt();
+          break;
+        }
+      }
+      t2->Fill();
+    }    
+  }
 
   if (selectedMuons.size() < 2){
     ttree_->Fill();
@@ -189,7 +223,7 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   b_lep2_eta = selectedMuons[1].eta();
   b_lep2_phi = selectedMuons[1].phi();
 
-  b_isMedium = 0;
+  b_isMedium = (selectedMuons[0].isMediumMuon() && selectedMuons[1].isMediumMuon());
   b_isTight = (selectedMuons[0].isTightMuon() && selectedMuons[1].isTightMuon());
   
 
@@ -206,6 +240,23 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   if (ll_charge < 0)
     b_step = 2;
 
+  edm::Handle<edm::TriggerResults> triggerBits;
+  edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
+  iEvent.getByToken(triggerBits_, triggerBits);
+  iEvent.getByToken(triggerObjects_, triggerObjects);
+  const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);  
+  AnalysisHelper trigHelper = AnalysisHelper(triggerNames, triggerBits, triggerObjects);
+
+  //  if (triggerFired(triggerNames, triggerBits, "HLT_IsoMu24_eta2p1_v") ){
+  if (trigHelper.triggerFired("HLT_IsoMu24_eta2p1_v") ){
+    b_step = 3;
+    cout << "trigger fired"<<endl;
+  }
+  // if ( triggerMatched(triggerNames, triggerObjects, "HLT_IsoMu24_eta2p1_v", selectedMuons[0] )
+  //      || triggerMatched(triggerNames, triggerObjects, "HLT_IsoMu24_eta2p1_v", selectedMuons[1] ))
+  if ( trigHelper.triggerMatched("HLT_IsoMu24_eta2p1_v", selectedMuons[0] )
+       || trigHelper.triggerMatched("HLT_IsoMu24_eta2p1_v", selectedMuons[1] ))
+    b_step = 4;
 
   TLorentzVector met = mets->front().tlv();
   b_MET = met.Pt();
@@ -333,9 +384,9 @@ int h2muAnalyzer::JetCategory(vector<cat::Jet> seljets, float MET, float ll_pt)
     bool VBF_Tight = (M_jets.M() > 650 && abs(delta_eta) > 3.5);
     bool ggF_Tight = (M_jets.M() > 250 && ll_pt > 50);
     if (VBF_Tight || ggF_Tight){
-        if (!ggF_Tight){return 5;} //not ggF_Tight but only VBF_Tight
-        if (!VBF_Tight){return 6;}//also contrast of above
-        if (VBF_Tight && ggF_Tight){return 7;}
+      if (!ggF_Tight){return 5;} //not ggF_Tight but only VBF_Tight
+      if (!VBF_Tight){return 6;}//also contrast of above
+      if (VBF_Tight && ggF_Tight){return 7;}
     }
     else {return 8;}
   }
@@ -348,51 +399,13 @@ int h2muAnalyzer::JetCat_GC(float mu1_eta, float mu2_eta)
   float GC=0;
   for(int i=0; i<2; i++){
     if (eta_mu[i] < 0.8) GC += 1;
-    if (eta_mu[i] > 0.8 && eta_mu[i] < 1.6) GC += 10;
-    if (eta_mu[i] > 1.6 && eta_mu[i] < 2.4) GC += 100;
+    if (eta_mu[i] > 0.8 && eta_mu[i] < 1.5) GC += 10;
+    if (eta_mu[i] > 1.5 && eta_mu[i] < 2.4) GC += 100;
   }  
   return GC;
 }
 
-// ------------ method called once each job just before starting event loop  ------------
-void 
-h2muAnalyzer::beginJob()
-{
-}
-
-// ------------ method called once each job just after ending the event loop  ------------
-void 
-h2muAnalyzer::endJob() 
-{
-}
-
-// ------------ method called when starting to processes a run  ------------
-void 
-h2muAnalyzer::beginRun(edm::Run const&, edm::EventSetup const&)
-{
-}
-
-// ------------ method called when ending the processing of a run  ------------
-void 
-h2muAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
-{
-}
-
-// ------------ method called when starting to processes a luminosity block  ------------
-void 
-h2muAnalyzer::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
-{
-}
-
-// ------------ method called when ending the processing of a luminosity block  ------------
-void 
-h2muAnalyzer::endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
-{
-}
-
-// ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
-void
-h2muAnalyzer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+void h2muAnalyzer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   //The following says we do not know what parameters are allowed so do no validation
   // Please change this to state exactly what you do use, even if it is no parameters
   edm::ParameterSetDescription desc;
