@@ -2,19 +2,6 @@
 
 using namespace std;
 
-float AnalysisHelper::deltaR(float e1,float p1,float e2,float p2)
-{
-  float de = e1-e2;
-  float dp = p1-p2;
-  if (dp > M_PI){
-    dp -= 2 * M_PI;
-  }
-  if (dp < -M_PI){
-    dp += 2 * M_PI;
-  }
-  return sqrt(de*de + dp*dp);
-}
-
 bool AnalysisHelper::triggerNotSet()
 {
   cout <<"trigger info not set, use the constructor below to set the trigger info "<< endl;
@@ -46,7 +33,7 @@ bool AnalysisHelper::triggerMatched(TString trigname, cat::Particle & recoObj, f
       if ( pathNamesAll[h].find(trigname) == 0 ){
 	if (trigObj.hasPathName( pathNamesAll[h], true, true )){
 	  // found trigger
-	  if ( deltaR(trigObj, recoObj) < dR){
+	  if ( reco::deltaR(trigObj, recoObj) < dR){
 	    // found matching trigger
 	    //std::cout << "\tTrigger trigObject:  pt " << trigObj.pt() << ", eta " << trigObj.eta() << ", phi " << trigObj.phi() << std::endl;
 	    return true;

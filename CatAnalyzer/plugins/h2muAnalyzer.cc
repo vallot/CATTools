@@ -18,6 +18,7 @@
 #include "CATTools/DataFormats/interface/MET.h"
 
 #include "CATTools/CatAnalyzer/interface/AnalysisHelper.h"
+#include "DataFormats/Math/interface/deltaR.h"
 
 #include "TTree.h"
 #include "TFile.h"
@@ -34,15 +35,8 @@ public:
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
   
 private:
-  virtual void beginJob() ;
   virtual void analyze(const edm::Event&, const edm::EventSetup&);
-  virtual void endJob() ;
   
-  virtual void beginRun(edm::Run const&, edm::EventSetup const&);
-  virtual void endRun(edm::Run const&, edm::EventSetup const&);
-  virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
-  virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
-
   vector<cat::Muon> selectMuons(const edm::View<cat::Muon>* muons );
   vector<cat::Electron> selectElecs(const edm::View<cat::Electron>* elecs );
   vector<cat::Jet> selectJets(const edm::View<cat::Jet>* jets, vector<TLorentzVector> recolep);
@@ -203,7 +197,7 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
         b_lep_isLoose = m.isLooseMuon();
         b_lep_isMedium = m.isMediumMuon();
         b_lep_isTight = m.isTightMuon();
-        float dr = AnalysisHelper::deltaR(g.eta(), g.phi(), m.eta(), m.phi());
+        float dr = reco::deltaR(g.eta(), g.phi(), m.eta(), m.phi());
         if (dr < 0.1){
           b_reco_lep_pt = g.pt();
           b_reco_lep_eta = g.eta();
@@ -411,12 +405,6 @@ int h2muAnalyzer::JetCat_GC(float mu1_eta, float mu2_eta)
   return GC;
 }
 
-void h2muAnalyzer::beginJob(){}
-void h2muAnalyzer::endJob(){}
-void h2muAnalyzer::beginRun(edm::Run const&, edm::EventSetup const&){}
-void h2muAnalyzer::endRun(edm::Run const&, edm::EventSetup const&){}
-void h2muAnalyzer::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&){}
-void h2muAnalyzer::endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&){}
 void h2muAnalyzer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   //The following says we do not know what parameters are allowed so do no validation
   // Please change this to state exactly what you do use, even if it is no parameters
