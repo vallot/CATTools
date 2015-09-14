@@ -39,8 +39,6 @@ import csv
 gdocbase = "https://docs.google.com/spreadsheets/d/1rWM3AlFKO8IJVaeoQkWZYWwSvicQ1QCXYSzH74QyZqE"
 print "Retrieving dataset info from google doc..."
 print "Source URL =", gdocbase
-#csvRD = list(csv.reader(urlopen(gdocbase + "/pub?gid=0&single=true&output=csv").readlines()))
-#csvMC = list(csv.reader(urlopen(gdocbase + "/pub?gid=1289302456&single=true&output=csv").readlines()))
 csv = list(csv.reader(urlopen(gdocbase + "/pub?gid=%s&single=true&output=csv" % gid).readlines()))
 
 ds = []
