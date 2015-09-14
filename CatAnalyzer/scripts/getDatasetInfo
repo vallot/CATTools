@@ -14,6 +14,7 @@ if subprocess.call("type xrd", shell=True,
     sys.exit()
 
 gidMap = {
+    'v7-3-4':'857222646',
     'v7-4-1':'212761185',
 }
 gid = gidMap[sys.argv[1]]
