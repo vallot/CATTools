@@ -35,7 +35,7 @@ process.h2mu = cms.EDAnalyzer("h2muAnalyzer",
     mets = cms.InputTag("catMETs"),
     mcLabel = cms.InputTag("prunedGenParticles"),
     triggerBits = cms.InputTag("TriggerResults","","HLT"),
-    triggerObjects = cms.InputTag("selectedPatTrigger"),
+    triggerObjects = cms.InputTag("catTrigger"),
 )
 
 process.TFileService = cms.Service("TFileService",

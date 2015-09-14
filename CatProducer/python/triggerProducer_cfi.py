@@ -1,10 +1,11 @@
 import FWCore.ParameterSet.Config as cms
 
 catTrigger = cms.EDProducer("CATTriggerProducer",
-    bits = cms.InputTag("TriggerResults","","HLT"),
+    triggerBits = cms.InputTag("TriggerResults","","HLT"),
+    triggerObjects = cms.InputTag("selectedPatTrigger"),
+    triggerPrescales = cms.InputTag("patTrigger"),
     metFilterBitsPAT = cms.InputTag("TriggerResults","","PAT"),
     metFilterBitsRECO = cms.InputTag("TriggerResults","","RECO"),
-    prescales = cms.InputTag("patTrigger"),
     metFilterNames = cms.vstring(
     "HBHENoiseFilter",
     "CSCTightHaloFilter",
