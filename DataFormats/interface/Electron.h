@@ -99,7 +99,9 @@ namespace cat {
     float shiftedEnUp() const {return  shiftedEnUp_;}
 
     bool isPF() const{ return isPF_; }
-    void setIsPF(bool hasPFCandidate) { isPF_ = hasPFCandidate ; }
+    void setIsPF(bool d) { isPF_ = d ; }
+    bool isGsfCtfScPixChargeConsistent() const{ return isGsfCtfScPixChargeConsistent_; }
+    void setIsGsfCtfScPixChargeConsistent(bool d) { isGsfCtfScPixChargeConsistent_ = d ; }
 
     void setDz(float d) { dz_ = d; }
     void setDxy(float d) { dxy_ = d; }
@@ -123,7 +125,8 @@ namespace cat {
 
     float scEta_;
     bool isPF_;
-
+    bool isGsfCtfScPixChargeConsistent_;
+    
     bool mcMatched_;
     bool passConversionVeto_;
 

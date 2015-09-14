@@ -134,6 +134,7 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
       aElectron.setMCMatched( mcMatched );
     }
     aElectron.setIsPF( aPatElectron.isPF() );
+    aElectron.setIsGsfCtfScPixChargeConsistent( aPatElectron.isGsfCtfScPixChargeConsistent() );
 
     aElectron.setChargedHadronIso04( aPatElectron.chargedHadronIso() );
     aElectron.setNeutralHadronIso04( aPatElectron.neutralHadronIso() );
