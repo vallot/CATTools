@@ -8,15 +8,16 @@ process.load("FWCore.MessageLogger.MessageLogger_cfi")
 #process.load("SimGeneral.HepPDTESSource.pythiapdt_cfi")
 
 process.options = cms.untracked.PSet(
-    wantSummary = cms.untracked.bool(True),
+#    wantSummary = cms.untracked.bool(True),
     allowUnscheduled = cms.untracked.bool(True),
 )
-#process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 process.MessageLogger.cerr.FwkReport.reportEvery = 10000
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 process.source.fileNames = [
-'root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-3-4_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v4/150810_215031/0000/catTuple_1.root',
+'root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-4-0_RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v2/150909_163325/0000/catTuple_2.root'
+#'file:///store1/jhgoh/CAT/catTuple__TT_TuneCUETP8M1_13TeV-powheg-pythia8__V7-3-6.root',
 ]
 
 process.out = cms.OutputModule("PoolOutputModule",
@@ -34,6 +35,9 @@ process.ttbar = cms.EDProducer("TTbarDileptonProducer",
     solver = cms.string("CMSKIN"),
 #    solver = cms.string("NUWGT"),
 #    solver = cms.string("MT2"),
+#    solver = cms.string("MAOS"),
+#    solver = cms.string("DESYSmeared"),
+#    solver = cms.string("DESYMassLoop"),
     muons = cms.InputTag("catMuons"),
     electrons = cms.InputTag("catElectrons"),
     jets = cms.InputTag("catJets"),
@@ -41,52 +45,57 @@ process.ttbar = cms.EDProducer("TTbarDileptonProducer",
 )
 
 process.filterRECO = cms.EDProducer("CATTriggerPacker",
-    srcs = cms.VInputTag(
-        cms.InputTag("catTrigger", "CSCTightHaloFilter"),
-        cms.InputTag("catTrigger", "EcalDeadCellTriggerPrimitiveFilter"),
-        cms.InputTag("catTrigger", "HBHENoiseFilter"),
-        cms.InputTag("catTrigger", "eeBadScFilter"),
-        cms.InputTag("catTrigger", "goodVertices"),
+    src = cms.InputTag("catTrigger"),
+    triggersToMatch = cms.vstring(
+        "CSCTightHaloFilter",
+        "EcalDeadCellTriggerPrimitiveFilter",
+        "HBHENoiseFilter",
+        "eeBadScFilter",
+        "goodVertices",
     ),
 )
 
 process.HLTMu = cms.EDProducer("CATTriggerPacker",
-    srcs = cms.VInputTag(
-        cms.InputTag("catTrigger", ""),
+    src = cms.InputTag("catTrigger"),
+    triggersToMatch = cms.vstring(
     ),
 )
 
 process.HLTEl = cms.EDProducer("CATTriggerPacker",
-    srcs = cms.VInputTag(
-        cms.InputTag("catTrigger", "HLTEle12CaloIdLTrackIdLIsoVL"),
-        cms.InputTag("catTrigger", "HLTEle17CaloIdLTrackIdLIsoVL"),
-        cms.InputTag("catTrigger", "HLTEle27eta2p1WPLooseGsfTriCentralPFJet30"),
+    src = cms.InputTag("catTrigger"),
+    triggersToMatch = cms.vstring(
+        "HLT_Ele12_CaloIdL_TrackIdL_IsoVL",
+        "HLT_Ele17_CaloIdL_TrackIdL_IsoVL",
+        "HLT_Ele27eta2p1_WPLooseGsf_TriCentralPFJet30",
     ),
 )
 
 process.HLTMuMu = cms.EDProducer("CATTriggerPacker",
-    srcs = cms.VInputTag(
-        cms.InputTag("catTrigger", "HLTMu17Mu8DZ"),
-        cms.InputTag("catTrigger", "HLTMu17TkMu8DZ"),
-        cms.InputTag("catTrigger", "HLTMu17TrkIsoVVLMu8TrkIsoVVL"),
-        cms.InputTag("catTrigger", "HLTMu17TrkIsoVVLMu8TrkIsoVVLDZ"),
-        cms.InputTag("catTrigger", "HLTMu17TrkIsoVVLTkMu8TrkIsoVVL"),
+    src = cms.InputTag("catTrigger"),
+    triggersToMatch = cms.vstring(
+        "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ",
+        "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ",
+        "HLT_Mu17_Mu8_DZ",
+        "HLT_Mu17_TkMu8_DZ",
     ),
 )
 
 process.HLTElEl = cms.EDProducer("CATTriggerPacker",
-    srcs = cms.VInputTag(
-        cms.InputTag("catTrigger", "HLTDoubleEle33CaloIdLGsfTrkIdVL"),
-        cms.InputTag("catTrigger", "HLTEle17Ele12CaloIdLTrackIdLIsoVLDZ"),
-        cms.InputTag("catTrigger", "HLTEle23Ele12CaloIdLTrackIdLIsoVL"),
-        cms.InputTag("catTrigger", "HLTEle23Ele12CaloIdLTrackIdLIsoVLDZ"),
+    src = cms.InputTag("catTrigger"),
+    triggersToMatch = cms.vstring(
+        "HLT_DoubleEle33_CaloIdL_GsfTrkIdVL",
+        "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ",
+        "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL",
+        "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ",
     ),
 )
 
+
 process.HLTMuEl = cms.EDProducer("CATTriggerPacker",
-    srcs = cms.VInputTag(
-        cms.InputTag("catTrigger", "HLTMu17TrkIsoVVLEle12CaloIdLTrackIdLIsoVL"),
-        cms.InputTag("catTrigger", "HLTMu8TrkIsoVVLEle17CaloIdLTrackIdLIsoVL"),
+    src = cms.InputTag("catTrigger"),
+    triggersToMatch = cms.vstring(
+        "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL",
+        "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL",
     ),
 )
 
@@ -95,21 +104,21 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
     #failureMode = cms.untracked.string("error"), # choose one among keep/skip/error
     eventCounters = cms.vstring("nEventsTotal"), #"nEventsTotal", "nEventsClean", "nEventsPAT"),
     int = cms.PSet(
-        nVertex   = cms.PSet(src = cms.InputTag("catVertex:nGoodPV")),
-        filterRECO = cms.PSet(src = cms.InputTag("filterRECO:and")),
-        HLTMuMu = cms.PSet(src = cms.InputTag("HLTMuMu:or")),
-        HLTElEl = cms.PSet(src = cms.InputTag("HLTElEl:or")),
-        HLTMuEl = cms.PSet(src = cms.InputTag("HLTMuEl:or")),
-        #HLTMu = cms.PSet(src = cms.InputTag("recoEventInfo","HLTSingleMu")),
-        HLTEl = cms.PSet(src = cms.InputTag("HLTEl:or")),
+        nVertex   = cms.InputTag("catVertex:nGoodPV"),
+        filterRECO = cms.InputTag("filterRECO:and"),
+        HLTMuMu = cms.InputTag("HLTMuMu:or"),
+        HLTElEl = cms.InputTag("HLTElEl:or"),
+        HLTMuEl = cms.InputTag("HLTMuEl:or"),
+        #HLTMu = cms.InputTag("recoEventInfo","HLTSingleMu"),
+        HLTEl = cms.InputTag("HLTEl:or"),
     ),
     double = cms.PSet(
-        puWeight   = cms.PSet(src = cms.InputTag("pileupWeight")),
-        puWeightUp = cms.PSet(src = cms.InputTag("pileupWeight", "up")),
-        puWeightDn = cms.PSet(src = cms.InputTag("pileupWeight", "dn")),
+        puWeight   = cms.InputTag("pileupWeight"),
+        puWeightUp = cms.InputTag("pileupWeight", "up"),
+        puWeightDn = cms.InputTag("pileupWeight", "dn"),
     ),
     doubles = cms.PSet(
-        pdfWeight = cms.PSet(src = cms.InputTag("pdfWeight")),
+        pdfWeight = cms.InputTag("pdfWeight"),
     ),
     cands = cms.PSet(
         pseudoTop = cms.PSet(
