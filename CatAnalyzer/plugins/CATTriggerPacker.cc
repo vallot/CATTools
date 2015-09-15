@@ -45,18 +45,20 @@ void CATTriggerPacker::produce(edm::Event& event, const edm::EventSetup&)
   edm::Handle<pat::PackedTriggerPrescales> prescaleHandle;
   event.getByToken(prescaleToken_, prescaleHandle);
 
+  const auto& trigNames = event.triggerNames(*triggerHandle);
+
   // Keep trigger indices and ps factors
   int minPS = INT_MAX;
   std::vector<std::pair<int, int> > triggerInfo;
-  for ( size_t i=0, n=triggerHandle->size(); i<n; ++i )
+  for ( const auto& trigName : trigNames.triggerNames() )
   {
-    const string trigName = triggerHandle->name(i);
+    const unsigned int index = trigNames.triggerIndex(trigName);
     for ( const auto& trigPattern : triggersToMatch_ )
     {
       if ( trigName.find(trigPattern) != string::npos )
       {
-        const int ps = prescaleHandle->getPrescaleForIndex(i);
-        triggerInfo.push_back(make_pair(i, ps));
+        const int ps = prescaleHandle->getPrescaleForIndex(index);
+        triggerInfo.push_back(make_pair(index, ps));
         minPS = std::min(ps, minPS);
         break;
       }
