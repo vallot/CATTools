@@ -21,6 +21,7 @@ void TTDileptonSolver::solve(const LV input[])
   const auto& j1 = input[3];
   const auto& j2 = input[4];
 
+  l1_ = input[1]; l2_ = input[2]; j1_ = input[3]; j2_ = input[4];
   nu1_ = met/2;
   nu2_ = met/2;
 
@@ -85,6 +86,7 @@ void MT2Solver::solve(const LV input[])
   const auto& l2 = input[2];
   const auto& j1 = input[3];
   const auto& j2 = input[4];
+  l1_ = input[1]; l2_ = input[2]; j1_ = input[3]; j2_ = input[4];
 
   // pars : bx1, by1, bx2, by2, Kx, Ky, xmin, xmax
   //        b : b jet px, py
@@ -180,6 +182,7 @@ void CMSKinSolver::solve(const LV input[])
 
   nu1_ = nuSol.neutrino.p4();
   nu2_ = nuSol.neutrinoBar.p4();
+  l1_ = input[1]; l2_ = input[2]; j1_ = input[3]; j2_ = input[4];
 
   const LV t1 = input[1]+input[3]+nu1_;
   const LV t2 = input[2]+input[4]+nu2_;
@@ -229,6 +232,7 @@ void DESYMassLoopSolver::solve(const LV input[])
       nu2_.SetPxPyPzE(nu2sol[0], nu2sol[1], nu2sol[2], nu2sol[3]);
     }
   }
+  l1_ = input[1]; l2_ = input[2]; j1_ = input[3]; j2_ = input[4];
 }
 
 DESYSmearedSolver::DESYSmearedSolver()
@@ -275,6 +279,7 @@ void DESYSmearedSolver::solve(const LV input[])
   std::vector<double> koef, cache, sols;
   // Try 100 times with energy/angle smearing. Take weighted average of solutions
   const double mTopInput = 172.5;
+  const double sumW0 = h_mbl_w_->Integral();
   //double sumW = 0., maxSumW = 0;
   // Set random seed using kinematics (follow DESY code)
   //const unsigned int seed = std::abs(static_cast<int>(1E6*j1.pt()/j2.pt() * sin(1E6*(l1.pt() + 2.*l2.pt()))));
@@ -304,15 +309,17 @@ void DESYSmearedSolver::solve(const LV input[])
       // Compute weight by m(B,L)
       const double w1 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin(mbl1));
       const double w2 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin(mbl2));
-      const double weight = w1*w2;
+      const double weight = w1*w2/sumW0/sumW0;
 
       if ( weight < quality_ ) continue;
 
       quality_ = weight;
       nu1_.SetPxPyPzE(nu1sol[0], nu1sol[1], nu1sol[2], nu1sol[3]);
       nu2_.SetPxPyPzE(nu2sol[0], nu2sol[1], nu2sol[2], nu2sol[3]);
+      l1_ = newl1; l2_ = newl2; j1_ = newj1; j2_ = newj2;
     }
   }
+  if ( quality_ <= 0 ) quality_ = -1e9;
 }
 
 LV DESYSmearedSolver::getSmearedLV(const LV& lv0,
@@ -469,6 +476,7 @@ void NuWeightSolver::solve(const LV input[])
   const auto& j1 = input[3];
   const auto& j2 = input[4];
   const double sigmaEXsqr = 1, sigmaEYsqr = 1;
+  l1_ = input[1]; l2_ = input[2]; j1_ = input[3]; j2_ = input[4];
 
   double bestWeight = -1e9;
   double bestMt = 0;

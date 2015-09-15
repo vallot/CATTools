@@ -18,6 +18,10 @@ public:
   virtual void solve(const LV input[]) = 0;
 
   double quality() const { return quality_; };
+  const LV& l1() const { return l1_; };
+  const LV& l2() const { return l2_; };
+  const LV& j1() const { return j1_; };
+  const LV& j2() const { return j2_; };
   const LV& nu1() const { return nu1_; };
   const LV& nu2() const { return nu2_; };
   double aux(size_t i) const { return values_.at(i); };
@@ -26,6 +30,7 @@ public:
 protected:
   double quality_;
   LV nu1_, nu2_;
+  LV l1_, l2_, j1_, j2_;
   std::vector<double> values_;
 };
 

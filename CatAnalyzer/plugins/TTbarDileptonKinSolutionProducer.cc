@@ -143,6 +143,7 @@ void TTbarDileptonKinSolutionProducer::produce(edm::Event& event, const edm::Eve
     inputLV[3] = selectedJet1->p4();
     inputLV[4] = selectedJet2->p4();
     solver_->solve(inputLV);
+    quality = solver_->quality();
     std::copy(solver_->aux().begin(), solver_->aux().end(), std::back_inserter(*out_aux));
 
     cands->resize(7);
@@ -158,10 +159,10 @@ void TTbarDileptonKinSolutionProducer::produce(edm::Event& event, const edm::Eve
     // Set four momentum
     nu1.setP4(nu1LV);
     nu2.setP4(nu2LV);
-    w1.setP4(lep1LV+nu1LV);
-    w2.setP4(lep2LV+nu2LV);
-    top1.setP4(w1.p4()+selectedJet1->p4());
-    top2.setP4(w2.p4()+selectedJet2->p4());
+    w1.setP4(solver_->l1()+nu1LV);
+    w2.setP4(solver_->l2()+nu2LV);
+    top1.setP4(w1.p4()+solver_->j1());
+    top2.setP4(w2.p4()+solver_->j2());
     ttbar.setP4(top1.p4()+top2.p4());
 
     // Set basic quantum numbers (do channel dependent things later)
@@ -189,10 +190,10 @@ void TTbarDileptonKinSolutionProducer::produce(edm::Event& event, const edm::Eve
     w2.addDaughter(reco::CandidatePtr(prodId, 6, getter));
     */
 
-    out_mLL->push_back((lep1->p4()+lep2->p4()).mass());
+    out_mLL->push_back((solver_->l1()+solver_->l2()).mass());
     out_dphi->push_back(deltaPhi(top1.phi(), top2.phi()));
-    out_mLB->push_back((lep1->p4()+selectedJet1->p4()).mass());
-    out_mLB->push_back((lep2->p4()+selectedJet2->p4()).mass());
+    out_mLB->push_back((solver_->l1()+solver_->j1()).mass());
+    out_mLB->push_back((solver_->l2()+solver_->j2()).mass());
     if ( jetHandle->size() >= 4 )
     {
       int nUsedJet = 0;
