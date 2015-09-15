@@ -107,7 +107,7 @@ void KinSolverUtils::getNuPxPyPzE(const double px, const std::vector<double>& p,
   nu2sol[1] = metY - nu1sol[1];
 
   nu1sol[2] = -(p[12] + p[13]*nu1sol[0] + p[14]*nu1sol[1]);
-  nu2sol[2] = -(p[15] + p[16]*nu2sol[0] + p[17]*nu2sol[2]);
+  nu2sol[2] = -(p[15] + p[16]*nu2sol[0] + p[17]*nu2sol[1]);
 
   nu1sol[3] = sqrt(nu1sol[0]*nu1sol[0] + nu1sol[1]*nu1sol[1] + nu1sol[2]*nu1sol[2] + mV*mV);
   nu2sol[3] = sqrt(nu2sol[0]*nu2sol[0] + nu2sol[1]*nu2sol[1] + nu2sol[2]*nu2sol[2] + mV*mV);
