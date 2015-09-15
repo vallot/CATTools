@@ -57,7 +57,7 @@ private:
     if ( el.pt() <= 20 or std::abs(el.eta()) >= 2.4 ) return false;
     //if ( el.relIso(0.3) >= 0.11 ) return false;
     //if ( !el.electronID("egmGsfElectronIDs:cutBasedElectronID-Spring15-50ns-V1-standalone-medium") ) return false;
-    if ( !el.electronID("cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-medium") ) return false;
+    if ( !el.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-medium") ) return false;
     if ( !el.isPF() or !el.passConversionVeto() ) return false;
     const double scEta = std::abs(el.scEta());
     if ( scEta >= 1.4442 and scEta <= 1.566 ) return false;
@@ -67,7 +67,7 @@ private:
   {
     if ( el.pt()  <= 20 or std::abs(el.eta()) >= 2.4 ) return false;
     //if ( !el.electronID("egmGsfElectronIDs:cutBasedElectronID-Spring15-50ns-V1-standalone-veto") ) return false;
-    if ( !el.electronID("cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-veto") ) return false;
+    if ( !el.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-veto") ) return false;
     const double scEta = std::abs(el.scEta());
     if ( scEta >= 1.4442 and scEta <= 1.566 ) return false;
     const double relIso03 = el.relIso(0.3);
