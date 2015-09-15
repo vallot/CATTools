@@ -19,8 +19,9 @@
 
 #include "TopQuarkAnalysis/TopKinFitter/interface/TtFullLepKinSolver.h"
 
+#include "CATTools/CatAnalyzer/interface/AnalysisHelper.h"
+#include "DataFormats/Math/interface/deltaR.h"
 #include "TTree.h"
-#include "TFile.h"
 #include "TLorentzVector.h"
 
 using namespace std;
@@ -28,30 +29,19 @@ using namespace std;
 class TtbarDiLeptonAnalyzer : public edm::EDAnalyzer {
 public:
   explicit TtbarDiLeptonAnalyzer(const edm::ParameterSet&);
-  ~TtbarDiLeptonAnalyzer();
   
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
   
   
 private:
-  virtual void beginJob() ;
   virtual void analyze(const edm::Event&, const edm::EventSetup&);
-  virtual void endJob() ;
   
-  virtual void beginRun(edm::Run const&, edm::EventSetup const&);
-  virtual void endRun(edm::Run const&, edm::EventSetup const&);
-  virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
-  virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
-
   vector<cat::Muon> selectMuons(const edm::View<cat::Muon>* muons );
   vector<cat::Electron> selectElecs(const edm::View<cat::Electron>* elecs );
   vector<cat::Jet> selectJets(const edm::View<cat::Jet>* jets, vector<TLorentzVector> recolep);
   vector<cat::Jet> selectBJets(vector<cat::Jet> & jets );
   int passingSteps(int channel, float met, float ll_mass, float ll_charge, int selectedJets_size, int btag);
   const reco::Candidate* getLast(const reco::Candidate* p);
-
-  TLorentzVector leafToTLorentzVector(reco::LeafCandidate & leaf)
-  {return TLorentzVector(leaf.px(), leaf.py(),leaf.pz(),leaf.energy());}
 
   edm::EDGetTokenT<bool>          goodVertices_;
   edm::EDGetTokenT<bool>          CSCTightHaloFilter_;
@@ -97,10 +87,7 @@ private:
   int b_filtered;
   int b_is3lep;
 
-  TtFullLepKinSolver* solver;
-  double tmassbegin_, tmassend_, tmassstep_;
-  vector<double> nupars_;
-  
+  std::unique_ptr<TtFullLepKinSolver> solver;
   bool runOnMC_;
   int gen_channel;
   std::vector<int> gen_modes;
@@ -136,11 +123,13 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   pseudoTop_mets_      = consumes<vector<reco::MET>         >(iConfig.getParameter<edm::InputTag>("pseudoTop_mets"));
   triggers_      = consumes<vector<pair<string, int> > >(iConfig.getParameter<edm::InputTag>("triggers"));
 
-  tmassbegin_     = iConfig.getParameter<double>       ("tmassbegin");
-  tmassend_       = iConfig.getParameter<double>       ("tmassend");
-  tmassstep_      = iConfig.getParameter<double>       ("tmassstep");
-  nupars_         = iConfig.getParameter<vector<double> >("neutrino_parameters");
+  const double tmassbegin = iConfig.getParameter<double>       ("tmassbegin");
+  const double tmassend   = iConfig.getParameter<double>       ("tmassend");
+  const double tmassstep  = iConfig.getParameter<double>       ("tmassstep");
+  const auto   nupars     = iConfig.getParameter<vector<double> >("neutrino_parameters");
   
+  solver.reset(new TtFullLepKinSolver(tmassbegin, tmassend, tmassstep, nupars));
+
   edm::Service<TFileService> fs;
   ttree_ = fs->make<TTree>("tree", "tree");
   ttree_->Branch("gen_channel", &b_genChannel, "gen_channel/I");
@@ -189,11 +178,6 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("filtered", &b_filtered, "filtered/I");
   ttree_->Branch("is3lep", &b_is3lep, "is3lep/I");
 
-}
-TtbarDiLeptonAnalyzer::~TtbarDiLeptonAnalyzer()
-{
-  // do anything here that needs to be done at desctruction time
-  // (e.g. close files, deallocate resources etc.)
 }
 
 //
@@ -260,15 +244,15 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       const reco::Candidate* w=0;
       const reco::Candidate* wLast=0;    
       const reco::Candidate* lep=0;
-      if (fabs(g.pdgId()) == 6){ 
+      if (std::abs(g.pdgId()) == 6){ 
         for (unsigned int i = 0; i < g.numberOfDaughters(); ++i){
-          if (fabs(g.daughter(i)->pdgId())  == 24){ w = g.daughter(i); break; }
+          if (std::abs(g.daughter(i)->pdgId())  == 24){ w = g.daughter(i); break; }
         }
       }
       if (w){
         wLast=getLast(w);
         for (unsigned int i = 0; i < wLast->numberOfDaughters(); ++i){
-          if ((fabs(wLast->daughter(i)->pdgId()) == 11) || (fabs(wLast->daughter(i)->pdgId()) == 13) || (fabs(wLast->daughter(i)->pdgId()) == 15)){
+          if ((std::abs(wLast->daughter(i)->pdgId()) == 11) || (std::abs(wLast->daughter(i)->pdgId()) == 13) || (std::abs(wLast->daughter(i)->pdgId()) == 15)){
             lep = wLast->daughter(i);
             break;
           }
@@ -277,12 +261,12 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
       if (lep){
 		int mode = 1;
-		if ( fabs(lep->pdgId()) == 13){ ++nMuon; mode = 2; }
-		else if ( fabs(lep->pdgId()) == 11){ ++nElectron; mode = 3; }
-		else if ( fabs(lep->pdgId()) == 15){
+		if ( std::abs(lep->pdgId()) == 13){ ++nMuon; mode = 2; }
+		else if ( std::abs(lep->pdgId()) == 11){ ++nElectron; mode = 3; }
+		else if ( std::abs(lep->pdgId()) == 15){
 		  for (unsigned int i = 0; i < lep->numberOfDaughters(); ++i){
-			if ( fabs(lep->daughter(i)->pdgId()) == 13 ) { mode = 5; break;}
-			else if ( fabs(lep->daughter(i)->pdgId()) == 11 ) { mode = 6; break;}
+			if ( std::abs(lep->daughter(i)->pdgId()) == 13 ) { mode = 5; break;}
+			else if ( std::abs(lep->daughter(i)->pdgId()) == 11 ) { mode = 6; break;}
 			mode = 4;
 		  }
 		}
@@ -346,24 +330,24 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     }
 	*/
 	if ((*pseudoTop_leptons).size() == 2){
-		if (((*pseudoTop_leptons)[0].pt() > 20) && ((*pseudoTop_leptons)[1].pt() > 20) && (fabs((*pseudoTop_leptons)[0].eta()) < 2.4) && (fabs((*pseudoTop_leptons)[1].eta()) < 2.4)) b_lepinPhase = 1;
+		if (((*pseudoTop_leptons)[0].pt() > 20) && ((*pseudoTop_leptons)[1].pt() > 20) && (std::abs((*pseudoTop_leptons)[0].eta()) < 2.4) && (std::abs((*pseudoTop_leptons)[1].eta()) < 2.4)) b_lepinPhase = 1;
 	}
 
 	if ((*pseudoTop_jets).size() == 2){
-		if (((*pseudoTop_jets)[0].pt() > 30) && ((*pseudoTop_jets)[1].pt() > 30) && (fabs((*pseudoTop_jets)[0].eta()) < 2.4) && (fabs((*pseudoTop_jets)[1].eta()) < 2.4)) b_jetinPhase = 1;
+		if (((*pseudoTop_jets)[0].pt() > 30) && ((*pseudoTop_jets)[1].pt() > 30) && (std::abs((*pseudoTop_jets)[0].eta()) < 2.4) && (std::abs((*pseudoTop_jets)[1].eta()) < 2.4)) b_jetinPhase = 1;
 	}
 
 	int mode = 0;
     pseudoTop_modes.clear();
     for (const reco::GenJet & g : *pseudoTop_leptons){
-		if ( fabs(g.pdgId()) == 13){ mode = 2; }
-		else if ( fabs(g.pdgId()) == 11){ mode = 3; }
+		if ( std::abs(g.pdgId()) == 13){ mode = 2; }
+		else if ( std::abs(g.pdgId()) == 11){ mode = 3; }
 		pseudoTop_modes.push_back(mode);
     }
 
     if ( pseudoTop_modes.size() < 2 ){
 		for (const reco::GenParticle & g : *pseudoTop_neutrinos){
-		  if (fabs(g.pdgId()) == 16){
+		  if (std::abs(g.pdgId()) == 16){
 			  pseudoTop_modes.push_back(4);
 		  }
 		}
@@ -527,7 +511,6 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     for (auto jet2 = next(jet1); jet2 != end; ++jet2){
 
       double weight1 =0; double weight2 =0;
-      TLorentzVector nu11, nu12, nu21, nu22;
       TLorentzVector recojet1= jet1->tlv();
       TLorentzVector recojet2= jet2->tlv();
       
@@ -537,22 +520,22 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       solver->SetConstraints(xconstraint, yconstraint);
       TtFullLepKinSolver::NeutrinoSolution nuSol= solver->getNuSolution( recolep[0], recolep[1] , recojet1, recojet2);
       weight1 = nuSol.weight;
-      nu11 = leafToTLorentzVector(nuSol.neutrino);
-      nu12 = leafToTLorentzVector(nuSol.neutrinoBar);
+      TLorentzVector nu11 = AnalysisHelper::leafToTLorentzVector(nuSol.neutrino);
+      TLorentzVector nu12 = AnalysisHelper::leafToTLorentzVector(nuSol.neutrinoBar);
       
       TtFullLepKinSolver::NeutrinoSolution nuSol2= solver->getNuSolution( recolep[0], recolep[1] , recojet2, recojet1);
       weight2 = nuSol2.weight;
-      nu21 = leafToTLorentzVector(nuSol2.neutrino);
-      nu22 = leafToTLorentzVector(nuSol2.neutrinoBar);
+      TLorentzVector nu21 = AnalysisHelper::leafToTLorentzVector(nuSol2.neutrino);
+      TLorentzVector nu22 = AnalysisHelper::leafToTLorentzVector(nuSol2.neutrinoBar);
       if (weight1 > maxweight || weight2 > maxweight){
-	if(weight1>weight2 && weight1>0){
-	  maxweight = weight1; kinj1=(*jet1); kinj2=(*jet2); nu1 = nu11; nu2 = nu12; kin++;
-	  top1 = recolep[0]+recojet1+nu11; top2 = recolep[1]+recojet2+nu12;
-	}
-	else if(weight2>weight1 && weight2>0){
-	  maxweight = weight2; kinj1=(*jet2); kinj2=(*jet1); nu1 = nu21; nu2 = nu22; kin++;
-	  top1 = recolep[0]+recojet2+nu21; top2 = recolep[1]+recojet1+nu22;
-	}
+        if(weight1>weight2 && weight1>0){
+          maxweight = weight1; kinj1=(*jet1); kinj2=(*jet2); nu1 = nu11; nu2 = nu12; kin++;
+          top1 = recolep[0]+recojet1+nu11; top2 = recolep[1]+recojet2+nu12;
+        }
+        else if(weight2>weight1 && weight2>0){
+          maxweight = weight2; kinj1=(*jet2); kinj2=(*jet1); nu1 = nu21; nu2 = nu22; kin++;
+          top1 = recolep[0]+recojet2+nu21; top2 = recolep[1]+recojet1+nu22;
+        }
       }
     }
   }
@@ -588,7 +571,7 @@ vector<cat::Muon> TtbarDiLeptonAnalyzer::selectMuons(const edm::View<cat::Muon>*
     //if (!mu.isMediumMuon()) continue;
     if (!mu.isTightMuon()) continue;
     if (mu.pt() <= 20.) continue;
-    if (fabs(mu.eta()) >= 2.4) continue;
+    if (std::abs(mu.eta()) >= 2.4) continue;
     if (mu.relIso(0.4) >= 0.12) continue;
     //printf("muon with pt %4.1f, POG loose id %d, tight id %d\n", mu.pt(), mu.isLooseMuon(), mu.isTightMuon());
     selmuons.push_back(mu);
@@ -606,8 +589,8 @@ vector<cat::Electron> TtbarDiLeptonAnalyzer::selectElecs(const edm::View<cat::El
     if (!el.passConversionVeto()) continue;
     if (!el.isPF()) continue;
     if (el.pt() <= 20.) continue;
-    if ((fabs(el.scEta()) >= 1.4442) && (fabs(el.scEta()) <= 1.566)) continue;
-    if ((fabs(el.scEta()) > 1.566) && (fabs(el.eta()) >= 2.4)) continue;
+    if ((std::abs(el.scEta()) >= 1.4442) && (std::abs(el.scEta()) <= 1.566)) continue;
+    if ((std::abs(el.scEta()) > 1.566) && (std::abs(el.eta()) >= 2.4)) continue;
     //if (el.pt() < 5) continue;
     //printf("electron with pt %4.1f\n", el.pt());
     selelecs.push_back(el);
@@ -622,7 +605,7 @@ vector<cat::Jet> TtbarDiLeptonAnalyzer::selectJets(const edm::View<cat::Jet>* je
 	cout << "jet " << jet.pt() << endl;
     if (!jet.LooseId()) continue;
     if (jet.pt() <= 30.) continue;
-    if (fabs(jet.eta()) >= 2.4)	continue;
+    if (std::abs(jet.eta()) >= 2.4)	continue;
     if (jet.tlv().DeltaR(recolep[0]) <= 0.4) continue;
     if (jet.tlv().DeltaR(recolep[1]) <= 0.4) continue;
     // printf("jet with pt %4.1f\n", jet.pt());
@@ -666,43 +649,6 @@ int TtbarDiLeptonAnalyzer::passingSteps(int channel, float met, float ll_mass, f
   step = 5;
 
   return step;
-}
-
-// ------------ method called once each job just before starting event loop  ------------
-void 
-TtbarDiLeptonAnalyzer::beginJob()
-{
-  solver = new TtFullLepKinSolver(tmassbegin_, tmassend_, tmassstep_, nupars_);
-}
-
-// ------------ method called once each job just after ending the event loop  ------------
-void 
-TtbarDiLeptonAnalyzer::endJob() 
-{
-}
-
-// ------------ method called when starting to processes a run  ------------
-void 
-TtbarDiLeptonAnalyzer::beginRun(edm::Run const&, edm::EventSetup const&)
-{
-}
-
-// ------------ method called when ending the processing of a run  ------------
-void 
-TtbarDiLeptonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
-{
-}
-
-// ------------ method called when starting to processes a luminosity block  ------------
-void 
-TtbarDiLeptonAnalyzer::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
-{
-}
-
-// ------------ method called when ending the processing of a luminosity block  ------------
-void 
-TtbarDiLeptonAnalyzer::endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
-{
 }
 
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
