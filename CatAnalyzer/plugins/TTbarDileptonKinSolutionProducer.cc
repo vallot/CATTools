@@ -144,6 +144,9 @@ void TTbarDileptonKinSolutionProducer::produce(edm::Event& event, const edm::Eve
     inputLV[4] = selectedJet2->p4();
     solver_->solve(inputLV);
     quality = solver_->quality();
+    if ( quality <= -1e9 ) break;
+    nu1LV = solver_->nu1();
+    nu2LV = solver_->nu2();
     std::copy(solver_->aux().begin(), solver_->aux().end(), std::back_inserter(*out_aux));
 
     cands->resize(7);
