@@ -152,7 +152,6 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
                 q = cms.string("charge"),
                 #status = cms.string("status"),
             ),
-            selections = cms.untracked.PSet(),
         ),
         partonTop = cms.PSet(
             src = cms.InputTag("partonTop"),
@@ -166,29 +165,28 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
                 q = cms.string("charge"),
                 #status = cms.string("status"),
             ),
-            selections = cms.untracked.PSet(),
-        ),
-        ttbar = cms.PSet(
-            src = cms.InputTag("ttbar"),
-            exprs = cms.untracked.PSet(
-                pt  = cms.string("pt"),
-                eta = cms.string("eta"),
-                phi = cms.string("phi"),
-                m   = cms.string("mass"),
-                pdgId = cms.string("pdgId"),
-                q = cms.string("charge"),
-            ),
-            selections = cms.untracked.PSet(),
         ),
     ),
 )
 
+for algo in ["CMSKin", "MT2", "DESYSmeared", "DESYMassLoop"]:
+    setattr(process, 'ttbar'+algo, process.ttbar.clone(solver = cms.string(algo)))
+    setattr(process.ntuple.cands, 'ttbar'+algo, cms.PSet(
+        src = cms.InputTag('ttbar'+algo),
+        exprs = cms.untracked.PSet(
+            pt  = cms.string("pt"),
+            eta = cms.string("eta"),
+            phi = cms.string("phi"),
+            m   = cms.string("mass"),
+            pdgId = cms.string("pdgId"),
+            q = cms.string("charge"),
+        )
+    ))
+
 process.load("CATTools.CatProducer.pseudoTop_cff")
 delattr(process, 'pseudoTop')
 process.p = cms.Path(
-#    process.filterRECO*
-#    process.ntuple
-    process.ttbarEvent
+    process.ntuple
 )
 
 process.TFileService = cms.Service("TFileService",
