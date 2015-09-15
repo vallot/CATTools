@@ -440,6 +440,8 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
        
   int tri=0;
   for (auto &t: *triggers){
+    if (t.first.find("HLT_Mu17_Mu8_DZ_v") == 0)
+      cout << t.first <<" " << t.second << endl;
     if (t.first.find("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v") == 0 ||
 	t.first.find("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v") == 0 )
       if (channel == 2) tri = 1;

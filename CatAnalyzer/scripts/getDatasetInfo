@@ -2,11 +2,22 @@
 
 import sys, os
 
+if len(sys.argv) < 2:
+    print sys.argv[0], "PROD_VERSION"
+    print "Default PROD_VERISON = v7-4-1"
+    sys.argv.append('v7-4-1')
+
 import subprocess
 if subprocess.call("type xrd", shell=True, 
         stdout=subprocess.PIPE, stderr=subprocess.PIPE) != 0:
     print "Error: Need xrd command"
     sys.exit()
+
+gidMap = {
+    'v7-3-4':'857222646',
+    'v7-4-1':'212761185',
+}
+gid = gidMap[sys.argv[1]]
 
 hostname = os.environ["HOSTNAME"]
 cmd = ""
@@ -28,32 +39,26 @@ import csv
 gdocbase = "https://docs.google.com/spreadsheets/d/1rWM3AlFKO8IJVaeoQkWZYWwSvicQ1QCXYSzH74QyZqE"
 print "Retrieving dataset info from google doc..."
 print "Source URL =", gdocbase
-csvRD = list(csv.reader(urlopen(gdocbase + "/pub?gid=0&single=true&output=csv").readlines()))
-csvMC = list(csv.reader(urlopen(gdocbase + "/pub?gid=1289302456&single=true&output=csv").readlines()))
+csv = list(csv.reader(urlopen(gdocbase + "/pub?gid=%s&single=true&output=csv" % gid).readlines()))
 
 ds = []
-nameIdx = csvRD[0].index("Name")
-titleIdx = csvRD[0].index("Title")
-pathIdx = csvRD[0].index("Path")
-lumiIdx = csvRD[0].index("Integrated luminosity (pb-1)")
-for l in csvRD[1:]:
+nameIdx = csv[0].index("Name")
+titleIdx = csv[0].index("Title")
+xsecIdx = csv[0].index("Cross section (pb)")
+nevtIdx = csv[0].index("NEvent")
+lumiIdx = csv[0].index("luminosity (pb-1)")
+pathIdx = csv[0].index("Path")
+for l in csv[1:]:
     if len(l) == 0 or len(l[0]) == 0: continue
+    xsec, nevt, lumi = l[xsecIdx], l[nevtIdx], l[lumiIdx]
+    if xsec == "": xsec = "0"
+    if nevt == "": nevt = "0"
+    if lumi == "": lumi = "0"
     ds.append({'title':l[titleIdx],
                'name':l[nameIdx],
-               'lumi':float(l[lumiIdx]),
-               'path':l[pathIdx]})
-
-nameIdx = csvMC[0].index("Name")
-titleIdx = csvMC[0].index("Title")
-pathIdx = csvMC[0].index("Path")
-xsecIdx = csvMC[0].index("Cross section (pb)")
-nevtIdx = csvMC[0].index("NEvent")
-for l in csvMC[1:]:
-    if len(l) == 0 or len(l[0]) == 0: continue
-    ds.append({'title':l[titleIdx],
-               'name':l[nameIdx],
-               'xsec':float(l[xsecIdx]),
-               'nevt':int(l[nevtIdx]),
+               'xsec':float(xsec),
+               'nevt':int(nevt),
+               'lumi':float(lumi),
                'path':l[pathIdx]})
 
 def listxrd(path):
@@ -63,6 +68,7 @@ def listxrd(path):
     for x in subprocess.check_output(cmd + xrdbase + path, shell=True).strip().split('\n'):
         xx = x.split()
         if len(xx) == 0: continue
+        if xx[0][0] not in ('d', '-'): continue
         xpath = xx[-1]
         if len(xpath) == 0: continue
         xsize = int(xx[1])
