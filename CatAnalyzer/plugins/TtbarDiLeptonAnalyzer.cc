@@ -375,11 +375,12 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
   if (!*goodVertices || !*CSCTightHaloFilter || !*HBHENoiseFilter || !*eeBadScFilter ){ b_filtered = 1; }
   
+  /*
   if (!*HLTMu17TrkIsoVVLEle12CaloIdLTrackIdLIsoVL && !*HLTMu8TrkIsoVVLEle17CaloIdLTrackIdLIsoVL){
     ttree_->Fill();
     return;
   }
-  
+  */
   vector<cat::Muon> selectedMuons = selectMuons( muons.product() );
   vector<cat::Electron> selectedElectrons = selectElecs( electrons.product() );
 
@@ -405,6 +406,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	float sum = 0;
 	int lep1_id = 0;
 	int lep2_id = 0;
+
 	int i = 0;
 	for (auto lep1 : recolep){
 	  int j = 0;
@@ -424,14 +426,15 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	  }
 	  i += 1;
 	}
+
 	recolep.clear();
 	recolep.push_back(maxpair[0]);
 	recolep.push_back(maxpair[1]);
 	b_is3lep = 1;
 
-    if (abs(lep1_id) == 13 && abs(lep2_id) == 13) { channel = 0; }
-    if ((abs(lep1_id) == 13 && abs(lep2_id) == 11) || (abs(lep1_id) == 11 && abs(lep2_id) == 13)) { channel = 1; }
-    if (abs(lep1_id) == 11 && abs(lep2_id) == 11) { channel = 2; }
+    if (std::abs(lep1_id) == 13 && std::abs(lep2_id) == 13) { channel = 0; }
+    if ((std::abs(lep1_id) == 13 && std::abs(lep2_id) == 11) || (std::abs(lep1_id) == 11 && std::abs(lep2_id) == 13)) { channel = 1; }
+    if (std::abs(lep1_id) == 11 && std::abs(lep2_id) == 11) { channel = 2; }
   }
 
   b_lep1_pt = recolep[0].Pt();
