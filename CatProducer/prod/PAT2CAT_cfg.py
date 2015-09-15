@@ -20,8 +20,8 @@ else: runGenTop = False
 ####################################################################
 #### setting up global tag
 ####################################################################
-from Configuration.AlCa.autoCond import autoCond
-process.GlobalTag.globaltag = autoCond['run2_mc_FULL']
+from Configuration.AlCa.autoCond_condDBv2 import autoCond
+process.GlobalTag.globaltag = autoCond['run2_mc']
 if not runOnMC:
     process.GlobalTag.globaltag = autoCond['run2_data']
 if globalTag:
