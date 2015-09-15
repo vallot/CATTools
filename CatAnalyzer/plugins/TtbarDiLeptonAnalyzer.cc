@@ -400,17 +400,30 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   vector<cat::Electron> selectedElectrons = selectElecs( electrons.product() );
 
   vector<TLorentzVector> recolep; 
-  for (auto lep : selectedMuons){ recolep.push_back(lep.tlv()); }
-  for (auto lep : selectedElectrons){ recolep.push_back(lep.tlv()); }
+  vector<int> recolepID; 
+  for (auto lep : selectedMuons){
+	recolep.push_back(lep.tlv());
+	recolepID.push_back(lep.pdgId());
+  }
+  for (auto lep : selectedElectrons){
+	recolep.push_back(lep.tlv());
+	recolepID.push_back(lep.pdgId());
+  }
   if (recolep.size() < 2){
     ttree_->Fill();
     return;
   }
 
+  float channel = selectedElectrons.size();
+       
   if (recolep.size() >= 3){
 	vector<TLorentzVector> maxpair;
 	float sum = 0;
+	int lep1_id = 0;
+	int lep2_id = 0;
+	int i = 0;
 	for (auto lep1 : recolep){
+	  int j = 0;
 	  for (auto lep2 : recolep){
 		if (lep1 != lep2){
 		  float sumtmp = lep1.Pt() + lep2.Pt();
@@ -419,14 +432,22 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 		    maxpair.push_back(lep1);
 		    maxpair.push_back(lep2);
 		    sum = sumtmp;
+			lep1_id = recolepID[i];
+			lep2_id = recolepID[j];
 		  }
 		}
+	    j += 1;
 	  }
+	  i += 1;
 	}
 	recolep.clear();
 	recolep.push_back(maxpair[0]);
 	recolep.push_back(maxpair[1]);
 	b_is3lep = 1;
+
+    if (abs(lep1_id) == 13 && abs(lep2_id) == 13) { channel = 0; }
+    if ((abs(lep1_id) == 13 && abs(lep2_id) == 11) || (abs(lep1_id) == 11 && abs(lep2_id) == 13)) { channel = 1; }
+    if (abs(lep1_id) == 11 && abs(lep2_id) == 11) { channel = 2; }
   }
 
   b_lep1_pt = recolep[0].Pt();
@@ -436,10 +457,9 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_lep2_eta = recolep[1].Eta();
   b_lep2_phi = recolep[1].Phi();
 
-  float channel = selectedElectrons.size();
-       
   int tri=0;
   for (auto &t: *triggers){
+	/*
     if (t.first.find("HLT_Mu17_Mu8_DZ_v") == 0)
       cout << t.first <<" " << t.second << endl;
     if (t.first.find("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v") == 0 ||
@@ -452,7 +472,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	t.first.find("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v") == 0 ||
 	t.first.find("HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v") == 0 )
       if (channel == 0) tri = 1;
-    
+    */
     if (t.first.find("HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v") == 0 ||
 	t.first.find("HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v") == 0 )
       if (channel == 1) tri = 1;
