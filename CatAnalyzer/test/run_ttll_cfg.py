@@ -59,7 +59,7 @@ process.filterRECO = cms.EDProducer("CATTriggerPacker",
 )
 
 process.HLTMu = cms.EDProducer("CATTriggerPacker",
-    src = cms.InputTag("TriggerResults::HLT"),
+    triggerResults = cms.InputTag("TriggerResults::HLT"),
     triggerPrescales = cms.InputTag("patTrigger"),
     combineByOr = cms.bool(True),
     triggersToMatch = cms.vstring(
@@ -67,7 +67,7 @@ process.HLTMu = cms.EDProducer("CATTriggerPacker",
 )
 
 process.HLTEl = cms.EDProducer("CATTriggerPacker",
-    src = cms.InputTag("TriggerResults::HLT"),
+    triggerResults = cms.InputTag("TriggerResults::HLT"),
     triggerPrescales = cms.InputTag("patTrigger"),
     combineByOr = cms.bool(True),
     triggersToMatch = cms.vstring(
@@ -78,7 +78,7 @@ process.HLTEl = cms.EDProducer("CATTriggerPacker",
 )
 
 process.HLTMuMu = cms.EDProducer("CATTriggerPacker",
-    src = cms.InputTag("TriggerResults::HLT"),
+    triggerResults = cms.InputTag("TriggerResults::HLT"),
     triggerPrescales = cms.InputTag("patTrigger"),
     combineByOr = cms.bool(True),
     triggersToMatch = cms.vstring(
@@ -90,7 +90,7 @@ process.HLTMuMu = cms.EDProducer("CATTriggerPacker",
 )
 
 process.HLTElEl = cms.EDProducer("CATTriggerPacker",
-    src = cms.InputTag("TriggerResults::HLT"),
+    triggerResults = cms.InputTag("TriggerResults::HLT"),
     triggerPrescales = cms.InputTag("patTrigger"),
     combineByOr = cms.bool(True),
     triggersToMatch = cms.vstring(
@@ -103,7 +103,7 @@ process.HLTElEl = cms.EDProducer("CATTriggerPacker",
 
 
 process.HLTMuEl = cms.EDProducer("CATTriggerPacker",
-    src = cms.InputTag("TriggerResults::HLT"),
+    triggerResults = cms.InputTag("TriggerResults::HLT"),
     triggerPrescales = cms.InputTag("patTrigger"),
     combineByOr = cms.bool(True),
     triggersToMatch = cms.vstring(

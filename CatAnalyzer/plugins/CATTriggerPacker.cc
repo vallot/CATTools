@@ -17,6 +17,7 @@ public:
 private:
   //typedef std::vector<bool> vbool;
   //typedef std::vector<int> vint;
+  typedef std::vector<std::string> strings;
   edm::EDGetTokenT<edm::TriggerResults> triggerToken_;
   edm::EDGetTokenT<pat::PackedTriggerPrescales> prescaleToken_;
   strings triggersToMatch_;
@@ -35,7 +36,9 @@ CATTriggerPacker::CATTriggerPacker(const edm::ParameterSet& pset):
 
 void CATTriggerPacker::produce(edm::Event& event, const edm::EventSetup&)
 {
-  int result = combineByOr ? -1 : 1;
+  using namespace std;
+
+  int result = combineByOr_ ? -1 : 1;
 
   edm::Handle<edm::TriggerResults> triggerHandle;
   event.getByToken(triggerToken_, triggerHandle);
@@ -47,8 +50,8 @@ void CATTriggerPacker::produce(edm::Event& event, const edm::EventSetup&)
   std::vector<std::pair<int, int> > triggerInfo;
   for ( size_t i=0, n=triggerHandle->size(); i<n; ++i )
   {
-    const string trigName = triggerHandle->name(i)
-    for ( const auto& trigPattern : triggersToMatch )
+    const string trigName = triggerHandle->name(i);
+    for ( const auto& trigPattern : triggersToMatch_ )
     {
       if ( trigName.find(trigPattern) != string::npos )
       {
@@ -65,10 +68,17 @@ void CATTriggerPacker::produce(edm::Event& event, const edm::EventSetup&)
   for ( const auto ti : triggerInfo )
   {
     const int index = ti.first, ps = ti.second;
-    const bool isFired = triggerHandle->result(index);
+    const bool isFired = triggerHandle->accept(index);
 
-    if ( combineByOr_ and isFired ) { result = minPS; break; }
-    else if ( !combineByOr_ and !isFired ) { result = 0; break; }
+    if ( isFired )
+    {
+      if ( combineByOr_ ) { result = minPS; break; }
+      else { result *= ps; }
+    }
+    else
+    {
+      if ( !combineByOr_ ) { result = 0; break; }
+    }
   }
 
   if ( result == -1 ) result = 0;
@@ -76,7 +86,7 @@ void CATTriggerPacker::produce(edm::Event& event, const edm::EventSetup&)
   //   combine by or, anything fired => min(ps1, ps2, ...)
   //   combine by or, nothing fired  => -1 => replace to 0
   //   combine by and, anything not fired => 0
-  //   combine by and, everything fired => 1
+  //   combine by and, everything fired => ps1*ps2*...
 
   event.put(std::auto_ptr<int>(new int(result)));
 }
