@@ -136,9 +136,6 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
     ),
     floats = cms.PSet(
         pdfWeight = cms.InputTag("pdfWeight"),
-        mLL = cms.InputTag("ttbar:mLL"),
-        mLB = cms.InputTag("ttbar:mLB"),
-        dphi = cms.InputTag("ttbar:dphi"),
     ),
     cands = cms.PSet(
         pseudoTop = cms.PSet(
@@ -171,6 +168,9 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
 
 for algo in ["CMSKin", "MT2", "DESYSmeared", "DESYMassLoop"]:
     setattr(process, 'ttbar'+algo, process.ttbar.clone(solver = cms.string(algo)))
+    setattr(process.ntuple.floats, 'ttbar%s_mLL' % algo, cms.InputTag("ttbar%s:mLL" % algo))
+    setattr(process.ntuple.floats, 'ttbar%s_mLB' % algo, cms.InputTag("ttbar%s:mLB" % algo))
+    setattr(process.ntuple.floats, 'ttbar%s_dphi' % algo, cms.InputTag("ttbar%s:dphi" % algo))
     setattr(process.ntuple.cands, 'ttbar'+algo, cms.PSet(
         src = cms.InputTag('ttbar'+algo),
         exprs = cms.untracked.PSet(
