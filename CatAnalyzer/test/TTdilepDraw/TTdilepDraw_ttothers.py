@@ -19,7 +19,7 @@ tcut_others = "step == 5 && parton_channel != 3"
 tcuts.append("step == 5 && ((parton_channel == 2 && (parton_mode1 > 3 || parton_mode2 > 3)) || (parton_channel == 1 && parton_mode1 > 3 && parton_mode2 > 3))")
 tcuts.append("step == 5 && ((parton_channel == 2 && (parton_mode1 == 0 || parton_mode2 == 0)) || (parton_channel == 1 && ((parton_mode1 == 0 && parton_mode2 != 0)|| (parton_mode2 == 0 && parton_mode1 != 0))))")
 tcuts.append("step == 5 && parton_channel == 1 && parton_mode1 == 0 && parton_mode2 == 0")
-tcuts.append("step == 5 && parton_channel == 3 && inPhase == 0")
+tcuts.append("step == 5 && parton_channel == 3 && lepinPhase == 0")
 name = ["dilep_tau", "1lep + 1jet", "full hadron", "out of phase"]
 channels = ["", " && channel == 0", " && channel == 1"," && channel == 2"]
 filename = ["", "mm_", "em_","ee_"]
