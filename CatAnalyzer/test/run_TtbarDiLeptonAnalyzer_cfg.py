@@ -21,17 +21,15 @@ process.partonTop = cms.EDProducer("PartonTopProducer",
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 
+#process.source.fileNames.append('file:/cms/scratch/CAT/MuonEG/v7-3-0_Run2015B-PromptReco-v1/150720_060935/0000/catTuple_1.root')
+#process.source.fileNames.append('file:/cms/scratch/CAT/WW_TuneCUETP8M1_13TeV-pythia8/v7-3-2_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v1/150805_203816/0000/catTuple_1.root')
+#process.source.fileNames.append('file:/afs/cern.ch/user/j/jlee/cat74/src/CATTools/CatProducer/prod/catTuple.root')
 #process.source.fileNames.append('/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-3-6_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v4/150820_215807/0000/catTuple_193.root')
 process.source.fileNames.append('/store/group/CAT/MuonEG/desySync_Run2015B-17Jul2015-v1/150905_193954/0000/catTuple_1.root')
-#process.source.fileNames.append('/store/group/CAT/MuonEG/v7-3-6_Run2015B-17Jul2015-v1/150820_215608/0000/catTuple_1.root')
-#process.source.fileNames.append('/store/group/CAT/MuonEG/v7-3-6_Run2015B-17Jul2015-v1/150820_215608/0000/catTuple_2.root')
 
 #process.source.lumisToProcess = LumiList.LumiList(filename = 'rereco_JSON.txt').getVLuminosityBlockRange()
 process.source.lumisToProcess = LumiList.LumiList(filename = 'prompt_JSON.txt').getVLuminosityBlockRange()
 
-#process.source.fileNames.append('file:/cms/scratch/CAT/MuonEG/v7-3-0_Run2015B-PromptReco-v1/150720_060935/0000/catTuple_1.root')
-#process.source.fileNames.append('file:/cms/scratch/CAT/WW_TuneCUETP8M1_13TeV-pythia8/v7-3-2_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v1/150805_203816/0000/catTuple_1.root')
-process.source.fileNames.append('file:/afs/cern.ch/user/j/jlee/cat74/src/CATTools/CatProducer/prod/catTuple.root')
 
 process.ttll = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     goodVertices = cms.InputTag("catTrigger", "goodVertices"),
