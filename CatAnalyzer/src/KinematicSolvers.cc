@@ -279,47 +279,67 @@ void DESYSmearedSolver::solve(const LV input[])
   std::vector<double> koef, cache, sols;
   // Try 100 times with energy/angle smearing. Take weighted average of solutions
   const double mTopInput = 172.5;
-  const double sumW0 = h_mbl_w_->Integral();
   //double sumW = 0., maxSumW = 0;
   // Set random seed using kinematics (follow DESY code)
   //const unsigned int seed = std::abs(static_cast<int>(1E6*j1.pt()/j2.pt() * sin(1E6*(l1.pt() + 2.*l2.pt()))));
   //gsl_rng_mt19937
   //gRandom->SetSeed(seed);
+  double sumW = 0;
+  double sumP[6][3] = {{0,},};
   for ( int i=0; i<100; ++i )
   {
     // Generate smearing factors for jets and leptons
-    const auto newj1 = getSmearedLV(j1, h_jetEres_->GetRandom(), h_jetAres_->GetRandom());
-    const auto newj2 = getSmearedLV(j2, h_jetEres_->GetRandom(), h_jetAres_->GetRandom());
     const auto newl1 = getSmearedLV(l1, h_lepEres_->GetRandom(), h_lepAres_->GetRandom());
     const auto newl2 = getSmearedLV(l2, h_lepEres_->GetRandom(), h_lepAres_->GetRandom());
+    const auto newj1 = getSmearedLV(j1, h_jetEres_->GetRandom(), h_jetAres_->GetRandom());
+    const auto newj2 = getSmearedLV(j2, h_jetEres_->GetRandom(), h_jetAres_->GetRandom());
 
     // new MET = old MET + MET correction; MET correction = - (Vis. Pxy sum)
     const double newmetX = metX - (-visSum.px() + newj1.px() + newj2.px() + newl1.px() + newl2.px());
     const double newmetY = metY - (-visSum.py() + newj1.py() + newj2.py() + newl1.py() + newl2.py());
 
+    // Compute weight by m(B,L)
+    const double w1 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin((newl1+newj1).mass()));
+    const double w2 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin((newl2+newj2).mass()));
+    const double w = w1*w2*1e-8;
+
     KinSolverUtils::findCoeffs(mTopInput, h_wmass_->GetRandom(), h_wmass_->GetRandom(),
                                newl1, newl2, newj1, newj2, newmetX, newmetY, koef, cache);
     KinSolverUtils::solve_quartic(koef, a4, b4, sols);
-    //const int nSol = sols.size();
-    double nu1sol[4], nu2sol[4];
+    double nu1sol[4] = {}, nu2sol[4] = {};
+    double weight = 0;
     for ( const double& sol : sols ) {
       // Recompute neutrino four momentum
-      KinSolverUtils::getNuPxPyPzE(sol, cache, nu1sol, nu2sol);
+      double nu1solTmp[4], nu2solTmp[4];
+      KinSolverUtils::getNuPxPyPzE(sol, cache, nu1solTmp, nu2solTmp);
 
-      // Compute weight by m(B,L)
-      const double w1 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin(mbl1));
-      const double w2 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin(mbl2));
-      const double weight = w1*w2/sumW0/sumW0;
+      if ( w < weight ) continue;
 
-      if ( weight < quality_ ) continue;
-
-      quality_ = weight;
-      nu1_.SetPxPyPzE(nu1sol[0], nu1sol[1], nu1sol[2], nu1sol[3]);
-      nu2_.SetPxPyPzE(nu2sol[0], nu2sol[1], nu2sol[2], nu2sol[3]);
-      l1_ = newl1; l2_ = newl2; j1_ = newj1; j2_ = newj2;
+      weight = w;
+      std::copy(nu1solTmp, nu1solTmp+4, nu1sol);
+      std::copy(nu2solTmp, nu2solTmp+4, nu2sol);
     }
+    if ( weight == 0 ) continue;
+
+    sumW += weight;
+    sumP[0][0] += weight*newl1.px(); sumP[0][1] += weight*newl1.py(); sumP[0][2] += weight*newl1.pz();
+    sumP[1][0] += weight*newl2.px(); sumP[1][1] += weight*newl2.py(); sumP[1][2] += weight*newl2.pz();
+    sumP[2][0] += weight*newj1.px(); sumP[2][1] += weight*newj1.py(); sumP[2][2] += weight*newj1.pz();
+    sumP[3][0] += weight*newj2.px(); sumP[3][1] += weight*newj2.py(); sumP[3][2] += weight*newj2.pz();
+    sumP[4][0] += weight*nu1sol[0]; sumP[4][1] += weight*nu1sol[1]; sumP[4][2] += weight*nu1sol[2];
+    sumP[5][0] += weight*nu2sol[0]; sumP[5][1] += weight*nu2sol[1]; sumP[5][2] += weight*nu2sol[2];
   }
-  if ( quality_ <= 0 ) quality_ = -1e9;
+  quality_ = sumW;
+  if ( quality_ <= 0 ) { quality_ = -1e9; return; }
+  for ( int i=0; i<6; ++i ) for ( int j=0; j<3; ++j ) sumP[i][j] /= sumW;
+
+  l1_.SetXYZT(sumP[0][0], sumP[0][1], sumP[0][2], KinSolverUtils::computeEnergy(sumP[0], KinSolverUtils::mL));
+  l2_.SetXYZT(sumP[1][0], sumP[1][1], sumP[1][2], KinSolverUtils::computeEnergy(sumP[1], KinSolverUtils::mL));
+  j1_.SetXYZT(sumP[2][0], sumP[2][1], sumP[2][2], KinSolverUtils::computeEnergy(sumP[2], KinSolverUtils::mB));
+  j2_.SetXYZT(sumP[3][0], sumP[3][1], sumP[3][2], KinSolverUtils::computeEnergy(sumP[3], KinSolverUtils::mB));
+  nu1_.SetXYZT(sumP[4][0], sumP[4][1], sumP[4][2], KinSolverUtils::computeEnergy(sumP[4], KinSolverUtils::mV));
+  nu2_.SetXYZT(sumP[5][0], sumP[5][1], sumP[5][2], KinSolverUtils::computeEnergy(sumP[5], KinSolverUtils::mV));
+
 }
 
 LV DESYSmearedSolver::getSmearedLV(const LV& lv0,

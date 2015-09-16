@@ -225,3 +225,9 @@ void KinSolverUtils::solve_quartic(const std::vector<double>& h,
   }
   for ( auto& x : v ) x -= H1/4;
 }
+
+double  KinSolverUtils::computeEnergy(const double p3[], const double m)
+{
+  return sqrt(p3[0]*p3[0] + p3[1]*p3[1] + p3[2]*p3[2] + m*m);
+}
+
