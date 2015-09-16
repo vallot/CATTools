@@ -11,6 +11,7 @@ class AnalysisHelper {
 
  public:
   static TLorentzVector leafToTLorentzVector(reco::LeafCandidate & leaf){return TLorentzVector(leaf.px(), leaf.py(),leaf.pz(),leaf.energy());}
+  static bool ptSorting(reco::LeafCandidate & s1, reco::LeafCandidate & s2) { return ( s1.pt() > s2.pt() ); }
 
  private:
   
