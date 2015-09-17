@@ -1,14 +1,16 @@
 #include "CATTools/CatAnalyzer/interface/KinematicSolvers.h"
 #include "TopQuarkAnalysis/TopKinFitter/interface/TtFullLepKinSolver.h"
-#include <boost/assign/std/vector.hpp> // for 'operator+=()'
+#include "CATTools/CatAnalyzer/interface/TopKinSolverUtils.h"
+#include "FWCore/ParameterSet/interface/FileInPath.h"
 #include <gsl/gsl_multimin.h>
 #include <gsl/gsl_errno.h>
+#include "TFile.h"
+#include "TRandom3.h"
 
 using namespace cat;
-using namespace boost::assign;
 using namespace std;
 
-void TTDileptonSolver::solve(const KinematicSolver::LorentzVector input[])
+void TTDileptonSolver::solve(const LV input[])
 {
   quality_ = -1e9; // default value
   values_.clear();
@@ -71,7 +73,7 @@ double fminimize(const gsl_vector* xx, void* p)
 
 }
 
-void MT2Solver::solve(const KinematicSolver::LorentzVector input[])
+void MT2Solver::solve(const LV input[])
 {
   using namespace CATMT2;
 
@@ -133,8 +135,8 @@ void MT2Solver::solve(const KinematicSolver::LorentzVector input[])
 
   const double ew1 = sqrt(mwsqr + qx1*qx1 + qy1*qy1);
   const double ew2 = sqrt(mwsqr + qx2*qx2 + qy2*qy2);
-  KinematicSolver::LorentzVector w1(qx1, qy1, 0, ew1);
-  KinematicSolver::LorentzVector w2(qx2, qy2, 0, ew2);
+  LV w1(qx1, qy1, 0, ew1);
+  LV w2(qx2, qy2, 0, ew2);
   nu1_ = w1-l1;
   nu2_ = w2-l2;
 
@@ -142,7 +144,7 @@ void MT2Solver::solve(const KinematicSolver::LorentzVector input[])
 
 }
 
-void MAOSSolver::solve(const KinematicSolver::LorentzVector input[])
+void MAOSSolver::solve(const LV input[])
 {
   MT2Solver::solve(input); // run the MT2 solver at the first step.
 
@@ -152,17 +154,13 @@ void MAOSSolver::solve(const KinematicSolver::LorentzVector input[])
 
 CMSKinSolver::CMSKinSolver()
 {
-  std::vector<double> nuPars;
-  nuPars += 30.7137,56.2880,23.0744,59.1015,24.9145;
-  solver_ = new TtFullLepKinSolver(100, 300, 1, nuPars);
+  //std::vector<double> nuPars = {30.7137,56.2880,23.0744,59.1015,24.9145}; // 7TeV pythia, from CMSSW default
+  //std::vector<double> nuPars = {30.641,57.941,22.344,57.533,22.232}; // ??, from DESY
+  std::vector<double> nuPars = {27.23,53.88,19.92,53.89,19.9}; // 13TeV 50ns powheg, by Youn.
+  solver_.reset(new TtFullLepKinSolver(100, 300, 0.5, nuPars));
 }
 
-CMSKinSolver::~CMSKinSolver()
-{
-  if ( solver_ ) delete solver_;
-}
-
-void CMSKinSolver::solve(const KinematicSolver::LorentzVector input[])
+void CMSKinSolver::solve(const LV input[])
 {
   quality_ = -1e9; // default value
   values_.clear();
@@ -183,18 +181,166 @@ void CMSKinSolver::solve(const KinematicSolver::LorentzVector input[])
   nu1_ = nuSol.neutrino.p4();
   nu2_ = nuSol.neutrinoBar.p4();
 
-  const LorentzVector t1 = input[1]+input[3]+nu1_;
-  const LorentzVector t2 = input[2]+input[4]+nu2_;
+  const LV t1 = input[1]+input[3]+nu1_;
+  const LV t2 = input[2]+input[4]+nu2_;
   values_.push_back((t1+t2).mass());
   values_.push_back(t1.mass());
   values_.push_back(t2.mass());
 }
 
+void DESYMassLoopSolver::solve(const LV input[])
+{
+  quality_ = -1e9;
+  values_.clear();
+
+  const double metX = input[0].px(), metY = input[0].py();
+  const auto& l1 = input[1], l2 = input[2];
+  const auto& j1 = input[3], j2 = input[4];
+  const auto visSum = l1+l2+j1+j2;
+
+  const double l1E = l1.energy(), j1E = j1.energy();
+  const double l2E = l2.energy(), j2E = j2.energy();
+  const double a4 = (j1E*l1.pz()-l1E*j1.pz())/l1E/(j1E+l1E);
+  const double b4 = (j2E*l2.pz()-l2E*j2.pz())/l2E/(j2E+l2E);
+
+  std::vector<double> koef, cache, sols;
+  for ( double mTop = 100; mTop < 300.5; mTop += 1 ) {
+    KinSolverUtils::findCoeffs(mTop, 80.4, 80.4, l1, l2, j1, j2, metX, metY, koef, cache);
+    KinSolverUtils::solve_quartic(koef, a4, b4, sols);
+    //const int nSol = sols.size();
+    double nu1sol[4], nu2sol[4];
+    for ( const double& sol : sols ) {
+      // Recompute neutrino four momentum
+      KinSolverUtils::getNuPxPyPzE(sol, cache, nu1sol, nu2sol);
+
+      // Compute weight
+      // This was originally Landau2D(nuE, nubarE)
+      // but most recent code returns 1/mTTbar
+      const double ttX = visSum.px()+nu1sol[0]+nu2sol[0];
+      const double ttY = visSum.py()+nu1sol[1]+nu2sol[1];
+      const double ttZ = visSum.pz()+nu1sol[2]+nu2sol[2];
+      const double ttE = visSum.E()+nu1sol[3]+nu2sol[3];
+      const double weight = 1/sqrt(ttE*ttE-ttX*ttX-ttY*ttY-ttZ*ttZ);
+
+      if ( weight < quality_ ) continue;
+
+      quality_ = weight;
+      nu1_.SetPxPyPzE(nu1sol[0], nu1sol[1], nu1sol[2], nu1sol[3]);
+      nu2_.SetPxPyPzE(nu2sol[0], nu2sol[1], nu2sol[2], nu2sol[3]);
+    }
+  }
+}
+
+DESYSmearedSolver::DESYSmearedSolver()
+{
+  TFile* f = TFile::Open(edm::FileInPath("CATTools/CatAnalyzer/data/desyKinRecoInput.root").fullPath().c_str());
+
+  h_jetEres_.reset(dynamic_cast<TH1*>(f->Get("KinReco_fE_jet_step7")));
+  h_jetAres_.reset(dynamic_cast<TH1*>(f->Get("KinReco_d_angle_jet_step7")));
+  h_lepEres_.reset(dynamic_cast<TH1*>(f->Get("KinReco_fE_lep_step7")));
+  h_lepAres_.reset(dynamic_cast<TH1*>(f->Get("KinReco_d_angle_lep_step7")));
+  h_wmass_.reset(dynamic_cast<TH1*>(f->Get("KinReco_W_mass_step0")));
+  h_mbl_w_.reset(dynamic_cast<TH1*>(f->Get("KinReco_mbl_true_step0")));
+
+  h_jetEres_->SetDirectory(0);
+  h_jetAres_->SetDirectory(0);
+  h_lepEres_->SetDirectory(0);
+  h_lepAres_->SetDirectory(0);
+  h_wmass_->SetDirectory(0);
+  h_mbl_w_->SetDirectory(0);
+
+  f->Close();
+}
+
+void DESYSmearedSolver::solve(const LV input[])
+{
+  quality_ = -1e9;
+  values_.clear();
+
+  const double metX = input[0].px(), metY = input[0].py();
+  const auto& l1 = input[1], l2 = input[2];
+  const auto& j1 = input[3], j2 = input[4];
+
+  // Skip if L+B mass is large in Smeared solution case
+  const double mbl1 = (l1+j1).mass();
+  const double mbl2 = (l2+j2).mass();
+  if ( mbl1 > 180. or mbl2 > 180. ) return;
+  const auto visSum = l1+l2+j1+j2;
+
+  const double l1E = l1.energy(), j1E = j1.energy();
+  const double l2E = l2.energy(), j2E = j2.energy();
+  const double a4 = (j1E*l1.pz()-l1E*j1.pz())/l1E/(j1E+l1E);
+  const double b4 = (j2E*l2.pz()-l2E*j2.pz())/l2E/(j2E+l2E);
+
+  std::vector<double> koef, cache, sols;
+  // Try 100 times with energy/angle smearing. Take weighted average of solutions
+  const double mTopInput = 172.5;
+  //double sumW = 0., maxSumW = 0;
+  // Set random seed using kinematics (follow DESY code)
+  //const unsigned int seed = std::abs(static_cast<int>(1E6*j1.pt()/j2.pt() * sin(1E6*(l1.pt() + 2.*l2.pt()))));
+  //gsl_rng_mt19937
+  //gRandom->SetSeed(seed);
+  for ( int i=0; i<100; ++i )
+  {
+    // Generate smearing factors for jets and leptons
+    const auto newj1 = getSmearedLV(j1, h_jetEres_->GetRandom(), h_jetAres_->GetRandom());
+    const auto newj2 = getSmearedLV(j2, h_jetEres_->GetRandom(), h_jetAres_->GetRandom());
+    const auto newl1 = getSmearedLV(l1, h_lepEres_->GetRandom(), h_lepAres_->GetRandom());
+    const auto newl2 = getSmearedLV(l2, h_lepEres_->GetRandom(), h_lepAres_->GetRandom());
+
+    // new MET = old MET + MET correction; MET correction = - (Vis. Pxy sum)
+    const double newmetX = metX - (-visSum.px() + newj1.px() + newj2.px() + newl1.px() + newl2.px());
+    const double newmetY = metY - (-visSum.py() + newj1.py() + newj2.py() + newl1.py() + newl2.py());
+
+    KinSolverUtils::findCoeffs(mTopInput, h_wmass_->GetRandom(), h_wmass_->GetRandom(),
+                               newl1, newl2, newj1, newj2, newmetX, newmetY, koef, cache);
+    KinSolverUtils::solve_quartic(koef, a4, b4, sols);
+    //const int nSol = sols.size();
+    double nu1sol[4], nu2sol[4];
+    for ( const double& sol : sols ) {
+      // Recompute neutrino four momentum
+      KinSolverUtils::getNuPxPyPzE(sol, cache, nu1sol, nu2sol);
+
+      // Compute weight by m(B,L)
+      const double w1 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin(mbl1));
+      const double w2 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin(mbl2));
+      const double weight = w1*w2;
+
+      if ( weight < quality_ ) continue;
+
+      quality_ = weight;
+      nu1_.SetPxPyPzE(nu1sol[0], nu1sol[1], nu1sol[2], nu1sol[3]);
+      nu2_.SetPxPyPzE(nu2sol[0], nu2sol[1], nu2sol[2], nu2sol[3]);
+    }
+  }
+}
+
+LV DESYSmearedSolver::getSmearedLV(const LV& lv0,
+                                   const double fE, const double dRot)
+{
+  // Rescale at the first step
+  const double e = fE*lv0.energy();
+  const double p = sqrt(std::max(0., e*e-lv0.M2()));
+  if ( KinSolverUtils::isZero(e) or KinSolverUtils::isZero(p) ) return LV();
+
+  // Apply rotation
+  const double localPhi = gRandom->Uniform(-TMath::Pi(), TMath::Pi());
+  const double theta = lv0.Theta() + dRot*cos(localPhi);
+  const double phi = lv0.Phi() + dRot*sin(localPhi);
+
+  const double pz = p*cos(theta);
+  const double px = p*sin(theta)*cos(phi);
+  const double py = p*sin(theta)*sin(phi);
+
+  return LV(px, py, pz, e);
+}
+
+
 namespace CATNuWeight
 {
 
-bool computeNuPxPy(const KinematicSolver::LorentzVector& lep,
-                   const KinematicSolver::LorentzVector& jet,
+bool computeNuPxPy(const LV& lep,
+                   const LV& jet,
                    const double mT, const double nuEta,
                    double& nuPx1, double& nuPy1, double& nuPx2, double& nuPy2)
 {
@@ -249,10 +395,10 @@ bool computeNuPxPy(const KinematicSolver::LorentzVector& lep,
   return true;
 }
 
-double nuWeight(const KinematicSolver::LorentzVector& l1,
-                const KinematicSolver::LorentzVector& l2,
-                const KinematicSolver::LorentzVector& j1,
-                const KinematicSolver::LorentzVector& j2,
+double nuWeight(const LV& l1,
+                const LV& l2,
+                const LV& j1,
+                const LV& j2,
                 const double metX, const double metY,
                 const double sigmaEXsqr, const double sigmaEYsqr,
                 const double mt, const double nu1Eta, const double nu2Eta,
@@ -292,10 +438,10 @@ double fminimize(const gsl_vector* xx, void* p)
   const double nu2Eta = gsl_vector_get(xx, 2);
 
   double* p0 = (double*) p;
-  KinematicSolver::LorentzVector l1(p0[ 0], p0[ 1], p0[ 2], p0[ 3]);
-  KinematicSolver::LorentzVector l2(p0[ 4], p0[ 5], p0[ 6], p0[ 7]);
-  KinematicSolver::LorentzVector j1(p0[ 8], p0[ 9], p0[10], p0[11]);
-  KinematicSolver::LorentzVector j2(p0[12], p0[13], p0[14], p0[15]);
+  LV l1(p0[ 0], p0[ 1], p0[ 2], p0[ 3]);
+  LV l2(p0[ 4], p0[ 5], p0[ 6], p0[ 7]);
+  LV j1(p0[ 8], p0[ 9], p0[10], p0[11]);
+  LV j2(p0[12], p0[13], p0[14], p0[15]);
   const double metX = p0[16], metY = p0[17];
   const double sigmaEXsqr = p0[18], sigmaEYsqr = p0[19];
 
@@ -309,7 +455,7 @@ double fminimize(const gsl_vector* xx, void* p)
 
 }
 
-void NuWeightSolver::solve(const KinematicSolver::LorentzVector input[])
+void NuWeightSolver::solve(const LV input[])
 {
   using namespace CATNuWeight;
 
@@ -398,11 +544,11 @@ void NuWeightSolver::solve(const KinematicSolver::LorentzVector input[])
 
   const double bestPz1 = hypot(bestPx1, bestPy1)*sinh(bestEta1);
   const double bestPz2 = hypot(bestPx2, bestPy2)*sinh(bestEta2);
-  nu1_ = LorentzVector(bestPx1, bestPy1, bestPz1, sqrt(bestPx1*bestPx1+bestPy1*bestPy1+bestPz1*bestPz1));
-  nu2_ = LorentzVector(bestPx2, bestPy2, bestPz2, sqrt(bestPx2*bestPx2+bestPy2*bestPy2+bestPz2*bestPz2));
+  nu1_ = LV(bestPx1, bestPy1, bestPz1, sqrt(bestPx1*bestPx1+bestPy1*bestPy1+bestPz1*bestPz1));
+  nu2_ = LV(bestPx2, bestPy2, bestPz2, sqrt(bestPx2*bestPx2+bestPy2*bestPy2+bestPz2*bestPz2));
 
-  const LorentzVector t1 = l1+j1+nu1_;
-  const LorentzVector t2 = l2+j2+nu2_;
+  const LV t1 = l1+j1+nu1_;
+  const LV t2 = l2+j2+nu2_;
   values_.push_back((t1+t2).mass());
   values_.push_back(t1.mass());
   values_.push_back(t2.mass());

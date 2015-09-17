@@ -22,7 +22,10 @@ namespace cat {
     Electron();
     Electron(const reco::LeafCandidate & aElectron); 
     virtual ~Electron();
-  
+
+    float dxy() const { return dxy_; }
+    float dz() const { return dz_; }
+
     float relIso(float dR=0.3 ) const {
       if( dR < 0.35) return relIso03_;
       else return relIso04_;
@@ -60,6 +63,8 @@ namespace cat {
 
     bool mcMatched() const { return mcMatched_; }
 
+    int snuID() const {return snuID_;}
+
     void setrelIso(double dR, double chIso, double nhIso, double phIso, double AEff, double rhoIso, double ecalpt)
     {
       float relIso = ( chIso + std::max(0.0, nhIso + phIso - rhoIso*AEff) )/ ecalpt;
@@ -81,6 +86,8 @@ namespace cat {
 
     void setMCMatched(bool m) { mcMatched_ = m; }
 
+    void setSNUID(int id) {snuID_ = id;}
+    
     float electronID(const std::string& name) const;
     float electronID(const char* name) const { return electronID( std::string(name) );}
     void setElectronIDs(const std::vector<pat::Electron::IdPair> & ids) { electronIDs_ = ids; }
@@ -92,7 +99,12 @@ namespace cat {
     float shiftedEnUp() const {return  shiftedEnUp_;}
 
     bool isPF() const{ return isPF_; }
-    void setIsPF(bool hasPFCandidate) { isPF_ = hasPFCandidate ; }
+    void setIsPF(bool d) { isPF_ = d ; }
+    bool isGsfCtfScPixChargeConsistent() const{ return isGsfCtfScPixChargeConsistent_; }
+    void setIsGsfCtfScPixChargeConsistent(bool d) { isGsfCtfScPixChargeConsistent_ = d ; }
+
+    void setDz(float d) { dz_ = d; }
+    void setDxy(float d) { dxy_ = d; }
 
   private:
 
@@ -113,13 +125,18 @@ namespace cat {
 
     float scEta_;
     bool isPF_;
-
+    bool isGsfCtfScPixChargeConsistent_;
+    
     bool mcMatched_;
     bool passConversionVeto_;
 
     float shiftedEnDown_;
     float shiftedEnUp_;
 
+    float dz_;
+    float dxy_;
+
+    int snuID_;
   };
 }
 

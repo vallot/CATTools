@@ -1,5 +1,5 @@
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
@@ -22,12 +22,12 @@ using namespace std;
 
 namespace cat {
 
-  class CATMuonProducer : public edm::EDProducer {
+  class CATMuonProducer : public edm::stream::EDProducer<> {
   public:
     explicit CATMuonProducer(const edm::ParameterSet & iConfig);
     virtual ~CATMuonProducer() { }
 
-    virtual void produce(edm::Event & iEvent, const edm::EventSetup & iSetup);
+    void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
 
     bool mcMatch( const reco::Candidate::LorentzVector& lepton, Handle<reco::GenParticleCollection> genParticles );
     bool MatchObjects( const reco::Candidate::LorentzVector& pasObj, const reco::Candidate::LorentzVector& proObj, bool exact );
@@ -40,6 +40,8 @@ namespace cat {
     edm::EDGetTokenT<reco::VertexCollection> vertexLabel_;
     edm::EDGetTokenT<reco::BeamSpot> beamLineSrc_;
     bool runOnMC_;
+
+    typedef math::XYZPoint Point;
 
   };
 
@@ -72,7 +74,9 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
 
   Handle<reco::VertexCollection> recVtxs;
   iEvent.getByToken(vertexLabel_,recVtxs);
-  reco::Vertex pv= recVtxs->at(0);
+  reco::Vertex pv;
+  if (recVtxs->size())
+    pv = recVtxs->at(0);
    
   reco::BeamSpot beamSpot = *beamSpotHandle;
   reco::TrackBase::Point beamPoint(beamSpot.x0(), beamSpot.y0(), beamSpot.z0());
@@ -147,11 +151,11 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
       aMuon.setNumberOfValidPixelHits( aPatMuon.innerTrack()->hitPattern().numberOfValidPixelHits() );
       aMuon.setTackerLayersWithMeasurement( aPatMuon.innerTrack()->hitPattern().trackerLayersWithMeasurement() ); 
     }
-    double dxy = aPatMuon.muonBestTrack()->dxy(pv.position()); // fabs() removed
-    aMuon.setDxy( dxy );
-    double dz = aPatMuon.muonBestTrack()->dz(pv.position()); // fabs() removed
-    aMuon.setDz( dz ); 
-
+    
+    aMuon.setDxy( aPatMuon.muonBestTrack()->dxy(pv.position()) );
+    aMuon.setDz( aPatMuon.muonBestTrack()->dz(pv.position()) );
+    aMuon.setVertex(Point(aPatMuon.muonBestTrack()->vx(),aPatMuon.muonBestTrack()->vy(),aPatMuon.muonBestTrack()->vz()));
+    
     out->push_back(aMuon);
   }
 

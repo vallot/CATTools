@@ -1,5 +1,5 @@
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
@@ -20,11 +20,11 @@ using namespace std;
 
 namespace cat {
 
-class TTbarDileptonProducer : public edm::EDProducer 
+class TTbarDileptonProducer : public edm::stream::EDProducer<>
 {
 public:
   TTbarDileptonProducer(const edm::ParameterSet& pset);
-  virtual ~TTbarDileptonProducer();
+  virtual ~TTbarDileptonProducer() {};
   void produce(edm::Event & event, const edm::EventSetup&) override;
 
 private:
@@ -38,6 +38,45 @@ private:
   edm::EDGetTokenT<edm::View<TMET> > metToken_;
 
 private:
+  bool isGoodMuon(const TMuon& mu)
+  {
+    if ( mu.pt() <= 20 or std::abs(mu.eta()) >= 2.4 ) return false;
+    if ( mu.relIso(0.4) >= 0.12 ) return false;
+    if ( !mu.isTightMuon() ) return false;
+    return true;
+  }
+  bool isVetoMuon(const TMuon& mu)
+  {
+    if ( mu.pt() <= 20 or std::abs(mu.eta()) >= 2.4 ) return false;
+    if ( mu.relIso(0.4) >= 0.2 ) return false;
+    if ( !mu.isLooseMuon() ) return false;
+    return true;
+  }
+  bool isGoodElectron(const TElectron& el)
+  {
+    if ( el.pt() <= 20 or std::abs(el.eta()) >= 2.4 ) return false;
+    //if ( el.relIso(0.3) >= 0.11 ) return false;
+    //if ( !el.electronID("egmGsfElectronIDs:cutBasedElectronID-Spring15-50ns-V1-standalone-medium") ) return false;
+    if ( !el.electronID("cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-medium") ) return false;
+    if ( !el.isPF() or !el.passConversionVeto() ) return false;
+    const double scEta = std::abs(el.scEta());
+    if ( scEta >= 1.4442 and scEta <= 1.566 ) return false;
+    return true;
+  }
+  bool isVetoElectron(const TElectron& el)
+  {
+    if ( el.pt()  <= 20 or std::abs(el.eta()) >= 2.4 ) return false;
+    //if ( !el.electronID("egmGsfElectronIDs:cutBasedElectronID-Spring15-50ns-V1-standalone-veto") ) return false;
+    if ( !el.electronID("cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-veto") ) return false;
+    const double scEta = std::abs(el.scEta());
+    if ( scEta >= 1.4442 and scEta <= 1.566 ) return false;
+    const double relIso03 = el.relIso(0.3);
+    if ( scEta <= 1.4442 and relIso03 >= 0.1649 ) return false;
+    if ( scEta >= 1.566  and relIso03 >= 0.2075 ) return false;
+    return true;
+  }
+
+private:
   typedef reco::Candidate::LorentzVector LorentzVector;
   typedef reco::CompositePtrCandidate CRCand;
   typedef std::vector<CRCand> CRCandColl;
@@ -45,7 +84,7 @@ private:
   enum CHANNEL {
     CH_NONE=0, CH_MUMU, CH_ELEL, CH_MUEL
   };
-  KinematicSolver* solver_;
+  std::unique_ptr<KinematicSolver> solver_;
 
 };
 
@@ -62,11 +101,13 @@ TTbarDileptonProducer::TTbarDileptonProducer(const edm::ParameterSet& pset)
 
   auto solverName = pset.getParameter<std::string>("solver");
   std::transform(solverName.begin(), solverName.end(), solverName.begin(), ::toupper);
-  if      ( solverName == "CMSKIN" ) solver_ = new CMSKinSolver();
-  else if ( solverName == "MT2"    ) solver_ = new MT2Solver();
-  else if ( solverName == "MAOS"   ) solver_ = new MAOSSolver();
-  else if ( solverName == "NUWGT"  ) solver_ = new NuWeightSolver();
-  else solver_ = new TTDileptonSolver(); // A dummy solver
+  if      ( solverName == "CMSKIN" ) solver_.reset(new CMSKinSolver());
+  else if ( solverName == "DESYMassLoop" ) solver_.reset(new DESYMassLoopSolver());
+  else if ( solverName == "DESYSmeared" ) solver_.reset(new DESYSmearedSolver());
+  else if ( solverName == "MT2"    ) solver_.reset(new MT2Solver());
+  else if ( solverName == "MAOS"   ) solver_.reset(new MAOSSolver());
+  else if ( solverName == "NUWGT"  ) solver_.reset(new NuWeightSolver());
+  else solver_.reset(new TTDileptonSolver()); // A dummy solver
 
   produces<CRCandColl>();
   produces<int>("channel");
@@ -80,12 +121,7 @@ TTbarDileptonProducer::TTbarDileptonProducer(const edm::ParameterSet& pset)
   //produces<edm::RefVector<cat::Jet> >("addJets");
 }
 
-TTbarDileptonProducer::~TTbarDileptonProducer()
-{
-  if ( solver_ ) delete solver_;
-}
-
-void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&) 
+void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
 {
   std::auto_ptr<CRCandColl> cands(new CRCandColl);
   auto candsRefProd = event.getRefBeforePut<CRCandColl>();
@@ -105,26 +141,29 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
   edm::Handle<edm::View<TElectron> > electronHandle;
   event.getByToken(electronToken_, electronHandle);
 
-  std::vector<reco::CandidatePtr> leptons;
+  std::vector<reco::CandidatePtr> leptons, vetoLeptons;
   for ( int i=0, n=muonHandle->size(); i<n; ++i )
   {
     auto& p = muonHandle->at(i);
-    if ( p.pt() < 20 or abs(p.eta()) > 2.4 ) continue;
-    if ( p.relIso() > 0.15 ) continue;
+    if ( p.pt() < 20 or abs(p.eta()) >= 2.4 ) continue;
 
     reco::CandidatePtr muonPtr = reco::CandidatePtr(muonHandle, i);
-    leptons.push_back(muonPtr);
+
+    if ( isGoodMuon(p) ) leptons.push_back(muonPtr);
+    if ( isVetoMuon(p) ) vetoLeptons.push_back(muonPtr);
   }
   for ( int i=0, n=electronHandle->size(); i<n; ++i )
   {
     auto& p = electronHandle->at(i);
-    if ( p.pt() < 20 or abs(p.eta()) > 2.4 ) continue;
-    if ( p.relIso() > 0.15 ) continue;
+    if ( p.pt() < 20 or std::abs(p.eta()) > 2.4 ) continue;
 
     reco::CandidatePtr electronPtr = reco::CandidatePtr(electronHandle, i);
-    leptons.push_back(electronPtr);
+
+    if ( isGoodElectron(p) ) leptons.push_back(electronPtr);
+    if ( isVetoElectron(p) ) vetoLeptons.push_back(electronPtr);
   }
   std::sort(leptons.begin(), leptons.end(), [](reco::CandidatePtr a, reco::CandidatePtr b){return a->pt() > b->pt();});
+  std::sort(vetoLeptons.begin(), vetoLeptons.end(), [](reco::CandidatePtr a, reco::CandidatePtr b){return a->pt() > b->pt();});
 
   edm::Handle<edm::View<TJet> > jetHandle;
   event.getByToken(jetToken_, jetHandle);
@@ -139,8 +178,10 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
     // Pick leading leptons.
     const reco::Candidate* lep1 = &*leptons.at(0);
     const reco::Candidate* lep2 = &*leptons.at(1);
-    if ( lep1->isMuon() and lep2->isMuon() ) *channel = CH_MUMU;
-    else if ( lep1->isElectron() and lep2->isElectron() ) *channel = CH_ELEL;
+    const int pdgId1 = std::abs(lep1->pdgId());
+    const int pdgId2 = std::abs(lep2->pdgId());
+    if ( pdgId1 == 13 and pdgId2 == 13 ) *channel = CH_MUMU;
+    else if ( pdgId1 == 11 and pdgId2 == 11 ) *channel = CH_ELEL;
     else *channel = CH_MUEL;
     const LorentzVector& lep1LVec = lep1->p4();
     const LorentzVector& lep2LVec = lep2->p4();
@@ -225,10 +266,8 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
 
     w1.addDaughter(leptons.at(0));
     w2.addDaughter(leptons.at(1));
-    if ( lep1->isElectron() ) nu1.setPdgId(12*lep1->charge());
-    else if ( lep1->isMuon() ) nu1.setPdgId(14*lep1->charge());
-    if ( lep2->isElectron() ) nu2.setPdgId(12*lep2->charge());
-    else if ( lep2->isMuon() ) nu2.setPdgId(14*lep2->charge());
+    nu1.setPdgId((pdgId1+1)*lep1->charge());
+    nu2.setPdgId((pdgId2+1)*lep2->charge());
 
     top1.addDaughter(selectedJet1);
     top2.addDaughter(selectedJet2);
@@ -252,7 +291,6 @@ void TTbarDileptonProducer::produce(edm::Event& event, const edm::EventSetup&)
       out_mAddJJ->push_back(addJet2P4.mass());
     }
   } while (false);
-
 
   event.put(cands);
   event.put(channel, "channel");

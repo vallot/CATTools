@@ -75,6 +75,9 @@ for dataset in datasets:
         #dataUnitsPerJob = " Data.unitsPerJob=10 "
         dataLumiMask    = " Data.lumiMask='%s'"%(lumiMask)
         pyCfgParams     = "config.JobType.pyCfgParams = ['runOnMC=False','useMiniAOD=%s','globalTag=%s']"%(isMiniAOD,globalTag)
+    ## Special option for TTbar signal samples
+    if isMC and (dataset.startswith('/TT') or dataset.startswith('/tt')):
+        pyCfgParams = pyCfgParams[:-2] + (",'runGenTop=True']")
 
     ## pyCfgParams cannot be set from cmd line yet
     shutil.copy2('crabConfig.py', 'crab.py')

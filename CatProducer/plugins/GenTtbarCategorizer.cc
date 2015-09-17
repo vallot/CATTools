@@ -45,7 +45,7 @@
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -58,17 +58,15 @@
 // class declaration
 //
 
-class GenTtbarCategorizer : public edm::EDProducer {
+class GenTtbarCategorizer : public edm::stream::EDProducer<> {
     public:
         explicit GenTtbarCategorizer(const edm::ParameterSet&);
-        ~GenTtbarCategorizer();
+        ~GenTtbarCategorizer() {};
         
         static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
         
     private:
-        virtual void beginJob() override;
-        virtual void produce(edm::Event&, const edm::EventSetup&) override;
-        virtual void endJob() override;
+        void produce(edm::Event&, const edm::EventSetup&) override;
         
         //virtual void beginRun(edm::Run const&, edm::EventSetup const&) override;
         //virtual void endRun(edm::Run const&, edm::EventSetup const&) override;
@@ -102,15 +100,6 @@ class GenTtbarCategorizer : public edm::EDProducer {
 };
 
 //
-// constants, enums and typedefs
-//
-
-
-//
-// static data member definitions
-//
-
-//
 // constructors and destructor
 //
 GenTtbarCategorizer::GenTtbarCategorizer(const edm::ParameterSet& iConfig):
@@ -132,10 +121,6 @@ genCHadBHadronIdToken_(consumes<std::vector<int> >(iConfig.getParameter<edm::Inp
 {
     produces<int>("genTtbarId");
 }
-
-
-GenTtbarCategorizer::~GenTtbarCategorizer()
-{}
 
 
 //
@@ -319,48 +304,6 @@ GenTtbarCategorizer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     
 }
 
-// ------------ method called once each job just before starting event loop  ------------
-void 
-GenTtbarCategorizer::beginJob()
-{}
-
-// ------------ method called once each job just after ending the event loop  ------------
-void 
-GenTtbarCategorizer::endJob()
-{}
-
-// ------------ method called when starting to processes a run  ------------
-/*
-void
-GenTtbarCategorizer::beginRun(edm::Run const&, edm::EventSetup const&)
-{
-}
-*/
- 
-// ------------ method called when ending the processing of a run  ------------
-/*
-void
-GenTtbarCategorizer::endRun(edm::Run const&, edm::EventSetup const&)
-{
-}
-*/
- 
-// ------------ method called when starting to processes a luminosity block  ------------
-/*
-void
-GenTtbarCategorizer::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
-{
-}
-*/
- 
-// ------------ method called when ending the processing of a luminosity block  ------------
-/*
-void
-GenTtbarCategorizer::endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
-{
-}
-*/
- 
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
 void
 GenTtbarCategorizer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
