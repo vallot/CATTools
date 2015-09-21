@@ -95,6 +95,8 @@ private:
   // TTbarMC_ == 2, ttbar Background
   int TTbarMC_;
 
+  typedef std::pair < std::string, int > pairtrigger;
+
   edm::EDGetTokenT<edm::View<reco::GenParticle> >  genToken_;
   edm::EDGetTokenT<edm::View<cat::Muon> >          muonToken_;
   edm::EDGetTokenT<edm::View<cat::Electron> >      electronToken_;
@@ -102,7 +104,7 @@ private:
   edm::EDGetTokenT<edm::View<cat::MET> >           metToken_;
   edm::EDGetTokenT<int>                            pvToken_;
   edm::EDGetTokenT<float>                          puWeight_;
-  edm::EDGetTokenT<bool>                           trigger_;
+  edm::EDGetTokenT<std::vector<pairtrigger>>       trigger_;
   
   // ----------member data ---------------------------
 
@@ -124,8 +126,6 @@ private:
   int b_nGoodPV;
 
   int b_Channel;
-
-  bool b_Trigger;
 
   // MET
   float b_MET, b_MET_phi;
@@ -178,7 +178,8 @@ TtbarSingleLeptonAnalyzer::TtbarSingleLeptonAnalyzer(const edm::ParameterSet& iC
   metToken_      = consumes<edm::View<cat::MET> >           (iConfig.getParameter<edm::InputTag>("metLabel"));     
   pvToken_       = consumes<int>                            (iConfig.getParameter<edm::InputTag>("pvLabel"));
   puWeight_      = consumes<float>                          (iConfig.getParameter<edm::InputTag>("puWeight"));
-  trigger_       = consumes<bool>                           (iConfig.getParameter<edm::InputTag>("trigLabel"));
+  trigger_       = consumes<std::vector<pairtrigger>>       (iConfig.getParameter<edm::InputTag>("trigLabel"));
+
     
     
   edm::Service<TFileService> fs;
@@ -190,8 +191,6 @@ TtbarSingleLeptonAnalyzer::TtbarSingleLeptonAnalyzer(const edm::ParameterSet& iC
 
   vallot->Branch("PUWeight", &b_PUWeight, "PUWeight/F");
   vallot->Branch("GoodPV",   &b_nGoodPV,  "nGoodPV/I");
-
-  vallot->Branch("trigger",  &b_Trigger,  "Trigger/B");
 
   vallot->Branch("channel",  &b_Channel,  "Channel/I");
 
@@ -219,27 +218,8 @@ TtbarSingleLeptonAnalyzer::TtbarSingleLeptonAnalyzer(const edm::ParameterSet& iC
 
   vallot->Branch("jet_CSV" , "std::vector<float>", &b_Jet_CSV );
 
-}
-
-
-TtbarSingleLeptonAnalyzer::~TtbarSingleLeptonAnalyzer()
-{
- 
-   // do anything here that needs to be done at desctruction time
-   // (e.g. close files, deallocate resources etc.)
-
-}
-
-//
-// member functions
-//
-
-// ------------ method called for each event  ------------
-void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
-{
-
-  using namespace edm;
-
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
   b_Jet_px = new std::vector<float>;
   b_Jet_py = new std::vector<float>;
   b_Jet_pz = new std::vector<float>;
@@ -255,7 +235,60 @@ void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Eve
   b_Jet_shiftedEnDown  = new std::vector<float>;
   
   b_Jet_CSV  = new std::vector<float>;
+
+}
+
+
+TtbarSingleLeptonAnalyzer::~TtbarSingleLeptonAnalyzer()
+{
+ 
+   // do anything here that needs to be done at desctruction time
+   // (e.g. close files, deallocate resources etc.)
+
+  delete b_Jet_px;
+  delete b_Jet_py;
+  delete b_Jet_pz;
+  delete b_Jet_E;
+
+  delete b_Jet_partonFlavour;
+  delete b_Jet_hadronFlavour;
   
+  delete b_Jet_smearedRes;
+  delete b_Jet_smearedResDown;
+  delete b_Jet_smearedResUp;
+  delete b_Jet_shiftedEnUp;
+  delete b_Jet_shiftedEnDown;
+
+  delete b_Jet_CSV;
+ 
+}
+
+//
+// member functions
+//
+
+// ------------ method called for each event  ------------
+void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
+{
+
+  using namespace edm;
+  
+
+  b_Jet_px->clear();
+  b_Jet_py->clear();
+  b_Jet_pz->clear();
+  b_Jet_E->clear(); 
+  
+  b_Jet_partonFlavour->clear();
+  b_Jet_hadronFlavour->clear();
+  
+  b_Jet_smearedRes->clear();   
+  b_Jet_smearedResDown->clear();
+  b_Jet_smearedResUp->clear();  
+  b_Jet_shiftedEnUp->clear();  
+  b_Jet_shiftedEnDown->clear();
+  
+  b_Jet_CSV->clear();
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -287,13 +320,15 @@ void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Eve
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
 
-  bool nGenLep = 0;
+  int nGenLep = 999;
+  bool GenLep_m = false;
+  bool GenLep_p = false;
 
   if(TTbarMC_ > 0) {
 
     edm::Handle<edm::View<reco::GenParticle> > genParticles;
     iEvent.getByToken(genToken_, genParticles);
-    
+
     // Gen Status: http://home.thep.lu.se/~torbjorn/pythia81html/ParticleProperties.html
     // abs(id) == 6  // t-Quark
     // abs(id) == 5  // b-Quark
@@ -301,56 +336,74 @@ void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Eve
     // abs(id) == 15 // Tau
     // abs(id) == 11 // Electron
     // abs(id) == 13 // Muon
-    
+
     for (unsigned int i = 0; i < genParticles->size(); i++){
-      
+
       const reco::Candidate & gp = (*genParticles)[i];
       int id = gp.pdgId();
-      
-      const reco::Candidate *mom;
-      const reco::Candidate *itmom;
-      const reco::Candidate *mommom;
-      mom = (&gp)->mother();
 
-      int momid = 0;
-      int mommomid = 0;
+      // Only leptons
+      if(abs(id) == 11 || abs(id) == 13 || abs(id) == 15){
 
-      if(mom !=0){
-	momid    = mom->pdgId();
-	mommomid = momid;
+        const reco::Candidate *it     = 0;
+        const reco::Candidate *mom    = 0;
+        const reco::Candidate *itmom  = 0;
+        const reco::Candidate *mommom = 0;
 
-	itmom = (&gp)->mother();
-	// This loop searches the mother's mom of the particle
-	while (momid == mommomid){
-	  mommom = itmom->mother();      
-	  if(mommom != 0) mommomid = mommom->pdgId();	
-	  else mommomid = 0;
-
-	  if(momid == mommomid) itmom = mommom->mother();
- 	} // while(mom == mommom)
-      } // if(mom !=0)
-      
-      // Leptons coming from a W, where W comes from a t
-      if ((abs(id) == 13 || abs(id) == 11 || abs(id) == 15) &&
-	  fabs(momid) == 24 && fabs(mommomid) == 6){   
-
-	// Electrons and Muons
-	if(abs(id) == 13 || abs(id) == 11) nGenLep++;	
+        int momid = id;
+        it = (&gp);
+        // This loop searches the particle's mother
+        while(momid == id){
+          if(it != 0){
+            mom = it->mother();
+            if(mom != 0) momid = mom->pdgId();
+            else momid = 0;
+            if(momid == id) it = mom;
+          } // if(it != 0)
+          else momid = 0;
+        } // while(momid == id)
 	
-	// Taus
-	if(abs(id) == 15){
-	  for(unsigned int h = 0; h <  gp.numberOfDaughters(); h++) {
-	    const reco::Candidate *gd = gp.daughter(h);
-	    int taudauid = gd->pdgId();
+        int mommomid = momid;
 
-	    if(abs(taudauid) == 13 || abs(taudauid) == 11) nGenLep++;		  
-	  } // for(taus' daughters)
-	} // if(taus)
-      } // if (t->W->lnu)      
-    } // for(genParticles) 
+        if(mom != 0){
+          itmom = mom;
+          // This loop searches the mother's mom of the particle
+          while (mommomid == momid){
+            if(itmom !=0){
+              mommom = itmom->mother();
+              if(mommom != 0) mommomid = mommom->pdgId();
+              else mommomid = 0;
+              if(mommomid == momid) itmom = mommom->mother();
+            }
+            else mommomid = 0;
+          } // if(mom != 0)
+        } // while(mommomid == momid)
 
-  } // if(TTbarMC>0)
-  
+        if (abs(momid) == 24 && abs(mommomid) == 6){
+	  
+          if (id == -11 || id == -13) GenLep_m = true;
+          if (id ==  11 || id ==  13) GenLep_p = true;
+	  
+          // Taus
+          if(abs(id) == 15){
+            for(unsigned int h = 0; h <  gp.numberOfDaughters(); h++) {
+              const reco::Candidate *gd = gp.daughter(h);
+              int taudauid = gd->pdgId();
+              if (taudauid == -11 || taudauid == -13) GenLep_m = true;
+              if (taudauid == 11 || taudauid == 13) GenLep_p = true;
+            } // for(taus' daughters)
+          } // if(taus)
+
+        } // if(t->W)
+	
+      }// if (mu || e || tau)
+    } // for(genParticles)
+    
+    if(!GenLep_p && !GenLep_m) nGenLep = 0; // Full Hadronic
+    if((GenLep_p && !GenLep_m) || (!GenLep_p && GenLep_m)) nGenLep = 1; // Single Lepton
+    else if(GenLep_p && GenLep_m) nGenLep = 2; // Dilepton
+  } // if(TTbarMC>0)   
+
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   // Primary Vertex Info
@@ -446,13 +499,22 @@ void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Eve
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
 
-  //  edm::Handle<bool> TriggerBits;
+  bool EvTrigger = true; // Trigger requirement not yet applied
+  Handle< std::vector<pairtrigger> > TriggerBits;
 
-  // iEvent.getByToken(trigger_, TriggerBits);
-  // b_Trigger = *TriggerBits;
+  iEvent.getByToken(trigger_, TriggerBits);
 
-  b_Trigger = true; // Problems in v7-3-2
+  for(unsigned int i_t=0; i_t<TriggerBits->size(); i_t++){
+    //if(ch_tag == 0 || ch_tag == 1) std::cout << TriggerBits->size() << " Trigger: " << (*TriggerBits)[i_t].first << " with " << (*TriggerBits)[i_t].second << std::endl;
   
+  if( (ch_tag == 0 && (*TriggerBits)[i_t].first == "HLT_Mu24_eta2p1_v1") ||
+      (ch_tag == 1 && (*TriggerBits)[i_t].first == "HLT_Ele27_eta2p1_WP75_Gsf_v1")){
+    
+    EvTrigger = true;
+    continue;
+  }
+}
+
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   // Fill Tree with events that have ONLY one lepton
@@ -469,7 +531,7 @@ void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Eve
     }
   } // if(TTbarMC_ >0)
   
-  if (ch_tag<2){ // Single lepton event 
+  if (ch_tag<2 && EvTrigger){ // Single lepton event 
 
     b_Channel  = ch_tag;
     
@@ -537,23 +599,6 @@ void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Eve
     
   } // if(ch_tag)
   
-  delete b_Jet_px;
-  delete b_Jet_py;
-  delete b_Jet_pz;
-  delete b_Jet_E;
-
-  delete b_Jet_partonFlavour;
-  delete b_Jet_hadronFlavour;
-  
-  delete b_Jet_smearedRes;
-  delete b_Jet_smearedResDown;
-  delete b_Jet_smearedResUp;
-  delete b_Jet_shiftedEnUp;
-  delete b_Jet_shiftedEnDown;
-
-  delete b_Jet_CSV;
- 
-
 #ifdef THIS_IS_AN_EVENT_EXAMPLE
    Handle<ExampleData> pIn;
    iEvent.getByToken("example",pIn);
