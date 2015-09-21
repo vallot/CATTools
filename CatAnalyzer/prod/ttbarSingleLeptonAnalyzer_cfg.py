@@ -34,6 +34,12 @@ process.source = cms.Source("PoolSource",
         #'file:/cms/home/brochero/CATTuples_July/cat74/src/CATTools/CatAnalyzer/catTuple_83.root' # -- Data
     )
 )
+
+# json file (Only Data)
+#import FWCore.PythonUtilities.LumiList as LumiList
+#process.source.lumisToProcess = LumiList.LumiList(filename = 'Cert_246908-251883_13TeV_PromptReco_Collisions15_JSON_v2.txt').getVLuminosityBlockRange()
+
+
 process.ttbarSingleLepton = cms.EDAnalyzer('TtbarSingleLeptonAnalyzer',
                                            sampleLabel       = cms.untracked.bool(runOnMC),
                                            TTbarSampleLabel  = cms.untracked.int32(runOnTTbarMC),
@@ -41,10 +47,11 @@ process.ttbarSingleLepton = cms.EDAnalyzer('TtbarSingleLeptonAnalyzer',
                                            muonLabel     = cms.InputTag("catMuons"),
                                            electronLabel = cms.InputTag("catElectrons"),
                                            jetLabel      = cms.InputTag("catJets"),
-                                           metLabel      = cms.InputTag("catMETs"),
+                                           #metLabel      = cms.InputTag("catMETs"),
+                                           metLabel      = cms.InputTag("catMETsNoHF"),
                                            pvLabel       = cms.InputTag("catVertex:nGoodPV"),
                                            puWeight      = cms.InputTag("pileupWeight"),
-                                           trigLabel     = cms.InputTag("catTrigger:HLT-DoubleEle33-CaloIdL-GsfTrkIdVL"), # Not working yet
+                                           trigLabel     = cms.InputTag("catTrigger"), # Not working yet
                                            )
 
 process.TFileService = cms.Service("TFileService",
