@@ -9,8 +9,9 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 
-import os
 datadir = '/xrootd/store/group/CAT/MuonEG/v7-3-6_Run2015B-PromptReco-v1/150820_215352/0000/'
+
+import os
 for f in os.listdir(datadir):
     process.source.fileNames.append("file:"+datadir+f)
 
@@ -29,9 +30,9 @@ for i in process.source.fileNames:
         runOnMC=False
 if not runOnMC:
     from FWCore.PythonUtilities.LumiList import LumiList
-    lumiList = LumiList(os.environ["CMSSW_BASE"]+'/src/CATTools/CatProducer/prod/LumiMask/'+lumiFile)
-    process.source.lumisToProcess = lumiList.getVLuminosityBlockRange()
-    print process.source.lumisToProcess
+    lumiList = LumiList(os.environ["CMSSW_BASE"]+'/src/CATTools/CatProducer/prod/LumiMask/'+lumiFile)    
+    process.source.lumisToProcess = lumiList.getVLuminosityBlockRange()    
+    
 if runOnMC:
     process.partonTop = cms.EDProducer("PartonTopProducer",
         genParticles = cms.InputTag("prunedGenParticles"),
@@ -45,18 +46,15 @@ process.ttll = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     CSCTightHaloFilter = cms.InputTag("catTrigger", "CSCTightHaloFilter"),
     HBHENoiseFilter = cms.InputTag("catTrigger", "HBHENoiseFilter"),
     eeBadScFilter = cms.InputTag("catTrigger", "eeBadScFilter"),
-    HLTMu17TrkIsoVVLEle12CaloIdLTrackIdLIsoVL = cms.InputTag("catTrigger", "HLTMu17TrkIsoVVLEle12CaloIdLTrackIdLIsoVL"),
-    HLTMu8TrkIsoVVLEle17CaloIdLTrackIdLIsoVL = cms.InputTag("catTrigger", "HLTMu8TrkIsoVVLEle17CaloIdLTrackIdLIsoVL"),
+    triggers = cms.InputTag("catTrigger"),
 
     vertices = cms.InputTag("catVertex"),
-    #vertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
     muons = cms.InputTag("catMuons"),
     electrons = cms.InputTag("catElectrons"),
     jets = cms.InputTag("catJets"),
-    mets = cms.InputTag("catMETs"),
-    noHFmets = cms.InputTag("catMETsNoHF"),
+    #mets = cms.InputTag("catMETs"),
+    mets = cms.InputTag("catMETsNoHF"),
     mcLabel = cms.InputTag("prunedGenParticles"),
-    triggers = cms.InputTag("catTrigger"),
     
     partonTop_channel = cms.InputTag("partonTop","channel"),
     partonTop_modes = cms.InputTag("partonTop", "modes"),
