@@ -82,5 +82,6 @@ if options.maxEvents < 0:
 process.options.wantSummary = False
 
 ## for debugging
+#process.options.wantSummary = True
 #process.source.skipEvents = cms.untracked.uint32(3000)
 #process.SimpleMemoryCheck = cms.Service("SimpleMemoryCheck",ignoreTotal = cms.untracked.int32(1) )

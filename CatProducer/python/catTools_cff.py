@@ -17,8 +17,6 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
     catRho = "fixedGridRhoAll"
     ePidNames = cms.vstring()
     btagNames = cms.vstring("pfCombinedInclusiveSecondaryVertexV2BJetTags")
-    JECUncertainlyPayload = cms.string("AK4PFchs")
-    #JECUncertainlyPayload = cms.string("")
 
     process.nEventsTotal = cms.EDProducer("EventCountProducer")
     process.nEventsFiltered = cms.EDProducer("EventCountProducer")
@@ -118,6 +116,10 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
     from JMEAnalysis.JetToolbox.jetToolbox_cff import jetToolbox
     jetToolbox( process, 'ak4', 'ak4JetSubs', 'out', PUMethod='Puppi', miniAOD = useMiniAOD, runOnMC = True,#due to bug in jetToolbox
                 JETCorrPayload='AK4PFPuppi', JETCorrLevels = ['L1FastJet', 'L2Relative', 'L3Absolute'] )#bug-JETCorrLevels overwritten in jetToolbox
+
+    process.selectedPatJetsAK4PFPuppi.cut = cms.string("pt > 20")
+    process.patJetGenJetMatchAK4PFPuppi.matched = cms.InputTag("slimmedGenJets")
+    process.patJetsAK4PFPuppi.embedGenPartonMatch = cms.bool(False)
     catJetsPuppiSource = "selectedPatJetsAK4PFPuppi"
     # remaking puppi met
     from RecoMET.METProducers.PFMET_cfi import pfMet
@@ -227,11 +229,9 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
         #process.makeCatCandidates += process.catSecVertexs
                 
     process.catJets.src = cms.InputTag(catJetsSource)
-    process.catJets.genJetMatch = cms.InputTag("patJetGenJetMatch")
     process.catJets.btagNames = btagNames
-    process.catJets.payloadName = JECUncertainlyPayload
+    process.catJets.payloadName = cms.string("AK4PFchs")
     process.catTaus.src = cms.InputTag(catTausSource)
-    process.catTaus.genJetMatch = cms.InputTag("tauGenJetMatch")
     process.catMuons.src = cms.InputTag(catMuonsSource)
     process.catMuons.mcLabel = cms.InputTag(catMCsource)
     process.catMuons.vertexLabel = cms.InputTag(catVertex)
@@ -249,8 +249,8 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
     process.catSecVertexs.vertexLabel = cms.InputTag(catVertexSource)
 
     process.catJetsPuppi.src = cms.InputTag(catJetsPuppiSource)
-    process.catJetsPuppi.genJetMatch = cms.InputTag("patJetGenJetMatch")
     process.catJetsPuppi.btagNames = btagNames
-    process.catJetsPuppi.payloadName = JECUncertainlyPayload    
+    process.catJetsPuppi.payloadName = cms.string("AK4PFchs") #temp for now
     process.catMETsPuppi.src = cms.InputTag(catMETsPuppiSource)
     process.catVertex.vertexLabel = cms.InputTag(catVertexSource)
+    
