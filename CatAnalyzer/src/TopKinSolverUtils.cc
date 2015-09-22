@@ -31,7 +31,7 @@ void KinSolverUtils::findCoeffs(const double mT, const double mW1, const double 
   const double l1E = l1.energy(), j1E = j1.energy();
   const double jlEA = j1E + l1E;
   const double divA = 2*l1E*jlEA;
-  const double a1 = (jlEA*dmW1-l1E*(dmT+2*j1E*l1E-2*(l1.Vect().Dot(j1.Vect()))))/divA;
+  const double a1 = (jlEA*dmW1-l1E*(dmT-2*j1E*l1E+2*(l1.Vect().Dot(j1.Vect()))))/divA;
   const double a2 = 2*(j1E*l1.px()-l1E*j1.px())/divA;
   const double a3 = 2*(j1E*l1.py()-l1E*j1.py())/divA;
   const double a4 = 2*(j1E*l1.pz()-l1E*j1.pz())/divA;
@@ -39,7 +39,7 @@ void KinSolverUtils::findCoeffs(const double mT, const double mW1, const double 
   const double l2E = l2.energy(), j2E = j2.energy();
   const double jlEB = j2E + l2E;
   const double divB = 2*l2E*jlEB;
-  const double b1 = (jlEB*dmW2-l2E*(dmT+2*j2E*l2E-2*(l2.Vect().Dot(j2.Vect()))))/divB;
+  const double b1 = (jlEB*dmW2-l2E*(dmT-2*j2E*l2E+2*(l2.Vect().Dot(j2.Vect()))))/divB;
   const double b2 = 2*(j2E*l2.px()-l2E*j2.px())/divB;
   const double b3 = 2*(j2E*l2.py()-l2E*j2.py())/divB;
   const double b4 = 2*(j2E*l2.pz()-l2E*j2.pz())/divB;
