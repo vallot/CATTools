@@ -32,8 +32,10 @@ private:
   typedef cat::Electron TElectron;;
   typedef cat::Jet TJet;
   typedef cat::MET TMET;
-  edm::EDGetTokenT<edm::View<reco::CandidatePtr> > leptonToken_;
-  edm::EDGetTokenT<edm::View<reco::CandidatePtr> > jetToken_;
+  edm::EDGetTokenT<edm::View<reco::CandidatePtr> > leptonPtrToken_;
+  edm::EDGetTokenT<edm::View<reco::CandidatePtr> > jetPtrToken_;
+  edm::EDGetTokenT<edm::View<reco::Candidate> > leptonToken_;
+  edm::EDGetTokenT<edm::View<reco::Candidate> > jetToken_;
   edm::EDGetTokenT<float> metToken_, metphiToken_;
 
 private:
@@ -51,8 +53,10 @@ using namespace cat;
 
 TTbarDileptonKinSolutionProducer::TTbarDileptonKinSolutionProducer(const edm::ParameterSet& pset)
 {
-  leptonToken_ = consumes<edm::View<reco::CandidatePtr> >(pset.getParameter<edm::InputTag>("leptons"));
-  jetToken_ = consumes<edm::View<reco::CandidatePtr> >(pset.getParameter<edm::InputTag>("jets"));
+  leptonPtrToken_ = mayConsume<edm::View<reco::CandidatePtr> >(pset.getParameter<edm::InputTag>("leptons"));
+  leptonToken_ = mayConsume<edm::View<reco::Candidate> >(pset.getParameter<edm::InputTag>("leptons"));
+  jetPtrToken_ = mayConsume<edm::View<reco::CandidatePtr> >(pset.getParameter<edm::InputTag>("jets"));
+  jetToken_ = mayConsume<edm::View<reco::Candidate> >(pset.getParameter<edm::InputTag>("jets"));
   metToken_ = consumes<float>(pset.getParameter<edm::InputTag>("met"));
   metphiToken_ = consumes<float>(pset.getParameter<edm::InputTag>("metphi"));
 
@@ -89,11 +93,27 @@ void TTbarDileptonKinSolutionProducer::produce(edm::Event& event, const edm::Eve
   std::auto_ptr<floats> out_mAddJJ(new floats);
   std::auto_ptr<floats> out_dphi(new floats);
 
-  edm::Handle<edm::View<reco::CandidatePtr> > leptonHandle;
-  event.getByToken(leptonToken_, leptonHandle);
+  std::vector<reco::CandidatePtr> leptons;
+  edm::Handle<edm::View<reco::CandidatePtr> > leptonPtrHandle;
+  edm::Handle<edm::View<reco::Candidate> > leptonHandle;
+  if  ( event.getByToken(leptonPtrToken_, leptonPtrHandle) ) {
+    for ( auto x : *leptonPtrHandle ) leptons.push_back(x);
+  }
+  else {
+    event.getByToken(leptonToken_, leptonHandle);
+    for ( int i=0, n=leptonHandle->size(); i<n; ++i ) leptons.push_back(reco::CandidatePtr(leptonHandle, i));
+  }
 
-  edm::Handle<edm::View<reco::CandidatePtr> > jetHandle;
-  event.getByToken(jetToken_, jetHandle);
+  std::vector<reco::CandidatePtr> jets;
+  edm::Handle<edm::View<reco::CandidatePtr> > jetPtrHandle;
+  edm::Handle<edm::View<reco::Candidate> > jetHandle;
+  if ( event.getByToken(jetPtrToken_, jetPtrHandle) ) {
+    for ( auto x : *jetPtrHandle ) jets.push_back(x);
+  }
+  else {
+    event.getByToken(jetToken_, jetHandle);
+    for ( int i=0, n=jetHandle->size(); i<n; ++i ) jets.push_back(reco::CandidatePtr(jetHandle, i));
+  }
 
   edm::Handle<float> metHandle;
   event.getByToken(metToken_, metHandle);
@@ -104,12 +124,12 @@ void TTbarDileptonKinSolutionProducer::produce(edm::Event& event, const edm::Eve
 
   do {
     // Check objects to exist
-    if ( leptonHandle->size() < 2 ) break;
-    if ( jetHandle->size() < 2 ) break;
+    if ( leptons.size() < 2 ) break;
+    if ( jets.size() < 2 ) break;
 
     // Pick leading leptons.
-    const auto lep1 = leptonHandle->at(0);
-    const auto lep2 = leptonHandle->at(1);
+    const auto lep1 = leptons.at(0);
+    const auto lep2 = leptons.at(1);
     const LV lep1LV = lep1->p4();
     const LV lep2LV = lep2->p4();
     LV inputLV[5] = {metLV, lep1LV, lep2LV};
@@ -118,10 +138,10 @@ void TTbarDileptonKinSolutionProducer::produce(edm::Event& event, const edm::Eve
 
     // Run the solver with all jet combinations
     reco::CandidatePtr selectedJet1, selectedJet2;
-    for ( auto jet1 : *jetHandle )
+    for ( auto jet1 : jets )
     {
       inputLV[3] = jet1->p4();
-      for ( auto jet2 : *jetHandle )
+      for ( auto jet2 : jets )
       {
         if ( jet1 == jet2 ) continue;
         inputLV[4] = jet2->p4();
@@ -197,11 +217,11 @@ void TTbarDileptonKinSolutionProducer::produce(edm::Event& event, const edm::Eve
     out_dphi->push_back(deltaPhi(top1.phi(), top2.phi()));
     out_mLB->push_back((solver_->l1()+solver_->j1()).mass());
     out_mLB->push_back((solver_->l2()+solver_->j2()).mass());
-    if ( jetHandle->size() >= 4 )
+    if ( jets.size() >= 4 )
     {
       int nUsedJet = 0;
       LV addJet2P4;
-      for ( auto jet : *jetHandle )
+      for ( auto jet : jets )
       {
         if ( jet == selectedJet1 or jet == selectedJet2 ) continue;
         addJet2P4 += jet->p4();

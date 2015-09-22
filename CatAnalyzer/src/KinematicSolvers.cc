@@ -313,7 +313,7 @@ void DESYSmearedSolver::solve(const LV input[])
       double nu1solTmp[4], nu2solTmp[4];
       KinSolverUtils::getNuPxPyPzE(sol, cache, nu1solTmp, nu2solTmp);
 
-      if ( w < weight ) continue;
+      if ( w <= weight ) continue;
 
       weight = w;
       std::copy(nu1solTmp, nu1solTmp+4, nu1sol);
