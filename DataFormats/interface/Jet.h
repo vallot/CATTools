@@ -31,8 +31,9 @@ namespace cat {
     bool looseJetID() const { return looseJetID_; }
     bool tightJetID() const { return tightJetID_; }
     bool tightLepVetoJetID() const { return tightLepVetoJetID_; }
-    
+  
     float pileupJetId() const { return pileupJetId_; }
+    float chargedEmEnergyFraction() const { return chargedEmEnergyFraction_; }
 
     /// \return secondary vertex b-tagging information
     // combinedSecondaryVertexBJetTags
@@ -50,8 +51,9 @@ namespace cat {
     void setLooseJetID(bool id) { looseJetID_ = id; }
     void setTightJetID(bool id) { tightJetID_ = id; }
     void setTightLepVetoJetID(bool id) { tightLepVetoJetID_ = id; }
-    
+
     void setPileupJetId(float f) { pileupJetId_ = f;}
+    void setChargedEmEnergyFraction(float f) { chargedEmEnergyFraction_ = f; }
 
     void setVtxMass(float f) { vtxMass_ = f;}
     void setVtxNtracks(int f) { vtxNtracks_ = f;}
@@ -96,6 +98,7 @@ namespace cat {
     bool tightLepVetoJetID_;
     
     float pileupJetId_;
+    float chargedEmEnergyFraction_;
 
     /// b tagging discriminators
     std::vector<std::pair<std::string, float> >  pairDiscriVector_;
