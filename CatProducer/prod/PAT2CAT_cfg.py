@@ -42,13 +42,13 @@ catTool(process, runOnMC, doSecVertex, useMiniAOD)
 from CATTools.CatProducer.catEventContent_cff import *
 process.out.outputCommands = catEventContent
 if runOnMC:
-    from CATTools.CatProducer.catGenHFHadronMatching_cff import *
-    genHFTool(process, useMiniAOD)
-    if runGenTop:
-        process.load("CATTools.CatProducer.mcTruthTop.mcTruthTop_cff")
-        if not useMiniAOD:
-            process.out.outputCommands.extend(catEventContentAODMC)
     process.out.outputCommands.extend(catEventContentMC)
+    if runGenTop:
+        from CATTools.CatProducer.catGenHFHadronMatching_cff import *
+        genHFTool(process, useMiniAOD)
+        process.load("CATTools.CatProducer.mcTruthTop.mcTruthTop_cff")
+        process.out.outputCommands.extend(catEventContentTOPMC)
+        
 if doSecVertex:
     process.out.outputCommands.extend(catEventContentSecVertexs)
 

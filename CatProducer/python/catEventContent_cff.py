@@ -29,13 +29,13 @@ catEventContentMC.extend([
     'keep *_pileupWeight_*_*',
     #'keep *_matchGenBHadron_*_*',
     #'keep *_matchGenCHadron_*_*',
-    'keep *_GenTtbarCategories_*_*',
-    'keep *_pseudoTop_*_*',
-    #'keep *_partonTop_*_*',
     ])
 
-catEventContentAODMC.extend([
+catEventContentTOPMC.extend([
+    'keep *_GenTtbarCategories_*_*',
     'keep *_catGenTops_*_*',
+    'keep *_partonTop_*_*',
+    'keep *_pseudoTop_*_*',
     ])
 
 catEventContentSecVertexs.extend([
