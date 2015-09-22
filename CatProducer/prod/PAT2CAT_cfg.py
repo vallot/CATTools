@@ -48,10 +48,11 @@ if runOnMC:
         genHFTool(process, useMiniAOD)
         process.load("CATTools.CatProducer.mcTruthTop.mcTruthTop_cff")
         process.out.outputCommands.extend(catEventContentTOPMC)
-        
+        if not useMiniAOD:
+            process.out.outputCommands.extend(['keep *_catGenTops_*_*',])
+            
 if doSecVertex:
     process.out.outputCommands.extend(catEventContentSecVertexs)
-
 
 ####################################################################
 #### cmsRun options

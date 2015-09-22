@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 catEventContent = cms.untracked.vstring()
 catEventContentMC = cms.untracked.vstring()
-catEventContentAODMC = cms.untracked.vstring()
+catEventContentTOPMC = cms.untracked.vstring()
 catEventContentSecVertexs = cms.untracked.vstring()
 
 catEventContent.extend([
@@ -33,7 +33,7 @@ catEventContentMC.extend([
 
 catEventContentTOPMC.extend([
     'keep *_GenTtbarCategories_*_*',
-    'keep *_catGenTops_*_*',
+    #'keep *_catGenTops_*_*',
     'keep *_partonTop_*_*',
     'keep *_pseudoTop_*_*',
     ])

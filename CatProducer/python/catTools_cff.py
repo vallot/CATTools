@@ -53,7 +53,29 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
     runMetCorAndUncFromMiniAOD( process, isData=not runOnMC, jecUncFile=jecUncertaintyFile, pfCandColl=cms.InputTag("noHFCands"), postfix="NoHF")
     process.catMETsNoHF = process.catMETs.clone()
     process.catMETsNoHF.src = cms.InputTag("slimmedMETsNoHF")
-
+    ## no residuals currently available 
+    process.patPFMetT1T2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+    process.patPFMetT1T2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+    process.patPFMetT2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+    process.patPFMetT2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+    process.shiftedPatJetEnDown.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+    process.shiftedPatJetEnUp.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+    process.patPFMetT1T2CorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+    process.patPFMetT1T2SmearCorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+    process.patPFMetT2CorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+    process.patPFMetT2SmearCorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+    process.shiftedPatJetEnDownNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+    process.shiftedPatJetEnUpNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+        
+    del process.slimmedMETs.t01Variation
+    #del process.slimmedMETs.t1Uncertainties
+    del process.slimmedMETs.tXYUncForRaw
+    del process.slimmedMETs.tXYUncForT1
+    del process.slimmedMETsNoHF.t01Variation
+    #del process.slimmedMETsNoHF.t1Uncertainties
+    del process.slimmedMETsNoHF.tXYUncForRaw
+    del process.slimmedMETsNoHF.tXYUncForT1
+    
 #######################################################################    
 # adding pfMVAMet
     process.load("RecoJets.JetProducers.ak4PFJets_cfi")
@@ -77,6 +99,8 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
     process.puJetIdForPFMVAMEt.jec =  cms.string('AK4PF')
     process.puJetIdForPFMVAMEt.vertexes = cms.InputTag("offlineSlimmedPrimaryVertices")
     process.puJetIdForPFMVAMEt.rho = cms.InputTag("fixedGridRhoFastjetAll")
+    from RecoJets.JetProducers.PileupJetIDParams_cfi import full_74x_chs
+    process.puJetIdForPFMVAMEt.algos = cms.VPSet(full_74x_chs)
     process.load("PhysicsTools.PatAlgos.producersLayer1.metProducer_cfi")
     process.patMETsPfMva = process.patMETs.clone()
     process.patMETsPfMva.addGenMET    = cms.bool(False)
@@ -145,6 +169,7 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
 ## applying new jec on the fly
     if useMiniAOD:
         process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
+        process.patJetCorrFactors.primaryVertices = cms.InputTag(catVertexSource)
         catJetsSource = "patJetsUpdated"
         ### updating puppi jet jec
         process.patJetPuppiCorrFactorsUpdated = process.patJetCorrFactorsUpdated.clone(
@@ -191,9 +216,6 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
         process.load("CATTools.CatProducer.pileupWeight_cff")
         process.pileupWeight.vertex = cms.InputTag(catVertexSource)
 
-        if not useMiniAOD:
-            process.load("CATTools.CatProducer.mcTruthTop.genTopProducer_cfi")
-                    
         process.catMuons.shiftedEnDownSrc = cms.InputTag("shiftedPatMuonEnDown")
         process.catMuons.shiftedEnUpSrc = cms.InputTag("shiftedPatMuonEnUp")
         process.catElectrons.shiftedEnDownSrc = cms.InputTag("shiftedPatElectronEnDown")
