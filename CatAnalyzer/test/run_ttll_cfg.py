@@ -196,7 +196,7 @@ for algo in ["CMSKin", "MT2", "DESYSmeared", "DESYMassLoop"]:
         )
     ))
 
-process.load("CATTools.CatProducer.pseudoTop_cff")
+process.load("CATTools.CatProducer.mcTruthTop.mcTruthTop_cff")
 delattr(process, 'pseudoTop')
 process.p = cms.Path(
     process.ntuple
