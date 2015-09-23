@@ -31,6 +31,8 @@ struct KinSolverUtils {
   static void solve_linear(const double a, const double b,
                            std::vector<double>& v);
 
+  static double computeEnergy(const double p3[], const double m);
+
 };
 
 #endif
