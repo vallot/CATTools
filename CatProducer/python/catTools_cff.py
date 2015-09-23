@@ -97,8 +97,8 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
     process.puJetIdForPFMVAMEt.jec =  cms.string('AK4PF')
     process.puJetIdForPFMVAMEt.vertexes = cms.InputTag("offlineSlimmedPrimaryVertices")
     process.puJetIdForPFMVAMEt.rho = cms.InputTag("fixedGridRhoFastjetAll")
-    from RecoJets.JetProducers.PileupJetIDParams_cfi import full_74x_chs
-    process.puJetIdForPFMVAMEt.algos = cms.VPSet(full_74x_chs)
+    #from RecoJets.JetProducers.PileupJetIDParams_cfi import full_74x_chs
+    #process.puJetIdForPFMVAMEt.algos = cms.VPSet(full_74x_chs)
     process.load("PhysicsTools.PatAlgos.producersLayer1.metProducer_cfi")
     process.patMETsPfMva = process.patMETs.clone()
     process.patMETsPfMva.addGenMET    = cms.bool(False)
