@@ -55,8 +55,12 @@ for dataset in datasets:
     dataSplitting   = " Data.splitting='FileBased' "
     dataUnitsPerJob = " Data.unitsPerJob=1 "
     dataLumiMask    = ""
+    ## Special option for TTbar signal samples
+    doGenTop = False
+    if (dataset.startswith('/TT') or dataset.startswith('/tt')):
+        doGenTop = True
     ### dirty way for now since crab3 doesnt allow lists to be passed by cmd line
-    pyCfgParams     = "config.JobType.pyCfgParams = ['runOnMC=True','useMiniAOD=%s','globalTag=%s']"%(isMiniAOD,globalTag)
+    pyCfgParams     = "config.JobType.pyCfgParams = ['runOnMC=True','useMiniAOD=%s','globalTag=%s','runGenTop=%s']"%(isMiniAOD,globalTag,doGenTop)
     ### MC or Data?
     if datatype == "AOD" or datatype == "MINIAOD" :
         if len(lumiMask) == 0:
@@ -75,9 +79,6 @@ for dataset in datasets:
         #dataUnitsPerJob = " Data.unitsPerJob=10 "
         dataLumiMask    = " Data.lumiMask='%s'"%(lumiMask)
         pyCfgParams     = "config.JobType.pyCfgParams = ['runOnMC=False','useMiniAOD=%s','globalTag=%s']"%(isMiniAOD,globalTag)
-    ## Special option for TTbar signal samples
-    if isMC and (dataset.startswith('/TT') or dataset.startswith('/tt')):
-        pyCfgParams = pyCfgParams[:-2] + (",'runGenTop=True']")
 
     ## pyCfgParams cannot be set from cmd line yet
     shutil.copy2('crabConfig.py', 'crab.py')
