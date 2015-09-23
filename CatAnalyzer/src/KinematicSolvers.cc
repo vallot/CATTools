@@ -237,6 +237,8 @@ void DESYMassLoopSolver::solve(const LV input[])
 
 DESYSmearedSolver::DESYSmearedSolver()
 {
+  rng_ = 0;
+
   TFile* f = TFile::Open(edm::FileInPath("CATTools/CatAnalyzer/data/desyKinRecoInput.root").fullPath().c_str());
 
   h_jetEres_.reset(dynamic_cast<TH1*>(f->Get("KinReco_fE_jet_step7")));
@@ -289,10 +291,10 @@ void DESYSmearedSolver::solve(const LV input[])
   for ( int i=0; i<100; ++i )
   {
     // Generate smearing factors for jets and leptons
-    const auto newl1 = getSmearedLV(l1, h_lepEres_->GetRandom(), h_lepAres_->GetRandom());
-    const auto newl2 = getSmearedLV(l2, h_lepEres_->GetRandom(), h_lepAres_->GetRandom());
-    const auto newj1 = getSmearedLV(j1, h_jetEres_->GetRandom(), h_jetAres_->GetRandom());
-    const auto newj2 = getSmearedLV(j2, h_jetEres_->GetRandom(), h_jetAres_->GetRandom());
+    const auto newl1 = getSmearedLV(l1, getRandom(h_lepEres_.get()), getRandom(h_lepAres_.get()));
+    const auto newl2 = getSmearedLV(l2, getRandom(h_lepEres_.get()), getRandom(h_lepAres_.get()));
+    const auto newj1 = getSmearedLV(j1, getRandom(h_jetEres_.get()), getRandom(h_jetAres_.get()));
+    const auto newj2 = getSmearedLV(j2, getRandom(h_jetEres_.get()), getRandom(h_jetAres_.get()));
 
     // new MET = old MET + MET correction; MET correction = - (Vis. Pxy sum)
     const double newmetX = metX - (-visSum.px() + newj1.px() + newj2.px() + newl1.px() + newl2.px());
@@ -303,7 +305,7 @@ void DESYSmearedSolver::solve(const LV input[])
     const double w2 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin((newl2+newj2).mass()));
     const double w = w1*w2*1e-8;
 
-    KinSolverUtils::findCoeffs(mTopInput, h_wmass_->GetRandom(), h_wmass_->GetRandom(),
+    KinSolverUtils::findCoeffs(mTopInput, getRandom(h_wmass_.get()), getRandom(h_wmass_.get()),
                                newl1, newl2, newj1, newj2, newmetX, newmetY, koef, cache);
     KinSolverUtils::solve_quartic(koef, a4, b4, sols);
     double nu1sol[4] = {}, nu2sol[4] = {};
@@ -351,7 +353,7 @@ LV DESYSmearedSolver::getSmearedLV(const LV& lv0,
   if ( KinSolverUtils::isZero(e) or KinSolverUtils::isZero(p) ) return LV();
 
   // Apply rotation
-  const double localPhi = gRandom->Uniform(-TMath::Pi(), TMath::Pi());
+  const double localPhi = 2*TMath::Pi()*rng_->flat();
   const double theta = lv0.Theta() + dRot*cos(localPhi);
   const double phi = lv0.Phi() + dRot*sin(localPhi);
 
@@ -362,6 +364,26 @@ LV DESYSmearedSolver::getSmearedLV(const LV& lv0,
   return LV(px, py, pz, e);
 }
 
+double DESYSmearedSolver::getRandom(TH1* h)
+{
+  if ( !h ) return 0;
+
+  h->GetRandom();
+  const int n = h->GetNbinsX();
+  const double* fIntegral = h->GetIntegral();
+  const double integral = fIntegral[n];
+
+  if (integral == 0) return 0;
+
+  const double r1 = rng_->flat();
+  const int ibin = TMath::BinarySearch(n, fIntegral, r1);
+  double x = h->GetBinLowEdge(ibin+1);
+  const double binW = h->GetBinWidth(ibin+1);
+  const double y1 = fIntegral[ibin], y2 = fIntegral[ibin+1];
+  if ( r1 > y1 ) x += binW*(r1-y1)/(y2-y1);
+
+  return x;
+}
 
 namespace CATNuWeight
 {

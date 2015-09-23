@@ -15,6 +15,7 @@
 //#include "DataFormats/Candidate/interface/CompositeRefCandidate.h"
 #include "DataFormats/Candidate/interface/CompositePtrCandidate.h"
 #include "CommonTools/Utils/interface/PtComparator.h"
+#include "FWCore/ServiceRegistry/interface/Service.h"
 
 using namespace std;
 
@@ -25,6 +26,7 @@ class TTbarDileptonKinSolutionProducer : public edm::stream::EDProducer<>
 public:
   TTbarDileptonKinSolutionProducer(const edm::ParameterSet& pset);
   virtual ~TTbarDileptonKinSolutionProducer() {};
+  void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&) override;
   void produce(edm::Event & event, const edm::EventSetup&) override;
 
 private:
@@ -80,6 +82,15 @@ TTbarDileptonKinSolutionProducer::TTbarDileptonKinSolutionProducer(const edm::Pa
   produces<floats>("mLB");
   produces<floats>("mAddJJ");
   produces<floats>("dphi");
+}
+
+void TTbarDileptonKinSolutionProducer::beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&)
+{
+  if ( dynamic_cast<DESYSmearedSolver*>(solver_.get()) != 0 ) {
+    edm::Service<edm::RandomNumberGenerator> rng;
+    CLHEP::HepRandomEngine& engine = rng->getEngine(lumi.index());
+    dynamic_cast<DESYSmearedSolver*>(solver_.get())->setRandom(&engine);
+  }
 }
 
 void TTbarDileptonKinSolutionProducer::produce(edm::Event& event, const edm::EventSetup&)

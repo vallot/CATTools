@@ -1,6 +1,8 @@
 #ifndef CATTools_CatAnalyzer_KinematicSolvers_H
 #define CATTools_CatAnalyzer_KinematicSolvers_H
 
+#include "FWCore/Utilities/interface/RandomNumberGenerator.h"
+#include "CLHEP/Random/RandomEngine.h"
 #include "Math/LorentzVector.h"
 #include <string>
 #include <memory>
@@ -86,10 +88,13 @@ public:
   DESYSmearedSolver();
   void solve(const LV input[]) override;
   std::string algoName() override { return "DESYSmeared"; }
+  void setRandom(CLHEP::HepRandomEngine* rng) { rng_ = rng; };
 
 protected:
   LV getSmearedLV(const LV& v, const double fE, const double dRot);
+  double getRandom(TH1* h);
 
+  CLHEP::HepRandomEngine* rng_;
   std::unique_ptr<TH1> h_jetEres_, h_jetAres_;
   std::unique_ptr<TH1> h_lepEres_, h_lepAres_;
   std::unique_ptr<TH1> h_wmass_;

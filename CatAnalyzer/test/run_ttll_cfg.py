@@ -4,7 +4,7 @@ import os
 process = cms.Process("Ana")
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-#process.load("Configuration.StandardSequences.Services_cff")
+process.load("Configuration.StandardSequences.Services_cff")
 #process.load("SimGeneral.HepPDTESSource.pythiapdt_cfi")
 
 process.options = cms.untracked.PSet(
@@ -40,8 +40,8 @@ process.ttbarEvent = cms.EDProducer("TTbarDileptonEventSelector",
     keepVetoLeptons = cms.bool(False),
     checkOverlapFromVetoLepton = cms.bool(False),
     sortByBtag = cms.bool(False),
-    eleIdName = cms.string("cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-medium"),
-    eleVetoIdName = cms.string("cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-veto"),
+    eleIdName = cms.string("cutBasedElectronID-Spring15-25ns-V1-standalone-medium"),
+    eleVetoIdName = cms.string("cutBasedElectronID-Spring15-25ns-V1-standalone-veto"),
     bTagName = cms.string("combinedInclusiveSecondaryVertexV2BJetTags"),
 )
 
@@ -179,7 +179,7 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
     ),
 )
 
-for algo in ["CMSKin", "MT2", "DESYSmeared", "DESYMassLoop"]:
+for algo in ["CMSKin", "MT2", "DESYMassLoop", "DESYSmeared"]:
     setattr(process, 'ttbar'+algo, process.ttbar.clone(solver = cms.string(algo)))
     setattr(process.ntuple.floats, 'ttbar%s_mLL' % algo, cms.InputTag("ttbar%s:mLL" % algo))
     setattr(process.ntuple.floats, 'ttbar%s_mLB' % algo, cms.InputTag("ttbar%s:mLB" % algo))
@@ -195,6 +195,11 @@ for algo in ["CMSKin", "MT2", "DESYSmeared", "DESYMassLoop"]:
             q = cms.string("charge"),
         )
     ))
+    if 'DESYSmeared' in algo:
+        process.RandomNumberGeneratorService.ttbarDESYSmeared = cms.PSet(
+            initialSeed = cms.untracked.uint32(123456),
+            engineName = cms.untracked.string('TRandom3')
+        )
 
 process.load("CATTools.CatProducer.mcTruthTop.mcTruthTop_cff")
 delattr(process, 'pseudoTop')
