@@ -56,7 +56,6 @@ private:
   edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjects_;
 
   TTree * ttree_;
-  TTree * t2;
 
   int b_njet, b_step, b_channel;
   float b_MET;
@@ -87,7 +86,7 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
 
   edm::Service<TFileService> fs;
   ttree_ = fs->make<TTree>("tree", "tree");
-  t2 = fs->make<TTree>("tree2","tree2");
+  ttree_ = fs->make<TTree>("tree2","tree2");
   ttree_->Branch("njet", &b_njet, "njet/I");
   ttree_->Branch("MET", &b_MET, "MET/F");
   ttree_->Branch("channel", &b_channel, "channel/I");
@@ -118,16 +117,16 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("jetcat_GC", &b_jetcat_GC, "jetcat_GC/I");
 
   //tree2. we should use this for efficiency of recomuon per genmuon.
-  t2 ->Branch("gen_lep_pt", &b_gen_lep_pt, "gen_lep_pt/F");
-  t2 ->Branch("gen_lep_eta", &b_gen_lep_eta, "gen_lep_eta/F");
-  t2 ->Branch("gen_lep_phi", &b_gen_lep_phi, "gen_lep_phi/F");
-  t2 ->Branch("reco_lep_pt", &b_reco_lep_pt, "reco_lep_pt/F");
-  t2 ->Branch("reco_lep_eta", &b_reco_lep_eta, "reco_lep_eta/F");
-  t2 ->Branch("reco_lep_phi", &b_reco_lep_phi, "reco_lep_phi/F");
-  t2 ->Branch("resolution", &b_resolution, "resolution/F");
-  t2 ->Branch("lep_isLoose", &b_lep_isLoose, "lep_isLoose/B");
-  t2 ->Branch("lep_isMedium", &b_lep_isMedium, "lep_isMedium/B");
-  t2 ->Branch("lep_isTight", &b_lep_isTight, "lep_isTight/B");
+  ttree_->Branch("gen_lep_pt", &b_gen_lep_pt, "gen_lep_pt/F");
+  ttree_->Branch("gen_lep_eta", &b_gen_lep_eta, "gen_lep_eta/F");
+  ttree_->Branch("gen_lep_phi", &b_gen_lep_phi, "gen_lep_phi/F");
+  ttree_->Branch("reco_lep_pt", &b_reco_lep_pt, "reco_lep_pt/F");
+  ttree_->Branch("reco_lep_eta", &b_reco_lep_eta, "reco_lep_eta/F");
+  ttree_->Branch("reco_lep_phi", &b_reco_lep_phi, "reco_lep_phi/F");
+  ttree_->Branch("resolution", &b_resolution, "resolution/F");
+  ttree_->Branch("lep_isLoose", &b_lep_isLoose, "lep_isLoose/B");
+  ttree_->Branch("lep_isMedium", &b_lep_isMedium, "lep_isMedium/B");
+  ttree_->Branch("lep_isTight", &b_lep_isTight, "lep_isTight/B");
  
 }
 h2muAnalyzer::~h2muAnalyzer(){}
@@ -186,7 +185,6 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
       b_lep_isLoose = 0; b_lep_isMedium = 0; b_lep_isTight = 0;  
  
       if (!isfromZboson) {
-        t2->Fill();
         continue;
       }
       b_gen_lep_pt = g.pt();
@@ -206,7 +204,6 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
           break;
         }
       }
-      t2->Fill();
     }    
   }
 
@@ -234,12 +231,23 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   b_ll_phi = tlv_ll.Phi();
   b_ll_m = tlv_ll.M();
 
+  TLorentzVector met = mets->front().tlv();
+  b_MET = met.Pt();
+
+  vector<TLorentzVector> recolep; 
+  vector<cat::Jet> selectedJets = selectJets( jets.product(), recolep );
+
+  b_njet = selectedJets.size();
+  
   b_step = 1;
   int ll_charge = selectedMuons[0].charge()*selectedMuons[1].charge();
 
-  if (ll_charge < 0)
-    b_step = 2;
-
+  if (ll_charge > 0){
+    ttree_->Fill();
+    return;
+  }
+  b_step = 2;
+    
   edm::Handle<edm::TriggerResults> triggerBits;
   edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
   iEvent.getByToken(triggerBits_, triggerBits);
@@ -247,26 +255,16 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);  
   AnalysisHelper trigHelper = AnalysisHelper(triggerNames, triggerBits, triggerObjects);
 
-  //  if (triggerFired(triggerNames, triggerBits, "HLT_IsoMu24_eta2p1_v") ){
-  if (trigHelper.triggerFired("HLT_IsoMu24_eta2p1_v") ){
-    b_step = 3;
-    cout << "trigger fired"<<endl;
+  if (!trigHelper.triggerFired("HLT_IsoMu24_eta2p1_v")){
   }
-  // if ( triggerMatched(triggerNames, triggerObjects, "HLT_IsoMu24_eta2p1_v", selectedMuons[0] )
-  //      || triggerMatched(triggerNames, triggerObjects, "HLT_IsoMu24_eta2p1_v", selectedMuons[1] ))
-  if ( trigHelper.triggerMatched("HLT_IsoMu24_eta2p1_v", selectedMuons[0] )
-       || trigHelper.triggerMatched("HLT_IsoMu24_eta2p1_v", selectedMuons[1] ))
-    b_step = 4;
-
-  TLorentzVector met = mets->front().tlv();
-  b_MET = met.Pt();
-
-  vector<TLorentzVector> recolep; 
-  //for (auto lep : selectedMuons){ recolep.push_back(lep.tlv()); }
-  //vector<cat::Electron> selectedElectrons = selectElecs( electrons.product() );
-  vector<cat::Jet> selectedJets = selectJets( jets.product(), recolep );
-
-  b_njet = selectedJets.size();
+  b_step = 3;
+  
+  if ( !trigHelper.triggerMatched("HLT_IsoMu24_eta2p1_v", selectedMuons[0] )
+       && !trigHelper.triggerMatched("HLT_IsoMu24_eta2p1_v", selectedMuons[1] )){
+    ttree_->Fill();
+    return;
+  }
+  b_step = 4;
 
   //  float step = passingSteps( channel, met.Pt(), (recolep[0]+recolep[1]).M(), ll_charge, selectedJets.size() );
   
