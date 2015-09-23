@@ -17,21 +17,35 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 10000
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 process.source.fileNames = [
 #'root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-4-0_RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v2/150909_163325/0000/catTuple_2.root'
-'file:catTuple.root',
 #'file:///store1/jhgoh/CAT/catTuple__TT_TuneCUETP8M1_13TeV-powheg-pythia8__V7-3-6.root',
+'file:../../CatProducer/prod/catTuple.root',
 ]
 
 process.out = cms.OutputModule("PoolOutputModule",
     fileName = cms.untracked.string("out.root"),
     outputCommands = cms.untracked.vstring(
         "drop *",
-        "keep *_*_*_Ana",
+#        "keep *_*_*_Ana",
+        "keep *_ttbarEvent_*_*",
     )
 )
 
 #process.outPath = cms.EndPath(process.out)
 
-process.ttbar = cms.EDProducer("TTbarDileptonProducer",
+process.ttbarEvent = cms.EDProducer("TTbarDileptonEventSelector",
+    muons = cms.InputTag("catMuons"),
+    electrons = cms.InputTag("catElectrons"),
+    jets = cms.InputTag("catJets"),
+    mets = cms.InputTag("catMETs"),
+    keepVetoLeptons = cms.bool(False),
+    checkOverlapFromVetoLepton = cms.bool(False),
+    sortByBtag = cms.bool(False),
+    eleIdName = cms.string("cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-medium"),
+    eleVetoIdName = cms.string("cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-veto"),
+    bTagName = cms.string("combinedInclusiveSecondaryVertexV2BJetTags"),
+)
+
+process.ttbar = cms.EDProducer("TTbarDileptonKinSolutionProducer",
 #    solver = cms.string("Default"),
     solver = cms.string("CMSKIN"),
 #    solver = cms.string("NUWGT"),
@@ -39,10 +53,10 @@ process.ttbar = cms.EDProducer("TTbarDileptonProducer",
 #    solver = cms.string("MAOS"),
 #    solver = cms.string("DESYSmeared"),
 #    solver = cms.string("DESYMassLoop"),
-    muons = cms.InputTag("catMuons"),
-    electrons = cms.InputTag("catElectrons"),
-    jets = cms.InputTag("catJets"),
-    mets = cms.InputTag("catMETs"),
+    leptons = cms.InputTag("ttbarEvent:leptons"),
+    jets = cms.InputTag("ttbarEvent:jets"),
+    met = cms.InputTag("ttbarEvent:met"),
+    metphi = cms.InputTag("ttbarEvent:metphi"),
 )
 
 process.filterRECO = cms.EDProducer("CATTriggerPacker",
@@ -124,13 +138,16 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
         HLTMuEl = cms.InputTag("HLTMuEl"),
         #HLTMu = cms.InputTag("recoEventInfo","HLTSingleMu"),
         HLTEl = cms.InputTag("HLTEl"),
+        nBjets = cms.InputTag("ttbarEvent:nBjets"),
     ),
-    double = cms.PSet(
+    float = cms.PSet(
         puWeight   = cms.InputTag("pileupWeight"),
-        puWeightUp = cms.InputTag("pileupWeight", "up"),
-        puWeightDn = cms.InputTag("pileupWeight", "dn"),
+        #puWeightUp = cms.InputTag("pileupWeight", "up"),
+        #puWeightDn = cms.InputTag("pileupWeight", "dn"),
+        met = cms.InputTag("ttbarEvent:met"),
+        metphi = cms.InputTag("ttbarEvent:metphi"),
     ),
-    doubles = cms.PSet(
+    floats = cms.PSet(
         pdfWeight = cms.InputTag("pdfWeight"),
     ),
     cands = cms.PSet(
@@ -145,7 +162,6 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
                 q = cms.string("charge"),
                 #status = cms.string("status"),
             ),
-            selections = cms.untracked.PSet(),
         ),
         partonTop = cms.PSet(
             src = cms.InputTag("partonTop"),
@@ -159,27 +175,30 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
                 q = cms.string("charge"),
                 #status = cms.string("status"),
             ),
-            selections = cms.untracked.PSet(),
-        ),
-        ttbarLep = cms.PSet(
-            src = cms.InputTag("ttbar"),
-            exprs = cms.untracked.PSet(
-                pt  = cms.string("pt"),
-                eta = cms.string("eta"),
-                phi = cms.string("phi"),
-                m   = cms.string("mass"),
-                pdgId = cms.string("pdgId"),
-                q = cms.string("charge"),
-            ),
-            selections = cms.untracked.PSet(),
         ),
     ),
 )
 
+for algo in ["CMSKin", "MT2", "DESYSmeared", "DESYMassLoop"]:
+    setattr(process, 'ttbar'+algo, process.ttbar.clone(solver = cms.string(algo)))
+    setattr(process.ntuple.floats, 'ttbar%s_mLL' % algo, cms.InputTag("ttbar%s:mLL" % algo))
+    setattr(process.ntuple.floats, 'ttbar%s_mLB' % algo, cms.InputTag("ttbar%s:mLB" % algo))
+    setattr(process.ntuple.floats, 'ttbar%s_dphi' % algo, cms.InputTag("ttbar%s:dphi" % algo))
+    setattr(process.ntuple.cands, 'ttbar'+algo, cms.PSet(
+        src = cms.InputTag('ttbar'+algo),
+        exprs = cms.untracked.PSet(
+            pt  = cms.string("pt"),
+            eta = cms.string("eta"),
+            phi = cms.string("phi"),
+            m   = cms.string("mass"),
+            pdgId = cms.string("pdgId"),
+            q = cms.string("charge"),
+        )
+    ))
+
 process.load("CATTools.CatProducer.pseudoTop_cff")
 delattr(process, 'pseudoTop')
 process.p = cms.Path(
-    process.filterRECO*
     process.ntuple
 )
 
