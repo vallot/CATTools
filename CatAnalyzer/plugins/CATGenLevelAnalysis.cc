@@ -85,7 +85,7 @@ CATGenLevelAnalysis::CATGenLevelAnalysis(const edm::ParameterSet& pset)
 
   edm::Service<TFileService> fs;
 
-  const std::vector<std::vector<double> > bins = {
+  const std::vector<std::vector<float> > bins = {
     {0, 60, 100, 150, 200, 260, 320, 400, 500}, // d15
     {0, 60, 100, 150, 200, 260, 320, 400, 500}, // d16
     {-2.5,-1.6,-1.2,-0.8,-0.4, 0.0, 0.4, 0.8, 1.2, 1.6, 2.5}, // d17
@@ -126,25 +126,38 @@ CATGenLevelAnalysis::CATGenLevelAnalysis(const edm::ParameterSet& pset)
     "t#bar{T} p_{T} (GeV)", "t#bar{t} rapidity (GeV)", "t#bar{t} mass (GeV)",
   };
 
+  assert(bins.size() == END);
+  assert(names.size() == END);
+  assert(titles.size() == END);
+
   auto dirFulParton = fs->mkdir("FulParton");
   auto dirFidParton = fs->mkdir("FiducialParton");
   auto dirPseudo = fs->mkdir("Particle");
   auto dirFidPseudo = fs->mkdir("FiducialParticle");
 
   for ( size_t i=0; i<18; ++i ) {
-    const auto name = names[i].c_str();
-    const auto title = (names[i] + ";" + titles[i]).c_str();
     const int nbins = bins[i].size()-1;
-    const double* binPtr = &bins[i][0];
-    hFulParton_.push_back(dirFulParton.make<TH1F>(name, title, nbins, binPtr));
-    hFidParton_.push_back(dirFidParton.make<TH1F>(name, title, nbins, binPtr));
-    hPseudo_.push_back(dirPseudo.make<TH1F>(name, title, nbins, binPtr));
-    hFidPseudo_.push_back(dirFidPseudo.make<TH1F>(name, title, nbins, binPtr));
-    const auto name2 = ("resp_"+names[i]).c_str();
-    const auto title2 = (names[i] + ";Particle level " + titles[i] + ";Parton level " + titles[i]).c_str();
-    h2_.push_back(dirPseudo.make<TH2F>(name2, title2, nbins, binPtr, nbins, binPtr));
-    h2Fid_.push_back(dirFidPseudo.make<TH2F>(name2, title2, nbins, binPtr, nbins, binPtr));
+    const float* binPtr = &bins[i][0];
+
+    const string name = names[i];
+    const string title = string(name) + ";" + titles[i];
+    hFulParton_.push_back(dirFulParton.make<TH1F>(name.c_str(), title.c_str(), nbins, binPtr));
+    hFidParton_.push_back(dirFidParton.make<TH1F>(name.c_str(), title.c_str(), nbins, binPtr));
+    hPseudo_.push_back(dirPseudo.make<TH1F>(name.c_str(), title.c_str(), nbins, binPtr));
+    hFidPseudo_.push_back(dirFidPseudo.make<TH1F>(name.c_str(), title.c_str(), nbins, binPtr));
+
+    const string name2 = "resp_"+names[i];
+    const string title2 = names[i]+";Particle level "+titles[i]+";Parton level "+titles[i];
+    h2_.push_back(dirPseudo.make<TH2F>(name2.c_str(), title2.c_str(), nbins, binPtr, nbins, binPtr));
+    h2Fid_.push_back(dirFidPseudo.make<TH2F>(name2.c_str(), title2.c_str(), nbins, binPtr, nbins, binPtr));
   }
+
+  assert(hFulParton_.size() == END);
+  assert(hFidParton_.size() == END);
+  assert(hPseudo_.size() == END);
+  assert(hFidPseudo_.size() == END);
+  assert(h2_.size() == END);
+  assert(h2Fid_.size() == END);
 
 }
 
