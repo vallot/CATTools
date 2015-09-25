@@ -216,6 +216,21 @@ void CATGenLevelAnalysis::analyze(const edm::Event& event, const edm::EventSetup
     hFulParton_[SL_ttbarY]->Fill(partonTT.Rapidity());
     hFulParton_[SL_ttbarMass]->Fill(partonTT.mass());
     hFulParton_[SL_topPtTtbarSys]->Fill(partonTopPtAtCM);
+
+    // Fill parton top plots in fiducial phase space
+    if ( isAcceptedSemiLept(partonW11, partonW21, partonW22, partonB1, partonB2) ) {
+      hFidParton_[SL_topPt]->Fill(partonTop1->pt());
+      hFidParton_[SL_topPt]->Fill(partonTop2->pt());
+      hFidParton_[SL_topY]->Fill(partonTop1->p4().Rapidity());
+      hFidParton_[SL_topY]->Fill(partonTop2->p4().Rapidity());
+      hFidParton_[SL_ttbarDelPhi]->Fill(reco::deltaPhi(partonTop1->phi(), partonTop2->phi()));
+      hFidParton_[SL_topPtLead]->Fill(std::max(partonTop1->pt(), partonTop2->pt()));
+      hFidParton_[SL_topPtSubLead]->Fill(std::min(partonTop1->pt(), partonTop2->pt()));
+      hFidParton_[SL_ttbarPt]->Fill(partonTT.pt());
+      hFidParton_[SL_ttbarY]->Fill(partonTT.Rapidity());
+      hFidParton_[SL_ttbarMass]->Fill(partonTT.mass());
+      hFidParton_[SL_topPtTtbarSys]->Fill(partonTopPtAtCM);
+    }
   }
   else if ( channel == 3 ) {
     hFulParton_[DL_topPt]->Fill(partonTop1->pt());
@@ -229,34 +244,20 @@ void CATGenLevelAnalysis::analyze(const edm::Event& event, const edm::EventSetup
     hFulParton_[DL_ttbarY]->Fill(partonTT.Rapidity());
     hFulParton_[DL_ttbarMass]->Fill(partonTT.mass());
     hFulParton_[DL_topPtTtbarSys]->Fill(partonTopPtAtCM);
-  }
 
-  // Fill parton top plots in fiducial phase space
-  if ( channel == 2 and isAcceptedSemiLept(partonW11, partonW21, partonW22, partonB1, partonB2) ) {
-    hFidParton_[SL_topPt]->Fill(partonTop1->pt());
-    hFidParton_[SL_topPt]->Fill(partonTop2->pt());
-    hFidParton_[SL_topY]->Fill(partonTop1->p4().Rapidity());
-    hFidParton_[SL_topY]->Fill(partonTop2->p4().Rapidity());
-    hFidParton_[SL_ttbarDelPhi]->Fill(reco::deltaPhi(partonTop1->phi(), partonTop2->phi()));
-    hFidParton_[SL_topPtLead]->Fill(std::max(partonTop1->pt(), partonTop2->pt()));
-    hFidParton_[SL_topPtSubLead]->Fill(std::min(partonTop1->pt(), partonTop2->pt()));
-    hFidParton_[SL_ttbarPt]->Fill(partonTT.pt());
-    hFidParton_[SL_ttbarY]->Fill(partonTT.Rapidity());
-    hFidParton_[SL_ttbarMass]->Fill(partonTT.mass());
-    hFidParton_[SL_topPtTtbarSys]->Fill(partonTopPtAtCM);
-  }
-  else if ( channel == 3 and isAcceptedFullLept(partonW11, partonW21, partonB1, partonB2) ) {
-    hFidParton_[DL_topPt]->Fill(partonTop1->pt());
-    hFidParton_[DL_topPt]->Fill(partonTop2->pt());
-    hFidParton_[DL_topY]->Fill(partonTop1->p4().Rapidity());
-    hFidParton_[DL_topY]->Fill(partonTop2->p4().Rapidity());
-    hFidParton_[DL_ttbarDelPhi]->Fill(reco::deltaPhi(partonTop1->phi(), partonTop2->phi()));
-    hFidParton_[DL_topPtLead]->Fill(std::max(partonTop1->pt(), partonTop2->pt()));
-    hFidParton_[DL_topPtSubLead]->Fill(std::min(partonTop1->pt(), partonTop2->pt()));
-    hFidParton_[DL_ttbarPt]->Fill(partonTT.pt());
-    hFidParton_[DL_ttbarY]->Fill(partonTT.Rapidity());
-    hFidParton_[DL_ttbarMass]->Fill(partonTT.mass());
-    hFidParton_[DL_topPtTtbarSys]->Fill(partonTopPtAtCM);
+    if ( isAcceptedFullLept(partonW11, partonW21, partonB1, partonB2) ) {
+      hFidParton_[DL_topPt]->Fill(partonTop1->pt());
+      hFidParton_[DL_topPt]->Fill(partonTop2->pt());
+      hFidParton_[DL_topY]->Fill(partonTop1->p4().Rapidity());
+      hFidParton_[DL_topY]->Fill(partonTop2->p4().Rapidity());
+      hFidParton_[DL_ttbarDelPhi]->Fill(reco::deltaPhi(partonTop1->phi(), partonTop2->phi()));
+      hFidParton_[DL_topPtLead]->Fill(std::max(partonTop1->pt(), partonTop2->pt()));
+      hFidParton_[DL_topPtSubLead]->Fill(std::min(partonTop1->pt(), partonTop2->pt()));
+      hFidParton_[DL_ttbarPt]->Fill(partonTT.pt());
+      hFidParton_[DL_ttbarY]->Fill(partonTT.Rapidity());
+      hFidParton_[DL_ttbarMass]->Fill(partonTT.mass());
+      hFidParton_[DL_topPtTtbarSys]->Fill(partonTopPtAtCM);
+    }
   }
 
   edm::Handle<reco::GenParticleCollection> pseudoTopHandle;
@@ -352,7 +353,8 @@ void CATGenLevelAnalysis::analyze(const edm::Event& event, const edm::EventSetup
       h2Fid_[SL_topPtTtbarSys]->Fill(pseudoTopPtAtCM, partonTopPtAtCM);
     }
   }
-  else if ( isAcceptedFullLept(pseudoW11, pseudoW21, pseudoB1, pseudoB2) ) {
+  else if ( isLeptonic1 and isLeptonic2 and
+            isAcceptedFullLept(pseudoW11, pseudoW21, pseudoB1, pseudoB2) ) {
     hPseudo_[DL_topPt]->Fill(pseudoTop1->pt());
     hPseudo_[DL_topPt]->Fill(pseudoTop2->pt());
     hPseudo_[DL_topY]->Fill(pseudoTop1->p4().Rapidity());
