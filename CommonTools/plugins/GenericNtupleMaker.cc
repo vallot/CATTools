@@ -27,6 +27,7 @@
 
 using namespace std;
 using namespace edm;
+using namespace cat;
 
 class GenericNtupleMaker : public edm::EDAnalyzer
 {
@@ -39,11 +40,9 @@ public:
 private:
   typedef edm::ParameterSet PSet;
   typedef std::vector<float> vfloat;
-  typedef std::vector<std::string> strings;
-
+  typedef std::vector<std::string> vstring;
   typedef edm::View<reco::LeafCandidate> CandView;
-  std::vector<CandToken> candTokens_;
-  std::vector<std::vector<VmapToken> > vmapTokens_;
+
   std::vector<edm::EDGetTokenT<edm::MergeableCounter> > eventCounterTokens_;
 
   FlatConsumers<bool> boolCSet_;
@@ -101,7 +100,7 @@ GenericNtupleMaker::GenericNtupleMaker(const edm::ParameterSet& pset)
 
   candCSet_.init(pset, "cands", consumesCollector(), tree_);
 
-  const strings eventCounters = pset.getParameter<strings>("eventCounters");
+  const auto eventCounters = pset.getParameter<vstring>("eventCounters");
   const size_t nEventCounter = eventCounters.size();
   hNEvent_ = fs->make<TH1F>("hNEvent", "NEvent", nEventCounter, 0, nEventCounter);
   for ( size_t i=0; i<nEventCounter; ++i )

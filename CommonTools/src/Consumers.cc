@@ -1,5 +1,7 @@
 #include "CATTools/CommonTools/interface/Consumers.h"
 
+using namespace std;
+
 namespace cat {
 // Build dummy instances here
 FlatConsumers<bool> boolCSet;
@@ -21,22 +23,22 @@ CandConsumers::~CandConsumers()
   {
     for ( auto v : c )
     {
-      for ( auto x : v ) delete x;
+      delete v;
     }
   }
 }
 
-void CandConsumers::init(const edm::ParameterSet& gpset, const std::string psetName, edm::ConsumesCollector& iC, TTree* tree)
+void CandConsumers::init(const edm::ParameterSet& gpset, const std::string psetName, edm::ConsumesCollector&& iC, TTree* tree)
 {
   if ( !gpset.existsAs<PSet>(psetName) ) return;
   const auto pset = gpset.getParameter<PSet>(psetName);
-  const strings candNames = pset.getParameterNamesForType<PSet>();
+  const auto candNames = pset.getParameterNamesForType<PSet>();
   for ( auto& candName : candNames )
   {
     PSet candPSet = pset.getParameter<PSet>(candName);
 
     edm::InputTag candToken = candPSet.getParameter<edm::InputTag>("src");
-    candTokens_.push_back(consumes<CandView>(candToken));
+    candTokens_.push_back(iC.consumes<CandView>(candToken));
     exprs_.push_back(std::vector<CandFtn>());
     boolexprs_.push_back(std::vector<CandSel>());
     vmapTokens_.push_back(std::vector<VmapToken>());
@@ -61,13 +63,13 @@ void CandConsumers::init(const edm::ParameterSet& gpset, const std::string psetN
 
       if ( tree ) tree->Branch((candName+"_"+boolexprName).c_str(), candVars_.back().back());
     }
-    const strings vmapNames = candPSet.getUntrackedParameter<strings>("vmaps", strings());
+    const auto vmapNames = candPSet.getUntrackedParameter<vstring>("vmaps", vstring());
     for ( auto& vmapName : vmapNames )
     {
       candVars_.back().push_back(new vfloat);
 
       edm::InputTag vmapToken(candTokenName, vmapName);
-      vmapTokens_.back().push_back(consumes<Vmap>(vmapToken));
+      vmapTokens_.back().push_back(iC.consumes<Vmap>(vmapToken));
 
       if ( tree ) tree->Branch((candName+"_"+vmapName).c_str(), candVars_.back().back());
     }
@@ -131,7 +133,7 @@ int CandConsumers::load(const edm::Event& event)
 
 void CandConsumers::clear()
 {
-  const int nCand = candVars_.size();
+  const size_t nCand = candVars_.size();
   for ( size_t iCand=0; iCand<nCand; ++iCand )
   {
     const size_t nVar = candVars_[iCand].size();

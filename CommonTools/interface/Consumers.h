@@ -20,16 +20,24 @@
 
 namespace cat {
 
+typedef std::vector<double> vdouble;
+typedef std::vector<float> vfloat;
+typedef std::vector<int> vint;
+typedef std::vector<bool> vbool;
+typedef std::vector<std::string> vstring;
+typedef edm::ParameterSet PSet;
+
 class CandConsumers
 {
 public:
   ~CandConsumers();
 
-  void init(const edm::ParameterSet& gpset, const std::string psetName, edm::ConsumesCollector& iC, TTree* tree);
+  void init(const edm::ParameterSet& gpset, const std::string psetName, edm::ConsumesCollector&& iC, TTree* tree);
   int load(const edm::Event& event);
   void clear();
 
 private:
+  typedef edm::View<reco::Candidate> CandView;
   typedef edm::ValueMap<double> Vmap;
   typedef edm::EDGetTokenT<CandView> CandToken;
   typedef edm::EDGetTokenT<Vmap> VmapToken;
@@ -37,9 +45,12 @@ private:
   typedef StringObjectFunction<reco::Candidate,true> CandFtn;
   typedef StringCutObjectSelector<reco::Candidate,true> CandSel;
 
+  std::vector<CandToken> candTokens_;
+  std::vector<std::vector<VmapToken> > vmapTokens_;
+
   std::vector<int> indices_;
   std::vector<std::vector<CandFtn> > exprs_;
-  std::vector<std::vector<CandSel> > selectors_;
+  std::vector<std::vector<CandSel> > boolexprs_;
 
   std::vector<std::vector<vfloat*> > candVars_;
 };
@@ -55,8 +66,6 @@ public:
 
   void init(const edm::ParameterSet& gpset, const std::string psetName, edm::ConsumesCollector && iC, TTree* tree)
   {
-    typedef edm::ParameterSet PSet;
-
     if ( !gpset.existsAs<PSet>(psetName) ) return;
     const PSet pset = gpset.getParameter<PSet>(psetName);
     const auto names = pset.getParameterNamesForType<PSet>();
@@ -113,8 +122,6 @@ public:
   void init(const edm::ParameterSet& gpset, const std::string psetName, edm::ConsumesCollector && iC,
             TTree* tree, const char* typeNameStr)
   {
-    typedef edm::ParameterSet PSet;
-
     if ( !gpset.existsAs<PSet>(psetName) ) return;
     const PSet pset = gpset.getParameter<PSet>(psetName);
     const auto names = pset.getParameterNamesForType<PSet>();
