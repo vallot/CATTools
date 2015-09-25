@@ -9,6 +9,7 @@ options.register('runOnMC', True, VarParsing.multiplicity.singleton, VarParsing.
 options.register('useMiniAOD', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "useMiniAOD: 1  default")
 options.register('globalTag', '', VarParsing.multiplicity.singleton, VarParsing.varType.string, "globalTag: 1  default")
 options.register('runGenTop', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runGenTop: 1  default")
+options.register('runOnRelVal', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runOnRelVal: 1  default")
 
 options.parseArguments()
 runOnMC = options.runOnMC
@@ -60,12 +61,11 @@ if doSecVertex:
 process.maxEvents.input = options.maxEvents
 
 # Default file here for test purpose
-if not options.inputFiles:
+if not options.inputFiles and options.runOnRelVal == True:
     if useMiniAOD:
         process.source.fileNames = ['/store/relval/CMSSW_7_4_6_patch6/RelValTTbar_13/MINIAODSIM/MCRUN2_74_V9-v1/00000/2403409D-1225-E511-B64E-0025905A6132.root']
-    ## Hack to run on relval sample
-    # this makes production to fail... need another solution for this
-    #    process.genMetExtractor.metSource = "slimmedMETs::RECO"
+        ## Hack to run on relval sample, controlled with runOnRelVal option
+        process.genMetExtractor.metSource = "slimmedMETs::RECO"
     else:
         process.source.fileNames = ['/store/relval/CMSSW_7_4_6_patch6/RelValTTbar_13/GEN-SIM-RECO/MCRUN2_74_V9-v1/00000/54F6E09C-1225-E511-842B-0025905A612E.root']
 
