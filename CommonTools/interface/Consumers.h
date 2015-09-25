@@ -27,7 +27,7 @@ public:
 
   void init(const edm::ParameterSet& gpset, const std::string psetName, edm::ConsumesCollector& iC, TTree* tree);
   int load(const edm::Event& event);
-  void CandConsumers::clear();
+  void clear();
 
 private:
   typedef edm::ValueMap<double> Vmap;
