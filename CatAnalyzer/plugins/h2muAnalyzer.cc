@@ -41,7 +41,6 @@ private:
   vector<cat::Electron> selectElecs(const edm::View<cat::Electron>* elecs );
   vector<cat::Jet> selectJets(const edm::View<cat::Jet>* jets, vector<TLorentzVector> recolep);
   vector<cat::Jet> selectBJets(vector<cat::Jet> & jets );
-  float passingSteps(int channel, float met, float ll_mass, float ll_charge, int selectedJets_size);
   int preSelect(vector<cat::Jet> seljets, float MET);
   int JetCategory(vector<cat::Jet> seljets, float MET, float ll_pt);
   int JetCat_GC(float mu1_eta, float mu2_eta);
@@ -57,19 +56,20 @@ private:
 
   TTree * ttree_;
 
-  int b_njet, b_step, b_channel;
+  int b_njet, b_step;
   float b_MET;
-  float b_lep1_pt, b_lep1_eta, b_lep1_phi;
-  float b_lep2_pt, b_lep2_eta, b_lep2_phi;
-  float b_ll_pt, b_ll_eta, b_ll_phi, b_ll_m;
+  float b_mu1_pt, b_mu1_eta, b_mu1_phi;
+  float b_mu2_pt, b_mu2_eta, b_mu2_phi;
+  float b_diMu_pt, b_diMu_eta, b_diMu_phi, b_diMu_m;
   int b_jetcat_f_hier;  
   int b_jetcat_GC;
-  bool b_isMedium, b_isTight;
+  bool b_isLoose, b_isMedium, b_isTight;
 
-  float b_gen_lep_pt, b_gen_lep_eta, b_gen_lep_phi;
-  float b_reco_lep_pt, b_reco_lep_eta, b_reco_lep_phi;
-  float b_resolution;  
-  bool b_lep_isLoose, b_lep_isMedium, b_lep_isTight;
+  float b_gen_mu1_pt, b_gen_mu1_eta, b_gen_mu1_phi, b_gen_mu1_ptRes;
+  bool b_gen_mu1_isLoose, b_gen_mu1_isMedium, b_gen_mu1_isTight;
+  float b_gen_mu2_pt, b_gen_mu2_eta, b_gen_mu2_phi, b_gen_mu2_ptRes;
+  bool b_gen_mu2_isLoose, b_gen_mu2_isMedium, b_gen_mu2_isTight;
+  float b_gen_diMu_pt, b_gen_diMu_eta, b_gen_diMu_phi, b_gen_diMu_m;
 
   bool runOnMC_;
 };
@@ -86,48 +86,55 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
 
   edm::Service<TFileService> fs;
   ttree_ = fs->make<TTree>("tree", "tree");
-  ttree_ = fs->make<TTree>("tree2","tree2");
   ttree_->Branch("njet", &b_njet, "njet/I");
   ttree_->Branch("MET", &b_MET, "MET/F");
-  ttree_->Branch("channel", &b_channel, "channel/I");
   ttree_->Branch("step", &b_step, "step/I");
 
+  ttree_->Branch("isLoose", &b_isLoose, "isLoose/B");
   ttree_->Branch("isMedium", &b_isMedium, "isMedium/B");
   ttree_->Branch("isTight", &b_isTight, "isTight/B");
 
-  ttree_->Branch("mu1_pt", &b_lep1_pt, "mu1_pt/F");
-  ttree_->Branch("mu1_eta", &b_lep1_eta, "mu1_eta/F");
-  ttree_->Branch("mu1_phi", &b_lep1_phi, "mu1_phi/F");
+  ttree_->Branch("mu1_pt", &b_mu1_pt, "mu1_pt/F");
+  ttree_->Branch("mu1_eta", &b_mu1_eta, "mu1_eta/F");
+  ttree_->Branch("mu1_phi", &b_mu1_phi, "mu1_phi/F");
 
-  ttree_->Branch("mu2_pt", &b_lep2_pt, "mu2_pt/F");
-  ttree_->Branch("mu2_eta", &b_lep2_eta, "mu2_eta/F");
-  ttree_->Branch("mu2_phi", &b_lep2_phi, "mu2_phi/F");
+  ttree_->Branch("mu2_pt", &b_mu2_pt, "mu2_pt/F");
+  ttree_->Branch("mu2_eta", &b_mu2_eta, "mu2_eta/F");
+  ttree_->Branch("mu2_phi", &b_mu2_phi, "mu2_phi/F");
 
-  ttree_->Branch("ll_pt", &b_ll_pt, "ll_pt/F");
-  ttree_->Branch("ll_eta", &b_ll_eta, "ll_eta/F");
-  ttree_->Branch("ll_phi", &b_ll_phi, "ll_phi/F");
-  ttree_->Branch("ll_m", &b_ll_m, "ll_m/F");
+  ttree_->Branch("diMu_pt", &b_diMu_pt, "diMu_pt/F");
+  ttree_->Branch("diMu_eta", &b_diMu_eta, "diMu_eta/F");
+  ttree_->Branch("diMu_phi", &b_diMu_phi, "diMu_phi/F");
+  ttree_->Branch("diMu_m", &b_diMu_m, "diMu_m/F");
 
   //final hierachy
   //(e.g. In case of 0,1jet, Tight and Loose.Otherwise 2jet include VBF Tight, ggF Tight, Loose)
   ttree_->Branch("jetcat_f_hier", &b_jetcat_f_hier, "jetcat_f_hier/I");
-  
   //Geometrical Categorization
   //only included 0jet and 1jet
   ttree_->Branch("jetcat_GC", &b_jetcat_GC, "jetcat_GC/I");
 
-  //tree2. we should use this for efficiency of recomuon per genmuon.
-  ttree_->Branch("gen_lep_pt", &b_gen_lep_pt, "gen_lep_pt/F");
-  ttree_->Branch("gen_lep_eta", &b_gen_lep_eta, "gen_lep_eta/F");
-  ttree_->Branch("gen_lep_phi", &b_gen_lep_phi, "gen_lep_phi/F");
-  ttree_->Branch("reco_lep_pt", &b_reco_lep_pt, "reco_lep_pt/F");
-  ttree_->Branch("reco_lep_eta", &b_reco_lep_eta, "reco_lep_eta/F");
-  ttree_->Branch("reco_lep_phi", &b_reco_lep_phi, "reco_lep_phi/F");
-  ttree_->Branch("resolution", &b_resolution, "resolution/F");
-  ttree_->Branch("lep_isLoose", &b_lep_isLoose, "lep_isLoose/B");
-  ttree_->Branch("lep_isMedium", &b_lep_isMedium, "lep_isMedium/B");
-  ttree_->Branch("lep_isTight", &b_lep_isTight, "lep_isTight/B");
- 
+  ttree_->Branch("gen_mu1_pt", &b_gen_mu1_pt, "gen_mu1_pt/F");
+  ttree_->Branch("gen_mu1_eta", &b_gen_mu1_eta, "gen_mu1_eta/F");
+  ttree_->Branch("gen_mu1_phi", &b_gen_mu1_phi, "gen_mu1_phi/F");
+  ttree_->Branch("gen_mu1_ptRes", &b_gen_mu1_ptRes, "gen_mu1_ptRes/F");
+  ttree_->Branch("gen_mu1_isLoose", &b_gen_mu1_isLoose, "gen_mu1_isLoose/F");
+  ttree_->Branch("gen_mu1_isMedium", &b_gen_mu1_isMedium, "gen_mu1_isMedium/F");
+  ttree_->Branch("gen_mu1_isTight", &b_gen_mu1_isTight, "gen_mu1_isTight/F");
+
+  ttree_->Branch("gen_mu2_pt", &b_gen_mu2_pt, "gen_mu2_pt/F");
+  ttree_->Branch("gen_mu2_eta", &b_gen_mu2_eta, "gen_mu2_eta/F");
+  ttree_->Branch("gen_mu2_phi", &b_gen_mu2_phi, "gen_mu2_phi/F");
+  ttree_->Branch("gen_mu2_ptRes", &b_gen_mu2_ptRes, "gen_mu2_ptRes/F");
+  ttree_->Branch("gen_mu2_isLoose", &b_gen_mu2_isLoose, "gen_mu2_isLoose/F");
+  ttree_->Branch("gen_mu2_isMedium", &b_gen_mu2_isMedium, "gen_mu2_isMedium/F");
+  ttree_->Branch("gen_mu2_isTight", &b_gen_mu2_isTight, "gen_mu2_isTight/F");
+
+  ttree_->Branch("gen_diMu_pt", &b_gen_diMu_pt, "gen_diMu_pt/F");
+  ttree_->Branch("gen_diMu_eta", &b_gen_diMu_eta, "gen_diMu_eta/F");
+  ttree_->Branch("gen_diMu_phi", &b_gen_diMu_phi, "gen_diMu_phi/F");
+  ttree_->Branch("gen_diMu_m", &b_gen_diMu_m, "gen_diMu_m/F");
+  
 }
 h2muAnalyzer::~h2muAnalyzer(){}
 
@@ -135,6 +142,21 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 {
   runOnMC_ = !iEvent.isRealData();
 
+  b_njet = 0; b_step = 0; b_MET = -9;
+  b_mu1_pt = -9; b_mu1_eta = -9; b_mu1_phi = -9;
+  b_mu2_pt = -9; b_mu2_eta = -9; b_mu2_phi = -9;
+  b_diMu_pt = -9; b_diMu_eta = -9; b_diMu_phi = -9; b_diMu_m = -9;
+  b_isLoose = 0; b_isMedium = 0; b_isTight = 0;
+
+  b_jetcat_f_hier = 0;
+  b_jetcat_GC = 0;
+
+  b_gen_mu1_pt = 0;b_gen_mu1_eta = 0;b_gen_mu1_phi = 0;b_gen_mu1_ptRes = 0;
+  b_gen_mu1_isLoose = 0;b_gen_mu1_isMedium = 0;b_gen_mu1_isTight = 0;
+  b_gen_mu2_pt = 0;b_gen_mu2_eta = 0;b_gen_mu2_phi = 0;b_gen_mu2_ptRes = 0;
+  b_gen_mu2_isLoose = 0;b_gen_mu2_isMedium = 0;b_gen_mu2_isTight = 0;
+  b_gen_diMu_pt = 0;b_gen_diMu_eta = 0;b_gen_diMu_phi = 0;b_gen_diMu_m = 0;
+  
   edm::Handle<reco::VertexCollection> vertices;
   iEvent.getByToken(vtxToken_, vertices);
   if (vertices->empty()) return; // skip the event if no PV found
@@ -153,96 +175,77 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   iEvent.getByToken(metToken_, mets);
  
   edm::Handle<reco::GenParticleCollection> genParticles;
-
-  b_njet = -1; b_step = 0; b_channel = -1;
-  b_MET = -1;
-  b_lep1_pt = -9; b_lep1_eta = -9; b_lep1_phi = -9;
-  b_lep2_pt = -9; b_lep2_eta = -9; b_lep2_phi = -9;
-  b_ll_pt = -9; b_ll_eta = -9; b_ll_phi = -9; b_ll_m = -9;
-  b_isMedium = 0; b_isTight = 0;
-
-  b_jetcat_f_hier = -9;
-  b_jetcat_GC = -9;  
-
+  
   vector<cat::Muon> selectedMuons = selectMuons( muons.product() );
 
   if (runOnMC_){
     iEvent.getByToken(mcLabel_,genParticles);
+    bool bosonSample = false;
+    TLorentzVector genMu1;
+    TLorentzVector genMu2;
     for (const reco::GenParticle & g : *genParticles){
-      bool isfromZboson = false;
-      if (abs(g.pdgId())!=13 || g.pt()<=20.){
+      if (abs(g.pdgId())!=13){
         continue;
       }
+      bool isfromBoson = false;
       for (unsigned int i = 0; i < g.numberOfMothers(); ++i){
-	if (g.mother(i)->pdgId()  == 23){ //In case of pdgId() = 23, indicate Z-boson. if it's 25, that becomes higgs.
-	  isfromZboson = true;
+	//In case of pdgId() = 23, indicate Z-boson. if it's 25, that becomes higgs.
+	if (g.mother(i)->pdgId() == 23 || g.mother(i)->pdgId() == 25){
+	  isfromBoson = true;
+	  bosonSample = true;
 	}
       }
-      
-      b_gen_lep_pt = -9; b_gen_lep_eta = -9; b_gen_lep_phi = -9;
-      b_reco_lep_pt = -9; b_reco_lep_eta = -9; b_reco_lep_phi = -9;
-      b_resolution = -9;  
-      b_lep_isLoose = 0; b_lep_isMedium = 0; b_lep_isTight = 0;  
- 
-      if (!isfromZboson) {
-        continue;
+      if (isfromBoson){
+	if (g.charge() > 0) genMu1.SetPtEtaPhiM(g.pt(), g.eta(), g.phi(), g.mass());
+	else genMu2.SetPtEtaPhiM(g.pt(), g.eta(), g.phi(), g.mass());
       }
-      b_gen_lep_pt = g.pt();
-      b_gen_lep_eta = g.eta();
-      b_gen_lep_phi = g.phi();
-      
+    }
+    if (bosonSample){
+      b_gen_mu1_pt = genMu1.Pt();b_gen_mu1_eta = genMu1.Eta();b_gen_mu1_phi = genMu1.Phi();
+      b_gen_mu2_pt = genMu2.Pt();b_gen_mu2_eta = genMu2.Eta();b_gen_mu2_phi = genMu2.Phi();
+      TLorentzVector gen_diMu = genMu1 + genMu2;
+      b_gen_diMu_pt = gen_diMu.Pt(); b_gen_diMu_eta = gen_diMu.Eta(); b_gen_diMu_phi = gen_diMu.Phi(); b_gen_diMu_m = gen_diMu.M();
+
       for (auto m : selectedMuons){
-        b_lep_isLoose = m.isLooseMuon();
-        b_lep_isMedium = m.isMediumMuon();
-        b_lep_isTight = m.isTightMuon();
-        float dr = reco::deltaR(g.eta(), g.phi(), m.eta(), m.phi());
-        if (dr < 0.1){
-          b_reco_lep_pt = g.pt();
-          b_reco_lep_eta = g.eta();
-          b_reco_lep_phi = g.phi();
-          b_resolution = (m.pt()-g.pt())/g.pt();
-          break;
-        }
+	if (genMu1.DeltaR(m.tlv()) < 0.1){
+	  b_gen_mu1_ptRes = (m.pt()-genMu1.Pt())/genMu1.Pt();      
+	  b_gen_mu1_isLoose = m.isLooseMuon(); b_gen_mu1_isMedium = m.isMediumMuon(); b_gen_mu1_isTight = m.isTightMuon();
+	}
+	if (genMu2.DeltaR(m.tlv()) < 0.1){
+	  b_gen_mu2_ptRes = (m.pt()-genMu2.Pt())/genMu2.Pt();      
+	  b_gen_mu2_isLoose = m.isLooseMuon(); b_gen_mu2_isMedium = m.isMediumMuon(); b_gen_mu2_isTight = m.isTightMuon();
+	}
       }
-    }    
+    }
   }
 
   if (selectedMuons.size() < 2){
     ttree_->Fill();
     return;
   }
+  b_step = 1;
 
-  b_lep1_pt = selectedMuons[0].pt();
-  b_lep1_eta = selectedMuons[0].eta();
-  b_lep1_phi = selectedMuons[0].phi();
+  b_mu1_pt = selectedMuons[0].pt(); b_mu1_eta = selectedMuons[0].eta(); b_mu1_phi = selectedMuons[0].phi();
+  b_mu2_pt = selectedMuons[1].pt(); b_mu2_eta = selectedMuons[1].eta(); b_mu2_phi = selectedMuons[1].phi();
 
-  b_lep2_pt = selectedMuons[1].pt();
-  b_lep2_eta = selectedMuons[1].eta();
-  b_lep2_phi = selectedMuons[1].phi();
-
+  b_isLoose = (selectedMuons[0].isLooseMuon() && selectedMuons[1].isLooseMuon());
   b_isMedium = (selectedMuons[0].isMediumMuon() && selectedMuons[1].isMediumMuon());
   b_isTight = (selectedMuons[0].isTightMuon() && selectedMuons[1].isTightMuon());
   
-
   TLorentzVector tlv_ll = selectedMuons[0].tlv() + selectedMuons[1].tlv();
-  
-  b_ll_pt = tlv_ll.Pt();
-  b_ll_eta = tlv_ll.Eta();
-  b_ll_phi = tlv_ll.Phi();
-  b_ll_m = tlv_ll.M();
+  b_diMu_pt = tlv_ll.Pt(); b_diMu_eta = tlv_ll.Eta(); b_diMu_phi = tlv_ll.Phi(); b_diMu_m = tlv_ll.M();
 
   TLorentzVector met = mets->front().tlv();
   b_MET = met.Pt();
 
-  vector<TLorentzVector> recolep; 
-  vector<cat::Jet> selectedJets = selectJets( jets.product(), recolep );
+  vector<TLorentzVector> recomu; 
+  vector<cat::Jet> selectedJets = selectJets( jets.product(), recomu );
 
   b_njet = selectedJets.size();
   
-  b_step = 1;
-  int ll_charge = selectedMuons[0].charge()*selectedMuons[1].charge();
+  int diMu_charge = selectedMuons[0].charge()*selectedMuons[1].charge();
 
-  if (ll_charge > 0){
+  if (diMu_charge > 0){
     ttree_->Fill();
     return;
   }
@@ -265,12 +268,10 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
     return;
   }
   b_step = 4;
-
-  //  float step = passingSteps( channel, met.Pt(), (recolep[0]+recolep[1]).M(), ll_charge, selectedJets.size() );
   
   // -----------------------------  Jet Category  -----------------------------------
-  b_jetcat_f_hier = JetCategory(selectedJets, b_MET, b_ll_pt);
-  b_jetcat_GC = JetCat_GC(b_lep1_eta, b_lep2_eta);
+  b_jetcat_f_hier = JetCategory(selectedJets, b_MET, b_diMu_pt);
+  b_jetcat_GC = JetCat_GC(b_mu1_eta, b_mu2_eta);
    
   ttree_->Fill();
 }
@@ -309,43 +310,19 @@ vector<cat::Electron> h2muAnalyzer::selectElecs(const edm::View<cat::Electron>* 
   return selelecs;
 }
 
-vector<cat::Jet> h2muAnalyzer::selectJets(const edm::View<cat::Jet>* jets, vector<TLorentzVector> recolep )
+vector<cat::Jet> h2muAnalyzer::selectJets(const edm::View<cat::Jet>* jets, vector<TLorentzVector> recomu )
 {
   vector<cat::Jet> seljets;
   for (auto jet : *jets) {
     if (!jet.LooseId()) continue;
     if (jet.pt() <= 30.) continue;
     if (fabs(jet.eta()) >= 2.4)	continue;
-    //if (jet.tlv().DeltaR(recolep[0]) <= 0.4) continue;
-    //if (jet.tlv().DeltaR(recolep[1]) <= 0.4) continue;
+    //if (jet.tlv().DeltaR(recomu[0]) <= 0.4) continue;
+    //if (jet.tlv().DeltaR(recomu[1]) <= 0.4) continue;
     // printf("jet with pt %4.1f\n", jet.pt());
     seljets.push_back(jet);
   }
   return seljets;
-}
-
-
-float h2muAnalyzer::passingSteps(int channel, float met, float ll_mass, float ll_charge, int selectedJets_size)
-{
-  int step = 0;
-  if (ll_mass <= 20.) return step;
-  if (ll_charge > 0.) return step;
-  step = 1;
-  if (channel != 1){
-    if ((ll_mass > 76) and (ll_mass < 106)) return step;
-  }
-  step = 2;
-  if (selectedJets_size < 2) return step;
-  step = 3;
-  if (channel == 1){
-    step = 4;
-  }
-  else{
-    if (met <= 40.) return step;
-  }
-  step = 4;
-
-  return step;
 }
 
 int h2muAnalyzer::preSelect(vector<cat::Jet> seljets, float MET)
@@ -365,22 +342,22 @@ int h2muAnalyzer::preSelect(vector<cat::Jet> seljets, float MET)
   return 0;
 }
 
-int h2muAnalyzer::JetCategory(vector<cat::Jet> seljets, float MET, float ll_pt)
+int h2muAnalyzer::JetCategory(vector<cat::Jet> seljets, float MET, float diMu_pt)
 {
   int presel = preSelect(seljets, MET);
   if (presel==1){
-    if (b_ll_pt<=10){return 1;}
+    if (b_diMu_pt<=10){return 1;}
     else{return 2;}
   }
   if (presel==2){
-    if (b_ll_pt<=10){return 3;}
+    if (b_diMu_pt<=10){return 3;}
     else{return 4;}
   }
   if (presel==3){
     TLorentzVector M_jets = seljets[0].tlv() + seljets[1].tlv();
     auto delta_eta = seljets[0].eta()-seljets[1].eta();
     bool VBF_Tight = (M_jets.M() > 650 && abs(delta_eta) > 3.5);
-    bool ggF_Tight = (M_jets.M() > 250 && ll_pt > 50);
+    bool ggF_Tight = (M_jets.M() > 250 && diMu_pt > 50);
     if (VBF_Tight || ggF_Tight){
       if (!ggF_Tight){return 5;} //not ggF_Tight but only VBF_Tight
       if (!VBF_Tight){return 6;}//also contrast of above

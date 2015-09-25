@@ -154,6 +154,7 @@ private:
   typedef std::vector<bool> vbool;
   typedef std::vector<int> vint;
   typedef std::vector<double> vdouble;
+  typedef std::vector<float> vfloat;
   typedef std::vector<std::string> strings;
 
   typedef edm::View<reco::LeafCandidate> CandView;
@@ -187,7 +188,7 @@ private:
 
   TTree* tree_;
   int runNumber_, lumiNumber_, eventNumber_;
-  std::vector<std::vector<vdouble*> > candVars_;
+  std::vector<std::vector<vfloat*> > candVars_;
 
   struct FAILUREMODE
   {
@@ -235,14 +236,14 @@ GenericNtupleMaker::GenericNtupleMaker(const edm::ParameterSet& pset)
     exprs_.push_back(std::vector<CandFtn>());
     selectors_.push_back(std::vector<CandSel>());
     vmapTokens_.push_back(std::vector<VmapToken>());
-    candVars_.push_back(std::vector<vdouble*>());
+    candVars_.push_back(std::vector<vfloat*>());
     const string candTokenName = candToken.label();
     indices_.push_back(candPSet.getUntrackedParameter<int>("index", -1));
     const PSet exprSets = candPSet.getUntrackedParameter<PSet>("exprs", PSet());
     for ( auto& exprName : exprSets.getParameterNamesForType<string>() )
     {
       const string expr = exprSets.getParameter<string>(exprName);
-      candVars_.back().push_back(new vdouble);
+      candVars_.back().push_back(new vfloat);
       exprs_.back().push_back(CandFtn(expr));
 
       tree_->Branch((candName+"_"+exprName).c_str(), candVars_.back().back());
@@ -251,7 +252,7 @@ GenericNtupleMaker::GenericNtupleMaker(const edm::ParameterSet& pset)
     for ( auto& selectionName : selectionSets.getParameterNamesForType<string>() )
     {
       const string selection = selectionSets.getParameter<string>(selectionName);
-      candVars_.back().push_back(new vdouble);
+      candVars_.back().push_back(new vfloat);
       selectors_.back().push_back(CandSel(selection));
 
       tree_->Branch((candName+"_"+selectionName).c_str(), candVars_.back().back());
@@ -259,7 +260,7 @@ GenericNtupleMaker::GenericNtupleMaker(const edm::ParameterSet& pset)
     const strings vmapNames = candPSet.getUntrackedParameter<strings>("vmaps", strings());
     for ( auto& vmapName : vmapNames )
     {
-      candVars_.back().push_back(new vdouble);
+      candVars_.back().push_back(new vfloat);
 
       edm::InputTag vmapToken(candTokenName, vmapName);
       vmapTokens_.back().push_back(consumes<Vmap>(vmapToken));
@@ -331,7 +332,8 @@ void GenericNtupleMaker::analyze(const edm::Event& event, const edm::EventSetup&
 
       for ( size_t j=0; j<nExpr; ++j )
       {
-        const double val = exprs[j](*candRef);
+        double val = exprs[j](*candRef);
+        if ( !std::isfinite(val) ) val = -999;
         candVars_[iCand][j]->push_back(val);
       }
       for ( size_t j=0; j<nSels; ++j )

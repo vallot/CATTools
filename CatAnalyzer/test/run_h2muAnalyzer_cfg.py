@@ -6,6 +6,7 @@ process.load("FWCore.MessageService.MessageLogger_cfi")
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 datadir = '/xrootd/store/user/jlee/SingleMuon/v7-4-1_Run2015C-PromptReco-v1/150913_173449/0000/'
+datadir = '/xrootd/store/group/CAT/GluGlu_HToMuMu_M125_13TeV_powheg_pythia8/v7-4-1_RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/150917_142416/0000/'
 process.source = cms.Source("PoolSource",
     #fileNames = cms.untracked.vstring('file:/xrootd/store/user/jlee/SingleMuon/v7-4-1_Run2015C-PromptReco-v1/150913_173449/0000/catTuple_125.root')
     fileNames = cms.untracked.vstring()
@@ -35,8 +36,8 @@ process.h2mu = cms.EDAnalyzer("h2muAnalyzer",
     mets = cms.InputTag("catMETs"),
     mcLabel = cms.InputTag("prunedGenParticles"),
     triggerBits = cms.InputTag("TriggerResults","","HLT"),
-    #triggerObjects = cms.InputTag("catTrigger"),
-    triggerObjects = cms.InputTag("selectedPatTrigger"),
+    triggerObjects = cms.InputTag("catTrigger"),
+    #triggerObjects = cms.InputTag("selectedPatTrigger"),
 )
 
 process.TFileService = cms.Service("TFileService",
