@@ -141,7 +141,7 @@ CATGenLevelAnalysis::CATGenLevelAnalysis(const edm::ParameterSet& pset)
     hPseudo_.push_back(dirPseudo.make<TH1F>(name, title, nbins, binPtr));
     hFidPseudo_.push_back(dirFidPseudo.make<TH1F>(name, title, nbins, binPtr));
     const auto name2 = ("resp_"+names[i]).c_str();
-    const auto title2 = (names[i] + ";Particle level " + title + ";Parton level " + title).c_str();
+    const auto title2 = (names[i] + ";Particle level " + titles[i] + ";Parton level " + titles[i]).c_str();
     h2_.push_back(dirPseudo.make<TH2F>(name2, title2, nbins, binPtr, nbins, binPtr));
     h2Fid_.push_back(dirFidPseudo.make<TH2F>(name2, title2, nbins, binPtr, nbins, binPtr));
   }
