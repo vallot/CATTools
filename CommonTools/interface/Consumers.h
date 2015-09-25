@@ -48,8 +48,6 @@ template<typename T>
 class VectorConsumers
 {
 public:
-  typedef edm::ParameterSet PSet;
-
   ~VectorConsumers()
   {
     for ( auto& v : values_ ) delete v;
@@ -57,6 +55,8 @@ public:
 
   void init(const edm::ParameterSet& gpset, const std::string psetName, edm::ConsumesCollector && iC, TTree* tree)
   {
+    typedef edm::ParameterSet PSet;
+
     if ( !gpset.existsAs<PSet>(psetName) ) return;
     const PSet pset = gpset.getParameter<PSet>(psetName);
     const auto names = pset.getParameterNamesForType<PSet>();
@@ -105,8 +105,6 @@ template<typename T>
 class FlatConsumers
 {
 public:
-  typedef edm::ParameterSet PSet;
-
   ~FlatConsumers()
   {
     for ( auto x : values_ ) delete x;
@@ -115,6 +113,8 @@ public:
   void init(const edm::ParameterSet& gpset, const std::string psetName, edm::ConsumesCollector && iC,
             TTree* tree, const char* typeNameStr)
   {
+    typedef edm::ParameterSet PSet;
+
     if ( !gpset.existsAs<PSet>(psetName) ) return;
     const PSet pset = gpset.getParameter<PSet>(psetName);
     const auto names = pset.getParameterNamesForType<PSet>();
