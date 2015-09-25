@@ -7,6 +7,10 @@
 #include "FWCore/Framework/interface/ConsumesCollector.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Utilities/interface/InputTag.h"
+#include "DataFormats/Common/interface/ValueMap.h"
+#include "DataFormats/Candidate/interface/Candidate.h"
+#include "CommonTools/Utils/interface/StringObjectFunction.h"
+#include "CommonTools/Utils/interface/StringCutObjectSelector.h"
 
 #include "TTree.h"
 
@@ -15,6 +19,30 @@
 #include <string>
 
 namespace cat {
+
+class CandConsumers
+{
+public:
+  ~CandConsumers();
+
+  void init(const edm::ParameterSet& gpset, const std::string psetName, edm::ConsumesCollector& iC, TTree* tree);
+  int load(const edm::Event& event);
+  void CandConsumers::clear();
+
+private:
+  typedef edm::ValueMap<double> Vmap;
+  typedef edm::EDGetTokenT<CandView> CandToken;
+  typedef edm::EDGetTokenT<Vmap> VmapToken;
+
+  typedef StringObjectFunction<reco::Candidate,true> CandFtn;
+  typedef StringCutObjectSelector<reco::Candidate,true> CandSel;
+
+  std::vector<int> indices_;
+  std::vector<std::vector<CandFtn> > exprs_;
+  std::vector<std::vector<CandSel> > selectors_;
+
+  std::vector<std::vector<vfloat*> > candVars_;
+};
 
 template<typename T>
 class VectorConsumers
