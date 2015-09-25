@@ -38,7 +38,7 @@ void CandConsumers::init(const edm::ParameterSet& gpset, const std::string psetN
     edm::InputTag candToken = candPSet.getParameter<edm::InputTag>("src");
     candTokens_.push_back(consumes<CandView>(candToken));
     exprs_.push_back(std::vector<CandFtn>());
-    selectors_.push_back(std::vector<CandSel>());
+    boolexprs_.push_back(std::vector<CandSel>());
     vmapTokens_.push_back(std::vector<VmapToken>());
     candVars_.push_back(std::vector<vfloat*>());
     const string candTokenName = candToken.label();
@@ -52,14 +52,14 @@ void CandConsumers::init(const edm::ParameterSet& gpset, const std::string psetN
 
       if ( tree ) tree->Branch((candName+"_"+exprName).c_str(), candVars_.back().back());
     }
-    const PSet selectionSets = candPSet.getUntrackedParameter<PSet>("seletions", PSet());
-    for ( auto& selectionName : selectionSets.getParameterNamesForType<string>() )
+    const PSet boolexprSets = candPSet.getUntrackedParameter<PSet>("boolexprs", PSet());
+    for ( auto& boolexprName : boolexprSets.getParameterNamesForType<string>() )
     {
-      const string selection = selectionSets.getParameter<string>(selectionName);
+      const string boolexpr = boolexprSets.getParameter<string>(boolexprName);
       candVars_.back().push_back(new vfloat);
-      selectors_.back().push_back(CandSel(selection));
+      boolexprs_.back().push_back(CandSel(boolexpr));
 
-      if ( tree ) tree->Branch((candName+"_"+selectionName).c_str(), candVars_.back().back());
+      if ( tree ) tree->Branch((candName+"_"+boolexprName).c_str(), candVars_.back().back());
     }
     const strings vmapNames = candPSet.getUntrackedParameter<strings>("vmaps", strings());
     for ( auto& vmapName : vmapNames )
@@ -90,10 +90,10 @@ int CandConsumers::load(const edm::Event& event)
 
     const int index = indices_[iCand];
     const std::vector<CandFtn>& exprs = exprs_[iCand];
-    const std::vector<CandSel>& selectors = selectors_[iCand];
+    const std::vector<CandSel>& boolexprs = boolexprs_[iCand];
     std::vector<VmapToken>& vmapTokens = vmapTokens_[iCand];
     const size_t nExpr = exprs.size();
-    const size_t nSels = selectors.size();
+    const size_t nBExprs = boolexprs.size();
     const size_t nVmap = vmapTokens.size();
     std::vector<edm::Handle<edm::ValueMap<double> > > vmapHandles(nVmap);
     for ( size_t iVar=0; iVar<nVmap; ++iVar )
@@ -112,16 +112,16 @@ int CandConsumers::load(const edm::Event& event)
         if ( !std::isfinite(val) ) val = -999;
         candVars_[iCand][j]->push_back(val);
       }
-      for ( size_t j=0; j<nSels; ++j )
+      for ( size_t j=0; j<nBExprs; ++j )
       {
-        const double val = selectors[j](*candRef);
+        const double val = boolexprs[j](*candRef);
         candVars_[iCand][j+nExpr]->push_back(val);
       }
       for ( size_t j=0; j<nVmap; ++j )
       {
         double val = 0;
         if ( vmapHandles[j].isValid() ) val = (*vmapHandles[j])[candRef];
-        candVars_[iCand][j+nExpr+nSels]->push_back(val);
+        candVars_[iCand][j+nExpr+nBExprs]->push_back(val);
       }
     }
   }
