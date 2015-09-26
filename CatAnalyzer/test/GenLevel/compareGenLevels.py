@@ -2,14 +2,14 @@
 
 from ROOT import *
 
-f = TFile("histtest.root")
+f = TFile("hist.root")
 
 genLevels = [
     ("FullParton", kBlack),
     ("FiducialParton", kBlue),
     ("CommonParton", kRed),
-    ("CommonParticle", kRed),
-    ("Particle", kMagenta),
+    ("CommonParticle", kMagenta),
+    ("Particle", kGreen+1),
 ]
 
 plots = [
@@ -58,3 +58,37 @@ for c, hists in objs:
     c.Update()
 
     c.Print("%s.png" % c.GetName())
+
+for p in plots:
+    cCommon = TCanvas("cCommon%s" % p, p, 500, 500)
+
+    hCommon = f.Get("ana/CommonParticle/resp_%s" % p)
+    hCommon.Draw("COLZ")
+
+    cAll = TCanvas("cAll%s" % p, p, 500, 500)
+
+    hAll = f.Get("ana/Particle/resp_%s" % p)
+    hAll.Draw("COLZ")
+
+    objs.extend([cCommon, hCommon, cAll, hAll])
+
+    cCommon.Print("%s.png" % cCommon.GetName())
+    cAll.Print("%s.png" % cAll.GetName())
+
+for p in plots:
+    hParton = f.Get("ana/FullParton/%s" % p)
+    hPseudo = f.Get("ana/Particle/%s" % p)
+
+    vals = []
+    for b in range(1,hParton.GetNbinsX()+1):
+        nParton = hParton.GetBinContent(b)
+        nPseudo = hPseudo.GetBinContent(b)
+        #c = (nParton/hParton.Integral())/(nPseudo/hPseudo.Integral())
+        c = (nParton)/(nPseudo)
+
+        binX = hParton.GetXaxis().GetBinLowEdge(b)
+        binW = hParton.GetXaxis().GetBinWidth(b)
+
+        vals.append("%.3f" % c)
+
+    print '"%s":[%s]' % (p, (",".join(vals)))
