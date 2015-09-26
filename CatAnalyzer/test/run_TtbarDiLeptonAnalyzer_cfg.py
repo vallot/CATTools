@@ -13,7 +13,8 @@ datadir = '/xrootd/store/group/CAT/MuonEG/v7-3-6_Run2015B-PromptReco-v1/150922_1
 
 import os
 for f in os.listdir(datadir):
-    process.source.fileNames.append("file:"+datadir+f)
+    if ".root" in f:
+        process.source.fileNames.append("file:"+datadir+f)
 
 #process.source.fileNames.append('file:/cms/scratch/CAT/MuonEG/v7-3-0_Run2015B-PromptReco-v1/150720_060935/0000/catTuple_1.root')
 #process.source.fileNames.append('file:/cms/scratch/CAT/WW_TuneCUETP8M1_13TeV-pythia8/v7-3-2_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v1/150805_203816/0000/catTuple_1.root')
