@@ -46,7 +46,6 @@ private:
   edm::EDGetTokenT<bool>          CSCTightHaloFilter_;
   edm::EDGetTokenT<bool>          HBHENoiseFilter_;
   edm::EDGetTokenT<bool>          eeBadScFilter_;
-  edm::EDGetTokenT<vector<pair<string, int> > > triggers_;
 
   edm::EDGetTokenT<edm::View<cat::Muon> >     muonToken_;
   edm::EDGetTokenT<edm::View<cat::Electron> > elecToken_;
@@ -63,6 +62,9 @@ private:
   edm::EDGetTokenT<vector<reco::GenParticle> > pseudoTop_neutrinos_;
   edm::EDGetTokenT<vector<reco::MET>         > pseudoTop_mets_;
 
+  edm::EDGetTokenT<edm::TriggerResults> triggerBits_;
+  edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjects_;
+  
   TTree * ttree_;
   int b_partonChannel, b_partonMode1, b_partonMode2;
   int b_pseudoTopChannel, b_pseudoTopMode1, b_pseudoTopMode2;
@@ -95,7 +97,6 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   CSCTightHaloFilter_ = consumes<bool>(iConfig.getParameter<edm::InputTag>("CSCTightHaloFilter"));
   HBHENoiseFilter_ = consumes<bool>(iConfig.getParameter<edm::InputTag>("HBHENoiseFilter"));
   eeBadScFilter_ = consumes<bool>(iConfig.getParameter<edm::InputTag>("eeBadScFilter"));
-  triggers_      = consumes<vector<pair<string, int> > >(iConfig.getParameter<edm::InputTag>("triggers"));
   muonToken_ = consumes<edm::View<cat::Muon> >(iConfig.getParameter<edm::InputTag>("muons"));
   elecToken_ = consumes<edm::View<cat::Electron> >(iConfig.getParameter<edm::InputTag>("electrons"));
   jetToken_  = consumes<edm::View<cat::Jet> >(iConfig.getParameter<edm::InputTag>("jets"));
@@ -109,6 +110,9 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   pseudoTop_           = consumes<vector<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("pseudoTop"));
   pseudoTop_neutrinos_ = consumes<vector<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("pseudoTop_neutrinos"));
   pseudoTop_mets_      = consumes<vector<reco::MET>         >(iConfig.getParameter<edm::InputTag>("pseudoTop_mets"));
+
+  triggerBits_ = consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerBits"));
+  triggerObjects_ = consumes<pat::TriggerObjectStandAloneCollection>(iConfig.getParameter<edm::InputTag>("triggerObjects"));
 
   const double tmassbegin = iConfig.getParameter<double>       ("tmassbegin");
   const double tmassend   = iConfig.getParameter<double>       ("tmassend");
@@ -273,9 +277,6 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   iEvent.getByToken(CSCTightHaloFilter_, CSCTightHaloFilter);
   iEvent.getByToken(HBHENoiseFilter_, HBHENoiseFilter);
   iEvent.getByToken(eeBadScFilter_, eeBadScFilter);
-
-  edm::Handle<vector<pair<string, int>>> triggers;
-  iEvent.getByToken(triggers_, triggers);
   
   // if (!(*goodVertices && *CSCTightHaloFilter && *HBHENoiseFilter && *eeBadScFilter )){
   //   b_filtered = 1;
@@ -296,26 +297,29 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   if (pdgIdSum == 22) b_channel = 2; // ee
   if (pdgIdSum == 26) b_channel = 3; // mumu
 
+  edm::Handle<edm::TriggerResults> triggerBits;
+  edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
+  iEvent.getByToken(triggerBits_, triggerBits);
+  iEvent.getByToken(triggerObjects_, triggerObjects);
+  const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);  
+  AnalysisHelper trigHelper = AnalysisHelper(triggerNames, triggerBits, triggerObjects);
   bool tri=false;
-  for (auto &t: *triggers){
-    if (t.second){
-      if (t.first.find("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v") == 0 ||
-    	t.first.find("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v") == 0 )
-      if (b_channel == 2) tri = true;
+
+  if (trigHelper.triggerFired("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v") ||
+      trigHelper.triggerFired("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v") )
+    if (b_channel == 2) tri = true;
     
-    if (t.first.find("HLT_Mu17_Mu8_DZ_v") == 0 ||
-    	t.first.find("HLT_Mu17_TkMu8_DZ_v") == 0 ||	
-    	t.first.find("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v") == 0 ||	
-    	t.first.find("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v") == 0 ||
-    	t.first.find("HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v") == 0 )
-      if (b_channel == 3) tri = true;
-    
-    if (t.first.find("HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v") == 0 ||
-	t.first.find("HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v") == 0 )
-      if (b_channel == 1) tri = true;
-    //if (tri) cout << t.first << endl;
-    }
-  }
+  if (trigHelper.triggerFired("HLT_Mu17_Mu8_DZ_v") ||
+      trigHelper.triggerFired("HLT_Mu17_TkMu8_DZ_v") ||	
+      trigHelper.triggerFired("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v") ||	
+      trigHelper.triggerFired("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v") ||
+      trigHelper.triggerFired("HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v") )
+    if (b_channel == 3) tri = true;
+  
+  if (trigHelper.triggerFired("HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v") ||
+      trigHelper.triggerFired("HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v") )
+    if (b_channel == 1) tri = true;
+  
   if (!tri) return;
   
   cutflow[0][b_channel]++;
