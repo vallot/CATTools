@@ -1,6 +1,7 @@
 <library name="CATToolsCommonTools_plugins" file="*.cc">
   <use name="FWCore/Framework"/>
   <use name="CATTools/DataFormats"/>
+  <use name="CATTools/CommonTools"/>
   <use name="CommonTools/UtilAlgos"/>
   <use name="root"/>
 </library>
