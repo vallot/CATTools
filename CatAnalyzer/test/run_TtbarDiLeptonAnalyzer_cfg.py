@@ -10,6 +10,8 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 
 datadir = '/xrootd/store/group/CAT/MuonEG/v7-3-6_Run2015B-PromptReco-v1/150922_133849/0000/'
+datadir = '/xrootd/store/group/CAT/DoubleEG/v7-3-6_Run2015B-PromptReco-v1/150922_133632/0000/'
+datadir = '/xrootd/store/group/CAT/DoubleMuon/v7-3-6_Run2015B-PromptReco-v1/150922_133736/0000/'
 
 import os
 for f in os.listdir(datadir):
