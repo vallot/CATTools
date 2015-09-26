@@ -9,7 +9,7 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 
-datadir = '/xrootd/store/group/CAT/MuonEG/v7-3-6_Run2015B-PromptReco-v1/150820_215352/0000/'
+datadir = '/xrootd/store/group/CAT/MuonEG/v7-3-6_Run2015B-PromptReco-v1/150922_133849/0000/'
 
 import os
 for f in os.listdir(datadir):
@@ -46,7 +46,8 @@ process.ttll = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     CSCTightHaloFilter = cms.InputTag("catTrigger", "CSCTightHaloFilter"),
     HBHENoiseFilter = cms.InputTag("catTrigger", "HBHENoiseFilter"),
     eeBadScFilter = cms.InputTag("catTrigger", "eeBadScFilter"),
-    triggers = cms.InputTag("catTrigger"),
+    triggerBits = cms.InputTag("TriggerResults","","HLT"),
+    triggerObjects = cms.InputTag("catTrigger"),
 
     vertices = cms.InputTag("catVertex"),
     muons = cms.InputTag("catMuons"),
