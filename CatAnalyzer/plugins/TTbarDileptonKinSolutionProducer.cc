@@ -62,17 +62,20 @@ TTbarDileptonKinSolutionProducer::TTbarDileptonKinSolutionProducer(const edm::Pa
   metToken_ = consumes<float>(pset.getParameter<edm::InputTag>("met"));
   metphiToken_ = consumes<float>(pset.getParameter<edm::InputTag>("metphi"));
 
-  auto solverName = pset.getParameter<std::string>("solver");
-  std::transform(solverName.begin(), solverName.end(), solverName.begin(), ::toupper);
-  if      ( solverName == "CMSKIN" ) solver_.reset(new CMSKinSolver());
-  else if ( solverName == "DESYMASSLOOP" ) solver_.reset(new DESYMassLoopSolver());
-  else if ( solverName == "DESYSMEARED" ) solver_.reset(new DESYSmearedSolver());
-  else if ( solverName == "MT2"    ) solver_.reset(new MT2Solver());
-  else if ( solverName == "MAOS"   ) solver_.reset(new MAOSSolver());
-  else if ( solverName == "NUWGT"  ) solver_.reset(new NuWeightSolver());
+  auto solverPSet = pset.getParameter<edm::ParameterSet>("solver");
+  auto algoName = solverPSet.getParameter<std::string>("algo");
+  std::transform(algoName.begin(), algoName.end(), algoName.begin(), ::toupper);
+  if      ( algoName == "CMSKIN" ) solver_.reset(new CMSKinSolver(solverPSet));
+  else if ( algoName == "DESYMASSLOOP" ) solver_.reset(new DESYMassLoopSolver(solverPSet));
+  else if ( algoName == "DESYSMEARED" ) solver_.reset(new DESYSmearedSolver(solverPSet));
+  else if ( algoName == "MT2"    ) solver_.reset(new MT2Solver(solverPSet));
+  else if ( algoName == "MAOS"   ) solver_.reset(new MAOSSolver(solverPSet));
+  else if ( algoName == "NUWGT"  ) solver_.reset(new NuWeightSolver(solverPSet));
+  else if ( algoName == "DEFAULT" ) solver_.reset(new TTDileptonSolver(solverPSet));
   else {
-    cerr << "The solver name\"" << pset.getParameter<std::string>("solver") << "\" is not known please check spellings.\n";
-    solver_.reset(new TTDileptonSolver()); // A dummy solver
+    cerr << "The solver name \"" << solverPSet.getParameter<std::string>("algo") << "\" is not known please check spellings.\n";
+    cerr << "Fall back to the default dummy solver\n";
+    solver_.reset(new TTDileptonSolver(solverPSet)); // A dummy solver
   }
 
   produces<CandColl>();

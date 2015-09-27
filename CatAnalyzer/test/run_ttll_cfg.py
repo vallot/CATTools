@@ -45,14 +45,8 @@ process.ttbarEvent = cms.EDProducer("TTbarDileptonEventSelector",
     bTagName = cms.string("combinedInclusiveSecondaryVertexV2BJetTags"),
 )
 
-process.ttbar = cms.EDProducer("TTbarDileptonKinSolutionProducer",
-#    solver = cms.string("Default"),
-    solver = cms.string("CMSKIN"),
-#    solver = cms.string("NUWGT"),
-#    solver = cms.string("MT2"),
-#    solver = cms.string("MAOS"),
-#    solver = cms.string("DESYSmeared"),
-#    solver = cms.string("DESYMassLoop"),
+process.load("CATTools.CatAnalyzer.ttbarDileptonKinSolutionProducer_cfi")
+process.ttbar = process.ttbarDileptonKin.clone(
     leptons = cms.InputTag("ttbarEvent:leptons"),
     jets = cms.InputTag("ttbarEvent:jets"),
     met = cms.InputTag("ttbarEvent:met"),
@@ -179,8 +173,9 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
     ),
 )
 
+process.load("CATTools.CatAnalyzer.ttbarDileptonKinSolutionAlgos_cff")
 for algo in ["CMSKin", "MT2", "DESYMassLoop", "DESYSmeared"]:
-    setattr(process, 'ttbar'+algo, process.ttbar.clone(solver = cms.string(algo)))
+    setattr(process, 'ttbar'+algo, process.ttbar.clone(solver = getattr(process, 'ttbarDileptonKinAlgoPSet'+algo)))
     setattr(process.ntuple.floats, 'ttbar%s_mLL' % algo, cms.InputTag("ttbar%s:mLL" % algo))
     setattr(process.ntuple.floats, 'ttbar%s_mLB' % algo, cms.InputTag("ttbar%s:mLB" % algo))
     setattr(process.ntuple.floats, 'ttbar%s_dphi' % algo, cms.InputTag("ttbar%s:dphi" % algo))

@@ -2,6 +2,7 @@
 #define CATTools_CatAnalyzer_KinematicSolvers_H
 
 #include "FWCore/Utilities/interface/RandomNumberGenerator.h"
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "CLHEP/Random/RandomEngine.h"
 #include "Math/LorentzVector.h"
 #include <string>
@@ -17,6 +18,7 @@ typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > LV;
 class KinematicSolver
 {
 public:
+  KinematicSolver(const edm::ParameterSet& pset) {};
   virtual ~KinematicSolver() {};
   virtual void solve(const LV input[]) = 0;
   virtual std::string algoName() = 0;
@@ -41,6 +43,7 @@ protected:
 class TTDileptonSolver : public KinematicSolver // A dummy solver for now
 {
 public:
+  TTDileptonSolver(const edm::ParameterSet& pset): KinematicSolver(pset) {};
   void solve(const LV input[]) override;
   std::string algoName() override { return "DUMMY"; }
 };
@@ -48,6 +51,7 @@ public:
 class MT2Solver : public KinematicSolver
 {
 public:
+  MT2Solver(const edm::ParameterSet& pset);
   void solve(const LV input[]) override;
   std::string algoName() override { return "MT2"; }
   double mt2();
@@ -59,7 +63,7 @@ protected:
 class MAOSSolver : public MT2Solver
 {
 public:
-  MAOSSolver(): MT2Solver() {};
+  MAOSSolver(const edm::ParameterSet& pset): MT2Solver(pset) {};
   std::string algoName() override { return "MAOS"; }
   void solve(const LV input[]) override;
 };
@@ -67,7 +71,7 @@ public:
 class CMSKinSolver : public KinematicSolver
 {
 public:
-  CMSKinSolver();
+  CMSKinSolver(const edm::ParameterSet& pset);
   std::string algoName() override { return "CMSKIN"; }
   void solve(const LV input[]) override;
 
@@ -78,14 +82,17 @@ protected:
 class DESYMassLoopSolver : public KinematicSolver
 {
 public:
+  DESYMassLoopSolver(const edm::ParameterSet& pset);
   void solve(const LV input[]) override;
   std::string algoName() override { return "DESYMassLoop"; }
+protected:
+  const double tMassBegin_, tMassEnd_, tMassStep_;
 };
 
 class DESYSmearedSolver : public KinematicSolver
 {
 public:
-  DESYSmearedSolver();
+  DESYSmearedSolver(const edm::ParameterSet& pset);
   void solve(const LV input[]) override;
   std::string algoName() override { return "DESYSmeared"; }
   void setRandom(CLHEP::HepRandomEngine* rng) { rng_ = rng; };
@@ -99,12 +106,16 @@ protected:
   std::unique_ptr<TH1> h_lepEres_, h_lepAres_;
   std::unique_ptr<TH1> h_wmass_;
   std::unique_ptr<TH1> h_mbl_w_;
+
+  const int nTrial_;
+  const double maxLBMass_, mTopInput_;
 };
 
 // Neutrino weighting method (from thesis by Temple)
 class NuWeightSolver : public KinematicSolver
 {
 public:
+  NuWeightSolver(const edm::ParameterSet& pset);
   void solve(const LV input[]) override;
   std::string algoName() override { return "NuWeight"; }
 };
