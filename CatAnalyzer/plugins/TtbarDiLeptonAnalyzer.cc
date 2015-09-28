@@ -29,6 +29,10 @@ public:
   explicit TtbarDiLeptonAnalyzer(const edm::ParameterSet&);
   ~TtbarDiLeptonAnalyzer();
 
+  enum {
+    CH_NONE=0, CH_MUEL=1, CH_ELEL=2, CH_MUMU=3
+  };
+
 private:
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
 
@@ -85,6 +89,8 @@ private:
   std::vector<int> pseudoTop_modes;
   //enum TTbarMode { CH_NONE = 0, CH_FULLHADRON = 1, CH_SEMILEPTON, CH_FULLLEPTON };
   //enum DecayMode { CH_HADRON = 1, CH_MUON, CH_ELECTRON, CH_TAU_HADRON, CH_TAU_MUON, CH_TAU_ELECTRON };
+
+  const static int NCutflow = 6;
   std::vector<std::vector<int> > cutflow_;
 };
 //
@@ -164,13 +170,13 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("filtered", &b_filtered, "filtered/I");
   ttree_->Branch("is3lep", &b_is3lep, "is3lep/I");
 
-  for (int i = 0; i < 10; i++) cutflow_.push_back({0,0,0,0});
+  for (int i = 0; i < NCutflow; i++) cutflow_.push_back({0,0,0,0});
 }
 
 TtbarDiLeptonAnalyzer::~TtbarDiLeptonAnalyzer()
 {
   cout <<"cut flow         emu         ee         mumu"<< endl;
-  for ( int i=0; i<nCutflow_; ++i ) {
+  for ( int i=0; i<NCutflow; ++i ) {
     cout <<"step "<< i << " "<< cutflow_[i][0] <<  " "<< cutflow_[i][1] << " " << cutflow_[i][2] << " " << cutflow_[i][3]<< endl;
   }
 }
@@ -293,9 +299,9 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   const auto& recolep2 = *recolep[1];
 
   const int pdgIdSum = std::abs(recolep1.pdgId()) + std::abs(recolep2.pdgId());
-  if (pdgIdSum == 24) b_channel = 1; // emu
-  if (pdgIdSum == 22) b_channel = 2; // ee
-  if (pdgIdSum == 26) b_channel = 3; // mumu
+  if (pdgIdSum == 24) b_channel = CH_MUEL; // emu
+  if (pdgIdSum == 22) b_channel = CH_ELEL; // ee
+  if (pdgIdSum == 26) b_channel = CH_MUMU; // mumu
 
   edm::Handle<edm::TriggerResults> triggerBits;
   edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
@@ -305,20 +311,20 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   AnalysisHelper trigHelper = AnalysisHelper(triggerNames, triggerBits, triggerObjects);
   bool tri=false;
 
-  if (trigHelper.triggerFired("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v") ||
-      trigHelper.triggerFired("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v") )
-    if (b_channel == 2) tri = true;
+  if (b_channel == CH_ELEL and
+      (trigHelper.triggerFired("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v") ||
+       trigHelper.triggerFired("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v")) ) tri = true;
 
-  if (trigHelper.triggerFired("HLT_Mu17_Mu8_DZ_v") ||
-      trigHelper.triggerFired("HLT_Mu17_TkMu8_DZ_v") ||	
-      trigHelper.triggerFired("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v") ||	
-      trigHelper.triggerFired("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v") ||
-      trigHelper.triggerFired("HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v") )
-    if (b_channel == 3) tri = true;
+  if (b_channel == CH_MUMU and
+      (trigHelper.triggerFired("HLT_Mu17_Mu8_DZ_v") ||
+       trigHelper.triggerFired("HLT_Mu17_TkMu8_DZ_v") ||
+       trigHelper.triggerFired("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v") ||
+       trigHelper.triggerFired("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v") ||
+       trigHelper.triggerFired("HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v")) ) tri = true;
 
-  if (trigHelper.triggerFired("HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v") ||
-      trigHelper.triggerFired("HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v") )
-    if (b_channel == 1) tri = true;
+  if (b_channel == CH_MUEL and
+      (trigHelper.triggerFired("HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v") ||
+       trigHelper.triggerFired("HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v")) ) tri = true;
 
   if (!tri) return;
 
@@ -339,7 +345,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   }
   cutflow_[++b_step][b_channel]++;
 
-  if (b_channel != 1){
+  if (b_channel != CH_MUEL){
     if ((b_ll_m > 76) && (b_ll_m < 106)){
       ttree_->Fill();
       return;
@@ -361,7 +367,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   }
   cutflow_[++b_step][b_channel]++;
 
-  if (b_channel != 1){
+  if (b_channel != CH_MUEL){
     if (b_MET < 40.){
       ttree_->Fill();
       return;
@@ -501,7 +507,7 @@ void TtbarDiLeptonAnalyzer::selectJets(const vector<cat::Jet>& jets, const Parti
 void TtbarDiLeptonAnalyzer::selectBJets(const JetPtrs& jets, JetPtrs& selBjets) const
 {
   for (auto jet : jets) {
-    if (jet->bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") < 0.605) continue;	
+    if (jet->bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") < 0.605) continue;
     //printf("b jet with pt %4.1f\n", jet.pt());
     selBjets.push_back(jet);
   }
