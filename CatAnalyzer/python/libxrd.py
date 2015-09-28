@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 # Functions to list up catTuple
+import sys
 
 ## Check xrd command
 import subprocess
