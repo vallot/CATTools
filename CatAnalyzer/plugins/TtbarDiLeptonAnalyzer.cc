@@ -33,10 +33,10 @@ public:
 private:
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
 
-  vector<cat::Muon> selectMuons(const std::vector<cat::Muon>* muons ) const;
-  vector<cat::Electron> selectElecs(const std::vector<cat::Electron>* elecs ) const;
-  vector<cat::Jet> selectJets(const std::vector<cat::Jet>* jets, vector<cat::Particle> recolep) const;
-  vector<cat::Jet> selectBJets(vector<cat::Jet> & jets ) const;
+  vector<cat::Muon> selectMuons(const std::vector<cat::Muon>& muons ) const;
+  vector<cat::Electron> selectElecs(const std::vector<cat::Electron>& elecs ) const;
+  vector<cat::Jet> selectJets(const std::vector<cat::Jet>& jets, const vector<cat::Particle>& recolep) const;
+  vector<cat::Jet> selectBJets(const vector<cat::Jet>& jets ) const;
   const reco::Candidate* getLast(const reco::Candidate* p) const;
 
   edm::EDGetTokenT<bool>          goodVertices_;
@@ -280,8 +280,8 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   //   return;
   // }
 
-  vector<cat::Muon> selectedMuons = selectMuons( muons.product() );
-  vector<cat::Electron> selectedElectrons = selectElecs( electrons.product() );
+  vector<cat::Muon> selectedMuons = selectMuons(*muons);
+  vector<cat::Electron> selectedElectrons = selectElecs(*electrons);
   if (selectedMuons.size() + selectedElectrons.size() < 2) return;
 
   vector<cat::Particle> recolep;
@@ -289,7 +289,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   for (auto lep : selectedElectrons) recolep.push_back(lep);
   sort(recolep.begin(), recolep.end(), AnalysisHelper::ptSorting);
 
-  int pdgIdSum = std::abs(recolep[0].pdgId()) + std::abs(recolep[1].pdgId());
+  const int pdgIdSum = std::abs(recolep[0].pdgId()) + std::abs(recolep[1].pdgId());
   if (pdgIdSum == 24) b_channel = 1; // emu
   if (pdgIdSum == 22) b_channel = 2; // ee
   if (pdgIdSum == 26) b_channel = 3; // mumu
@@ -346,8 +346,8 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   cutflow[2][b_channel]++;
   b_step = 2;
 
-  vector<cat::Jet> selectedJets = selectJets( jets.product(), recolep );
-  vector<cat::Jet> selectedBJets = selectBJets( selectedJets );
+  vector<cat::Jet> selectedJets = selectJets(*jets, recolep );
+  vector<cat::Jet> selectedBJets = selectBJets(selectedJets);
   TLorentzVector met = mets->front().tlv();
   b_MET = met.Pt();
   b_njet = selectedJets.size();
@@ -452,10 +452,10 @@ const reco::Candidate* TtbarDiLeptonAnalyzer::getLast(const reco::Candidate* p) 
   return p;
 }
 
-vector<cat::Muon> TtbarDiLeptonAnalyzer::selectMuons(const std::vector<cat::Muon>* muons ) const
+vector<cat::Muon> TtbarDiLeptonAnalyzer::selectMuons(const std::vector<cat::Muon>& muons ) const
 {
   vector<cat::Muon> selmuons;
-  for (auto mu : *muons) {
+  for (auto mu : muons) {
     if (mu.pt() < 20.) continue;
     if (std::abs(mu.eta()) > 2.4) continue;
     //if (!mu.isMediumMuon()) continue;
@@ -468,10 +468,10 @@ vector<cat::Muon> TtbarDiLeptonAnalyzer::selectMuons(const std::vector<cat::Muon
   return selmuons;
 }
 
-vector<cat::Electron> TtbarDiLeptonAnalyzer::selectElecs(const std::vector<cat::Electron>* elecs ) const
+vector<cat::Electron> TtbarDiLeptonAnalyzer::selectElecs(const std::vector<cat::Electron>& elecs ) const
 {
   vector<cat::Electron> selelecs;
-  for (auto el : *elecs) {
+  for (auto el : elecs) {
     if (el.pt() < 20.) continue;
     if ((std::abs(el.scEta()) > 1.4442) && (std::abs(el.scEta()) < 1.566)) continue;
     if (std::abs(el.eta()) > 2.4) continue;
@@ -486,10 +486,10 @@ vector<cat::Electron> TtbarDiLeptonAnalyzer::selectElecs(const std::vector<cat::
   return selelecs;
 }
 
-vector<cat::Jet> TtbarDiLeptonAnalyzer::selectJets(const std::vector<cat::Jet>* jets, vector<cat::Particle> recolep ) const
+vector<cat::Jet> TtbarDiLeptonAnalyzer::selectJets(const std::vector<cat::Jet>& jets, const vector<cat::Particle>& recolep ) const
 {
   vector<cat::Jet> seljets;seljets.clear();
-  for (auto jet : *jets) {
+  for (auto jet : jets) {
     if (jet.pt() < 30.) continue;
     if (std::abs(jet.eta()) > 2.4)	continue;
     if (!jet.LooseId()) continue;
@@ -505,7 +505,7 @@ vector<cat::Jet> TtbarDiLeptonAnalyzer::selectJets(const std::vector<cat::Jet>* 
   return seljets;
 }
 
-vector<cat::Jet> TtbarDiLeptonAnalyzer::selectBJets(vector<cat::Jet> & jets ) const
+vector<cat::Jet> TtbarDiLeptonAnalyzer::selectBJets(const vector<cat::Jet>& jets ) const
 {
   vector<cat::Jet> selBjets;
   for (auto jet : jets) {
