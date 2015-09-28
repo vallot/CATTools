@@ -118,17 +118,17 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("gen_mu1_eta", &b_gen_mu1_eta, "gen_mu1_eta/F");
   ttree_->Branch("gen_mu1_phi", &b_gen_mu1_phi, "gen_mu1_phi/F");
   ttree_->Branch("gen_mu1_ptRes", &b_gen_mu1_ptRes, "gen_mu1_ptRes/F");
-  ttree_->Branch("gen_mu1_isLoose", &b_gen_mu1_isLoose, "gen_mu1_isLoose/F");
-  ttree_->Branch("gen_mu1_isMedium", &b_gen_mu1_isMedium, "gen_mu1_isMedium/F");
-  ttree_->Branch("gen_mu1_isTight", &b_gen_mu1_isTight, "gen_mu1_isTight/F");
+  ttree_->Branch("gen_mu1_isLoose", &b_gen_mu1_isLoose, "gen_mu1_isLoose/B");
+  ttree_->Branch("gen_mu1_isMedium", &b_gen_mu1_isMedium, "gen_mu1_isMedium/B");
+  ttree_->Branch("gen_mu1_isTight", &b_gen_mu1_isTight, "gen_mu1_isTight/B");
 
   ttree_->Branch("gen_mu2_pt", &b_gen_mu2_pt, "gen_mu2_pt/F");
   ttree_->Branch("gen_mu2_eta", &b_gen_mu2_eta, "gen_mu2_eta/F");
   ttree_->Branch("gen_mu2_phi", &b_gen_mu2_phi, "gen_mu2_phi/F");
   ttree_->Branch("gen_mu2_ptRes", &b_gen_mu2_ptRes, "gen_mu2_ptRes/F");
-  ttree_->Branch("gen_mu2_isLoose", &b_gen_mu2_isLoose, "gen_mu2_isLoose/F");
-  ttree_->Branch("gen_mu2_isMedium", &b_gen_mu2_isMedium, "gen_mu2_isMedium/F");
-  ttree_->Branch("gen_mu2_isTight", &b_gen_mu2_isTight, "gen_mu2_isTight/F");
+  ttree_->Branch("gen_mu2_isLoose", &b_gen_mu2_isLoose, "gen_mu2_isLoose/B");
+  ttree_->Branch("gen_mu2_isMedium", &b_gen_mu2_isMedium, "gen_mu2_isMedium/B");
+  ttree_->Branch("gen_mu2_isTight", &b_gen_mu2_isTight, "gen_mu2_isTight/B");
 
   ttree_->Branch("gen_diMu_pt", &b_gen_diMu_pt, "gen_diMu_pt/F");
   ttree_->Branch("gen_diMu_eta", &b_gen_diMu_eta, "gen_diMu_eta/F");
