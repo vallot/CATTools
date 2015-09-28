@@ -74,6 +74,10 @@ double fminimize(const gsl_vector* xx, void* p)
 
 }
 
+MT2Solver::MT2Solver(const edm::ParameterSet& pset): KinematicSolver(pset)
+{
+}
+
 void MT2Solver::solve(const LV input[])
 {
   using namespace CATMT2;
@@ -154,12 +158,13 @@ void MAOSSolver::solve(const LV input[])
 
 }
 
-CMSKinSolver::CMSKinSolver()
+CMSKinSolver::CMSKinSolver(const edm::ParameterSet& pset): KinematicSolver(pset)
 {
-  //std::vector<double> nuPars = {30.7137,56.2880,23.0744,59.1015,24.9145}; // 7TeV pythia, from CMSSW default
-  //std::vector<double> nuPars = {30.641,57.941,22.344,57.533,22.232}; // ??, from DESY
-  std::vector<double> nuPars = {27.23,53.88,19.92,53.89,19.9}; // 13TeV 50ns powheg, by Youn.
-  solver_.reset(new TtFullLepKinSolver(100, 300, 0.5, nuPars));
+  const double tMassBegin = pset.getParameter<double>("tMassBegin");
+  const double tMassEnd   = pset.getParameter<double>("tMassEnd");
+  const double tMassStep  = pset.getParameter<double>("tMassStep");
+  std::vector<double> nuPars = pset.getParameter<std::vector<double> >("nuPars");
+  solver_.reset(new TtFullLepKinSolver(tMassBegin, tMassEnd, tMassStep, nuPars));
 }
 
 void CMSKinSolver::solve(const LV input[])
@@ -191,6 +196,14 @@ void CMSKinSolver::solve(const LV input[])
   values_.push_back(t2.mass());
 }
 
+DESYMassLoopSolver::DESYMassLoopSolver(const edm::ParameterSet& pset):
+  KinematicSolver(pset),
+  tMassBegin_(pset.getParameter<double>("tMassBegin")),
+  tMassEnd_(pset.getParameter<double>("tMassEnd")),
+  tMassStep_(pset.getParameter<double>("tMassStep"))
+{
+}
+
 void DESYMassLoopSolver::solve(const LV input[])
 {
   quality_ = -1e9;
@@ -207,7 +220,7 @@ void DESYMassLoopSolver::solve(const LV input[])
   const double b4 = (j2E*l2.pz()-l2E*j2.pz())/l2E/(j2E+l2E);
 
   std::vector<double> koef, cache, sols;
-  for ( double mTop = 100; mTop < 300.5; mTop += 1 ) {
+  for ( double mTop = tMassBegin_; mTop < tMassEnd_+0.5*tMassStep_; mTop += tMassStep_ ) {
     KinSolverUtils::findCoeffs(mTop, 80.4, 80.4, l1, l2, j1, j2, metX, metY, koef, cache);
     KinSolverUtils::solve_quartic(koef, a4, b4, sols);
     //const int nSol = sols.size();
@@ -235,11 +248,16 @@ void DESYMassLoopSolver::solve(const LV input[])
   l1_ = input[1]; l2_ = input[2]; j1_ = input[3]; j2_ = input[4];
 }
 
-DESYSmearedSolver::DESYSmearedSolver()
+DESYSmearedSolver::DESYSmearedSolver(const edm::ParameterSet& pset):
+  KinematicSolver(pset),
+  nTrial_(pset.getParameter<int>("nTrial")),
+  maxLBMass_(pset.getParameter<double>("maxLBMass")),
+  mTopInput_(pset.getParameter<double>("mTopInput"))
 {
   rng_ = 0;
 
-  TFile* f = TFile::Open(edm::FileInPath("CATTools/CatAnalyzer/data/desyKinRecoInput.root").fullPath().c_str());
+  const auto filePath = pset.getParameter<string>("inputTemplatePath");
+  TFile* f = TFile::Open(edm::FileInPath(filePath).fullPath().c_str());
 
   h_jetEres_.reset(dynamic_cast<TH1*>(f->Get("KinReco_fE_jet_step7")));
   h_jetAres_.reset(dynamic_cast<TH1*>(f->Get("KinReco_d_angle_jet_step7")));
@@ -270,7 +288,7 @@ void DESYSmearedSolver::solve(const LV input[])
   // Skip if L+B mass is large in Smeared solution case
   const double mbl1 = (l1+j1).mass();
   const double mbl2 = (l2+j2).mass();
-  if ( mbl1 > 180. or mbl2 > 180. ) return;
+  if ( mbl1 > maxLBMass_ or mbl2 > maxLBMass_ ) return;
   const auto visSum = l1+l2+j1+j2;
 
   const double l1E = l1.energy(), j1E = j1.energy();
@@ -280,7 +298,6 @@ void DESYSmearedSolver::solve(const LV input[])
 
   std::vector<double> koef, cache, sols;
   // Try 100 times with energy/angle smearing. Take weighted average of solutions
-  const double mTopInput = 172.5;
   //double sumW = 0., maxSumW = 0;
   // Set random seed using kinematics (follow DESY code)
   //const unsigned int seed = std::abs(static_cast<int>(1E6*j1.pt()/j2.pt() * sin(1E6*(l1.pt() + 2.*l2.pt()))));
@@ -288,7 +305,7 @@ void DESYSmearedSolver::solve(const LV input[])
   //gRandom->SetSeed(seed);
   double sumW = 0;
   double sumP[6][3] = {{0,},};
-  for ( int i=0; i<100; ++i )
+  for ( int i=0; i<nTrial_; ++i )
   {
     // Generate smearing factors for jets and leptons
     const auto newl1 = getSmearedLV(l1, getRandom(h_lepEres_.get()), getRandom(h_lepAres_.get()));
@@ -305,7 +322,7 @@ void DESYSmearedSolver::solve(const LV input[])
     const double w2 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin((newl2+newj2).mass()));
     const double w = w1*w2*1e-8;
 
-    KinSolverUtils::findCoeffs(mTopInput, getRandom(h_wmass_.get()), getRandom(h_wmass_.get()),
+    KinSolverUtils::findCoeffs(mTopInput_, getRandom(h_wmass_.get()), getRandom(h_wmass_.get()),
                                newl1, newl2, newj1, newj2, newmetX, newmetY, koef, cache);
     KinSolverUtils::solve_quartic(koef, a4, b4, sols);
     double nu1sol[4] = {}, nu2sol[4] = {};
@@ -502,6 +519,10 @@ double fminimize(const gsl_vector* xx, void* p)
   return 1/(0.01+weight);
 }
 
+}
+
+NuWeightSolver::NuWeightSolver(const edm::ParameterSet& pset): KinematicSolver(pset)
+{
 }
 
 void NuWeightSolver::solve(const LV input[])
