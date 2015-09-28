@@ -28,8 +28,5 @@ for dsList in dsLists:
 
         print '-'*40
         print pdName
-        l = listxrd(path)[0]
-        for ll in l:
-            ll = listxrd(ll)[0]
-            for lll in ll: print lll
+        for ll in listxrd(path)[0]: print ll
 print '-'*40
