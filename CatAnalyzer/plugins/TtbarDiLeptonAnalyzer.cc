@@ -30,7 +30,6 @@ class TtbarDiLeptonAnalyzer : public edm::EDAnalyzer {
 public:
   explicit TtbarDiLeptonAnalyzer(const edm::ParameterSet&);
   ~TtbarDiLeptonAnalyzer();
-  static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
   
   
 private:
@@ -517,16 +516,6 @@ vector<cat::Jet> TtbarDiLeptonAnalyzer::selectBJets(vector<cat::Jet> & jets )
     selBjets.push_back(jet);
   }
   return selBjets;
-}
-
-// ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
-void
-TtbarDiLeptonAnalyzer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
-  //The following says we do not know what parameters are allowed so do no validation
-  // Please change this to state exactly what you do use, even if it is no parameters
-  edm::ParameterSetDescription desc;
-  desc.setUnknown();
-  descriptions.addDefault(desc);
 }
 
 //define this as a plug-in
