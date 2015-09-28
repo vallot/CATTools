@@ -299,7 +299,7 @@ void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Eve
     for (unsigned int i = 0; i < genParticles->size(); i++){
 
       const reco::Candidate & gp = (*genParticles)[i];
-      int id = gp.pdgId();
+      const int id = gp.pdgId();
 
       // Only leptons
       if(abs(id) == 11 || abs(id) == 13 || abs(id) == 15){
@@ -347,7 +347,7 @@ void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Eve
           if(abs(id) == 15){
             for(unsigned int h = 0; h <  gp.numberOfDaughters(); h++) {
               const reco::Candidate *gd = gp.daughter(h);
-              int taudauid = gd->pdgId();
+              const int taudauid = gd->pdgId();
               if (taudauid == -11 || taudauid == -13) GenLep_m = true;
               if (taudauid == 11 || taudauid == 13) GenLep_p = true;
             } // for(taus' daughters)
@@ -516,7 +516,7 @@ void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Eve
       bool cleanJet = false;
 
       // Jet Selection
-      if(fabs(jet.eta()) < 2.4 && jet.pt() > 20 && jet.LooseId()) goodJet = true;
+      if(std::abs(jet.eta()) < 2.4 && jet.pt() > 20 && jet.LooseId()) goodJet = true;
       // Jet Cleaning
       TLorentzVector vjet(jet.px(), jet.py(), jet.pz(), jet.energy());
       double dr_LepJet = vjet.DeltaR(lepton);
@@ -570,7 +570,7 @@ bool TtbarSingleLeptonAnalyzer::IsTightMuon(const cat::Muon & i_muon_candidate)
 
   GoodMuon &= (i_muon_candidate.isPFMuon());       // PF
   GoodMuon &= (i_muon_candidate.pt()> 20);         // pT
-  GoodMuon &= (fabs(i_muon_candidate.eta())< 2.1); // eta
+  GoodMuon &= (std::abs(i_muon_candidate.eta())< 2.1); // eta
 
   //----------------------------------------------------------------------------------------------------
   //------------- The Relative Isolation is already calculated in the CAT object -----------------------
@@ -595,7 +595,7 @@ bool TtbarSingleLeptonAnalyzer::IsLooseMuon(const cat::Muon & i_muon_candidate)
 
   GoodMuon &= (i_muon_candidate.isPFMuon());       // PF
   GoodMuon &= (i_muon_candidate.pt()> 15);         // pT
-  GoodMuon &= (fabs(i_muon_candidate.eta())< 2.4); // eta
+  GoodMuon &= (std::abs(i_muon_candidate.eta())< 2.4); // eta
 
   //----------------------------------------------------------------------------------------------------
   //------------- The Relative Isolation is already calculated in the CAT object -----------------------
@@ -618,9 +618,9 @@ bool TtbarSingleLeptonAnalyzer::IsTightElectron(const cat::Electron & i_electron
 
   GoodElectron &= (i_electron_candidate.isPF() );            // PF
   GoodElectron &= (i_electron_candidate.pt() > 20);          // pT
-  GoodElectron &= (fabs(i_electron_candidate.eta()) < 2.1);  // eta
-  GoodElectron &= (fabs(i_electron_candidate.scEta()) < 1.4442 || // eta Super-Cluster
-		   fabs(i_electron_candidate.scEta()) > 1.566);
+  GoodElectron &= (std::abs(i_electron_candidate.eta()) < 2.1);  // eta
+  GoodElectron &= (std::abs(i_electron_candidate.scEta()) < 1.4442 || // eta Super-Cluster
+		   std::abs(i_electron_candidate.scEta()) > 1.566);
 
   // From https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2
   GoodElectron &= i_electron_candidate.electronID("cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-loose") > 0.0;
@@ -648,9 +648,9 @@ bool TtbarSingleLeptonAnalyzer::IsLooseElectron(const cat::Electron & i_electron
 
   GoodElectron &= (i_electron_candidate.isPF() );            // PF
   GoodElectron &= (i_electron_candidate.pt() > 15);          // pT
-  GoodElectron &= (fabs(i_electron_candidate.eta()) < 2.4);  // eta
-  GoodElectron &= (fabs(i_electron_candidate.scEta()) < 1.4442 || // eta Super-Cluster
-		   fabs(i_electron_candidate.scEta()) > 1.566);
+  GoodElectron &= (std::abs(i_electron_candidate.eta()) < 2.4);  // eta
+  GoodElectron &= (std::abs(i_electron_candidate.scEta()) < 1.4442 || // eta Super-Cluster
+		   std::abs(i_electron_candidate.scEta()) > 1.566);
 
   // From https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2
   GoodElectron &= i_electron_candidate.electronID("cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-medium") > 0.0;
