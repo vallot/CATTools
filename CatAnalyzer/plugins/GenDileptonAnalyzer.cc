@@ -123,6 +123,7 @@ void GenDileptonAnalyzer::analyze(const edm::Event& event, const edm::EventSetup
     const int absId = abs(id);
 
     if ( absId != 11 and absId != 13 and absId != 15 ) continue;
+    if ( abs(p.mother()->pdgId()) == 15 ) continue;  //veto e/mu from tau.
 
     if ( p.charge() > 0 ) lepPs.push_back(&p);
     else lepMs.push_back(&p);
