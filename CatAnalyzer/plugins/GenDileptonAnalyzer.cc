@@ -42,6 +42,9 @@ private:
   TH1F* hNWLPPt_, * hNWLPEta_, * hNWLPPhi_;
   TH1F* hNWLMPt_, * hNWLMEta_, * hNWLMPhi_;
 
+  TH2F* h2NuE_NuE_;
+  TH2F* h2NWNuE_NuE_;
+
 };
 
 //using namespace cat;
@@ -77,6 +80,8 @@ GenDileptonAnalyzer::GenDileptonAnalyzer(const edm::ParameterSet& pset)
   hLPPhi_ = dirDefault.make<TH1F>("hLPPhi", "hL+Phi;#phi(l^{+}) (radian);Events per 0.01", 2*315, -3.15, 3.15);
   hLMPhi_ = dirDefault.make<TH1F>("hLMPhi", "hL-Phi;#phi(l^{-}) (radian);Events per 0.01", 2*315, -3.15, 3.15);
 
+  h2NuE_NuE_ = dirDefault.make<TH2F>("h2NuE_NuE", "h2NuE_NuE;Energy (#nu) (GeV);Energy (#bar{#nu}) (GeV)", 1000, 0, 1000, 1000, 0, 1000);
+
   auto dirNW = fs->mkdir("noweight");
   hNWZMass_ = dirNW.make<TH1F>("hZMass", "hZMass;M(l^{+}l^{-}) (GeV);Events per 1GeV", 1000, 0, 1000);
   hNWZDEta_ = dirNW.make<TH1F>("hZDEta", "hZDEta;#delta#eta(l^{+},l^{-});Events per 0.05", 100, 0, 5);
@@ -101,6 +106,8 @@ GenDileptonAnalyzer::GenDileptonAnalyzer(const edm::ParameterSet& pset)
   hNWLPPhi_ = dirNW.make<TH1F>("hLPPhi", "hL+Phi;#phi(l^{+}) (radian);Events per 0.01", 2*315, -3.15, 3.15);
   hNWLMPhi_ = dirNW.make<TH1F>("hLMPhi", "hL-Phi;#phi(l^{-}) (radian);Events per 0.01", 2*315, -3.15, 3.15);
 
+  h2NWNuE_NuE_ = dirDefault.make<TH2F>("h2NuE_NuE", "h2NuE_NuE;Energy (#nu) (GeV);Energy (#bar{#nu}) (GeV)", 1000, 0, 1000, 1000, 0, 1000);
+
 }
 
 void GenDileptonAnalyzer::analyze(const edm::Event& event, const edm::EventSetup& eventSetup)
@@ -115,6 +122,7 @@ void GenDileptonAnalyzer::analyze(const edm::Event& event, const edm::EventSetup
   // Collect generator level leptons, before radiation 
   typedef const reco::GenParticle* GenParticlePtr;
   std::vector<GenParticlePtr> lepPs, lepMs;
+  std::vector<GenParticlePtr> nus, nubars;
   for ( const auto& p : *genParticlesHandle )
   {
     if ( p.status() == 1 ) continue;
@@ -122,11 +130,14 @@ void GenDileptonAnalyzer::analyze(const edm::Event& event, const edm::EventSetup
     if ( p.numberOfMothers() > 0 and p.mother()->pdgId() == id ) continue;
     const int absId = abs(id);
 
-    if ( absId != 11 and absId != 13 and absId != 15 ) continue;
-    if ( abs(p.mother()->pdgId()) == 15 ) continue;  //veto e/mu from tau.
-
-    if ( p.charge() > 0 ) lepPs.push_back(&p);
-    else lepMs.push_back(&p);
+    if ( absId == 11 or absId == 13 or absId == 15 )
+    {
+      if ( abs(p.mother()->pdgId()) == 15 ) continue;  //veto e/mu from tau.
+      if ( p.charge() > 0 ) lepPs.push_back(&p);
+      else lepMs.push_back(&p);
+    }
+    else if ( id ==  12 or id ==  14 ) nus.push_back(&p);
+    else if ( id == -12 or id == -14 ) nubars.push_back(&p);
   }
   if ( lepPs.empty() or lepMs.empty() ) return;
 
@@ -188,6 +199,17 @@ void GenDileptonAnalyzer::analyze(const edm::Event& event, const edm::EventSetup
   hNWLMPt_->Fill(lepMLV.pt());
   hNWLMEta_->Fill(lepMLV.eta());
   hNWLMPhi_->Fill(lepMLV.phi());
+
+  // Fill neutrinos
+  if ( !nus.empty() and !nubars.empty() and
+       abs(lepPs.at(0)->pdgId()) != 15 and abs(lepMs.at(0)->pdgId()) != 15 )
+  {
+    std::nth_element(nus.begin(), nus.begin()+1, nus.end(), greaterByPtPtr);
+    std::nth_element(nubars.begin(), nubars.begin()+1, nubars.end(), greaterByPtPtr);
+
+    h2NuE_NuE_->Fill(nus.at(0)->energy(), nubars.at(0)->energy(), weight);
+    h2NWNuE_NuE_->Fill(nus.at(0)->energy(), nubars.at(0)->energy());
+  }
 }
 
 DEFINE_FWK_MODULE(GenDileptonAnalyzer);
