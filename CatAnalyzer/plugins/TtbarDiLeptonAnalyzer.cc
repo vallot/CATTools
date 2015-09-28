@@ -33,21 +33,21 @@ public:
 private:
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
 
-  vector<cat::Muon> selectMuons(const edm::View<cat::Muon>* muons );
-  vector<cat::Electron> selectElecs(const edm::View<cat::Electron>* elecs );
-  vector<cat::Jet> selectJets(const edm::View<cat::Jet>* jets, vector<cat::Particle> recolep);
-  vector<cat::Jet> selectBJets(vector<cat::Jet> & jets );
-  const reco::Candidate* getLast(const reco::Candidate* p);
+  vector<cat::Muon> selectMuons(const std::vector<cat::Muon>* muons ) const;
+  vector<cat::Electron> selectElecs(const std::vector<cat::Electron>* elecs ) const;
+  vector<cat::Jet> selectJets(const std::vector<cat::Jet>* jets, vector<cat::Particle> recolep) const;
+  vector<cat::Jet> selectBJets(vector<cat::Jet> & jets ) const;
+  const reco::Candidate* getLast(const reco::Candidate* p) const;
 
   edm::EDGetTokenT<bool>          goodVertices_;
   edm::EDGetTokenT<bool>          CSCTightHaloFilter_;
   edm::EDGetTokenT<bool>          HBHENoiseFilter_;
   edm::EDGetTokenT<bool>          eeBadScFilter_;
 
-  edm::EDGetTokenT<edm::View<cat::Muon> >     muonToken_;
-  edm::EDGetTokenT<edm::View<cat::Electron> > elecToken_;
-  edm::EDGetTokenT<edm::View<cat::Jet> >      jetToken_;
-  edm::EDGetTokenT<edm::View<cat::MET> >      metToken_;
+  edm::EDGetTokenT<std::vector<cat::Muon> >     muonToken_;
+  edm::EDGetTokenT<std::vector<cat::Electron> > elecToken_;
+  edm::EDGetTokenT<std::vector<cat::Jet> >      jetToken_;
+  edm::EDGetTokenT<std::vector<cat::MET> >      metToken_;
   edm::EDGetTokenT<reco::VertexCollection >   vtxToken_;
   edm::EDGetTokenT<int>          partonTop_channel_;
   edm::EDGetTokenT<vector<int> > partonTop_modes_;
@@ -94,10 +94,10 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   CSCTightHaloFilter_ = consumes<bool>(iConfig.getParameter<edm::InputTag>("CSCTightHaloFilter"));
   HBHENoiseFilter_ = consumes<bool>(iConfig.getParameter<edm::InputTag>("HBHENoiseFilter"));
   eeBadScFilter_ = consumes<bool>(iConfig.getParameter<edm::InputTag>("eeBadScFilter"));
-  muonToken_ = consumes<edm::View<cat::Muon> >(iConfig.getParameter<edm::InputTag>("muons"));
-  elecToken_ = consumes<edm::View<cat::Electron> >(iConfig.getParameter<edm::InputTag>("electrons"));
-  jetToken_  = consumes<edm::View<cat::Jet> >(iConfig.getParameter<edm::InputTag>("jets"));
-  metToken_  = consumes<edm::View<cat::MET> >(iConfig.getParameter<edm::InputTag>("mets"));
+  muonToken_ = consumes<std::vector<cat::Muon> >(iConfig.getParameter<edm::InputTag>("muons"));
+  elecToken_ = consumes<std::vector<cat::Electron> >(iConfig.getParameter<edm::InputTag>("electrons"));
+  jetToken_  = consumes<std::vector<cat::Jet> >(iConfig.getParameter<edm::InputTag>("jets"));
+  metToken_  = consumes<std::vector<cat::MET> >(iConfig.getParameter<edm::InputTag>("mets"));
   vtxToken_  = consumes<reco::VertexCollection >(iConfig.getParameter<edm::InputTag>("vertices"));
   partonTop_channel_ = consumes<int>(iConfig.getParameter<edm::InputTag>("partonTop_channel"));
   partonTop_modes_   = consumes<vector<int> >(iConfig.getParameter<edm::InputTag>("partonTop_modes"));
@@ -201,10 +201,10 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   edm::Handle<reco::VertexCollection> vertices;      iEvent.getByToken(vtxToken_, vertices);
   if (vertices->empty()){ return;} // skip the event if no PV found
   // const reco::Vertex &PV = vertices->front();
-  edm::Handle<edm::View<cat::Muon> > muons;          iEvent.getByToken(muonToken_, muons);
-  edm::Handle<edm::View<cat::Electron> > electrons;  iEvent.getByToken(elecToken_, electrons);
-  edm::Handle<edm::View<cat::Jet> > jets;            iEvent.getByToken(jetToken_, jets);
-  edm::Handle<edm::View<cat::MET> > mets;            iEvent.getByToken(metToken_, mets);
+  edm::Handle<std::vector<cat::Muon> > muons;          iEvent.getByToken(muonToken_, muons);
+  edm::Handle<std::vector<cat::Electron> > electrons;  iEvent.getByToken(elecToken_, electrons);
+  edm::Handle<std::vector<cat::Jet> > jets;            iEvent.getByToken(jetToken_, jets);
+  edm::Handle<std::vector<cat::MET> > mets;            iEvent.getByToken(metToken_, mets);
 
   if (runOnMC_){
     edm::Handle<int> partonTop_channel;
@@ -442,17 +442,17 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   ttree_->Fill();
 }
 
-const reco::Candidate* TtbarDiLeptonAnalyzer::getLast(const reco::Candidate* p)
+const reco::Candidate* TtbarDiLeptonAnalyzer::getLast(const reco::Candidate* p) const
 {
   for ( size_t i=0, n=p->numberOfDaughters(); i<n; ++i )
-    {
-      const reco::Candidate* dau = p->daughter(i);
-      if ( p->pdgId() == dau->pdgId() ) return getLast(dau);
-    }
+  {
+    const reco::Candidate* dau = p->daughter(i);
+    if ( p->pdgId() == dau->pdgId() ) return getLast(dau);
+  }
   return p;
 }
 
-vector<cat::Muon> TtbarDiLeptonAnalyzer::selectMuons(const edm::View<cat::Muon>* muons )
+vector<cat::Muon> TtbarDiLeptonAnalyzer::selectMuons(const std::vector<cat::Muon>* muons ) const
 {
   vector<cat::Muon> selmuons;
   for (auto mu : *muons) {
@@ -468,7 +468,7 @@ vector<cat::Muon> TtbarDiLeptonAnalyzer::selectMuons(const edm::View<cat::Muon>*
   return selmuons;
 }
 
-vector<cat::Electron> TtbarDiLeptonAnalyzer::selectElecs(const edm::View<cat::Electron>* elecs )
+vector<cat::Electron> TtbarDiLeptonAnalyzer::selectElecs(const std::vector<cat::Electron>* elecs ) const
 {
   vector<cat::Electron> selelecs;
   for (auto el : *elecs) {
@@ -486,7 +486,7 @@ vector<cat::Electron> TtbarDiLeptonAnalyzer::selectElecs(const edm::View<cat::El
   return selelecs;
 }
 
-vector<cat::Jet> TtbarDiLeptonAnalyzer::selectJets(const edm::View<cat::Jet>* jets, vector<cat::Particle> recolep )
+vector<cat::Jet> TtbarDiLeptonAnalyzer::selectJets(const std::vector<cat::Jet>* jets, vector<cat::Particle> recolep ) const
 {
   vector<cat::Jet> seljets;seljets.clear();
   for (auto jet : *jets) {
@@ -505,7 +505,7 @@ vector<cat::Jet> TtbarDiLeptonAnalyzer::selectJets(const edm::View<cat::Jet>* je
   return seljets;
 }
 
-vector<cat::Jet> TtbarDiLeptonAnalyzer::selectBJets(vector<cat::Jet> & jets )
+vector<cat::Jet> TtbarDiLeptonAnalyzer::selectBJets(vector<cat::Jet> & jets ) const
 {
   vector<cat::Jet> selBjets;
   for (auto jet : jets) {
