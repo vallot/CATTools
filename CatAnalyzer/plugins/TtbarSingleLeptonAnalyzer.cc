@@ -17,21 +17,11 @@
 //
 //
 
-// system include files
-#include <memory>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-#include <vector>
-#include <algorithm> // max
-
-// user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
@@ -39,20 +29,8 @@
 #include "CATTools/DataFormats/interface/Electron.h"
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/MET.h"
-#include "CATTools/DataFormats/interface/SecVertex.h"
-
-#include "DataFormats/Common/interface/TriggerResults.h"
-#include "DataFormats/HLTReco/interface/TriggerEventWithRefs.h"
-#include "DataFormats/HLTReco/interface/TriggerEvent.h"
-//#include "CATTools/CatAnalyzer/interface/TriggerBitChecker.h"
-
-
-#include "DataFormats/Candidate/interface/LeafCandidate.h"
-#include "DataFormats/Candidate/interface/CompositePtrCandidate.h"
 
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
-#include "DataFormats/Candidate/interface/CompositePtrCandidate.h"
-#include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
 
 // b-tagging Eff
 //#include "CATTools/CatAnalyzer/interface/BTagSFUtil.h"
