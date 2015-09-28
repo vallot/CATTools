@@ -1,4 +1,3 @@
-#include <memory>
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
@@ -6,7 +5,6 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
-#include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
@@ -30,11 +28,11 @@ class TtbarDiLeptonAnalyzer : public edm::EDAnalyzer {
 public:
   explicit TtbarDiLeptonAnalyzer(const edm::ParameterSet&);
   ~TtbarDiLeptonAnalyzer();
-  
-  
+
+
 private:
-  virtual void analyze(const edm::Event&, const edm::EventSetup&);
-  
+  virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
+
   vector<cat::Muon> selectMuons(const edm::View<cat::Muon>* muons );
   vector<cat::Electron> selectElecs(const edm::View<cat::Electron>* elecs );
   vector<cat::Jet> selectJets(const edm::View<cat::Jet>* jets, vector<cat::Particle> recolep);
@@ -63,7 +61,7 @@ private:
 
   edm::EDGetTokenT<edm::TriggerResults> triggerBits_;
   edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjects_;
-  
+
   TTree * ttree_;
   int b_partonChannel, b_partonMode1, b_partonMode2;
   int b_pseudoTopChannel, b_pseudoTopMode1, b_pseudoTopMode2;
@@ -99,7 +97,7 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   muonToken_ = consumes<edm::View<cat::Muon> >(iConfig.getParameter<edm::InputTag>("muons"));
   elecToken_ = consumes<edm::View<cat::Electron> >(iConfig.getParameter<edm::InputTag>("electrons"));
   jetToken_  = consumes<edm::View<cat::Jet> >(iConfig.getParameter<edm::InputTag>("jets"));
-  metToken_  = consumes<edm::View<cat::MET> >(iConfig.getParameter<edm::InputTag>("mets"));     
+  metToken_  = consumes<edm::View<cat::MET> >(iConfig.getParameter<edm::InputTag>("mets"));
   vtxToken_  = consumes<reco::VertexCollection >(iConfig.getParameter<edm::InputTag>("vertices"));
   partonTop_channel_ = consumes<int>(iConfig.getParameter<edm::InputTag>("partonTop_channel"));
   partonTop_modes_   = consumes<vector<int> >(iConfig.getParameter<edm::InputTag>("partonTop_modes"));
@@ -117,7 +115,7 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   const double tmassend   = iConfig.getParameter<double>       ("tmassend");
   const double tmassstep  = iConfig.getParameter<double>       ("tmassstep");
   const auto   nupars     = iConfig.getParameter<vector<double> >("neutrino_parameters");
-  
+
   solver.reset(new TtFullLepKinSolver(tmassbegin, tmassend, tmassstep, nupars));
 
   edm::Service<TFileService> fs;
@@ -177,9 +175,9 @@ TtbarDiLeptonAnalyzer::~TtbarDiLeptonAnalyzer()
 
 void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-  b_partonChannel = -1; b_partonMode1 = -1; b_partonMode2 = -1; 
-  b_pseudoTopChannel = -1; b_pseudoTopMode1 = -1; b_pseudoTopMode2 = -1; 
-  b_MET = -1; 
+  b_partonChannel = -1; b_partonMode1 = -1; b_partonMode2 = -1;
+  b_pseudoTopChannel = -1; b_pseudoTopMode1 = -1; b_pseudoTopMode2 = -1;
+  b_MET = -1;
   b_njet = -1;
   b_nbjet = -1;
   b_channel = 0;
@@ -207,11 +205,11 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   edm::Handle<edm::View<cat::Electron> > electrons;  iEvent.getByToken(elecToken_, electrons);
   edm::Handle<edm::View<cat::Jet> > jets;            iEvent.getByToken(jetToken_, jets);
   edm::Handle<edm::View<cat::MET> > mets;            iEvent.getByToken(metToken_, mets);
-    
+
   if (runOnMC_){
     edm::Handle<int> partonTop_channel;
     edm::Handle<vector<int> > partonTop_modes;
-    edm::Handle<reco::GenParticleCollection > partonTop_genParticles;    
+    edm::Handle<reco::GenParticleCollection > partonTop_genParticles;
     iEvent.getByToken(partonTop_channel_, partonTop_channel);
     iEvent.getByToken(partonTop_modes_, partonTop_modes);
     iEvent.getByToken(partonTop_genParticles_, partonTop_genParticles);
@@ -221,9 +219,9 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     }
     else if ( (*partonTop_modes).size() == 1 ) { b_partonMode2 = 0; }
     else{
-      b_partonChannel = *partonTop_channel; 
-      b_partonMode1 = (*partonTop_modes)[0]; 
-      b_partonMode2 = (*partonTop_modes)[1]; 
+      b_partonChannel = *partonTop_channel;
+      b_partonMode1 = (*partonTop_modes)[0];
+      b_partonMode2 = (*partonTop_modes)[1];
     }
 
     edm::Handle<vector<reco::GenJet>      > pseudoTop_jets;
@@ -263,8 +261,8 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
     if ( pseudoTop_modes.size() == 0 ) { pseudoTop_modes.push_back(0); }
     if ( pseudoTop_modes.size() == 1 ) { pseudoTop_modes.push_back(0); }
-    b_pseudoTopMode1 = pseudoTop_modes[0]; 
-    b_pseudoTopMode2 = pseudoTop_modes[1]; 
+    b_pseudoTopMode1 = pseudoTop_modes[0];
+    b_pseudoTopMode2 = pseudoTop_modes[1];
 
   }
 
@@ -276,22 +274,22 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   iEvent.getByToken(CSCTightHaloFilter_, CSCTightHaloFilter);
   iEvent.getByToken(HBHENoiseFilter_, HBHENoiseFilter);
   iEvent.getByToken(eeBadScFilter_, eeBadScFilter);
-  
+
   // if (!(*goodVertices && *CSCTightHaloFilter && *HBHENoiseFilter && *eeBadScFilter )){
   //   b_filtered = 1;
   //   return;
   // }
- 
+
   vector<cat::Muon> selectedMuons = selectMuons( muons.product() );
   vector<cat::Electron> selectedElectrons = selectElecs( electrons.product() );
   if (selectedMuons.size() + selectedElectrons.size() < 2) return;
-    
-  vector<cat::Particle> recolep; 
+
+  vector<cat::Particle> recolep;
   for (auto lep : selectedMuons) recolep.push_back(lep);
   for (auto lep : selectedElectrons) recolep.push_back(lep);
   sort(recolep.begin(), recolep.end(), AnalysisHelper::ptSorting);
-  
-  int pdgIdSum = fabs(recolep[0].pdgId()) + fabs(recolep[1].pdgId());
+
+  int pdgIdSum = std::abs(recolep[0].pdgId()) + std::abs(recolep[1].pdgId());
   if (pdgIdSum == 24) b_channel = 1; // emu
   if (pdgIdSum == 22) b_channel = 2; // ee
   if (pdgIdSum == 26) b_channel = 3; // mumu
@@ -300,27 +298,27 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
   iEvent.getByToken(triggerBits_, triggerBits);
   iEvent.getByToken(triggerObjects_, triggerObjects);
-  const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);  
+  const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
   AnalysisHelper trigHelper = AnalysisHelper(triggerNames, triggerBits, triggerObjects);
   bool tri=false;
 
   if (trigHelper.triggerFired("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v") ||
       trigHelper.triggerFired("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v") )
     if (b_channel == 2) tri = true;
-    
+
   if (trigHelper.triggerFired("HLT_Mu17_Mu8_DZ_v") ||
       trigHelper.triggerFired("HLT_Mu17_TkMu8_DZ_v") ||	
       trigHelper.triggerFired("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v") ||	
       trigHelper.triggerFired("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v") ||
       trigHelper.triggerFired("HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v") )
     if (b_channel == 3) tri = true;
-  
+
   if (trigHelper.triggerFired("HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v") ||
       trigHelper.triggerFired("HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v") )
     if (b_channel == 1) tri = true;
-  
+
   if (!tri) return;
-  
+
   cutflow[0][b_channel]++;
 
   b_lep1_pt = recolep[0].pt(); b_lep1_eta = recolep[0].eta(); b_lep1_phi = recolep[0].phi();
@@ -338,7 +336,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   }
   cutflow[1][b_channel]++;
   b_step = 1;
- 
+
   if (b_channel != 1){
     if ((b_ll_m > 76) && (b_ll_m < 106)){
       ttree_->Fill();
@@ -370,7 +368,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   }
   cutflow[4][b_channel]++;
   b_step = 4;
-  
+
   if (selectedBJets.size() == 0){
     ttree_->Fill();
     return;
@@ -403,16 +401,16 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       TLorentzVector recojet2= jet2->tlv();
       TLorentzVector recolep1= recolep[0].tlv();
       TLorentzVector recolep2= recolep[1].tlv();
-      
+
       double xconstraint = recolep1.Px()+recolep2.Px()+ (recojet1).Px() + (recojet2).Px() +met.Px();
       double yconstraint = recolep1.Py()+recolep2.Py()+ (recojet2).Py() + (recojet1).Py() +met.Py();
-      
+
       solver->SetConstraints(xconstraint, yconstraint);
       TtFullLepKinSolver::NeutrinoSolution nuSol= solver->getNuSolution( recolep1, recolep2 , recojet1, recojet2);
       weight1 = nuSol.weight;
       TLorentzVector nu11 = AnalysisHelper::leafToTLorentzVector(nuSol.neutrino);
       TLorentzVector nu12 = AnalysisHelper::leafToTLorentzVector(nuSol.neutrinoBar);
-      
+
       TtFullLepKinSolver::NeutrinoSolution nuSol2= solver->getNuSolution( recolep1, recolep2 , recojet2, recojet1);
       weight2 = nuSol2.weight;
       TLorentzVector nu21 = AnalysisHelper::leafToTLorentzVector(nuSol2.neutrino);
@@ -459,7 +457,7 @@ vector<cat::Muon> TtbarDiLeptonAnalyzer::selectMuons(const edm::View<cat::Muon>*
   vector<cat::Muon> selmuons;
   for (auto mu : *muons) {
     if (mu.pt() < 20.) continue;
-    if (fabs(mu.eta()) > 2.4) continue;
+    if (std::abs(mu.eta()) > 2.4) continue;
     //if (!mu.isMediumMuon()) continue;
     if (!mu.isTightMuon()) continue;
     if (mu.relIso(0.4) > 0.12) continue;
@@ -475,13 +473,13 @@ vector<cat::Electron> TtbarDiLeptonAnalyzer::selectElecs(const edm::View<cat::El
   vector<cat::Electron> selelecs;
   for (auto el : *elecs) {
     if (el.pt() < 20.) continue;
-    if ((fabs(el.scEta()) > 1.4442) && (fabs(el.scEta()) < 1.566)) continue;
-    if (fabs(el.eta()) > 2.4) continue;
+    if ((std::abs(el.scEta()) > 1.4442) && (std::abs(el.scEta()) < 1.566)) continue;
+    if (std::abs(el.eta()) > 2.4) continue;
     //if (!el.electronID("cutBasedElectronID-Spring15-50ns-V1-standalone-medium")) continue;
     if (el.electronID("cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-medium") == 0) continue;
     //if (!el.passConversionVeto()) continue;
     if (!el.isPF()) continue;
-        
+
     //printf("electron with pt %4.1f\n", el.pt());
     selelecs.push_back(el);
   }
@@ -493,9 +491,9 @@ vector<cat::Jet> TtbarDiLeptonAnalyzer::selectJets(const edm::View<cat::Jet>* je
   vector<cat::Jet> seljets;seljets.clear();
   for (auto jet : *jets) {
     if (jet.pt() < 30.) continue;
-    if (fabs(jet.eta()) > 2.4)	continue;
+    if (std::abs(jet.eta()) > 2.4)	continue;
     if (!jet.LooseId()) continue;
-    
+
     bool hasOverLap = false;
     for (auto lep : recolep){
       if (deltaR(jet,lep) < 0.4) hasOverLap = true;
