@@ -332,7 +332,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
   b_lep1_pt = recolep1.pt(); b_lep1_eta = recolep1.eta(); b_lep1_phi = recolep1.phi();
   b_lep2_pt = recolep2.pt(); b_lep2_eta = recolep2.eta(); b_lep2_phi = recolep2.phi();
-  TLorentzVector tlv_ll = recolep1.tlv()+recolep2.tlv();
+  const TLorentzVector tlv_ll = recolep1.tlv()+recolep2.tlv();
   b_ll_pt = tlv_ll.Pt(); b_ll_eta = tlv_ll.Eta(); b_ll_phi = tlv_ll.Phi(); b_ll_m = tlv_ll.M();
 
   if (b_ll_m < 20.){
@@ -356,7 +356,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   JetPtrs selectedJets, selectedBJets;
   selectJets(*jets, recolep, selectedJets);
   selectBJets(selectedJets, selectedBJets);
-  TLorentzVector met = mets->front().tlv();
+  const TLorentzVector met = mets->front().tlv();
   b_MET = met.Pt();
   b_njet = selectedJets.size();
   b_nbjet = selectedBJets.size();
@@ -394,42 +394,43 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   */
 
   ////////////////////////////////////////////////////////  KIN  /////////////////////////////////////
-  int kin=0; TLorentzVector nu1, nu2, top1, top2;
+  //int kin=0;
+  TLorentzVector top1, top2, nu1, nu2;
   double maxweight=0;
   //const cat::Jet* kinj1, * kinj2;
 
   const TLorentzVector recolepLV1= recolep1.tlv();
   const TLorentzVector recolepLV2= recolep2.tlv();
   for (auto jet1 = selectedJets.begin(), end = selectedJets.end(); jet1 != end; ++jet1){
-    TLorentzVector recojet1= (*jet1)->tlv();
+    const TLorentzVector recojet1= (*jet1)->tlv();
     for (auto jet2 = next(jet1); jet2 != end; ++jet2){
 
-      double weight1 =0; double weight2 =0;
-      TLorentzVector recojet2= (*jet2)->tlv();
+      const TLorentzVector recojet2= (*jet2)->tlv();
 
-      double xconstraint = recolep1.px()+recolep2.px()+ recojet1.Px() + recojet2.Px() +met.Px();
-      double yconstraint = recolep1.py()+recolep2.py()+ recojet1.Py() + recojet2.Py() +met.Py();
+      const double xconstraint = recolep1.px()+recolep2.px()+ recojet1.Px() + recojet2.Px() +met.Px();
+      const double yconstraint = recolep1.py()+recolep2.py()+ recojet1.Py() + recojet2.Py() +met.Py();
 
       solver->SetConstraints(xconstraint, yconstraint);
-      TtFullLepKinSolver::NeutrinoSolution nuSol= solver->getNuSolution( recolepLV1, recolepLV2 , recojet1, recojet2);
-      weight1 = nuSol.weight;
-      TLorentzVector nu11 = AnalysisHelper::leafToTLorentzVector(nuSol.neutrino);
-      TLorentzVector nu12 = AnalysisHelper::leafToTLorentzVector(nuSol.neutrinoBar);
+      const auto nuSol1 = solver->getNuSolution( recolepLV1, recolepLV2 , recojet1, recojet2);
+      const auto nuSol2 = solver->getNuSolution( recolepLV1, recolepLV2 , recojet2, recojet1);
 
-      TtFullLepKinSolver::NeutrinoSolution nuSol2= solver->getNuSolution( recolepLV1, recolepLV2 , recojet2, recojet1);
-      weight2 = nuSol2.weight;
-      TLorentzVector nu21 = AnalysisHelper::leafToTLorentzVector(nuSol2.neutrino);
-      TLorentzVector nu22 = AnalysisHelper::leafToTLorentzVector(nuSol2.neutrinoBar);
-      if (weight1 > maxweight || weight2 > maxweight){
-        if(weight1>weight2 && weight1>0){
-          maxweight = weight1; /*kinj1=(*jet1); kinj2=(*jet2);*/ nu1 = nu11; nu2 = nu12; kin++;
-          top1 = recolepLV1+recojet1+nu11; top2 = recolepLV2+recojet2+nu12;
-        }
-        else if(weight2>weight1 && weight2>0){
-          maxweight = weight2; /*kinj1=(*jet2); kinj2=(*jet1);*/ nu1 = nu21; nu2 = nu22; kin++;
-          top1 = recolepLV1+recojet2+nu21; top2 = recolepLV2+recojet1+nu22;
-        }
+      const double weight1 = nuSol1.weight;
+      const double weight2 = nuSol2.weight;
+
+      if ( weight1 > maxweight and weight1 >= weight2 ) {
+        nu1 = AnalysisHelper::leafToTLorentzVector(nuSol1.neutrino);
+        nu2 = AnalysisHelper::leafToTLorentzVector(nuSol1.neutrinoBar);
+        maxweight = weight1;
       }
+      else if ( weight2 > maxweight and weight2 >= weight1 ) {
+        nu1 = AnalysisHelper::leafToTLorentzVector(nuSol2.neutrino);
+        nu2 = AnalysisHelper::leafToTLorentzVector(nuSol2.neutrinoBar);
+        maxweight = weight2;
+      }
+      else continue;
+
+      top1 = recolepLV1+recojet1+nu1;
+      top2 = recolepLV2+recojet2+nu2;
     }
   }
 
