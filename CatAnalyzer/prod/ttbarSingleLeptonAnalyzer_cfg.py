@@ -39,7 +39,6 @@ process.source = cms.Source("PoolSource",
 #import FWCore.PythonUtilities.LumiList as LumiList
 #process.source.lumisToProcess = LumiList.LumiList(filename = 'Cert_246908-251883_13TeV_PromptReco_Collisions15_JSON_v2.txt').getVLuminosityBlockRange()
 
-
 process.ttbarSingleLepton = cms.EDAnalyzer('TtbarSingleLeptonAnalyzer',
                                            sampleLabel       = cms.untracked.bool(runOnMC),
                                            TTbarSampleLabel  = cms.untracked.int32(runOnTTbarMC),

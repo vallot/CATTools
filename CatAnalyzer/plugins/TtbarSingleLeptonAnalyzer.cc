@@ -30,6 +30,8 @@
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/MET.h"
 
+#include "CATTools/CatAnalyzer/interface/AnalysisHelper.h"
+
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
 // b-tagging Eff
@@ -63,8 +65,6 @@ private:
   // TTbarMC_ == 2, ttbar Background
   int TTbarMC_;
 
-  typedef std::pair < std::string, int > pairtrigger;
-
   edm::EDGetTokenT<edm::View<reco::GenParticle> >  genToken_;
   edm::EDGetTokenT<edm::View<cat::Muon> >          muonToken_;
   edm::EDGetTokenT<edm::View<cat::Electron> >      electronToken_;
@@ -72,7 +72,9 @@ private:
   edm::EDGetTokenT<edm::View<cat::MET> >           metToken_;
   edm::EDGetTokenT<int>                            pvToken_;
   edm::EDGetTokenT<float>                          puWeight_;
-  edm::EDGetTokenT<std::vector<pairtrigger>>       trigger_;
+
+  edm::EDGetTokenT<edm::TriggerResults> triggerBits_;
+  edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjects_;
 
   // ----------member data ---------------------------
 
@@ -144,7 +146,8 @@ TtbarSingleLeptonAnalyzer::TtbarSingleLeptonAnalyzer(const edm::ParameterSet& iC
   metToken_      = consumes<edm::View<cat::MET> >           (iConfig.getParameter<edm::InputTag>("metLabel"));
   pvToken_       = consumes<int>                            (iConfig.getParameter<edm::InputTag>("pvLabel"));
   puWeight_      = consumes<float>                          (iConfig.getParameter<edm::InputTag>("puWeight"));
-  trigger_       = consumes<std::vector<pairtrigger>>       (iConfig.getParameter<edm::InputTag>("trigLabel"));
+  triggerBits_ = consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerBits"));
+  triggerObjects_ = consumes<pat::TriggerObjectStandAloneCollection>(iConfig.getParameter<edm::InputTag>("triggerObjects"));
 
   b_Jet_px = new std::vector<float>;
   b_Jet_py = new std::vector<float>;
@@ -459,19 +462,16 @@ void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Eve
   //---------------------------------------------------------------------------
 
   bool EvTrigger = true; // Trigger requirement not yet applied
-  Handle< std::vector<pairtrigger> > TriggerBits;
+  edm::Handle<edm::TriggerResults> triggerBits;
+  edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
+  iEvent.getByToken(triggerBits_, triggerBits);
+  iEvent.getByToken(triggerObjects_, triggerObjects);
+  const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
+  AnalysisHelper trigHelper = AnalysisHelper(triggerNames, triggerBits, triggerObjects);
 
-  iEvent.getByToken(trigger_, TriggerBits);
-
-  for(unsigned int i_t=0; i_t<TriggerBits->size(); i_t++){
-    //if(ch_tag == 0 || ch_tag == 1) std::cout << TriggerBits->size() << " Trigger: " << (*TriggerBits)[i_t].first << " with " << (*TriggerBits)[i_t].second << std::endl;
-
-    if( (ch_tag == 0 && (*TriggerBits)[i_t].first == "HLT_Mu24_eta2p1_v1") ||
-        (ch_tag == 1 && (*TriggerBits)[i_t].first == "HLT_Ele27_eta2p1_WP75_Gsf_v1")){
-
-      EvTrigger = true;
-      continue;
-    }
+  if ( (ch_tag == 0 && trigHelper.triggerFired("HLT_Mu24_eta2p1_v1")) ||
+       (ch_tag == 1 && trigHelper.triggerFired("HLT_Ele27_eta2p1_WP75_Gsf_v1")) ) {
+    EvTrigger = true;
   }
 
   //---------------------------------------------------------------------------
