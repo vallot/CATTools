@@ -85,7 +85,7 @@ private:
   std::vector<int> pseudoTop_modes;
   //enum TTbarMode { CH_NONE = 0, CH_FULLHADRON = 1, CH_SEMILEPTON, CH_FULLLEPTON };
   //enum DecayMode { CH_HADRON = 1, CH_MUON, CH_ELECTRON, CH_TAU_HADRON, CH_TAU_MUON, CH_TAU_ELECTRON };
-  int cutflow[10][4];
+  std::vector<std::vector<int> > cutflow_;
 };
 //
 // constructors and destructor
@@ -164,14 +164,14 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("filtered", &b_filtered, "filtered/I");
   ttree_->Branch("is3lep", &b_is3lep, "is3lep/I");
 
-  for (int i = 0; i < 10; i++) for (int j = 0; j < 4; j++) cutflow[i][j]=0;
+  for (int i = 0; i < 10; i++) cutflow_.push_back({0,0,0,0});
 }
 
 TtbarDiLeptonAnalyzer::~TtbarDiLeptonAnalyzer()
 {
   cout <<"cut flow         emu         ee         mumu"<< endl;
-  for (int i = 0; i < 6; i++){
-    cout <<"step "<< i<< " "<< cutflow[i][0] <<  " "<< cutflow[i][1] << " " << cutflow[i][2] << " " << cutflow[i][3]<< endl;
+  for ( int i=0; i<nCutflow_; ++i ) {
+    cout <<"step "<< i << " "<< cutflow_[i][0] <<  " "<< cutflow_[i][1] << " " << cutflow_[i][2] << " " << cutflow_[i][3]<< endl;
   }
 }
 
@@ -322,7 +322,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
   if (!tri) return;
 
-  cutflow[0][b_channel]++;
+  cutflow_[++b_step][b_channel]++;
 
   b_lep1_pt = recolep1.pt(); b_lep1_eta = recolep1.eta(); b_lep1_phi = recolep1.phi();
   b_lep2_pt = recolep2.pt(); b_lep2_eta = recolep2.eta(); b_lep2_phi = recolep2.phi();
@@ -337,8 +337,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     ttree_->Fill();
     return;
   }
-  cutflow[1][b_channel]++;
-  b_step = 1;
+  cutflow_[++b_step][b_channel]++;
 
   if (b_channel != 1){
     if ((b_ll_m > 76) && (b_ll_m < 106)){
@@ -346,8 +345,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       return;
     }
   }
-  cutflow[2][b_channel]++;
-  b_step = 2;
+  cutflow_[++b_step][b_channel]++;
 
   JetPtrs selectedJets, selectedBJets;
   selectJets(*jets, recolep, selectedJets);
@@ -361,8 +359,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     ttree_->Fill();
     return;
   }
-  cutflow[3][b_channel]++;
-  b_step = 3;
+  cutflow_[++b_step][b_channel]++;
 
   if (b_channel != 1){
     if (b_MET < 40.){
@@ -370,15 +367,13 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       return;
     }
   }
-  cutflow[4][b_channel]++;
-  b_step = 4;
+  cutflow_[++b_step][b_channel]++;
 
   if (selectedBJets.size() == 0){
     ttree_->Fill();
     return;
   }
-  cutflow[5][b_channel]++;
-  b_step = 5;
+  cutflow_[++b_step][b_channel]++;
 
   //  printf("selectedMuons %lu, selectedElectrons %lu, selectedJets %lu, selectedBJets %lu\n",selectedMuons.size(), selectedElectrons.size(), selectedJets.size(), selectedBJets.size() );
   /*
