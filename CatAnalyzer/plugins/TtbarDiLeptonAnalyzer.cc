@@ -29,14 +29,16 @@ public:
   explicit TtbarDiLeptonAnalyzer(const edm::ParameterSet&);
   ~TtbarDiLeptonAnalyzer();
 
-
 private:
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
 
-  vector<cat::Muon> selectMuons(const std::vector<cat::Muon>& muons ) const;
-  vector<cat::Electron> selectElecs(const std::vector<cat::Electron>& elecs ) const;
-  vector<cat::Jet> selectJets(const std::vector<cat::Jet>& jets, const vector<cat::Particle>& recolep) const;
-  vector<cat::Jet> selectBJets(const vector<cat::Jet>& jets ) const;
+  typedef std::vector<const cat::Particle*> ParticlePtrs;
+  typedef std::vector<const cat::Jet*> JetPtrs;
+
+  void selectMuons(const vector<cat::Muon>& muons, ParticlePtrs& selmuons) const;
+  void selectElecs(const vector<cat::Electron>& elecs, ParticlePtrs& selelecs) const;
+  void selectJets(const vector<cat::Jet>& jets, const ParticlePtrs& recolep, JetPtrs& seljets) const;
+  void selectBJets(const JetPtrs& jets, JetPtrs& selBjets) const;
   const reco::Candidate* getLast(const reco::Candidate* p) const;
 
   edm::EDGetTokenT<bool>          goodVertices_;
@@ -280,16 +282,17 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   //   return;
   // }
 
-  vector<cat::Muon> selectedMuons = selectMuons(*muons);
-  vector<cat::Electron> selectedElectrons = selectElecs(*electrons);
-  if (selectedMuons.size() + selectedElectrons.size() < 2) return;
+  ParticlePtrs recolep;
+  selectMuons(*muons, recolep);
+  selectElecs(*electrons, recolep);
+  if (recolep.size() < 2) return;
+  // A lambda function to return a->pt() > b->pt()
+  auto GtByPtPtr = [](const cat::Particle* a, const cat::Particle* b){return a->pt() > b->pt();};
+  sort(recolep.begin(), recolep.end(), GtByPtPtr);
+  const auto& recolep1 = *recolep[0];
+  const auto& recolep2 = *recolep[1];
 
-  vector<cat::Particle> recolep;
-  for (auto lep : selectedMuons) recolep.push_back(lep);
-  for (auto lep : selectedElectrons) recolep.push_back(lep);
-  sort(recolep.begin(), recolep.end(), AnalysisHelper::ptSorting);
-
-  const int pdgIdSum = std::abs(recolep[0].pdgId()) + std::abs(recolep[1].pdgId());
+  const int pdgIdSum = std::abs(recolep1.pdgId()) + std::abs(recolep2.pdgId());
   if (pdgIdSum == 24) b_channel = 1; // emu
   if (pdgIdSum == 22) b_channel = 2; // ee
   if (pdgIdSum == 26) b_channel = 3; // mumu
@@ -321,16 +324,16 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
   cutflow[0][b_channel]++;
 
-  b_lep1_pt = recolep[0].pt(); b_lep1_eta = recolep[0].eta(); b_lep1_phi = recolep[0].phi();
-  b_lep2_pt = recolep[1].pt(); b_lep2_eta = recolep[1].eta(); b_lep2_phi = recolep[1].phi();
-  TLorentzVector tlv_ll = recolep[0].tlv()+recolep[1].tlv();
+  b_lep1_pt = recolep1.pt(); b_lep1_eta = recolep1.eta(); b_lep1_phi = recolep1.phi();
+  b_lep2_pt = recolep2.pt(); b_lep2_eta = recolep2.eta(); b_lep2_phi = recolep2.phi();
+  TLorentzVector tlv_ll = recolep1.tlv()+recolep2.tlv();
   b_ll_pt = tlv_ll.Pt(); b_ll_eta = tlv_ll.Eta(); b_ll_phi = tlv_ll.Phi(); b_ll_m = tlv_ll.M();
 
   if (b_ll_m < 20.){
     ttree_->Fill();
     return;
   }
-  if (recolep[0].charge() * recolep[1].charge() > 0){
+  if (recolep1.charge() * recolep2.charge() > 0){
     ttree_->Fill();
     return;
   }
@@ -346,8 +349,9 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   cutflow[2][b_channel]++;
   b_step = 2;
 
-  vector<cat::Jet> selectedJets = selectJets(*jets, recolep );
-  vector<cat::Jet> selectedBJets = selectBJets(selectedJets);
+  JetPtrs selectedJets, selectedBJets;
+  selectJets(*jets, recolep, selectedJets);
+  selectBJets(selectedJets, selectedBJets);
   TLorentzVector met = mets->front().tlv();
   b_MET = met.Pt();
   b_njet = selectedJets.size();
@@ -391,38 +395,38 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   ////////////////////////////////////////////////////////  KIN  /////////////////////////////////////
   int kin=0; TLorentzVector nu1, nu2, top1, top2;
   double maxweight=0;
-  cat::Jet kinj1, kinj2;
+  //const cat::Jet* kinj1, * kinj2;
 
+  const TLorentzVector recolepLV1= recolep1.tlv();
+  const TLorentzVector recolepLV2= recolep2.tlv();
   for (auto jet1 = selectedJets.begin(), end = selectedJets.end(); jet1 != end; ++jet1){
+    TLorentzVector recojet1= (*jet1)->tlv();
     for (auto jet2 = next(jet1); jet2 != end; ++jet2){
 
       double weight1 =0; double weight2 =0;
-      TLorentzVector recojet1= jet1->tlv();
-      TLorentzVector recojet2= jet2->tlv();
-      TLorentzVector recolep1= recolep[0].tlv();
-      TLorentzVector recolep2= recolep[1].tlv();
+      TLorentzVector recojet2= (*jet2)->tlv();
 
-      double xconstraint = recolep1.Px()+recolep2.Px()+ (recojet1).Px() + (recojet2).Px() +met.Px();
-      double yconstraint = recolep1.Py()+recolep2.Py()+ (recojet2).Py() + (recojet1).Py() +met.Py();
+      double xconstraint = recolep1.px()+recolep2.px()+ recojet1.Px() + recojet2.Px() +met.Px();
+      double yconstraint = recolep1.py()+recolep2.py()+ recojet1.Py() + recojet2.Py() +met.Py();
 
       solver->SetConstraints(xconstraint, yconstraint);
-      TtFullLepKinSolver::NeutrinoSolution nuSol= solver->getNuSolution( recolep1, recolep2 , recojet1, recojet2);
+      TtFullLepKinSolver::NeutrinoSolution nuSol= solver->getNuSolution( recolepLV1, recolepLV2 , recojet1, recojet2);
       weight1 = nuSol.weight;
       TLorentzVector nu11 = AnalysisHelper::leafToTLorentzVector(nuSol.neutrino);
       TLorentzVector nu12 = AnalysisHelper::leafToTLorentzVector(nuSol.neutrinoBar);
 
-      TtFullLepKinSolver::NeutrinoSolution nuSol2= solver->getNuSolution( recolep1, recolep2 , recojet2, recojet1);
+      TtFullLepKinSolver::NeutrinoSolution nuSol2= solver->getNuSolution( recolepLV1, recolepLV2 , recojet2, recojet1);
       weight2 = nuSol2.weight;
       TLorentzVector nu21 = AnalysisHelper::leafToTLorentzVector(nuSol2.neutrino);
       TLorentzVector nu22 = AnalysisHelper::leafToTLorentzVector(nuSol2.neutrinoBar);
       if (weight1 > maxweight || weight2 > maxweight){
         if(weight1>weight2 && weight1>0){
-          maxweight = weight1; kinj1=(*jet1); kinj2=(*jet2); nu1 = nu11; nu2 = nu12; kin++;
-          top1 = recolep1+recojet1+nu11; top2 = recolep2+recojet2+nu12;
+          maxweight = weight1; /*kinj1=(*jet1); kinj2=(*jet2);*/ nu1 = nu11; nu2 = nu12; kin++;
+          top1 = recolepLV1+recojet1+nu11; top2 = recolepLV2+recojet2+nu12;
         }
         else if(weight2>weight1 && weight2>0){
-          maxweight = weight2; kinj1=(*jet2); kinj2=(*jet1); nu1 = nu21; nu2 = nu22; kin++;
-          top1 = recolep1+recojet2+nu21; top2 = recolep2+recojet1+nu22;
+          maxweight = weight2; /*kinj1=(*jet2); kinj2=(*jet1);*/ nu1 = nu21; nu2 = nu22; kin++;
+          top1 = recolepLV1+recojet2+nu21; top2 = recolepLV2+recojet1+nu22;
         }
       }
     }
@@ -452,9 +456,8 @@ const reco::Candidate* TtbarDiLeptonAnalyzer::getLast(const reco::Candidate* p) 
   return p;
 }
 
-vector<cat::Muon> TtbarDiLeptonAnalyzer::selectMuons(const std::vector<cat::Muon>& muons ) const
+void TtbarDiLeptonAnalyzer::selectMuons(const std::vector<cat::Muon>& muons, ParticlePtrs& selmuons) const
 {
-  vector<cat::Muon> selmuons;
   for (auto mu : muons) {
     if (mu.pt() < 20.) continue;
     if (std::abs(mu.eta()) > 2.4) continue;
@@ -462,15 +465,12 @@ vector<cat::Muon> TtbarDiLeptonAnalyzer::selectMuons(const std::vector<cat::Muon
     if (!mu.isTightMuon()) continue;
     if (mu.relIso(0.4) > 0.12) continue;
     //printf("muon with pt %4.1f, POG loose id %d, tight id %d\n", mu.pt(), mu.isLooseMuon(), mu.isTightMuon());
-    selmuons.push_back(mu);
+    selmuons.push_back(&mu);
   }
-
-  return selmuons;
 }
 
-vector<cat::Electron> TtbarDiLeptonAnalyzer::selectElecs(const std::vector<cat::Electron>& elecs ) const
+void TtbarDiLeptonAnalyzer::selectElecs(const std::vector<cat::Electron>& elecs, ParticlePtrs& selelecs) const
 {
-  vector<cat::Electron> selelecs;
   for (auto el : elecs) {
     if (el.pt() < 20.) continue;
     if ((std::abs(el.scEta()) > 1.4442) && (std::abs(el.scEta()) < 1.566)) continue;
@@ -481,14 +481,13 @@ vector<cat::Electron> TtbarDiLeptonAnalyzer::selectElecs(const std::vector<cat::
     if (!el.isPF()) continue;
 
     //printf("electron with pt %4.1f\n", el.pt());
-    selelecs.push_back(el);
+    selelecs.push_back(&el);
   }
-  return selelecs;
 }
 
-vector<cat::Jet> TtbarDiLeptonAnalyzer::selectJets(const std::vector<cat::Jet>& jets, const vector<cat::Particle>& recolep ) const
+void TtbarDiLeptonAnalyzer::selectJets(const vector<cat::Jet>& jets, const ParticlePtrs& recolep, JetPtrs& seljets) const
 {
-  vector<cat::Jet> seljets;seljets.clear();
+  seljets.clear();
   for (auto jet : jets) {
     if (jet.pt() < 30.) continue;
     if (std::abs(jet.eta()) > 2.4)	continue;
@@ -496,24 +495,21 @@ vector<cat::Jet> TtbarDiLeptonAnalyzer::selectJets(const std::vector<cat::Jet>& 
 
     bool hasOverLap = false;
     for (auto lep : recolep){
-      if (deltaR(jet,lep) < 0.4) hasOverLap = true;
+      if (deltaR(jet.p4(),lep->p4()) < 0.4) hasOverLap = true;
     }
     if (hasOverLap) continue;
     // printf("jet with pt %4.1f\n", jet.pt());
-    seljets.push_back(jet);
+    seljets.push_back(&jet);
   }
-  return seljets;
 }
 
-vector<cat::Jet> TtbarDiLeptonAnalyzer::selectBJets(const vector<cat::Jet>& jets ) const
+void TtbarDiLeptonAnalyzer::selectBJets(const JetPtrs& jets, JetPtrs& selBjets) const
 {
-  vector<cat::Jet> selBjets;
   for (auto jet : jets) {
-    if (jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") < 0.605) continue;	
+    if (jet->bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") < 0.605) continue;	
     //printf("b jet with pt %4.1f\n", jet.pt());
     selBjets.push_back(jet);
   }
-  return selBjets;
 }
 
 //define this as a plug-in
