@@ -1,3 +1,6 @@
+#ifndef CATTools_CatAnalysis_AnalysisHelper_H
+#define CATTools_CatAnalysis_AnalysisHelper_H
+
 #include "FWCore/Common/interface/TriggerNames.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "DataFormats/PatCandidates/interface/TriggerObjectStandAlone.h"
@@ -31,3 +34,5 @@ class AnalysisHelper {
   bool triggerMatched(TString trigname, cat::Particle & recoObj, float dR = 0.1);
 
 };
+
+#endif
