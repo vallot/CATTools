@@ -1,5 +1,5 @@
 #ifndef CATTools_GenJet_H
-#define CATTools_GenJet_H 
+#define CATTools_GenJet_H
 
 #include "DataFormats/Candidate/interface/CandidateFwd.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
@@ -24,8 +24,8 @@ namespace cat {
   class GenJet : public Particle{
   public:
     GenJet();
-    GenJet(const reco::GenJet & aGenJet); 
-    virtual ~GenJet(); 
+    GenJet(const reco::GenJet & aGenJet);
+    virtual ~GenJet();
 
     const MCParticle hadron() const {return hadron_; }
     void setHadron( MCParticle Had ) { hadron_ = Had; }	

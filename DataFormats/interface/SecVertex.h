@@ -1,5 +1,5 @@
 #ifndef CATTools_SecVertex_H
-#define CATTools_SecVertex_H 
+#define CATTools_SecVertex_H
 
 #include "DataFormats/Candidate/interface/CandidateFwd.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
@@ -19,9 +19,9 @@ namespace cat {
   class SecVertex : public reco::VertexCompositeCandidate{
   public:
     SecVertex();
-    SecVertex(reco::VertexCompositeCandidate & aSecVertex); 
+    SecVertex(reco::VertexCompositeCandidate & aSecVertex);
     virtual ~SecVertex();
-    
+
     float lxy() const { return lxy_;}
     float l3D() const { return l3D_;}
     float vProb() const { return vProb_;}

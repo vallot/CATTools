@@ -1,5 +1,5 @@
 #ifndef CATTools_Photon_H
-#define CATTools_Photon_H 
+#define CATTools_Photon_H
 
 #include "DataFormats/Candidate/interface/CandidateFwd.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
@@ -19,7 +19,7 @@ namespace cat {
   class Photon : public Particle{
   public:
     Photon();
-    Photon(const reco::LeafCandidate & aPhoton); 
+    Photon(const reco::LeafCandidate & aPhoton);
     virtual ~Photon();
 
     float chargedHadronIso() const { return chargedHadronIso_;  }

@@ -100,6 +100,6 @@ namespace {
     edm::reftobase::VectorHolder<reco::Candidate, reco::CompositePtrCandidateRefVector> a4;
     edm::reftobase::RefVectorHolder<reco::CompositePtrCandidateRefVector> a5;
   };
-  
+
 
 }

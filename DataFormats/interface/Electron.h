@@ -1,5 +1,5 @@
 #ifndef CATTools_Electron_H
-#define CATTools_Electron_H 
+#define CATTools_Electron_H
 
 #include "DataFormats/Candidate/interface/CandidateFwd.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
@@ -20,7 +20,7 @@ namespace cat {
   class Electron : public Particle{
   public:
     Electron();
-    Electron(const reco::LeafCandidate & aElectron); 
+    Electron(const reco::LeafCandidate & aElectron);
     virtual ~Electron();
 
     float dxy() const { return dxy_; }
@@ -68,10 +68,10 @@ namespace cat {
     void setrelIso(double dR, double chIso, double nhIso, double phIso, double AEff, double rhoIso, double ecalpt)
     {
       float relIso = ( chIso + std::max(0.0, nhIso + phIso - rhoIso*AEff) )/ ecalpt;
-      if( dR < 0.35) relIso03_ = relIso; 
-      else  relIso04_ = relIso; 
+      if( dR < 0.35) relIso03_ = relIso;
+      else  relIso04_ = relIso;
     }
-    void setscEta(float i) { scEta_ = i; } 
+    void setscEta(float i) { scEta_ = i; }
     void setPassConversionVeto(bool i) {  passConversionVeto_ = i; }
 
     void setChargedHadronIso03(float i) { chargedHadronIso03_ = i; }
@@ -87,7 +87,7 @@ namespace cat {
     void setMCMatched(bool m) { mcMatched_ = m; }
 
     void setSNUID(int id) {snuID_ = id;}
-    
+
     float electronID(const std::string& name) const;
     float electronID(const char* name) const { return electronID( std::string(name) );}
     void setElectronIDs(const std::vector<pat::Electron::IdPair> & ids) { electronIDs_ = ids; }
@@ -109,7 +109,7 @@ namespace cat {
   private:
 
     std::vector<pat::Electron::IdPair> electronIDs_;
-    
+
     float relIso03_;
     float relIso04_;
 
@@ -126,7 +126,7 @@ namespace cat {
     float scEta_;
     bool isPF_;
     bool isGsfCtfScPixChargeConsistent_;
-    
+
     bool mcMatched_;
     bool passConversionVeto_;
 
