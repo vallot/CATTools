@@ -3,7 +3,7 @@
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Framework/interface/Event.h"
 
@@ -33,7 +33,7 @@ using namespace std;
 //
 // class decleration
 //
-class CATHisAnalysis : public edm::EDAnalyzer {
+class CATHisAnalysis : public edm::one::EDAnalyzer<edm::one::SharedResources> {
   public:
     explicit CATHisAnalysis(const edm::ParameterSet & pset);
     ~CATHisAnalysis() {};
@@ -117,6 +117,7 @@ CATHisAnalysis::CATHisAnalysis(const edm::ParameterSet& pset )
   photonToken_   = consumes<edm::View<TPhoton> >(pset.getParameter<edm::InputTag>("photons"));
   tauToken_      = consumes<edm::View<TTau> >(pset.getParameter<edm::InputTag>("taus"));
 
+  usesResource("TFileService");
   edm::Service<TFileService> fs;
 
   TFileDirectory dirElectron = fs->mkdir("electron", "electron");

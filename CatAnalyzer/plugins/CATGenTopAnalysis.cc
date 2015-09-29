@@ -1,5 +1,5 @@
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/Framework/interface/Event.h"
@@ -20,10 +20,10 @@
 
 using namespace std;
 
-class CATGenLevelAnalysis : public edm::EDAnalyzer
+class CATGenTopAnalysis : public edm::one::EDAnalyzer<edm::one::SharedResources>
 {
 public:
-  CATGenLevelAnalysis(const edm::ParameterSet& pset);
+  CATGenTopAnalysis(const edm::ParameterSet& pset);
   void analyze(const edm::Event& event, const edm::EventSetup& eventSetup) override;
 
 private:
@@ -33,14 +33,14 @@ private:
   edm::EDGetTokenT<reco::GenParticleCollection> pseudoTopToken_;
 
   typedef const reco::Candidate* CCandPtr;
-  bool isAcceptedFullLept(CCandPtr l1, CCandPtr l2, CCandPtr b1, CCandPtr b2) {
+  bool isAcceptedFullLept(CCandPtr l1, CCandPtr l2, CCandPtr b1, CCandPtr b2) const {
     if ( l1->pt() < 20 or std::abs(l1->eta()) > 2.4 ) return false;
     if ( l2->pt() < 20 or std::abs(l2->eta()) > 2.4 ) return false;
     if ( b1->pt() < 30 or std::abs(b1->eta()) > 2.4 ) return false;
     if ( b2->pt() < 30 or std::abs(b2->eta()) > 2.4 ) return false;
     return true;
   }
-  bool isAcceptedSemiLept(CCandPtr lep, CCandPtr q1, CCandPtr q2, CCandPtr b1, CCandPtr b2) {
+  bool isAcceptedSemiLept(CCandPtr lep, CCandPtr q1, CCandPtr q2, CCandPtr b1, CCandPtr b2) const {
     if ( lep->pt() < 30 or std::abs(lep->eta()) > 2.4 ) return false;
     if ( q1->pt() < 30 or std::abs(q1->eta()) > 2.4 ) return false;
     if ( q2->pt() < 30 or std::abs(q2->eta()) > 2.4 ) return false;
@@ -75,15 +75,14 @@ private:
   std::vector<TH2F*> h2_, h2Com_;
 };
 
-//using namespace cat;
-
-CATGenLevelAnalysis::CATGenLevelAnalysis(const edm::ParameterSet& pset)
+CATGenTopAnalysis::CATGenTopAnalysis(const edm::ParameterSet& pset)
 {
   partonTopToken_ = consumes<reco::GenParticleCollection>(pset.getParameter<edm::InputTag>("partonTop"));
   pseudoTopToken_ = consumes<reco::GenParticleCollection>(pset.getParameter<edm::InputTag>("pseudoTop"));
   channelToken_ = consumes<int>(pset.getParameter<edm::InputTag>("channel"));
   modesToken_ = consumes<std::vector<int> >(pset.getParameter<edm::InputTag>("modes"));
 
+  usesResource("TFileService");
   edm::Service<TFileService> fs;
 
   const std::vector<std::vector<float> > bins = {
@@ -165,7 +164,7 @@ CATGenLevelAnalysis::CATGenLevelAnalysis(const edm::ParameterSet& pset)
 
 }
 
-void CATGenLevelAnalysis::analyze(const edm::Event& event, const edm::EventSetup& eventSetup)
+void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& eventSetup)
 {
   edm::Handle<int> channelHandle;
   event.getByToken(channelToken_, channelHandle);
@@ -438,5 +437,5 @@ void CATGenLevelAnalysis::analyze(const edm::Event& event, const edm::EventSetup
 
 }
 
-DEFINE_FWK_MODULE(CATGenLevelAnalysis);
+DEFINE_FWK_MODULE(CATGenTopAnalysis);
 
