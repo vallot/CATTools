@@ -81,12 +81,12 @@ cat::CATSecVertexProducer::CATSecVertexProducer(const edm::ParameterSet & iConfi
   massMax_ = iConfig.getParameter<double>("massMax");
 }
 
-void 
-cat::CATSecVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) 
+void
+cat::CATSecVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
   Handle<pat::MuonCollection> muonSrc;
   iEvent.getByToken(muonSrc_, muonSrc);
- 
+
   Handle<pat::ElectronCollection> elecSrc;
   iEvent.getByToken(elecSrc_, elecSrc);
 
@@ -97,12 +97,12 @@ cat::CATSecVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & 
 
   if ( recVtxs->empty() || (muonSrc->size() < 2 && elecSrc->size() < 2))
     return;
-  
+
   reco::Vertex pv = recVtxs->at(0);
 
   edm::ESHandle<TransientTrackBuilder> trackBuilder;
   iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",trackBuilder);
- 
+
   //make muon transient tracks
   std::vector<TransientTrack> muTransTracks;
   for (const pat::Muon & aPatMuon : *muonSrc){
@@ -131,10 +131,10 @@ cat::CATSecVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & 
   fitTransientTracks(pv, elTransTracks, 11);
 
   auto_ptr<vector<cat::SecVertex> > out(out_);
-  iEvent.put(out); 
+  iEvent.put(out);
 }
 
-void 
+void
 cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<TransientTrack> transTracks, int pdgId) const
 {
   const double pvx = goodPV.position().x();

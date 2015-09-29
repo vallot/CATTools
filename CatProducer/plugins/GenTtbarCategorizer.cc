@@ -2,24 +2,24 @@
 //
 // Package:    PhysicsTools/GenTtbarCategorizer
 // Class:      GenTtbarCategorizer
-// 
+//
 /**\class GenTtbarCategorizer GenTtbarCategorizer.cc PhysicsTools/JetMCAlgos/plugins/GenTtbarCategorizer.cc
 //https://twiki.cern.ch/twiki/pub/CMSPublic/GenHFHadronMatcher/GenTtbarCategorizer.cc
 //
  Description: Categorization of different tt+xx processes, returning unique ID for each process as e.g. tt+bb, tt+b, tt+2b, tt+cc, ...
 
  Implementation:
-     
+
      The classification scheme returns an ID per event, and works as follows:
-     
+
      All jets in the following need to be in the acceptance as given by the config parameters |eta|, pt.
-     
+
      First, jets from top are identified, i.e. jets containing a b hadron from top. These are excluded from the search for additional jets.
      They are encoded in the ID as numberOfBjetsFromTop*100, i.e.
      0xx: no b jets from top in acceptance
      1xx: 1 b jet from top in acceptance
      2xx: both b jets from top in acceptance
-     
+
      From the remaining jets, the ID is formed based on the additional b jets (IDs x5x) and c jets (IDs x4x) in the following order:
      x55: at least 2 additional b jets with two of them having >= 2 b hadrons
      x54: at least 2 additional b jets with one of them having >= 2 b hadrons, the other having =1 b hadron
@@ -62,26 +62,26 @@ class GenTtbarCategorizer : public edm::stream::EDProducer<> {
     public:
         explicit GenTtbarCategorizer(const edm::ParameterSet&);
         ~GenTtbarCategorizer() {};
-        
+
         static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
-        
+
     private:
         void produce(edm::Event&, const edm::EventSetup&) override;
-        
+
         //virtual void beginRun(edm::Run const&, edm::EventSetup const&) override;
         //virtual void endRun(edm::Run const&, edm::EventSetup const&) override;
         //virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
         //virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
-        
+
         // ----------member data ---------------------------
-        
+
         // Jet configuration
         const double genJetPtMin_;
         const double genJetAbsEtaMax_;
-        
+
         // Input tags
         const edm::EDGetTokenT<reco::GenJetCollection> genJetsToken_;
-        
+
         const edm::EDGetTokenT<std::vector<int> > genBHadJetIndexToken_;
         const edm::EDGetTokenT<std::vector<int> > genBHadFlavourToken_;
         const edm::EDGetTokenT<std::vector<int> > genBHadFromTopWeakDecayToken_;
@@ -90,13 +90,13 @@ class GenTtbarCategorizer : public edm::stream::EDProducer<> {
         const edm::EDGetTokenT<std::vector<int> > genBHadIndexToken_;
         const edm::EDGetTokenT<std::vector<int> > genBHadLeptonHadronIndexToken_;
         const edm::EDGetTokenT<std::vector<int> > genBHadLeptonViaTauToken_;
-        
+
         const edm::EDGetTokenT<std::vector<int> > genCHadJetIndexToken_;
         const edm::EDGetTokenT<std::vector<int> > genCHadFlavourToken_;
         const edm::EDGetTokenT<std::vector<int> > genCHadFromTopWeakDecayToken_;
         const edm::EDGetTokenT<std::vector<int> > genCHadBHadronIdToken_;
-        
-        
+
+
 };
 
 //
@@ -134,48 +134,47 @@ GenTtbarCategorizer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     // Access gen jets
     edm::Handle<reco::GenJetCollection> genJets;
     iEvent.getByToken(genJetsToken_, genJets);
-    
-    
+
     // Access B hadrons information
     edm::Handle<std::vector<int> > genBHadFlavour;
     iEvent.getByToken(genBHadFlavourToken_, genBHadFlavour);
-    
+
     edm::Handle<std::vector<int> > genBHadJetIndex;
     iEvent.getByToken(genBHadJetIndexToken_, genBHadJetIndex);
-    
+
     edm::Handle<std::vector<int> > genBHadFromTopWeakDecay;
     iEvent.getByToken(genBHadFromTopWeakDecayToken_, genBHadFromTopWeakDecay);
-    
+
     edm::Handle<std::vector<reco::GenParticle> > genBHadPlusMothers;
     iEvent.getByToken(genBHadPlusMothersToken_, genBHadPlusMothers);
-    
+
     edm::Handle<std::vector<std::vector<int> > > genBHadPlusMothersIndices;
     iEvent.getByToken(genBHadPlusMothersIndicesToken_, genBHadPlusMothersIndices);
-    
+
     edm::Handle<std::vector<int> > genBHadIndex;
     iEvent.getByToken(genBHadIndexToken_, genBHadIndex);
-    
+
     edm::Handle<std::vector<int> > genBHadLeptonHadronIndex;
     iEvent.getByToken(genBHadLeptonHadronIndexToken_, genBHadLeptonHadronIndex);
-    
+
     edm::Handle<std::vector<int> > genBHadLeptonViaTau;
     iEvent.getByToken(genBHadLeptonViaTauToken_, genBHadLeptonViaTau);
-    
-    
+
+
     // Access C hadrons information
     edm::Handle<std::vector<int> > genCHadFlavour;
     iEvent.getByToken(genCHadFlavourToken_, genCHadFlavour);
-    
+
     edm::Handle<std::vector<int> > genCHadJetIndex;
     iEvent.getByToken(genCHadJetIndexToken_, genCHadJetIndex);
-    
+
     edm::Handle<std::vector<int> > genCHadFromTopWeakDecay;
     iEvent.getByToken(genCHadFromTopWeakDecayToken_, genCHadFromTopWeakDecay);
-    
+
     edm::Handle<std::vector<int> > genCHadBHadronId;
     iEvent.getByToken(genCHadBHadronIdToken_, genCHadBHadronId);
-    
-    
+
+
     // Map <jet index, number of specific hadrons in jet>
     // B jets with b hadrons directly from top quark decay
     std::map<int, int> bJetFromTopIds;
@@ -183,8 +182,8 @@ GenTtbarCategorizer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     std::map<int, int> bJetIds;
     // C jets with c hadrons before top quark decay chain
     std::map<int, int> cJetIds;
-    
-    
+
+
     // Count number of specific b hadrons in each jet
     for(size_t hadronId = 0; hadronId < genBHadIndex->size(); ++hadronId) {
         // Flavour of the hadron's origin
@@ -208,7 +207,7 @@ GenTtbarCategorizer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
         if(bJetIds.count(jetIndex) < 1) bJetIds[jetIndex] = 1;
         else bJetIds[jetIndex]++;
     }
-    
+
     // Count number of specific c hadrons in each c jet
     for(size_t hadronId = 0; hadronId < genCHadJetIndex->size(); ++hadronId) {
         // Skip c hadrons that are coming from b hadrons
@@ -226,7 +225,7 @@ GenTtbarCategorizer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
         if(cJetIds.count(jetIndex) < 1) cJetIds[jetIndex] = 1;
         else cJetIds[jetIndex]++;
     }
-    
+
     // Find additional b jets
     std::vector<int> additionalBJetIds;
     for(std::map<int, int>::iterator it = bJetIds.begin(); it != bJetIds.end(); ++it) {
@@ -235,7 +234,7 @@ GenTtbarCategorizer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
         if(bJetFromTopIds.count(jetId) > 0) continue;
         additionalBJetIds.push_back(jetId);
     }
-    
+
     // Find additional c jets
     std::vector<int> additionalCJetIds;
     for(std::map<int, int>::iterator it = cJetIds.begin(); it != cJetIds.end(); ++it) {
@@ -244,8 +243,8 @@ GenTtbarCategorizer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
         if(bJetFromTopIds.count(jetId) > 0) continue;
         additionalCJetIds.push_back(jetId);
     }
-    
-    
+
+
     // Categorize event based on number of additional b/c jets
     // and number of corresponding hadrons in each of them
     int additionalJetEventId = bJetFromTopIds.size()*100;
@@ -297,11 +296,11 @@ GenTtbarCategorizer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
             additionalJetEventId += 0;
         }
     }
-    
+
     std::auto_ptr<int> ttbarId(new int);
     *ttbarId = additionalJetEventId;
     iEvent.put(ttbarId, "genTtbarId");
-    
+
 }
 
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------

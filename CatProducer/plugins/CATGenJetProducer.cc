@@ -30,7 +30,7 @@ namespace cat {
     virtual ~CATGenJetProducer() { }
 
     void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
-    
+
   private:
     edm::EDGetTokenT<reco::GenJetCollection> src_;
     const double pt_;
@@ -56,7 +56,7 @@ cat::CATGenJetProducer::CATGenJetProducer(const edm::ParameterSet & iConfig) :
   produces<std::vector<cat::GenJet> >();
 }
 
-void 
+void
 cat::CATGenJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
   Handle<reco::GenJetCollection> src;
@@ -68,14 +68,14 @@ cat::CATGenJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
     if ( aGenJet.pt() < pt_ || std::abs(aGenJet.eta()) > eta_ ) continue;
 
     cat::GenJet aCatGenJet(aGenJet);
-     
+
     cat::MCParticle matched;
     reco::Jet::Constituents jc = aGenJet.getJetConstituents();
     //if B-Hadron matched, always assign B-Hadron
     for ( reco::Jet::Constituents::const_iterator itr = jc.begin(); itr != jc.end(); ++itr ){
       if (itr->isAvailable()){
-	const reco::Candidate* mcpart = dynamic_cast<const reco::Candidate*>(itr->get());	  
-	const reco::Candidate* lastB = lastBHadron(*mcpart);	  
+	const reco::Candidate* mcpart = dynamic_cast<const reco::Candidate*>(itr->get());
+	const reco::Candidate* lastB = lastBHadron(*mcpart);
 	if (lastB){
 	  matched = cat::MCParticle(*lastB);
 	  break;
@@ -86,8 +86,8 @@ cat::CATGenJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
       //if only no B-Hadron matched, assign C-Hadron
       for ( reco::Jet::Constituents::const_iterator itr = jc.begin(); itr != jc.end(); ++itr ){
 	if (itr->isAvailable()){
-	  const reco::Candidate* mcpart = dynamic_cast<const reco::Candidate*>(itr->get());	  
-	  const reco::Candidate* lastC = lastCHadron(*mcpart);	  
+	  const reco::Candidate* mcpart = dynamic_cast<const reco::Candidate*>(itr->get());
+	  const reco::Candidate* lastC = lastCHadron(*mcpart);
 	  if (lastC){
 	    matched = cat::MCParticle(*lastC);
 	    break;
