@@ -113,9 +113,6 @@ namespace cat {
 
     float shiftedEnDown_;
     float shiftedEnUp_;
-    float smearedRes_;
-    float smearedResDown_;
-    float smearedResUp_;
 
   };
 }
