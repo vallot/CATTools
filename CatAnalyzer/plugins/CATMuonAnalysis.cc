@@ -52,14 +52,14 @@ class CATMuonAnalysis : public edm::EDAnalyzer {
     TH1F* nhIso;
     TH1F* phIso;
     TH1F* puIso;
-    
+
 };
 
 CATMuonAnalysis::CATMuonAnalysis(const edm::ParameterSet& iConfig):
   src_(consumes<edm::View<cat::Muon> >(iConfig.getParameter<edm::InputTag>("src")))
 {
   edm::Service<TFileService> fs;
-  
+
   phi   = fs->make<TH1F>("phi","phi",400,0,4);
   eta   = fs->make<TH1F>("eta","eta",400,0,4);
   pt    = fs->make<TH1F>("pt","pt",400,0,4);
@@ -78,7 +78,7 @@ CATMuonAnalysis::~CATMuonAnalysis()
 }
 
 void CATMuonAnalysis::beginJob(){
-  //Add event and RUN BRANCHING         
+  //Add event and RUN BRANCHING
 }
 
 void CATMuonAnalysis::endJob(){

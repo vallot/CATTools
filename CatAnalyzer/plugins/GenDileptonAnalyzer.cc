@@ -55,7 +55,7 @@ GenDileptonAnalyzer::GenDileptonAnalyzer(const edm::ParameterSet& pset)
   genWeightToken_ = consumes<float>(pset.getParameter<edm::InputTag>("weight"));
 
   edm::Service<TFileService> fs;
- 
+
   auto dirDefault = fs->mkdir("default");
   hZMass_ = dirDefault.make<TH1F>("hZMass", "hZMass;M(l^{+}l^{-}) (GeV);Events per 1GeV", 1000, 0, 1000);
   hZDEta_ = dirDefault.make<TH1F>("hZDEta", "hZDEta;#delta#eta(l^{+},l^{-});Events per 0.05", 100, 0, 5);
@@ -119,7 +119,7 @@ void GenDileptonAnalyzer::analyze(const edm::Event& event, const edm::EventSetup
   edm::Handle<reco::GenParticleCollection> genParticlesHandle;
   event.getByToken(genParticlesToken_, genParticlesHandle);
 
-  // Collect generator level leptons, before radiation 
+  // Collect generator level leptons, before radiation
   typedef const reco::GenParticle* GenParticlePtr;
   std::vector<GenParticlePtr> lepPs, lepMs;
   std::vector<GenParticlePtr> nus, nubars;
