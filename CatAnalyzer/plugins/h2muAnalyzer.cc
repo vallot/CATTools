@@ -17,7 +17,7 @@
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/MET.h"
 
-#include "CATTools/CatAnalyzer/interface/AnalysisHelper.h"
+#include "CATTools/CommonTools/interface/AnalysisHelper.h"
 #include "DataFormats/Math/interface/deltaR.h"
 
 #include "TTree.h"
@@ -26,7 +26,9 @@
 
 #define _USE_MATH_DEFINES
 #include <cmath>
+
 using namespace std;
+using namespace cat;
 
 class h2muAnalyzer : public edm::EDAnalyzer {
 public:
