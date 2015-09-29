@@ -52,9 +52,9 @@ float Jet::smearedRes(int direction) const {
   // lower_bound returns nbins if absEta > etaBins[nbins-1]. Extrapolate JER factor for higher eta
   const size_t bin = std::min(int(std::lower_bound(etaBins, etaBins+nbins, absEta)-etaBins), nbins);
 
-	const double jetPt = this->pt();
-	const double genJetPt = aGenJet->pt();
-	const double dPt = jetPt-genJetPt;
+  const double jetPt = this->pt();
+  const double genJetPt = aGenJet->pt();
+  const double dPt = jetPt-genJetPt;
 
   double cJER = 0;
   if      ( direction == 0 ) cJER = cJERs[bin];
