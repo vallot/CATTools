@@ -39,7 +39,7 @@ cat::CATPhotonProducer::CATPhotonProducer(const edm::ParameterSet & iConfig) :
   produces<std::vector<cat::Photon> >();
 }
 
-void 
+void
 cat::CATPhotonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
   bool runOnMC_ = !iEvent.isRealData();

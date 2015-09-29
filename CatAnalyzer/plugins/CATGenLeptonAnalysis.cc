@@ -1,5 +1,5 @@
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/Framework/interface/Event.h"
@@ -18,10 +18,10 @@
 
 using namespace std;
 
-class GenDileptonAnalyzer : public edm::EDAnalyzer
+class CATGenLeptonAnalysis : public edm::one::EDAnalyzer<edm::one::SharedResources>
 {
 public:
-  GenDileptonAnalyzer(const edm::ParameterSet& pset);
+  CATGenLeptonAnalysis(const edm::ParameterSet& pset);
   void analyze(const edm::Event& event, const edm::EventSetup& eventSetup) override;
 
 private:
@@ -47,15 +47,14 @@ private:
 
 };
 
-//using namespace cat;
-
-GenDileptonAnalyzer::GenDileptonAnalyzer(const edm::ParameterSet& pset)
+CATGenLeptonAnalysis::CATGenLeptonAnalysis(const edm::ParameterSet& pset)
 {
   genParticlesToken_ = consumes<reco::GenParticleCollection>(pset.getParameter<edm::InputTag>("src"));
   genWeightToken_ = consumes<float>(pset.getParameter<edm::InputTag>("weight"));
 
+  usesResource("TFileService");
   edm::Service<TFileService> fs;
- 
+
   auto dirDefault = fs->mkdir("default");
   hZMass_ = dirDefault.make<TH1F>("hZMass", "hZMass;M(l^{+}l^{-}) (GeV);Events per 1GeV", 1000, 0, 1000);
   hZDEta_ = dirDefault.make<TH1F>("hZDEta", "hZDEta;#delta#eta(l^{+},l^{-});Events per 0.05", 100, 0, 5);
@@ -110,7 +109,7 @@ GenDileptonAnalyzer::GenDileptonAnalyzer(const edm::ParameterSet& pset)
 
 }
 
-void GenDileptonAnalyzer::analyze(const edm::Event& event, const edm::EventSetup& eventSetup)
+void CATGenLeptonAnalysis::analyze(const edm::Event& event, const edm::EventSetup& eventSetup)
 {
   edm::Handle<float> genWeightHandle;
   event.getByToken(genWeightToken_, genWeightHandle);
@@ -119,7 +118,7 @@ void GenDileptonAnalyzer::analyze(const edm::Event& event, const edm::EventSetup
   edm::Handle<reco::GenParticleCollection> genParticlesHandle;
   event.getByToken(genParticlesToken_, genParticlesHandle);
 
-  // Collect generator level leptons, before radiation 
+  // Collect generator level leptons, before radiation
   typedef const reco::GenParticle* GenParticlePtr;
   std::vector<GenParticlePtr> lepPs, lepMs;
   std::vector<GenParticlePtr> nus, nubars;
@@ -212,5 +211,5 @@ void GenDileptonAnalyzer::analyze(const edm::Event& event, const edm::EventSetup
   }
 }
 
-DEFINE_FWK_MODULE(GenDileptonAnalyzer);
+DEFINE_FWK_MODULE(CATGenLeptonAnalysis);
 

@@ -1,5 +1,5 @@
 #ifndef CATTools_Jet_H
-#define CATTools_Jet_H 
+#define CATTools_Jet_H
 
 #include "DataFormats/Candidate/interface/CandidateFwd.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
@@ -23,7 +23,7 @@ namespace cat {
   class Jet : public Particle{
   public:
     Jet();
-    Jet(const reco::LeafCandidate & aJet); 
+    Jet(const reco::LeafCandidate & aJet);
     virtual ~Jet();
 
     bool LooseId() const { return looseJetID_; }// temp for backward comp
@@ -31,7 +31,7 @@ namespace cat {
     bool looseJetID() const { return looseJetID_; }
     bool tightJetID() const { return tightJetID_; }
     bool tightLepVetoJetID() const { return tightLepVetoJetID_; }
-  
+
     float pileupJetId() const { return pileupJetId_; }
     float chargedEmEnergyFraction() const { return chargedEmEnergyFraction_; }
 
@@ -67,7 +67,7 @@ namespace cat {
     float bDiscriminator(const std::string &theLabel) const;
     const std::vector<std::pair<std::string, float> > & getPairDiscri() const {return pairDiscriVector_; }
     void bDiscriminatorPrint() const;
-    
+
     void setBDiscriminators(const std::vector<std::pair<std::string, float> > & ids) { pairDiscriVector_ = ids; }
     void addBDiscriminatorPair(const std::pair<std::string, float> & thePair) {pairDiscriVector_.push_back(thePair);}
     /* void addBDiscriminatorPair(float f) { pairDiscriVector_ = f;} */
@@ -93,7 +93,7 @@ namespace cat {
     bool looseJetID_;
     bool tightJetID_;
     bool tightLepVetoJetID_;
-    
+
     float pileupJetId_;
     float chargedEmEnergyFraction_;
 
