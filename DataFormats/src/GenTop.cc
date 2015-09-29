@@ -19,7 +19,7 @@ GenTop::~GenTop() {
 //void GenTop::building( const std::vector<reco::GenJet>* genJets, const std::vector<reco::GenParticle>* genParticles  ){
 void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenParticleCollection> genParticles ){
 
-  math::XYZTLorentzVector null(0,0,0,0); 
+  math::XYZTLorentzVector null(0,0,0,0);
 
   tops_.push_back(null);
   tops_.push_back(null);
@@ -55,7 +55,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
   ttbarmass_ = 0;
   //debug
   //cout << "EVENT= " << endl;
-  for ( unsigned int ip=0; ip<nParticles; ++ip ) { 
+  for ( unsigned int ip=0; ip<nParticles; ++ip ) {
 
 
     const reco::GenParticle& p = (*genParticles)[ip];
@@ -70,7 +70,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
           bquarksfromnotop.push_back( p.p4() );
         }
         bquarks.push_back( p.p4() );
-      } 
+      }
     }
 
     if ( abs(p.pdgId()) == 4 ) {
@@ -88,8 +88,8 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     if(isLast != true) continue;
     //debug
     //cout << "ntop = " << ntop << endl;
-    topquarks.push_back( p.p4() );  
- 
+    topquarks.push_back( p.p4() );
+
     ttbarGen += p.p4();
     if( ntop == 1 ) {
       ttbarmass_ = ttbarGen.M();
@@ -111,7 +111,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
 	int decayId = abs(decay->pdgId());
         //debug
         //cout << "W decay Id = " << decayId << endl;
-	if ( decayId == 11 || decayId == 12 ) {  
+	if ( decayId == 11 || decayId == 12 ) {
           if( nWleptonDaughters == 2 ) break;
           if( decayId == 11 ) {
             electronic[ntop] = true;
@@ -122,7 +122,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
             nus_[ntop] = decay->p4() ;
             nWleptonDaughters++;
           }
-	} else if ( decayId == 13 || decayId == 14 ) {  
+	} else if ( decayId == 13 || decayId == 14 ) {
           if( nWleptonDaughters == 2 ) break;
           if( decayId == 13 ) {
             muonic[ntop] = true;
@@ -133,7 +133,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
             nus_[ntop] = decay->p4() ;
             nWleptonDaughters++;
           }
-	} else if ( decayId == 15 || decayId == 16 ) {  
+	} else if ( decayId == 15 || decayId == 16 ) {
           if( decayId == 15 ) taunic[ntop] = true;
           if( decayId == 16 ) taunus_[ntop] = decay->p4() ;
           unsigned int nTauDaughters = decay->numberOfDaughters();
@@ -199,7 +199,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
           }
 	} else if( decayId < 6 ){
           hadronic[ntop] = true;
-        } else {  
+        } else {
           continue;
         }
       }
@@ -215,7 +215,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
      is2tops_=true;
   } else is2tops_ =false;
 
- 
+
   allHadronic_ = false;
   semiLeptonic_ = false;
   semiLeptonicEle_ = false;
@@ -290,7 +290,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
   //inseart b-quarks from top to the b-quarks from non-top.
   //bquarks.insert( bquarks.begin(), bquarksfromtop.begin(), bquarksfromtop.end());
 
-  NbQuarks_ = (int) bquarks.size(); 
+  NbQuarks_ = (int) bquarks.size();
 
   int nbQuark20 = 0;
   int nbQuark40 = 0;
@@ -351,7 +351,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
   std::vector<math::XYZTLorentzVector> addbJets;
   std::vector<math::XYZTLorentzVector> cJets;
   std::vector<math::XYZTLorentzVector> cJetsCHad;
-  std::vector<math::XYZTLorentzVector> addJets;  
+  std::vector<math::XYZTLorentzVector> addJets;
 
   int idx = 0;
 
@@ -453,7 +453,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
       int selectedJet = -1;
       for( std::vector<int>::iterator bjet = (*it).second.begin(); bjet != (*it).second.end(); bjet++){
         int idx = *bjet;
-        mapJetToBMatched[idx] = 0; // set it to 0 again 
+        mapJetToBMatched[idx] = 0; // set it to 0 again
         const reco::Candidate& abjet = genJets->at(idx);
         double dR = deltaR( *BHadron, abjet ) ;
         if( dR < minDR ) {
@@ -461,7 +461,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
           minDR = dR;
         }
       }
-      //only set it to true for only selected jet 
+      //only set it to true for only selected jet
       mapJetToBMatched[selectedJet] = 1;
     }
 
@@ -476,7 +476,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
       int selectedJet = -1;
       for( std::vector<int>::iterator cjet = (*it).second.begin(); cjet != (*it).second.end(); cjet++){
         int idx = *cjet;
-        mapJetToCMatched[idx] = 0; // set it to 0 again 
+        mapJetToCMatched[idx] = 0; // set it to 0 again
         const reco::Candidate& acjet = genJets->at(idx);
         double dR = deltaR( *CHadron, acjet ) ;
         if( dR < minDR ) {
@@ -484,7 +484,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
           minDR = dR;
         }
       }
-      //only set it to true for only selected jet 
+      //only set it to true for only selected jet
       mapJetToCMatched[selectedJet] = 1;
     }
 
@@ -494,7 +494,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     if( (*it).second.size() > 1) cout << "!!! This jet matches with more than 1 hadron !!!" << endl;
     int idx = (*it).first;
     const reco::Candidate& genJet = genJets->at(idx);
-    // is It unique b-jet?  
+    // is It unique b-jet?
     if( mapJetToBMatched[idx]  == 0 ) continue;
 
     double minDR = 999;
@@ -545,7 +545,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     if( (*it).second.size() > 1) cout << "!!! This jet matches with more than 1 hadron !!!" << endl;
     int idx = (*it).first;
     const reco::Candidate& genJet = genJets->at(idx);
-    // is It unique c-jet?  
+    // is It unique c-jet?
     if( mapJetToCMatched[idx]  == 0 ) continue;
     if( mapJetToBMatched[idx]  == 1 ) continue; //if it is assigned as b-jet, do not count it as c-jet
     cJetsCHad.push_back( genJet.p4() );
@@ -623,13 +623,13 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
   dRaddJets_ = 0;
   dRaddbJets_ = 0;
   dRaddbJetsHad_ = 0;
-  dRcJets_ = 0;  
-  dRcJetsHad_ = 0;  
+  dRcJets_ = 0;
+  dRcJetsHad_ = 0;
 
-  if( addJets.size() >= 2) dRaddJets_ = reco::deltaR(addJets[0].eta(), addJets[0].phi(), addJets[1].eta(), addJets[1].phi()); 
-  if( addbJetsBHad.size() >= 2) dRaddbJetsHad_ = reco::deltaR(addbJetsBHad[0].eta(), addbJetsBHad[0].phi(), addbJetsBHad[1].eta(), addbJetsBHad[1].phi()); 
+  if( addJets.size() >= 2) dRaddJets_ = reco::deltaR(addJets[0].eta(), addJets[0].phi(), addJets[1].eta(), addJets[1].phi());
+  if( addbJetsBHad.size() >= 2) dRaddbJetsHad_ = reco::deltaR(addbJetsBHad[0].eta(), addbJetsBHad[0].phi(), addbJetsBHad[1].eta(), addbJetsBHad[1].phi());
   if( cJetsCHad.size() >= 2) dRcJetsHad_ = reco::deltaR(cJetsCHad[0].eta(), cJetsCHad[0].phi(), cJetsCHad[1].eta(), cJetsCHad[1].phi());
-  if( addbJets.size() >= 2) dRaddbJets_ = reco::deltaR(addbJets[0].eta(), addbJets[0].phi(), addbJets[1].eta(), addbJets[1].phi()); 
+  if( addbJets.size() >= 2) dRaddbJets_ = reco::deltaR(addbJets[0].eta(), addbJets[0].phi(), addbJets[1].eta(), addbJets[1].phi());
   if( cJets.size() >= 2) dRcJets_ = reco::deltaR(cJets[0].eta(), cJets[0].phi(), cJets[1].eta(), cJets[1].phi());
 }
 
@@ -643,8 +643,8 @@ std::vector<const reco::Candidate *> GenTop::getAncestors(const reco::Candidate 
       moms.push_back( dau );
       dau = mom ;
       mom = dau->mother();
-    } 
-  } 
+    }
+  }
   return moms;
 }
 
@@ -659,7 +659,7 @@ bool GenTop::hasBottom(const reco::Candidate &c)
   return tmpHasBottom;
 }
 
-bool GenTop::hasCharm(const reco::Candidate &c) 
+bool GenTop::hasCharm(const reco::Candidate &c)
 {
   int code1;
   int code2;
@@ -675,8 +675,8 @@ bool GenTop::decayFromBHadron(const Candidate & c)
    bool isFromB = false;
    vector<const Candidate *> allParents = getAncestors( c );
    for( vector<const Candidate *>::const_iterator aParent  = allParents.begin();
-                                                  aParent != allParents.end(); 
-                                                  aParent ++ ) 
+                                                  aParent != allParents.end();
+                                                  aParent ++ )
      {
          if( hasBottom(**aParent) ) isFromB = true;
 //         cout << "     particle Parent is " << (*aParent)->status()
@@ -711,14 +711,14 @@ bool GenTop::decayFromCHadron(const Candidate & c)
 const Candidate* GenTop::lastBHadron(const Candidate & c)
 {
    const Candidate * out = 0;
-   
+
    vector<const Candidate *> allParents = getAncestors( c );
    for( vector<const Candidate *>::const_iterator aParent  = allParents.begin();
                                                   aParent != allParents.end();
                                                   aParent ++ )
      {
          if( hasBottom(**aParent) ) out = *aParent;
-         
+
      }
    return out;
 }
@@ -793,7 +793,7 @@ const reco::Candidate* GenTop::getLast( const reco::Candidate& p ){
    unsigned int nDaughters = p.numberOfDaughters();
    if( nDaughters == 1) {
      const reco::Candidate* daugh = p.daughter(0);
-     if( abs( daugh->pdgId() ) == id ){ 
+     if( abs( daugh->pdgId() ) == id ){
        last = getLast( *daugh );
      }else{
        last = &p;

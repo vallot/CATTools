@@ -1,5 +1,5 @@
 #ifndef CATTools_GenTop_H
-#define CATTools_GenTop_H 
+#define CATTools_GenTop_H
 
 #include "DataFormats/Candidate/interface/CandidateFwd.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
@@ -31,9 +31,9 @@ namespace cat {
   public:
     GenTop();
     /* GenTop(const reco::GenParticle & aGenTop);  */
-    GenTop(const reco::Candidate & aGenTop); 
+    GenTop(const reco::Candidate & aGenTop);
     virtual ~GenTop();
-   
+
     typedef std::vector<math::XYZTLorentzVector> LorentzVectors;
 
     // status 3
@@ -54,20 +54,20 @@ namespace cat {
 
     const math::XYZTLorentzVector cJets1() const { return cJets_[0]; }
     const math::XYZTLorentzVector cJets2() const { return cJets_[1]; }
-    
+
     const math::XYZTLorentzVector bJets1() const { return bJets_[0]; }
     const math::XYZTLorentzVector bJets2() const { return bJets_[1]; }
     const math::XYZTLorentzVector bJets3() const { return bJets_[2]; }
     const math::XYZTLorentzVector bJets4() const { return bJets_[3]; }
-  
-    const math::XYZTLorentzVector addbJets1(int i = 0) const { 
+
+    const math::XYZTLorentzVector addbJets1(int i = 0) const {
       if( i == 0) return addbJetsHad_[0];
-      else return addbJets_[0]; 
+      else return addbJets_[0];
     }
 
-    const math::XYZTLorentzVector addbJets2(int i = 0) const { 
+    const math::XYZTLorentzVector addbJets2(int i = 0) const {
       if( i == 0) return addbJetsHad_[1];
-      else return addbJets_[1];      
+      else return addbJets_[1];
     }
 
     const math::XYZTLorentzVector addJets1() const { return addJets_[0]; }
@@ -80,16 +80,16 @@ namespace cat {
 
     float dRaddJets() const { return dRaddJets_; }
 
-    float dRaddbJets(int i=0) const { 
-      if( i == 0){ return dRaddbJetsHad_; } 
-      else return dRaddbJets_; 
+    float dRaddbJets(int i=0) const {
+      if( i == 0){ return dRaddbJetsHad_; }
+      else return dRaddbJets_;
     }
-    float dRcJets(int i=0) const { 
+    float dRcJets(int i=0) const {
       if( i == 0){ return dRcJetsHad_; }
-      else return dRcJets_; 
+      else return dRcJets_;
     }
 
-    bool taunic(int i = -1) const { 
+    bool taunic(int i = -1) const {
       bool hasTau = false;
       if( i == -1) hasTau = taunic1_ || taunic2_;
       if( i == 0 ) hasTau = taunic1_;
@@ -99,7 +99,7 @@ namespace cat {
 
     bool allHadronic() const { return allHadronic_; }
 
-    bool semiLeptonic(int i = -1) const { 
+    bool semiLeptonic(int i = -1) const {
       bool decay = false;
       if( i == -1) decay = semiLeptonic_;
       if( i == 0) decay = semiLeptonicMuo_ || semiLeptonicEle_;
@@ -111,12 +111,12 @@ namespace cat {
     bool semiLeptonicEle() const { return semiLeptonicEle_; }
     bool semiLeptonicTau() const { return semiLeptonicTau_; }
 
-    bool diLeptonic(int i = -1) const { 
+    bool diLeptonic(int i = -1) const {
       bool decay = false;
       if( i == -1) decay = diLeptonic_;
       if( i == 0) decay = diLeptonicMuoMuo_ || diLeptonicMuoEle_ || diLeptonicEleEle_;
       if( i == 1) decay = ( diLeptonicMuoMuo_ || diLeptonicMuoEle_ || diLeptonicEleEle_) && !( diLeptonicTauMuo_ || diLeptonicTauEle_ || diLeptonicTauTau_);
-      return decay; 
+      return decay;
     }
 
     bool diLeptonicMuoMuo() const { return diLeptonicMuoMuo_; }
@@ -137,16 +137,16 @@ namespace cat {
 
     int NbJets(int i=0) const {
       if( i == 0 ) return NbJetsBHad_;
-      else return NbJets_ ; 
+      else return NbJets_ ;
     }
     int NbJets10(int i=0) const {
       if( i == 0 ) return NbJets10BHad_;
-      else return NbJets10_ ; 
+      else return NbJets10_ ;
     }
     int NbJets15(int i=0) const {
       if( i == 0 ) return NbJets15BHad_;
       else return NbJets15_ ;
-    } 
+    }
     int NbJets20(int i=0) const {
       if( i == 0 ) return NbJets20BHad_;
       else return NbJets20_ ;
@@ -163,23 +163,23 @@ namespace cat {
       if( i == 0 ) return NbJets40BHad_;
       else return NbJets40_ ;
     }
-    
-    int NaddbJets(int i=0) const { 
+
+    int NaddbJets(int i=0) const {
       if( i == 0 ) return NaddbJetsBHad_;
-      else return NbJetsNoTop_; 
+      else return NbJetsNoTop_;
     }
-    int NaddbJets20(int i=0) const { 
-      if( i == 0 ) return NaddbJets20BHad_; 
+    int NaddbJets20(int i=0) const {
+      if( i == 0 ) return NaddbJets20BHad_;
       else return NbJets20NoTop_;
     }
-    int NaddbJets40(int i=0) const { 
-      if( i == 0 ) return NaddbJets40BHad_; 
+    int NaddbJets40(int i=0) const {
+      if( i == 0 ) return NaddbJets40BHad_;
       else return NbJets40NoTop_;
     }
 
     int NcJets(int i=0) const {
       if( i == 0 ) return NcJetsCHad_;
-      else return NcJets_ ; 
+      else return NcJets_ ;
     }
     int NcJets10(int i=0) const {
       if( i == 0 ) return NcJets10CHad_;
