@@ -10,8 +10,8 @@
 class AnalysisHelper {
 
  public:
-  static TLorentzVector leafToTLorentzVector(reco::LeafCandidate & leaf){return TLorentzVector(leaf.px(), leaf.py(),leaf.pz(),leaf.energy());}
-  static bool ptSorting(reco::LeafCandidate & s1, reco::LeafCandidate & s2) { return ( s1.pt() > s2.pt() ); }
+  static TLorentzVector leafToTLorentzVector(const reco::LeafCandidate & leaf){return TLorentzVector(leaf.px(), leaf.py(),leaf.pz(),leaf.energy());}
+  static bool ptSorting(const reco::LeafCandidate & s1, const reco::LeafCandidate & s2) { return ( s1.pt() > s2.pt() ); }
 
  private:
   
@@ -23,7 +23,7 @@ class AnalysisHelper {
  public:
   
   AnalysisHelper(){triggerInfoSet_ = false;}
-  AnalysisHelper(edm::TriggerNames triggerNames, edm::Handle<edm::TriggerResults> triggerResults, edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects){triggerNames_ = triggerNames; triggerResults_ = triggerResults; triggerObjects_ = triggerObjects; triggerInfoSet_ = true;}
+  AnalysisHelper(const edm::TriggerNames& triggerNames, edm::Handle<edm::TriggerResults> triggerResults, edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects){triggerNames_ = triggerNames; triggerResults_ = triggerResults; triggerObjects_ = triggerObjects; triggerInfoSet_ = true;}
   ~AnalysisHelper(){}
 
   bool triggerNotSet();

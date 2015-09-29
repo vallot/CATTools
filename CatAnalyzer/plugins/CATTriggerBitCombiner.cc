@@ -2,16 +2,16 @@
 #include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "DataFormats/PatCandidates/interface/PackedTriggerPrescales.h"
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 
-#include <boost/regex.hpp>
 #include <vector>
 #include <string>
 
-class CATTriggerPacker : public edm::stream::EDProducer<>
+class CATTriggerBitCombiner : public edm::stream::EDProducer<>
 {
 public:
-  CATTriggerPacker(const edm::ParameterSet& pset);
+  CATTriggerBitCombiner(const edm::ParameterSet& pset);
   void produce(edm::Event& event, const edm::EventSetup&) override;
 
 private:
@@ -21,20 +21,25 @@ private:
   edm::EDGetTokenT<edm::TriggerResults> triggerToken_;
   edm::EDGetTokenT<pat::PackedTriggerPrescales> prescaleToken_;
   strings triggersToMatch_;
-  const bool combineByOr_;
+  bool combineByOr_;
 
 };
 
-CATTriggerPacker::CATTriggerPacker(const edm::ParameterSet& pset):
+CATTriggerBitCombiner::CATTriggerBitCombiner(const edm::ParameterSet& pset):
   triggerToken_(consumes<edm::TriggerResults>(pset.getParameter<edm::InputTag>("triggerResults"))),
   prescaleToken_(consumes<pat::PackedTriggerPrescales>(pset.getParameter<edm::InputTag>("triggerPrescales"))),
-  triggersToMatch_(pset.getParameter<strings>("triggersToMatch")),
-  combineByOr_(pset.getParameter<bool>("combineByOr"))
+  triggersToMatch_(pset.getParameter<strings>("triggersToMatch"))
 {
+  auto combineBy = pset.getParameter<std::string>("combineBy");
+  std::transform(combineBy.begin(), combineBy.end(), combineBy.begin(), ::toupper);
+  if ( combineBy == "OR" ) combineByOr_ = true;
+  else if ( combineBy == "AND" ) combineByOr_ = false;
+  else edm::LogError("CATTriggerBitCombiner") << "Wrong input to \"combinedBy\" option, it was \"" << pset.getParameter<std::string>("combineBy") << ".\n"
+                                              << "This should be chosen among (\"and\", \"or\")\n";
   produces<int>();
 }
 
-void CATTriggerPacker::produce(edm::Event& event, const edm::EventSetup&)
+void CATTriggerBitCombiner::produce(edm::Event& event, const edm::EventSetup&)
 {
   using namespace std;
 
@@ -93,4 +98,4 @@ void CATTriggerPacker::produce(edm::Event& event, const edm::EventSetup&)
   event.put(std::auto_ptr<int>(new int(result)));
 }
 
-DEFINE_FWK_MODULE(CATTriggerPacker);
+DEFINE_FWK_MODULE(CATTriggerBitCombiner);

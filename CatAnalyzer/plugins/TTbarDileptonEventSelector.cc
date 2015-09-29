@@ -166,8 +166,8 @@ void TTbarDileptonEventSelector::produce(edm::Event& event, const edm::EventSetu
     }
 
     // Partial sort to select leading 2 leptons
-    std::nth_element(leptons.begin(), leptons.begin()+2, leptons.end(), 
-                     [](reco::CandidatePtr a, reco::CandidatePtr b){return a->pt() > b->pt();});
+    auto GtByPtPtr = [](reco::CandidatePtr a, reco::CandidatePtr b){return a->pt() > b->pt();};
+    std::nth_element(leptons.begin(), leptons.begin()+2, leptons.end(), GtByPtPtr);
 
     nLeptons = leptons.size();
     // Remove selected leptons from veto lepton collection
@@ -198,8 +198,7 @@ void TTbarDileptonEventSelector::produce(edm::Event& event, const edm::EventSetu
       // Append veto leptons to the output lepton collection
       for ( auto x : vetoLeptons ) out_leptons->push_back(x);
       // Sort veto leptons keeping selected leptons front
-      std::sort(out_leptons->begin()+2, out_leptons->end(),
-                [](reco::CandidatePtr a, reco::CandidatePtr b){return a->pt() > b->pt();});
+      std::sort(out_leptons->begin()+2, out_leptons->end(),GtByPtPtr);
     }
 
     // Continue to jets
@@ -233,13 +232,11 @@ void TTbarDileptonEventSelector::produce(edm::Event& event, const edm::EventSetu
                          const double bTag2 = dynamic_cast<const TJet&>(*b).bDiscriminator(bTagName);
                          return bTag1 > bTag2;});
       // Sort by pt for the others
-      std::sort(out_jets->begin()+nBjets, out_jets->end(),
-                [](reco::CandidatePtr a, reco::CandidatePtr b){return a->pt() > b->pt();});
+      std::sort(out_jets->begin()+nBjets, out_jets->end(), GtByPtPtr);
     }
     else
     {
-      std::sort(out_jets->begin(), out_jets->end(),
-                [](reco::CandidatePtr a, reco::CandidatePtr b){return a->pt() > b->pt();});
+      std::sort(out_jets->begin(), out_jets->end(), GtByPtPtr);
     }
   } while ( false );
 

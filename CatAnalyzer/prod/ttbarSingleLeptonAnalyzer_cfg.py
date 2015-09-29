@@ -30,15 +30,15 @@ process.source = cms.Source("PoolSource",
         #'root://cms-xrdr.sdfarm.kr///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-3-4_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v4/150810_215031/0000/catTuple_276.root' # -- MC
         #'file:/cms/home/brochero/CATTuples_August/v7-3-4/cat74/src/CATTools/CatAnalyzer/prod/SingleMu-PromptReco_catTuple_44.root'   # -- DATA
         #'root://cms-xrdr.sdfarm.kr///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-3-6_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v4/150820_215807/0000/catTuple_108.root'    # -- XROOT test
-        'file:/cms/home/brochero/CATTuples_August/Central-v7-3-6/cat74/src/CATTools/CatAnalyzer/prod/catTuple_108.root' # -- MC
+#        'file:/cms/home/brochero/CATTuples_August/Central-v7-3-6/cat74/src/CATTools/CatAnalyzer/prod/catTuple_108.root' # -- MC
         #'file:/cms/home/brochero/CATTuples_July/cat74/src/CATTools/CatAnalyzer/catTuple_83.root' # -- Data
+'file:catTuple.root'
     )
 )
 
 # json file (Only Data)
 #import FWCore.PythonUtilities.LumiList as LumiList
 #process.source.lumisToProcess = LumiList.LumiList(filename = 'Cert_246908-251883_13TeV_PromptReco_Collisions15_JSON_v2.txt').getVLuminosityBlockRange()
-
 
 process.ttbarSingleLepton = cms.EDAnalyzer('TtbarSingleLeptonAnalyzer',
                                            sampleLabel       = cms.untracked.bool(runOnMC),
@@ -51,7 +51,8 @@ process.ttbarSingleLepton = cms.EDAnalyzer('TtbarSingleLeptonAnalyzer',
                                            metLabel      = cms.InputTag("catMETsNoHF"),
                                            pvLabel       = cms.InputTag("catVertex:nGoodPV"),
                                            puWeight      = cms.InputTag("pileupWeight"),
-                                           trigLabel     = cms.InputTag("catTrigger"), # Not working yet
+                                           triggerBits = cms.InputTag("TriggerResults::HLT"), # Not working yet
+                                           triggerObjects = cms.InputTag("catTrigger"), # Not working yet
                                            )
 
 process.TFileService = cms.Service("TFileService",

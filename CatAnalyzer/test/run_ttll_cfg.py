@@ -53,10 +53,10 @@ process.ttbar = process.ttbarDileptonKin.clone(
     metphi = cms.InputTag("ttbarEvent:metphi"),
 )
 
-process.filterRECO = cms.EDProducer("CATTriggerPacker",
+process.filterRECO = cms.EDProducer("CATTriggerBitCombiner",
     triggerResults = cms.InputTag("TriggerResults::CAT"),
     triggerPrescales = cms.InputTag("patTrigger"),
-    combineByOr = cms.bool(False),
+    combineBy = cms.string("and"),
     triggersToMatch = cms.vstring(
         "CSCTightHaloFilter",
         "EcalDeadCellTriggerPrimitiveFilter",
@@ -66,18 +66,18 @@ process.filterRECO = cms.EDProducer("CATTriggerPacker",
     ),
 )
 
-process.HLTMu = cms.EDProducer("CATTriggerPacker",
+process.HLTMu = cms.EDProducer("CATTriggerBitCombiner",
     triggerResults = cms.InputTag("TriggerResults::HLT"),
     triggerPrescales = cms.InputTag("patTrigger"),
-    combineByOr = cms.bool(True),
+    combineBy = cms.string("or"),
     triggersToMatch = cms.vstring(
     ),
 )
 
-process.HLTEl = cms.EDProducer("CATTriggerPacker",
+process.HLTEl = cms.EDProducer("CATTriggerBitCombiner",
     triggerResults = cms.InputTag("TriggerResults::HLT"),
     triggerPrescales = cms.InputTag("patTrigger"),
-    combineByOr = cms.bool(True),
+    combineBy = cms.string("or"),
     triggersToMatch = cms.vstring(
         "HLT_Ele12_CaloIdL_TrackIdL_IsoVL",
         "HLT_Ele17_CaloIdL_TrackIdL_IsoVL",
@@ -85,10 +85,10 @@ process.HLTEl = cms.EDProducer("CATTriggerPacker",
     ),
 )
 
-process.HLTMuMu = cms.EDProducer("CATTriggerPacker",
+process.HLTMuMu = cms.EDProducer("CATTriggerBitCombiner",
     triggerResults = cms.InputTag("TriggerResults::HLT"),
     triggerPrescales = cms.InputTag("patTrigger"),
-    combineByOr = cms.bool(True),
+    combineBy = cms.string("or"),
     triggersToMatch = cms.vstring(
         "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ",
         "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ",
@@ -97,10 +97,10 @@ process.HLTMuMu = cms.EDProducer("CATTriggerPacker",
     ),
 )
 
-process.HLTElEl = cms.EDProducer("CATTriggerPacker",
+process.HLTElEl = cms.EDProducer("CATTriggerBitCombiner",
     triggerResults = cms.InputTag("TriggerResults::HLT"),
     triggerPrescales = cms.InputTag("patTrigger"),
-    combineByOr = cms.bool(True),
+    combineBy = cms.string("or"),
     triggersToMatch = cms.vstring(
         "HLT_DoubleEle33_CaloIdL_GsfTrkIdVL",
         "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ",
@@ -110,10 +110,10 @@ process.HLTElEl = cms.EDProducer("CATTriggerPacker",
 )
 
 
-process.HLTMuEl = cms.EDProducer("CATTriggerPacker",
+process.HLTMuEl = cms.EDProducer("CATTriggerBitCombiner",
     triggerResults = cms.InputTag("TriggerResults::HLT"),
     triggerPrescales = cms.InputTag("patTrigger"),
-    combineByOr = cms.bool(True),
+    combineBy = cms.string("or"),
     triggersToMatch = cms.vstring(
         "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL",
         "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL",
