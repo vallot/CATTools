@@ -44,3 +44,10 @@ bool AnalysisHelper::triggerMatched(TString trigname, cat::Particle & recoObj, f
   }
   return false;
 }
+
+math::XYZTLorentzVector cat::getLVFromPtPhi(const double pt, const double phi)
+{
+  const double px = pt*std::cos(phi);
+  const double py = pt*std::sin(phi);
+  return math::XYZTLorentzVector(px, py, 0, pt);
+}

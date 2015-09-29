@@ -35,4 +35,27 @@ class AnalysisHelper {
 
 };
 
+namespace cat {
+
+math::XYZTLorentzVector getLVFromPtPhi(const double pt, const double phi);
+
+template<typename T1, typename T2>
+math::XYZTLorentzVector computeMETVariation(const math::XYZTLorentzVector& metP4, T1 corrBegin, T1 corrEnd, T2 rawBegin, T2 rawEnd)
+{
+  // Calculate effect of energy correction
+  // correctedPx - rawPx, correctedPy - rawPy of visible particle are calculated
+  double dpx = 0, dpy = 0;
+  for ( auto x = corrBegin; x != corrEnd; ++x ) { dpx += x->px(); dpy += x->py(); }
+  for ( auto x = rawBegin; x != rawEnd; ++x ) { dpx -= x->px(); dpy -= x->py(); }
+
+  // MET is shifted by -(dpx, dpy)
+  const double px = metP4.px() - dpx;
+  const double py = metP4.py() - dpy;
+  const double energy = std::hypot(px, py);
+
+  return math::XYZTLorentzVector(px, py, 0, energy);
+};
+
+}
+
 #endif
