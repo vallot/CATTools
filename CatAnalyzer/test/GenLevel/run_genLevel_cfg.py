@@ -44,7 +44,7 @@ process.partonTop = cms.EDProducer("PartonTopProducer",
     jetMinPt = cms.double(20)
 )
 
-process.ana = cms.EDAnalyzer("CATGenLevelAnalysis",
+process.ana = cms.EDAnalyzer("CATGenTopAnalysis",
     channel = cms.InputTag("partonTop","channel"),
     modes = cms.InputTag("partonTop", "modes"),
     partonTop = cms.InputTag("partonTop"),
