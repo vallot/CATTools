@@ -75,15 +75,12 @@ namespace cat {
 
     void setShiftedEnDown(float f) { shiftedEnDown_ = f;}
     void setShiftedEnUp(float f) { shiftedEnUp_ = f;}
-    void setSmearedRes(float f) { smearedRes_ = f;}
-    void setSmearedResDown(float f) { smearedResDown_ = f;}
-    void setSmearedResUp(float f) { smearedResUp_ = f;}
 
     float shiftedEnDown() const {return  shiftedEnDown_;}
     float shiftedEnUp() const  {return  shiftedEnUp_;}
-    float smearedRes() const {return  smearedRes_;}
-    float smearedResDown() const {return  smearedResDown_;}
-    float smearedResUp() const {return  smearedResUp_;}
+    float smearedRes(int direction=0) const; // 0, +1, -1 for smeared, smearedUp, smearedDown
+    float smearedResUp() const { return smearedRes(+1); };
+    float smearedResDown() const { return smearedRes(-1); };
 
     const reco::GenJet * genJet() const { return genJetFwdRef_.get();}
     void setGenJetRef(const edm::FwdRef<reco::GenJetCollection> & gj){ genJetFwdRef_ = gj;}
