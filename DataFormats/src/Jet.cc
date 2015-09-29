@@ -61,6 +61,6 @@ float Jet::smearedRes(int direction) const {
   else if ( direction >  0 ) cJER = cJERsUp[bin];
   else  cJER = cJERsDn[bin];
 
-	const double fJER = std::max(0., (genJetPt+dPt*cJER)/jetPt);
+  const double fJER = std::max(0., (genJetPt+dPt*cJER)/jetPt);
   return fJER;
 }
