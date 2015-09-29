@@ -1,6 +1,11 @@
-#include "CATTools/CatAnalyzer/interface/AnalysisHelper.h"
+#include "CATTools/CommonTools/interface/AnalysisHelper.h"
 
 using namespace std;
+
+namespace cat
+{
+
+TLorentzVector ToTLorentzVector(const reco::Candidate& t) { return TLorentzVector(t.px(), t.py(), t.pz(), t.energy()); }
 
 bool AnalysisHelper::triggerNotSet()
 {
@@ -9,20 +14,20 @@ bool AnalysisHelper::triggerNotSet()
   return false;
 }
 
-bool AnalysisHelper::triggerFired(TString trigname)
+bool AnalysisHelper::triggerFired(const std::string& trigname)
 {
   if (!triggerInfoSet_) return triggerNotSet();
-  
+
   const unsigned int ntrigs = triggerResults_->size();
   for (unsigned int itr=0; itr<ntrigs; itr++){
-    TString trigName=triggerNames_.triggerName(itr);
+    const string& trigName = triggerNames_.triggerName(itr);
     if (!triggerResults_->accept(itr)) continue;
-    if(trigName.Contains(trigname))      return true;
+    if(trigName.find(trigname) != std::string::npos)      return true;
   }
   return false;
 }
 
-bool AnalysisHelper::triggerMatched(TString trigname, cat::Particle & recoObj, float dR)
+bool AnalysisHelper::triggerMatched(const std::string& trigname, const cat::Particle & recoObj, const float dR)
 {
   if (!triggerInfoSet_) return triggerNotSet();
 
@@ -31,16 +36,18 @@ bool AnalysisHelper::triggerMatched(TString trigname, cat::Particle & recoObj, f
     std::vector<std::string> pathNamesAll  = trigObj.pathNames(false);
     for (unsigned h = 0, n = pathNamesAll.size(); h < n; ++h) {
       if ( pathNamesAll[h].find(trigname) == 0 ){
-	if (trigObj.hasPathName( pathNamesAll[h], true, true )){
-	  // found trigger
-	  if ( reco::deltaR(trigObj, recoObj) < dR){
-	    // found matching trigger
-	    //std::cout << "\tTrigger trigObject:  pt " << trigObj.pt() << ", eta " << trigObj.eta() << ", phi " << trigObj.phi() << std::endl;
-	    return true;
-	  }
-	}
+        if (trigObj.hasPathName( pathNamesAll[h], true, true )){
+          // found trigger
+          if ( reco::deltaR(trigObj, recoObj) < dR){
+            // found matching trigger
+            //std::cout << "\tTrigger trigObject:  pt " << trigObj.pt() << ", eta " << trigObj.eta() << ", phi " << trigObj.phi() << std::endl;
+            return true;
+          }
+        }
       }
     }
   }
   return false;
+}
+
 }
