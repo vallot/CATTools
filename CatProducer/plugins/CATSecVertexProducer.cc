@@ -161,7 +161,7 @@ cat::CATSecVertexProducer::fitTransientTracks(reco::Vertex goodPV, std::vector<T
 	  ClosestApproachInRPhi cApp;
 	  cApp.calculate(ipStatePos, ipStateNeg);
 	  if ( !cApp.status() ) continue;
-	  const float dca = fabs(cApp.distance());
+	  const float dca = std::abs(cApp.distance());
 	  if ( dca < 0. || dca > cut_DCA_ ) continue;
 	  GlobalPoint cxPt = cApp.crossingPoint();
 	  if (std::hypot(cxPt.x(), cxPt.y()) > 120. || std::abs(cxPt.z()) > 300.) continue;

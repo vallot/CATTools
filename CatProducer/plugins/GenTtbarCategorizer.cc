@@ -197,7 +197,7 @@ GenTtbarCategorizer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
         if(jetIndex < 0) continue;
         // Skip if jet is not in acceptance
         if(genJets->at(jetIndex).pt() < genJetPtMin_) continue;
-        if(std::fabs(genJets->at(jetIndex).eta()) > genJetAbsEtaMax_) continue;
+        if(std::abs(genJets->at(jetIndex).eta()) > genJetAbsEtaMax_) continue;
         // Jet from direct top quark decay [pdgId(top)=6]
         if(std::abs(flavour) == 6) {
             if(bJetFromTopIds.count(jetIndex) < 1) bJetFromTopIds[jetIndex] = 1;
@@ -221,7 +221,7 @@ GenTtbarCategorizer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
         if(jetIndex < 0) continue;
         // Skip if jet is not in acceptance
         if(genJets->at(jetIndex).pt() < genJetPtMin_) continue;
-        if(std::fabs(genJets->at(jetIndex).eta()) > genJetAbsEtaMax_) continue;
+        if(std::abs(genJets->at(jetIndex).eta()) > genJetAbsEtaMax_) continue;
         // Identify jets with b hadrons
         if(cJetIds.count(jetIndex) < 1) cJetIds[jetIndex] = 1;
         else cJetIds[jetIndex]++;

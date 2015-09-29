@@ -65,7 +65,7 @@ cat::CATGenJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
   auto_ptr<vector<cat::GenJet> >  out(new vector<cat::GenJet>());
 
   for (const reco::GenJet & aGenJet : *src) {
-    if ( aGenJet.pt() < pt_ || fabs(aGenJet.eta()) > eta_ ) continue;
+    if ( aGenJet.pt() < pt_ || std::abs(aGenJet.eta()) > eta_ ) continue;
 
     cat::GenJet aCatGenJet(aGenJet);
      
@@ -82,7 +82,7 @@ cat::CATGenJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
 	}
       }
     }
-    if (fabs(matched.pdgId()) != 5){
+    if (std::abs(matched.pdgId()) != 5){
       //if only no B-Hadron matched, assign C-Hadron
       for ( reco::Jet::Constituents::const_iterator itr = jc.begin(); itr != jc.end(); ++itr ){
 	if (itr->isAvailable()){

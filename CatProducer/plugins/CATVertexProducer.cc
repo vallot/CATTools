@@ -59,8 +59,8 @@ cat::CATVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
   // only save the first good vertex!
   for (auto &vtx : *recVtxs){
     if ( vtx.ndof() > minNDOF && 
-	 ( (maxAbsZ <=0 ) || fabs(vtx.z()) <= maxAbsZ ) &&
-	 ( (maxd0 <=0 ) || fabs(vtx.position().rho()) <= maxd0 ) &&
+	 ( (maxAbsZ <=0 ) || std::abs(vtx.z()) <= maxAbsZ ) &&
+	 ( (maxd0 <=0 ) || std::abs(vtx.position().rho()) <= maxd0 ) &&
 	 !(vtx.isFake() ) ){
       if (nGoodPV == 0){
 	out_->push_back(vtx);

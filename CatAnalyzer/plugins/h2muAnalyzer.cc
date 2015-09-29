@@ -282,7 +282,7 @@ vector<cat::Muon> h2muAnalyzer::selectMuons(const edm::View<cat::Muon>* muons )
   for (auto mu : *muons) {
     if (!mu.isLooseMuon()) continue;
     if (mu.pt() <= 20.) continue;
-    if (fabs(mu.eta()) >= 2.4) continue;
+    if (std::abs(mu.eta()) >= 2.4) continue;
     if (mu.relIso(0.4) >= 0.12) continue;
     //printf("muon with pt %4.1f, POG loose id %d, tight id %d\n", mu.pt(), mu.isLooseMuon(), mu.isTightMuon());
     selmuons.push_back(mu);
@@ -299,10 +299,10 @@ vector<cat::Electron> h2muAnalyzer::selectElecs(const edm::View<cat::Electron>* 
     if (!el.passConversionVeto()) continue;
     if (!el.isPF()) continue;
     if (el.pt() <= 20.) continue;
-    if ((fabs(el.scEta()) <= 1.4442) && (el.relIso(0.3) >= 0.1649)) continue;
-    if ((fabs(el.scEta()) >= 1.566) && (el.relIso(0.3) >= 0.2075)) continue;
-    if ((fabs(el.scEta()) > 1.4442) && (fabs(el.scEta()) < 1.566)) continue;
-    if (fabs(el.eta()) >= 2.5) continue;
+    if ((std::abs(el.scEta()) <= 1.4442) && (el.relIso(0.3) >= 0.1649)) continue;
+    if ((std::abs(el.scEta()) >= 1.566) && (el.relIso(0.3) >= 0.2075)) continue;
+    if ((std::abs(el.scEta()) > 1.4442) && (std::abs(el.scEta()) < 1.566)) continue;
+    if (std::abs(el.eta()) >= 2.5) continue;
     if (el.pt() < 5) continue;
     //printf("electron with pt %4.1f\n", el.pt());
     selelecs.push_back(el);
@@ -316,7 +316,7 @@ vector<cat::Jet> h2muAnalyzer::selectJets(const edm::View<cat::Jet>* jets, vecto
   for (auto jet : *jets) {
     if (!jet.LooseId()) continue;
     if (jet.pt() <= 30.) continue;
-    if (fabs(jet.eta()) >= 2.4)	continue;
+    if (std::abs(jet.eta()) >= 2.4)	continue;
     //if (jet.tlv().DeltaR(recomu[0]) <= 0.4) continue;
     //if (jet.tlv().DeltaR(recomu[1]) <= 0.4) continue;
     // printf("jet with pt %4.1f\n", jet.pt());
