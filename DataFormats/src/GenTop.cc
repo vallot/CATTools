@@ -301,18 +301,18 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     if( i < 2){
       bquarks_[i] = bquarksfromtop[i];
     }
-    if( bquarksfromtop[i].pt() > 20 && fabs(bquarksfromtop[i].eta()) < 2.5) nbQuark20++;
-    if( bquarksfromtop[i].pt() > 40 && fabs(bquarksfromtop[i].eta()) < 2.5) nbQuark40++;
+    if( bquarksfromtop[i].pt() > 20 && std::abs(bquarksfromtop[i].eta()) < 2.5) nbQuark20++;
+    if( bquarksfromtop[i].pt() > 40 && std::abs(bquarksfromtop[i].eta()) < 2.5) nbQuark40++;
   }
 
   for( unsigned int i = 0 ; i < bquarksfromnotop.size() ; i++){
     if( i < 2){
       bquarks_[2+i] = bquarksfromnotop[i];
     }
-    if( bquarksfromnotop[i].pt() > 20 && fabs(bquarksfromnotop[i].eta()) < 2.5) nbQuark20++;
-    if( bquarksfromnotop[i].pt() > 40 && fabs(bquarksfromnotop[i].eta()) < 2.5) nbQuark40++;
-    if( bquarksfromnotop[i].pt() > 20 && fabs(bquarksfromnotop[i].eta()) < 2.5) naddbQuark20++;
-    if( bquarksfromnotop[i].pt() > 40 && fabs(bquarksfromnotop[i].eta()) < 2.5) naddbQuark40++;
+    if( bquarksfromnotop[i].pt() > 20 && std::abs(bquarksfromnotop[i].eta()) < 2.5) nbQuark20++;
+    if( bquarksfromnotop[i].pt() > 40 && std::abs(bquarksfromnotop[i].eta()) < 2.5) nbQuark40++;
+    if( bquarksfromnotop[i].pt() > 20 && std::abs(bquarksfromnotop[i].eta()) < 2.5) naddbQuark20++;
+    if( bquarksfromnotop[i].pt() > 40 && std::abs(bquarksfromnotop[i].eta()) < 2.5) naddbQuark40++;
   }
   NbQuarks20_ = nbQuark20;
   NbQuarks40_ = nbQuark40;
@@ -397,10 +397,10 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     if( minDR2c < 0.5 ) cJets.push_back(gJet.p4());
 
     NJets_++;
-    if( gJet.pt() > 40 && fabs(gJet.eta()) < 2.5 ) NJets40_++;
-    if( gJet.pt() > 30 && fabs(gJet.eta()) < 2.5 ) NJets30_++;
-    if( gJet.pt() > 20 && fabs(gJet.eta()) < 2.5 ) NJets20_++;
-    if( gJet.pt() > 10 && fabs(gJet.eta()) < 2.5 ) NJets10_++;
+    if( gJet.pt() > 40 && std::abs(gJet.eta()) < 2.5 ) NJets40_++;
+    if( gJet.pt() > 30 && std::abs(gJet.eta()) < 2.5 ) NJets30_++;
+    if( gJet.pt() > 20 && std::abs(gJet.eta()) < 2.5 ) NJets20_++;
+    if( gJet.pt() > 10 && std::abs(gJet.eta()) < 2.5 ) NJets10_++;
 
     double minDRtop = 999;
     for(unsigned int i=0 ; i < bquarksfromtop.size() ; i++){
@@ -526,10 +526,10 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
       bJets_[i] = bJetsBHad[i];
     }
     NbJetsBHad_++;
-    if( bJetsBHad[i].pt() > 10 && fabs(bJetsBHad[i].eta()) < 2.5) NbJets10BHad_++;
-    if( bJetsBHad[i].pt() > 20 && fabs(bJetsBHad[i].eta()) < 2.5) NbJets20BHad_++;
-    if( bJetsBHad[i].pt() > 30 && fabs(bJetsBHad[i].eta()) < 2.5) NbJets30BHad_++;
-    if( bJetsBHad[i].pt() > 40 && fabs(bJetsBHad[i].eta()) < 2.5) NbJets40BHad_++;
+    if( bJetsBHad[i].pt() > 10 && std::abs(bJetsBHad[i].eta()) < 2.5) NbJets10BHad_++;
+    if( bJetsBHad[i].pt() > 20 && std::abs(bJetsBHad[i].eta()) < 2.5) NbJets20BHad_++;
+    if( bJetsBHad[i].pt() > 30 && std::abs(bJetsBHad[i].eta()) < 2.5) NbJets30BHad_++;
+    if( bJetsBHad[i].pt() > 40 && std::abs(bJetsBHad[i].eta()) < 2.5) NbJets40BHad_++;
   }
 
   for( unsigned int i = 0 ; i < addbJetsBHad.size() ; i++){
@@ -537,8 +537,8 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
       addbJetsHad_[i] = addbJetsBHad[i];
     }
     NaddbJetsBHad_++;
-    if( addbJetsBHad[i].pt() > 20 && fabs(addbJetsBHad[i].eta()) < 2.5) NaddbJets20BHad_++;
-    if( addbJetsBHad[i].pt() > 40 && fabs(addbJetsBHad[i].eta()) < 2.5) NaddbJets40BHad_++;
+    if( addbJetsBHad[i].pt() > 20 && std::abs(addbJetsBHad[i].eta()) < 2.5) NaddbJets20BHad_++;
+    if( addbJetsBHad[i].pt() > 40 && std::abs(addbJetsBHad[i].eta()) < 2.5) NaddbJets40BHad_++;
   }
 
   for( std::map<int, vector<const reco::Candidate*> >::iterator it = mapJetToCHadrons.begin() ; it != mapJetToCHadrons.end(); it++){
@@ -564,10 +564,10 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
       cJets_[i] = cJetsCHad[i];
     }
     NcJetsCHad_++;
-    if( cJetsCHad[i].pt() > 10 && fabs(cJetsCHad[i].eta()) < 2.5) NcJets10CHad_++;
-    if( cJetsCHad[i].pt() > 20 && fabs(cJetsCHad[i].eta()) < 2.5) NcJets20CHad_++;
-    if( cJetsCHad[i].pt() > 30 && fabs(cJetsCHad[i].eta()) < 2.5) NcJets30CHad_++;
-    if( cJetsCHad[i].pt() > 40 && fabs(cJetsCHad[i].eta()) < 2.5) NcJets40CHad_++;
+    if( cJetsCHad[i].pt() > 10 && std::abs(cJetsCHad[i].eta()) < 2.5) NcJets10CHad_++;
+    if( cJetsCHad[i].pt() > 20 && std::abs(cJetsCHad[i].eta()) < 2.5) NcJets20CHad_++;
+    if( cJetsCHad[i].pt() > 30 && std::abs(cJetsCHad[i].eta()) < 2.5) NcJets30CHad_++;
+    if( cJetsCHad[i].pt() > 40 && std::abs(cJetsCHad[i].eta()) < 2.5) NcJets40CHad_++;
   }
 
   NbJets_ = 0;
@@ -578,10 +578,10 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
 
   for( unsigned int i = 0 ; i < bJets.size() ; i++){
     NbJets_++;
-    if( bJets[i].pt() > 10 && fabs(bJets[i].eta()) < 2.5) NbJets10_++;
-    if( bJets[i].pt() > 20 && fabs(bJets[i].eta()) < 2.5) NbJets20_++;
-    if( bJets[i].pt() > 30 && fabs(bJets[i].eta()) < 2.5) NbJets30_++;
-    if( bJets[i].pt() > 40 && fabs(bJets[i].eta()) < 2.5) NbJets40_++;
+    if( bJets[i].pt() > 10 && std::abs(bJets[i].eta()) < 2.5) NbJets10_++;
+    if( bJets[i].pt() > 20 && std::abs(bJets[i].eta()) < 2.5) NbJets20_++;
+    if( bJets[i].pt() > 30 && std::abs(bJets[i].eta()) < 2.5) NbJets30_++;
+    if( bJets[i].pt() > 40 && std::abs(bJets[i].eta()) < 2.5) NbJets40_++;
   }
 
   NbJetsNoTop_ = 0;
@@ -593,8 +593,8 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
       addbJets_[i] = addbJets[i];
     }
     NbJetsNoTop_++;
-    if( addbJets[i].pt() > 20 && fabs(addbJets[i].eta()) < 2.5) NbJets20NoTop_++;
-    if( addbJets[i].pt() > 40 && fabs(addbJets[i].eta()) < 2.5) NbJets40NoTop_++;
+    if( addbJets[i].pt() > 20 && std::abs(addbJets[i].eta()) < 2.5) NbJets20NoTop_++;
+    if( addbJets[i].pt() > 40 && std::abs(addbJets[i].eta()) < 2.5) NbJets40NoTop_++;
   }
 
   NcJets_ = 0;
@@ -605,10 +605,10 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
 
   for( unsigned int i = 0 ; i < cJets.size() ; i++){
     NcJets_++;
-    if( cJets[i].pt() > 10 && fabs(cJets[i].eta()) < 2.5) NcJets10_++;
-    if( cJets[i].pt() > 20 && fabs(cJets[i].eta()) < 2.5) NcJets20_++;
-    if( cJets[i].pt() > 30 && fabs(cJets[i].eta()) < 2.5) NcJets30_++;
-    if( cJets[i].pt() > 40 && fabs(cJets[i].eta()) < 2.5) NcJets40_++;
+    if( cJets[i].pt() > 10 && std::abs(cJets[i].eta()) < 2.5) NcJets10_++;
+    if( cJets[i].pt() > 20 && std::abs(cJets[i].eta()) < 2.5) NcJets20_++;
+    if( cJets[i].pt() > 30 && std::abs(cJets[i].eta()) < 2.5) NcJets30_++;
+    if( cJets[i].pt() > 40 && std::abs(cJets[i].eta()) < 2.5) NcJets40_++;
   }
 
   NaddJets20_ = 0;
@@ -616,8 +616,8 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
 
   for( unsigned int i = 0 ; i < addJets.size(); i++){
     if( i < 2 ) addJets_[i] = addJets[i];
-    if( addJets[i].pt() > 40 && fabs(addJets[i].eta()) < 2.5 ) NaddJets40_++;
-    if( addJets[i].pt() > 20 && fabs(addJets[i].eta()) < 2.5 ) NaddJets20_++;
+    if( addJets[i].pt() > 40 && std::abs(addJets[i].eta()) < 2.5 ) NaddJets40_++;
+    if( addJets[i].pt() > 20 && std::abs(addJets[i].eta()) < 2.5 ) NaddJets20_++;
   }
 
   dRaddJets_ = 0;

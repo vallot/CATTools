@@ -194,7 +194,7 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     }else if( !std::isfinite(aPatElectron.ecalEnergy())){
       eoverp = 1e30;
     }else{
-      eoverp = fabs(1.0/aPatElectron.ecalEnergy() - aPatElectron.eSuperClusterOverP()/aPatElectron.ecalEnergy() ) ;
+      eoverp = std::abs(1.0/aPatElectron.ecalEnergy() - aPatElectron.eSuperClusterOverP()/aPatElectron.ecalEnergy() ) ;
     }
     
     int snu_id = getSNUID(aPatElectron.full5x5_sigmaIetaIeta(), abs(aPatElectron.deltaEtaSuperClusterTrackAtVtx() ), abs(aPatElectron.deltaPhiSuperClusterTrackAtVtx() ), aPatElectron.hcalOverEcal(), eoverp, abs(aElectron.dz()) , aPatElectron.gsfTrack()->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS), aPatElectron.passConversionVeto(),aPatElectron.superCluster()->eta() );
@@ -240,23 +240,23 @@ int cat::CATElectronProducer::getSNUID(float full5x5_sigmaIetaIeta, float deltaE
   int flag_id=0;
   for(int i=0; i < 4; i++){
     bool pass_id=true;
-    if ( fabs(sceta) < 1.479 ){
+    if ( std::abs(sceta) < 1.479 ){
       if(full5x5_sigmaIetaIeta >= l_b_sieie[i])pass_id = false;
       if(deltaEtaSuperClusterTrackAtVtx >= l_b_dEtaIn[i])pass_id = false;
       if(deltaPhiSuperClusterTrackAtVtx >= l_b_dPhiIn[i])pass_id = false;
       if(hoverE >= l_b_hoe[i])pass_id = false;
       if(eoverp >= l_b_ep[i])pass_id = false;
-      if(fabs(dz) >=  l_b_dZ[i])pass_id = false;
+      if(std::abs(dz) >=  l_b_dZ[i])pass_id = false;
       if(exp_miss_innerhits > l_b_missHits[i])pass_id = false;
       if(!pass_conversion_veto) pass_id = false;
     }
-    else   if ( fabs(sceta) < 2.5 ){
+    else   if ( std::abs(sceta) < 2.5 ){
       if(full5x5_sigmaIetaIeta >= l_e_sieie[i])pass_id = false;
       if(deltaEtaSuperClusterTrackAtVtx >= l_e_dEtaIn[i])pass_id = false;
       if(deltaPhiSuperClusterTrackAtVtx>= l_e_dPhiIn[i])pass_id = false;
       if(hoverE>= l_e_hoe[i])pass_id = false;
       if(eoverp>= l_e_ep[i])pass_id = false;
-      if(fabs(dz) >=  l_e_dZ[i])pass_id = false;
+      if(std::abs(dz) >=  l_e_dZ[i])pass_id = false;
       if(exp_miss_innerhits > l_e_missHits[i])pass_id = false;
       if(!pass_conversion_veto) pass_id = false;
     }
@@ -313,7 +313,7 @@ bool cat::CATElectronProducer::MatchObjects( const reco::Candidate::LorentzVecto
 
   double dRval = deltaR(proEta, proPhi, pasEta, pasPhi);
   double dPtRel = 999.0;
-  if( proPt > 0.0 ) dPtRel = fabs( pasPt - proPt )/proPt;
+  if( proPt > 0.0 ) dPtRel = std::abs( pasPt - proPt )/proPt;
   // If we are comparing two objects for which the candidates should
   // be exactly the same, cut hard. Otherwise take cuts from user.
   if( exact ) return ( dRval < 1e-3 && dPtRel < 1e-3 );

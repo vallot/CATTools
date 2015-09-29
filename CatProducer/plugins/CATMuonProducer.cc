@@ -195,7 +195,7 @@ bool cat::CATMuonProducer::MatchObjects( const reco::Candidate::LorentzVector& p
 
   double dRval = deltaR(proEta, proPhi, pasEta, pasPhi);
   double dPtRel = 999.0;
-  if( proPt > 0.0 ) dPtRel = fabs( pasPt - proPt )/proPt;
+  if( proPt > 0.0 ) dPtRel = std::abs( pasPt - proPt )/proPt;
   // If we are comparing two objects for which the candidates should
   // be exactly the same, cut hard. Otherwise take cuts from user.
   if( exact ) return ( dRval < 1e-3 && dPtRel < 1e-3 );
