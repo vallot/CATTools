@@ -31,7 +31,7 @@ namespace cat {
     virtual ~CATGenTopProducer() { }
 
     void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
-    
+
   private:
     edm::EDGetTokenT<reco::GenJetCollection> genJetLabel_;
     edm::EDGetTokenT<reco::GenParticleCollection> mcParticleLabel_;
@@ -47,8 +47,8 @@ cat::CATGenTopProducer::CATGenTopProducer(const edm::ParameterSet & iConfig) :
   produces<std::vector<cat::GenTop> >();
 }
 
-void 
-cat::CATGenTopProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) 
+void
+cat::CATGenTopProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
   Handle<reco::GenJetCollection> genJets;
   iEvent.getByToken(genJetLabel_, genJets);

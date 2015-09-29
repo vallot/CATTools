@@ -54,7 +54,7 @@ CATGenLeptonAnalysis::CATGenLeptonAnalysis(const edm::ParameterSet& pset)
 
   usesResource("TFileService");
   edm::Service<TFileService> fs;
- 
+
   auto dirDefault = fs->mkdir("default");
   hZMass_ = dirDefault.make<TH1F>("hZMass", "hZMass;M(l^{+}l^{-}) (GeV);Events per 1GeV", 1000, 0, 1000);
   hZDEta_ = dirDefault.make<TH1F>("hZDEta", "hZDEta;#delta#eta(l^{+},l^{-});Events per 0.05", 100, 0, 5);
@@ -118,7 +118,7 @@ void CATGenLeptonAnalysis::analyze(const edm::Event& event, const edm::EventSetu
   edm::Handle<reco::GenParticleCollection> genParticlesHandle;
   event.getByToken(genParticlesToken_, genParticlesHandle);
 
-  // Collect generator level leptons, before radiation 
+  // Collect generator level leptons, before radiation
   typedef const reco::GenParticle* GenParticlePtr;
   std::vector<GenParticlePtr> lepPs, lepMs;
   std::vector<GenParticlePtr> nus, nubars;

@@ -50,7 +50,7 @@ class CATMuonAnalysis : public edm::one::EDAnalyzer<edm::one::SharedResources> {
     TH1F* nhIso;
     TH1F* phIso;
     TH1F* puIso;
-    
+
 };
 
 CATMuonAnalysis::CATMuonAnalysis(const edm::ParameterSet& iConfig):
@@ -58,7 +58,7 @@ CATMuonAnalysis::CATMuonAnalysis(const edm::ParameterSet& iConfig):
 {
   usesResource("TFileService");
   edm::Service<TFileService> fs;
-  
+
   phi   = fs->make<TH1F>("phi","phi",400,0,4);
   eta   = fs->make<TH1F>("eta","eta",400,0,4);
   pt    = fs->make<TH1F>("pt","pt",400,0,4);

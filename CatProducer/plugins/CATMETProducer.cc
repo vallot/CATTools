@@ -40,7 +40,7 @@ cat::CATMETProducer::CATMETProducer(const edm::ParameterSet & iConfig) :
   produces<std::vector<cat::MET> >();
 }
 
-void 
+void
 cat::CATMETProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
   Handle<pat::METCollection> src;

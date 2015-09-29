@@ -30,7 +30,7 @@
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/MET.h"
 
-#include "CATTools/CatAnalyzer/interface/AnalysisHelper.h"
+#include "CATTools/CommonTools/interface/AnalysisHelper.h"
 
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
@@ -44,6 +44,8 @@
 //
 // class declaration
 //
+
+using namespace cat;
 
 class TtbarSingleLeptonAnalyzer : public edm::EDAnalyzer {
 public:

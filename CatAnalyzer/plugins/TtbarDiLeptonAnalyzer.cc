@@ -17,12 +17,13 @@
 
 #include "TopQuarkAnalysis/TopKinFitter/interface/TtFullLepKinSolver.h"
 
-#include "CATTools/CatAnalyzer/interface/AnalysisHelper.h"
+#include "CATTools/CommonTools/interface/AnalysisHelper.h"
 #include "DataFormats/Math/interface/deltaR.h"
 #include "TTree.h"
 #include "TLorentzVector.h"
 
 using namespace std;
+using namespace cat;
 
 class TtbarDiLeptonAnalyzer : public edm::EDAnalyzer {
 public:
@@ -412,13 +413,13 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       const double weight2 = nuSol2.weight;
 
       if ( weight1 > maxweight and weight1 >= weight2 ) {
-        nu1 = AnalysisHelper::leafToTLorentzVector(nuSol1.neutrino);
-        nu2 = AnalysisHelper::leafToTLorentzVector(nuSol1.neutrinoBar);
+        nu1 = cat::ToTLorentzVector(nuSol1.neutrino);
+        nu2 = cat::ToTLorentzVector(nuSol1.neutrinoBar);
         maxweight = weight1;
       }
       else if ( weight2 > maxweight and weight2 >= weight1 ) {
-        nu1 = AnalysisHelper::leafToTLorentzVector(nuSol2.neutrino);
-        nu2 = AnalysisHelper::leafToTLorentzVector(nuSol2.neutrinoBar);
+        nu1 = cat::ToTLorentzVector(nuSol2.neutrino);
+        nu2 = cat::ToTLorentzVector(nuSol2.neutrinoBar);
         maxweight = weight2;
       }
       else continue;

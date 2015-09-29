@@ -46,8 +46,8 @@ cat::CATVertexProducer::CATVertexProducer(const edm::ParameterSet & iConfig) :
   produces<int >("nPV");
 }
 
-void 
-cat::CATVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) 
+void
+cat::CATVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
   Handle<reco::VertexCollection> recVtxs;
   iEvent.getByToken(vertexLabel_,recVtxs);
@@ -58,9 +58,9 @@ cat::CATVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
 
   // only save the first good vertex!
   for (auto &vtx : *recVtxs){
-    if ( vtx.ndof() > minNDOF && 
-	 ( (maxAbsZ <=0 ) || fabs(vtx.z()) <= maxAbsZ ) &&
-	 ( (maxd0 <=0 ) || fabs(vtx.position().rho()) <= maxd0 ) &&
+    if ( vtx.ndof() > minNDOF &&
+	 ( (maxAbsZ <=0 ) || std::abs(vtx.z()) <= maxAbsZ ) &&
+	 ( (maxd0 <=0 ) || std::abs(vtx.position().rho()) <= maxd0 ) &&
 	 !(vtx.isFake() ) ){
       if (nGoodPV == 0){
 	out_->push_back(vtx);
@@ -69,11 +69,11 @@ cat::CATVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
       nGoodPV++;
     }
   }
-  
+
   iEvent.put(std::auto_ptr<int>(new int (nGoodPV)), "nGoodPV");
   iEvent.put(std::auto_ptr<int>(new int (nPV)), "nPV");
   auto_ptr<reco::VertexCollection> out(out_);
-  iEvent.put(out); 
+  iEvent.put(out);
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"

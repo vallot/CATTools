@@ -44,18 +44,18 @@ cat::CATMCParticleProducer::CATMCParticleProducer(const edm::ParameterSet & iCon
   produces<std::vector<cat::MCParticle> >();
 }
 
-void 
-cat::CATMCParticleProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) 
+void
+cat::CATMCParticleProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
   Handle<reco::GenParticleCollection> genParticles;
   iEvent.getByToken(src_,genParticles);
-    
+
   auto_ptr<vector<cat::MCParticle> >  out(new vector<cat::MCParticle>());
 
   for (const reco::GenParticle & aGenParticle : *genParticles) {
     // fix me!! have better pruning of mc particles
-    if (fabs(aGenParticle.pdgId()) != 13) // including all muons for now
-      if ( aGenParticle.pt() < pt_ || fabs(aGenParticle.eta()) > eta_  ) continue;  
+    if (std::abs(aGenParticle.pdgId()) != 13) // including all muons for now
+      if ( aGenParticle.pt() < pt_ || std::abs(aGenParticle.eta()) > eta_  ) continue;
 
     cat::MCParticle aMCParticle(aGenParticle);
 

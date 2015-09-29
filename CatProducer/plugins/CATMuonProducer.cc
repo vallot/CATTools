@@ -58,8 +58,8 @@ cat::CATMuonProducer::CATMuonProducer(const edm::ParameterSet & iConfig) :
   produces<std::vector<cat::Muon> >();
 }
 
-void 
-cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) 
+void
+cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
   runOnMC_ = !iEvent.isRealData();
 
@@ -68,7 +68,7 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
 
   Handle<reco::GenParticleCollection> genParticles;
   if (runOnMC_) iEvent.getByToken(mcLabel_,genParticles);
-    
+
   Handle<reco::BeamSpot> beamSpotHandle;
   iEvent.getByToken(beamLineSrc_, beamSpotHandle);
 
@@ -77,7 +77,7 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
   reco::Vertex pv;
   if (recVtxs->size())
     pv = recVtxs->at(0);
-   
+
   reco::BeamSpot beamSpot = *beamSpotHandle;
   reco::TrackBase::Point beamPoint(beamSpot.x0(), beamSpot.y0(), beamSpot.z0());
 
@@ -94,7 +94,7 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     cat::Muon aMuon(aPatMuon);
 
     /// cat default variables ///
-    
+
     if (runOnMC_){
       aMuon.setShiftedEnDown(shiftedEnDownSrc->at(j).pt() );
       aMuon.setShiftedEnUp(shiftedEnUpSrc->at(j).pt() );
@@ -122,7 +122,7 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     aMuon.setPhotonIso03( phIso03 );
     aMuon.setPUChargedHadronIso03( puIso03 );
     aMuon.setrelIso(0.3, chIso03, nhIso03, phIso03, puIso03, pt);
-    
+
     // cout << "aPatMuon.chargedHadronIso() " << aPatMuon.chargedHadronIso()
     // 	 << " aPatMuon.pfIsolationR04 " <<  aPatMuon.pfIsolationR04().sumChargedHadronPt
     // 	 << endl;
@@ -138,7 +138,7 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
       aMuon.setGenParticleRef(aPatMuon.genParticleRef());
       aMuon.setMCMatched( mcMatch( aPatMuon.p4(), genParticles ) );
     }
-    
+
     aMuon.setNumberOfMatchedStations( aPatMuon.numberOfMatchedStations() );
 
     if ( aPatMuon.globalTrack().isNonnull() && aPatMuon.globalTrack().isAvailable() ) {
@@ -149,13 +149,13 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     if ( aPatMuon.innerTrack().isNonnull() && aPatMuon.innerTrack().isAvailable() ){
       aMuon.setNumberOfValidHits( aPatMuon.numberOfValidHits() );
       aMuon.setNumberOfValidPixelHits( aPatMuon.innerTrack()->hitPattern().numberOfValidPixelHits() );
-      aMuon.setTackerLayersWithMeasurement( aPatMuon.innerTrack()->hitPattern().trackerLayersWithMeasurement() ); 
+      aMuon.setTackerLayersWithMeasurement( aPatMuon.innerTrack()->hitPattern().trackerLayersWithMeasurement() );
     }
-    
+
     aMuon.setDxy( aPatMuon.muonBestTrack()->dxy(pv.position()) );
     aMuon.setDz( aPatMuon.muonBestTrack()->dz(pv.position()) );
     aMuon.setVertex(Point(aPatMuon.muonBestTrack()->vx(),aPatMuon.muonBestTrack()->vy(),aPatMuon.muonBestTrack()->vz()));
-    
+
     out->push_back(aMuon);
   }
 
@@ -171,7 +171,7 @@ bool cat::CATMuonProducer::mcMatch( const reco::Candidate::LorentzVector& lepton
     bool match = MatchObjects(lepton, aGenPart.p4(), false);
 
     if( match != true) continue;
-   
+
     const reco::Candidate* mother = aGenPart.mother();
     while( mother != 0 ){
       if( abs(mother->pdgId()) == 23 || abs(mother->pdgId()) == 24 ) {
@@ -195,7 +195,7 @@ bool cat::CATMuonProducer::MatchObjects( const reco::Candidate::LorentzVector& p
 
   double dRval = deltaR(proEta, proPhi, pasEta, pasPhi);
   double dPtRel = 999.0;
-  if( proPt > 0.0 ) dPtRel = fabs( pasPt - proPt )/proPt;
+  if( proPt > 0.0 ) dPtRel = std::abs( pasPt - proPt )/proPt;
   // If we are comparing two objects for which the candidates should
   // be exactly the same, cut hard. Otherwise take cuts from user.
   if( exact ) return ( dRval < 1e-3 && dPtRel < 1e-3 );
