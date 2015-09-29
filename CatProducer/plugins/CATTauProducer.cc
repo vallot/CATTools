@@ -39,7 +39,7 @@ cat::CATTauProducer::CATTauProducer(const edm::ParameterSet & iConfig) :
   produces<std::vector<cat::Tau> >();
 }
 
-void 
+void
 cat::CATTauProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
   bool runOnMC_ = !iEvent.isRealData();
