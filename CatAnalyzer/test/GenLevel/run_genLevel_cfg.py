@@ -44,15 +44,18 @@ process.partonTop = cms.EDProducer("PartonTopProducer",
     jetMinPt = cms.double(20)
 )
 
-process.ana = cms.EDAnalyzer("CATGenTopAnalysis",
+process.ttbar = cms.EDAnalyzer("CATGenTopAnalysis",
     channel = cms.InputTag("partonTop","channel"),
     modes = cms.InputTag("partonTop", "modes"),
     partonTop = cms.InputTag("partonTop"),
     pseudoTop = cms.InputTag("pseudoTop"),
+    filterTaus = cms.bool(False),
 )
 
+process.ttbarNoTau = process.ttbar.clone(filterTaus = cms.bool(True))
+
 process.p = cms.Path(
-    process.ana
+    process.ttbar + process.ttbarNoTau
 )
 
 process.TFileService = cms.Service("TFileService",
