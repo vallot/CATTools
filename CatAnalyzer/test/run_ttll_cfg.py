@@ -4,7 +4,7 @@ import os
 process = cms.Process("Ana")
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-#process.load("Configuration.StandardSequences.Services_cff")
+process.load("Configuration.StandardSequences.Services_cff")
 #process.load("SimGeneral.HepPDTESSource.pythiapdt_cfi")
 
 process.options = cms.untracked.PSet(
@@ -16,36 +16,47 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 10000
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 process.source.fileNames = [
-'root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-4-0_RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v2/150909_163325/0000/catTuple_2.root'
+#'root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-4-0_RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v2/150909_163325/0000/catTuple_2.root'
 #'file:///store1/jhgoh/CAT/catTuple__TT_TuneCUETP8M1_13TeV-powheg-pythia8__V7-3-6.root',
+'file:../../CatProducer/prod/catTuple.root',
 ]
 
 process.out = cms.OutputModule("PoolOutputModule",
     fileName = cms.untracked.string("out.root"),
     outputCommands = cms.untracked.vstring(
         "drop *",
-        "keep *_*_*_Ana",
+#        "keep *_*_*_Ana",
+        "keep *_ttbarEvent_*_*",
     )
 )
 
 #process.outPath = cms.EndPath(process.out)
 
-process.ttbar = cms.EDProducer("TTbarDileptonProducer",
-#    solver = cms.string("Default"),
-    solver = cms.string("CMSKIN"),
-#    solver = cms.string("NUWGT"),
-#    solver = cms.string("MT2"),
-#    solver = cms.string("MAOS"),
-#    solver = cms.string("DESYSmeared"),
-#    solver = cms.string("DESYMassLoop"),
+process.ttbarEvent = cms.EDProducer("TTbarDileptonEventSelector",
     muons = cms.InputTag("catMuons"),
     electrons = cms.InputTag("catElectrons"),
     jets = cms.InputTag("catJets"),
     mets = cms.InputTag("catMETs"),
+    keepVetoLeptons = cms.bool(False),
+    checkOverlapFromVetoLepton = cms.bool(False),
+    sortByBtag = cms.bool(False),
+    eleIdName = cms.string("cutBasedElectronID-Spring15-25ns-V1-standalone-medium"),
+    eleVetoIdName = cms.string("cutBasedElectronID-Spring15-25ns-V1-standalone-veto"),
+    bTagName = cms.string("combinedInclusiveSecondaryVertexV2BJetTags"),
 )
 
-process.filterRECO = cms.EDProducer("CATTriggerPacker",
-    src = cms.InputTag("catTrigger"),
+process.load("CATTools.CatAnalyzer.ttbarDileptonKinSolutionProducer_cfi")
+process.ttbar = process.ttbarDileptonKin.clone(
+    leptons = cms.InputTag("ttbarEvent:leptons"),
+    jets = cms.InputTag("ttbarEvent:jets"),
+    met = cms.InputTag("ttbarEvent:met"),
+    metphi = cms.InputTag("ttbarEvent:metphi"),
+)
+
+process.filterRECO = cms.EDProducer("CATTriggerBitCombiner",
+    triggerResults = cms.InputTag("TriggerResults::CAT"),
+    triggerPrescales = cms.InputTag("patTrigger"),
+    combineBy = cms.string("and"),
     triggersToMatch = cms.vstring(
         "CSCTightHaloFilter",
         "EcalDeadCellTriggerPrimitiveFilter",
@@ -55,14 +66,18 @@ process.filterRECO = cms.EDProducer("CATTriggerPacker",
     ),
 )
 
-process.HLTMu = cms.EDProducer("CATTriggerPacker",
-    src = cms.InputTag("catTrigger"),
+process.HLTMu = cms.EDProducer("CATTriggerBitCombiner",
+    triggerResults = cms.InputTag("TriggerResults::HLT"),
+    triggerPrescales = cms.InputTag("patTrigger"),
+    combineBy = cms.string("or"),
     triggersToMatch = cms.vstring(
     ),
 )
 
-process.HLTEl = cms.EDProducer("CATTriggerPacker",
-    src = cms.InputTag("catTrigger"),
+process.HLTEl = cms.EDProducer("CATTriggerBitCombiner",
+    triggerResults = cms.InputTag("TriggerResults::HLT"),
+    triggerPrescales = cms.InputTag("patTrigger"),
+    combineBy = cms.string("or"),
     triggersToMatch = cms.vstring(
         "HLT_Ele12_CaloIdL_TrackIdL_IsoVL",
         "HLT_Ele17_CaloIdL_TrackIdL_IsoVL",
@@ -70,8 +85,10 @@ process.HLTEl = cms.EDProducer("CATTriggerPacker",
     ),
 )
 
-process.HLTMuMu = cms.EDProducer("CATTriggerPacker",
-    src = cms.InputTag("catTrigger"),
+process.HLTMuMu = cms.EDProducer("CATTriggerBitCombiner",
+    triggerResults = cms.InputTag("TriggerResults::HLT"),
+    triggerPrescales = cms.InputTag("patTrigger"),
+    combineBy = cms.string("or"),
     triggersToMatch = cms.vstring(
         "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ",
         "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ",
@@ -80,8 +97,10 @@ process.HLTMuMu = cms.EDProducer("CATTriggerPacker",
     ),
 )
 
-process.HLTElEl = cms.EDProducer("CATTriggerPacker",
-    src = cms.InputTag("catTrigger"),
+process.HLTElEl = cms.EDProducer("CATTriggerBitCombiner",
+    triggerResults = cms.InputTag("TriggerResults::HLT"),
+    triggerPrescales = cms.InputTag("patTrigger"),
+    combineBy = cms.string("or"),
     triggersToMatch = cms.vstring(
         "HLT_DoubleEle33_CaloIdL_GsfTrkIdVL",
         "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ",
@@ -91,8 +110,10 @@ process.HLTElEl = cms.EDProducer("CATTriggerPacker",
 )
 
 
-process.HLTMuEl = cms.EDProducer("CATTriggerPacker",
-    src = cms.InputTag("catTrigger"),
+process.HLTMuEl = cms.EDProducer("CATTriggerBitCombiner",
+    triggerResults = cms.InputTag("TriggerResults::HLT"),
+    triggerPrescales = cms.InputTag("patTrigger"),
+    combineBy = cms.string("or"),
     triggersToMatch = cms.vstring(
         "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL",
         "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL",
@@ -105,19 +126,22 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
     eventCounters = cms.vstring("nEventsTotal"), #"nEventsTotal", "nEventsClean", "nEventsPAT"),
     int = cms.PSet(
         nVertex   = cms.InputTag("catVertex:nGoodPV"),
-        filterRECO = cms.InputTag("filterRECO:and"),
-        HLTMuMu = cms.InputTag("HLTMuMu:or"),
-        HLTElEl = cms.InputTag("HLTElEl:or"),
-        HLTMuEl = cms.InputTag("HLTMuEl:or"),
+        filterRECO = cms.InputTag("filterRECO"),
+        HLTMuMu = cms.InputTag("HLTMuMu"),
+        HLTElEl = cms.InputTag("HLTElEl"),
+        HLTMuEl = cms.InputTag("HLTMuEl"),
         #HLTMu = cms.InputTag("recoEventInfo","HLTSingleMu"),
-        HLTEl = cms.InputTag("HLTEl:or"),
+        HLTEl = cms.InputTag("HLTEl"),
+        nBjets = cms.InputTag("ttbarEvent:nBjets"),
     ),
-    double = cms.PSet(
+    float = cms.PSet(
         puWeight   = cms.InputTag("pileupWeight"),
-        puWeightUp = cms.InputTag("pileupWeight", "up"),
-        puWeightDn = cms.InputTag("pileupWeight", "dn"),
+        #puWeightUp = cms.InputTag("pileupWeight", "up"),
+        #puWeightDn = cms.InputTag("pileupWeight", "dn"),
+        met = cms.InputTag("ttbarEvent:met"),
+        metphi = cms.InputTag("ttbarEvent:metphi"),
     ),
-    doubles = cms.PSet(
+    floats = cms.PSet(
         pdfWeight = cms.InputTag("pdfWeight"),
     ),
     cands = cms.PSet(
@@ -132,7 +156,6 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
                 q = cms.string("charge"),
                 #status = cms.string("status"),
             ),
-            selections = cms.untracked.PSet(),
         ),
         partonTop = cms.PSet(
             src = cms.InputTag("partonTop"),
@@ -146,27 +169,36 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
                 q = cms.string("charge"),
                 #status = cms.string("status"),
             ),
-            selections = cms.untracked.PSet(),
-        ),
-        ttbarLep = cms.PSet(
-            src = cms.InputTag("ttbar"),
-            exprs = cms.untracked.PSet(
-                pt  = cms.string("pt"),
-                eta = cms.string("eta"),
-                phi = cms.string("phi"),
-                m   = cms.string("mass"),
-                pdgId = cms.string("pdgId"),
-                q = cms.string("charge"),
-            ),
-            selections = cms.untracked.PSet(),
         ),
     ),
 )
 
-process.load("CATTools.CatProducer.pseudoTop_cff")
+process.load("CATTools.CatAnalyzer.ttbarDileptonKinSolutionAlgos_cff")
+for algo in ["CMSKin", "MT2", "DESYMassLoop", "DESYSmeared"]:
+    setattr(process, 'ttbar'+algo, process.ttbar.clone(solver = getattr(process, 'ttbarDileptonKinAlgoPSet'+algo)))
+    setattr(process.ntuple.floats, 'ttbar%s_mLL' % algo, cms.InputTag("ttbar%s:mLL" % algo))
+    setattr(process.ntuple.floats, 'ttbar%s_mLB' % algo, cms.InputTag("ttbar%s:mLB" % algo))
+    setattr(process.ntuple.floats, 'ttbar%s_dphi' % algo, cms.InputTag("ttbar%s:dphi" % algo))
+    setattr(process.ntuple.cands, 'ttbar'+algo, cms.PSet(
+        src = cms.InputTag('ttbar'+algo),
+        exprs = cms.untracked.PSet(
+            pt  = cms.string("pt"),
+            eta = cms.string("eta"),
+            phi = cms.string("phi"),
+            m   = cms.string("mass"),
+            pdgId = cms.string("pdgId"),
+            q = cms.string("charge"),
+        )
+    ))
+    if 'DESYSmeared' in algo:
+        process.RandomNumberGeneratorService.ttbarDESYSmeared = cms.PSet(
+            initialSeed = cms.untracked.uint32(123456),
+            engineName = cms.untracked.string('TRandom3')
+        )
+
+process.load("CATTools.CatProducer.mcTruthTop.mcTruthTop_cff")
 delattr(process, 'pseudoTop')
 process.p = cms.Path(
-    process.filterRECO*
     process.ntuple
 )
 

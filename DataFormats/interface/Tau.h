@@ -1,5 +1,5 @@
 #ifndef CATTools_Tau_H
-#define CATTools_Tau_H 
+#define CATTools_Tau_H
 
 #include "DataFormats/Candidate/interface/CandidateFwd.h"
 #include "DataFormats/Candidate/interface/Candidate.h"

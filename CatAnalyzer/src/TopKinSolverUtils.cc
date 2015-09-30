@@ -31,7 +31,7 @@ void KinSolverUtils::findCoeffs(const double mT, const double mW1, const double 
   const double l1E = l1.energy(), j1E = j1.energy();
   const double jlEA = j1E + l1E;
   const double divA = 2*l1E*jlEA;
-  const double a1 = (jlEA*dmW1-l1E*(dmT+2*j1E*l1E-2*(l1.Vect().Dot(j1.Vect()))))/divA;
+  const double a1 = (jlEA*dmW1-l1E*(dmT-2*j1E*l1E+2*(l1.Vect().Dot(j1.Vect()))))/divA;
   const double a2 = 2*(j1E*l1.px()-l1E*j1.px())/divA;
   const double a3 = 2*(j1E*l1.py()-l1E*j1.py())/divA;
   const double a4 = 2*(j1E*l1.pz()-l1E*j1.pz())/divA;
@@ -39,7 +39,7 @@ void KinSolverUtils::findCoeffs(const double mT, const double mW1, const double 
   const double l2E = l2.energy(), j2E = j2.energy();
   const double jlEB = j2E + l2E;
   const double divB = 2*l2E*jlEB;
-  const double b1 = (jlEB*dmW2-l2E*(dmT+2*j2E*l2E-2*(l2.Vect().Dot(j2.Vect()))))/divB;
+  const double b1 = (jlEB*dmW2-l2E*(dmT-2*j2E*l2E+2*(l2.Vect().Dot(j2.Vect()))))/divB;
   const double b2 = 2*(j2E*l2.px()-l2E*j2.px())/divB;
   const double b3 = 2*(j2E*l2.py()-l2E*j2.py())/divB;
   const double b4 = 2*(j2E*l2.pz()-l2E*j2.pz())/divB;
@@ -47,15 +47,15 @@ void KinSolverUtils::findCoeffs(const double mT, const double mW1, const double 
   const double divC = 4*jlEA*jlEA;
   const double a14 = a1/a4, a24 = a2/a4, a34 = a3/a4;
   const double c00 = -4*(dxsqr(l1E, l1.py()) + dxsqr(l1E, l1.pz())*a34*a34 + 2*l1.py()*l1.pz()*a34)/divC;
-  const double c10 = -8*(dxsqr(l1E, l1.pz())*a24/a34 - l1.px()*l1.py() + l1.px()*l1.pz()*a34 + l1.py()*l1.pz()*a24)/divC;
+  const double c10 = -8*(dxsqr(l1E, l1.pz())*a24*a34 - l1.px()*l1.py() + l1.px()*l1.pz()*a34 + l1.py()*l1.pz()*a24)/divC;
   const double c20 = -4*(dxsqr(l1E, l1.px()) + dxsqr(l1E, l1.pz())*sqr(a2/a4) + 2*l1.px()*l1.pz()*a24)/divC; 
   const double c11 = 4*(dmW1*(l1.py()-l1.pz()*a34)-2*dxsqr(l1E, l1.pz())*a14*a34-2*l1.py()*l1.pz()*a14)/divC;
   const double c21 = 4*(dmW1*(l1.px()-l1.pz()*a24)-2*dxsqr(l1E, l1.pz())*a14*a24-2*l1.px()*l1.pz()*a14)/divC;
-  const double c22 = (dmW1*dmW1-4*dxsqr(l1E, l1.pz())*a14/a14-4*dmW1*l1.pz()*a14)/divC;
+  const double c22 = (dmW1*dmW1-4*dxsqr(l1E, l1.pz())*a14*a14-4*dmW1*l1.pz()*a14)/divC;
 
   const double divD = 4*jlEB*jlEB;
   const double b14 = b1/b4, b24 = b2/b4, b34 = b3/b4;
-  const double D00 = -4*(dxsqr(l2E, l2.py()) + dxsqr(l2E, l2.pz())*b34*b34 + l2.py()*l2.pz()*b34)/divD;
+  const double D00 = -4*(dxsqr(l2E, l2.py()) + dxsqr(l2E, l2.pz())*b34*b34 + 2*l2.py()*l2.pz()*b34)/divD;
   const double D10 = -8*(dxsqr(l2E, l2.pz())*b24*b34 - l2.px()*l2.py() + l2.px()*l2.pz()*b34 + l2.py()*l2.pz()*b24)/divD;
   const double D20 = -4*(dxsqr(l2E, l2.px()) + dxsqr(l2E, l2.pz())*b24*b24 + 2*l2.px()*l2.pz()*b24)/divD;
   const double D11 = 4*(dmW2*(l2.py()-l2.pz()*b34)-2*dxsqr(l2E, l2.pz())*b14*b34-2*l2.py()*l2.pz()*b14)/divD;
@@ -107,7 +107,7 @@ void KinSolverUtils::getNuPxPyPzE(const double px, const std::vector<double>& p,
   nu2sol[1] = metY - nu1sol[1];
 
   nu1sol[2] = -(p[12] + p[13]*nu1sol[0] + p[14]*nu1sol[1]);
-  nu2sol[2] = -(p[15] + p[16]*nu2sol[0] + p[17]*nu2sol[2]);
+  nu2sol[2] = -(p[15] + p[16]*nu2sol[0] + p[17]*nu2sol[1]);
 
   nu1sol[3] = sqrt(nu1sol[0]*nu1sol[0] + nu1sol[1]*nu1sol[1] + nu1sol[2]*nu1sol[2] + mV*mV);
   nu2sol[3] = sqrt(nu2sol[0]*nu2sol[0] + nu2sol[1]*nu2sol[1] + nu2sol[2]*nu2sol[2] + mV*mV);
@@ -225,3 +225,9 @@ void KinSolverUtils::solve_quartic(const std::vector<double>& h,
   }
   for ( auto& x : v ) x -= H1/4;
 }
+
+double  KinSolverUtils::computeEnergy(const double p3[], const double m)
+{
+  return sqrt(p3[0]*p3[0] + p3[1]*p3[1] + p3[2]*p3[2] + m*m);
+}
+

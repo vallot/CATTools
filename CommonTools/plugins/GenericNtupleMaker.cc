@@ -14,12 +14,9 @@
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
 #include "DataFormats/Common/interface/View.h"
-#include "DataFormats/Common/interface/ValueMap.h"
-#include "DataFormats/Candidate/interface/Candidate.h"
 #include "DataFormats/Candidate/interface/LeafCandidate.h"
 
-#include "CommonTools/Utils/interface/StringObjectFunction.h"
-#include "CommonTools/Utils/interface/StringCutObjectSelector.h"
+#include "CATTools/CommonTools/interface/Consumers.h"
 
 #include "TTree.h"
 #include "TH1F.h"
@@ -30,116 +27,7 @@
 
 using namespace std;
 using namespace edm;
-
-template<typename T>
-class VectorConsumers
-{
-public:
-  typedef edm::ParameterSet PSet;
-
-  void init(const edm::ParameterSet& gpset, const string psetName, edm::ConsumesCollector && iC, TTree* tree)
-  {
-    if ( !gpset.existsAs<PSet>(psetName) ) return;
-    const PSet pset = gpset.getParameter<PSet>(psetName);
-    const auto names = pset.getParameterNamesForType<PSet>();
-    for ( auto& name : names )
-    {
-      const auto ipset = pset.getParameter<PSet>(name);
-      tokens_.push_back(iC.consumes<std::vector<T> >(ipset.getParameter<edm::InputTag>("src")));
-      values_.push_back(new std::vector<T>);
-      tree->Branch(name.c_str(), values_.back());
-    }
-    const auto labels = pset.getParameterNamesForType<edm::InputTag>();
-    for ( auto& name : labels )
-    {
-      tokens_.push_back(iC.consumes<std::vector<T> >(pset.getParameter<edm::InputTag>(name)));
-      values_.push_back(new std::vector<T>);
-      tree->Branch(name.c_str(), values_.back());
-    }
-  }
-
-  int load(const edm::Event& event)
-  {
-    int nFailure = 0;
-    for ( size_t i=0, n=tokens_.size(); i<n; ++i )
-    {
-      edm::Handle<std::vector<T> > handle;
-      event.getByToken(tokens_[i], handle);
-      if ( handle.isValid() )
-      {
-        values_[i]->insert(values_[i]->begin(), handle->begin(), handle->end());
-      }
-      else
-      {
-        ++nFailure;
-      }
-    }
-
-    return nFailure;
-  }
-
-  void clear()
-  {
-    for ( auto& v : values_ ) v->clear();
-  }
-
-private:
-  std::vector<edm::EDGetTokenT<std::vector<T> > > tokens_;
-  std::vector<std::vector<T>*> values_;
-
-};
-
-template<typename T>
-class FlatConsumers
-{
-public:
-  typedef edm::ParameterSet PSet;
-
-  void init(const edm::ParameterSet& gpset, const string psetName, edm::ConsumesCollector && iC,
-            TTree* tree, const char* typeNameStr)
-  {
-    if ( !gpset.existsAs<PSet>(psetName) ) return;
-    const PSet pset = gpset.getParameter<PSet>(psetName);
-    const auto names = pset.getParameterNamesForType<PSet>();
-    for ( auto& name : names )
-    {
-      const auto ipset = pset.getParameter<PSet>(name);
-      tokens_.push_back(iC.consumes<T>(ipset.getParameter<edm::InputTag>("src")));
-      values_.push_back(new T);
-      tree->Branch(name.c_str(), values_.back(), (name+"/"+typeNameStr).c_str());
-    }
-    const auto labels = pset.getParameterNamesForType<edm::InputTag>();
-    for ( auto& name : labels )
-    {
-      tokens_.push_back(iC.consumes<T>(pset.getParameter<edm::InputTag>(name)));
-      values_.push_back(new T);
-      tree->Branch(name.c_str(), values_.back(), (name+"/"+typeNameStr).c_str());
-    }
-  }
-
-  int load(const edm::Event& event)
-  {
-    int nFailure = 0;
-    for ( size_t i=0, n=tokens_.size(); i<n; ++i )
-    {
-      edm::Handle<T> handle;
-      event.getByToken(tokens_[i], handle);
-      if ( handle.isValid() ) *values_[i] = *handle;
-      else
-      {
-        *values_[i] = -999;
-        ++nFailure;
-      }
-    }
-
-    return nFailure;
-  }
-
-private:
-  std::vector<edm::EDGetTokenT<T> > tokens_;
-  std::vector<T*> values_;
-
-};
+using namespace cat;
 
 class GenericNtupleMaker : public edm::EDAnalyzer
 {
@@ -151,18 +39,10 @@ public:
 
 private:
   typedef edm::ParameterSet PSet;
-  typedef std::vector<bool> vbool;
-  typedef std::vector<int> vint;
-  typedef std::vector<double> vdouble;
-  typedef std::vector<std::string> strings;
-
+  typedef std::vector<float> vfloat;
+  typedef std::vector<std::string> vstring;
   typedef edm::View<reco::LeafCandidate> CandView;
-  typedef edm::ValueMap<double> Vmap;
-  typedef edm::EDGetTokenT<CandView> CandToken;
-  typedef edm::EDGetTokenT<Vmap> VmapToken;
 
-  std::vector<CandToken> candTokens_;
-  std::vector<std::vector<VmapToken> > vmapTokens_;
   std::vector<edm::EDGetTokenT<edm::MergeableCounter> > eventCounterTokens_;
 
   FlatConsumers<bool> boolCSet_;
@@ -176,18 +56,12 @@ private:
   VectorConsumers<float> vfloatCSet_;
   VectorConsumers<std::string> vstringCSet_;
 
-  typedef StringObjectFunction<reco::Candidate,true> CandFtn;
-  typedef StringCutObjectSelector<reco::Candidate,true> CandSel;
-
-  std::vector<int> indices_;
-  std::vector<std::vector<CandFtn> > exprs_;
-  std::vector<std::vector<CandSel> > selectors_;
+  CandConsumers candCSet_;
 
   TH1F* hNEvent_;
 
   TTree* tree_;
   int runNumber_, lumiNumber_, eventNumber_;
-  std::vector<std::vector<vdouble*> > candVars_;
 
   struct FAILUREMODE
   {
@@ -224,51 +98,9 @@ GenericNtupleMaker::GenericNtupleMaker(const edm::ParameterSet& pset)
   vfloatCSet_.init(pset, "floats", consumesCollector(), tree_);
   vstringCSet_.init(pset, "strings", consumesCollector(), tree_);
 
-  PSet candPSets = pset.getParameter<PSet>("cands");
-  const strings candNames = candPSets.getParameterNamesForType<PSet>();
-  for ( auto& candName : candNames )
-  {
-    PSet candPSet = candPSets.getParameter<PSet>(candName);
+  candCSet_.init(pset, "cands", consumesCollector(), tree_);
 
-    edm::InputTag candToken = candPSet.getParameter<edm::InputTag>("src");
-    candTokens_.push_back(consumes<CandView>(candToken));
-    exprs_.push_back(std::vector<CandFtn>());
-    selectors_.push_back(std::vector<CandSel>());
-    vmapTokens_.push_back(std::vector<VmapToken>());
-    candVars_.push_back(std::vector<vdouble*>());
-    const string candTokenName = candToken.label();
-    indices_.push_back(candPSet.getUntrackedParameter<int>("index", -1));
-    const PSet exprSets = candPSet.getUntrackedParameter<PSet>("exprs", PSet());
-    for ( auto& exprName : exprSets.getParameterNamesForType<string>() )
-    {
-      const string expr = exprSets.getParameter<string>(exprName);
-      candVars_.back().push_back(new vdouble);
-      exprs_.back().push_back(CandFtn(expr));
-
-      tree_->Branch((candName+"_"+exprName).c_str(), candVars_.back().back());
-    }
-    const PSet selectionSets = candPSet.getUntrackedParameter<PSet>("seletions", PSet());
-    for ( auto& selectionName : selectionSets.getParameterNamesForType<string>() )
-    {
-      const string selection = selectionSets.getParameter<string>(selectionName);
-      candVars_.back().push_back(new vdouble);
-      selectors_.back().push_back(CandSel(selection));
-
-      tree_->Branch((candName+"_"+selectionName).c_str(), candVars_.back().back());
-    }
-    const strings vmapNames = candPSet.getUntrackedParameter<strings>("vmaps", strings());
-    for ( auto& vmapName : vmapNames )
-    {
-      candVars_.back().push_back(new vdouble);
-
-      edm::InputTag vmapToken(candTokenName, vmapName);
-      vmapTokens_.back().push_back(consumes<Vmap>(vmapToken));
-
-      tree_->Branch((candName+"_"+vmapName).c_str(), candVars_.back().back());
-    }
-  }
-
-  const strings eventCounters = pset.getParameter<strings>("eventCounters");
+  const auto eventCounters = pset.getParameter<vstring>("eventCounters");
   const size_t nEventCounter = eventCounters.size();
   hNEvent_ = fs->make<TH1F>("hNEvent", "NEvent", nEventCounter, 0, nEventCounter);
   for ( size_t i=0; i<nEventCounter; ++i )
@@ -300,53 +132,7 @@ void GenericNtupleMaker::analyze(const edm::Event& event, const edm::EventSetup&
   nFailure += vfloatCSet_.load(event);
   nFailure += vstringCSet_.load(event);
 
-  const size_t nCand = candTokens_.size();
-  for ( size_t iCand=0; iCand < nCand; ++iCand )
-  {
-    edm::Handle<CandView> srcHandle;
-    event.getByToken(candTokens_[iCand], srcHandle);
-    if ( !srcHandle.isValid() )
-    {
-      ++nFailure;
-      continue;
-    }
-
-    const int index = indices_[iCand];
-    const std::vector<CandFtn>& exprs = exprs_[iCand];
-    const std::vector<CandSel>& selectors = selectors_[iCand];
-    std::vector<VmapToken>& vmapTokens = vmapTokens_[iCand];
-    const size_t nExpr = exprs.size();
-    const size_t nSels = selectors.size();
-    const size_t nVmap = vmapTokens.size();
-    std::vector<edm::Handle<edm::ValueMap<double> > > vmapHandles(nVmap);
-    for ( size_t iVar=0; iVar<nVmap; ++iVar )
-    {
-      event.getByToken(vmapTokens[iVar], vmapHandles[iVar]);
-    }
-
-    for ( size_t i=0, n=srcHandle->size(); i<n; ++i )
-    {
-      if ( index >= 0 and int(i) != index ) continue;
-      edm::Ref<CandView> candRef(srcHandle, i);
-
-      for ( size_t j=0; j<nExpr; ++j )
-      {
-        const double val = exprs[j](*candRef);
-        candVars_[iCand][j]->push_back(val);
-      }
-      for ( size_t j=0; j<nSels; ++j )
-      {
-        const double val = selectors[j](*candRef);
-        candVars_[iCand][j+nExpr]->push_back(val);
-      }
-      for ( size_t j=0; j<nVmap; ++j )
-      {
-        double val = 0;
-        if ( vmapHandles[j].isValid() ) val = (*vmapHandles[j])[candRef];
-        candVars_[iCand][j+nExpr+nSels]->push_back(val);
-      }
-    }
-  }
+  nFailure += candCSet_.load(event);
 
   if ( nFailure == 0 or failureMode_ == FAILUREMODE::KEEP ) tree_->Fill();
   else if ( failureMode_ == FAILUREMODE::ERROR )
@@ -362,14 +148,8 @@ void GenericNtupleMaker::analyze(const edm::Event& event, const edm::EventSetup&
   vdoubleCSet_.clear();
   vfloatCSet_.clear();
 
-  for ( size_t iCand=0; iCand<nCand; ++iCand )
-  {
-    const size_t nVar = candVars_[iCand].size();
-    for ( size_t iVar=0; iVar<nVar; ++iVar )
-    {
-      candVars_[iCand][iVar]->clear();
-    }
-  }
+  candCSet_.clear();
+
 }
 
 void GenericNtupleMaker::endLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup& eventSetup)

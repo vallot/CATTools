@@ -21,6 +21,7 @@ void TTDileptonSolver::solve(const LV input[])
   const auto& j1 = input[3];
   const auto& j2 = input[4];
 
+  l1_ = input[1]; l2_ = input[2]; j1_ = input[3]; j2_ = input[4];
   nu1_ = met/2;
   nu2_ = met/2;
 
@@ -73,6 +74,10 @@ double fminimize(const gsl_vector* xx, void* p)
 
 }
 
+MT2Solver::MT2Solver(const edm::ParameterSet& pset): KinematicSolver(pset)
+{
+}
+
 void MT2Solver::solve(const LV input[])
 {
   using namespace CATMT2;
@@ -85,6 +90,7 @@ void MT2Solver::solve(const LV input[])
   const auto& l2 = input[2];
   const auto& j1 = input[3];
   const auto& j2 = input[4];
+  l1_ = input[1]; l2_ = input[2]; j1_ = input[3]; j2_ = input[4];
 
   // pars : bx1, by1, bx2, by2, Kx, Ky, xmin, xmax
   //        b : b jet px, py
@@ -152,12 +158,13 @@ void MAOSSolver::solve(const LV input[])
 
 }
 
-CMSKinSolver::CMSKinSolver()
+CMSKinSolver::CMSKinSolver(const edm::ParameterSet& pset): KinematicSolver(pset)
 {
-  //std::vector<double> nuPars = {30.7137,56.2880,23.0744,59.1015,24.9145}; // 7TeV pythia, from CMSSW default
-  //std::vector<double> nuPars = {30.641,57.941,22.344,57.533,22.232}; // ??, from DESY
-  std::vector<double> nuPars = {27.23,53.88,19.92,53.89,19.9}; // 13TeV 50ns powheg, by Youn.
-  solver_.reset(new TtFullLepKinSolver(100, 300, 0.5, nuPars));
+  const double tMassBegin = pset.getParameter<double>("tMassBegin");
+  const double tMassEnd   = pset.getParameter<double>("tMassEnd");
+  const double tMassStep  = pset.getParameter<double>("tMassStep");
+  std::vector<double> nuPars = pset.getParameter<std::vector<double> >("nuPars");
+  solver_.reset(new TtFullLepKinSolver(tMassBegin, tMassEnd, tMassStep, nuPars));
 }
 
 void CMSKinSolver::solve(const LV input[])
@@ -180,12 +187,21 @@ void CMSKinSolver::solve(const LV input[])
 
   nu1_ = nuSol.neutrino.p4();
   nu2_ = nuSol.neutrinoBar.p4();
+  l1_ = input[1]; l2_ = input[2]; j1_ = input[3]; j2_ = input[4];
 
   const LV t1 = input[1]+input[3]+nu1_;
   const LV t2 = input[2]+input[4]+nu2_;
   values_.push_back((t1+t2).mass());
   values_.push_back(t1.mass());
   values_.push_back(t2.mass());
+}
+
+DESYMassLoopSolver::DESYMassLoopSolver(const edm::ParameterSet& pset):
+  KinematicSolver(pset),
+  tMassBegin_(pset.getParameter<double>("tMassBegin")),
+  tMassEnd_(pset.getParameter<double>("tMassEnd")),
+  tMassStep_(pset.getParameter<double>("tMassStep"))
+{
 }
 
 void DESYMassLoopSolver::solve(const LV input[])
@@ -204,7 +220,7 @@ void DESYMassLoopSolver::solve(const LV input[])
   const double b4 = (j2E*l2.pz()-l2E*j2.pz())/l2E/(j2E+l2E);
 
   std::vector<double> koef, cache, sols;
-  for ( double mTop = 100; mTop < 300.5; mTop += 1 ) {
+  for ( double mTop = tMassBegin_; mTop < tMassEnd_+0.5*tMassStep_; mTop += tMassStep_ ) {
     KinSolverUtils::findCoeffs(mTop, 80.4, 80.4, l1, l2, j1, j2, metX, metY, koef, cache);
     KinSolverUtils::solve_quartic(koef, a4, b4, sols);
     //const int nSol = sols.size();
@@ -229,11 +245,19 @@ void DESYMassLoopSolver::solve(const LV input[])
       nu2_.SetPxPyPzE(nu2sol[0], nu2sol[1], nu2sol[2], nu2sol[3]);
     }
   }
+  l1_ = input[1]; l2_ = input[2]; j1_ = input[3]; j2_ = input[4];
 }
 
-DESYSmearedSolver::DESYSmearedSolver()
+DESYSmearedSolver::DESYSmearedSolver(const edm::ParameterSet& pset):
+  KinematicSolver(pset),
+  nTrial_(pset.getParameter<int>("nTrial")),
+  maxLBMass_(pset.getParameter<double>("maxLBMass")),
+  mTopInput_(pset.getParameter<double>("mTopInput"))
 {
-  TFile* f = TFile::Open(edm::FileInPath("CATTools/CatAnalyzer/data/desyKinRecoInput.root").fullPath().c_str());
+  rng_ = 0;
+
+  const auto filePath = pset.getParameter<string>("inputTemplatePath");
+  TFile* f = TFile::Open(edm::FileInPath(filePath).fullPath().c_str());
 
   h_jetEres_.reset(dynamic_cast<TH1*>(f->Get("KinReco_fE_jet_step7")));
   h_jetAres_.reset(dynamic_cast<TH1*>(f->Get("KinReco_d_angle_jet_step7")));
@@ -264,7 +288,7 @@ void DESYSmearedSolver::solve(const LV input[])
   // Skip if L+B mass is large in Smeared solution case
   const double mbl1 = (l1+j1).mass();
   const double mbl2 = (l2+j2).mass();
-  if ( mbl1 > 180. or mbl2 > 180. ) return;
+  if ( mbl1 > maxLBMass_ or mbl2 > maxLBMass_ ) return;
   const auto visSum = l1+l2+j1+j2;
 
   const double l1E = l1.energy(), j1E = j1.energy();
@@ -274,45 +298,67 @@ void DESYSmearedSolver::solve(const LV input[])
 
   std::vector<double> koef, cache, sols;
   // Try 100 times with energy/angle smearing. Take weighted average of solutions
-  const double mTopInput = 172.5;
   //double sumW = 0., maxSumW = 0;
   // Set random seed using kinematics (follow DESY code)
   //const unsigned int seed = std::abs(static_cast<int>(1E6*j1.pt()/j2.pt() * sin(1E6*(l1.pt() + 2.*l2.pt()))));
   //gsl_rng_mt19937
   //gRandom->SetSeed(seed);
-  for ( int i=0; i<100; ++i )
+  double sumW = 0;
+  double sumP[6][3] = {{0,},};
+  for ( int i=0; i<nTrial_; ++i )
   {
     // Generate smearing factors for jets and leptons
-    const auto newj1 = getSmearedLV(j1, h_jetEres_->GetRandom(), h_jetAres_->GetRandom());
-    const auto newj2 = getSmearedLV(j2, h_jetEres_->GetRandom(), h_jetAres_->GetRandom());
-    const auto newl1 = getSmearedLV(l1, h_lepEres_->GetRandom(), h_lepAres_->GetRandom());
-    const auto newl2 = getSmearedLV(l2, h_lepEres_->GetRandom(), h_lepAres_->GetRandom());
+    const auto newl1 = getSmearedLV(l1, getRandom(h_lepEres_.get()), getRandom(h_lepAres_.get()));
+    const auto newl2 = getSmearedLV(l2, getRandom(h_lepEres_.get()), getRandom(h_lepAres_.get()));
+    const auto newj1 = getSmearedLV(j1, getRandom(h_jetEres_.get()), getRandom(h_jetAres_.get()));
+    const auto newj2 = getSmearedLV(j2, getRandom(h_jetEres_.get()), getRandom(h_jetAres_.get()));
 
     // new MET = old MET + MET correction; MET correction = - (Vis. Pxy sum)
     const double newmetX = metX - (-visSum.px() + newj1.px() + newj2.px() + newl1.px() + newl2.px());
     const double newmetY = metY - (-visSum.py() + newj1.py() + newj2.py() + newl1.py() + newl2.py());
 
-    KinSolverUtils::findCoeffs(mTopInput, h_wmass_->GetRandom(), h_wmass_->GetRandom(),
+    // Compute weight by m(B,L)
+    const double w1 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin((newl1+newj1).mass()));
+    const double w2 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin((newl2+newj2).mass()));
+    const double w = w1*w2*1e-8;
+
+    KinSolverUtils::findCoeffs(mTopInput_, getRandom(h_wmass_.get()), getRandom(h_wmass_.get()),
                                newl1, newl2, newj1, newj2, newmetX, newmetY, koef, cache);
     KinSolverUtils::solve_quartic(koef, a4, b4, sols);
-    //const int nSol = sols.size();
-    double nu1sol[4], nu2sol[4];
+    double nu1sol[4] = {}, nu2sol[4] = {};
+    double weight = 0;
     for ( const double& sol : sols ) {
       // Recompute neutrino four momentum
-      KinSolverUtils::getNuPxPyPzE(sol, cache, nu1sol, nu2sol);
+      double nu1solTmp[4], nu2solTmp[4];
+      KinSolverUtils::getNuPxPyPzE(sol, cache, nu1solTmp, nu2solTmp);
 
-      // Compute weight by m(B,L)
-      const double w1 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin(mbl1));
-      const double w2 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin(mbl2));
-      const double weight = w1*w2;
+      if ( w <= weight ) continue;
 
-      if ( weight < quality_ ) continue;
-
-      quality_ = weight;
-      nu1_.SetPxPyPzE(nu1sol[0], nu1sol[1], nu1sol[2], nu1sol[3]);
-      nu2_.SetPxPyPzE(nu2sol[0], nu2sol[1], nu2sol[2], nu2sol[3]);
+      weight = w;
+      std::copy(nu1solTmp, nu1solTmp+4, nu1sol);
+      std::copy(nu2solTmp, nu2solTmp+4, nu2sol);
     }
+    if ( weight == 0 ) continue;
+
+    sumW += weight;
+    sumP[0][0] += weight*newl1.px(); sumP[0][1] += weight*newl1.py(); sumP[0][2] += weight*newl1.pz();
+    sumP[1][0] += weight*newl2.px(); sumP[1][1] += weight*newl2.py(); sumP[1][2] += weight*newl2.pz();
+    sumP[2][0] += weight*newj1.px(); sumP[2][1] += weight*newj1.py(); sumP[2][2] += weight*newj1.pz();
+    sumP[3][0] += weight*newj2.px(); sumP[3][1] += weight*newj2.py(); sumP[3][2] += weight*newj2.pz();
+    sumP[4][0] += weight*nu1sol[0]; sumP[4][1] += weight*nu1sol[1]; sumP[4][2] += weight*nu1sol[2];
+    sumP[5][0] += weight*nu2sol[0]; sumP[5][1] += weight*nu2sol[1]; sumP[5][2] += weight*nu2sol[2];
   }
+  quality_ = sumW;
+  if ( quality_ <= 0 ) { quality_ = -1e9; return; }
+  for ( int i=0; i<6; ++i ) for ( int j=0; j<3; ++j ) sumP[i][j] /= sumW;
+
+  l1_.SetXYZT(sumP[0][0], sumP[0][1], sumP[0][2], KinSolverUtils::computeEnergy(sumP[0], KinSolverUtils::mL));
+  l2_.SetXYZT(sumP[1][0], sumP[1][1], sumP[1][2], KinSolverUtils::computeEnergy(sumP[1], KinSolverUtils::mL));
+  j1_.SetXYZT(sumP[2][0], sumP[2][1], sumP[2][2], KinSolverUtils::computeEnergy(sumP[2], KinSolverUtils::mB));
+  j2_.SetXYZT(sumP[3][0], sumP[3][1], sumP[3][2], KinSolverUtils::computeEnergy(sumP[3], KinSolverUtils::mB));
+  nu1_.SetXYZT(sumP[4][0], sumP[4][1], sumP[4][2], KinSolverUtils::computeEnergy(sumP[4], KinSolverUtils::mV));
+  nu2_.SetXYZT(sumP[5][0], sumP[5][1], sumP[5][2], KinSolverUtils::computeEnergy(sumP[5], KinSolverUtils::mV));
+
 }
 
 LV DESYSmearedSolver::getSmearedLV(const LV& lv0,
@@ -324,7 +370,7 @@ LV DESYSmearedSolver::getSmearedLV(const LV& lv0,
   if ( KinSolverUtils::isZero(e) or KinSolverUtils::isZero(p) ) return LV();
 
   // Apply rotation
-  const double localPhi = gRandom->Uniform(-TMath::Pi(), TMath::Pi());
+  const double localPhi = 2*TMath::Pi()*rng_->flat();
   const double theta = lv0.Theta() + dRot*cos(localPhi);
   const double phi = lv0.Phi() + dRot*sin(localPhi);
 
@@ -335,6 +381,26 @@ LV DESYSmearedSolver::getSmearedLV(const LV& lv0,
   return LV(px, py, pz, e);
 }
 
+double DESYSmearedSolver::getRandom(TH1* h)
+{
+  if ( !h ) return 0;
+
+  h->GetRandom();
+  const int n = h->GetNbinsX();
+  const double* fIntegral = h->GetIntegral();
+  const double integral = fIntegral[n];
+
+  if (integral == 0) return 0;
+
+  const double r1 = rng_->flat();
+  const int ibin = TMath::BinarySearch(n, fIntegral, r1);
+  double x = h->GetBinLowEdge(ibin+1);
+  const double binW = h->GetBinWidth(ibin+1);
+  const double y1 = fIntegral[ibin], y2 = fIntegral[ibin+1];
+  if ( r1 > y1 ) x += binW*(r1-y1)/(y2-y1);
+
+  return x;
+}
 
 namespace CATNuWeight
 {
@@ -455,6 +521,10 @@ double fminimize(const gsl_vector* xx, void* p)
 
 }
 
+NuWeightSolver::NuWeightSolver(const edm::ParameterSet& pset): KinematicSolver(pset)
+{
+}
+
 void NuWeightSolver::solve(const LV input[])
 {
   using namespace CATNuWeight;
@@ -469,6 +539,7 @@ void NuWeightSolver::solve(const LV input[])
   const auto& j1 = input[3];
   const auto& j2 = input[4];
   const double sigmaEXsqr = 1, sigmaEYsqr = 1;
+  l1_ = input[1]; l2_ = input[2]; j1_ = input[3]; j2_ = input[4];
 
   double bestWeight = -1e9;
   double bestMt = 0;

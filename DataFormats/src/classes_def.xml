@@ -66,9 +66,6 @@
   <class name="edm::Wrapper<std::vector<cat::SecVertex> >"/>
   <class name="edm::Ptr<cat::SecVertex>"/>
 
-  <class name="std::vector< std::pair < std::string, int > > "/>
-  <class name="edm::Wrapper< std::vector< std::pair < std::string, int > > >"/>
-
   <class name="reco::CompositePtrCandidateCollection" />
   <class name="edm::Wrapper<reco::CompositePtrCandidateCollection>" />
   <class name="edm::reftobase::Holder<reco::Candidate, reco::CompositePtrCandidateRef>" />

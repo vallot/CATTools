@@ -9,6 +9,7 @@ options.register('runOnMC', True, VarParsing.multiplicity.singleton, VarParsing.
 options.register('useMiniAOD', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "useMiniAOD: 1  default")
 options.register('globalTag', '', VarParsing.multiplicity.singleton, VarParsing.varType.string, "globalTag: 1  default")
 options.register('runGenTop', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runGenTop: 1  default")
+options.register('runOnRelVal', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runOnRelVal: 1  default")
 
 options.parseArguments()
 runOnMC = options.runOnMC
@@ -42,16 +43,17 @@ catTool(process, runOnMC, doSecVertex, useMiniAOD)
 from CATTools.CatProducer.catEventContent_cff import *
 process.out.outputCommands = catEventContent
 if runOnMC:
-    from CATTools.CatProducer.catGenHFHadronMatching_cff import *
-    genHFTool(process, useMiniAOD)
-    if runGenTop:
-        process.load("CATTools.CatProducer.mcTruthTop.mcTruthTop_cff")
-        if not useMiniAOD:
-            process.out.outputCommands.extend(catEventContentAODMC)
     process.out.outputCommands.extend(catEventContentMC)
+    if runGenTop:
+        from CATTools.CatProducer.catGenHFHadronMatching_cff import *
+        genHFTool(process, useMiniAOD)
+        process.load("CATTools.CatProducer.mcTruthTop.mcTruthTop_cff")
+        process.out.outputCommands.extend(catEventContentTOPMC)
+        if not useMiniAOD:
+            process.out.outputCommands.extend(['keep *_catGenTops_*_*',])
+            
 if doSecVertex:
     process.out.outputCommands.extend(catEventContentSecVertexs)
-
 
 ####################################################################
 #### cmsRun options
@@ -62,10 +64,11 @@ process.maxEvents.input = options.maxEvents
 if not options.inputFiles:
     if useMiniAOD:
         process.source.fileNames = ['/store/relval/CMSSW_7_4_6_patch6/RelValTTbar_13/MINIAODSIM/MCRUN2_74_V9-v1/00000/2403409D-1225-E511-B64E-0025905A6132.root']
-    ## Hack to run on relval sample
-        process.genMetExtractor.metSource = "slimmedMETs::RECO"
     else:
         process.source.fileNames = ['/store/relval/CMSSW_7_4_6_patch6/RelValTTbar_13/GEN-SIM-RECO/MCRUN2_74_V9-v1/00000/54F6E09C-1225-E511-842B-0025905A612E.root']
+if useMiniAOD and options.runOnRelVal == True:
+    ## Hack to run on relval sample, controlled with runOnRelVal option
+    process.genMetExtractor.metSource = "slimmedMETs::RECO"
 
 if options.inputFiles:
     process.source.fileNames = options.inputFiles
@@ -81,5 +84,6 @@ if options.maxEvents < 0:
 process.options.wantSummary = False
 
 ## for debugging
+#process.options.wantSummary = True
 #process.source.skipEvents = cms.untracked.uint32(3000)
 #process.SimpleMemoryCheck = cms.Service("SimpleMemoryCheck",ignoreTotal = cms.untracked.int32(1) )

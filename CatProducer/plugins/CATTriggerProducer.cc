@@ -62,7 +62,7 @@ CATTriggerProducer::CATTriggerProducer(const edm::ParameterSet& pset):
   if (hltPaths_.size()){
     produces<pat::TriggerObjectStandAloneCollection >();
   }
-  
+
   for ( auto& hltPath : pset.getParameter<strings>("hltPathNames") ){
     hltPath = boost::regex_replace(hltPath, matchVersion, "");
     std::string hltSavedAs = hltPath;
@@ -81,12 +81,12 @@ CATTriggerProducer::CATTriggerProducer(const edm::ParameterSet& pset):
 void CATTriggerProducer::beginRun(const edm::Run& run, const edm::EventSetup& eventSetup)
 {
   // bool changed = true;
-  // if ( !hltConfig_.init(run, eventSetup, processName_, changed) ) 
+  // if ( !hltConfig_.init(run, eventSetup, processName_, changed) )
   // {
   //   edm::LogError("CATTriggerProducer") << "HLT config extraction failure with process name " << processName_;
   // }
 
-  // if ( changed ) 
+  // if ( changed )
   // {
   //   edm::LogError("CATTriggerProducer") << "HLT config has changed " << processName_;
   //  // The HLT config has actually changed wrt the previous Run, hence rebook your
@@ -124,7 +124,7 @@ void CATTriggerProducer::produce(edm::Event& event, const edm::EventSetup& event
 	catTriggerObjects->push_back(trigObj);
       }
     }
-  
+
     event.put(std::auto_ptr<pat::TriggerObjectStandAloneCollection>(catTriggerObjects));
   }
 
@@ -146,7 +146,7 @@ void CATTriggerProducer::produce(edm::Event& event, const edm::EventSetup& event
 	  psValue = triggerPrescales->getPrescaleForIndex(trigIndex);
 	}
       }
-      event.put(std::auto_ptr<int>(new int (psValue)), hltPath.second);    
+      event.put(std::auto_ptr<int>(new int (psValue)), hltPath.second);
     }
   }
   if (metFilterNames_.size()){

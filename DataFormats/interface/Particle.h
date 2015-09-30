@@ -1,5 +1,5 @@
 #ifndef CATTools_Particle_H
-#define CATTools_Particle_H 
+#define CATTools_Particle_H
 
 #include "DataFormats/Candidate/interface/CandidateFwd.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
@@ -21,14 +21,14 @@ namespace cat {
   class Particle : public reco::LeafCandidate{
   public:
     Particle();
-    Particle(const reco::LeafCandidate & aParticle); 
+    Particle(const reco::LeafCandidate & aParticle);
     virtual ~Particle();
-    
+
     const reco::GenParticle * genParticle() const {return genParticleRef_.get();}
     void setGenParticleRef(reco::GenParticleRef gj){ genParticleRef_ = gj;}
 
     TLorentzVector tlv() const {return TLorentzVector(this->px(), this->py(),this->pz(),this->energy());}
-      
+
   private:
 
     reco::GenParticleRef  genParticleRef_;

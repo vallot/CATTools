@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 catEventContent = cms.untracked.vstring()
 catEventContentMC = cms.untracked.vstring()
-catEventContentAODMC = cms.untracked.vstring()
+catEventContentTOPMC = cms.untracked.vstring()
 catEventContentSecVertexs = cms.untracked.vstring()
 
 catEventContent.extend([
@@ -11,7 +11,9 @@ catEventContent.extend([
     'keep *_nEventsFiltered_*_*',
     'keep *_catMuons_*_*',
     'keep *_catElectrons_*_*',
-    'keep *_catPhotons_*_*',
+    # turning off since no one uses photon and taus
+    #'keep *_catPhotons_*_*',
+    #'keep *_catTaus_*_*', 
     'keep *_catJets*_*_*',
     'keep *_catMETs*_*_*',
     'keep *_catVertex_*_*',
@@ -29,13 +31,13 @@ catEventContentMC.extend([
     'keep *_pileupWeight_*_*',
     #'keep *_matchGenBHadron_*_*',
     #'keep *_matchGenCHadron_*_*',
-    'keep *_GenTtbarCategories_*_*',
-    'keep *_pseudoTop_*_*',
-    #'keep *_partonTop_*_*',
     ])
 
-catEventContentAODMC.extend([
-    'keep *_catGenTops_*_*',
+catEventContentTOPMC.extend([
+    'keep *_GenTtbarCategories_*_*',
+    #'keep *_catGenTops_*_*',
+    'keep *_partonTop_*_*',
+    'keep *_pseudoTop_*_*',
     ])
 
 catEventContentSecVertexs.extend([

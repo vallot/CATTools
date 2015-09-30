@@ -1,4 +1,7 @@
 <use name="CATTools/DataFormats"/>
+<use name="FWCore/Framework" />
+<use name="CommonTools/UtilAlgos" />
+<use name="root" />
 <export>
   <lib   name="1"/>
 </export>

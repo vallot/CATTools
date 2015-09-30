@@ -47,7 +47,7 @@ namespace cat {
     edm::EDGetTokenT<reco::BeamSpot> beamLineSrc_;
     edm::EDGetTokenT<double> rhoLabel_;
     bool runOnMC_;
- 
+
     typedef std::pair<std::string, edm::InputTag> NameTag;
     typedef math::XYZPoint Point;
 
@@ -81,7 +81,7 @@ cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig)
   }
 }
 
-void 
+void
 cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) {
   using namespace edm;
   using namespace std;
@@ -110,7 +110,7 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     iEvent.getByToken(shiftedEnDownSrc_, shiftedEnDownSrc);
     iEvent.getByToken(shiftedEnUpSrc_, shiftedEnUpSrc);
   }
-  
+
   std::vector<edm::Handle<edm::ValueMap<bool> > > idhandles;
   std::vector<pat::Electron::IdPair>               ids;
   idhandles.resize(elecIDSrcs_.size());
@@ -145,7 +145,7 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     aElectron.setNeutralHadronIso03( aPatElectron.pfIsolationVariables().sumNeutralHadronEt );
     aElectron.setPhotonIso03( aPatElectron.pfIsolationVariables().sumPhotonEt );
     aElectron.setPUChargedHadronIso03( aPatElectron.pfIsolationVariables().sumPUPt );
- 
+
     float scEta = aPatElectron.superCluster()->eta();
     double ecalpt = aPatElectron.ecalDrivenMomentum().pt();
 
@@ -173,18 +173,18 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
 	aElectron.setElectronID(pid);
       }
     }
-    
+
     // for additional electron pids
     for (size_t i = 0; i < elecIDSrcs_.size(); ++i){
       ids[i].second = (*idhandles[i])[elecsRef];
       aElectron.setElectronID(ids[i]);
     }
-        
-    reco::GsfTrackRef theTrack = aPatElectron.gsfTrack();    
+
+    reco::GsfTrackRef theTrack = aPatElectron.gsfTrack();
     aElectron.setDxy( theTrack->dxy(pv.position()) );
     aElectron.setDz( theTrack->dz(pv.position()) );
     aElectron.setVertex(Point(theTrack->vx(),theTrack->vy(),theTrack->vz()));
-    
+
     float eoverp = -999.;
     // |1/E-1/p| = |1/E - EoverPinner/E| is computed below
     // The if protects against ecalEnergy == inf or zero
@@ -194,13 +194,13 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     }else if( !std::isfinite(aPatElectron.ecalEnergy())){
       eoverp = 1e30;
     }else{
-      eoverp = fabs(1.0/aPatElectron.ecalEnergy() - aPatElectron.eSuperClusterOverP()/aPatElectron.ecalEnergy() ) ;
+      eoverp = std::abs(1.0/aPatElectron.ecalEnergy() - aPatElectron.eSuperClusterOverP()/aPatElectron.ecalEnergy() ) ;
     }
-    
+
     int snu_id = getSNUID(aPatElectron.full5x5_sigmaIetaIeta(), abs(aPatElectron.deltaEtaSuperClusterTrackAtVtx() ), abs(aPatElectron.deltaPhiSuperClusterTrackAtVtx() ), aPatElectron.hcalOverEcal(), eoverp, abs(aElectron.dz()) , aPatElectron.gsfTrack()->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS), aPatElectron.passConversionVeto(),aPatElectron.superCluster()->eta() );
-    
+
     aElectron.setSNUID(snu_id);
-    
+
     out->push_back(aElectron);
 
     ++j;
@@ -210,18 +210,18 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
 
 
 int cat::CATElectronProducer::getSNUID(float full5x5_sigmaIetaIeta, float deltaEtaSuperClusterTrackAtVtx, float deltaPhiSuperClusterTrackAtVtx, float hoverE, float eoverp, float dz, int exp_miss_innerhits, bool pass_conversion_veto, float sceta){
-  
+
   //----------------------------------------------------------------------
   // Barrel electron cut values
   //----------------------------------------------------------------------
   //Spring15 selection, 25ns selection
   //string id [4] = {"veto", "loose","medium", "tight" };
-  
+
   double l_b_sieie   [4] = { 0.0114, 0.0103, 0.0101 , 0.0101 };
   double l_b_dEtaIn  [4] = { 0.0152, 0.0105, 0.0103,  0.00926};
   double l_b_dPhiIn  [4] = { 0.216,  0.115,  0.0336,  0.0336};
-  double l_b_hoe     [4] = { 0.181,  0.104,  0.0876,  0.0597}; 
-  double l_b_dZ      [4] = { 0.472,  0.41,   0.373,   0.0466}; 
+  double l_b_hoe     [4] = { 0.181,  0.104,  0.0876,  0.0597};
+  double l_b_dZ      [4] = { 0.472,  0.41,   0.373,   0.0466};
   double l_b_ep      [4] = { 0.207,  0.102,  0.0174,  0.012};
   int    l_b_missHits[4] = { 2,      2,      2,       2};
 
@@ -229,55 +229,55 @@ int cat::CATElectronProducer::getSNUID(float full5x5_sigmaIetaIeta, float deltaE
   // Endcap electron cut values
   //----------------------------------------------------------------------
 
-  double l_e_sieie   [4] = { 0.0352,  0.0301,  0.0283,  0.0279}; 
-  double l_e_dEtaIn  [4] = { 0.0113,  0.00814, 0.00733, 0.00724}; 
+  double l_e_sieie   [4] = { 0.0352,  0.0301,  0.0283,  0.0279};
+  double l_e_dEtaIn  [4] = { 0.0113,  0.00814, 0.00733, 0.00724};
   double l_e_dPhiIn  [4] = { 0.237,   0.182,   0.114,   0.0918};
   double l_e_hoe     [4] = { 0.116,   0.0897,  0.0678,  0.0615};
   double l_e_dZ      [4] = { 0.921,   0.822,   0.602,   0.417};
   double l_e_ep      [4] = { 0.174,   0.126,   0.0898,  0.00999};
-  int    l_e_missHits[4] = { 3,       1,       1,       1}; 
-  
+  int    l_e_missHits[4] = { 3,       1,       1,       1};
+
   int flag_id=0;
   for(int i=0; i < 4; i++){
     bool pass_id=true;
-    if ( fabs(sceta) < 1.479 ){
+    if ( std::abs(sceta) < 1.479 ){
       if(full5x5_sigmaIetaIeta >= l_b_sieie[i])pass_id = false;
       if(deltaEtaSuperClusterTrackAtVtx >= l_b_dEtaIn[i])pass_id = false;
       if(deltaPhiSuperClusterTrackAtVtx >= l_b_dPhiIn[i])pass_id = false;
       if(hoverE >= l_b_hoe[i])pass_id = false;
       if(eoverp >= l_b_ep[i])pass_id = false;
-      if(fabs(dz) >=  l_b_dZ[i])pass_id = false;
+      if(std::abs(dz) >=  l_b_dZ[i])pass_id = false;
       if(exp_miss_innerhits > l_b_missHits[i])pass_id = false;
       if(!pass_conversion_veto) pass_id = false;
     }
-    else   if ( fabs(sceta) < 2.5 ){
+    else   if ( std::abs(sceta) < 2.5 ){
       if(full5x5_sigmaIetaIeta >= l_e_sieie[i])pass_id = false;
       if(deltaEtaSuperClusterTrackAtVtx >= l_e_dEtaIn[i])pass_id = false;
       if(deltaPhiSuperClusterTrackAtVtx>= l_e_dPhiIn[i])pass_id = false;
       if(hoverE>= l_e_hoe[i])pass_id = false;
       if(eoverp>= l_e_ep[i])pass_id = false;
-      if(fabs(dz) >=  l_e_dZ[i])pass_id = false;
+      if(std::abs(dz) >=  l_e_dZ[i])pass_id = false;
       if(exp_miss_innerhits > l_e_missHits[i])pass_id = false;
       if(!pass_conversion_veto) pass_id = false;
     }
     if(pass_id)flag_id += pow(10,i);
   }
-  
+
   return flag_id;
 }
 
 
 
-float 
-cat::CATElectronProducer::getEffArea( float dR, float scEta) 
+float
+cat::CATElectronProducer::getEffArea( float dR, float scEta)
 {
-  ElectronEffectiveArea::ElectronEffectiveAreaTarget electronEATarget; 
+  ElectronEffectiveArea::ElectronEffectiveAreaTarget electronEATarget;
   if ( runOnMC_ ) electronEATarget = ElectronEffectiveArea::kEleEAFall11MC;
   else electronEATarget = ElectronEffectiveArea::kEleEAData2012;
 
-  if( dR < 0.35) 
+  if( dR < 0.35)
     return ElectronEffectiveArea::GetElectronEffectiveArea( ElectronEffectiveArea::kEleGammaAndNeutralHadronIso03, scEta, electronEATarget);
-  else 
+  else
     return ElectronEffectiveArea::GetElectronEffectiveArea( ElectronEffectiveArea::kEleGammaAndNeutralHadronIso04, scEta, electronEATarget);
 }
 
@@ -290,7 +290,7 @@ bool cat::CATElectronProducer::mcMatch( const reco::Candidate::LorentzVector& le
 
     bool match = MatchObjects(lepton, aGenPart.p4(), false);
     if( match != true) continue;
-   
+
     const reco::Candidate* mother = aGenPart.mother();
     while( mother != 0 ){
       if( abs(mother->pdgId()) == 23 || abs(mother->pdgId()) == 24 ) {
@@ -313,7 +313,7 @@ bool cat::CATElectronProducer::MatchObjects( const reco::Candidate::LorentzVecto
 
   double dRval = deltaR(proEta, proPhi, pasEta, pasPhi);
   double dPtRel = 999.0;
-  if( proPt > 0.0 ) dPtRel = fabs( pasPt - proPt )/proPt;
+  if( proPt > 0.0 ) dPtRel = std::abs( pasPt - proPt )/proPt;
   // If we are comparing two objects for which the candidates should
   // be exactly the same, cut hard. Otherwise take cuts from user.
   if( exact ) return ( dRval < 1e-3 && dPtRel < 1e-3 );

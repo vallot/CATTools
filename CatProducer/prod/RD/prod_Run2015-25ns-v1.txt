@@ -1,0 +1,18 @@
+/SingleMuon/Run2015C-PromptReco-v1/MINIAOD
+/SingleElectron/Run2015C-PromptReco-v1/MINIAOD
+/DoubleEG/Run2015C-PromptReco-v1/MINIAOD
+/DoubleMuon/Run2015C-PromptReco-v1/MINIAOD
+/MuonEG/Run2015C-PromptReco-v1/MINIAOD
+
+# not all available yet
+#/SingleMuon/Run2015C-28Aug2015-v1/MINIAOD
+#/SingleElectron/Run2015C-28Aug2015-v1/MINIAOD
+#/DoubleEG/Run2015C-28Aug2015-v1/MINIAOD
+#/DoubleMuon/Run2015C-28Aug2015-v1/MINIAOD
+#/MuonEG/Run2015C-28Aug2015-v1/MINIAOD
+
+/SingleMuon/Run2015D-PromptReco-v3/MINIAOD
+/SingleElectron/Run2015D-PromptReco-v3/MINIAOD
+/DoubleEG/Run2015D-PromptReco-v3/MINIAOD
+/DoubleMuon/Run2015D-PromptReco-v3/MINIAOD
+/MuonEG/Run2015D-PromptReco-v3/MINIAOD

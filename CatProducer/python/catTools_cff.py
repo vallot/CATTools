@@ -17,8 +17,6 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
     catRho = "fixedGridRhoAll"
     ePidNames = cms.vstring()
     btagNames = cms.vstring("pfCombinedInclusiveSecondaryVertexV2BJetTags")
-    JECUncertainlyPayload = cms.string("AK4PFchs")
-    #JECUncertainlyPayload = cms.string("")
 
     process.nEventsTotal = cms.EDProducer("EventCountProducer")
     process.nEventsFiltered = cms.EDProducer("EventCountProducer")
@@ -53,7 +51,29 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
     runMetCorAndUncFromMiniAOD( process, isData=not runOnMC, jecUncFile=jecUncertaintyFile, pfCandColl=cms.InputTag("noHFCands"), postfix="NoHF")
     process.catMETsNoHF = process.catMETs.clone()
     process.catMETsNoHF.src = cms.InputTag("slimmedMETsNoHF")
-
+    ## no residuals currently available 
+    process.patPFMetT1T2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+    process.patPFMetT1T2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+    process.patPFMetT2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+    process.patPFMetT2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+    process.shiftedPatJetEnDown.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+    process.shiftedPatJetEnUp.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+    process.patPFMetT1T2CorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+    process.patPFMetT1T2SmearCorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+    process.patPFMetT2CorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+    process.patPFMetT2SmearCorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+    process.shiftedPatJetEnDownNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+    process.shiftedPatJetEnUpNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+        
+    del process.slimmedMETs.t01Variation
+    #del process.slimmedMETs.t1Uncertainties
+    del process.slimmedMETs.tXYUncForRaw
+    del process.slimmedMETs.tXYUncForT1
+    del process.slimmedMETsNoHF.t01Variation
+    #del process.slimmedMETsNoHF.t1Uncertainties
+    del process.slimmedMETsNoHF.tXYUncForRaw
+    del process.slimmedMETsNoHF.tXYUncForT1
+    
 #######################################################################    
 # adding pfMVAMet
     process.load("RecoJets.JetProducers.ak4PFJets_cfi")
@@ -77,6 +97,8 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
     process.puJetIdForPFMVAMEt.jec =  cms.string('AK4PF')
     process.puJetIdForPFMVAMEt.vertexes = cms.InputTag("offlineSlimmedPrimaryVertices")
     process.puJetIdForPFMVAMEt.rho = cms.InputTag("fixedGridRhoFastjetAll")
+    #from RecoJets.JetProducers.PileupJetIDParams_cfi import full_74x_chs
+    #process.puJetIdForPFMVAMEt.algos = cms.VPSet(full_74x_chs)
     process.load("PhysicsTools.PatAlgos.producersLayer1.metProducer_cfi")
     process.patMETsPfMva = process.patMETs.clone()
     process.patMETsPfMva.addGenMET    = cms.bool(False)
@@ -94,6 +116,10 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
     from JMEAnalysis.JetToolbox.jetToolbox_cff import jetToolbox
     jetToolbox( process, 'ak4', 'ak4JetSubs', 'out', PUMethod='Puppi', miniAOD = useMiniAOD, runOnMC = True,#due to bug in jetToolbox
                 JETCorrPayload='AK4PFPuppi', JETCorrLevels = ['L1FastJet', 'L2Relative', 'L3Absolute'] )#bug-JETCorrLevels overwritten in jetToolbox
+
+    process.selectedPatJetsAK4PFPuppi.cut = cms.string("pt > 20")
+    process.patJetGenJetMatchAK4PFPuppi.matched = cms.InputTag("slimmedGenJets")
+    process.patJetsAK4PFPuppi.embedGenPartonMatch = cms.bool(False)
     catJetsPuppiSource = "selectedPatJetsAK4PFPuppi"
     # remaking puppi met
     from RecoMET.METProducers.PFMET_cfi import pfMet
@@ -145,6 +171,7 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
 ## applying new jec on the fly
     if useMiniAOD:
         process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
+        process.patJetCorrFactors.primaryVertices = cms.InputTag(catVertexSource)
         catJetsSource = "patJetsUpdated"
         ### updating puppi jet jec
         process.patJetPuppiCorrFactorsUpdated = process.patJetCorrFactorsUpdated.clone(
@@ -191,9 +218,6 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
         process.load("CATTools.CatProducer.pileupWeight_cff")
         process.pileupWeight.vertex = cms.InputTag(catVertexSource)
 
-        if not useMiniAOD:
-            process.load("CATTools.CatProducer.mcTruthTop.genTopProducer_cfi")
-                    
         process.catMuons.shiftedEnDownSrc = cms.InputTag("shiftedPatMuonEnDown")
         process.catMuons.shiftedEnUpSrc = cms.InputTag("shiftedPatMuonEnUp")
         process.catElectrons.shiftedEnDownSrc = cms.InputTag("shiftedPatElectronEnDown")
@@ -205,11 +229,9 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
         #process.makeCatCandidates += process.catSecVertexs
                 
     process.catJets.src = cms.InputTag(catJetsSource)
-    process.catJets.genJetMatch = cms.InputTag("patJetGenJetMatch")
     process.catJets.btagNames = btagNames
-    process.catJets.payloadName = JECUncertainlyPayload
+    process.catJets.payloadName = cms.string("AK4PFchs")
     process.catTaus.src = cms.InputTag(catTausSource)
-    process.catTaus.genJetMatch = cms.InputTag("tauGenJetMatch")
     process.catMuons.src = cms.InputTag(catMuonsSource)
     process.catMuons.mcLabel = cms.InputTag(catMCsource)
     process.catMuons.vertexLabel = cms.InputTag(catVertex)
@@ -227,8 +249,8 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
     process.catSecVertexs.vertexLabel = cms.InputTag(catVertexSource)
 
     process.catJetsPuppi.src = cms.InputTag(catJetsPuppiSource)
-    process.catJetsPuppi.genJetMatch = cms.InputTag("patJetGenJetMatch")
     process.catJetsPuppi.btagNames = btagNames
-    process.catJetsPuppi.payloadName = JECUncertainlyPayload    
+    process.catJetsPuppi.payloadName = cms.string("AK4PFchs") #temp for now
     process.catMETsPuppi.src = cms.InputTag(catMETsPuppiSource)
     process.catVertex.vertexLabel = cms.InputTag(catVertexSource)
+    

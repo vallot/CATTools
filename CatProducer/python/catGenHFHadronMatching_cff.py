@@ -50,7 +50,7 @@ def genHFTool(process, useMiniAOD = True):
     process.load("PhysicsTools.JetMCAlgos.sequences.GenHFHadronMatching_cff")
     process.matchGenCHadron.genParticles = genParticleCollection
 
-    process.load("CATTools.CatProducer.GenTtbarCategorizer_cfi")
+    process.load("CATTools.CatProducer.mcTruthTop.GenTtbarCategorizer_cfi")
     process.GenTtbarCategories = process.categorizeGenTtbar.clone(
        genJets = cms.InputTag(genJetCollection)
     )

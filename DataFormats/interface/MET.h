@@ -1,5 +1,5 @@
 #ifndef CATTools_MET_H
-#define CATTools_MET_H 
+#define CATTools_MET_H
 
 #include "DataFormats/Candidate/interface/CandidateFwd.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
@@ -17,7 +17,7 @@ namespace cat {
 
   class MET : public Particle {
   public:
-    
+
     MET() {};
     MET(const reco::LeafCandidate & aMet);
     MET(const reco::LeafCandidate & aMet, float sumEt);
