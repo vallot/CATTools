@@ -63,9 +63,15 @@ process.maxEvents.input = options.maxEvents
 # Default file here for test purpose
 if not options.inputFiles:
     if useMiniAOD:
-        process.source.fileNames = ['/store/relval/CMSSW_7_4_6_patch6/RelValTTbar_13/MINIAODSIM/MCRUN2_74_V9-v1/00000/2403409D-1225-E511-B64E-0025905A6132.root']
+        if runGenTop:
+            process.source.fileNames = ['/store/relval/CMSSW_7_4_6_patch6/RelValTTbar_13/MINIAODSIM/MCRUN2_74_V9-v1/00000/2403409D-1225-E511-B64E-0025905A6132.root']
+        else:
+            process.source.fileNames = ['/store/relval/CMSSW_7_4_6_patch6/RelValZMM_13/MINIAODSIM/74X_mcRun2_asymptotic_realisticBS_v0_2015Jul24PU-v1/00000/487C927D-6732-E511-9FB3-0025905B85AA.root']
     else:
-        process.source.fileNames = ['/store/relval/CMSSW_7_4_6_patch6/RelValTTbar_13/GEN-SIM-RECO/MCRUN2_74_V9-v1/00000/54F6E09C-1225-E511-842B-0025905A612E.root']
+        if useGenTop:
+            process.source.fileNames = ['/store/relval/CMSSW_7_4_6_patch6/RelValTTbar_13/GEN-SIM-RECO/MCRUN2_74_V9-v1/00000/54F6E09C-1225-E511-842B-0025905A612E.root']
+        else:
+            process.source.fileNames = ['/store/relval/CMSSW_7_4_6_patch6/RelValZMM_13/GEN-SIM-RECO/74X_mcRun2_asymptotic_realisticBS_v0_2015Jul24PU-v1/00000/3E2885EA-6032-E511-B000-0025905A60B6.root']
 if useMiniAOD and options.runOnRelVal == True:
     ## Hack to run on relval sample, controlled with runOnRelVal option
     process.genMetExtractor.metSource = "slimmedMETs::RECO"
