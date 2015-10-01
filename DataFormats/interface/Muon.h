@@ -21,13 +21,7 @@ namespace cat {
     Muon();
     Muon(const reco::LeafCandidate & aMuon);
     virtual ~Muon();
-
-    /// cat default variables ///
-
-    float relIso(float dR=0.3 ) const {
-      if( dR < 0.35) return relIso03_;
-      else return relIso04_;
-    }
+    
     bool isGlobalMuon() const { return isGlobalMuon_; }
     bool isPFMuon() const { return isPFMuon_; }
     bool isTightMuon() const { return isTightMuon_; }
@@ -47,11 +41,6 @@ namespace cat {
     float dxy() const { return dxy_; }
     float dz() const { return dz_; }
 
-    void setrelIso(float dR, double chIso, double nhIso, double phIso, double puIso, double pt) {
-      float relIso = ( chIso + std::max( 0.0, nhIso + phIso - 0.5 * puIso) ) / pt;
-      if( dR < 0.35) relIso03_ = relIso;
-      else  relIso04_ = relIso;
-    }
     float chargedHadronIso(float dR=0.3) const {
       if( dR < 0.35) return chargedHadronIso03_;
       else return chargedHadronIso04_;
@@ -67,6 +56,17 @@ namespace cat {
     float photonIso(float dR=0.3) const {
       if( dR < 0.35) return photonIso03_;
       else return photonIso04_;
+    }
+    float absIso(float dR=0.3, float dBetaFactor=0.5) const{
+      if(dBetaFactor>0 && puChargedHadronIso(dR)<0) return -1;
+      float neutralIso = neutralHadronIso(dR) + photonIso(dR);
+      float corNeutralIso = neutralIso - dBetaFactor * puChargedHadronIso(dR);
+      float charged = chargedHadronIso(dR);
+      return charged + ( corNeutralIso>0 ? corNeutralIso : 0 ) ;
+    }
+    float relIso(float dR=0.3, float dBetaFactor=0.5) const{
+      float abs = absIso(dR, dBetaFactor)/this->pt();
+      return abs >=0 ? abs : -1;
     }
 
     void setChargedHadronIso03(float i) { chargedHadronIso03_ = i; }
@@ -104,9 +104,6 @@ namespace cat {
     float shiftedEnUp() const {return  shiftedEnUp_;}
 
   private:
-
-    float relIso03_;
-    float relIso04_;
 
     float chargedHadronIso03_;
     float puChargedHadronIso03_;
