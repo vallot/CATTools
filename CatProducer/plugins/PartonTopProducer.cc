@@ -220,12 +220,12 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
         {
           ++nTauToLepton;
           if ( abs(lepFromTau->pdgId()) == 13 ) {
-            ++nMuon;
             mode += 1;
+            ++nMuon;
           }
           else {
-            ++nElectron;
             mode += 2;
+            ++nElectron;
           }
         }
         break;
