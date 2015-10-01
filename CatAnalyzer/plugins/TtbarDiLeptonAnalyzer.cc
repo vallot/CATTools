@@ -37,16 +37,17 @@ public:
 private:
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
 
-  typedef std::vector<const cat::Particle*> ParticlePtrs;
-  typedef std::vector<const cat::Jet*> JetPtrs;
+  typedef std::vector<cat::Particle> Particles;
+  typedef std::vector<cat::Jet> Jets;
 
-  void selectMuons(const vector<cat::Muon>& muons, ParticlePtrs& selmuons) const;
-  void selectElecs(const vector<cat::Electron>& elecs, ParticlePtrs& selelecs) const;
-  void selectJets(const vector<cat::Jet>& jets, const ParticlePtrs& recolep, JetPtrs& seljets) const;
-  void selectBJets(const JetPtrs& jets, JetPtrs& selBjets) const;
+  void selectMuons(const vector<cat::Muon>& muons, Particles& selmuons) const;
+  void selectElecs(const vector<cat::Electron>& elecs, Particles& selelecs) const;
+  void selectJets(const Jets& jets, const Particles& recolep, Jets& seljets) const;
+  void selectBJets(const Jets& jets, Jets& selBjets) const;
   const reco::Candidate* getLast(const reco::Candidate* p) const;
 
   edm::EDGetTokenT<int> recoFiltersToken_;
+  edm::EDGetTokenT<int> trigTokenMUEL_, trigTokenMUMU_, trigTokenELEL_;
 
   edm::EDGetTokenT<std::vector<cat::Muon> >     muonToken_;
   edm::EDGetTokenT<std::vector<cat::Electron> > elecToken_;
@@ -63,9 +64,6 @@ private:
   edm::EDGetTokenT<vector<reco::GenParticle> > pseudoTop_neutrinos_;
   edm::EDGetTokenT<vector<reco::MET>         > pseudoTop_mets_;
 
-  edm::EDGetTokenT<edm::TriggerResults> triggerBits_;
-  edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjects_;
-
   TTree * ttree_;
   int b_partonChannel, b_partonMode1, b_partonMode2;
   int b_pseudoTopChannel, b_pseudoTopMode1, b_pseudoTopMode2;
@@ -79,7 +77,7 @@ private:
   float b_jet_pt, b_jet_eta, b_jet_phi, b_jet_m, b_jet_CSVInclV2;
   float b_top1_pt, b_top1_eta, b_top1_phi;
   float b_top2_pt, b_top2_eta, b_top2_phi;
-  float b_tri;
+  int b_tri;
   int b_filtered;
   int b_is3lep;
 
@@ -98,6 +96,9 @@ private:
 TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
 {
   recoFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("recoFilters"));
+  trigTokenMUEL_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigMUEL"));
+  trigTokenMUMU_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigMUMU"));
+  trigTokenELEL_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigELEL"));
 
   muonToken_ = consumes<std::vector<cat::Muon> >(iConfig.getParameter<edm::InputTag>("muons"));
   elecToken_ = consumes<std::vector<cat::Electron> >(iConfig.getParameter<edm::InputTag>("electrons"));
@@ -116,9 +117,6 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
     pseudoTop_neutrinos_ = consumes<vector<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("pseudoTop_neutrinos"));
     pseudoTop_mets_      = consumes<vector<reco::MET>         >(iConfig.getParameter<edm::InputTag>("pseudoTop_mets"));
   }
-
-  triggerBits_ = consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerBits"));
-  triggerObjects_ = consumes<pat::TriggerObjectStandAloneCollection>(iConfig.getParameter<edm::InputTag>("triggerObjects"));
 
   const double tmassbegin = iConfig.getParameter<double>       ("tmassbegin");
   const double tmassend   = iConfig.getParameter<double>       ("tmassend");
@@ -167,7 +165,7 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("top2_eta", &b_top2_eta, "top2_eta/F");
   ttree_->Branch("top2_phi", &b_top2_pt, "top2_phi/F");
 
-  ttree_->Branch("tri", &b_tri, "tri/F");
+  ttree_->Branch("tri", &b_tri, "tri/I");
   ttree_->Branch("filtered", &b_filtered, "filtered/I");
   ttree_->Branch("is3lep", &b_is3lep, "is3lep/I");
 
@@ -281,15 +279,13 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_filtered = *recoFiltersHandle == 0 ? false : true;
 
   // Find leptons and sort by pT
-  ParticlePtrs recolep;
+  Particles recolep;
   selectMuons(*muons, recolep);
   selectElecs(*electrons, recolep);
   if (recolep.size() < 2) return;
-  // A lambda function to return a->pt() > b->pt()
-  auto GtByPtPtr = [](const cat::Particle* a, const cat::Particle* b){return a->pt() > b->pt();};
-  sort(recolep.begin(), recolep.end(), GtByPtPtr);
-  const auto& recolep1 = *recolep[0];
-  const auto& recolep2 = *recolep[1];
+  sort(recolep.begin(), recolep.end(), GtByCandPt());
+  const cat::Particle& recolep1 = recolep[0];
+  const cat::Particle& recolep2 = recolep[1];
 
   // Determine channel
   const int pdgIdSum = std::abs(recolep1.pdgId()) + std::abs(recolep2.pdgId());
@@ -298,30 +294,13 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   if (pdgIdSum == 26) b_channel = CH_MUMU; // mumu
 
   // Trigger results
-  edm::Handle<edm::TriggerResults> triggerBits;
-  edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
-  iEvent.getByToken(triggerBits_, triggerBits);
-  iEvent.getByToken(triggerObjects_, triggerObjects);
-  const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
-  AnalysisHelper trigHelper = AnalysisHelper(triggerNames, triggerBits, triggerObjects);
-  bool tri=false;
-
-  if (b_channel == CH_ELEL and
-      (trigHelper.triggerFired("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v") ||
-       trigHelper.triggerFired("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v")) ) tri = true;
-
-  if (b_channel == CH_MUMU and
-      (trigHelper.triggerFired("HLT_Mu17_Mu8_DZ_v") ||
-       trigHelper.triggerFired("HLT_Mu17_TkMu8_DZ_v") ||
-       trigHelper.triggerFired("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v") ||
-       trigHelper.triggerFired("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v") ||
-       trigHelper.triggerFired("HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v")) ) tri = true;
-
-  if (b_channel == CH_MUEL and
-      (trigHelper.triggerFired("HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v") ||
-       trigHelper.triggerFired("HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v")) ) tri = true;
-
-  if (!tri) return;
+  edm::Handle<int> trigHandle;
+  if      ( b_channel == CH_ELEL ) iEvent.getByToken(trigTokenELEL_, trigHandle);
+  else if ( b_channel == CH_MUMU ) iEvent.getByToken(trigTokenMUMU_, trigHandle);
+  else if ( b_channel == CH_MUEL ) iEvent.getByToken(trigTokenMUEL_, trigHandle);
+  if ( !trigHandle.isValid() ) return;
+  b_tri = *trigHandle;
+  //if (!tri) return;
 
   cutflow_[++b_step][b_channel]++;
 
@@ -348,7 +327,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   }
   cutflow_[++b_step][b_channel]++;
 
-  JetPtrs selectedJets, selectedBJets;
+  Jets selectedJets, selectedBJets;
   selectJets(*jets, recolep, selectedJets);
   selectBJets(selectedJets, selectedBJets);
   const TLorentzVector met = mets->front().tlv();
@@ -397,10 +376,10 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   const TLorentzVector recolepLV1= recolep1.tlv();
   const TLorentzVector recolepLV2= recolep2.tlv();
   for (auto jet1 = selectedJets.begin(), end = selectedJets.end(); jet1 != end; ++jet1){
-    const TLorentzVector recojet1= (*jet1)->tlv();
+    const TLorentzVector recojet1= jet1->tlv();
     for (auto jet2 = next(jet1); jet2 != end; ++jet2){
 
-      const TLorentzVector recojet2= (*jet2)->tlv();
+      const TLorentzVector recojet2= jet2->tlv();
 
       const double xconstraint = recolep1.px()+recolep2.px()+ recojet1.Px() + recojet2.Px() +met.Px();
       const double yconstraint = recolep1.py()+recolep2.py()+ recojet1.Py() + recojet2.Py() +met.Py();
@@ -453,22 +432,22 @@ const reco::Candidate* TtbarDiLeptonAnalyzer::getLast(const reco::Candidate* p) 
   return p;
 }
 
-void TtbarDiLeptonAnalyzer::selectMuons(const std::vector<cat::Muon>& muons, ParticlePtrs& selmuons) const
+void TtbarDiLeptonAnalyzer::selectMuons(const std::vector<cat::Muon>& muons, Particles& selmuons) const
 {
-  for (auto mu : muons) {
+  for (auto& mu : muons) {
     if (mu.pt() < 20.) continue;
     if (std::abs(mu.eta()) > 2.4) continue;
     //if (!mu.isMediumMuon()) continue;
     if (!mu.isTightMuon()) continue;
     if (mu.relIso(0.4) > 0.12) continue;
     //printf("muon with pt %4.1f, POG loose id %d, tight id %d\n", mu.pt(), mu.isLooseMuon(), mu.isTightMuon());
-    selmuons.push_back(&mu);
+    selmuons.push_back(mu);
   }
 }
 
-void TtbarDiLeptonAnalyzer::selectElecs(const std::vector<cat::Electron>& elecs, ParticlePtrs& selelecs) const
+void TtbarDiLeptonAnalyzer::selectElecs(const std::vector<cat::Electron>& elecs, Particles& selelecs) const
 {
-  for (auto el : elecs) {
+  for (auto& el : elecs) {
     if (el.pt() < 20.) continue;
     if ((std::abs(el.scEta()) > 1.4442) && (std::abs(el.scEta()) < 1.566)) continue;
     if (std::abs(el.eta()) > 2.4) continue;
@@ -479,32 +458,32 @@ void TtbarDiLeptonAnalyzer::selectElecs(const std::vector<cat::Electron>& elecs,
     if (!el.isPF()) continue;
 
     //printf("electron with pt %4.1f\n", el.pt());
-    selelecs.push_back(&el);
+    selelecs.push_back(el);
   }
 }
 
-void TtbarDiLeptonAnalyzer::selectJets(const vector<cat::Jet>& jets, const ParticlePtrs& recolep, JetPtrs& seljets) const
+void TtbarDiLeptonAnalyzer::selectJets(const vector<cat::Jet>& jets, const Particles& recolep, Jets& seljets) const
 {
   seljets.clear();
-  for (auto jet : jets) {
+  for (auto& jet : jets) {
     if (jet.pt() < 30.) continue;
     if (std::abs(jet.eta()) > 2.4)	continue;
     if (!jet.LooseId()) continue;
 
     bool hasOverLap = false;
     for (auto lep : recolep){
-      if (deltaR(jet.p4(),lep->p4()) < 0.4) hasOverLap = true;
+      if (deltaR(jet.p4(),lep.p4()) < 0.4) hasOverLap = true;
     }
     if (hasOverLap) continue;
     // printf("jet with pt %4.1f\n", jet.pt());
-    seljets.push_back(&jet);
+    seljets.push_back(jet);
   }
 }
 
-void TtbarDiLeptonAnalyzer::selectBJets(const JetPtrs& jets, JetPtrs& selBjets) const
+void TtbarDiLeptonAnalyzer::selectBJets(const Jets& jets, Jets& selBjets) const
 {
-  for (auto jet : jets) {
-    if (jet->bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") < 0.605) continue;
+  for (auto& jet : jets) {
+    if (jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") < 0.605) continue;
     //printf("b jet with pt %4.1f\n", jet.pt());
     selBjets.push_back(jet);
   }
