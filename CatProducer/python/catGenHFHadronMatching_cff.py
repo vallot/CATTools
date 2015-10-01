@@ -38,7 +38,7 @@ def genHFTool(process, useMiniAOD = True):
     from PhysicsTools.JetMCAlgos.AK4PFJetsMCFlavourInfos_cfi import ak4JetFlavourInfos
     process.genJetFlavourInfos = ak4JetFlavourInfos.clone( jets = genJetCollection )
 
-    #for cmssw_7_6_X
+    #for cmssw_7_6_X, not ready for 74x
     #process.load("PhysicsTools.JetMCAlgos.GenHFHadronMatcher_cff")
     #added the 3-lines instead of GenHFHadronMatcher_cff
     from PhysicsTools.JetMCAlgos.GenHFHadronMatcher_cfi import matchGenHFHadron
@@ -53,10 +53,7 @@ def genHFTool(process, useMiniAOD = True):
     process.matchGenCHadron.genParticles = genParticleCollection
     process.matchGenCHadron.jetFlavourInfos = "genJetFlavourInfos"
      
-    #related the issue : https://github.com/vallot/CATTools/issues/226
-    #process.load("TopQuarkAnalysis.TopTools.GenTtbarCategorizer_cfi")
-    #remove CatProducer/plugins/GenTtbarCategorizer.cc
-    process.load("CATTools.CatProducer.mcTruthTop.GenTtbarCategorizer_cfi")
+    process.load("TopQuarkAnalysis.TopTools.GenTtbarCategorizer_cfi")
     process.GenTtbarCategories = process.categorizeGenTtbar.clone(
        genJets = cms.InputTag(genJetCollection)
     )
