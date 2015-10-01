@@ -27,6 +27,7 @@ public:
   void produce(edm::Event& event, const edm::EventSetup& eventSetup) override;
 
 private:
+  const bool scaleGenWeight_;
   bool doReweightPdf_;
   const std::string pdfName_;
   std::string generatedPdfName_;
@@ -36,13 +37,13 @@ private:
 };
 
 GenWeightsProducer::GenWeightsProducer(const edm::ParameterSet& pset):
+  scaleGenWeight_(pset.getParameter<bool>("scaleGenWeight")),
   pdfName_(pset.getParameter<std::string>("pdfName")),
   lheToken_(consumes<LHEEventProduct>(pset.getParameter<edm::InputTag>("lheEvent"))),
   genInfoToken_(consumes<GenEventInfoProduct>(pset.getParameter<edm::InputTag>("genEventInfo"))),
   lheWeightIndex_(pset.getParameter<int>("lheWeightIndex")),
   genWeightIndex_(pset.getParameter<int>("genWeightIndex"))
 {
-
   doReweightPdf_ = false;
   if ( pset.existsAs<std::string>("generatedPdfName") )
   {
@@ -83,6 +84,8 @@ void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& event
 
   if ( lheHandle.isValid() and lheHandle->weights().size() > lheWeightIndex_ ) lheWeight = lheHandle->weights().at(lheWeightIndex_).wgt;
   if ( genInfoHandle->weights().size() > genWeightIndex_ ) genWeight = genInfoHandle->weights().at(genWeightIndex_);
+  lheWeight = lheWeight == 0 ? 0 : lheWeight/std::abs(lheWeight);
+  genWeight = genWeight == 0 ? 0 : genWeight/std::abs(genWeight);
 
   const float q = genInfoHandle->pdf()->scalePDF;
   const int id1 = genInfoHandle->pdf()->id.first;
