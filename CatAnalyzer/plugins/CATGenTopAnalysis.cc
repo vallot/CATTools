@@ -78,7 +78,13 @@ private:
   std::vector<H2> h2_, h2Com_;
 
   // Other plots for debugging
-  H2 h2DebugChannel_; // channel vs channel without looking at pseudotop phase space cut
+  // Decay channels
+  H1 hFulParton_Channel_, hFidParton_Channel_;
+  H1 hComParton_Channel_, hComPseudo_Channel_;
+  H1 hPseudo_Channel_, hChPseudo_Channel_;
+
+  // channel vs channel without looking at pseudotop phase space cut
+  H2 h2DebugChannel_;
   H2 h2PseudoChannel_;
   H2 h2ComChannel_;
   H2 h2ChChannel_;
@@ -114,7 +120,7 @@ CATGenTopAnalysis::CATGenTopAnalysis(const edm::ParameterSet& pset):
     {0,55,120,200,290,400}, //d29
     {0,30,80,170,300},
     {-2.5,-1.5,-1,-0.5,0,0.5,1,1.5,2.5},
-    {340,380,470,620,820,1100,1600}
+    {340,380,470,620,820,1100,1600},
   };
 
   const std::vector<std::string> names = {
@@ -148,7 +154,7 @@ CATGenTopAnalysis::CATGenTopAnalysis(const edm::ParameterSet& pset):
   auto dirPseudo = fs->mkdir("Particle");
   auto dirChPseudo = fs->mkdir("ChFilteredParticle");
 
-  for ( size_t i=0; i<18; ++i ) {
+  for ( size_t i=0; i<END; ++i ) {
     const int nbins = bins[i].size()-1;
     const float* binPtr = &bins[i][0];
 
@@ -167,32 +173,6 @@ CATGenTopAnalysis::CATGenTopAnalysis(const edm::ParameterSet& pset):
     h2Com_.push_back(dirComPseudo.make<TH2F>(name2.c_str(), title2.c_str(), nbins, binPtr, nbins, binPtr));
   }
 
-  h2DebugChannel_ = fs->make<TH2F>("h2DebugChannel", "No filter debug;Parton;Pseudotop", 9, 1, 10, 9, 1, 10);
-  h2PseudoChannel_ = fs->make<TH2F>("h2PseudoChannel", "Pseudotop phase space;Parton;Pseudotop", 9, 1, 10, 9, 1, 10);
-  h2ComChannel_ = fs->make<TH2F>("h2ComChannel", "Common phase space;Parton;Pseudotop", 9, 1, 10, 9, 1, 10);
-  h2ChChannel_ = fs->make<TH2F>("h2ChChannel", "Common phase space same channel;Parton;Pseudotop", 9, 1, 10, 9, 1, 10);
-
-  std::vector<H2> hh = {h2DebugChannel_, h2PseudoChannel_, h2ComChannel_, h2ChChannel_};
-  for ( auto& h : hh )
-  {
-    h->GetXaxis()->SetBinLabel(1, "Hadronic");
-    h->GetXaxis()->SetBinLabel(2, "e+jet");
-    h->GetXaxis()->SetBinLabel(3, "#mu+jet");
-    h->GetXaxis()->SetBinLabel(4, "ee");
-    h->GetXaxis()->SetBinLabel(5, "#mu#mu");
-    h->GetXaxis()->SetBinLabel(6, "e#mu");
-    h->GetXaxis()->SetBinLabel(7, "#tau hadronic+jet");
-    h->GetXaxis()->SetBinLabel(8, "#tau#rightarrow l+jet");
-    h->GetXaxis()->SetBinLabel(9, "#tau dilepton");
-
-    h->GetYaxis()->SetBinLabel(1, "Hadronic");
-    h->GetYaxis()->SetBinLabel(2, "e+jet");
-    h->GetYaxis()->SetBinLabel(3, "#mu+jet");
-    h->GetYaxis()->SetBinLabel(4, "ee");
-    h->GetYaxis()->SetBinLabel(5, "#mu#mu");
-    h->GetYaxis()->SetBinLabel(6, "e#mu");
-  }
-
   assert(hFulParton_.size() == END);
   assert(hFidParton_.size() == END);
   assert(hComParton_.size() == END);
@@ -201,6 +181,46 @@ CATGenTopAnalysis::CATGenTopAnalysis(const edm::ParameterSet& pset):
   assert(hChPseudo_.size() == END);
   assert(h2_.size() == END);
   assert(h2Com_.size() == END);
+
+  // Continue to debugging plots
+  const std::vector<const char*> channelNames = {
+    "Hadronic",
+    "e+jet", "#mu+jet",
+    "ee", "#mu#mu", "e#mu",
+    "#tau hadronic+jet", "#tau#rightarrow l+jet", "#tau dilepton"
+  };
+
+  hFulParton_Channel_ = dirFulParton.make<TH1F>("channel", "channel", 9, 1, 10);
+  hFidParton_Channel_ = dirFidParton.make<TH1F>("channel", "channel", 9, 1, 10);
+  hComParton_Channel_ = dirComParton.make<TH1F>("channel", "channel", 9, 1, 10);
+  hComPseudo_Channel_ = dirComPseudo.make<TH1F>("channel", "channel", 9, 1, 10);
+  hPseudo_Channel_    = dirPseudo.make<TH1F>("channel", "channel", 9, 1, 10);
+  hChPseudo_Channel_  = dirChPseudo.make<TH1F>("channel", "channel", 9, 1, 10);
+
+  h2DebugChannel_  = fs->make<TH2F>("h2DebugChannel", "No filter debug;Parton;Pseudotop", 9, 1, 10, 9, 1, 10);
+  h2PseudoChannel_ = fs->make<TH2F>("h2PseudoChannel", "Pseudotop phase space;Parton;Pseudotop", 9, 1, 10, 9, 1, 10);
+  h2ComChannel_    = fs->make<TH2F>("h2ComChannel", "Common phase space;Parton;Pseudotop", 9, 1, 10, 9, 1, 10);
+  h2ChChannel_     = fs->make<TH2F>("h2ChChannel", "Common phase space same channel;Parton;Pseudotop", 9, 1, 10, 9, 1, 10);
+
+  std::vector<H2> hh = {h2DebugChannel_, h2PseudoChannel_, h2ComChannel_, h2ChChannel_};
+  for ( int i=0, n=channelNames.size(); i<n; ++i ) {
+    hFulParton_Channel_->GetXaxis()->SetBinLabel(i+1, channelNames[i]);
+    hFidParton_Channel_->GetXaxis()->SetBinLabel(i+1, channelNames[i]);
+    hComParton_Channel_->GetXaxis()->SetBinLabel(i+1, channelNames[i]);
+    hComPseudo_Channel_->GetXaxis()->SetBinLabel(i+1, channelNames[i]);
+    hPseudo_Channel_   ->GetXaxis()->SetBinLabel(i+1, channelNames[i]);
+    hChPseudo_Channel_ ->GetXaxis()->SetBinLabel(i+1, channelNames[i]);
+
+    h2DebugChannel_ ->GetXaxis()->SetBinLabel(i+1, channelNames[i]);
+    h2PseudoChannel_->GetXaxis()->SetBinLabel(i+1, channelNames[i]);
+    h2ComChannel_   ->GetXaxis()->SetBinLabel(i+1, channelNames[i]);
+    h2ChChannel_    ->GetXaxis()->SetBinLabel(i+1, channelNames[i]);
+
+    h2DebugChannel_ ->GetYaxis()->SetBinLabel(i+1, channelNames[i]);
+    h2PseudoChannel_->GetYaxis()->SetBinLabel(i+1, channelNames[i]);
+    h2ComChannel_   ->GetYaxis()->SetBinLabel(i+1, channelNames[i]);
+    h2ChChannel_    ->GetYaxis()->SetBinLabel(i+1, channelNames[i]);
+  }
 
 }
 
@@ -266,6 +286,7 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& 
     else if ( mode1 == 2 and mode2 == 2 ) partonTopCh = 5; // mumu cnannel no tau
     else partonTopCh = 6; // emu channel no tau
   }
+  hFulParton_Channel_->Fill(partonTopCh);
 
   // Fill parton top plots
   if ( channel == 2 ) {
@@ -283,6 +304,8 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& 
 
     // Fill parton top plots in fiducial phase space
     if ( isAcceptedSemiLept(partonW11, partonW21, partonW22, partonB1, partonB2) ) {
+      hFidParton_Channel_->Fill(partonTopCh);
+
       hFidParton_[SL_topPt]->Fill(partonTop1->pt());
       hFidParton_[SL_topPt]->Fill(partonTop2->pt());
       hFidParton_[SL_topY]->Fill(partonTop1->p4().Rapidity());
@@ -310,6 +333,8 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& 
     hFulParton_[DL_topPtTtbarSys]->Fill(partonTopPtAtCM);
 
     if ( isAcceptedFullLept(partonW11, partonW21, partonB1, partonB2) ) {
+      hFidParton_Channel_->Fill(partonTopCh);
+
       hFidParton_[DL_topPt]->Fill(partonTop1->pt());
       hFidParton_[DL_topPt]->Fill(partonTop2->pt());
       hFidParton_[DL_topY]->Fill(partonTop1->p4().Rapidity());
@@ -369,6 +394,7 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& 
     if ( pseudoW1DauId == 11 or pseudoW2DauId == 11 ) pseudoTopCh = 2; // e+jet
     else pseudoTopCh = 3; // mu+jet
   }
+  hPseudo_Channel_->Fill(pseudoTopCh);
   h2DebugChannel_->Fill(partonTopCh, pseudoTopCh);
 
   const auto pseudoTT = pseudoTop1->p4()+pseudoTop2->p4();
@@ -378,7 +404,10 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& 
   if ( pseudoTopCh <= 1 ) { // Full hadronic in pseudoTop
     h2PseudoChannel_->Fill(partonTopCh, pseudoTopCh);
     //h2ComChannel_->Fill(partonTopCh, pseudoTopCh);
-    if ( channel == 1 ) h2ChChannel_->Fill(partonTopCh, pseudoTopCh);
+    if ( channel == 1 ) {
+      hChPseudo_Channel_->Fill(pseudoTopCh);
+      h2ChChannel_->Fill(partonTopCh, pseudoTopCh);
+    }
   }
   if ( pseudoTopCh <= 3 and
        isAcceptedSemiLept(pseudoW11, pseudoW21, pseudoW22, pseudoB1, pseudoB2) ) {
@@ -412,6 +441,7 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& 
 
     // Fill pseudo top plots within parton level acceptance cut
     if ( channel == 2 ) {
+      hChPseudo_Channel_->Fill(pseudoTopCh);
       h2ChChannel_->Fill(partonTopCh, pseudoTopCh);
 
       hChPseudo_[SL_topPt]->Fill(pseudoTop1->pt());
@@ -427,6 +457,8 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& 
       hChPseudo_[SL_topPtTtbarSys]->Fill(pseudoTopPtAtCM);
 
       if ( isAcceptedSemiLept(partonW11, partonW21, partonW22, partonB1, partonB2) ) {
+        hComParton_Channel_->Fill(partonTopCh);
+        hComPseudo_Channel_->Fill(pseudoTopCh);
         h2ComChannel_->Fill(partonTopCh, pseudoTopCh);
 
         hComParton_[SL_topPt]->Fill(partonTop1->pt());
@@ -497,6 +529,7 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& 
     h2_[DL_topPtTtbarSys]->Fill(pseudoTopPtAtCM, partonTopPtAtCM);
 
     if ( channel == 3 ) {
+      hChPseudo_Channel_->Fill(pseudoTopCh);
       h2ChChannel_->Fill(partonTopCh, pseudoTopCh);
 
       hChPseudo_[DL_topPt]->Fill(pseudoTop1->pt());
@@ -512,6 +545,8 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& 
       hChPseudo_[DL_topPtTtbarSys]->Fill(pseudoTopPtAtCM);
 
       if ( isAcceptedFullLept(partonW11, partonW21, partonB1, partonB2) ) {
+        hComParton_Channel_->Fill(partonTopCh);
+        hComPseudo_Channel_->Fill(pseudoTopCh);
         h2ComChannel_->Fill(partonTopCh, pseudoTopCh);
 
         hComParton_[DL_topPt]->Fill(partonTop1->pt());

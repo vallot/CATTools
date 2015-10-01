@@ -13,7 +13,7 @@ process.options = cms.untracked.PSet(
     allowUnscheduled = cms.untracked.bool(True),
 )
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
-#process.MessageLogger.cerr.FwkReport.reportEvery = 10000
+process.MessageLogger.cerr.FwkReport.reportEvery = 10000
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 if os.path.exists("TTJets_MSDecays_central.txt"):
