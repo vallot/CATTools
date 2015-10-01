@@ -23,7 +23,8 @@ process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 #process.source.fileNames.append('file:/afs/cern.ch/user/j/jlee/cat74/src/CATTools/CatProducer/prod/catTuple.root')
 #process.source.fileNames.append('/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-3-4_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v4/150810_215031/0000/catTuple_101.root')
 #process.source.fileNames.append('file:/afs/cern.ch/user/j/jlee/test/cat74/src/CATTools/CatProducer/prod/catTuple.root')
-process.source.fileNames = ['file:catTuple.root']
+#process.source.fileNames = ['file:catTuple.root']
+process.source.fileNames = ['/store/group/CAT/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-2_RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/150923_215647/0001/catTuple_1046.root']
 
 #lumiFile = 'Cert_246908-255031_13TeV_PromptReco_Collisions15_50ns_JSON.txt'
 lumiFile = 'Cert_246908-251883_13TeV_PromptReco_Collisions15_JSON_v2.txt'
@@ -58,10 +59,38 @@ process.filterRECO = cms.EDProducer("CATTriggerBitCombiner",
     ),
 )
 
+process.filterTrigMUEL = cms.EDProducer("CATTriggerBitCombiner",
+    triggerResults = cms.InputTag("TriggerResults::HLT"),
+    triggerPrescales = cms.InputTag("patTrigger"),
+    combineBy = cms.string("or"),
+    triggersToMatch = cms.vstring(
+        "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",
+        "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v",
+    ),
+)
+
+process.filterTrigELEL = process.filterTrigMUEL.clone(
+    triggersToMatch = cms.vstring(
+        "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v",
+        "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
+    ),
+)
+
+process.filterTrigMUMU = process.filterTrigMUEL.clone(
+    triggersToMatch = cms.vstring(
+      "HLT_Mu17_Mu8_DZ_v",
+      "HLT_Mu17_TkMu8_DZ_v",
+      "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",
+      "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v",
+      "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v",
+    ),
+)
+
 process.ttll = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     recoFilters = cms.InputTag("filterRECO"),
-    triggerBits = cms.InputTag("TriggerResults","","HLT"),
-    triggerObjects = cms.InputTag("catTrigger"),
+    trigMUEL = cms.InputTag("filterTrigMUEL"),
+    trigMUMU = cms.InputTag("filterTrigMUMU"),
+    trigELEL = cms.InputTag("filterTrigELEL"),
 
     vertices = cms.InputTag("catVertex"),
     muons = cms.InputTag("catMuons"),
