@@ -255,10 +255,11 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& 
   if ( !partonW1 or !partonB2 or !partonB1 or !partonB2 ) return;
   // Get W daughters
   // Ordering is fixed from the PartonTopProducer, lepton first.
-  auto partonW11 = partonW1->daughter(0);
-  //const auto partonW12 = partonW1->daughter(1);
-  auto partonW21 = partonW2->daughter(0);
+  auto partonW11 = partonW1->daughter(0); // non-const to replace with its daughter if exists
+  const auto partonW12 = partonW1->daughter(1);
+  auto partonW21 = partonW2->daughter(0); // non-const to replace with its daughter if exists
   const auto partonW22 = partonW2->daughter(1);
+  if ( !partonW11 or !partonW12 or !partonW21 or !partonW22 ) return;
   // Continue to daughter for leptonically decaying taus
   if ( abs(partonW11->pdgId()) == 15 and
        partonW11->numberOfDaughters() > 0 and
@@ -374,9 +375,10 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& 
   // Ordering is fixed from the PartonTopProducer, lepton first.
   // There's no tau in PseudoTopProducer
   const auto pseudoW11 = pseudoW1->daughter(0);
-  //const auto pseudoW12 = pseudoW1->daughter(1);
+  const auto pseudoW12 = pseudoW1->daughter(1);
   const auto pseudoW21 = pseudoW2->daughter(0);
   const auto pseudoW22 = pseudoW2->daughter(1);
+  if ( !pseudoW11 or !pseudoW12 or !pseudoW21 or !pseudoW22 ) return;
 
   // Fill channel informations
   const int pseudoW1DauId = abs(pseudoW11->pdgId());
@@ -401,7 +403,7 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& 
   const double pseudoTopPtAtCM = ROOT::Math::Boost(pseudoTT.BoostToCM())(pseudoTop1->p4()).pt();
 
   // Fill pseudo top plots
-  if ( pseudoTopCh <= 1 ) { // Full hadronic in pseudoTop
+  if ( pseudoTopCh == 1 ) { // Full hadronic in pseudoTop
     h2PseudoChannel_->Fill(partonTopCh, pseudoTopCh);
     //h2ComChannel_->Fill(partonTopCh, pseudoTopCh);
     if ( channel == 1 ) {
@@ -409,8 +411,8 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& 
       h2ChChannel_->Fill(partonTopCh, pseudoTopCh);
     }
   }
-  if ( pseudoTopCh <= 3 and
-       isAcceptedSemiLept(pseudoW11, pseudoW21, pseudoW22, pseudoB1, pseudoB2) ) {
+  else if ( (pseudoTopCh == 2 or pseudoTopCh == 3) and
+            isAcceptedSemiLept(pseudoW11, pseudoW21, pseudoW22, pseudoB1, pseudoB2) ) {
     h2PseudoChannel_->Fill(partonTopCh, pseudoTopCh);
 
     // Additional acceptance cut for L+J channel
@@ -500,7 +502,8 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& 
       }
     }
   }
-  else if ( isAcceptedFullLept(pseudoW11, pseudoW21, pseudoB1, pseudoB2) ) {
+  else if ( (pseudoTopCh == 4 or pseudoTopCh == 5 or pseudoTopCh == 6 ) and
+            isAcceptedFullLept(pseudoW11, pseudoW21, pseudoB1, pseudoB2) ) {
     h2PseudoChannel_->Fill(partonTopCh, pseudoTopCh);
 
     hPseudo_[DL_topPt]->Fill(pseudoTop1->pt());
