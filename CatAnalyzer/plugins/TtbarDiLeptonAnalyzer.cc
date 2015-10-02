@@ -78,9 +78,9 @@ private:
   float b_ll_pt, b_ll_eta, b_ll_phi, b_ll_m;
   float b_jet1_pt, b_jet1_eta, b_jet1_CSVInclV2;
   float b_jet2_pt, b_jet2_eta, b_jet2_CSVInclV2;
-  float b_top1_pt, b_top1_eta, b_top1_phi;
-  float b_top2_pt, b_top2_eta, b_top2_phi;
-  float b_ttbar_pt, b_ttbar_eta, b_ttbar_phi, b_ttbar_m;
+  float b_top1_pt, b_top1_eta, b_top1_phi, b_top1_rapi;
+  float b_top2_pt, b_top2_eta, b_top2_phi, b_top2_rapi;
+  float b_ttbar_pt, b_ttbar_eta, b_ttbar_phi, b_ttbar_m, b_ttbar_rapi;
   int b_tri;
   int b_filtered;
   int b_is3lep;
@@ -169,12 +169,15 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("top1_pt", &b_top1_pt, "top1_pt/F");
   ttree_->Branch("top1_eta", &b_top1_eta, "top1_eta/F");
   ttree_->Branch("top1_phi", &b_top1_phi, "top1_phi/F");
+  ttree_->Branch("top1_rapi", &b_top1_rapi, "top1_rapi/F");
   ttree_->Branch("top2_pt", &b_top2_pt, "top2_pt/F");
   ttree_->Branch("top2_eta", &b_top2_eta, "top2_eta/F");
   ttree_->Branch("top2_phi", &b_top2_phi, "top2_phi/F");
+  ttree_->Branch("top2_rapi", &b_top2_rapi, "top2_rapi/F");
   ttree_->Branch("ttbar_pt", &b_ttbar_pt, "ttbar_pt/F");
   ttree_->Branch("ttbar_eta", &b_ttbar_eta, "ttbar_eta/F");
   ttree_->Branch("ttbar_phi", &b_ttbar_phi, "ttbar_phi/F");
+  ttree_->Branch("ttbar_rapi", &b_ttbar_rapi, "ttbar_rapi/F");
   ttree_->Branch("ttbar_m", &b_ttbar_m, "ttbar_m/F");
 
   ttree_->Branch("tri", &b_tri, "tri/I");
@@ -207,9 +210,9 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_ll_pt = -9; b_ll_eta = -9; b_ll_phi = -9; b_ll_m = -9;
   b_jet1_pt = -9; b_jet1_eta = -9; b_jet1_CSVInclV2 = -9;
   b_jet2_pt = -9; b_jet2_eta = -9; b_jet2_CSVInclV2 = -9;
-  b_top1_pt = -9; b_top1_eta = -9; b_top1_phi = -9;
-  b_top2_pt = -9; b_top2_eta = -9; b_top2_phi = -9;
-  b_ttbar_pt = -9; b_ttbar_eta = -9; b_ttbar_phi = -9; b_ttbar_m = -9;
+  b_top1_pt = -9; b_top1_eta = -9; b_top1_phi = -9; b_top1_rapi = -9;
+  b_top2_pt = -9; b_top2_eta = -9; b_top2_phi = -9; b_top2_rapi = -9;
+  b_ttbar_pt = -9; b_ttbar_eta = -9; b_ttbar_phi = -9; b_ttbar_m = -9; b_ttbar_rapi = -9;
   b_tri = -9;
   b_filtered = -9; b_is3lep = -9;
   if ( isTTbarMC_ and iEvent.isRealData() ) isTTbarMC_ = false;
@@ -421,15 +424,18 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_top1_pt = top1.Pt();
   b_top1_eta = top1.Eta();
   b_top1_phi = top1.Phi();
+  b_top1_rapi = top1.Rapidity();
   b_top2_pt = top2.Pt();
   b_top2_eta = top2.Eta();
   b_top2_phi = top2.Phi();
+  b_top2_rapi = top2.Rapidity();
 
   TLorentzVector ttbar = top1+top2;
   b_ttbar_pt = ttbar.Pt();
   b_ttbar_eta = ttbar.Eta();
   b_ttbar_phi = ttbar.Phi();
   b_ttbar_m = ttbar.M();
+  b_ttbar_rapi = ttbar.Rapidity();
   
   b_maxweight = maxweight;
   //  printf("maxweight %f, top1.M() %f, top2.M() %f \n",maxweight, top1.M(), top2.M() );
