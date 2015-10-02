@@ -63,6 +63,8 @@ private:
   edm::EDGetTokenT<vector<reco::GenParticle> > pseudoTop_;
   edm::EDGetTokenT<vector<reco::GenParticle> > pseudoTop_neutrinos_;
   edm::EDGetTokenT<vector<reco::MET>         > pseudoTop_mets_;
+  //edm::EDGetTokenT<reco::GenParticleCollection > pseudoTop_;
+  //edm::EDGetTokenT<vector<reco::GenParticle> > pseudoTop_;
 
   TTree * ttree_;
   int b_partonChannel, b_partonMode1, b_partonMode2;
@@ -74,9 +76,11 @@ private:
   float b_lep1_pt, b_lep1_eta, b_lep1_phi;
   float b_lep2_pt, b_lep2_eta, b_lep2_phi;
   float b_ll_pt, b_ll_eta, b_ll_phi, b_ll_m;
-  float b_jet_pt, b_jet_eta, b_jet_phi, b_jet_m, b_jet_CSVInclV2;
+  float b_jet1_pt, b_jet1_eta, b_jet1_CSVInclV2;
+  float b_jet2_pt, b_jet2_eta, b_jet2_CSVInclV2;
   float b_top1_pt, b_top1_eta, b_top1_phi;
   float b_top2_pt, b_top2_eta, b_top2_phi;
+  float b_ttbar_pt, b_ttbar_eta, b_ttbar_phi, b_ttbar_m;
   int b_tri;
   int b_filtered;
   int b_is3lep;
@@ -111,11 +115,14 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
     partonTop_channel_ = consumes<int>(iConfig.getParameter<edm::InputTag>("partonTop_channel"));
     partonTop_modes_   = consumes<vector<int> >(iConfig.getParameter<edm::InputTag>("partonTop_modes"));
     partonTop_genParticles_   = consumes<reco::GenParticleCollection >(iConfig.getParameter<edm::InputTag>("partonTop_genParticles"));
+
     pseudoTop_jets_      = consumes<vector<reco::GenJet>      >(iConfig.getParameter<edm::InputTag>("pseudoTop_jets"));
     pseudoTop_leptons_   = consumes<vector<reco::GenJet>      >(iConfig.getParameter<edm::InputTag>("pseudoTop_leptons"));
     pseudoTop_           = consumes<vector<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("pseudoTop"));
     pseudoTop_neutrinos_ = consumes<vector<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("pseudoTop_neutrinos"));
     pseudoTop_mets_      = consumes<vector<reco::MET>         >(iConfig.getParameter<edm::InputTag>("pseudoTop_mets"));
+    //pseudoTop_   = consumes<reco::GenParticleCollection >(iConfig.getParameter<edm::InputTag>("pseudoTop"));
+    //pseudoTop_           = consumes<vector<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("pseudoTop"));
   }
 
   const double tmassbegin = iConfig.getParameter<double>       ("tmassbegin");
@@ -152,18 +159,23 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("ll_eta", &b_ll_eta, "ll_eta/F");
   ttree_->Branch("ll_phi", &b_ll_phi, "ll_phi/F");
   ttree_->Branch("ll_m", &b_ll_m, "ll_m/F");
-  ttree_->Branch("jet_pt", &b_jet_pt, "jet_pt/F");
-  ttree_->Branch("jet_eta", &b_jet_eta, "jet_eta/F");
-  ttree_->Branch("jet_phi", &b_jet_phi, "jet_phi/F");
-  ttree_->Branch("jet_m", &b_jet_m, "jet_m/F");
-  ttree_->Branch("jet_CSVInclV2", &b_jet_CSVInclV2, "jet_CSVInclV2/F");
+  ttree_->Branch("jet1_pt", &b_jet1_pt, "jet1_pt/F");
+  ttree_->Branch("jet2_pt", &b_jet2_pt, "jet2_pt/F");
+  ttree_->Branch("jet1_eta", &b_jet1_eta, "jet1_eta/F");
+  ttree_->Branch("jet2_eta", &b_jet2_eta, "jet2_eta/F");
+  ttree_->Branch("jet1_CSVInclV2", &b_jet1_CSVInclV2, "jet1_CSVInclV2/F");
+  ttree_->Branch("jet2_CSVInclV2", &b_jet2_CSVInclV2, "jet2_CSVInclV2/F");
 
   ttree_->Branch("top1_pt", &b_top1_pt, "top1_pt/F");
   ttree_->Branch("top1_eta", &b_top1_eta, "top1_eta/F");
-  ttree_->Branch("top1_phi", &b_top1_pt, "top1_phi/F");
+  ttree_->Branch("top1_phi", &b_top1_phi, "top1_phi/F");
   ttree_->Branch("top2_pt", &b_top2_pt, "top2_pt/F");
   ttree_->Branch("top2_eta", &b_top2_eta, "top2_eta/F");
-  ttree_->Branch("top2_phi", &b_top2_pt, "top2_phi/F");
+  ttree_->Branch("top2_phi", &b_top2_phi, "top2_phi/F");
+  ttree_->Branch("ttbar_pt", &b_ttbar_pt, "ttbar_pt/F");
+  ttree_->Branch("ttbar_eta", &b_ttbar_eta, "ttbar_eta/F");
+  ttree_->Branch("ttbar_phi", &b_ttbar_phi, "ttbar_phi/F");
+  ttree_->Branch("ttbar_m", &b_ttbar_m, "ttbar_m/F");
 
   ttree_->Branch("tri", &b_tri, "tri/I");
   ttree_->Branch("filtered", &b_filtered, "filtered/I");
@@ -193,9 +205,11 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_lep1_pt = -9; b_lep1_eta = -9; b_lep1_phi = -9;
   b_lep2_pt = -9; b_lep2_eta = -9; b_lep2_phi = -9;
   b_ll_pt = -9; b_ll_eta = -9; b_ll_phi = -9; b_ll_m = -9;
-  b_jet_pt = -9; b_jet_eta = -9; b_jet_phi = -9; b_jet_m = -9; b_jet_CSVInclV2 = -9;
+  b_jet1_pt = -9; b_jet1_eta = -9; b_jet1_CSVInclV2 = -9;
+  b_jet2_pt = -9; b_jet2_eta = -9; b_jet2_CSVInclV2 = -9;
   b_top1_pt = -9; b_top1_eta = -9; b_top1_phi = -9;
   b_top2_pt = -9; b_top2_eta = -9; b_top2_phi = -9;
+  b_ttbar_pt = -9; b_ttbar_eta = -9; b_ttbar_phi = -9; b_ttbar_m = -9;
   b_tri = -9;
   b_filtered = -9; b_is3lep = -9;
   if ( isTTbarMC_ and iEvent.isRealData() ) isTTbarMC_ = false;
@@ -241,6 +255,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     iEvent.getByToken(pseudoTop_          , pseudoTop);
     iEvent.getByToken(pseudoTop_neutrinos_, pseudoTop_neutrinos);
     iEvent.getByToken(pseudoTop_mets_     , pseudoTop_mets);
+    //edm::Handle<reco::GenParticleCollection > pseudoTop;
 
     if ((*pseudoTop_leptons).size() == 2){
       if (((*pseudoTop_leptons)[0].pt() > 20) && ((*pseudoTop_leptons)[1].pt() > 20) && (std::abs((*pseudoTop_leptons)[0].eta()) < 2.4) && (std::abs((*pseudoTop_leptons)[1].eta()) < 2.4)) b_lepinPhase = true;
@@ -270,7 +285,6 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     if ( pseudoTop_modes.size() == 1 ) { pseudoTop_modes.push_back(0); }
     b_pseudoTopMode1 = pseudoTop_modes[0];
     b_pseudoTopMode2 = pseudoTop_modes[1];
-
   }
 
   // Store reco filter results
@@ -282,7 +296,10 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   Particles recolep;
   selectMuons(*muons, recolep);
   selectElecs(*electrons, recolep);
-  if (recolep.size() < 2) return;
+  if (recolep.size() < 2){
+    ttree_->Fill();
+	return;
+  }
   sort(recolep.begin(), recolep.end(), GtByCandPt());
   const cat::Particle& recolep1 = recolep[0];
   const cat::Particle& recolep2 = recolep[1];
@@ -355,18 +372,6 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   }
   cutflow_[++b_step][b_channel]++;
 
-  //  printf("selectedMuons %lu, selectedElectrons %lu, selectedJets %lu, selectedBJets %lu\n",selectedMuons.size(), selectedElectrons.size(), selectedJets.size(), selectedBJets.size() );
-  /*
-    for (auto jet : selectedJets) {
-    TLorentzVector tlv_jet = jet.tlv();
-    b_jet_pt = tlv_jet.Pt();
-    b_jet_eta = tlv_jet.Eta();
-    b_jet_phi = tlv_jet.Phi();
-    b_jet_m = tlv_jet.M();
-    b_jet_CSVInclV2 = jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
-    }
-  */
-
   ////////////////////////////////////////////////////////  KIN  /////////////////////////////////////
   //int kin=0;
   TLorentzVector top1, top2, nu1, nu2;
@@ -380,6 +385,11 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     for (auto jet2 = next(jet1); jet2 != end; ++jet2){
 
       const TLorentzVector recojet2= jet2->tlv();
+
+      b_jet1_pt = recojet1.Pt();
+      b_jet1_eta = recojet1.Eta();
+      b_jet2_pt = recojet2.Pt();
+      b_jet2_eta = recojet2.Eta();
 
       const double xconstraint = recolep1.px()+recolep2.px()+ recojet1.Px() + recojet2.Px() +met.Px();
       const double yconstraint = recolep1.py()+recolep2.py()+ recojet1.Py() + recojet2.Py() +met.Py();
@@ -415,6 +425,12 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_top2_eta = top2.Eta();
   b_top2_phi = top2.Phi();
 
+  TLorentzVector ttbar = top1+top2;
+  b_ttbar_pt = ttbar.Pt();
+  b_ttbar_eta = ttbar.Eta();
+  b_ttbar_phi = ttbar.Phi();
+  b_ttbar_m = ttbar.M();
+  
   b_maxweight = maxweight;
   //  printf("maxweight %f, top1.M() %f, top2.M() %f \n",maxweight, top1.M(), top2.M() );
   // printf("%2d, %2d, %2d, %2d, %6.2f, %6.2f, %6.2f\n", b_njet, b_nbjet, b_step, b_channel, b_MET, b_ll_mass, b_maxweight);
@@ -455,7 +471,7 @@ void TtbarDiLeptonAnalyzer::selectElecs(const std::vector<cat::Electron>& elecs,
     //if (el.electronID("cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-medium") == 0) continue;
     if ( !el.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-medium") ) continue;
     //if (!el.passConversionVeto()) continue;
-    if (!el.isPF()) continue;
+    //if (!el.isPF()) continue;
 
     //printf("electron with pt %4.1f\n", el.pt());
     selelecs.push_back(el);
@@ -483,7 +499,7 @@ void TtbarDiLeptonAnalyzer::selectJets(const vector<cat::Jet>& jets, const Parti
 void TtbarDiLeptonAnalyzer::selectBJets(const Jets& jets, Jets& selBjets) const
 {
   for (auto& jet : jets) {
-    if (jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") < 0.605) continue;
+    if (jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") < 0.814) continue;
     //printf("b jet with pt %4.1f\n", jet.pt());
     selBjets.push_back(jet);
   }
