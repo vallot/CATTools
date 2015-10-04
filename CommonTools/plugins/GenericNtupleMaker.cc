@@ -121,18 +121,19 @@ void GenericNtupleMaker::analyze(const edm::Event& event, const edm::EventSetup&
   lumiNumber_  = event.luminosityBlock();
   eventNumber_ = event.id().event();
 
-  nFailure += boolCSet_.load(event);
-  nFailure += intCSet_.load(event);
-  nFailure += doubleCSet_.load(event);
-  nFailure += floatCSet_.load(event);
-  //nFailure += stringCSet_.load(event);
-  nFailure += vboolCSet_.load(event);
-  nFailure += vintCSet_.load(event);
-  nFailure += vdoubleCSet_.load(event);
-  nFailure += vfloatCSet_.load(event);
-  nFailure += vstringCSet_.load(event);
+  const bool doException = (failureMode_ == FAILUREMODE::ERROR);
+  nFailure += boolCSet_.load(event, doException);
+  nFailure += intCSet_.load(event, doException);
+  nFailure += doubleCSet_.load(event, doException);
+  nFailure += floatCSet_.load(event, doException);
+  //nFailure += stringCSet_.load(event, doException);
+  nFailure += vboolCSet_.load(event, doException);
+  nFailure += vintCSet_.load(event, doException);
+  nFailure += vdoubleCSet_.load(event, doException);
+  nFailure += vfloatCSet_.load(event, doException);
+  nFailure += vstringCSet_.load(event, doException);
 
-  nFailure += candCSet_.load(event);
+  nFailure += candCSet_.load(event, doException);
 
   if ( nFailure == 0 or failureMode_ == FAILUREMODE::KEEP ) tree_->Fill();
   else if ( failureMode_ == FAILUREMODE::ERROR )

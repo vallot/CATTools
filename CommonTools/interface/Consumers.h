@@ -33,7 +33,7 @@ public:
   ~CandConsumers();
 
   void init(const edm::ParameterSet& gpset, const std::string psetName, edm::ConsumesCollector&& iC, TTree* tree);
-  int load(const edm::Event& event);
+  int load(const edm::Event& event, const bool doException);
   void clear();
 
 private:
@@ -85,14 +85,18 @@ public:
     }
   }
 
-  int load(const edm::Event& event)
+  int load(const edm::Event& event, const bool doException)
   {
     int nFailure = 0;
     for ( size_t i=0, n=tokens_.size(); i<n; ++i )
     {
       edm::Handle<std::vector<T> > handle;
       event.getByToken(tokens_[i], handle);
-      if ( !handle.isValid() ) ++nFailure;
+      if ( !handle.isValid() )
+      {
+        if ( doException ) throw cms::Exception("DataError") << "Cannot load " << handle;
+        ++nFailure;
+      }
       else values_[i]->insert(values_[i]->begin(), handle->begin(), handle->end());
     }
 
@@ -141,7 +145,7 @@ public:
     }
   }
 
-  int load(const edm::Event& event)
+  int load(const edm::Event& event, const bool doException)
   {
     int nFailure = 0;
     for ( size_t i=0, n=tokens_.size(); i<n; ++i )
@@ -151,6 +155,7 @@ public:
       if ( handle.isValid() ) *values_[i] = *handle;
       else
       {
+        if ( doException ) throw cms::Exception("DataError") << "Cannot load " << handle;
         *values_[i] = -999;
         ++nFailure;
       }
