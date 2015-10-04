@@ -7,36 +7,35 @@ process.load("FWCore.MessageLogger.MessageLogger_cfi")
 #process.load("Configuration.StandardSequences.Services_cff")
 #process.load("SimGeneral.HepPDTESSource.pythiapdt_cfi")
 
-process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
+process.options = cms.untracked.PSet(
+    wantSummary = cms.untracked.bool(True),
+    allowUnscheduled = cms.untracked.bool(True),
+)
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 process.MessageLogger.cerr.FwkReport.reportEvery = 10000
 
 process.source = cms.Source("PoolSource",
-      fileNames = cms.untracked.vstring(
+    fileNames = cms.untracked.vstring(
 #'/store/user/youn/cat710_phy14_ttbar_2025_aod/catTuple_972.root'
 #in Kisti v736
-"root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-3-6_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v4/150820_215807/0000/catTuple_1.root",
-#'file:catTuple_1.root'
+#"root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-3-6_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v4/150820_215807/0000/catTuple_1.root",
+'file:catTuple.root'
+#'file:catTuple_DYJets.root'
 #'file:/cms/home/youn/work/cattool/tag711/cat/src/CATTools/CatProducer/prod/catTuple.root'
-#          '/store/user/jlee/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/Phys14DR-PU20bx25_PHYS14_25_V1-v1/141219_091640/0000/catTuple_1.root',
-#          '/store/user/jlee/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/Phys14DR-PU20bx25_PHYS14_25_V1-v1/141219_091640/0000/catTuple_2.root',
-#          '/store/user/jlee/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/Phys14DR-PU20bx25_PHYS14_25_V1-v1/141219_091640/0000/catTuple_3.root',
-#          '/store/user/jlee/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/Phys14DR-PU20bx25_PHYS14_25_V1-v1/141219_091640/0000/catTuple_4.root',
-#          '/store/user/jlee/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/Phys14DR-PU20bx25_PHYS14_25_V1-v1/141219_091640/0000/catTuple_5.root',
-      )
+    )
 )
 
 process.nEventsTotal = cms.EDProducer("EventCountProducer")
 
 process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
-    failureMode = cms.untracked.string("keep"), # choose one among keep/skip/error
+    failureMode = cms.untracked.string("error"), # choose one among keep/skip/error
     eventCounters = cms.vstring("nEventsTotal"), #"nEventsTotal", "nEventsClean", "nEventsPAT"),
     int = cms.PSet(
         nGoodPV           =  cms.InputTag("catVertex"   , "nGoodPV"),
         nPV               =  cms.InputTag("catVertex"   , "nPV"    ),
 
-        pdfWeightId1 =   cms.PSet(src = cms.InputTag("pdfWeight", "id1" )),
-        pdfWeightId2 =   cms.PSet(src = cms.InputTag("pdfWeight", "id2" )),
+        genWeightId1 =   cms.PSet(src = cms.InputTag("genWeight", "id1")),
+        genWeightId2 =   cms.PSet(src = cms.InputTag("genWeight", "id2")),
 
         nTrueInteraction  =   cms.PSet(src = cms.InputTag("pileupWeight", "nTrueInteraction" )),
 
@@ -47,12 +46,12 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
         puWeightUp = cms.InputTag("pileupWeight", "up"),
         puWeightDn = cms.InputTag("pileupWeight", "dn"),
 
-        pdfWeightQ  = cms.InputTag("pdfWeight", "Q" ),
-        pdfWeightX1 = cms.InputTag("pdfWeight", "x1"),
-        pdfWeightX2 = cms.InputTag("pdfWeight", "x2"),
+        genWeightQ  = cms.InputTag("genWeight", "Q" ),
+        genWeightX1 = cms.InputTag("genWeight", "x1"),
+        genWeightX2 = cms.InputTag("genWeight", "x2"),
     ),
     floats = cms.PSet(
-        pdfWeight = cms.InputTag("pdfWeight"),
+        pdfWeight = cms.InputTag("genWeight", "pdfWeights"),
     ),
     cands = cms.PSet(
         muons = cms.PSet(
@@ -81,7 +80,6 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
                 numberOfMatchedStations = cms.string("numberOfMatchedStations"),
                 #matched = cms.string("mcMatched"),
             ),
-            boolexprs = cms.untracked.PSet(),
         ),
         electrons = cms.PSet(
             src = cms.InputTag("catElectrons"),
@@ -91,20 +89,19 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
                 eta = cms.string("eta"),
                 phi = cms.string("phi"),
                 m   = cms.string("mass"),
-                #relIso = cms.string("relIso"),
                 #idLoose = cms.string("electronID('eidLoose')"),
                 #idTight = cms.string("electronID('eidTight')"),
-                #idMedium2 = cms.string("electronID('cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-medium')"),
-                #idVeto2 = cms.string("electronID('cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-veto')"),
+                #idMedium2 = cms.string("electronID('cutBasedElectronID-Spring15-25ns-V1-standalone-medium')"),
+                #idVeto2 = cms.string("electronID('cutBasedElectronID-Spring15-25ns-V1-standalone-veto')"),
                 #idVeto = cms.string("electronID('cutBasedElectronID-CSA14-PU20bx25-V0-standalone-veto')"),
                 #idMedium2= cms.string("electronID('cutBasedElectronID_CSA14_PU20bx25_V0_standalone_medium')"),
                 #idMedium= cms.string("electronID('cutBasedElectronID-CSA14-PU20bx25-V0-standalone-medium')"),
                 #mva = cms.string("electronID('mvaTrigV0')"),
-                idHEEP51 = cms.string("electronID('heepElectronID-HEEPV51')"),
-                idLoose = cms.string("electronID('cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-loose')"), 
-                idMedium = cms.string("electronID('cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-medium')"), 
-                idTight = cms.string("electronID('cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-tight')"), 
-                idVeto = cms.string("electronID('cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-veto')"),
+                #idHEEP51 = cms.string("electronID('heepElectronID-HEEPV51')"),
+                idLoose = cms.string("electronID('cutBasedElectronID-Spring15-25ns-V1-standalone-loose')"),
+                idMedium = cms.string("electronID('cutBasedElectronID-Spring15-25ns-V1-standalone-medium')"),
+                idTight = cms.string("electronID('cutBasedElectronID-Spring15-25ns-V1-standalone-tight')"),
+                idVeto = cms.string("electronID('cutBasedElectronID-Spring15-25ns-V1-standalone-veto')"),
                 relIso03 = cms.string("relIso(0.3)"),
                 relIso04 = cms.string("relIso(0.4)"),
                 chIso03 = cms.string("chargedHadronIso(0.3)"),
@@ -114,7 +111,7 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
                 chIso04 = cms.string("chargedHadronIso(0.4)"),
                 nhIso04 = cms.string("neutralHadronIso(0.4)"),
                 phIso04 = cms.string("photonIso(0.4)"),
-                puChIso04 = cms.string("puChargedHadronIso(0.4)"), 
+                puChIso04 = cms.string("puChargedHadronIso(0.4)"),
                 #rhoIso03 = cms.string("rho"),
                 scEta = cms.string("scEta"),
                 #dxy = cms.string("dxy"),
@@ -123,7 +120,7 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
                 #isGsfCtfScPixChargeConsistent = cms.string("isGsfCtfScPixChargeConsistent"),
             ),
             boolexprs = cms.untracked.PSet(
-                isPassBaseId = cms.string("passConversionVeto && isPF && gsfTrack.hitPattern.numberOfLostHits('MISSING_INNER_HITS') <= 0"),
+                isPassBaseId = cms.string("passConversionVeto && isPF"),# && gsfTrack.hitPattern.numberOfLostHits('MISSING_INNER_HITS') <= 0"),
             ),
         ),
         jets = cms.PSet(
@@ -168,7 +165,6 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
                 pt  = cms.string("pt"),
                 phi = cms.string("phi"),
             ),
-            boolexprs = cms.untracked.PSet(),
         ),
         metNoHF = cms.PSet(
             src = cms.InputTag("catMETsNoHF"),
@@ -176,7 +172,6 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
                 pt  = cms.string("pt"),
                 phi = cms.string("phi"),
             ),
-            boolexprs = cms.untracked.PSet(),
         ),
         metPfMva = cms.PSet(
             src = cms.InputTag("catMETsPfMva"),
@@ -184,7 +179,6 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
                 pt  = cms.string("pt"),
                 phi = cms.string("phi"),
             ),
-            boolexprs = cms.untracked.PSet(),
         ),
         metPuppi = cms.PSet(
             src = cms.InputTag("catMETsPuppi"),
@@ -192,7 +186,6 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
                 pt  = cms.string("pt"),
                 phi = cms.string("phi"),
             ),
-            boolexprs = cms.untracked.PSet(),
         ),
         #gentop = cms.PSet(
         #    src = cms.InputTag("catGenTops"),
@@ -254,12 +247,11 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
         #        NbQuarksNoTop    = cms.string("NbQuarksNoTop"),
         #        NbQuarks         = cms.string("NbQuarks"),
         #        NbQuarks20       = cms.string("NbQuarks20"),
-        #        NbQuarks40       = cms.string("NbQuarks40"), 
+        #        NbQuarks40       = cms.string("NbQuarks40"),
         #        NaddbQuarks20    = cms.string("NaddbQuarks20"),
         #        NaddbQuarks40    = cms.string("NaddbQuarks40"),
         #        NcQuarks         = cms.string("NcQuarks"),
         #    ),
-        #    boolexprs = cms.untracked.PSet(),
         #),
         slimmedGenJets = cms.PSet(
             src = cms.InputTag("slimmedGenJets",""),
@@ -273,7 +265,6 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
                 #q = cms.string("charge"),
                 #status = cms.string("status"),
             ),
-            boolexprs = cms.untracked.PSet(),
         ),
         partonTop = cms.PSet(
             src = cms.InputTag("partonTop"),
@@ -287,7 +278,6 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
                 q = cms.string("charge"),
                 #status = cms.string("status"),
             ),
-            boolexprs = cms.untracked.PSet(),
         ),
         pseudoTopJet = cms.PSet(
             src = cms.InputTag("pseudoTop","jets"),
@@ -301,7 +291,6 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
                 q = cms.string("charge"),
                 #status = cms.string("status"),
             ),
-            boolexprs = cms.untracked.PSet(),
         ),
         pseudoTopLepton = cms.PSet(
             src = cms.InputTag("pseudoTop","leptons"),
@@ -315,11 +304,9 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
                 q = cms.string("charge"),
                 #status = cms.string("status"),
             ),
-            boolexprs = cms.untracked.PSet(),
         ),
         pseudoTopNu = cms.PSet(
             src = cms.InputTag("pseudoTop","neutrinos"),
-            #index = cms.untracked.int32(0),
             exprs = cms.untracked.PSet(
                 pt  = cms.string("pt"),
                 eta = cms.string("eta"),
@@ -329,11 +316,9 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
                 #q = cms.string("charge"),
                 #status = cms.string("status"),
             ),
-            boolexprs = cms.untracked.PSet(),
         ),
         pseudoTop = cms.PSet(
             src = cms.InputTag("pseudoTop"),
-            #index = cms.untracked.int32(0),
             exprs = cms.untracked.PSet(
                 pt  = cms.string("pt"),
                 eta = cms.string("eta"),
@@ -341,9 +326,7 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
                 m   = cms.string("mass"),
                 pdgId = cms.string("pdgId"),
                 q = cms.string("charge"),
-                #status = cms.string("status"),
             ),
-            boolexprs = cms.untracked.PSet(),
         ),
     ),
 )
@@ -358,27 +341,21 @@ interestedTriggers = [
 
 for t in interestedTriggers:
     tNew = t.replace('_', '')
-    setattr(process, 'cat'+tNew, cms.EDProducer("CATTriggerPacker", 
-        src = cms.InputTag("catTrigger"),
+    setattr(process, 'cat'+tNew, cms.EDProducer("CATTriggerBitCombiner",
+        triggerResults = cms.InputTag("TriggerResults::HLT"),
+        triggerPrescales = cms.InputTag("patTrigger"),
         triggersToMatch = cms.vstring(t),
+        combineBy = cms.string("or"),
     ))
 
-    setattr(process.ntuple.int, tNew, cms.InputTag("cat"+tNew, "or"))
-    setattr(process.ntuple.int, tNew+"old", cms.InputTag("catTrigger", tNew))
+    setattr(process.ntuple.int, tNew, cms.InputTag("cat"+tNew))
 
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string("ntuple.root"),
 )
 
-process.load("CATTools.CatProducer.pseudoTop_cff")
 process.p = cms.Path(
     process.nEventsTotal*
-    process.partonTop*
-    process.catHLTMu17TrkIsoVVLMu8TrkIsoVVLDZ*
-    process.catHLTMu17TrkIsoVVLTkMu8TrkIsoVVLDZ*
-    process.catHLTEle17Ele12CaloIdLTrackIdLIsoVLDZ*
-    process.catHLTMu17TrkIsoVVLEle12CaloIdLTrackIdLIsoV*
-    process.catHLTMu8TrkIsoVVLEle17CaloIdLTrackIdLIsoV*
     process.ntuple
 )
 
