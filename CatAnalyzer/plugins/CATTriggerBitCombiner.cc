@@ -18,7 +18,7 @@ private:
   //typedef std::vector<bool> vbool;
   //typedef std::vector<int> vint;
   typedef std::vector<std::string> strings;
-  edm::EDGetTokenT<edm::TriggerResults> triggerToken_;
+  edm::EDGetTokenT<edm::TriggerResults> triggerToken_, secondaryTriggerToken_;
   edm::EDGetTokenT<pat::PackedTriggerPrescales> prescaleToken_;
   strings triggersToMatch_;
   bool combineByOr_;
@@ -30,6 +30,11 @@ CATTriggerBitCombiner::CATTriggerBitCombiner(const edm::ParameterSet& pset):
   prescaleToken_(consumes<pat::PackedTriggerPrescales>(pset.getParameter<edm::InputTag>("triggerPrescales"))),
   triggersToMatch_(pset.getParameter<strings>("triggersToMatch"))
 {
+  if ( pset.existsAs<edm::InputTag>("secondaryTriggerResults") )
+  {
+    secondaryTriggerToken_(consumes<edm::TriggerResults>(pset.getParameter<edm::InputTag>("secondaryTriggerResults"))),
+  }
+
   auto combineBy = pset.getParameter<std::string>("combineBy");
   std::transform(combineBy.begin(), combineBy.end(), combineBy.begin(), ::toupper);
   if ( combineBy == "OR" ) combineByOr_ = true;
@@ -46,7 +51,10 @@ void CATTriggerBitCombiner::produce(edm::Event& event, const edm::EventSetup&)
   int result = combineByOr_ ? -1 : 1;
 
   edm::Handle<edm::TriggerResults> triggerHandle;
-  event.getByToken(triggerToken_, triggerHandle);
+  if ( !event.getByToken(triggerToken_, triggerHandle) )
+  {
+    event.getByToken(secondaryTriggerToken_, triggerHandle);
+  }
   edm::Handle<pat::PackedTriggerPrescales> prescaleHandle;
   event.getByToken(prescaleToken_, prescaleHandle);
 
