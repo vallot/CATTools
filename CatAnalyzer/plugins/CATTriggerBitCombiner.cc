@@ -1,5 +1,5 @@
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/stream/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDFilter.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "DataFormats/PatCandidates/interface/PackedTriggerPrescales.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
@@ -8,17 +8,18 @@
 #include <vector>
 #include <string>
 
-class CATTriggerBitCombiner : public edm::stream::EDProducer<>
+class CATTriggerBitCombiner : public edm::stream::EDFilter<>
 {
 public:
   CATTriggerBitCombiner(const edm::ParameterSet& pset);
-  void produce(edm::Event& event, const edm::EventSetup&) override;
+  bool filter(edm::Event& event, const edm::EventSetup&) override;
 
 private:
   //typedef std::vector<bool> vbool;
   //typedef std::vector<int> vint;
   typedef std::vector<std::string> strings;
-  edm::EDGetTokenT<edm::TriggerResults> triggerToken_;
+  const bool doFilter_;
+  edm::EDGetTokenT<edm::TriggerResults> triggerToken_, secondaryTriggerToken_;
   edm::EDGetTokenT<pat::PackedTriggerPrescales> prescaleToken_;
   strings triggersToMatch_;
   bool combineByOr_;
@@ -26,10 +27,16 @@ private:
 };
 
 CATTriggerBitCombiner::CATTriggerBitCombiner(const edm::ParameterSet& pset):
+  doFilter_(pset.getParameter<bool>("doFilter")),
   triggerToken_(consumes<edm::TriggerResults>(pset.getParameter<edm::InputTag>("triggerResults"))),
   prescaleToken_(consumes<pat::PackedTriggerPrescales>(pset.getParameter<edm::InputTag>("triggerPrescales"))),
   triggersToMatch_(pset.getParameter<strings>("triggersToMatch"))
 {
+  if ( pset.existsAs<edm::InputTag>("secondaryTriggerResults") )
+  {
+    secondaryTriggerToken_ = consumes<edm::TriggerResults>(pset.getParameter<edm::InputTag>("secondaryTriggerResults"));
+  }
+
   auto combineBy = pset.getParameter<std::string>("combineBy");
   std::transform(combineBy.begin(), combineBy.end(), combineBy.begin(), ::toupper);
   if ( combineBy == "OR" ) combineByOr_ = true;
@@ -39,14 +46,17 @@ CATTriggerBitCombiner::CATTriggerBitCombiner(const edm::ParameterSet& pset):
   produces<int>();
 }
 
-void CATTriggerBitCombiner::produce(edm::Event& event, const edm::EventSetup&)
+bool CATTriggerBitCombiner::filter(edm::Event& event, const edm::EventSetup&)
 {
   using namespace std;
 
   int result = combineByOr_ ? -1 : 1;
 
   edm::Handle<edm::TriggerResults> triggerHandle;
-  event.getByToken(triggerToken_, triggerHandle);
+  if ( !event.getByToken(triggerToken_, triggerHandle) )
+  {
+    event.getByToken(secondaryTriggerToken_, triggerHandle);
+  }
   edm::Handle<pat::PackedTriggerPrescales> prescaleHandle;
   event.getByToken(prescaleToken_, prescaleHandle);
 
@@ -96,6 +106,9 @@ void CATTriggerBitCombiner::produce(edm::Event& event, const edm::EventSetup&)
   //   combine by and, everything fired => ps1*ps2*...
 
   event.put(std::auto_ptr<int>(new int(result)));
+
+  if ( !doFilter_ ) return true;
+  return (result != 0);
 }
 
 DEFINE_FWK_MODULE(CATTriggerBitCombiner);
