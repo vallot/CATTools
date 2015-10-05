@@ -13,7 +13,7 @@ process.options = cms.untracked.PSet(
     allowUnscheduled = cms.untracked.bool(True),
 )
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
-#process.MessageLogger.cerr.FwkReport.reportEvery = 10000
+process.MessageLogger.cerr.FwkReport.reportEvery = 10000
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 if os.path.exists("TTJets_MSDecays_central.txt"):
@@ -44,15 +44,18 @@ process.partonTop = cms.EDProducer("PartonTopProducer",
     jetMinPt = cms.double(20)
 )
 
-process.ana = cms.EDAnalyzer("CATGenTopAnalysis",
+process.ttbar = cms.EDAnalyzer("CATGenTopAnalysis",
     channel = cms.InputTag("partonTop","channel"),
     modes = cms.InputTag("partonTop", "modes"),
     partonTop = cms.InputTag("partonTop"),
     pseudoTop = cms.InputTag("pseudoTop"),
+    filterTaus = cms.bool(False),
 )
 
+process.ttbarNoTau = process.ttbar.clone(filterTaus = cms.bool(True))
+
 process.p = cms.Path(
-    process.ana
+    process.ttbar + process.ttbarNoTau
 )
 
 process.TFileService = cms.Service("TFileService",
