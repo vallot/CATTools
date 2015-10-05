@@ -18,23 +18,23 @@ private:
   //typedef std::vector<bool> vbool;
   //typedef std::vector<int> vint;
   typedef std::vector<std::string> strings;
+  const bool doFilter_;
   edm::EDGetTokenT<edm::TriggerResults> triggerToken_, secondaryTriggerToken_;
   edm::EDGetTokenT<pat::PackedTriggerPrescales> prescaleToken_;
   strings triggersToMatch_;
   bool combineByOr_;
-  const bool doFilter_;
 
 };
 
 CATTriggerBitCombiner::CATTriggerBitCombiner(const edm::ParameterSet& pset):
+  doFilter_(pset.getParameter<bool>("doFilter")),
   triggerToken_(consumes<edm::TriggerResults>(pset.getParameter<edm::InputTag>("triggerResults"))),
   prescaleToken_(consumes<pat::PackedTriggerPrescales>(pset.getParameter<edm::InputTag>("triggerPrescales"))),
   triggersToMatch_(pset.getParameter<strings>("triggersToMatch"))
-  doFilter_(pset.getParameter<bool>("doFilter"));
 {
   if ( pset.existsAs<edm::InputTag>("secondaryTriggerResults") )
   {
-    secondaryTriggerToken_(consumes<edm::TriggerResults>(pset.getParameter<edm::InputTag>("secondaryTriggerResults"))),
+    secondaryTriggerToken_ = consumes<edm::TriggerResults>(pset.getParameter<edm::InputTag>("secondaryTriggerResults"));
   }
 
   auto combineBy = pset.getParameter<std::string>("combineBy");
