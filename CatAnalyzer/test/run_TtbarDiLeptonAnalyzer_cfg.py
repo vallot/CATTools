@@ -28,7 +28,8 @@ import os
 process.source.fileNames.append('/store/group/CAT/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-2_RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/150923_215647/0001/catTuple_1046.root')
 
 #lumiFile = 'Cert_246908-255031_13TeV_PromptReco_Collisions15_50ns_JSON.txt'
-lumiFile = 'Cert_246908-256869_13TeV_PromptReco_Collisions15_25ns_JSON.txt'
+#lumiFile = 'Cert_246908-256869_13TeV_PromptReco_Collisions15_25ns_JSON.txt'
+lumiFile = 'Cert_246908-257599_13TeV_PromptReco_Collisions15_25ns_JSON.txt'
 
 runOnMC = True
 for i in process.source.fileNames:
