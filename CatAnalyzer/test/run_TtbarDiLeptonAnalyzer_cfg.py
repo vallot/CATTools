@@ -49,7 +49,7 @@ if runOnMC:
     )
 
 process.filterRECO = cms.EDProducer("CATTriggerBitCombiner",
-    triggerResults = cms.InputTag("TriggerResults::CAT"),
+    triggerResults = cms.InputTag("TriggerResults::RECO"),
     triggerPrescales = cms.InputTag("patTrigger"),
     combineBy = cms.string("and"),
     triggersToMatch = cms.vstring(
