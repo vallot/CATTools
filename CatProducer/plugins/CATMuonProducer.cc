@@ -93,35 +93,21 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
   for (const pat::Muon & aPatMuon : *src) {
     cat::Muon aMuon(aPatMuon);
 
-    /// cat default variables ///
-
     if (runOnMC_){
       aMuon.setShiftedEnDown(shiftedEnDownSrc->at(j).pt() );
       aMuon.setShiftedEnUp(shiftedEnUpSrc->at(j).pt() );
     }
     ++j;
 
-    double pt    = aPatMuon.pt() ;
+    aMuon.setChargedHadronIso04( aPatMuon.pfIsolationR04().sumChargedHadronPt );
+    aMuon.setNeutralHadronIso04( aPatMuon.pfIsolationR04().sumNeutralHadronEt );
+    aMuon.setPhotonIso04( aPatMuon.pfIsolationR04().sumPhotonEt );
+    aMuon.setPUChargedHadronIso04( aPatMuon.pfIsolationR04().sumPUPt );
 
-    double chIso04 = aPatMuon.pfIsolationR04().sumChargedHadronPt;
-    double nhIso04 = aPatMuon.pfIsolationR04().sumNeutralHadronEt;
-    double phIso04 = aPatMuon.pfIsolationR04().sumPhotonEt;
-    double puIso04 = aPatMuon.pfIsolationR04().sumPUPt;
-    aMuon.setChargedHadronIso04( chIso04 );
-    aMuon.setNeutralHadronIso04( nhIso04 );
-    aMuon.setPhotonIso04( phIso04 );
-    aMuon.setPUChargedHadronIso04( puIso04 );
-    aMuon.setrelIso(0.4, chIso04, nhIso04, phIso04, puIso04, pt);
-
-    double chIso03 = aPatMuon.pfIsolationR03().sumChargedHadronPt;
-    double nhIso03 = aPatMuon.pfIsolationR03().sumNeutralHadronEt;
-    double phIso03 = aPatMuon.pfIsolationR03().sumPhotonEt;
-    double puIso03 = aPatMuon.pfIsolationR03().sumPUPt;
-    aMuon.setChargedHadronIso03( chIso03 );
-    aMuon.setNeutralHadronIso03( nhIso03 );
-    aMuon.setPhotonIso03( phIso03 );
-    aMuon.setPUChargedHadronIso03( puIso03 );
-    aMuon.setrelIso(0.3, chIso03, nhIso03, phIso03, puIso03, pt);
+    aMuon.setChargedHadronIso03( aPatMuon.pfIsolationR03().sumChargedHadronPt );
+    aMuon.setNeutralHadronIso03( aPatMuon.pfIsolationR03().sumNeutralHadronEt );
+    aMuon.setPhotonIso03( aPatMuon.pfIsolationR03().sumPhotonEt );
+    aMuon.setPUChargedHadronIso03( aPatMuon.pfIsolationR03().sumPUPt );
 
     // cout << "aPatMuon.chargedHadronIso() " << aPatMuon.chargedHadronIso()
     // 	 << " aPatMuon.pfIsolationR04 " <<  aPatMuon.pfIsolationR04().sumChargedHadronPt
