@@ -1,5 +1,5 @@
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/stream/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDFilter.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "DataFormats/PatCandidates/interface/PackedTriggerPrescales.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
@@ -8,11 +8,11 @@
 #include <vector>
 #include <string>
 
-class CATTriggerBitCombiner : public edm::stream::EDProducer<>
+class CATTriggerBitCombiner : public edm::stream::EDFilter<>
 {
 public:
   CATTriggerBitCombiner(const edm::ParameterSet& pset);
-  void produce(edm::Event& event, const edm::EventSetup&) override;
+  bool filter(edm::Event& event, const edm::EventSetup&) override;
 
 private:
   //typedef std::vector<bool> vbool;
@@ -44,7 +44,7 @@ CATTriggerBitCombiner::CATTriggerBitCombiner(const edm::ParameterSet& pset):
   produces<int>();
 }
 
-void CATTriggerBitCombiner::produce(edm::Event& event, const edm::EventSetup&)
+bool CATTriggerBitCombiner::filter(edm::Event& event, const edm::EventSetup&)
 {
   using namespace std;
 
@@ -104,6 +104,8 @@ void CATTriggerBitCombiner::produce(edm::Event& event, const edm::EventSetup&)
   //   combine by and, everything fired => ps1*ps2*...
 
   event.put(std::auto_ptr<int>(new int(result)));
+
+  return (result != 0);
 }
 
 DEFINE_FWK_MODULE(CATTriggerBitCombiner);
