@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
 from ROOT import *
+from array import array
 
 f = TFile("hist.root")
+d = f.Get("ttbarNoTau")
 
 genLevels = [
     ("FullParton", kBlack),
@@ -25,7 +27,7 @@ for p in plots:
     c.SetRightMargin(0.225)
 
     for i, (dirName, color) in enumerate(genLevels):
-        h = f.Get("ana/%s/%s" % (dirName, p))
+        h = d.Get("%s/%s" % (dirName, p))
         if h == None:
             print "Cannot find %s/%s" % (dirName, p)
             continue
@@ -34,11 +36,16 @@ for p in plots:
         h.SetLineColor(color)
         h.SetMinimum(0)
 
+        stats = array('d', [0,0,0,0])
+        h.GetStats(stats)
+        nEntry = h.GetEntries()
         for i in range(1,h.GetNbinsX()+1):
             h.SetBinContent(i, h.GetBinContent(i)/h.GetBinWidth(i))
+        h.PutStats(stats)
+        h.SetEntries(nEntry)
 
-        if len(hists) == 0: h.Draw()
-        else: h.Draw("sames")
+        if len(hists) == 0: h.Draw("hist")
+        else: h.Draw("sameshist")
 
         hists.append(h)
     objs.append([c, hists])
@@ -62,12 +69,12 @@ for c, hists in objs:
 for p in plots:
     cCommon = TCanvas("cCommon%s" % p, p, 500, 500)
 
-    hCommon = f.Get("ana/CommonParticle/resp_%s" % p)
+    hCommon = d.Get("CommonParticle/resp_%s" % p)
     hCommon.Draw("COLZ")
 
     cAll = TCanvas("cAll%s" % p, p, 500, 500)
 
-    hAll = f.Get("ana/Particle/resp_%s" % p)
+    hAll = d.Get("Particle/resp_%s" % p)
     hAll.Draw("COLZ")
 
     objs.extend([cCommon, hCommon, cAll, hAll])
@@ -76,8 +83,8 @@ for p in plots:
     cAll.Print("%s.png" % cAll.GetName())
 
 for p in plots:
-    hParton = f.Get("ana/FullParton/%s" % p)
-    hPseudo = f.Get("ana/Particle/%s" % p)
+    hParton = d.Get("FullParton/%s" % p)
+    hPseudo = d.Get("Particle/%s" % p)
 
     vals = []
     for b in range(1,hParton.GetNbinsX()+1):
