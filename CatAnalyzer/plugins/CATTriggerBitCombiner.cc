@@ -22,6 +22,7 @@ private:
   edm::EDGetTokenT<pat::PackedTriggerPrescales> prescaleToken_;
   strings triggersToMatch_;
   bool combineByOr_;
+  const bool doFilter_;
 
 };
 
@@ -29,6 +30,7 @@ CATTriggerBitCombiner::CATTriggerBitCombiner(const edm::ParameterSet& pset):
   triggerToken_(consumes<edm::TriggerResults>(pset.getParameter<edm::InputTag>("triggerResults"))),
   prescaleToken_(consumes<pat::PackedTriggerPrescales>(pset.getParameter<edm::InputTag>("triggerPrescales"))),
   triggersToMatch_(pset.getParameter<strings>("triggersToMatch"))
+  doFilter_(pset.getParameter<bool>("doFilter"));
 {
   if ( pset.existsAs<edm::InputTag>("secondaryTriggerResults") )
   {
@@ -105,6 +107,7 @@ bool CATTriggerBitCombiner::filter(edm::Event& event, const edm::EventSetup&)
 
   event.put(std::auto_ptr<int>(new int(result)));
 
+  if ( !doFilter_ ) return true;
   return (result != 0);
 }
 

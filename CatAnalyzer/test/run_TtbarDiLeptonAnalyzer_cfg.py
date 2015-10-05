@@ -47,7 +47,7 @@ if runOnMC:
         jetConeSize = cms.double(0.4),
     )
 
-process.filterRECO = cms.EDProducer("CATTriggerBitCombiner",
+process.filterRECO = cms.EDFilter("CATTriggerBitCombiner",
     triggerResults = cms.InputTag("TriggerResults::CAT"),
     triggerPrescales = cms.InputTag("patTrigger"),
     combineBy = cms.string("and"),
@@ -58,9 +58,10 @@ process.filterRECO = cms.EDProducer("CATTriggerBitCombiner",
         "eeBadScFilter",
         "goodVertices",
     ),
+    doFilter = cms.bool(False),
 )
 
-process.filterTrigMUEL = cms.EDProducer("CATTriggerBitCombiner",
+process.filterTrigMUEL = cms.EDFilter("CATTriggerBitCombiner",
     triggerResults = cms.InputTag("TriggerResults::HLT"),
     triggerPrescales = cms.InputTag("patTrigger"),
     combineBy = cms.string("or"),
@@ -68,6 +69,7 @@ process.filterTrigMUEL = cms.EDProducer("CATTriggerBitCombiner",
         "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",
         "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v",
     ),
+    doFilter = cms.bool(False),
 )
 
 process.filterTrigELEL = process.filterTrigMUEL.clone(
