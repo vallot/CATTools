@@ -290,7 +290,7 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& 
   hFulParton_Channel_->Fill(partonTopCh);
 
   // Fill parton top plots
-  if ( channel == 2 ) {
+  if ( partonTopCh == 2 or partonTopCh == 3 ) {
     hFulParton_[SL_topPt]->Fill(partonTop1->pt());
     hFulParton_[SL_topPt]->Fill(partonTop2->pt());
     hFulParton_[SL_topY]->Fill(partonTop1->p4().Rapidity());
@@ -320,7 +320,7 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& 
       hFidParton_[SL_topPtTtbarSys]->Fill(partonTopPtAtCM);
     }
   }
-  else if ( channel == 3 ) {
+  else if ( partonTopCh == 4 or partonTopCh == 5 or partonTopCh == 6 ) {
     hFulParton_[DL_topPt]->Fill(partonTop1->pt());
     hFulParton_[DL_topPt]->Fill(partonTop2->pt());
     hFulParton_[DL_topY]->Fill(partonTop1->p4().Rapidity());
