@@ -55,7 +55,7 @@ process.filterRECO = cms.EDProducer("CATTriggerBitCombiner",
     triggersToMatch = cms.vstring(
         "CSCTightHaloFilter",
         "EcalDeadCellTriggerPrimitiveFilter",
-        #"HBHENoiseFilter",
+        "HBHENoiseFilter",
         "eeBadScFilter",
         "goodVertices",
     ),
