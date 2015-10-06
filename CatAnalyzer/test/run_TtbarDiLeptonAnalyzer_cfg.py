@@ -22,6 +22,9 @@ process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 #process.source.fileNames = ['file:catTuple.root']
 #process.source.fileNames.append('/store/group/CAT/MuonEG/v7-4-2_Run2015C-PromptReco-v1/150923_202331/0000/catTuple_2.root')
 process.source.fileNames.append('/store/group/CAT/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-2_RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/150923_215647/0001/catTuple_1046.root')
+process.source.fileNames.append('/store/group/CAT/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-2_RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/150923_215647/0001/catTuple_1047.root')
+process.source.fileNames.append('/store/group/CAT/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-2_RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/150923_215647/0001/catTuple_1048.root')
+process.source.fileNames.append('/store/group/CAT/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-2_RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/150923_215647/0001/catTuple_1049.root')
 
 #lumiFile = 'Cert_246908-255031_13TeV_PromptReco_Collisions15_50ns_JSON.txt'
 lumiFile = 'Cert_246908-257599_13TeV_PromptReco_Collisions15_25ns_JSON.txt'
@@ -106,11 +109,7 @@ process.ttll = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
 
     isTTbarMC = cms.bool(True),
     #isTTbarMC = cms.bool(False),
-    pseudoTop_jets = cms.InputTag("pseudoTop","jets"),
-    pseudoTop_leptons = cms.InputTag("pseudoTop","leptons"),
     pseudoTop = cms.InputTag("pseudoTop"),
-    pseudoTop_neutrinos = cms.InputTag("pseudoTop","neutrinos"),
-    pseudoTop_mets = cms.InputTag("pseudoTop","mets"),
     
     tmassbegin = cms.double(100),
     tmassend   = cms.double(300),

@@ -238,45 +238,38 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
     edm::Handle<reco::GenParticleCollection > pseudoTopHandle;
     iEvent.getByToken(pseudoTop_          , pseudoTopHandle);
-    if ( pseudoTopHandle->empty() ){ return; }// skip the event if no pseudoTop event 
+    if ( !(pseudoTopHandle->empty()) ){
+      b_pseudoTopChannel = CH_NONE;
 
-    // Get Top quark pairs 
-    const auto pseudoTop1 = &pseudoTopHandle->at(0);
-    const auto pseudoTop2 = &pseudoTopHandle->at(1);
+      // Get Top quark pairs 
+      const auto pseudoTop1 = &pseudoTopHandle->at(0);
+      const auto pseudoTop2 = &pseudoTopHandle->at(1);
 
-    // Get W and b quarks
-    if ( !pseudoTop1 or !pseudoTop2 ) return;
-    const auto pseudoW1 = pseudoTop1->daughter(0);
-    const auto pseudoB1 = pseudoTop1->daughter(1);
-    const auto pseudoW2 = pseudoTop2->daughter(0);
-    const auto pseudoB2 = pseudoTop2->daughter(1);
-    if ( !pseudoW1 or !pseudoW2 or !pseudoB1 or !pseudoB2 ) return;
+      // Get W and b quarks
+      if ( pseudoTop1 and pseudoTop2 ) { 
+        const auto pseudoW1 = pseudoTop1->daughter(0);
+        const auto pseudoB1 = pseudoTop1->daughter(1);
+        const auto pseudoW2 = pseudoTop2->daughter(0);
+        const auto pseudoB2 = pseudoTop2->daughter(1);
 
-    // Get W daughters
-    // Ordering is fixed from the PartonTopProducer, lepton first.
-    // There's no tau in PseudoTopProducer
-    const auto pseudoW11 = pseudoW1->daughter(0);
-    const auto pseudoW12 = pseudoW1->daughter(1);
-    const auto pseudoW21 = pseudoW2->daughter(0);
-    const auto pseudoW22 = pseudoW2->daughter(1);
-    if ( !pseudoW11 or !pseudoW12 or !pseudoW21 or !pseudoW22 ) return;
+        // Get W daughters
+        if ( pseudoW1 and pseudoW2 and pseudoB1 and pseudoB2 ) {
+          const auto pseudoW11 = pseudoW1->daughter(0);
+          const auto pseudoW21 = pseudoW2->daughter(0);
 
-    // Fill channel informations
-    const int pseudoW1DauId = abs(pseudoW11->pdgId());
-    const int pseudoW2DauId = abs(pseudoW21->pdgId());
-    int pseudoTopCh = CH_NONE;
-    if ( pseudoW1DauId > 10 and pseudoW2DauId > 10 ) { 
-      switch ( pseudoW1DauId+pseudoW2DauId ) {
-        case 22: pseudoTopCh = CH_ELEL; break;
-        case 26: pseudoTopCh = CH_MUMU; break;
-        default: pseudoTopCh = CH_MUEL;
+          // Fill channel informations
+          const int pseudoW1DauId = abs(pseudoW11->pdgId());
+          const int pseudoW2DauId = abs(pseudoW21->pdgId());
+          if ( pseudoW1DauId > 10 and pseudoW2DauId > 10 ) { 
+            switch ( pseudoW1DauId+pseudoW2DauId ) {
+              case 22: b_pseudoTopChannel = CH_ELEL; break;
+              case 26: b_pseudoTopChannel = CH_MUMU; break;
+              default: b_pseudoTopChannel = CH_MUEL;
+            }
+          }
+        }
       }
     }
-    b_pseudoTopChannel = pseudoTopCh;
-	if (b_pseudoTopChannel != 0){ cout << b_pseudoTopChannel << endl; }
-    //b_pseudoTopMode1 = pseudoTopMode1;
-    //b_pseudoTopMode2 = pseudoTopMode2;
-
   }
 
   // Store reco filter results
@@ -307,7 +300,10 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   if      ( b_channel == CH_ELEL ) iEvent.getByToken(trigTokenELEL_, trigHandle);
   else if ( b_channel == CH_MUMU ) iEvent.getByToken(trigTokenMUMU_, trigHandle);
   else if ( b_channel == CH_MUEL ) iEvent.getByToken(trigTokenMUEL_, trigHandle);
-  if ( !trigHandle.isValid() ) return;
+  if ( !trigHandle.isValid() ){
+    ttree_->Fill();
+	return;
+  }
   b_tri = *trigHandle;
 
   cutflow_[++b_step][b_channel]++;
