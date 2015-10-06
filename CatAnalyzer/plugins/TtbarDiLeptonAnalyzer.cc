@@ -62,7 +62,9 @@ private:
 
   TTree * ttree_;
   int b_partonChannel, b_partonMode1, b_partonMode2;
-  int b_pseudoTopChannel, b_pseudoTopMode1, b_pseudoTopMode2;
+  int b_pseudoTopChannel;
+  float b_pseudoToplep1_pt, b_pseudoToplep1_eta;
+  float b_pseudoToplep2_pt, b_pseudoToplep2_eta;
   int b_njet, b_nbjet, b_step, b_channel;
   bool b_lepinPhase, b_jetinPhase;
   float b_MET, b_maxweight;
@@ -126,8 +128,10 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("parton_mode1", &b_partonMode1, "parton_mode1/I");
   ttree_->Branch("parton_mode2", &b_partonMode2, "parton_mode2/I");
   ttree_->Branch("pseudoTop_channel", &b_pseudoTopChannel, "pseudoTop_channel/I");
-  ttree_->Branch("pseudoTop_mode1", &b_pseudoTopMode1, "pseudoTop_mode1/I");
-  ttree_->Branch("pseudoTop_mode2", &b_pseudoTopMode2, "pseudoTop_mode2/I");
+  ttree_->Branch("pseudoToplep1_pt", &b_pseudoToplep1_pt, "pseudoToplep1_pt/F");
+  ttree_->Branch("pseudoToplep1_eta", &b_pseudoToplep1_eta, "pseudoToplep1_eta/F");
+  ttree_->Branch("pseudoToplep2_pt", &b_pseudoToplep2_pt, "pseudoToplep2_pt/F");
+  ttree_->Branch("pseudoToplep2_eta", &b_pseudoToplep2_eta, "pseudoToplep2_eta/F");
 
   ttree_->Branch("njet", &b_njet, "njet/I");
   ttree_->Branch("nbjet", &b_nbjet, "nbjet/I");
@@ -186,7 +190,9 @@ TtbarDiLeptonAnalyzer::~TtbarDiLeptonAnalyzer()
 void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   b_partonChannel = -1; b_partonMode1 = -1; b_partonMode2 = -1;
-  b_pseudoTopChannel = -1; b_pseudoTopMode1 = -1; b_pseudoTopMode2 = -1;
+  b_pseudoTopChannel = -1;
+  b_pseudoToplep1_pt = -9; b_pseudoToplep1_eta = -9;
+  b_pseudoToplep2_pt = -9; b_pseudoToplep2_eta = -9;
   b_MET = -1;
   b_njet = -1;
   b_nbjet = -1;
@@ -260,6 +266,10 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
           // Fill channel informations
           const int pseudoW1DauId = abs(pseudoW11->pdgId());
           const int pseudoW2DauId = abs(pseudoW21->pdgId());
+		  b_pseudoToplep1_pt = pseudoW11->pt();
+		  b_pseudoToplep1_eta = pseudoW11->eta();
+		  b_pseudoToplep2_pt = pseudoW21->pt();
+		  b_pseudoToplep2_eta = pseudoW21->eta();
           if ( pseudoW1DauId > 10 and pseudoW2DauId > 10 ) { 
             switch ( pseudoW1DauId+pseudoW2DauId ) {
               case 22: b_pseudoTopChannel = CH_ELEL; break;
