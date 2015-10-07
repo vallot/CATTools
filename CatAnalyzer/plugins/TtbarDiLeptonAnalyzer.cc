@@ -310,10 +310,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   if      ( b_channel == CH_ELEL ) iEvent.getByToken(trigTokenELEL_, trigHandle);
   else if ( b_channel == CH_MUMU ) iEvent.getByToken(trigTokenMUMU_, trigHandle);
   else if ( b_channel == CH_MUEL ) iEvent.getByToken(trigTokenMUEL_, trigHandle);
-  if ( !trigHandle.isValid() ){
-    ttree_->Fill();
-	return;
-  }
+  if ( !trigHandle.isValid() ){ cout <<"error, trigger not vaild "<<endl; }
   b_tri = *trigHandle;
 
   cutflow_[++b_step][b_channel]++;
