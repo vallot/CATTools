@@ -26,10 +26,6 @@ namespace cat {
     float dxy() const { return dxy_; }
     float dz() const { return dz_; }
 
-    float relIso(float dR=0.3 ) const {
-      if( dR < 0.35) return relIso03_;
-      else return relIso04_;
-    }
     float scEta() const { return scEta_; }
     bool passConversionVeto() const { return passConversionVeto_; }
 
@@ -59,6 +55,14 @@ namespace cat {
 
       float charged = chargedHadronIso(dR);
       return charged + ( corNeutralIso>0 ? corNeutralIso : 0 ) ;
+    }
+    float relIso(float dR=0.3, float dBetaFactor = 0) const {
+      if (dBetaFactor > 0){
+	float abs = absIso(dR, dBetaFactor)/this->pt();
+	return abs >=0 ? abs : -1;
+      }
+      if( dR < 0.35) return relIso03_;
+      else return relIso04_;
     }
 
     bool mcMatched() const { return mcMatched_; }
