@@ -45,19 +45,15 @@ namespace cat {
       if( dR < 0.35) return photonIso03_;
       else return photonIso04_;
     }
-
     float absIso(float dR=0.3, float dBetaFactor=0.5) const{
-
       if(dBetaFactor>0 && puChargedHadronIso(dR)<0) return -1;
-
       float neutralIso = neutralHadronIso(dR) + photonIso(dR);
       float corNeutralIso = neutralIso - dBetaFactor * puChargedHadronIso(dR);
-
       float charged = chargedHadronIso(dR);
       return charged + ( corNeutralIso>0 ? corNeutralIso : 0 ) ;
     }
-    float relIso(float dR=0.3, float dBetaFactor = 0) const {
-      if (dBetaFactor > 0){
+    float relIso(float dR=0.3, float dBetaFactor = -1) const {
+      if (dBetaFactor >= 0){
 	float abs = absIso(dR, dBetaFactor)/this->pt();
 	return abs >=0 ? abs : -1;
       }
