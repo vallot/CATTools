@@ -320,25 +320,32 @@ void DESYSmearedSolver::solve(const LV input[])
     // Compute weight by m(B,L)
     const double w1 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin((newl1+newj1).mass()));
     const double w2 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin((newl2+newj2).mass()));
-    const double w = w1*w2*1e-8;
+    const double weight = w1*w2/h_mbl_w_->Integral()/h_mbl_w_->Integral();
 
     KinSolverUtils::findCoeffs(mTopInput_, getRandom(h_wmass_.get()), getRandom(h_wmass_.get()),
                                newl1, newl2, newj1, newj2, newmetX, newmetY, koef, cache);
     KinSolverUtils::solve_quartic(koef, a4, b4, sols);
     double nu1sol[4] = {}, nu2sol[4] = {};
-    double weight = 0;
+    // Choose one solution with minimal mass of top pair
+    double minMTTsqr = -1;
     for ( const double& sol : sols ) {
       // Recompute neutrino four momentum
       double nu1solTmp[4], nu2solTmp[4];
       KinSolverUtils::getNuPxPyPzE(sol, cache, nu1solTmp, nu2solTmp);
 
-      if ( w <= weight ) continue;
+      const double ttX = visSum.px()+nu1sol[0]+nu2sol[0];
+      const double ttY = visSum.py()+nu1sol[1]+nu2sol[1];
+      const double ttZ = visSum.pz()+nu1sol[2]+nu2sol[2];
+      const double ttE = visSum.E()+nu1sol[3]+nu2sol[3];
+      const double mTTsqr = ttE*ttE-ttX*ttX-ttY*ttY-ttZ*ttZ;
 
-      weight = w;
-      std::copy(nu1solTmp, nu1solTmp+4, nu1sol);
-      std::copy(nu2solTmp, nu2solTmp+4, nu2sol);
+      if ( minMTTsqr < 0 or mTTsqr < minMTTsqr ) {
+        minMTTsqr = mTTsqr;
+        std::copy(nu1solTmp, nu1solTmp+4, nu1sol);
+        std::copy(nu2solTmp, nu2solTmp+4, nu2sol);
+      }
     }
-    if ( weight == 0 ) continue;
+    if ( minMTTsqr < 0 ) continue;
 
     sumW += weight;
     sumP[0][0] += weight*newl1.px(); sumP[0][1] += weight*newl1.py(); sumP[0][2] += weight*newl1.pz();
