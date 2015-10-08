@@ -106,6 +106,13 @@ namespace cat {
     void setDz(float d) { dz_ = d; }
     void setDxy(float d) { dxy_ = d; }
 
+    bool VetoID() const {return electronID("veto");}
+    bool LooseID() const {return electronID("loose");}
+    bool MediumID() const {return electronID("medium");}
+    bool TightID() const {return electronID("tight");}
+    bool mvaMediumId() const {return electronID("wp90");}
+    bool mvaTightId() const {return electronID("wp80");}
+    
   private:
 
     std::vector<pat::Electron::IdPair> electronIDs_;
