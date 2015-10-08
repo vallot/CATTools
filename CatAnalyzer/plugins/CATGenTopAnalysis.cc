@@ -405,7 +405,7 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& 
   if ( pseudoTopCh == 0 ) { // Full hadronic in pseudoTop
     h2PseudoChannel_->Fill(partonTopCh, pseudoTopCh);
     //h2ComChannel_->Fill(partonTopCh, pseudoTopCh);
-    if ( channel == 1 ) {
+    if ( channel == 0 ) {
       hChPseudo_Channel_->Fill(pseudoTopCh);
       h2ChChannel_->Fill(partonTopCh, pseudoTopCh);
     }
@@ -441,7 +441,7 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& 
     h2_[SL_topPtTtbarSys]->Fill(pseudoTopPtAtCM, partonTopPtAtCM);
 
     // Fill pseudo top plots within parton level acceptance cut
-    if ( channel == 2 ) {
+    if ( channel == 1 ) {
       hChPseudo_Channel_->Fill(pseudoTopCh);
       h2ChChannel_->Fill(partonTopCh, pseudoTopCh);
 
@@ -530,7 +530,7 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& 
     h2_[DL_ttbarMass]->Fill(pseudoTT.mass(), partonTT.mass());
     h2_[DL_topPtTtbarSys]->Fill(pseudoTopPtAtCM, partonTopPtAtCM);
 
-    if ( channel == 3 ) {
+    if ( channel == 2 ) {
       hChPseudo_Channel_->Fill(pseudoTopCh);
       h2ChChannel_->Fill(partonTopCh, pseudoTopCh);
 
