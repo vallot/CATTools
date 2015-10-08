@@ -26,10 +26,6 @@ namespace cat {
     float dxy() const { return dxy_; }
     float dz() const { return dz_; }
 
-    float relIso(float dR=0.3 ) const {
-      if( dR < 0.35) return relIso03_;
-      else return relIso04_;
-    }
     float scEta() const { return scEta_; }
     bool passConversionVeto() const { return passConversionVeto_; }
 
@@ -49,16 +45,20 @@ namespace cat {
       if( dR < 0.35) return photonIso03_;
       else return photonIso04_;
     }
-
     float absIso(float dR=0.3, float dBetaFactor=0.5) const{
-
       if(dBetaFactor>0 && puChargedHadronIso(dR)<0) return -1;
-
       float neutralIso = neutralHadronIso(dR) + photonIso(dR);
       float corNeutralIso = neutralIso - dBetaFactor * puChargedHadronIso(dR);
-
       float charged = chargedHadronIso(dR);
       return charged + ( corNeutralIso>0 ? corNeutralIso : 0 ) ;
+    }
+    float relIso(float dR=0.3, float dBetaFactor = -1) const {
+      if (dBetaFactor >= 0){
+	float abs = absIso(dR, dBetaFactor)/this->pt();
+	return abs >=0 ? abs : -1;
+      }
+      if( dR < 0.35) return relIso03_;
+      else return relIso04_;
     }
 
     bool mcMatched() const { return mcMatched_; }
