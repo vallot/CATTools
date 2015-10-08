@@ -251,7 +251,6 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     }
 
     if ( !(partonTop_genParticles->empty()) ){
-      b_partonChannel = CH_NONE;
 
       // Get Top quark pairs 
       const auto parton1 = &partonTop_genParticles->at(0);
