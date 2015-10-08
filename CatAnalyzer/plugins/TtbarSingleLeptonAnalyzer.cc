@@ -80,7 +80,7 @@ private:
 
   // ----------member data ---------------------------
 
-  TTree *vallot;
+  TTree *tree;
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -168,40 +168,40 @@ TtbarSingleLeptonAnalyzer::TtbarSingleLeptonAnalyzer(const edm::ParameterSet& iC
   b_Jet_CSV  = new std::vector<float>;
 
   edm::Service<TFileService> fs;
-  vallot = fs->make<TTree>("vallot", "TopTree");
+  tree = fs->make<TTree>("tree", "TopTree");
 
-  vallot->Branch("event",      &b_Event,       "Event/I");
-  vallot->Branch("run",        &b_Run,         "Run/I");
-  vallot->Branch("luminumber", &b_Lumi_Number, "Lumi_Number/I");
+  tree->Branch("event",      &b_Event,       "Event/I");
+  tree->Branch("run",        &b_Run,         "Run/I");
+  tree->Branch("luminumber", &b_Lumi_Number, "Lumi_Number/I");
 
-  vallot->Branch("PUWeight", &b_PUWeight, "PUWeight/F");
-  vallot->Branch("GoodPV",   &b_nGoodPV,  "nGoodPV/I");
+  tree->Branch("PUWeight", &b_PUWeight, "PUWeight/F");
+  tree->Branch("GoodPV",   &b_nGoodPV,  "nGoodPV/I");
 
-  vallot->Branch("channel",  &b_Channel,  "Channel/I");
+  tree->Branch("channel",  &b_Channel,  "Channel/I");
 
-  vallot->Branch("MET",     &b_MET,     "MET/F");
-  vallot->Branch("MET_phi", &b_MET_phi, "MET_phi/F");
+  tree->Branch("MET",     &b_MET,     "MET/F");
+  tree->Branch("MET_phi", &b_MET_phi, "MET_phi/F");
 
-  vallot->Branch("lepton_px", &b_Lepton_px, "lepton_px/F");
-  vallot->Branch("lepton_py", &b_Lepton_py, "lepton_py/F");
-  vallot->Branch("lepton_pz", &b_Lepton_pz, "lepton_pz/F");
-  vallot->Branch("lepton_E" , &b_Lepton_E,  "lepton_E/F" );
+  tree->Branch("lepton_px", &b_Lepton_px, "lepton_px/F");
+  tree->Branch("lepton_py", &b_Lepton_py, "lepton_py/F");
+  tree->Branch("lepton_pz", &b_Lepton_pz, "lepton_pz/F");
+  tree->Branch("lepton_E" , &b_Lepton_E,  "lepton_E/F" );
 
-  vallot->Branch("jet_px", "std::vector<float>", &b_Jet_px);
-  vallot->Branch("jet_py", "std::vector<float>", &b_Jet_py);
-  vallot->Branch("jet_pz", "std::vector<float>", &b_Jet_pz);
-  vallot->Branch("jet_E" , "std::vector<float>", &b_Jet_E );
+  tree->Branch("jet_px", "std::vector<float>", &b_Jet_px);
+  tree->Branch("jet_py", "std::vector<float>", &b_Jet_py);
+  tree->Branch("jet_pz", "std::vector<float>", &b_Jet_pz);
+  tree->Branch("jet_E" , "std::vector<float>", &b_Jet_E );
 
-  vallot->Branch("jet_partonFlavour", "std::vector<int>", &b_Jet_partonFlavour);
-  vallot->Branch("jet_hadronFlavour", "std::vector<int>", &b_Jet_hadronFlavour);
+  tree->Branch("jet_partonFlavour", "std::vector<int>", &b_Jet_partonFlavour);
+  tree->Branch("jet_hadronFlavour", "std::vector<int>", &b_Jet_hadronFlavour);
 
-  vallot->Branch("jet_smearedRes",     "std::vector<float>", &b_Jet_smearedRes);
-  vallot->Branch("jet_smearedResDown", "std::vector<float>", &b_Jet_smearedResDown);
-  vallot->Branch("jet_smearedResUp",   "std::vector<float>", &b_Jet_smearedResUp);
-  vallot->Branch("jet_shiftedEnUp",    "std::vector<float>", &b_Jet_shiftedEnUp);
-  vallot->Branch("jet_shiftedEnDown",  "std::vector<float>", &b_Jet_shiftedEnDown);
+  tree->Branch("jet_smearedRes",     "std::vector<float>", &b_Jet_smearedRes);
+  tree->Branch("jet_smearedResDown", "std::vector<float>", &b_Jet_smearedResDown);
+  tree->Branch("jet_smearedResUp",   "std::vector<float>", &b_Jet_smearedResUp);
+  tree->Branch("jet_shiftedEnUp",    "std::vector<float>", &b_Jet_shiftedEnUp);
+  tree->Branch("jet_shiftedEnDown",  "std::vector<float>", &b_Jet_shiftedEnDown);
 
-  vallot->Branch("jet_CSV" , "std::vector<float>", &b_Jet_CSV );
+  tree->Branch("jet_CSV" , "std::vector<float>", &b_Jet_CSV );
 
 }
 
@@ -556,7 +556,7 @@ void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Eve
     }
 
     // Fill Tree with event at 1 lepton cut level
-    vallot->Fill();
+    tree->Fill();
 
   } // if(ch_tag)
 
