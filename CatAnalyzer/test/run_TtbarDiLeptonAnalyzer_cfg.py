@@ -89,6 +89,8 @@ process.filterTrigMUMU = process.filterTrigMUEL.clone(
     ),
 )
 
+process.load("CATTools.CatAnalyzer.ttbarDileptonKinSolutionAlgos_cff")
+
 process.ttll = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     recoFilters = cms.InputTag("filterRECO"),
     trigMUEL = cms.InputTag("filterTrigMUEL"),
@@ -111,11 +113,9 @@ process.ttll = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     #isTTbarMC = cms.bool(False),
     pseudoTop = cms.InputTag("pseudoTop"),
     
-    tmassbegin = cms.double(100),
-    tmassend   = cms.double(300),
-    tmassstep  = cms.double(  1),
-    neutrino_parameters = cms.vdouble(27.23,53.88,19.92,53.89,19.9)
+    solver = process.ttbarDileptonKinAlgoPSetCMSKin,
 )
+process.ttll.solver.tMassStep = 1
 
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string("top.root"
