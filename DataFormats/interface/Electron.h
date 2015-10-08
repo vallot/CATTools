@@ -110,8 +110,8 @@ namespace cat {
     bool LooseID() const {return electronID("loose");}
     bool MediumID() const {return electronID("medium");}
     bool TightID() const {return electronID("tight");}
-    bool mvaMediumId() const {return electronID("wp90");}
-    bool mvaTightId() const {return electronID("wp80");}
+    bool mvaMediumID() const {return electronID("wp90");}
+    bool mvaTightID() const {return electronID("wp80");}
     
   private:
 
