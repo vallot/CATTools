@@ -190,17 +190,17 @@ CATGenTopAnalysis::CATGenTopAnalysis(const edm::ParameterSet& pset):
     "#tau hadronic+jet", "#tau#rightarrow l+jet", "#tau dilepton"
   };
 
-  hFulParton_Channel_ = dirFulParton.make<TH1F>("channel", "channel", 9, 1, 10);
-  hFidParton_Channel_ = dirFidParton.make<TH1F>("channel", "channel", 9, 1, 10);
-  hComParton_Channel_ = dirComParton.make<TH1F>("channel", "channel", 9, 1, 10);
-  hComPseudo_Channel_ = dirComPseudo.make<TH1F>("channel", "channel", 9, 1, 10);
-  hPseudo_Channel_    = dirPseudo.make<TH1F>("channel", "channel", 9, 1, 10);
-  hChPseudo_Channel_  = dirChPseudo.make<TH1F>("channel", "channel", 9, 1, 10);
+  hFulParton_Channel_ = dirFulParton.make<TH1F>("channel", "channel", 9, 0, 9);
+  hFidParton_Channel_ = dirFidParton.make<TH1F>("channel", "channel", 9, 0, 9);
+  hComParton_Channel_ = dirComParton.make<TH1F>("channel", "channel", 9, 0, 9);
+  hComPseudo_Channel_ = dirComPseudo.make<TH1F>("channel", "channel", 9, 0, 9);
+  hPseudo_Channel_    = dirPseudo.make<TH1F>("channel", "channel", 9, 0, 9);
+  hChPseudo_Channel_  = dirChPseudo.make<TH1F>("channel", "channel", 9, 0, 9);
 
-  h2DebugChannel_  = fs->make<TH2F>("h2DebugChannel", "No filter debug;Parton;Pseudotop", 9, 1, 10, 9, 1, 10);
-  h2PseudoChannel_ = fs->make<TH2F>("h2PseudoChannel", "Pseudotop phase space;Parton;Pseudotop", 9, 1, 10, 9, 1, 10);
-  h2ComChannel_    = fs->make<TH2F>("h2ComChannel", "Common phase space;Parton;Pseudotop", 9, 1, 10, 9, 1, 10);
-  h2ChChannel_     = fs->make<TH2F>("h2ChChannel", "Common phase space same channel;Parton;Pseudotop", 9, 1, 10, 9, 1, 10);
+  h2DebugChannel_  = fs->make<TH2F>("h2DebugChannel", "No filter debug;Parton;Pseudotop", 9, 0, 9, 9, 0, 9);
+  h2PseudoChannel_ = fs->make<TH2F>("h2PseudoChannel", "Pseudotop phase space;Parton;Pseudotop", 9, 0, 9, 9, 0, 9);
+  h2ComChannel_    = fs->make<TH2F>("h2ComChannel", "Common phase space;Parton;Pseudotop", 9, 0,9, 9, 0, 9);
+  h2ChChannel_     = fs->make<TH2F>("h2ChChannel", "Common phase space same channel;Parton;Pseudotop", 9, 0, 9, 9, 0, 9);
 
   std::vector<H2> hh = {h2DebugChannel_, h2PseudoChannel_, h2ComChannel_, h2ChChannel_};
   for ( int i=0, n=channelNames.size(); i<n; ++i ) {
@@ -229,13 +229,13 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& 
   edm::Handle<int> channelHandle;
   event.getByToken(channelToken_, channelHandle);
   const int channel = *channelHandle;
-  if ( channel == 0 ) return;
+  if ( channel == -1 ) return;
 
   edm::Handle<std::vector<int> > modesHandle;
   event.getByToken(modesToken_, modesHandle);
   if ( modesHandle->size() != 2 ) return; // this should not happen if parton top module was not crashed
   const int mode1 = modesHandle->at(0), mode2 = modesHandle->at(1);
-  if ( filterTaus_ and (mode1 >= 4 or mode2 >= 4) ) return;
+  if ( filterTaus_ and (mode1 >= 3 or mode2 >= 3) ) return;
 
   edm::Handle<reco::GenParticleCollection> partonTopHandle;
   event.getByToken(partonTopToken_, partonTopHandle);
@@ -271,26 +271,26 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& 
   const double partonTopPtAtCM = ROOT::Math::Boost(partonTT.BoostToCM())(partonTop1->p4()).pt();
 
   // Determine channel informations
-  int partonTopCh = 0;
-  if ( channel == 1 ) { // Full hadronic including taus
-    if ( mode1 == 4 or mode2 == 4 ) partonTopCh = 7; // hadronic with tau
-    else partonTopCh = 1;
+  int partonTopCh = -1;
+  if ( channel == 0 ) { // Full hadronic including taus
+    if ( mode1 == 3 or mode2 == 3 ) partonTopCh = 6; // hadronic with tau
+    else partonTopCh = 0;
   }
-  else if ( channel == 2 ) { // semilepton channels
-    if ( mode1 == 3 or mode2 == 3 ) partonTopCh = 2; // e+jets no tau
-    else if ( mode1 == 2 or mode2 == 2 ) partonTopCh = 3; // mu+jets no tau
-    else partonTopCh = 8; // any leptons from tau decay
+  else if ( channel == 1 ) { // semilepton channels
+    if ( mode1 == 2 or mode2 == 2 ) partonTopCh = 1; // e+jets no tau
+    else if ( mode1 == 1 or mode2 == 1 ) partonTopCh = 2; // mu+jets no tau
+    else partonTopCh = 7; // any leptons from tau decay
   }
   else { // full leptonic channels
-    if ( mode1 >= 4 or mode2 >= 4 ) partonTopCh = 9; // dilepton anything includes tau decay
-    else if ( mode1 == 3 and mode2 == 3 ) partonTopCh = 4; // ee channel no tau
-    else if ( mode1 == 2 and mode2 == 2 ) partonTopCh = 5; // mumu cnannel no tau
-    else partonTopCh = 6; // emu channel no tau
+    if ( mode1 >= 4 or mode2 >= 4 ) partonTopCh = 8; // dilepton anything includes tau decay
+    else if ( mode1 == 3 and mode2 == 3 ) partonTopCh = 3; // ee channel no tau
+    else if ( mode1 == 2 and mode2 == 2 ) partonTopCh = 4; // mumu cnannel no tau
+    else partonTopCh = 5; // emu channel no tau
   }
   hFulParton_Channel_->Fill(partonTopCh);
 
   // Fill parton top plots
-  if ( partonTopCh == 2 or partonTopCh == 3 ) {
+  if ( partonTopCh == 1 or partonTopCh == 2 ) {
     hFulParton_[SL_topPt]->Fill(partonTop1->pt());
     hFulParton_[SL_topPt]->Fill(partonTop2->pt());
     hFulParton_[SL_topY]->Fill(partonTop1->p4().Rapidity());
@@ -320,7 +320,7 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& 
       hFidParton_[SL_topPtTtbarSys]->Fill(partonTopPtAtCM);
     }
   }
-  else if ( partonTopCh == 4 or partonTopCh == 5 or partonTopCh == 6 ) {
+  else if ( partonTopCh == 3 or partonTopCh == 4 or partonTopCh == 5 ) {
     hFulParton_[DL_topPt]->Fill(partonTop1->pt());
     hFulParton_[DL_topPt]->Fill(partonTop2->pt());
     hFulParton_[DL_topY]->Fill(partonTop1->p4().Rapidity());
@@ -362,7 +362,6 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& 
   // Get Top quark pairs first
   const auto pseudoTop1 = &pseudoTopHandle->at(0);
   const auto pseudoTop2 = &pseudoTopHandle->at(1);
-
   // Get W and b quarks
   // Ordering is fixed, W first
   if ( !pseudoTop1 or !pseudoTop2 ) return;
@@ -383,18 +382,18 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& 
   // Fill channel informations
   const int pseudoW1DauId = abs(pseudoW11->pdgId());
   const int pseudoW2DauId = abs(pseudoW21->pdgId());
-  int pseudoTopCh = 0;
-  if ( pseudoW1DauId < 10 and pseudoW2DauId < 10 ) pseudoTopCh = 1; // Full hadronic
+  int pseudoTopCh = -1;
+  if ( pseudoW1DauId < 10 and pseudoW2DauId < 10 ) pseudoTopCh = 0; // Full hadronic
   else if ( pseudoW1DauId > 10 and pseudoW2DauId > 10 ) { // dilepton
     switch ( pseudoW1DauId+pseudoW2DauId ) {
-      case 22: pseudoTopCh = 4; break; // ee channel, 11+11
-      case 26: pseudoTopCh = 5; break; // mumu channel, 13+13
-      default: pseudoTopCh = 6; // others, emu channel
+      case 22: pseudoTopCh = 3; break; // ee channel, 11+11
+      case 26: pseudoTopCh = 4; break; // mumu channel, 13+13
+      default: pseudoTopCh = 5; // others, emu channel
     }
   }
   else { // semilepton channel
-    if ( pseudoW1DauId == 11 or pseudoW2DauId == 11 ) pseudoTopCh = 2; // e+jet
-    else pseudoTopCh = 3; // mu+jet
+    if ( pseudoW1DauId == 11 or pseudoW2DauId == 11 ) pseudoTopCh = 1; // e+jet
+    else pseudoTopCh = 2; // mu+jet
   }
   hPseudo_Channel_->Fill(pseudoTopCh);
   h2DebugChannel_->Fill(partonTopCh, pseudoTopCh);
@@ -403,15 +402,15 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& 
   const double pseudoTopPtAtCM = ROOT::Math::Boost(pseudoTT.BoostToCM())(pseudoTop1->p4()).pt();
 
   // Fill pseudo top plots
-  if ( pseudoTopCh == 1 ) { // Full hadronic in pseudoTop
+  if ( pseudoTopCh == 0 ) { // Full hadronic in pseudoTop
     h2PseudoChannel_->Fill(partonTopCh, pseudoTopCh);
     //h2ComChannel_->Fill(partonTopCh, pseudoTopCh);
-    if ( channel == 1 ) {
+    if ( channel == 0 ) {
       hChPseudo_Channel_->Fill(pseudoTopCh);
       h2ChChannel_->Fill(partonTopCh, pseudoTopCh);
     }
   }
-  else if ( (pseudoTopCh == 2 or pseudoTopCh == 3) and
+  else if ( (pseudoTopCh == 1 or pseudoTopCh == 2) and
             isAcceptedSemiLept(pseudoW11, pseudoW21, pseudoW22, pseudoB1, pseudoB2) ) {
     h2PseudoChannel_->Fill(partonTopCh, pseudoTopCh);
 
@@ -442,7 +441,7 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& 
     h2_[SL_topPtTtbarSys]->Fill(pseudoTopPtAtCM, partonTopPtAtCM);
 
     // Fill pseudo top plots within parton level acceptance cut
-    if ( channel == 2 ) {
+    if ( channel == 1 ) {
       hChPseudo_Channel_->Fill(pseudoTopCh);
       h2ChChannel_->Fill(partonTopCh, pseudoTopCh);
 
@@ -502,7 +501,7 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& 
       }
     }
   }
-  else if ( (pseudoTopCh == 4 or pseudoTopCh == 5 or pseudoTopCh == 6 ) and
+  else if ( (pseudoTopCh == 3 or pseudoTopCh == 4 or pseudoTopCh == 5 ) and
             isAcceptedFullLept(pseudoW11, pseudoW21, pseudoB1, pseudoB2) ) {
     h2PseudoChannel_->Fill(partonTopCh, pseudoTopCh);
 
@@ -531,7 +530,7 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& 
     h2_[DL_ttbarMass]->Fill(pseudoTT.mass(), partonTT.mass());
     h2_[DL_topPtTtbarSys]->Fill(pseudoTopPtAtCM, partonTopPtAtCM);
 
-    if ( channel == 3 ) {
+    if ( channel == 2 ) {
       hChPseudo_Channel_->Fill(pseudoTopCh);
       h2ChChannel_->Fill(partonTopCh, pseudoTopCh);
 

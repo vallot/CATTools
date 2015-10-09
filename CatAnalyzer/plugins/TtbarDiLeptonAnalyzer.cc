@@ -62,6 +62,8 @@ private:
 
   TTree * ttree_;
   int b_partonChannel, b_partonMode1, b_partonMode2;
+  float b_partonlep1_pt, b_partonlep1_eta;
+  float b_partonlep2_pt, b_partonlep2_eta;
   int b_pseudoTopChannel;
   float b_pseudoToplep1_pt, b_pseudoToplep1_eta;
   float b_pseudoToplep2_pt, b_pseudoToplep2_eta;
@@ -83,7 +85,6 @@ private:
 
   std::unique_ptr<TtFullLepKinSolver> solver;
   bool isTTbarMC_;
-  std::vector<int> pseudoTop_modes;
   //enum TTbarMode { CH_NONE = 0, CH_FULLHADRON = 1, CH_SEMILEPTON, CH_FULLLEPTON };
   //enum DecayMode { CH_HADRON = 1, CH_MUON, CH_ELECTRON, CH_TAU_HADRON, CH_TAU_MUON, CH_TAU_ELECTRON };
 
@@ -126,7 +127,12 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   ttree_ = fs->make<TTree>("tree", "tree");
   ttree_->Branch("parton_channel", &b_partonChannel, "parton_channel/I");
   ttree_->Branch("parton_mode1", &b_partonMode1, "parton_mode1/I");
+  ttree_->Branch("partonlep1_pt", &b_partonlep1_pt, "partonlep1_pt/F");
+  ttree_->Branch("partonlep1_eta", &b_partonlep1_eta, "partonlep1_eta/F");
+  ttree_->Branch("partonlep2_pt", &b_partonlep2_pt, "partonlep2_pt/F");
+  ttree_->Branch("partonlep2_eta", &b_partonlep2_eta, "partonlep2_eta/F");
   ttree_->Branch("parton_mode2", &b_partonMode2, "parton_mode2/I");
+
   ttree_->Branch("pseudoTop_channel", &b_pseudoTopChannel, "pseudoTop_channel/I");
   ttree_->Branch("pseudoToplep1_pt", &b_pseudoToplep1_pt, "pseudoToplep1_pt/F");
   ttree_->Branch("pseudoToplep1_eta", &b_pseudoToplep1_eta, "pseudoToplep1_eta/F");
@@ -190,6 +196,8 @@ TtbarDiLeptonAnalyzer::~TtbarDiLeptonAnalyzer()
 void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   b_partonChannel = -1; b_partonMode1 = -1; b_partonMode2 = -1;
+  b_partonlep1_pt = -9; b_partonlep1_eta = -9;
+  b_partonlep2_pt = -9; b_partonlep2_eta = -9;
   b_pseudoTopChannel = -1;
   b_pseudoToplep1_pt = -9; b_pseudoToplep1_eta = -9;
   b_pseudoToplep2_pt = -9; b_pseudoToplep2_eta = -9;
@@ -242,6 +250,32 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       b_partonMode2 = (*partonTop_modes)[1];
     }
 
+    if ( !(partonTop_genParticles->empty()) ){
+
+      // Get Top quark pairs 
+      const auto parton1 = &partonTop_genParticles->at(0);
+      const auto parton2 = &partonTop_genParticles->at(1);
+      // Get W and b quarks
+      if ( parton1 and parton2 ) { 
+        const auto partonW1 = parton1->daughter(0);
+        const auto partonB1 = parton1->daughter(1);
+        const auto partonW2 = parton2->daughter(0);
+        const auto partonB2 = parton2->daughter(1);
+
+        // Get W daughters
+        if ( partonW1 and partonW2 and partonB1 and partonB2 ) {
+          const auto partonW11 = partonW1->daughter(0);
+          const auto partonW21 = partonW2->daughter(0);
+
+          // Fill lepton informations
+		  b_partonlep1_pt = partonW11->pt();
+		  b_partonlep1_eta = partonW11->eta();
+		  b_partonlep2_pt = partonW21->pt();
+		  b_partonlep2_eta = partonW21->eta();
+        }
+      }
+    }
+
     edm::Handle<reco::GenParticleCollection > pseudoTopHandle;
     iEvent.getByToken(pseudoTop_          , pseudoTopHandle);
     if ( !(pseudoTopHandle->empty()) ){
@@ -263,7 +297,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
           const auto pseudoW11 = pseudoW1->daughter(0);
           const auto pseudoW21 = pseudoW2->daughter(0);
 
-          // Fill channel informations
+          // Fill leps informations
           const int pseudoW1DauId = abs(pseudoW11->pdgId());
           const int pseudoW2DauId = abs(pseudoW21->pdgId());
 		  b_pseudoToplep1_pt = pseudoW11->pt();
