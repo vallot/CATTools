@@ -25,6 +25,9 @@ namespace cat {
 
     float electronID(const std::string& name) const;
     float electronID(const char* name) const { return electronID( std::string(name) );}
+    bool isVeto() const {return electronID("veto");}
+    bool isMediumMVA() const {return electronID("wp90");}
+    bool isTightMVA() const {return electronID("wp80");}
 
     float relIso(float dR=0.3) const {
       if( dR < 0.35) return relIso03_;
@@ -51,10 +54,6 @@ namespace cat {
     void setIsGsfCtfScPixChargeConsistent(bool d) { isGsfCtfScPixChargeConsistent_ = d ; }
 
     void setSNUID(int id) {snuID_ = id;}
-
-    bool isVeto() const {return electronID("veto");}
-    bool isMediumMVA() const {return electronID("wp90");}
-    bool isTightMVA() const {return electronID("wp80");}
     
   private:
 
