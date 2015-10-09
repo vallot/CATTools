@@ -83,7 +83,7 @@ private:
   typedef std::vector<CRCand> CRCandColl;
   typedef std::vector<double> doubles;
   enum CHANNEL {
-    CH_NONE=0, CH_MUMU, CH_ELEL, CH_MUEL
+    CH_NONE=-1, CH_MUMU, CH_ELEL, CH_MUEL
   };
 
   const bool keepVetoLeptons_, checkOverlapFromVetoLeptons_;
