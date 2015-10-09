@@ -250,29 +250,26 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       b_partonMode2 = (*partonTop_modes)[1];
     }
 
-    if ( !(partonTop_genParticles->empty()) ){
+    // Get Top quark pairs 
+    const auto parton1 = &partonTop_genParticles->at(0);
+    const auto parton2 = &partonTop_genParticles->at(1);
+    // Get W and b quarks
+    if ( parton1 and parton2 ) { 
+      const auto partonW1 = parton1->daughter(0);
+      const auto partonB1 = parton1->daughter(1);
+      const auto partonW2 = parton2->daughter(0);
+      const auto partonB2 = parton2->daughter(1);
 
-      // Get Top quark pairs 
-      const auto parton1 = &partonTop_genParticles->at(0);
-      const auto parton2 = &partonTop_genParticles->at(1);
-      // Get W and b quarks
-      if ( parton1 and parton2 ) { 
-        const auto partonW1 = parton1->daughter(0);
-        const auto partonB1 = parton1->daughter(1);
-        const auto partonW2 = parton2->daughter(0);
-        const auto partonB2 = parton2->daughter(1);
+      // Get W daughters
+      if ( partonW1 and partonW2 and partonB1 and partonB2 ) {
+        const auto partonW11 = partonW1->daughter(0);
+        const auto partonW21 = partonW2->daughter(0);
 
-        // Get W daughters
-        if ( partonW1 and partonW2 and partonB1 and partonB2 ) {
-          const auto partonW11 = partonW1->daughter(0);
-          const auto partonW21 = partonW2->daughter(0);
-
-          // Fill lepton informations
-		  b_partonlep1_pt = partonW11->pt();
-		  b_partonlep1_eta = partonW11->eta();
-		  b_partonlep2_pt = partonW21->pt();
-		  b_partonlep2_eta = partonW21->eta();
-        }
+        // Fill lepton informations
+	    b_partonlep1_pt = partonW11->pt();
+	    b_partonlep1_eta = partonW11->eta();
+	    b_partonlep2_pt = partonW21->pt();
+	    b_partonlep2_eta = partonW21->eta();
       }
     }
 
