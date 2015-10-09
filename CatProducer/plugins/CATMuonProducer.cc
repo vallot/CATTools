@@ -114,10 +114,10 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     // 	 << endl;
 
     aMuon.setIsGlobalMuon( aPatMuon.isGlobalMuon() );
-    aMuon.setIsPFMuon( aPatMuon.isPFMuon() );
-    aMuon.setIsTightMuon( aPatMuon.isTightMuon(pv) );
-    aMuon.setIsMediumMuon( aPatMuon.isMediumMuon() );
-    aMuon.setIsLooseMuon( aPatMuon.isLooseMuon() );
+    aMuon.setIsPF( aPatMuon.isPFMuon() );
+    aMuon.setIsTight( aPatMuon.isTightMuon(pv) );
+    aMuon.setIsMedium( aPatMuon.isMediumMuon() );
+    aMuon.setIsLoose( aPatMuon.isLooseMuon() );
     aMuon.setIsSoftMuon( aPatMuon.isSoftMuon(pv) );
 
     if (runOnMC_){

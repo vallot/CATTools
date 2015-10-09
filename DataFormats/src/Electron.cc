@@ -6,7 +6,7 @@ using namespace cat;
 Electron::Electron() {
 }
 
-Electron::Electron(const reco::LeafCandidate & aElectron) : Particle( aElectron ) {
+Electron::Electron(const reco::LeafCandidate & aElectron) : Lepton( aElectron ) {
 }
 
 /// destructor
