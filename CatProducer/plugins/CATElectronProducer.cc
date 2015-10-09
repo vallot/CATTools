@@ -171,7 +171,6 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
 	aElectron.setElectronID(pid);
       }
     }
-
     // for additional electron pids
     for (size_t i = 0; i < elecIDSrcs_.size(); ++i){
       ids[i].second = (*idhandles[i])[elecsRef];
