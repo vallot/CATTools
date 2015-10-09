@@ -6,7 +6,7 @@ using namespace cat;
 Muon::Muon() {
 }
 
-Muon::Muon(const reco::LeafCandidate & aMuon) : Particle( aMuon ) {
+Muon::Muon(const reco::LeafCandidate & aMuon) : Lepton( aMuon ) {
 }
 
 /// destructor
