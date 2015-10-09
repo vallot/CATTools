@@ -219,20 +219,22 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
 ## for egamma pid temp
 ## https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2#Recipe_for_regular_users_for_74X
     from PhysicsTools.SelectorUtils.tools.vid_id_tools import DataFormat,switchOnVIDElectronIdProducer,setupAllVIDIdsInModule,setupVIDElectronSelection
-    my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_25ns_V1_cff',
-                     #'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_Trig_V1_cff',
+    my_id_modules = [
+                     'RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_25ns_V1_cff',
                      'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV60_cff',
                      'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_nonTrig_V1_cff',
+                     #'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_Trig_V1_cff',
                      ]
-    if useMiniAOD :
+    if useMiniAOD:
         dataFormat = DataFormat.MiniAOD
     else :
         dataFormat = DataFormat.AOD
 
     switchOnVIDElectronIdProducer(process, dataFormat)
+
     for idmod in my_id_modules:
         setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
-
+    
     process.catElectrons.electronIDSources = cms.PSet(
         eleVetoIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-veto"),
         eleLooseIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-loose"),
