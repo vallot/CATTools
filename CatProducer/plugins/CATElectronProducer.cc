@@ -130,10 +130,8 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
       aElectron.setShiftedEnDown(shiftedEnDownSrc->at(j).pt() );
       aElectron.setShiftedEnUp(shiftedEnUpSrc->at(j).pt() );
       aElectron.setGenParticleRef(aPatElectron.genParticleRef());
-      bool mcMatched = mcMatch( aPatElectron.p4(), genParticles );
-      aElectron.setMCMatched( mcMatched );
+      aElectron.setMCMatched( mcMatch( aPatElectron.p4(), genParticles ) );
     }
-    aElectron.setIsPF( aPatElectron.isPF() );
     aElectron.setIsGsfCtfScPixChargeConsistent( aPatElectron.isGsfCtfScPixChargeConsistent() );
 
     aElectron.setChargedHadronIso04( aPatElectron.chargedHadronIso() );
@@ -173,12 +171,15 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
 	aElectron.setElectronID(pid);
       }
     }
-
     // for additional electron pids
     for (size_t i = 0; i < elecIDSrcs_.size(); ++i){
       ids[i].second = (*idhandles[i])[elecsRef];
       aElectron.setElectronID(ids[i]);
     }
+    aElectron.setIsPF( aPatElectron.isPF() );
+    aElectron.setIsTight( aElectron.electronID("tight") );
+    aElectron.setIsMedium( aElectron.electronID("medium") );
+    aElectron.setIsLoose( aElectron.electronID("loose") );
 
     reco::GsfTrackRef theTrack = aPatElectron.gsfTrack();
     aElectron.setDxy( theTrack->dxy(pv.position()) );
