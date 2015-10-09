@@ -47,7 +47,7 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
 #######################################################################
 # https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
 # recompute the T1 PFMET
-    jecUncertaintyFile = "CATTools/CatProducer/data/Summer15_25nsV2_DATA_UncertaintySources_AK4PFchs.txt"
+    jecUncertaintyFile = "CATTools/CatProducer/data/Summer15_25nsV5_DATA_UncertaintySources_AK4PFchs.txt"
     from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
     runMetCorAndUncFromMiniAOD( process, isData= not runOnMC, jecUncFile=jecUncertaintyFile)
 # MET without HF
@@ -166,12 +166,12 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
     ## process.packedPFCandidatesWoMuon  = cms.EDFilter("CandPtrSelector", src = cms.InputTag("packedPFCandidates"), cut = cms.string("fromPV>=2 && abs(pdgId)!=13 " ) )
     ## process.particleFlowNoMuonPUPPI.candName         = 'packedPFCandidatesWoMuon'
     ## process.particleFlowNoMuonPUPPI.vertexName       = 'offlineSlimmedPrimaryVertices'
-    #######################################################################    
+    
+#######################################################################    
 # getting jec from file for jec on the fly from db file
 # currently only for mc
-#### using GT JEC since 74X_mcRun2_asymptotic_v2 and 74X_dataRun2_v2 have the Summer15_25nsV2
-    useJECfile = False 
-    era = "Summer15_25nsV2"
+    useJECfile = True
+    era = "Summer15_25nsV5"
     if runOnMC:
         era = era+"_MC"
     else:
@@ -218,19 +218,18 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
 #######################################################################
 ## for egamma pid temp 
 ## https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2#Recipe_for_regular_users_for_74X
-    ## from PhysicsTools.SelectorUtils.tools.vid_id_tools import DataFormat,switchOnVIDElectronIdProducer,setupAllVIDIdsInModule,setupVIDElectronSelection
-    ## if not useMiniAOD :
-    ##     dataFormat = DataFormat.AOD
-    ## else :
-    ##     dataFormat = DataFormat.MiniAOD
-    
-    ## switchOnVIDElectronIdProducer(process, dataFormat)    
-    ## my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_25ns_V1_cff',
-    ##                  'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_nonTrig_V1_cff',
-    ##                  'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV60_cff']
+    from PhysicsTools.SelectorUtils.tools.vid_id_tools import DataFormat,switchOnVIDElectronIdProducer,setupAllVIDIdsInModule,setupVIDElectronSelection
+    my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_25ns_V1_cff',
+                     'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_nonTrig_V1_cff',
+                     'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV60_cff']
+    if useMiniAOD :
+        dataFormat = DataFormat.MiniAOD
+    else :
+        dataFormat = DataFormat.AOD   
 
-    ## for idmod in my_id_modules:
-    ##     setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
+    switchOnVIDElectronIdProducer(process, dataFormat)
+    for idmod in my_id_modules:
+        setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
 
     process.catElectrons.electronIDSources = cms.PSet(
         eleVetoIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-veto"),
