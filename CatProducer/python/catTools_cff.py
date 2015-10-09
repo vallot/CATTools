@@ -26,6 +26,13 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
     ## Hcal HBHE
     process.load('CommonTools.RecoAlgos.HBHENoiseFilterResultProducer_cfi')
     process.HBHENoiseFilterResultProducer.minZeros = cms.int32(99999)
+
+    process.HBHENoiseFilterResultProducer.IgnoreTS4TS5ifJetInLowBVRegion=cms.bool(False) 
+    process.HBHENoiseFilterResultProducer.defaultDecision = cms.string("HBHENoiseFilterResultRun2Loose")
+    if bunchCrossing == 50:
+        process.HBHENoiseFilterResultProducer.IgnoreTS4TS5ifJetInLowBVRegion=cms.bool(True) 
+        process.HBHENoiseFilterResultProducer.defaultDecision = cms.string("HBHENoiseFilterResultRun1")
+
     process.ApplyBaselineHBHENoiseFilter = cms.EDFilter('BooleanFlagFilter',
         inputLabel = cms.InputTag('HBHENoiseFilterResultProducer','HBHENoiseFilterResult'),
         reverseDecision = cms.bool(False)
@@ -75,30 +82,49 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
     del process.slimmedMETsNoHF.tXYUncForT1
     
 #######################################################################    
-# adding pfMVAMet
+# adding pfMVAMet https://twiki.cern.ch/twiki/bin/viewauth/CMS/MVAMet#Spring15_samples_with_25ns_50ns
+# https://github.com/cms-sw/cmssw/blob/CMSSW_7_4_X/RecoMET/METPUSubtraction/test/mvaMETOnMiniAOD_cfg.py
     process.load("RecoJets.JetProducers.ak4PFJets_cfi")
-    process.ak4PFJetsForPFMVAMet = process.ak4PFJets.clone()
-    process.ak4PFJetsForPFMVAMet.src = cms.InputTag("packedPFCandidates")
-    #This is temporary solution to avoid the circular dependenc error. Hope the recipe for miniAOD is available soon.(Tae Jeong) 
-    #https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideUnscheduledExecution#Circular_Dependence_Errors
+    process.ak4PFJets.src = cms.InputTag("packedPFCandidates")
+    process.ak4PFJets.doAreaFastjet = cms.bool(True)
+
     from JetMETCorrections.Configuration.DefaultJEC_cff import ak4PFJetsL1FastL2L3
+
     process.load("RecoMET.METPUSubtraction.mvaPFMET_cff")
-    process.pfMVAMEt.srcUncorrJets = cms.InputTag("ak4PFJetsForPFMVAMet")
+    #process.pfMVAMEt.srcLeptons = cms.VInputTag("slimmedElectrons")
     process.pfMVAMEt.srcPFCandidates = cms.InputTag("packedPFCandidates")
     process.pfMVAMEt.srcVertices = cms.InputTag("offlineSlimmedPrimaryVertices")
-    process.pfMVAMEt.srcCorrJets = cms.InputTag("calibratedAK4PFJetsForPFMVAMEt")
+
+    process.puJetIdForPFMVAMEt.jec =  cms.string('AK4PF')
+    #process.puJetIdForPFMVAMEt.jets = cms.InputTag("ak4PFJets")
+    process.puJetIdForPFMVAMEt.vertexes = cms.InputTag("offlineSlimmedPrimaryVertices")
+    process.puJetIdForPFMVAMEt.rho = cms.InputTag("fixedGridRhoFastjetAll")
+
+    #process.load("RecoJets.JetProducers.ak4PFJets_cfi")
+    #process.ak4PFJetsForPFMVAMet = process.ak4PFJets.clone()
+    #process.ak4PFJetsForPFMVAMet.src = cms.InputTag("packedPFCandidates")
+    #This is temporary solution to avoid the circular dependenc error. Hope the recipe for miniAOD is available soon.(Tae Jeong) 
+    #https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideUnscheduledExecution#Circular_Dependence_Errors
+    #from JetMETCorrections.Configuration.DefaultJEC_cff import ak4PFJetsL1FastL2L3
+    #process.load("RecoMET.METPUSubtraction.mvaPFMET_cff")
+    #process.pfMVAMEt.srcUncorrJets = cms.InputTag("ak4PFJetsForPFMVAMet")
+    #process.pfMVAMEt.srcPFCandidates = cms.InputTag("packedPFCandidates")
+    #process.pfMVAMEt.srcVertices = cms.InputTag("offlineSlimmedPrimaryVertices")
+    #process.pfMVAMEt.srcCorrJets = cms.InputTag("calibratedAK4PFJetsForPFMVAMEt")
+    #process.calibratedAK4PFJetsForPFMVAMEt.src = cms.InputTag("ak4PFJetsForPFMVAMet")
+    #process.puJetIdForPFMVAMEt.jec =  cms.string('AK4PF')
+    #process.puJetIdForPFMVAMEt.vertexes = cms.InputTag("offlineSlimmedPrimaryVertices")
+    #process.puJetIdForPFMVAMEt.rho = cms.InputTag("fixedGridRhoFastjetAll")
+    #from RecoJets.JetProducers.PileupJetIDParams_cfi import full_74x_chs
+    #process.puJetIdForPFMVAMEt.algos = cms.VPSet(full_74x_chs)
+
     process.pfMVAMEt.inputFileNames = cms.PSet(
         U     = cms.FileInPath('RecoMET/METPUSubtraction/data/gbru_7_4_X_miniAOD_25NS_July2015.root'),
         DPhi  = cms.FileInPath('RecoMET/METPUSubtraction/data/gbrphi_7_4_X_miniAOD_25NS_July2015.root'),
         CovU1 = cms.FileInPath('RecoMET/METPUSubtraction/data/gbru1cov_7_4_X_miniAOD_25NS_July2015.root'),
         CovU2 = cms.FileInPath('RecoMET/METPUSubtraction/data/gbru2cov_7_4_X_miniAOD_25NS_July2015.root')
     )
-    process.calibratedAK4PFJetsForPFMVAMEt.src = cms.InputTag("ak4PFJetsForPFMVAMet")
-    process.puJetIdForPFMVAMEt.jec =  cms.string('AK4PF')
-    process.puJetIdForPFMVAMEt.vertexes = cms.InputTag("offlineSlimmedPrimaryVertices")
-    process.puJetIdForPFMVAMEt.rho = cms.InputTag("fixedGridRhoFastjetAll")
-    #from RecoJets.JetProducers.PileupJetIDParams_cfi import full_74x_chs
-    #process.puJetIdForPFMVAMEt.algos = cms.VPSet(full_74x_chs)
+        
     process.load("PhysicsTools.PatAlgos.producersLayer1.metProducer_cfi")
     process.patMETsPfMva = process.patMETs.clone()
     process.patMETsPfMva.addGenMET    = cms.bool(False)
@@ -109,6 +135,11 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
 #######################################################################
 # redoing puppi from miniAOD as recommended
 # https://twiki.cern.ch/twiki/bin/view/CMS/PUPPI
+    process.load('CommonTools/PileupAlgos/Puppi_cff')
+    ## e.g. to run on miniAOD
+    process.puppi.candName = cms.InputTag('packedPFCandidates')
+    process.puppi.vertexName = cms.InputTag('offlineSlimmedPrimaryVertices')
+
     process.load('CommonTools/PileupAlgos/Puppi_cff')
     process.puppi.candName = cms.InputTag('packedPFCandidates')
     process.puppi.vertexName = cms.InputTag('offlineSlimmedPrimaryVertices')
@@ -187,30 +218,29 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
 #######################################################################
 ## for egamma pid temp 
 ## https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2#Recipe_for_regular_users_for_74X
-    from PhysicsTools.SelectorUtils.tools.vid_id_tools import DataFormat,switchOnVIDElectronIdProducer,setupAllVIDIdsInModule,setupVIDElectronSelection
-    if not useMiniAOD :
-        dataFormat = DataFormat.AOD
-    else :
-        dataFormat = DataFormat.MiniAOD
+    ## from PhysicsTools.SelectorUtils.tools.vid_id_tools import DataFormat,switchOnVIDElectronIdProducer,setupAllVIDIdsInModule,setupVIDElectronSelection
+    ## if not useMiniAOD :
+    ##     dataFormat = DataFormat.AOD
+    ## else :
+    ##     dataFormat = DataFormat.MiniAOD
     
-    switchOnVIDElectronIdProducer(process, dataFormat)    
-    my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_25ns_V1_cff',
-                     'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_nonTrig_V1_cff',
-                     'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV60_cff']
+    ## switchOnVIDElectronIdProducer(process, dataFormat)    
+    ## my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_25ns_V1_cff',
+    ##                  'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_nonTrig_V1_cff',
+    ##                  'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV60_cff']
 
-    for idmod in my_id_modules:
-        setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
+    ## for idmod in my_id_modules:
+    ##     setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
 
-    if useMiniAOD:
-        process.catElectrons.electronIDSources = cms.PSet(
-            eleVetoIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-veto"),
-            eleLooseIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-loose"),
-            eleMediumIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-medium"),
-            eleTightIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-tight"),
-            eleHEEPIdMap = cms.InputTag("egmGsfElectronIDs:heepElectronID-HEEPV60"),
-            mvaMediumIdMap = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-nonTrig-V1-wp90"),
-            mvaTightIdMap = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-nonTrig-V1-wp80"),
-        )
+    process.catElectrons.electronIDSources = cms.PSet(
+        eleVetoIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-veto"),
+        eleLooseIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-loose"),
+        eleMediumIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-medium"),
+        eleTightIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-tight"),
+        eleHEEPIdMap = cms.InputTag("egmGsfElectronIDs:heepElectronID-HEEPV60"),
+        mvaMediumIdMap = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-nonTrig-V1-wp90"),
+        mvaTightIdMap = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-nonTrig-V1-wp80"),
+    )
 #######################################################################    
     if runOnMC:## Load MC dependent producers
         ## FIX ME - pile up and pdf weight
