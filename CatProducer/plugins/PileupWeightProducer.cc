@@ -126,7 +126,6 @@ void PileupWeightProducer::produce(edm::Event& event, const edm::EventSetup& eve
     }
   }
 
-  cout << *weight << endl;
   event.put(nTrueIntr, "nTrueInteraction");
   event.put(weight  , "");
   event.put(weightUp, "up");
