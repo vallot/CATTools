@@ -66,8 +66,7 @@ float Jet::smearedRes(int direction) const {
 }
 
 float Jet::scaleFactorCSVv2(Jet::BTAGCSV_CUT cutType, int syst, JETFLAV flav) const {
-  const double aeta = std::abs(eta());
-  if ( aeta > 2.4 ) return -1; // reject jets out of eta range
+  if (std::abs(this->eta()) > 2.4 ) return -1; // reject jets out of eta range
   //based on https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation74X50ns
   const double pt = this->pt();
   if ( pt < 30 || pt >= 670 ) return -1;
