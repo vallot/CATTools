@@ -66,7 +66,7 @@ float Jet::smearedRes(int direction) const {
 }
 
 float Jet::scaleFactorCSVv2(int op, int sys, int flav) const {
-  if (std::abs(this->pt()) > 2.4 ) return -1; // reject jets out of eta range
+  if (std::abs(this->eta()) > 2.4 ) return -1; // reject jets out of eta range
   //based on https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation74X50ns
   if (op == 0 && sys == 0 && flav == 1 && this->pt() > 30 && this->pt() < 670 ) return 0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt())));
   if (op == 0 && sys == 0 && flav == 0 && this->pt() > 30 && this->pt() < 670 ) return 0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt())));
