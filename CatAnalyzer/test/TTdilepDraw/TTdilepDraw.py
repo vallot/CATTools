@@ -1,21 +1,32 @@
 import ROOT,copy
 import array
-import sys
 
 def hist_maker(name, title, bin_set, x_name, y_name, tr, br, cut):
-    if title == "ll_m":
-        massbin = array.array('d', [20, 30, 45, 75, 105, 125, 165, 260, 400])
-        hist = ROOT.TH1F(name, title, 8, massbin)
-    else: hist = ROOT.TH1F(name, title, bin_set[0], bin_set[1], bin_set[2])
+    hist = ROOT.TH1F(name, title, bin_set[0], bin_set[1])
     hist.SetStats(0)
     tr.Project(name, br, cut)
+    if "1" in title:
+        hist2 = ROOT.TH1F(name+"2", title, bin_set[0], bin_set[1])
+        br = plotvar.replace("1", "2")
+        tr.Project(name+"2", br, cut)
+        hist.Add(hist2)
     return hist
 
-plotvar = sys.argv[1]
+def stack_design(hs, x_name, y_name):
+	hs.SetTitle("")
+	hs.GetXaxis().SetTitle(x_name)
+	hs.GetXaxis().SetTitleSize(0.044)
+	hs.GetXaxis().SetLabelSize(0.03)
+	hs.GetYaxis().SetTitle(y_name)
+	hs.GetYaxis().CenterTitle()
+	hs.GetYaxis().SetTitleSize(0.048)
+	hs.GetYaxis().SetLabelSize(0.03)
+	return hs
+	
+############ external infos ############
+datalumi = 225.6
 
-datalumi = 40.2
-
-mcfilelist = ['TTJets_TuneCUETP8M1_13TeV-madgraphMLM',
+mcfilelist = ['TTJets_TuneCUETP8M1_13TeV-powheg-pythia8',
               'WJetsToLNu_TuneCUETP8M1_13TeV',
               'ST_tW_antitop_5f_inclusiveDecays_13TeV',
               'ST_tW_top_5f_inclusiveDecays_13TeV',
@@ -23,118 +34,141 @@ mcfilelist = ['TTJets_TuneCUETP8M1_13TeV-madgraphMLM',
               'WW_TuneCUETP8M1_13TeV',
               'WZ_TuneCUETP8M1_13TeV',
               'DYJetsToLL_M-50']
-mcval_l = [831.8, 61526.7, 35.6, 35.6, 31.8, 65.9, 118.7, 6025.2]
-color_l = [2, 0, 3, 5, 7, 7, 7, 4]
-
 rdfilelist = ['MuonEG']
 
+mcval_l = [815.96, 61526.7, 35.6, 35.6, 15.4, 110.8, 66.1, 6025.2]
+nevent_l = [19899500, 24151270, 1000000, 995600, 996168, 994416, 991232, 28825132]
+color_l = [2, 6, 0, 3, 5, 7, 7, 7, 4]
+
+massbin = [8, array.array('d', [20, 30, 45, 75, 105, 125, 165, 260, 400])]
+njetbin = [10, array.array('d', [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])]
+metbin = [10, array.array('d', [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300])]
+nbjetbin = [6, array.array('d', [0, 1, 2, 3, 4, 5, 6])]
+topptbin = [4, array.array('d', [0, 70, 140, 240, 400])]
+toprapibin = [5, array.array('f', [0.0, 0.25, 0.65, 1.15, 1.7, 2.5])]
+ptbin = [5, array.array('d', [20, 40, 70, 120, 180, 400])]
+etabin = [8, array.array('f', [-2.5, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2.5])]
+jetptbin = [5, array.array('d', [30, 50, 80, 130, 210, 500])]
+############ external infos ############
+
+############ user input infos ############
+step = 6#untill add b_step=6 to tree
+############ user input infos ############
+
+#control plot info
 plotvar_l = ["ll_m", "njet", "MET", "nbjet"]
-bin_set_l = [[38, 20, 400], [10, 0, 10], [30,0,300], [6, 0, 6]]
-x_name_l = ["ElMu M(ll) [GeV]   ", "ElMu Jet Multiplicity   ", "ElMu Missing Et[GeV/c]   ", "ElMu b Jet Multiplicity   "]
+bin_set = [massbin, njetbin, metbin, nbjetbin] 
+x_name = ["MuEl M(ll) [GeV/c^{2}]", "MuEl Jet Multiplicity", "MuEl Missing Et[GeV/c]", "MuEl b Jet Multiplicity"]
+tcut = "step >= %d && channel == 1 && tri == 1 && filtered"%step
 
-bin_set = bin_set_l[plotvar_l.index(plotvar)]
-x_name = x_name_l[plotvar_l.index(plotvar)]
+#analysis plot info
+if step == 6:
+	plotvar_l = ["top1_pt", "top1_rapi", "ttbar_pt", "ttbar_rapi", "lep1_pt", "lep1_eta", "jet1_pt", "jet1_eta"]
+	bin_set = [topptbin, toprapibin, topptbin, toprapibin, ptbin, etabin, jetptbin, etabin]
+	x_name = ["MuEl top p_{T} [GeV/c]", "MuEl top Rapidity", "MuEl TTbar p_{T} [GeV/c]", "MuEl TTbar Rapidity", "MuEl S6 lepton p_{T} [GeV/c]", "MuEl lepton #eta", "MuEl S6 Jet p_{T} [GeV/c]", "MuEl Jet #eta"]
+	tcut = "step >= %d && channel == 1 && tri == 1 && filtered && top1_pt > 0"%5
+
 y_name = "Number of Events"
+signaltcut = "(parton_channel == 3 && ((parton_mode1 == 2 && parton_mode2 == 3) || (parton_mode1 == 3 && parton_mode2 == 2)))"
 
-tcut = "step >=1 && channel == 1"
-
-hs = ROOT.THStack(plotvar, plotvar)
-if plotvar == "ll_m":
-    massbin = array.array('d', [20, 30, 45, 75, 105, 125, 165, 260, 400])
-    h_rd = ROOT.TH1F(plotvar, plotvar, 8, massbin)
-else: h_rd = ROOT.TH1F(plotvar, plotvar, bin_set[0], bin_set[1], bin_set[2])
-h_rd.SetMarkerStyle(20)
-
-leg = ROOT.TLegend(0.57,0.5,0.88,0.88)
-leg.SetTextSize(0.035)
-leg.SetTextFont(42)
-leg.SetLineColor(0)
-leg.SetFillColor(0)
-
-mchist_l = []
-samplenames = []
-for i, f in enumerate(mcfilelist):
-    rootfilename = f+".root"
-    print rootfilename
-    samplename = f.strip().split("_")[0]
-    samplenames.append(samplename)
-    tt = ROOT.TFile(rootfilename)
-    tree = tt.ttll.Get("tree")
-    """
-	# untill better way to get nentries
-    tempdraw = plotvar +" >> temp" +samplename
-    tree.Draw(tempdraw)
-    temphist = ROOT.gDirectory.Get("temp" +samplename)
-    # untill better way to get nentries
-    scale = mcval_l[i]*datalumi / temphist.GetEntries()
-    """
-    scale = mcval_l[i]*datalumi / tree.GetEntries()
-    if samplename == "TTJets":
-        histo1 = copy.deepcopy(hist_maker(samplename, plotvar, bin_set, x_name, y_name, tree, plotvar, tcut+" && parton_channel == 3"))
-        histo2 = copy.deepcopy(hist_maker(samplename+" others", plotvar, bin_set, x_name, y_name, tree, plotvar, tcut+" && parton_channel != 3"))
-        histo1.SetFillColor(color_l[i])
-        histo2.SetFillColor(6)
-        histo1.Scale(scale)
-        histo2.Scale(scale)
-        num = histo1.GetEntries()+histo2.GetEntries()
-        mchist_l.append(histo1) 
-        mchist_l.append(histo2) 
-    else:
-        histo = copy.deepcopy(hist_maker(samplename, plotvar, bin_set, x_name, y_name, tree, plotvar, tcut))
-        histo.SetFillColor(color_l[i])
-        histo.Scale(scale)
-        mchist_l.append(histo)
-
-for i in rdfilelist:
-    rootfilename = i+".root"
-
-    print rootfilename
-    samplename = i.strip().split("_")[0]
-    tt = ROOT.TFile(rootfilename)
-    tree = tt.ttll.Get("tree")
-    histo = copy.deepcopy(hist_maker(samplename, plotvar, bin_set, x_name, y_name, tree, plotvar, tcut))
-    h_rd.Add(histo)
-
-canvas = ROOT.TCanvas(plotvar,plotvar, 600, 600)
-#canvas.SetLogy(1)
-#hs.SetMaximum(300)
-
-for i in mchist_l:
-    hs.Add(i)
-
-leg.AddEntry(h_rd,"Data","lp")
-leg.AddEntry(mchist_l[8], samplenames[7], "f")
-leg.AddEntry(mchist_l[5], "WW/WZ/ZZ", "f")
-leg.AddEntry(mchist_l[4], "Single top W", "f")
-leg.AddEntry(mchist_l[3], "Single topbar W", "f")
-leg.AddEntry(mchist_l[2], samplenames[1], "f")
-leg.AddEntry(mchist_l[1], samplenames[0]+" others", "f")
-leg.AddEntry(mchist_l[0], samplenames[0]+str(num), "f")
-      
-hs.Draw()
-hs.SetTitle("")
-hs.GetXaxis().SetTitle(x_name)
-hs.GetXaxis().SetTitleSize(0.044)
-hs.GetXaxis().SetLabelSize(0.03)
-hs.GetYaxis().SetTitle(y_name)
-hs.GetYaxis().CenterTitle()
-hs.GetYaxis().SetTitleSize(0.044)
-hs.GetYaxis().SetLabelSize(0.03)
-h_rd.Draw("epsame")
-
-tex1 = ROOT.TLatex(0.56,0.92,"%.1f pb^{-1},   #sqrt{s} = 13 TeV"%(datalumi))
+#define texts
+tex1 = ROOT.TLatex(0.54,0.91,"%.1f pb^{-1}, #sqrt{s} = 13 TeV 25ns"%(datalumi))
 tex1.SetNDC()
 tex1.SetTextFont(42)
-tex1.SetTextSize(0.042)
-tex1.Draw()
+tex1.SetTextSize(0.036)
+tex1.SetTextColorAlpha(1, 0.)
 
-tex2 = ROOT.TLatex(0.1,0.92,"CMS Preliminary")
+tex2 = ROOT.TLatex(0.09,0.91,"CMS Preliminary")
 tex2.SetNDC()
-tex2.SetTextFont(42)
-tex2.SetTextSize(0.042)
-tex2.Draw("same")
+tex2.SetTextFont(61)
+tex2.SetTextSize(0.044)
 
-leg.Draw("same")
-#canvas.SaveAs(plotvar+".root")
-canvas.SaveAs(plotvar+".png")
+print tcut
+#making control plot start
+for j, plotvar in enumerate(plotvar_l):
+	mchist_l = []
+	samplenames = []
+	print plotvar
+
+	#declare stack(for mc)
+	hs = ROOT.THStack(plotvar, plotvar)
+
+	#controlplot_MC
+	for i, f in enumerate(mcfilelist):
+		rootfilename = f+".root"
+		samplename = f.strip().split("_")[0]
+		samplenames.append(samplename)
+		tt = ROOT.TFile(rootfilename)
+		tree = tt.ttll.Get("tree")
+		scale = mcval_l[i]*datalumi / nevent_l[i]
+		if samplename == "TTJets":
+			histo1 = copy.deepcopy(hist_maker(samplename, plotvar, bin_set[j], x_name[j], y_name, tree, plotvar, tcut+" && parton_channel == 3 && ((parton_mode1 == 2 && parton_mode2 == 3) || (parton_mode1 == 3 && parton_mode2 == 2))"))
+			histo2 = copy.deepcopy(hist_maker(samplename+" others", plotvar, bin_set[j], x_name[j], y_name, tree, plotvar, tcut))
+			histo2.Add(histo1, -1)
+			histo1.Scale(scale)
+			histo2.Scale(scale)
+			mchist_l.append(histo1) 
+			mchist_l.append(histo2)
+		else:
+			histo = copy.deepcopy(hist_maker(samplename, plotvar, bin_set[j], x_name[j], y_name, tree, plotvar, tcut))
+			histo.Scale(scale)
+			mchist_l.append(histo)
+
+	#controlplot_Data
+	for i in rdfilelist:
+		rootfilename = i+".root"
+		samplename = i.strip().split("_")[0]
+		tt = ROOT.TFile(rootfilename)
+		tree = tt.ttll.Get("tree")
+		h_rd = copy.deepcopy(hist_maker(samplename, plotvar, bin_set[j], x_name[j], y_name, tree, plotvar, tcut))
+		h_rd.SetMarkerStyle(20)
+
+	#drawing canvas
+	canvas = ROOT.TCanvas(plotvar, plotvar, 600, 600)
+
+	for i, h in enumerate(mchist_l):
+		h.SetFillColor(color_l[i])
+		h.SetLineColor(1)
+		hs.Add(h)
+
+	hs.Draw()
+	stack_design(hs, x_name[j], y_name)
+
+	h_rd.Draw("epsame")
+	tex1.Draw()
+	tex2.Draw("same")
+
+	#drawing legend
+	leg = ROOT.TLegend(0.6,0.5,0.88,0.88)
+	leg.SetTextSize(0.035)
+	leg.SetTextFont(42)
+	leg.SetLineColor(0)
+	leg.SetFillColor(0)
+	leg.AddEntry(h_rd,"Data","lp")
+	leg.AddEntry(mchist_l[8], samplenames[7], "f")
+	leg.AddEntry(mchist_l[5], "WW/WZ/ZZ", "f")
+	leg.AddEntry(mchist_l[4], "Single top W", "f")
+	leg.AddEntry(mchist_l[3], "Single topbar W", "f")
+	leg.AddEntry(mchist_l[2], samplenames[1], "f")
+	leg.AddEntry(mchist_l[1], samplenames[0]+" others", "f")
+	leg.AddEntry(mchist_l[0], samplenames[0], "f")
+	leg.Draw("same")
+
+	if "1" in plotvar:
+		plotvar = plotvar.replace("1", "")
+	canvas.SaveAs("s%d_%s.png"%(step, plotvar))
+
+
+#print number in each steps
+print
+rootfilename = rdfilelist[0]+".root"
+tree = tt.ttll.Get("tree")
+for i in range(0,6):
+	tree.Draw("ll_m >> hist", "step >=%d && channel == 1 && tri ==1 && filtered"%(i))
+	hist = ROOT.gDirectory.Get("hist")
+	print "s%d   %d"%(i, hist.GetEntries())
+tree.Draw("ll_m >> hist", "step >=5 && channel == 1 && tri ==1 && filtered && top1_pt >= 0")
+hist = ROOT.gDirectory.Get("hist")
+print "s%d   %d"%(i, hist.GetEntries())
+
 
