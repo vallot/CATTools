@@ -1,6 +1,7 @@
 #include "DataFormats/Common/interface/Wrapper.h"
 
 #include "CATTools/DataFormats/interface/Particle.h"
+#include "CATTools/DataFormats/interface/Lepton.h"
 #include "CATTools/DataFormats/interface/Muon.h"
 #include "CATTools/DataFormats/interface/Electron.h"
 #include "CATTools/DataFormats/interface/Photon.h"
@@ -33,6 +34,12 @@ namespace {
     edm::Wrapper<cat::Particle> aw;
     edm::Wrapper<std::vector<cat::Particle> > avw;
     edm::Ptr<cat::Particle> aPtr;
+
+    cat::Lepton l_;
+    std::vector<cat::Lepton> lv;
+    edm::Wrapper<cat::Lepton> lw;
+    edm::Wrapper<std::vector<cat::Lepton> > lvw;
+    edm::Ptr<cat::Lepton> lPtr;
 
     cat::Muon m_;
     std::vector<cat::Muon> mv;

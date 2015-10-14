@@ -26,6 +26,7 @@ namespace cat {
 
     const reco::GenParticle * genParticle() const {return genParticleRef_.get();}
     void setGenParticleRef(reco::GenParticleRef gj){ genParticleRef_ = gj;}
+    bool hasGenParticle() const { return genParticleRef_.isNonnull(); }
 
     TLorentzVector tlv() const {return TLorentzVector(this->px(), this->py(),this->pz(),this->energy());}
 
