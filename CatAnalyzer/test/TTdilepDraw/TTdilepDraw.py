@@ -1,12 +1,12 @@
 import ROOT,copy
-import array
+from array import array
 
-def hist_maker(name, title, bin_set, x_name, y_name, tr, br, cut):
-    hist = ROOT.TH1F(name, title, bin_set[0], bin_set[1])
+def hist_maker(name, title, bins, x_name, y_name, tr, br, cut):
+    hist = ROOT.TH1F(name, title, len(bins)-1, array('f', bins))
     hist.SetStats(0)
     tr.Project(name, br, cut)
     if "1" in title:
-        hist2 = ROOT.TH1F(name+"2", title, bin_set[0], bin_set[1])
+        hist2 = ROOT.TH1F(name+"2", title, len(bins)-1, array('f', bins))
         br = plotvar.replace("1", "2")
         tr.Project(name+"2", br, cut)
         hist.Add(hist2)
@@ -40,15 +40,15 @@ mcval_l = [815.96, 61526.7, 35.6, 35.6, 15.4, 110.8, 66.1, 6025.2]
 nevent_l = [19899500, 24151270, 1000000, 995600, 996168, 994416, 991232, 28825132]
 color_l = [2, 6, 0, 3, 5, 7, 7, 7, 4]
 
-massbin = [8, array.array('d', [20, 30, 45, 75, 105, 125, 165, 260, 400])]
-njetbin = [10, array.array('d', [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])]
-metbin = [10, array.array('d', [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300])]
-nbjetbin = [6, array.array('d', [0, 1, 2, 3, 4, 5, 6])]
-topptbin = [4, array.array('d', [0, 70, 140, 240, 400])]
-toprapibin = [5, array.array('f', [0.0, 0.25, 0.65, 1.15, 1.7, 2.5])]
-ptbin = [5, array.array('d', [20, 40, 70, 120, 180, 400])]
-etabin = [8, array.array('f', [-2.5, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2.5])]
-jetptbin = [5, array.array('d', [30, 50, 80, 130, 210, 500])]
+massbin = [20, 30, 45, 75, 105, 125, 165, 260, 400]
+njetbin = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+metbin = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300]
+nbjetbin = [0, 1, 2, 3, 4, 5, 6]
+topptbin = [0, 70, 140, 240, 400]
+toprapibin = [0.0, 0.25, 0.65, 1.15, 1.7, 2.5]
+ptbin = [20, 40, 70, 120, 180, 400]
+etabin = [-2.5, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2.5]
+jetptbin = [30, 50, 80, 130, 210, 500]
 ############ external infos ############
 
 ############ user input infos ############
@@ -57,14 +57,14 @@ step = 6#untill add b_step=6 to tree
 
 #control plot info
 plotvar_l = ["ll_m", "njet", "MET", "nbjet"]
-bin_set = [massbin, njetbin, metbin, nbjetbin] 
+bins = [massbin, njetbin, metbin, nbjetbin] 
 x_name = ["MuEl M(ll) [GeV/c^{2}]", "MuEl Jet Multiplicity", "MuEl Missing Et[GeV/c]", "MuEl b Jet Multiplicity"]
 tcut = "step >= %d && channel == 1 && tri == 1 && filtered"%step
 
 #analysis plot info
 if step == 6:
 	plotvar_l = ["top1_pt", "top1_rapi", "ttbar_pt", "ttbar_rapi", "lep1_pt", "lep1_eta", "jet1_pt", "jet1_eta"]
-	bin_set = [topptbin, toprapibin, topptbin, toprapibin, ptbin, etabin, jetptbin, etabin]
+	bins = [topptbin, toprapibin, topptbin, toprapibin, ptbin, etabin, jetptbin, etabin]
 	x_name = ["MuEl top p_{T} [GeV/c]", "MuEl top Rapidity", "MuEl TTbar p_{T} [GeV/c]", "MuEl TTbar Rapidity", "MuEl S6 lepton p_{T} [GeV/c]", "MuEl lepton #eta", "MuEl S6 Jet p_{T} [GeV/c]", "MuEl Jet #eta"]
 	tcut = "step >= %d && channel == 1 && tri == 1 && filtered && top1_pt > 0"%5
 
@@ -83,7 +83,6 @@ tex2.SetNDC()
 tex2.SetTextFont(61)
 tex2.SetTextSize(0.044)
 
-print tcut
 #making control plot start
 for j, plotvar in enumerate(plotvar_l):
 	mchist_l = []
@@ -102,15 +101,15 @@ for j, plotvar in enumerate(plotvar_l):
 		tree = tt.ttll.Get("tree")
 		scale = mcval_l[i]*datalumi / nevent_l[i]
 		if samplename == "TTJets":
-			histo1 = copy.deepcopy(hist_maker(samplename, plotvar, bin_set[j], x_name[j], y_name, tree, plotvar, tcut+" && parton_channel == 3 && ((parton_mode1 == 2 && parton_mode2 == 3) || (parton_mode1 == 3 && parton_mode2 == 2))"))
-			histo2 = copy.deepcopy(hist_maker(samplename+" others", plotvar, bin_set[j], x_name[j], y_name, tree, plotvar, tcut))
+			histo1 = copy.deepcopy(hist_maker(samplename, plotvar, bins[j], x_name[j], y_name, tree, plotvar, tcut+" && parton_channel == 3 && ((parton_mode1 == 2 && parton_mode2 == 3) || (parton_mode1 == 3 && parton_mode2 == 2))"))
+			histo2 = copy.deepcopy(hist_maker(samplename+" others", plotvar, bins[j], x_name[j], y_name, tree, plotvar, tcut))
 			histo2.Add(histo1, -1)
 			histo1.Scale(scale)
 			histo2.Scale(scale)
 			mchist_l.append(histo1) 
 			mchist_l.append(histo2)
 		else:
-			histo = copy.deepcopy(hist_maker(samplename, plotvar, bin_set[j], x_name[j], y_name, tree, plotvar, tcut))
+			histo = copy.deepcopy(hist_maker(samplename, plotvar, bins[j], x_name[j], y_name, tree, plotvar, tcut))
 			histo.Scale(scale)
 			mchist_l.append(histo)
 
@@ -120,7 +119,7 @@ for j, plotvar in enumerate(plotvar_l):
 		samplename = i.strip().split("_")[0]
 		tt = ROOT.TFile(rootfilename)
 		tree = tt.ttll.Get("tree")
-		h_rd = copy.deepcopy(hist_maker(samplename, plotvar, bin_set[j], x_name[j], y_name, tree, plotvar, tcut))
+		h_rd = copy.deepcopy(hist_maker(samplename, plotvar, bins[j], x_name[j], y_name, tree, plotvar, tcut))
 		h_rd.SetMarkerStyle(20)
 
 	#drawing canvas
@@ -139,7 +138,7 @@ for j, plotvar in enumerate(plotvar_l):
 	tex2.Draw("same")
 
 	#drawing legend
-	leg = ROOT.TLegend(0.6,0.5,0.88,0.88)
+	leg = ROOT.TLegend(0.6,0.5,0.85,0.88)
 	leg.SetTextSize(0.035)
 	leg.SetTextFont(42)
 	leg.SetLineColor(0)
