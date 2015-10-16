@@ -10,6 +10,7 @@ options.register('useMiniAOD', True, VarParsing.multiplicity.singleton, VarParsi
 options.register('globalTag', '', VarParsing.multiplicity.singleton, VarParsing.varType.string, "globalTag: 1  default")
 options.register('runGenTop', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runGenTop: 1  default")
 options.register('runOnRelVal', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runOnRelVal: 1  default")
+options.register('bunchCrossing', 25, VarParsing.multiplicity.singleton, VarParsing.varType.int, "bunchCrossing: 1  default")
 
 options.parseArguments()
 runOnMC = options.runOnMC
@@ -38,7 +39,7 @@ patTool(process, runOnMC, useMiniAOD)
 #### setting up cat tools
 ####################################################################
 from CATTools.CatProducer.catTools_cff import *
-catTool(process, runOnMC, doSecVertex, useMiniAOD)
+catTool(process, runOnMC, doSecVertex, useMiniAOD, options.bunchCrossing)
 
 from CATTools.CatProducer.catEventContent_cff import *
 process.out.outputCommands = catEventContent
@@ -54,6 +55,9 @@ if runOnMC:
             
 if doSecVertex:
     process.out.outputCommands.extend(catEventContentSecVertexs)
+
+process.outpath = cms.EndPath(process.out)    
+process.schedule.append(process.outpath)
 
 ####################################################################
 #### cmsRun options

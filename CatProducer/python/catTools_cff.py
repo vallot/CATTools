@@ -18,7 +18,6 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
     ePidNames = cms.vstring()
     btagNames = cms.vstring("pfCombinedInclusiveSecondaryVertexV2BJetTags")
 
-    process.nEventsTotal = cms.EDProducer("EventCountProducer")
     process.nEventsFiltered = cms.EDProducer("EventCountProducer")
     process.load("CATTools.CatProducer.catCandidates_cff")
 #######################################################################
@@ -38,55 +37,55 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
         reverseDecision = cms.bool(False)
     )
 
-    process.p = cms.Path(
-        process.nEventsTotal*
-        process.HBHENoiseFilterResultProducer* #produces HBHE bools
-        process.ApplyBaselineHBHENoiseFilter*  #reject events based
-        process.nEventsFiltered
-    )
+    process.p += (process.HBHENoiseFilterResultProducer* #produces HBHE bools
+                  process.ApplyBaselineHBHENoiseFilter*  #reject events based
+                  process.nEventsFiltered
+                  )
 #######################################################################
 # https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
 # recompute the T1 PFMET
-    jecUncertaintyFile = "CATTools/CatProducer/data/Summer15_25nsV5_DATA_UncertaintySources_AK4PFchs.txt"
-    from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
-    runMetCorAndUncFromMiniAOD( process, isData= not runOnMC, jecUncFile=jecUncertaintyFile)
+    jecUncertaintyFile = "CATTools/CatProducer/data/Summer15_{}nsV5_DATA_UncertaintySources_AK4PFchs.txt".format(bunchCrossing)
+    if useMiniAOD:
+        from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
+        runMetCorAndUncFromMiniAOD( process, isData= not runOnMC, jecUncFile=jecUncertaintyFile)
 # MET without HF
-    process.noHFCands = cms.EDFilter("CandPtrSelector",
-                                     src=cms.InputTag("packedPFCandidates"),
-                                     cut=cms.string("abs(pdgId)!=1 && abs(pdgId)!=2 && abs(eta)<3.0")
-                                     )
-    runMetCorAndUncFromMiniAOD( process, isData=not runOnMC, jecUncFile=jecUncertaintyFile, pfCandColl=cms.InputTag("noHFCands"), postfix="NoHF")
-    process.catMETsNoHF = process.catMETs.clone()
-    process.catMETsNoHF.src = cms.InputTag("slimmedMETsNoHF")
-    ## no residuals currently available 
-    process.patPFMetT1T2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-    process.patPFMetT1T2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-    process.patPFMetT2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-    process.patPFMetT2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-    process.shiftedPatJetEnDown.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
-    process.shiftedPatJetEnUp.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
-    process.patPFMetT1T2CorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
-    process.patPFMetT1T2SmearCorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
-    process.patPFMetT2CorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
-    process.patPFMetT2SmearCorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
-    process.shiftedPatJetEnDownNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
-    process.shiftedPatJetEnUpNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
-        
-    del process.slimmedMETs.t01Variation
-    #del process.slimmedMETs.t1Uncertainties
-    del process.slimmedMETs.tXYUncForRaw
-    del process.slimmedMETs.tXYUncForT1
-    del process.slimmedMETsNoHF.t01Variation
-    #del process.slimmedMETsNoHF.t1Uncertainties
-    del process.slimmedMETsNoHF.tXYUncForRaw
-    del process.slimmedMETsNoHF.tXYUncForT1
-    
+        process.noHFCands = cms.EDFilter("CandPtrSelector",
+                                        src=cms.InputTag("packedPFCandidates"),
+                                        cut=cms.string("abs(pdgId)!=1 && abs(pdgId)!=2 && abs(eta)<3.0")
+                                        )
+        runMetCorAndUncFromMiniAOD( process, isData=not runOnMC, jecUncFile=jecUncertaintyFile, pfCandColl=cms.InputTag("noHFCands"), postfix="NoHF")
+        process.catMETsNoHF = process.catMETs.clone()
+        process.catMETsNoHF.src = cms.InputTag("slimmedMETsNoHF")
+        ## no residuals currently available 
+        process.patPFMetT1T2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.patPFMetT1T2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.patPFMetT2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.patPFMetT2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.shiftedPatJetEnDown.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+        process.shiftedPatJetEnUp.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+        process.patPFMetT1T2CorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.patPFMetT1T2SmearCorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.patPFMetT2CorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.patPFMetT2SmearCorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.shiftedPatJetEnDownNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+        process.shiftedPatJetEnUpNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+
+        del process.slimmedMETs.t01Variation
+        #del process.slimmedMETs.t1Uncertainties
+        del process.slimmedMETs.tXYUncForRaw
+        del process.slimmedMETs.tXYUncForT1
+        del process.slimmedMETsNoHF.t01Variation
+        #del process.slimmedMETsNoHF.t1Uncertainties
+        del process.slimmedMETsNoHF.tXYUncForRaw
+        del process.slimmedMETsNoHF.tXYUncForT1
+
 #######################################################################    
 # adding pfMVAMet https://twiki.cern.ch/twiki/bin/viewauth/CMS/MVAMet#Spring15_samples_with_25ns_50ns
 # https://github.com/cms-sw/cmssw/blob/CMSSW_7_4_X/RecoMET/METPUSubtraction/test/mvaMETOnMiniAOD_cfg.py
-    process.load("RecoJets.JetProducers.ak4PFJets_cfi")
-    process.ak4PFJets.src = cms.InputTag("packedPFCandidates")
-    process.ak4PFJets.doAreaFastjet = cms.bool(True)
+    if useMiniAOD:
+        process.load("RecoJets.JetProducers.ak4PFJets_cfi")
+        process.ak4PFJets.src = cms.InputTag("packedPFCandidates")
+        process.ak4PFJets.doAreaFastjet = cms.bool(True)
 
     from JetMETCorrections.Configuration.DefaultJEC_cff import ak4PFJetsL1FastL2L3
 
@@ -100,29 +99,11 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
     process.puJetIdForPFMVAMEt.vertexes = cms.InputTag("offlineSlimmedPrimaryVertices")
     process.puJetIdForPFMVAMEt.rho = cms.InputTag("fixedGridRhoFastjetAll")
 
-    #process.load("RecoJets.JetProducers.ak4PFJets_cfi")
-    #process.ak4PFJetsForPFMVAMet = process.ak4PFJets.clone()
-    #process.ak4PFJetsForPFMVAMet.src = cms.InputTag("packedPFCandidates")
-    #This is temporary solution to avoid the circular dependenc error. Hope the recipe for miniAOD is available soon.(Tae Jeong) 
-    #https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideUnscheduledExecution#Circular_Dependence_Errors
-    #from JetMETCorrections.Configuration.DefaultJEC_cff import ak4PFJetsL1FastL2L3
-    #process.load("RecoMET.METPUSubtraction.mvaPFMET_cff")
-    #process.pfMVAMEt.srcUncorrJets = cms.InputTag("ak4PFJetsForPFMVAMet")
-    #process.pfMVAMEt.srcPFCandidates = cms.InputTag("packedPFCandidates")
-    #process.pfMVAMEt.srcVertices = cms.InputTag("offlineSlimmedPrimaryVertices")
-    #process.pfMVAMEt.srcCorrJets = cms.InputTag("calibratedAK4PFJetsForPFMVAMEt")
-    #process.calibratedAK4PFJetsForPFMVAMEt.src = cms.InputTag("ak4PFJetsForPFMVAMet")
-    #process.puJetIdForPFMVAMEt.jec =  cms.string('AK4PF')
-    #process.puJetIdForPFMVAMEt.vertexes = cms.InputTag("offlineSlimmedPrimaryVertices")
-    #process.puJetIdForPFMVAMEt.rho = cms.InputTag("fixedGridRhoFastjetAll")
-    #from RecoJets.JetProducers.PileupJetIDParams_cfi import full_74x_chs
-    #process.puJetIdForPFMVAMEt.algos = cms.VPSet(full_74x_chs)
-
     process.pfMVAMEt.inputFileNames = cms.PSet(
-        U     = cms.FileInPath('RecoMET/METPUSubtraction/data/gbru_7_4_X_miniAOD_25NS_July2015.root'),
-        DPhi  = cms.FileInPath('RecoMET/METPUSubtraction/data/gbrphi_7_4_X_miniAOD_25NS_July2015.root'),
-        CovU1 = cms.FileInPath('RecoMET/METPUSubtraction/data/gbru1cov_7_4_X_miniAOD_25NS_July2015.root'),
-        CovU2 = cms.FileInPath('RecoMET/METPUSubtraction/data/gbru2cov_7_4_X_miniAOD_25NS_July2015.root')
+        U     = cms.FileInPath('RecoMET/METPUSubtraction/data/gbru_7_4_X_miniAOD_{}NS_July2015.root'.format(bunchCrossing)),
+        DPhi  = cms.FileInPath('RecoMET/METPUSubtraction/data/gbrphi_7_4_X_miniAOD_{}NS_July2015.root'.format(bunchCrossing)),
+        CovU1 = cms.FileInPath('RecoMET/METPUSubtraction/data/gbru1cov_7_4_X_miniAOD_{}NS_July2015.root'.format(bunchCrossing)),
+        CovU2 = cms.FileInPath('RecoMET/METPUSubtraction/data/gbru2cov_7_4_X_miniAOD_{}NS_July2015.root'.format(bunchCrossing))
     )
         
     process.load("PhysicsTools.PatAlgos.producersLayer1.metProducer_cfi")
@@ -135,32 +116,32 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
 #######################################################################
 # redoing puppi from miniAOD as recommended
 # https://twiki.cern.ch/twiki/bin/view/CMS/PUPPI
-    process.load('CommonTools/PileupAlgos/Puppi_cff')
-    ## e.g. to run on miniAOD
-    process.puppi.candName = cms.InputTag('packedPFCandidates')
-    process.puppi.vertexName = cms.InputTag('offlineSlimmedPrimaryVertices')
+    ## e.g. to run on miniAOD beause it gets redone from miniaod step anyways
+    if useMiniAOD:
+        process.load('CommonTools/PileupAlgos/Puppi_cff')
+        process.puppi.candName = cms.InputTag('packedPFCandidates')
+        process.puppi.vertexName = cms.InputTag('offlineSlimmedPrimaryVertices')
 
-    process.load('CommonTools/PileupAlgos/Puppi_cff')
-    process.puppi.candName = cms.InputTag('packedPFCandidates')
-    process.puppi.vertexName = cms.InputTag('offlineSlimmedPrimaryVertices')
-    # remaking puppi jets
-    from JMEAnalysis.JetToolbox.jetToolbox_cff import jetToolbox
-    jetToolbox( process, 'ak4', 'ak4JetSubs', 'out', PUMethod='Puppi', miniAOD = useMiniAOD, runOnMC = True,#due to bug in jetToolbox
-                JETCorrPayload='AK4PFPuppi', JETCorrLevels = ['L1FastJet', 'L2Relative', 'L3Absolute'] )#bug-JETCorrLevels overwritten in jetToolbox
+        # remaking puppi jets
+        from JMEAnalysis.JetToolbox.jetToolbox_cff import jetToolbox
+        jetToolbox( process, 'ak4', 'ak4JetSubs', 'out', PUMethod='Puppi', miniAOD = useMiniAOD, runOnMC = True,#due to bug in jetToolbox
+                    JETCorrPayload='AK4PFPuppi', JETCorrLevels = ['L1FastJet', 'L2Relative', 'L3Absolute'] )#bug-JETCorrLevels overwritten in jetToolbox
+        process.patJetGenJetMatchAK4PFPuppi.matched = cms.InputTag("slimmedGenJets")
+        #process.patJetFlavourAssociationPuppi = process.patJetFlavourAssociation.clone(jets = cms.InputTag("ak4PFJetsPuppi"))
+        process.patJetsAK4PFPuppi.embedGenPartonMatch = cms.bool(False)
+        #process.patJetsAK4PFPuppi.JetFlavourInfoSource = cms.InputTag("patJetFlavourAssociationPuppi")
+        process.selectedPatJetsAK4PFPuppi.cut = cms.string("pt > 20")
+        catJetsPuppiSource = "selectedPatJetsAK4PFPuppi"
 
-    process.selectedPatJetsAK4PFPuppi.cut = cms.string("pt > 20")
-    process.patJetGenJetMatchAK4PFPuppi.matched = cms.InputTag("slimmedGenJets")
-    process.patJetsAK4PFPuppi.embedGenPartonMatch = cms.bool(False)
-    catJetsPuppiSource = "selectedPatJetsAK4PFPuppi"
-    # remaking puppi met
-    from RecoMET.METProducers.PFMET_cfi import pfMet
-    process.pfMetPuppi = pfMet.clone();
-    process.pfMetPuppi.src = cms.InputTag('puppi')
-    process.patPfMetPuppi = process.patMETs.clone()
-    process.patPfMetPuppi.addGenMET    = cms.bool(False)
-    process.patPfMetPuppi.metSource  = cms.InputTag("pfMetPuppi")
-    process.patPfMetPuppi.muonSource = cms.InputTag(catMuonsSource)
-    catMETsPuppiSource = "patPfMetPuppi"
+        # remaking puppi met
+        from RecoMET.METProducers.PFMET_cfi import pfMet
+        process.pfMetPuppi = pfMet.clone();
+        process.pfMetPuppi.src = cms.InputTag('puppi')
+        process.patPfMetPuppi = process.patMETs.clone()
+        process.patPfMetPuppi.addGenMET    = cms.bool(False)
+        process.patPfMetPuppi.metSource  = cms.InputTag("pfMetPuppi")
+        process.patPfMetPuppi.muonSource = cms.InputTag(catMuonsSource)
+        catMETsPuppiSource = "patPfMetPuppi"
 
     # for puppi isolation
     ## process.packedPFCandidatesWoMuon  = cms.EDFilter("CandPtrSelector", src = cms.InputTag("packedPFCandidates"), cut = cms.string("fromPV>=2 && abs(pdgId)!=13 " ) )
@@ -171,7 +152,7 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
 # getting jec from file for jec on the fly from db file
 # currently only for mc
     useJECfile = True
-    era = "Summer15_25nsV5"
+    era = "Summer15_{}nsV5".format(bunchCrossing)
     if runOnMC:
         era = era+"_MC"
     else:
@@ -219,12 +200,11 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
 ## for egamma pid temp
 ## https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2#Recipe_for_regular_users_for_74X
     from PhysicsTools.SelectorUtils.tools.vid_id_tools import DataFormat,switchOnVIDElectronIdProducer,setupAllVIDIdsInModule,setupVIDElectronSelection
-    my_id_modules = [
-                     'RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_25ns_V1_cff',
-                     'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV60_cff',
-                     'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_nonTrig_V1_cff',
-                     #'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_Trig_V1_cff',
-                     ]
+    electron_ids = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_PHYS14_PU20bx25_V2_cff',
+                    'RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_25ns_V1_cff',
+                    'RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_50ns_V1_cff',
+                    'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV60_cff',
+                    'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_nonTrig_V1_cff']
     if useMiniAOD:
         dataFormat = DataFormat.MiniAOD
     else :
@@ -232,21 +212,23 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
 
     switchOnVIDElectronIdProducer(process, dataFormat)
 
-    for idmod in my_id_modules:
+    for idmod in electron_ids:
         setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
     
     process.catElectrons.electronIDSources = cms.PSet(
-        eleVetoIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-veto"),
-        eleLooseIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-loose"),
-        eleMediumIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-medium"),
-        eleTightIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-tight"),
-        eleHEEPIdMap = cms.InputTag("egmGsfElectronIDs:heepElectronID-HEEPV60"),
-        mvaNonTrigMediumIdMap = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-nonTrig-V1-wp90"),
-        mvaNonTrigTightIdMap = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-nonTrig-V1-wp80"),
-        #mvaTrigMediumIdMap = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-Trig-V1-wp90"),
-        #mvaTrigTightIdMap = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-Trig-V1-wp80"),
+        ## loose = cms.InputTag("egmGsfElectronIDs","cutBasedElectronID-Spring15-25ns-V1-standalone-loose"),
+        ## medium = cms.InputTag("egmGsfElectronIDs","cutBasedElectronID-Spring15-25ns-V1-standalone-medium"),
+        ## tight = cms.InputTag("egmGsfElectronIDs","cutBasedElectronID-Spring15-25ns-V1-standalone-tight"),
+        ## veto = cms.InputTag("egmGsfElectronIDs","cutBasedElectronID-Spring15-25ns-V1-standalone-veto"),
+        ## cutBasedElectronID_Spring15_50ns_V1_standalone_loose = cms.InputTag("egmGsfElectronIDs","cutBasedElectronID-Spring15-50ns-V1-standalone-loose"),
+        ## cutBasedElectronID_Spring15_50ns_V1_standalone_medium = cms.InputTag("egmGsfElectronIDs","cutBasedElectronID-Spring15-50ns-V1-standalone-medium"),
+        ## cutBasedElectronID_Spring15_50ns_V1_standalone_tight = cms.InputTag("egmGsfElectronIDs","cutBasedElectronID-Spring15-50ns-V1-standalone-tight"),
+        ## cutBasedElectronID_Spring15_50ns_V1_standalone_veto = cms.InputTag("egmGsfElectronIDs","cutBasedElectronID-Spring15-50ns-V1-standalone-veto"),
+        ## heepElectronID_HEEPV60 = cms.InputTag("egmGsfElectronIDs","heepElectronID-HEEPV60"),
+        ## mvaEleID_Spring15_25ns_nonTrig_V1_wp80 = cms.InputTag("egmGsfElectronIDs","mvaEleID-Spring15-25ns-nonTrig-V1-wp80"),
+        ## mvaEleID_Spring15_25ns_nonTrig_V1_wp90 = cms.InputTag("egmGsfElectronIDs","mvaEleID-Spring15-25ns-nonTrig-V1-wp90"),
     )
-
+        
 #######################################################################    
     if runOnMC:## Load MC dependent producers
         ## FIX ME - pile up and pdf weight
@@ -285,7 +267,7 @@ def catTool(process, runOnMC=True, doSecVertex=True, useMiniAOD = True, bunchCro
     process.catSecVertexs.vertexLabel = cms.InputTag(catVertexSource)
 
     process.catJetsPuppi.src = cms.InputTag(catJetsPuppiSource)
-    process.catJetsPuppi.btagNames = btagNames
+    process.catJetsPuppi.btagNames = cms.vstring("pfCombinedInclusiveSecondaryVertexV2BJetTagsAK4PFPuppi")
     process.catJetsPuppi.payloadName = cms.string("AK4PFchs") #temp for now
     process.catMETsPuppi.src = cms.InputTag(catMETsPuppiSource)
     process.catVertex.vertexLabel = cms.InputTag(catVertexSource)
