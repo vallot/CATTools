@@ -16,7 +16,7 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
     else:
         era = "Summer15_{}nsV5_DATA".format(bunchCrossing)
     jecUncertaintyFile = "CATTools/CatProducer/data/Summer15_{}nsV5_DATA_UncertaintySources_AK4PFchs.txt".format(bunchCrossing)
-    
+                                                    
     if useJECfile:
         from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
         process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
