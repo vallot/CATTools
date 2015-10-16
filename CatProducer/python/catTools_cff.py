@@ -6,8 +6,10 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
     for i in globaltag_run2_50ns:
         if i == process.GlobalTag.globaltag:
             bunchCrossing=50
-            from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
-            process.pileupWeight.pileupMC = pileupWeightMap["Startup2015_50ns"]
+
+    if runOnMC and bunchCrossing == 50:
+        from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
+        process.pileupWeight.pileupMC = pileupWeightMap["Startup2015_50ns"]
 
     useJECfile = True
     
