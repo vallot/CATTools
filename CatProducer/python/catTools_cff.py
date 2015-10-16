@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 def catTool(process, runOnMC=True, useMiniAOD=True):
     bunchCrossing=25
-    globaltag_run2_50ns = ["MCRUN2_74_V9A", "74X_mcRun2_startup_v2", "74X_dataRun2_reMiniAOD_v0"]
+    globaltag_run2_50ns = ["MCRUN2_74_V9A", "74X_mcRun2_startup_v2", "74X_dataRun2_reMiniAOD_v0", "74X_dataRun2_v2"]
     for i in globaltag_run2_50ns:
         if i == process.GlobalTag.globaltag:
             bunchCrossing=50
@@ -75,7 +75,21 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         
         runMetCorAndUncFromMiniAOD(process, isData=not runOnMC, jecUncFile=jecUncertaintyFile, pfCandColl=cms.InputTag("noHFCands"), postfix="NoHF")
         process.catMETsNoHF = process.catMETs.clone(src = cms.InputTag("slimmedMETsNoHF"))
-
+        
+        process.patPFMetT1T2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.patPFMetT1T2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.patPFMetT2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.patPFMetT2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.shiftedPatJetEnDown.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+        process.shiftedPatJetEnUp.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+    
+        process.patPFMetT1T2CorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.patPFMetT1T2SmearCorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.patPFMetT2CorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.patPFMetT2SmearCorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        process.shiftedPatJetEnDownNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+        process.shiftedPatJetEnUpNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+    
         del process.slimmedMETs.t01Variation
         #del process.slimmedMETs.t1Uncertainties
         del process.slimmedMETs.tXYUncForRaw
