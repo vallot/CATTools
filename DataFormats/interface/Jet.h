@@ -48,7 +48,10 @@ namespace cat {
     bool CSVv2L(){ return (bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") > 0.605);}
     bool CSVv2M(){ return (bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") > 0.890);}
     bool CSVv2T(){ return (bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") > 0.970);}
-    float scaleFactorCSVv2(int op, int sys, int flav) const;
+
+    enum BTAGCSV_CUT { BTAGCSV_LOOSE=0, BTAGCSV_MEDIUM, BTAGCSV_TIGHT };
+    enum JETFLAV { JETFLAV_B=0, JETFLAV_C=1, JETFLAV_LIGHT=2 };
+    float scaleFactorCSVv2(BTAGCSV_CUT op, int systDir, JETFLAV flav) const;
     // op 0 = loose, 1 = medium, 2 = tight
     // sys 0 = central, 1 = up, -1 = down
     // flav 0 = b, 1 = c, 2 = light

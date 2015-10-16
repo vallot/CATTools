@@ -72,7 +72,7 @@ PileupWeightProducer::PileupWeightProducer(const edm::ParameterSet& pset):
   else
   {
     std::cerr << "!!PileupWeightProducer!! We are using NON STANDARD method for the pileup reweight.\n"
-      << "                         This weight values are directly from reco vertex\n";
+              << "                         This weight values are directly from reco vertex\n";
     vertexToken_ = consumes<reco::VertexCollection>(pset.getParameter<edm::InputTag>("vertex"));
     simpleWeights_ = pset.getParameter<std::vector<double> >("simpleWeights");
     const double sumW = std::accumulate(simpleWeights_.begin(), simpleWeights_.end(), 0.);
@@ -94,26 +94,27 @@ void PileupWeightProducer::produce(edm::Event& event, const edm::EventSetup& eve
   std::auto_ptr<float> weightDn(new float(1.));
 
   if ( !event.isRealData() ){
-    edm::Handle<std::vector<PileupSummaryInfo> > puHandle;
-    event.getByToken(puToken_, puHandle);
+    if ( isStandardWeight_ ){
+      edm::Handle<std::vector<PileupSummaryInfo> > puHandle;
+      event.getByToken(puToken_, puHandle);
 
-    for ( auto& puInfo : *puHandle ){
-      //const int nIntr = puInfo.getPU_NumInteractions();
-      const int bx = puInfo.getBunchCrossing();
+      for ( auto& puInfo : *puHandle ){
+        //const int nIntr = puInfo.getPU_NumInteractions();
+        const int bx = puInfo.getBunchCrossing();
 
-      if ( bx == 0 ){
-        *nTrueIntr = puInfo.getTrueNumInteractions();
+        if ( bx == 0 ){
+          *nTrueIntr = puInfo.getTrueNumInteractions();
+          break;
+        }
       }
-    }
 
-    if ( *nTrueIntr > 0 ){
-      if ( isStandardWeight_ ){
+      if ( *nTrueIntr > 0 ) {
         *weight   = lumiWeights_.weight(*nTrueIntr);
         *weightUp = lumiWeightsUp_.weight(*nTrueIntr);
         *weightDn = lumiWeightsDn_.weight(*nTrueIntr);
       }
     }
-    if (!isStandardWeight_){
+    else {
       edm::Handle<reco::VertexCollection> vertexHandle;
       event.getByToken(vertexToken_, vertexHandle);
 
