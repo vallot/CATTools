@@ -40,9 +40,7 @@ namespace cat {
     bool runOnMC_;
 
     typedef math::XYZPoint Point;
-
   };
-
 } // namespace
 
 cat::CATMuonProducer::CATMuonProducer(const edm::ParameterSet & iConfig) :
@@ -82,9 +80,6 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     cat::Muon aMuon(aPatMuon);
 
     if (runOnMC_){
-      // to be added      
-      //aMuon.setShiftedEnDown(shiftedEnDownSrc->at(j).pt() );
-      //aMuon.setShiftedEnUp(shiftedEnUpSrc->at(j).pt() );
       aMuon.setGenParticleRef(aPatMuon.genParticleRef());
       aMuon.setMCMatched( mcMatch( aPatMuon.p4(), genParticles ) );      
     }
@@ -98,10 +93,6 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     aMuon.setNeutralHadronIso03( aPatMuon.pfIsolationR03().sumNeutralHadronEt );
     aMuon.setPhotonIso03( aPatMuon.pfIsolationR03().sumPhotonEt );
     aMuon.setPUChargedHadronIso03( aPatMuon.pfIsolationR03().sumPUPt );
-
-    // cout << "aPatMuon.chargedHadronIso() " << aPatMuon.chargedHadronIso()
-    // 	 << " aPatMuon.pfIsolationR04 " <<  aPatMuon.pfIsolationR04().sumChargedHadronPt
-    // 	 << endl;
 
     aMuon.setIsGlobalMuon( aPatMuon.isGlobalMuon() );
     aMuon.setIsPF( aPatMuon.isPFMuon() );
@@ -151,10 +142,8 @@ bool cat::CATMuonProducer::mcMatch( const reco::Candidate::LorentzVector& lepton
       mother = mother->mother();
     }
   }
-
   return out;
 }
-
 
 bool cat::CATMuonProducer::MatchObjects( const reco::Candidate::LorentzVector& pasObj, const reco::Candidate::LorentzVector& proObj, bool exact ) {
   double proEta = proObj.eta();
@@ -173,9 +162,6 @@ bool cat::CATMuonProducer::MatchObjects( const reco::Candidate::LorentzVector& p
   else return ( dRval < 0.025 && dPtRel < 0.025 );
 }
 
-
-
 #include "FWCore/Framework/interface/MakerMacros.h"
 using namespace cat;
 DEFINE_FWK_MODULE(CATMuonProducer);
-

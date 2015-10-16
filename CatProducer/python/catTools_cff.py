@@ -40,11 +40,10 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         print "JEC based on", process.jec.connect
 
     process.catJetsPuppi.payloadName = cms.string("AK4PFchs") #temp for now
-#######################################################################
-## corrections when using miniAOD
-    if useMiniAOD:
-#######################################################################
-## Hcal HBHE https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2
+    
+    if useMiniAOD: ## corrections when using miniAOD
+        #######################################################################
+        ## Hcal HBHE https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2
         process.load('CommonTools.RecoAlgos.HBHENoiseFilterResultProducer_cfi')
         process.HBHENoiseFilterResultProducer.minZeros = cms.int32(99999)
 
@@ -63,11 +62,11 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         process.p += (process.HBHENoiseFilterResultProducer* #produces HBHE bools
                       process.ApplyBaselineHBHENoiseFilter*  #reject events based
                       process.nEventsFiltered)
-#######################################################################
-# recompute the T1 PFMET https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
+        #######################################################################
+        # recompute the T1 PFMET https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
         from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
         runMetCorAndUncFromMiniAOD( process, isData= not runOnMC, jecUncFile=jecUncertaintyFile)
-# MET without HF
+        # MET without HF
         process.noHFCands = cms.EDFilter("CandPtrSelector",
                                         src=cms.InputTag("packedPFCandidates"),
                                         cut=cms.string("abs(pdgId)!=1 && abs(pdgId)!=2 && abs(eta)<3.0"))
@@ -83,8 +82,8 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         #del process.slimmedMETsNoHF.t1Uncertainties
         del process.slimmedMETsNoHF.tXYUncForRaw
         del process.slimmedMETsNoHF.tXYUncForT1
-#######################################################################
-# redoing puppi from miniAOD as recommended https://twiki.cern.ch/twiki/bin/view/CMS/PUPPI
+        #######################################################################
+        # redoing puppi from miniAOD as recommended https://twiki.cern.ch/twiki/bin/view/CMS/PUPPI
         process.load('CommonTools/PileupAlgos/Puppi_cff')
         process.puppi.candName = cms.InputTag('packedPFCandidates')
         process.puppi.vertexName = cms.InputTag('offlineSlimmedPrimaryVertices')
@@ -107,8 +106,8 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         ## process.packedPFCandidatesWoMuon  = cms.EDFilter("CandPtrSelector", src = cms.InputTag("packedPFCandidates"), cut = cms.string("fromPV>=2 && abs(pdgId)!=13 " ) )
         ## process.particleFlowNoMuonPUPPI.candName         = 'packedPFCandidatesWoMuon'
         ## process.particleFlowNoMuonPUPPI.vertexName       = 'offlineSlimmedPrimaryVertices'
-#######################################################################    
-## applying new jec on the fly
+        #######################################################################    
+        ## applying new jec on the fly
         process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
         process.patJetCorrFactors.primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices")
         process.catJets.src = cms.InputTag("patJetsUpdated")
@@ -123,8 +122,8 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
             jetSource = cms.InputTag("selectedPatJetsAK4PFPuppi"))
         
         process.catJetsPuppi.src = cms.InputTag("patJetsPuppiUpdated")
-#######################################################################
-## for egamma pid https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2#Recipe_for_regular_users_for_74X
+        #######################################################################
+        ## for egamma pid https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2#Recipe_for_regular_users_for_74X
         from PhysicsTools.SelectorUtils.tools.vid_id_tools import DataFormat,switchOnVIDElectronIdProducer,setupAllVIDIdsInModule,setupVIDElectronSelection
         electron_ids = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_25ns_V1_cff',
                         'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV60_cff',
@@ -142,9 +141,10 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
             mvaEleID_Spring15_25ns_nonTrig_V1_wp80 = cms.InputTag("egmGsfElectronIDs","mvaEleID-Spring15-25ns-nonTrig-V1-wp80"),
             mvaEleID_Spring15_25ns_nonTrig_V1_wp90 = cms.InputTag("egmGsfElectronIDs","mvaEleID-Spring15-25ns-nonTrig-V1-wp90")
         )
-#######################################################################    
-# adding pfMVAMet https://twiki.cern.ch/twiki/bin/viewauth/CMS/MVAMet#Spring15_samples_with_25ns_50ns
-# https://github.com/cms-sw/cmssw/blob/CMSSW_7_4_X/RecoMET/METPUSubtraction/test/mvaMETOnMiniAOD_cfg.py
+        
+        #######################################################################    
+        # adding pfMVAMet https://twiki.cern.ch/twiki/bin/viewauth/CMS/MVAMet#Spring15_samples_with_25ns_50ns
+        # https://github.com/cms-sw/cmssw/blob/CMSSW_7_4_X/RecoMET/METPUSubtraction/test/mvaMETOnMiniAOD_cfg.py
         process.load("RecoJets.JetProducers.ak4PFJets_cfi")
         process.ak4PFJets.src = cms.InputTag("packedPFCandidates")
         process.ak4PFJets.doAreaFastjet = cms.bool(True)

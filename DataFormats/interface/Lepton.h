@@ -57,8 +57,9 @@ namespace cat {
 	float abs = absIso(dR, dBetaFactor)/this->pt();
 	return abs >=0 ? abs : -1;
     }
-    float shiftedEnDown() const {return  shiftedEnDown_;}
-    float shiftedEnUp() const {return  shiftedEnUp_;}
+    // to be undated with shifts on the fly!
+    /* float shiftedEnDown() const {return  shiftedEnDown_;} */
+    /* float shiftedEnUp() const {return  shiftedEnUp_;} */
 
     bool mcMatched() const { return mcMatched_; }
 
@@ -79,9 +80,6 @@ namespace cat {
     void setPUChargedHadronIso04(float i) { puChargedHadronIso04_ = i; }
     void setNeutralHadronIso04(float i) { neutralHadronIso04_ = i; }
     void setPhotonIso04(float i) { photonIso04_ = i; }
-
-    void setShiftedEnDown(float f) { shiftedEnDown_ = f;}
-    void setShiftedEnUp(float f) { shiftedEnUp_ = f;}
 
     void setMCMatched(bool m) { mcMatched_ = m; }
     
@@ -104,9 +102,6 @@ namespace cat {
     float puChargedHadronIso04_;
     float neutralHadronIso04_;
     float photonIso04_;
-
-    float shiftedEnDown_;
-    float shiftedEnUp_;
 
     bool mcMatched_;
   };

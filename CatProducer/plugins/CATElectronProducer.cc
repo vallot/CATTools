@@ -119,9 +119,6 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     auto elecsRef = src->refAt(j);
 
     if (runOnMC_){
-      // to be added
-      //aElectron.setShiftedEnDown(shiftedEnDownSrc->at(j).pt() );
-      //aElectron.setShiftedEnUp(shiftedEnUpSrc->at(j).pt() );
       aElectron.setGenParticleRef(aPatElectron.genParticleRef());
       aElectron.setMCMatched( mcMatch( aPatElectron.p4(), genParticles ) );
     }
@@ -262,8 +259,6 @@ int cat::CATElectronProducer::getSNUID(float full5x5_sigmaIetaIeta, float deltaE
   return flag_id;
 }
 
-
-
 float
 cat::CATElectronProducer::getEffArea( float dR, float scEta)
 {
@@ -277,7 +272,8 @@ cat::CATElectronProducer::getEffArea( float dR, float scEta)
     return ElectronEffectiveArea::GetElectronEffectiveArea( ElectronEffectiveArea::kEleGammaAndNeutralHadronIso04, scEta, electronEATarget);
 }
 
-bool cat::CATElectronProducer::mcMatch( const reco::Candidate::LorentzVector& lepton, const edm::Handle<reco::GenParticleCollection> & genParticles )
+bool
+cat::CATElectronProducer::mcMatch( const reco::Candidate::LorentzVector& lepton, const edm::Handle<reco::GenParticleCollection> & genParticles )
 {
   bool out = false;
 
@@ -295,11 +291,12 @@ bool cat::CATElectronProducer::mcMatch( const reco::Candidate::LorentzVector& le
       mother = mother->mother();
     }
   }
-
   return out;
 }
 
-bool cat::CATElectronProducer::MatchObjects( const reco::Candidate::LorentzVector& pasObj, const reco::Candidate::LorentzVector& proObj, bool exact ) {
+bool
+cat::CATElectronProducer::MatchObjects( const reco::Candidate::LorentzVector& pasObj, const reco::Candidate::LorentzVector& proObj, bool exact )
+{
   double proEta = proObj.eta();
   double proPhi = proObj.phi();
   double proPt = proObj.pt();
@@ -315,7 +312,6 @@ bool cat::CATElectronProducer::MatchObjects( const reco::Candidate::LorentzVecto
   if( exact ) return ( dRval < 1e-3 && dPtRel < 1e-3 );
   else return ( dRval < 0.025 && dPtRel < 0.025 );
 }
-
 
 #include "FWCore/Framework/interface/MakerMacros.h"
 using namespace cat;
