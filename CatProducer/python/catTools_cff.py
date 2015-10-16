@@ -74,19 +74,6 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         
         runMetCorAndUncFromMiniAOD(process, isData=not runOnMC, jecUncFile=jecUncertaintyFile, pfCandColl=cms.InputTag("noHFCands"), postfix="NoHF")
         process.catMETsNoHF = process.catMETs.clone(src = cms.InputTag("slimmedMETsNoHF"))
-        ## no residuals currently available 
-        process.patPFMetT1T2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        process.patPFMetT1T2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        process.patPFMetT2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        process.patPFMetT2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        process.shiftedPatJetEnDown.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
-        process.shiftedPatJetEnUp.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
-        process.patPFMetT1T2CorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        process.patPFMetT1T2SmearCorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        process.patPFMetT2CorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        process.patPFMetT2SmearCorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        process.shiftedPatJetEnDownNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
-        process.shiftedPatJetEnUpNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
 
         del process.slimmedMETs.t01Variation
         #del process.slimmedMETs.t1Uncertainties

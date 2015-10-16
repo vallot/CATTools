@@ -48,8 +48,7 @@ if runGenTop:
         process.out.outputCommands.extend(['keep *_catGenTops_*_*',])
             
 if doSecVertex:
-    from TrackingTools.TransientTrack.TransientTrackBuilder_cfi import TransientTrackBuilderESProducer
-    setattr(process, "TransientTrackBuilderESProducer", TransientTrackBuilderESProducer)
+    process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
     process.out.outputCommands.extend(catEventContentSecVertexs)
 
 from PhysicsTools.PatAlgos.slimming.miniAOD_tools import miniAOD_customizeOutput
