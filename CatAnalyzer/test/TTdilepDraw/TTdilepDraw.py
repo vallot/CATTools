@@ -94,33 +94,32 @@ for j, plotvar in enumerate(plotvar_l):
 	hs = ROOT.THStack(plotvar, plotvar)
 
 	#controlplot_MC
-	for i, f in enumerate(mcfilelist):
-		rootfilename = f+".root"
+	for i, file in enumerate(mcfilelist):
+		rootfilename = file+".root"
 		tt = ROOT.TFile(rootfilename)
 		tree = tt.ttll.Get("tree")
 		for data in datasets:
-			if data["name"] == f:
+			if data["name"] == file:
 				scale = datalumi/data["lumi"]
 		if f == "TT_powheg":
-			histo1 = copy.deepcopy(hist_maker(f, plotvar, bins[j], x_name[j], y_name, tree, plotvar, tcut+signal_tcut))
-			histo2 = copy.deepcopy(hist_maker(f+" others", plotvar, bins[j], x_name[j], y_name, tree, plotvar, tcut))
+			histo1 = copy.deepcopy(hist_maker(file, plotvar, bins[j], x_name[j], y_name, tree, plotvar, tcut+signal_tcut))
+			histo2 = copy.deepcopy(hist_maker(file+" others", plotvar, bins[j], x_name[j], y_name, tree, plotvar, tcut))
 			histo2.Add(histo1, -1)
 			histo1.Scale(scale)
 			histo2.Scale(scale)
 			mchist_l.append(histo1) 
 			mchist_l.append(histo2)
 		else:
-			histo = copy.deepcopy(hist_maker(f, plotvar, bins[j], x_name[j], y_name, tree, plotvar, tcut))
+			histo = copy.deepcopy(hist_maker(file, plotvar, bins[j], x_name[j], y_name, tree, plotvar, tcut))
 			histo.Scale(scale)
 			mchist_l.append(histo)
 
 	#controlplot_Data
-	for i in rdfilelist:
-		rootfilename = i+".root"
-		f = i.strip().split("_")[0]
+	for file in rdfilelist:
+		rootfilename = file+".root"
 		tt = ROOT.TFile(rootfilename)
 		tree = tt.ttll.Get("tree")
-		h_rd = copy.deepcopy(hist_maker(f, plotvar, bins[j], x_name[j], y_name, tree, plotvar, tcut))
+		h_rd = copy.deepcopy(hist_maker(file, plotvar, bins[j], x_name[j], y_name, tree, plotvar, tcut))
 		h_rd.SetMarkerStyle(20)
 
 	#drawing canvas
