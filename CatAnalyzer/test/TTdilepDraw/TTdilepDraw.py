@@ -1,4 +1,6 @@
 import ROOT,copy
+import json
+import os 
 from array import array
 
 def hist_maker(name, title, bins, x_name, y_name, tr, br, cut):
@@ -21,23 +23,23 @@ def stack_design(hs, x_name, y_name):
 	hs.GetYaxis().CenterTitle()
 	hs.GetYaxis().SetTitleSize(0.048)
 	hs.GetYaxis().SetLabelSize(0.03)
+	hs.SetMaximum(hs.GetMaximum()+100)
 	return hs
 	
 ############ external infos ############
 datalumi = 225.6
 
-mcfilelist = ['TTJets_TuneCUETP8M1_13TeV-powheg-pythia8',
-              'WJetsToLNu_TuneCUETP8M1_13TeV',
-              'ST_tW_antitop_5f_inclusiveDecays_13TeV',
-              'ST_tW_top_5f_inclusiveDecays_13TeV',
-              'ZZ_TuneCUETP8M1_13TeV',
-              'WW_TuneCUETP8M1_13TeV',
-              'WZ_TuneCUETP8M1_13TeV',
-              'DYJetsToLL_M-50']
+mcfilelist = ['TT_powheg',
+              'WJets',
+              'SingleTbar_tW',
+              'SingleTop_tW',
+              'ZZ',
+              'WW',
+              'WZ',
+              'DYJets']
 rdfilelist = ['MuonEG']
 
-mcval_l = [815.96, 61526.7, 35.6, 35.6, 15.4, 110.8, 66.1, 6025.2]
-nevent_l = [19899500, 24151270, 1000000, 995600, 996168, 994416, 991232, 28825132]
+datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json" % os.environ['CMSSW_BASE']))
 color_l = [2, 6, 0, 3, 5, 7, 7, 7, 4]
 
 massbin = [20, 30, 45, 75, 105, 125, 165, 260, 400]
@@ -69,10 +71,10 @@ if step == 6:
 	tcut = "step >= %d && channel == 1 && tri == 1 && filtered && top1_pt > 0"%5
 
 y_name = "Number of Events"
-signaltcut = "(parton_channel == 3 && ((parton_mode1 == 2 && parton_mode2 == 3) || (parton_mode1 == 3 && parton_mode2 == 2)))"
+signal_tcut = "&& (parton_channel == 3 && ((parton_mode1 == 2 && parton_mode2 == 3) || (parton_mode1 == 3 && parton_mode2 == 2)))"
 
 #define texts
-tex1 = ROOT.TLatex(0.54,0.91,"%.1f pb^{-1}, #sqrt{s} = 13 TeV 25ns"%(datalumi))
+tex1 = ROOT.TLatex(0.52,0.91,"%.1f pb^{-1}, #sqrt{s} = 13 TeV 25ns"%(datalumi))
 tex1.SetNDC()
 tex1.SetTextFont(42)
 tex1.SetTextSize(0.036)
@@ -86,7 +88,6 @@ tex2.SetTextSize(0.044)
 #making control plot start
 for j, plotvar in enumerate(plotvar_l):
 	mchist_l = []
-	samplenames = []
 	print plotvar
 
 	#declare stack(for mc)
@@ -95,31 +96,31 @@ for j, plotvar in enumerate(plotvar_l):
 	#controlplot_MC
 	for i, f in enumerate(mcfilelist):
 		rootfilename = f+".root"
-		samplename = f.strip().split("_")[0]
-		samplenames.append(samplename)
 		tt = ROOT.TFile(rootfilename)
 		tree = tt.ttll.Get("tree")
-		scale = mcval_l[i]*datalumi / nevent_l[i]
-		if samplename == "TTJets":
-			histo1 = copy.deepcopy(hist_maker(samplename, plotvar, bins[j], x_name[j], y_name, tree, plotvar, tcut+" && parton_channel == 3 && ((parton_mode1 == 2 && parton_mode2 == 3) || (parton_mode1 == 3 && parton_mode2 == 2))"))
-			histo2 = copy.deepcopy(hist_maker(samplename+" others", plotvar, bins[j], x_name[j], y_name, tree, plotvar, tcut))
+		for data in datasets:
+			if data["name"] == f:
+				scale = datalumi/data["lumi"]
+		if f == "TT_powheg":
+			histo1 = copy.deepcopy(hist_maker(f, plotvar, bins[j], x_name[j], y_name, tree, plotvar, tcut+signal_tcut))
+			histo2 = copy.deepcopy(hist_maker(f+" others", plotvar, bins[j], x_name[j], y_name, tree, plotvar, tcut))
 			histo2.Add(histo1, -1)
 			histo1.Scale(scale)
 			histo2.Scale(scale)
 			mchist_l.append(histo1) 
 			mchist_l.append(histo2)
 		else:
-			histo = copy.deepcopy(hist_maker(samplename, plotvar, bins[j], x_name[j], y_name, tree, plotvar, tcut))
+			histo = copy.deepcopy(hist_maker(f, plotvar, bins[j], x_name[j], y_name, tree, plotvar, tcut))
 			histo.Scale(scale)
 			mchist_l.append(histo)
 
 	#controlplot_Data
 	for i in rdfilelist:
 		rootfilename = i+".root"
-		samplename = i.strip().split("_")[0]
+		f = i.strip().split("_")[0]
 		tt = ROOT.TFile(rootfilename)
 		tree = tt.ttll.Get("tree")
-		h_rd = copy.deepcopy(hist_maker(samplename, plotvar, bins[j], x_name[j], y_name, tree, plotvar, tcut))
+		h_rd = copy.deepcopy(hist_maker(f, plotvar, bins[j], x_name[j], y_name, tree, plotvar, tcut))
 		h_rd.SetMarkerStyle(20)
 
 	#drawing canvas
@@ -135,22 +136,22 @@ for j, plotvar in enumerate(plotvar_l):
 
 	h_rd.Draw("epsame")
 	tex1.Draw()
-	tex2.Draw("same")
+	#tex2.Draw("same")
 
 	#drawing legend
-	leg = ROOT.TLegend(0.6,0.5,0.85,0.88)
+	leg = ROOT.TLegend(0.5,0.5,0.82,0.88)
 	leg.SetTextSize(0.035)
 	leg.SetTextFont(42)
 	leg.SetLineColor(0)
 	leg.SetFillColor(0)
 	leg.AddEntry(h_rd,"Data","lp")
-	leg.AddEntry(mchist_l[8], samplenames[7], "f")
+	leg.AddEntry(mchist_l[8], mcfilelist[7], "f")
 	leg.AddEntry(mchist_l[5], "WW/WZ/ZZ", "f")
-	leg.AddEntry(mchist_l[4], "Single top W", "f")
-	leg.AddEntry(mchist_l[3], "Single topbar W", "f")
-	leg.AddEntry(mchist_l[2], samplenames[1], "f")
-	leg.AddEntry(mchist_l[1], samplenames[0]+" others", "f")
-	leg.AddEntry(mchist_l[0], samplenames[0], "f")
+	leg.AddEntry(mchist_l[4], mcfilelist[3], "f")
+	leg.AddEntry(mchist_l[3], mcfilelist[2], "f")
+	leg.AddEntry(mchist_l[2], mcfilelist[1], "f")
+	leg.AddEntry(mchist_l[1], mcfilelist[0]+" others", "f")
+	leg.AddEntry(mchist_l[0], mcfilelist[0], "f")
 	leg.Draw("same")
 
 	if "1" in plotvar:
