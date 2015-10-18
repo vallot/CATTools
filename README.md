@@ -5,7 +5,7 @@ for cms analysis
 
 # Links
  - CATTuple production
-  - Campaigns, recipe : https://github.com/vallot/CATTools/wiki/CATTools%20Dataset%20Localtion%20and%20details
+  - Campaigns, recipe : https://github.com/vallot/CATTools/wiki/Campaigns
   - Summary table : https://docs.google.com/spreadsheets/d/1rWM3AlFKO8IJVaeoQkWZYWwSvicQ1QCXYSzH74QyZqE/edit#gid=513081606
 
 ```bash
