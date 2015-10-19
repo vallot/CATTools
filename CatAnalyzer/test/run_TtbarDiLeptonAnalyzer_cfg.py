@@ -13,21 +13,22 @@ process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 #datadir = '/xrootd/store/group/CAT/MuonEG/v7-3-6_Run2015B-PromptReco-v1/150922_133849/0000/'
 #datadir = '/xrootd/store/group/CAT/DoubleEG/v7-3-6_Run2015B-PromptReco-v1/150922_133632/0000/'
 #datadir = '/xrootd/store/group/CAT/DoubleMuon/v7-3-6_Run2015B-PromptReco-v1/150922_133736/0000/'
-#
+#datadir = '/xrootd/store/group/CAT/MuonEG/v7-4-3_Run2015C-PromptReco-v1/151009_212654/0000/'
 #for f in os.listdir(datadir):
 #    if ".root" in f:
 #        process.source.fileNames.append("file:"+datadir+f)
-#
 
-#process.source.fileNames = ['file:catTuple.root']
-process.source.fileNames.append('/store/group/CAT/MuonEG/v7-4-2_Run2015C-PromptReco-v1/150923_202331/0000/catTuple_2.root')
-process.source.fileNames.append('/store/group/CAT/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-2_RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/150923_215647/0001/catTuple_1046.root')
-process.source.fileNames.append('/store/group/CAT/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-2_RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/150923_215647/0001/catTuple_1047.root')
-process.source.fileNames.append('/store/group/CAT/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-2_RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/150923_215647/0001/catTuple_1048.root')
-process.source.fileNames.append('/store/group/CAT/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-2_RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/150923_215647/0001/catTuple_1049.root')
+
+process.source.fileNames = ['file:catTuple.root']
+#process.source.fileNames.append('/store/group/CAT/MuonEG/v7-4-2_Run2015C-PromptReco-v1/150923_202331/0000/catTuple_2.root')
+#process.source.fileNames.append('/store/group/CAT/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-2_RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/150923_215647/0001/catTuple_1046.root')
+#process.source.fileNames.append('/store/group/CAT/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-2_RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/150923_215647/0001/catTuple_1047.root')
+#process.source.fileNames.append('/store/group/CAT/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-2_RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/150923_215647/0001/catTuple_1048.root')
+#process.source.fileNames.append('/store/group/CAT/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-2_RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/150923_215647/0001/catTuple_1049.root')
 
 #lumiFile = 'Cert_246908-255031_13TeV_PromptReco_Collisions15_50ns_JSON.txt'
-lumiFile = 'Cert_246908-257599_13TeV_PromptReco_Collisions15_25ns_JSON.txt'
+#lumiFile = 'Cert_246908-257599_13TeV_PromptReco_Collisions15_25ns_JSON.txt'
+lumiFile = 'Cert_246908-258159_13TeV_PromptReco_Collisions15_25ns_JSON_v3.txt'
 
 runOnMC = True
 for i in process.source.fileNames:
