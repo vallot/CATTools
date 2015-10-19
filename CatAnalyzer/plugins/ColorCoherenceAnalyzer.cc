@@ -100,6 +100,7 @@ ColorCoherenceAnalyzer::ColorCoherenceAnalyzer(const edm::ParameterSet& iConfig)
     tr->Branch(sys+"hlt_40_pass", &b_hlt_40_pass, sys+"hlt_40_pass/I");
     tr->Branch(sys+"hlt_60_pass", &b_hlt_60_pass, sys+"hlt_60_pass/I");
     tr->Branch(sys+"hlt_80_pass", &b_hlt_80_pass, sys+"hlt_80_pass/I");
+
     tr->Branch(sys+"hlt_140_pass", &b_hlt_140_pass, sys+"hlt_140_pass/I");
     tr->Branch(sys+"hlt_320_pass", &b_hlt_320_pass, sys+"hlt_320_pass/I");
     tr->Branch(sys+"hlt_400_pass", &b_hlt_400_pass, sys+"hlt_400_pass/I");
