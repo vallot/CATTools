@@ -14,6 +14,7 @@ namespace cat {
 
 TLorentzVector ToTLorentzVector(const reco::Candidate& t);
 typedef GreaterByPt<reco::Candidate> GtByCandPt;
+bool GtByTLVPt( TLorentzVector & t1, TLorentzVector & t2 );
 
 class AnalysisHelper {
  public:
