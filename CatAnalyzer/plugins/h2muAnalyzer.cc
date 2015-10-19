@@ -179,7 +179,8 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   edm::Handle<reco::GenParticleCollection> genParticles;
 
   vector<cat::Muon> selectedMuons = selectMuons( muons.product() );
-
+  sort(selectedMuons.begin(), selectedMuons.end(), GtByCandPt());
+  
   if (runOnMC_){
     iEvent.getByToken(mcLabel_,genParticles);
     bool bosonSample = false;

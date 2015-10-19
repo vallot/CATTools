@@ -30,8 +30,6 @@
 
 #define _USE_MATH_DEFINES
 #include <cmath>
-typedef ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double> > simpleJet;
-typedef GreaterByPt<simpleJet> GtByPt;
 using namespace std;
 
 class ColorCoherenceAnalyzer : public edm::EDAnalyzer{
@@ -39,15 +37,16 @@ public:
   explicit ColorCoherenceAnalyzer(const edm::ParameterSet&); 
   ~ColorCoherenceAnalyzer();
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
+
+   enum sys_e {sys_nom, sys_jes_u, sys_jes_d, sys_jer_u, sys_jer_d, sys_jar, nsys_e};
+ 
 private:
 
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
-  vector<cat::Jet> selectJets(const edm::View<cat::Jet>* jets);
-  vector<simpleJet> sortJets(vector<cat::Jet> seljets,  TString sys_name);
-  simpleJet sysJet(cat::Jet, TString sys_name);
-  simpleJet jarJet(cat::Jet jet);
-  vector<float> calBeta(vector<simpleJet> seljets);
   void resetBr();
+  vector<TLorentzVector> selectJets(const edm::View<cat::Jet>* jets, sys_e sys);
+  TLorentzVector sysJet(cat::Jet, sys_e sys);
+  TLorentzVector jarJet(cat::Jet jet);
 
   edm::EDGetTokenT<edm::View<cat::Jet> >      jetToken_;
   edm::EDGetTokenT<edm::View<cat::MET> >      metToken_;
@@ -56,7 +55,7 @@ private:
   edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjects_;
 
   vector<TTree*> ttree_;
-  vector<TString> sys_e;
+  vector<TString> sys_name;
 
   int b_nVtx, b_nJet, b_hlt_40_pass, b_hlt_60_pass, b_hlt_80_pass, b_hlt_140_pass, b_hlt_320_pass, b_hlt_400_pass, b_hlt_450_pass, b_hlt_500_pass;
   float b_beta, b_del_eta, b_del_phi, b_del_r;
@@ -64,7 +63,7 @@ private:
   float b_jet1_pt, b_jet1_eta, b_jet1_phi;
   float b_jet2_pt, b_jet2_eta, b_jet2_phi;
   float b_jet3_pt, b_jet3_eta, b_jet3_phi;
-  float b_met;
+  float b_met, b_metSig;
 
   bool runOnMC_;
   float b_gjet1_pt, b_gjet1_eta, b_gjet1_phi;
@@ -83,58 +82,54 @@ ColorCoherenceAnalyzer::ColorCoherenceAnalyzer(const edm::ParameterSet& iConfig)
   triggerObjects_ = consumes<pat::TriggerObjectStandAloneCollection>(iConfig.getParameter<edm::InputTag>("triggerObjects"));
 
   edm::Service<TFileService> fs;
-  sys_e.push_back("pt");
-  sys_e.push_back("eup");
-  sys_e.push_back("edown");
-  sys_e.push_back("esup");
-  sys_e.push_back("esdown");
-  sys_e.push_back("jar");
-  for (auto sys : sys_e) {
+  sys_name = {"nom", "jes_u", "jes_d", "jer_u", "jer_d", "jar"};
+  for (auto sys : sys_name) {
     ttree_.push_back(fs->make<TTree>(sys, "color cohernece systematic errors : "+sys));
   }
   for (auto tr : ttree_) {
     TString sys = TString(tr->GetName())+"_";
 
-    tr->Branch(sys+"nvtx", &b_nVtx, sys+"nvtx/I");
-    tr->Branch(sys+"njet", &b_nJet, sys+"njet/I");
-    tr->Branch(sys+"hlt_40_pass", &b_hlt_40_pass, sys+"hlt_40_pass/I");
-    tr->Branch(sys+"hlt_60_pass", &b_hlt_60_pass, sys+"hlt_60_pass/I");
-    tr->Branch(sys+"hlt_80_pass", &b_hlt_80_pass, sys+"hlt_80_pass/I");
+    tr->Branch("nvtx", &b_nVtx, "nvtx/I");
+    tr->Branch("njet", &b_nJet, "njet/I");
+    tr->Branch("hlt_40_pass", &b_hlt_40_pass, "hlt_40_pass/I");
+    tr->Branch("hlt_60_pass", &b_hlt_60_pass, "hlt_60_pass/I");
+    tr->Branch("hlt_80_pass", &b_hlt_80_pass, "hlt_80_pass/I");
 
-    tr->Branch(sys+"hlt_140_pass", &b_hlt_140_pass, sys+"hlt_140_pass/I");
-    tr->Branch(sys+"hlt_320_pass", &b_hlt_320_pass, sys+"hlt_320_pass/I");
-    tr->Branch(sys+"hlt_400_pass", &b_hlt_400_pass, sys+"hlt_400_pass/I");
-    tr->Branch(sys+"hlt_450_pass", &b_hlt_450_pass, sys+"hlt_450_pass/I");
-    tr->Branch(sys+"hlt_500_pass", &b_hlt_500_pass, sys+"hlt_500_pass/I");
-    tr->Branch(sys+"beta", &b_beta, sys+"beta/F");
-    tr->Branch(sys+"del_eta", &b_del_eta, sys+"del_eta/F");
-    tr->Branch(sys+"del_phi", &b_del_phi, sys+"del_phi/F");
-    tr->Branch(sys+"del_r", &b_del_r, sys+"del_r/F");
-    tr->Branch(sys+"del_r12", &b_del_r12, sys+"del_r12/F");
-    tr->Branch(sys+"raw_mass", &b_raw_mass, sys+"raw_mass/F");
-    tr->Branch(sys+"jet1_pt", &b_jet1_pt, sys+"jet1_pt/F");
-    tr->Branch(sys+"jet1_eta", &b_jet1_eta, sys+"jet1_eta/F");
-    tr->Branch(sys+"jet1_phi", &b_jet1_phi, sys+"jet1_phi/F");
-    tr->Branch(sys+"jet2_pt", &b_jet2_pt, sys+"jet2_pt/F");
-    tr->Branch(sys+"jet2_eta", &b_jet2_eta, sys+"jet2_eta/F");
-    tr->Branch(sys+"jet2_phi", &b_jet2_phi, sys+"jet2_phi/F");
-    tr->Branch(sys+"jet3_pt", &b_jet3_pt, sys+"jet3_pt/F");
-    tr->Branch(sys+"jet3_eta", &b_jet3_eta, sys+"jet3_eta/F");
-    tr->Branch(sys+"jet3_phi", &b_jet3_phi, sys+"jet3_phi/F");
-    tr->Branch(sys+"met", &b_met, sys+"met/F");
-    tr->Branch(sys+"gjet1_pt", &b_gjet1_pt, sys+"gjet1_pt/F");
-    tr->Branch(sys+"gjet1_eta", &b_gjet1_eta, sys+"gjet1_eta/F");
-    tr->Branch(sys+"gjet1_phi", &b_gjet1_phi, sys+"gjet1_phi/F");
-    tr->Branch(sys+"gjet2_pt", &b_gjet2_pt, sys+"gjet2_pt/F");
-    tr->Branch(sys+"gjet2_eta", &b_gjet2_eta, sys+"gjet2_eta/F");
-    tr->Branch(sys+"gjet2_phi", &b_gjet2_phi, sys+"gjet2_phi/F");
-    tr->Branch(sys+"gjet3_pt", &b_gjet3_pt, sys+"gjet3_pt/F");
-    tr->Branch(sys+"gjet3_eta", &b_gjet3_eta, sys+"gjet3_eta/F");
-    tr->Branch(sys+"gjet3_phi", &b_gjet3_phi, sys+"gjet3_phi/F");
-    tr->Branch(sys+"gbeta", &b_gbeta, sys+"gbeta/F");
-    tr->Branch(sys+"gdel_eta", &b_gdel_eta, sys+"gdel_eta/F");
-    tr->Branch(sys+"gdel_phi", &b_gdel_phi, sys+"gdel_phi/F");
-    tr->Branch(sys+"gdel_r", &b_gdel_r, sys+"gdel_r/F");
+    tr->Branch("hlt_140_pass", &b_hlt_140_pass, "hlt_140_pass/I");
+    tr->Branch("hlt_320_pass", &b_hlt_320_pass, "hlt_320_pass/I");
+    tr->Branch("hlt_400_pass", &b_hlt_400_pass, "hlt_400_pass/I");
+    tr->Branch("hlt_450_pass", &b_hlt_450_pass, "hlt_450_pass/I");
+    tr->Branch("hlt_500_pass", &b_hlt_500_pass, "hlt_500_pass/I");
+    tr->Branch("beta", &b_beta, "beta/F");
+    tr->Branch("del_eta", &b_del_eta, "del_eta/F");
+    tr->Branch("del_phi", &b_del_phi, "del_phi/F");
+    tr->Branch("del_r", &b_del_r, "del_r/F");
+    tr->Branch("del_r12", &b_del_r12, "del_r12/F");
+    tr->Branch("raw_mass", &b_raw_mass, "raw_mass/F");
+    tr->Branch("jet1_pt", &b_jet1_pt, "jet1_pt/F");
+    tr->Branch("jet1_eta", &b_jet1_eta, "jet1_eta/F");
+    tr->Branch("jet1_phi", &b_jet1_phi, "jet1_phi/F");
+    tr->Branch("jet2_pt", &b_jet2_pt, "jet2_pt/F");
+    tr->Branch("jet2_eta", &b_jet2_eta, "jet2_eta/F");
+    tr->Branch("jet2_phi", &b_jet2_phi, "jet2_phi/F");
+    tr->Branch("jet3_pt", &b_jet3_pt, "jet3_pt/F");
+    tr->Branch("jet3_eta", &b_jet3_eta, "jet3_eta/F");
+    tr->Branch("jet3_phi", &b_jet3_phi, "jet3_phi/F");
+    tr->Branch("met", &b_met, "met/F");
+    tr->Branch("metSig", &b_metSig, "metSig/F");
+    tr->Branch("gjet1_pt", &b_gjet1_pt, "gjet1_pt/F");
+    tr->Branch("gjet1_eta", &b_gjet1_eta, "gjet1_eta/F");
+    tr->Branch("gjet1_phi", &b_gjet1_phi, "gjet1_phi/F");
+    tr->Branch("gjet2_pt", &b_gjet2_pt, "gjet2_pt/F");
+    tr->Branch("gjet2_eta", &b_gjet2_eta, "gjet2_eta/F");
+    tr->Branch("gjet2_phi", &b_gjet2_phi, "gjet2_phi/F");
+    tr->Branch("gjet3_pt", &b_gjet3_pt, "gjet3_pt/F");
+    tr->Branch("gjet3_eta", &b_gjet3_eta, "gjet3_eta/F");
+    tr->Branch("gjet3_phi", &b_gjet3_phi, "gjet3_phi/F");
+    tr->Branch("gbeta", &b_gbeta, "gbeta/F");
+    tr->Branch("gdel_eta", &b_gdel_eta, "gdel_eta/F");
+    tr->Branch("gdel_phi", &b_gdel_phi, "gdel_phi/F");
+    tr->Branch("gdel_r", &b_gdel_r, "gdel_r/F");
   }   
   
 }
@@ -163,20 +158,17 @@ void ColorCoherenceAnalyzer::analyze(const edm::Event& iEvent, const edm::EventS
   const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
   cat::AnalysisHelper trigHelper = cat::AnalysisHelper(triggerNames, triggerBits, triggerObjects); 
 
-  vector<cat::Jet> selectedjets = selectJets(jets.product());
-  if (selectedjets.size() < 3) return;
-
-  for (unsigned int i = 0; i != sys_e.size(); i++){ 
+  for (int sys = 0; sys < nsys_e; ++sys){
     resetBr();
-    TString sys_name = sys_e[i];
+    
+    vector<TLorentzVector> seljets = selectJets(jets.product(), (sys_e)sys);
+    if (seljets.size() < 3) return;
 
-    vector<simpleJet> sortedjets = sortJets(selectedjets, sys_name);
-    if (sortedjets.size() < 3 ) return;
-
-    vector<float> beta_results = calBeta(sortedjets); 
+    sort(seljets.begin(), seljets.end(), cat::GtByTLVPt);
 
     b_nVtx = vtx.product()[0];
-    b_nJet = selectedjets.size();
+    b_nJet = seljets.size();
+    
     int hlt_count = 0;
     //trigHelper.listFiredTriggers();
     if(trigHelper.triggerFired("HLT_PAJet40_NoJetID_v")) {b_hlt_40_pass = 1; hlt_count++;}
@@ -189,89 +181,57 @@ void ColorCoherenceAnalyzer::analyze(const edm::Event& iEvent, const edm::EventS
     if(trigHelper.triggerFired("HLT_PFJet400_v")) {b_hlt_400_pass = 1; hlt_count++;}
     if(trigHelper.triggerFired("HLT_PFJet450_v")) {b_hlt_450_pass = 1; hlt_count++;}
     if(trigHelper.triggerFired("HLT_PFJet500_v")) {b_hlt_500_pass = 1; hlt_count++;}
-    if (hlt_count < 1) return;
-    b_beta = beta_results[0];
-    b_del_eta = beta_results[1];
-    b_del_phi = beta_results[2];
-    b_del_r = beta_results[3];
-    b_del_r12 = beta_results[4];
-    b_raw_mass = beta_results[5];
+    //if (hlt_count < 1) return;
+    
+    b_del_eta = copysign(1.0, seljets[1].Eta())*(seljets[2].Eta() - seljets[1].Eta());
+    b_del_phi = reco::deltaPhi(seljets[2].Phi(), seljets[1].Phi());
+    b_beta = atan2(b_del_phi, b_del_eta);
+    b_del_r = reco::deltaR(seljets[2].Eta(), seljets[2].Phi(), seljets[1].Eta(), seljets[1].Phi());
+    b_del_r12 = reco::deltaR(seljets[1].Eta(), seljets[1].Phi(), seljets[0].Eta(), seljets[0].Phi());
+    b_raw_mass = (seljets[0] + seljets[1]).M();
 
-    b_jet1_pt = sortedjets[0].pt();
-    b_jet1_eta = sortedjets[0].eta();
-    b_jet1_phi = sortedjets[0].phi();
-    b_jet2_pt = sortedjets[1].pt();
-    b_jet2_eta = sortedjets[1].eta();
-    b_jet2_phi = sortedjets[1].phi();
-    b_jet3_pt = sortedjets[2].pt();
-    b_jet3_eta = sortedjets[2].eta();
-    b_jet3_phi = sortedjets[2].phi();
-    b_met = mets->begin()->et()/mets->begin()->sumEt();
-    ttree_[i]->Fill();
+    b_jet1_pt = seljets[0].Pt(); b_jet1_eta = seljets[0].Eta(); b_jet1_phi = seljets[0].Phi();
+    b_jet2_pt = seljets[1].Pt(); b_jet2_eta = seljets[1].Eta(); b_jet2_phi = seljets[1].Phi();
+    b_jet3_pt = seljets[2].Pt(); b_jet3_eta = seljets[2].Eta(); b_jet3_phi = seljets[2].Phi();
+    b_met = mets->begin()->et();
+    b_metSig = mets->begin()->et()/mets->begin()->sumEt();
+    ttree_[sys]->Fill();
 
   }
 }
 
-
-vector<cat::Jet> ColorCoherenceAnalyzer::selectJets(const edm::View<cat::Jet>* jets)
+vector<TLorentzVector> ColorCoherenceAnalyzer::selectJets(const edm::View<cat::Jet>* jets, sys_e sys)
 {
-  vector<cat::Jet> seljets;
+  vector<TLorentzVector> seljets;
   for (auto jet : *jets) {
     if (!jet.LooseId()) continue;
-    if (jet.pt() <= 20.) continue;
     if (jet.pileupJetId() <0.9) continue;
-    seljets.push_back(jet);
+    TLorentzVector newjet = sysJet(jet, sys);    
+    if (newjet.Pt() <= 20.) continue;
+    
+    seljets.push_back(newjet);
   }
   return seljets;
 }
 
-simpleJet ColorCoherenceAnalyzer::sysJet(cat::Jet jet, TString sys_name)
+TLorentzVector ColorCoherenceAnalyzer::sysJet(cat::Jet jet, sys_e sys)
 {
-  simpleJet sJet(jet.pt(), jet.eta(), jet.phi(), jet.p4().M());
-  if (sys_name == "eup") sJet.SetPt(jet.pt()*jet.shiftedEnUp());
-  if (sys_name == "edown") sJet.SetPt(jet.pt()*jet.shiftedEnDown());
-  if (sys_name == "esup") sJet.SetPt(jet.pt()*jet.smearedResUp());
-  if (sys_name == "esdown") sJet.SetPt(jet.pt()*jet.smearedResDown());
-  if (sys_name == "jar") sJet = jarJet(jet);
-
-  return sJet;
-}
-
-simpleJet ColorCoherenceAnalyzer::jarJet(cat::Jet jet)
-{
-  simpleJet sJet(jet.pt(), jet.eta(), jet.phi(), jet.p4().M());
+  if (sys == sys_nom) return jet.tlv();
+  if (sys == sys_jes_u) return jet.tlv()*jet.shiftedEnUp();
+  if (sys == sys_jes_d) return jet.tlv()*jet.shiftedEnDown();
+  if (sys == sys_jer_u) return jet.tlv()*jet.smearedResUp();
+  if (sys == sys_jer_d) return jet.tlv()*jet.smearedResDown();
+  if (sys == sys_jar) return jarJet(jet);
   
-  return sJet;
+  return jet.tlv();
 }
 
-vector<simpleJet> ColorCoherenceAnalyzer::sortJets(vector<cat::Jet> seljets, TString sys_name)
+TLorentzVector ColorCoherenceAnalyzer::jarJet(cat::Jet jet)
 {
-  vector<simpleJet> sJet;
-  for (auto jet : seljets){
-    simpleJet tmp = sysJet(jet, sys_name);
-    if (tmp.pt() > 30.0) sJet.push_back(tmp);
-  }
-  sort(sJet.begin(), sJet.end(), GtByPt());
+  // temp... currently doing NOTHING
+  TLorentzVector sJet;
+  sJet.SetPtEtaPhiM(jet.pt(), jet.eta(), jet.phi(), jet.p4().M());
   return sJet;
-}
-
-vector<float> ColorCoherenceAnalyzer::calBeta(vector<simpleJet> seljets)
-{
-  vector<float> beta_res;
-  float del_eta = copysign(1.0, seljets[1].eta())*(seljets[2].eta() - seljets[1].eta());
-  float del_phi = reco::deltaPhi(seljets[2].phi(), seljets[1].phi());
-  float del_r = reco::deltaR(seljets[2].eta(), seljets[2].phi(), seljets[1].eta(), seljets[1].phi());
-  float beta = atan2(del_phi, del_eta);
-  float del_r12 = reco::deltaR(seljets[1].eta(), seljets[1].phi(), seljets[0].eta(), seljets[0].phi());
-  float raw_mass = (seljets[0] + seljets[1]).M();
-  beta_res.push_back(beta);
-  beta_res.push_back(del_eta);
-  beta_res.push_back(del_phi);
-  beta_res.push_back(del_r);
-  beta_res.push_back(del_r12);
-  beta_res.push_back(raw_mass);
-
-  return beta_res;
 }
 
 void ColorCoherenceAnalyzer::resetBr()
