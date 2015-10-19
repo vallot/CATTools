@@ -19,9 +19,20 @@ process.source = cms.Source("PoolSource",
 #'/store/user/youn/cat710_phy14_ttbar_2025_aod/catTuple_972.root'
 #in Kisti v736
 #"root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-3-6_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v4/150820_215807/0000/catTuple_1.root",
-'file:catTuple.root'
+#'file:catTuple.root'
 #'file:catTuple_DYJets.root'
 #'file:/cms/home/youn/work/cattool/tag711/cat/src/CATTools/CatProducer/prod/catTuple.root'
+'/store/group/CAT/MuonEG/v7-4-3_Run2015C-PromptReco-v1/151009_212654/0000/catTuple_13.root',
+'/store/group/CAT/MuonEG/v7-4-3_Run2015C-PromptReco-v1/151009_212654/0000/catTuple_11.root',
+'/store/group/CAT/MuonEG/v7-4-3_Run2015C-PromptReco-v1/151009_212654/0000/catTuple_34.root',
+'/store/group/CAT/MuonEG/v7-4-3_Run2015C-PromptReco-v1/151009_212654/0000/catTuple_38.root',
+'/store/group/CAT/MuonEG/v7-4-3_Run2015C-PromptReco-v1/151009_212654/0000/catTuple_23.root',
+'/store/group/CAT/MuonEG/v7-4-3_Run2015C-PromptReco-v1/151009_212654/0000/catTuple_46.root',
+'/store/group/CAT/MuonEG/v7-4-3_Run2015C-PromptReco-v1/151009_212654/0000/catTuple_53.root',
+'/store/group/CAT/MuonEG/v7-4-3_Run2015C-PromptReco-v1/151009_212654/0000/catTuple_54.root',
+'/store/group/CAT/MuonEG/v7-4-3_Run2015C-PromptReco-v1/151009_212654/0000/catTuple_36.root',
+'/store/group/CAT/MuonEG/v7-4-3_Run2015C-PromptReco-v1/151009_212654/0000/catTuple_63.root',
+'/store/group/CAT/MuonEG/v7-4-3_Run2015C-PromptReco-v1/151009_212654/0000/catTuple_60.root',
     )
 )
 
@@ -341,11 +352,12 @@ interestedTriggers = [
 
 for t in interestedTriggers:
     tNew = t.replace('_', '')
-    setattr(process, 'cat'+tNew, cms.EDProducer("CATTriggerBitCombiner",
+    setattr(process, 'cat'+tNew, cms.EDFilter("CATTriggerBitCombiner",
         triggerResults = cms.InputTag("TriggerResults::HLT"),
         triggerPrescales = cms.InputTag("patTrigger"),
         triggersToMatch = cms.vstring(t),
         combineBy = cms.string("or"),
+	doFilter = cms.bool(False),
     ))
 
     setattr(process.ntuple.int, tNew, cms.InputTag("cat"+tNew))
