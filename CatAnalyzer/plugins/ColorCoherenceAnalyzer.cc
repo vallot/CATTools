@@ -177,11 +177,13 @@ void ColorCoherenceAnalyzer::analyze(const edm::Event& iEvent, const edm::EventS
 
     b_nVtx = vtx.product()[0];
     b_nJet = selectedjets.size();
-    int hlt_count = 0; 
-    if(trigHelper.triggerFired("HLT_Jet40")) {b_hlt_40_pass = 1; hlt_count++;}
-    if(trigHelper.triggerFired("HLT_Jet60")) {b_hlt_60_pass = 1; hlt_count++;}
-    if(trigHelper.triggerFired("HLT_Jet80")) {b_hlt_80_pass = 1; hlt_count++;}
-
+    int hlt_count = 0;
+    //trigHelper.listFiredTriggers();
+    if(trigHelper.triggerFired("HLT_PAJet40_NoJetID_v")) {b_hlt_40_pass = 1; hlt_count++;}
+    if(trigHelper.triggerFired("HLT_PAJet60_NoJetID_v")) {b_hlt_60_pass = 1; hlt_count++;}
+    if(trigHelper.triggerFired("HLT_PAJet80_NoJetID_v")) {b_hlt_80_pass = 1; hlt_count++;}
+    
+    if(trigHelper.triggerFired("HLT_PFJet80_v")) {b_hlt_80_pass = 1; hlt_count++;}// dont u use pfjet80 too?
     if(trigHelper.triggerFired("HLT_PFJet140_v")) {b_hlt_140_pass = 1; hlt_count++;}  
     if(trigHelper.triggerFired("HLT_PFJet320_v")) {b_hlt_320_pass = 1; hlt_count++;}
     if(trigHelper.triggerFired("HLT_PFJet400_v")) {b_hlt_400_pass = 1; hlt_count++;}

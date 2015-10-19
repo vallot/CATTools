@@ -24,6 +24,7 @@ class AnalysisHelper {
   bool triggerNotSet();
   bool triggerFired(const std::string& trigname);
   bool triggerMatched(const std::string& trigname, const cat::Particle & recoObj, const float dR = 0.1);
+  void listFiredTriggers();
 
  private:
 
