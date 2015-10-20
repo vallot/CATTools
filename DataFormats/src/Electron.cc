@@ -6,7 +6,7 @@ using namespace cat;
 Electron::Electron() {
 }
 
-Electron::Electron(const reco::LeafCandidate & aElectron) : Particle( aElectron ) {
+Electron::Electron(const reco::LeafCandidate & aElectron) : Lepton( aElectron ) {
 }
 
 /// destructor
@@ -15,7 +15,8 @@ Electron::~Electron() {
 
 float Electron::electronID(const std::string& name) const {
   for (std::vector<pat::Electron::IdPair>::const_iterator it = electronIDs_.begin(), ed = electronIDs_.end(); it != ed; ++it) {
-    if (it->first == name) return it->second;
+    if (it->first.find(name) != std::string::npos)
+      return it->second;
   }
   cms::Exception ex("Key not found");
   ex << "cat::Electron: the ID " << name << " can't be found in this cat::Electron.\n";

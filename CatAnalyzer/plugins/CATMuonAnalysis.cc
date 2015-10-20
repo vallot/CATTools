@@ -1,8 +1,3 @@
-// system include files
-#include <memory>
-
-// user include files
-#include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -24,7 +19,6 @@
 #include "DataFormats/PatCandidates/interface/LookupTableRecord.h"
 
 #include "TH1F.h"
-#include "TFile.h"
 #include "TTree.h"
 
 using namespace std;
@@ -41,7 +35,7 @@ class CATMuonAnalysis : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 
     // ----------member data ---------------------------
 
-    edm::EDGetTokenT<edm::View<cat::Muon> > src_;
+    edm::EDGetTokenT<cat::MuonCollection> src_;
 
     TH1F* phi;
     TH1F* eta;
@@ -54,7 +48,7 @@ class CATMuonAnalysis : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 };
 
 CATMuonAnalysis::CATMuonAnalysis(const edm::ParameterSet& iConfig):
-  src_(consumes<edm::View<cat::Muon> >(iConfig.getParameter<edm::InputTag>("src")))
+  src_(consumes<cat::MuonCollection>(iConfig.getParameter<edm::InputTag>("src")))
 {
   usesResource("TFileService");
   edm::Service<TFileService> fs;
@@ -82,7 +76,7 @@ void CATMuonAnalysis::analyze( const edm::Event& iEvent, const edm::EventSetup& 
   using namespace std;
   using namespace reco;
 
-  Handle<View<cat::Muon> > src;
+  Handle<cat::MuonCollection> src;
   iEvent.getByToken(src_, src);
 
   for (unsigned int i = 0; i < src->size() ; i++) {

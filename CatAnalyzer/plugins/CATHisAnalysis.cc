@@ -1,8 +1,3 @@
-// system include files
-#include <memory>
-
-// user include files
-#include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -22,7 +17,6 @@
 #include "CATTools/DataFormats/interface/Tau.h"
 
 #include "TH1F.h"
-#include "TFile.h"
 #include "TTree.h"
 
 void analyze()
@@ -41,22 +35,15 @@ class CATHisAnalysis : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 
   private:
 
-    // ----------member data ---------------------------
-    typedef cat::Electron TElectron;
     typedef cat::GenJet TGenJet;
-    typedef cat::Jet TJet;
-    typedef cat::MET TMET;
-    typedef cat::Muon TMuon;
-    typedef cat::Photon TPhoton;
-    typedef cat::Tau TTau;
 
-    edm::EDGetTokenT<edm::View<TElectron> > electronToken_;
-    edm::EDGetTokenT<edm::View<TGenJet> > genjetToken_;
-    edm::EDGetTokenT<edm::View<TJet> > jetToken_;
-    edm::EDGetTokenT<edm::View<TMET> > metToken_;
-    edm::EDGetTokenT<edm::View<TMuon> > muonToken_;
-    edm::EDGetTokenT<edm::View<TPhoton> > photonToken_;
-    edm::EDGetTokenT<edm::View<TTau> > tauToken_;
+    edm::EDGetTokenT<cat::ElectronCollection> electronToken_;
+    edm::EDGetTokenT<cat::GenJetCollection> genjetToken_;
+    edm::EDGetTokenT<cat::JetCollection> jetToken_;
+    edm::EDGetTokenT<cat::METCollection> metToken_;
+    edm::EDGetTokenT<cat::MuonCollection> muonToken_;
+    edm::EDGetTokenT<cat::PhotonCollection> photonToken_;
+    edm::EDGetTokenT<cat::TauCollection> tauToken_;
 
     TH1F* hElectron_phi_;
     TH1F* hElectron_eta_;
@@ -109,13 +96,13 @@ class CATHisAnalysis : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 
 CATHisAnalysis::CATHisAnalysis(const edm::ParameterSet& pset )
 {
-  electronToken_ = consumes<edm::View<TElectron> >(pset.getParameter<edm::InputTag>("electrons"));
-  genjetToken_   = consumes<edm::View<TGenJet> >(pset.getParameter<edm::InputTag>("genjets"));
-  jetToken_      = consumes<edm::View<TJet> >(pset.getParameter<edm::InputTag>("jets"));
-  metToken_      = consumes<edm::View<TMET> >(pset.getParameter<edm::InputTag>("mets"));
-  muonToken_     = consumes<edm::View<TMuon> >(pset.getParameter<edm::InputTag>("muons"));
-  photonToken_   = consumes<edm::View<TPhoton> >(pset.getParameter<edm::InputTag>("photons"));
-  tauToken_      = consumes<edm::View<TTau> >(pset.getParameter<edm::InputTag>("taus"));
+  electronToken_ = consumes<cat::ElectronCollection>(pset.getParameter<edm::InputTag>("electrons"));
+  genjetToken_   = consumes<cat::GenJetCollection>(pset.getParameter<edm::InputTag>("genjets"));
+  jetToken_      = consumes<cat::JetCollection>(pset.getParameter<edm::InputTag>("jets"));
+  metToken_      = consumes<cat::METCollection>(pset.getParameter<edm::InputTag>("mets"));
+  muonToken_     = consumes<cat::MuonCollection>(pset.getParameter<edm::InputTag>("muons"));
+  photonToken_   = consumes<cat::PhotonCollection>(pset.getParameter<edm::InputTag>("photons"));
+  tauToken_      = consumes<cat::TauCollection>(pset.getParameter<edm::InputTag>("taus"));
 
   usesResource("TFileService");
   edm::Service<TFileService> fs;
@@ -182,7 +169,7 @@ void CATHisAnalysis::analyze( const edm::Event& iEvent, const edm::EventSetup&)
   using namespace std;
   using namespace reco;
 
-  edm::Handle<edm::View<TElectron> > electronHandle;
+  edm::Handle<cat::ElectronCollection> electronHandle;
   iEvent.getByToken(electronToken_,electronHandle);
   for ( int i=0, n=electronHandle->size(); i<n; ++i )
   {
@@ -198,7 +185,7 @@ void CATHisAnalysis::analyze( const edm::Event& iEvent, const edm::EventSetup&)
     hElectron_puIso_->Fill( electron.puChargedHadronIso() );
   }
 
-  edm::Handle<edm::View<TGenJet> > genjetHandle;
+  edm::Handle<cat::GenJetCollection> genjetHandle;
   iEvent.getByToken(genjetToken_,genjetHandle);
   for ( int i=0, n=genjetHandle->size(); i<n; ++i )
   {
@@ -210,7 +197,7 @@ void CATHisAnalysis::analyze( const edm::Event& iEvent, const edm::EventSetup&)
     hGenJet_mass_ ->Fill( genjet.mass() );
   }
 
-  edm::Handle<edm::View<TJet> > jetHandle;
+  edm::Handle<cat::JetCollection> jetHandle;
   iEvent.getByToken(jetToken_,jetHandle);
   for ( int i=0, n=jetHandle->size(); i<n; ++i )
   {
@@ -222,7 +209,7 @@ void CATHisAnalysis::analyze( const edm::Event& iEvent, const edm::EventSetup&)
     hJet_mass_ ->Fill( jet.mass() );
   }
 
-  edm::Handle<edm::View<TMET> > metHandle;
+  edm::Handle<cat::METCollection> metHandle;
   iEvent.getByToken(metToken_,metHandle);
   for ( int i=0, n=metHandle->size(); i<n; ++i )
   {
@@ -234,7 +221,7 @@ void CATHisAnalysis::analyze( const edm::Event& iEvent, const edm::EventSetup&)
     //hMet_mass_ ->Fill( met.mass() );
   }
 
-  edm::Handle<edm::View<TMuon> > muonHandle;
+  edm::Handle<cat::MuonCollection> muonHandle;
   iEvent.getByToken(muonToken_,muonHandle);
   for ( int i=0, n=muonHandle->size(); i<n; ++i )
   {
@@ -250,7 +237,7 @@ void CATHisAnalysis::analyze( const edm::Event& iEvent, const edm::EventSetup&)
     hMuon_puIso_->Fill( muon.puChargedHadronIso() );
   }
 
-  edm::Handle<edm::View<TPhoton> > photonHandle;
+  edm::Handle<cat::PhotonCollection> photonHandle;
   iEvent.getByToken(photonToken_,photonHandle);
   for ( int i=0, n=photonHandle->size(); i<n; ++i )
   {
@@ -266,7 +253,7 @@ void CATHisAnalysis::analyze( const edm::Event& iEvent, const edm::EventSetup&)
     hPhoton_puIso_->Fill( photon.puChargedHadronIso() );
   }
 
-  edm::Handle<edm::View<TTau> > tauHandle;
+  edm::Handle<cat::TauCollection> tauHandle;
   iEvent.getByToken(tauToken_,tauHandle);
   for ( int i=0, n=tauHandle->size(); i<n; ++i )
   {

@@ -29,8 +29,8 @@ process.source = cms.Source("PoolSource",fileNames = cms.untracked.vstring())
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(100))
 
 ## total event counter
-process.totaEvents = cms.EDProducer("EventCountProducer")
-process.p = cms.Path(process.totaEvents)
+process.nEventsTotal = cms.EDProducer("EventCountProducer")
+process.p = cms.Path(process.nEventsTotal)
 
 ## Output Module Configuration (expects a path 'p')
 process.out = cms.OutputModule("PoolOutputModule",
@@ -38,4 +38,4 @@ process.out = cms.OutputModule("PoolOutputModule",
     outputCommands = cms.untracked.vstring('drop *')
 )
 
-process.outpath = cms.EndPath(process.out)
+process.schedule = cms.Schedule()    

@@ -20,7 +20,7 @@ process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 #
 
 #process.source.fileNames = ['file:catTuple.root']
-#process.source.fileNames.append('/store/group/CAT/MuonEG/v7-4-2_Run2015C-PromptReco-v1/150923_202331/0000/catTuple_2.root')
+process.source.fileNames.append('/store/group/CAT/MuonEG/v7-4-2_Run2015C-PromptReco-v1/150923_202331/0000/catTuple_2.root')
 process.source.fileNames.append('/store/group/CAT/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-2_RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/150923_215647/0001/catTuple_1046.root')
 process.source.fileNames.append('/store/group/CAT/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-2_RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/150923_215647/0001/catTuple_1047.root')
 process.source.fileNames.append('/store/group/CAT/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-2_RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/150923_215647/0001/catTuple_1048.root')
@@ -109,8 +109,8 @@ process.ttll = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     partonTop_modes = cms.InputTag("partonTop", "modes"),
     partonTop_genParticles = cms.InputTag("partonTop"),
 
-    isTTbarMC = cms.bool(True),
-    #isTTbarMC = cms.bool(False),
+    #isTTbarMC = cms.bool(True),
+    isTTbarMC = cms.bool(False),
     pseudoTop = cms.InputTag("pseudoTop"),
     
     solver = process.ttbarDileptonKinAlgoPSetCMSKin,
