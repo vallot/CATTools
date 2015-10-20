@@ -1,9 +1,9 @@
 import FWCore.ParameterSet.Config as cms
 
 catSecVertexs = cms.EDProducer("CATSecVertexProducer",
-    muonSrc = cms.InputTag("selectedPatMuonsPFlow"),
-    elecSrc = cms.InputTag("selectedPatElectronsPFlow"),
-    vertexLabel = cms.InputTag("offlineSlimmedPrimaryVertices"),
+    muonSrc = cms.InputTag("slimmedMuons"),
+    elecSrc = cms.InputTag("slimmedElectrons"),
+    vertexLabel = cms.InputTag("catVertex"),
     track = cms.PSet(
         minPt = cms.double(1.0),
         maxEta = cms.double(2.5),

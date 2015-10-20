@@ -1,7 +1,4 @@
-#include <memory>
-
-#include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -9,7 +6,6 @@
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
-#include "CommonTools/Utils/interface/PtComparator.h"
 
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 
@@ -22,9 +18,7 @@
 #include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/Math/interface/deltaPhi.h"
 
-#include "TString.h"
 #include "TTree.h"
-#include "TFile.h"
 #include "TLorentzVector.h"
 #include "Math/PtEtaPhiM4D.h"
 
@@ -32,30 +26,28 @@
 #include <cmath>
 using namespace std;
 
-class ColorCoherenceAnalyzer : public edm::EDAnalyzer{
+class ColorCoherenceAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
-  explicit ColorCoherenceAnalyzer(const edm::ParameterSet&); 
-  ~ColorCoherenceAnalyzer();
-  static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
+  explicit ColorCoherenceAnalyzer(const edm::ParameterSet&);
+  ~ColorCoherenceAnalyzer() {};
 
-   enum sys_e {sys_nom, sys_jes_u, sys_jes_d, sys_jer_u, sys_jer_d, sys_jar, nsys_e};
- 
+  enum sys_e {sys_nom, sys_jes_u, sys_jes_d, sys_jer_u, sys_jer_d, sys_jar, nsys_e};
+
 private:
 
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
   void resetBr();
-  vector<TLorentzVector> selectJets(const edm::View<cat::Jet>* jets, sys_e sys);
-  TLorentzVector sysJet(cat::Jet, sys_e sys);
-  TLorentzVector jarJet(cat::Jet jet);
+  vector<TLorentzVector> selectJets(const cat::JetCollection& jets, sys_e sys) const;
+  TLorentzVector sysJet(const cat::Jet&, sys_e sys) const;
+  TLorentzVector jarJet(const cat::Jet& jet) const;
 
-  edm::EDGetTokenT<edm::View<cat::Jet> >      jetToken_;
-  edm::EDGetTokenT<edm::View<cat::MET> >      metToken_;
+  edm::EDGetTokenT<cat::JetCollection>      jetToken_;
+  edm::EDGetTokenT<cat::METCollection>      metToken_;
   edm::EDGetTokenT<int>   vtxToken_;
   edm::EDGetTokenT<edm::TriggerResults> triggerBits_;
   edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjects_;
 
   vector<TTree*> ttree_;
-  vector<TString> sys_name;
 
   int b_nVtx, b_nJet, b_hlt_40_pass, b_hlt_60_pass, b_hlt_80_pass, b_hlt_140_pass, b_hlt_320_pass, b_hlt_400_pass, b_hlt_450_pass, b_hlt_500_pass;
   float b_beta, b_del_eta, b_del_phi, b_del_r;
@@ -75,19 +67,18 @@ private:
 
 ColorCoherenceAnalyzer::ColorCoherenceAnalyzer(const edm::ParameterSet& iConfig)
 {
-  jetToken_  = consumes<edm::View<cat::Jet> >(iConfig.getParameter<edm::InputTag>("jets"));
-  metToken_  = consumes<edm::View<cat::MET> >(iConfig.getParameter<edm::InputTag>("mets"));
+  jetToken_  = consumes<cat::JetCollection>(iConfig.getParameter<edm::InputTag>("jets"));
+  metToken_  = consumes<cat::METCollection>(iConfig.getParameter<edm::InputTag>("mets"));
   vtxToken_  = consumes<int>(iConfig.getParameter<edm::InputTag>("vtx"));
   triggerBits_ = consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerBits"));
   triggerObjects_ = consumes<pat::TriggerObjectStandAloneCollection>(iConfig.getParameter<edm::InputTag>("triggerObjects"));
 
+  usesResource("TFileService");
   edm::Service<TFileService> fs;
-  sys_name = {"nom", "jes_u", "jes_d", "jer_u", "jer_d", "jar"};
+  const std::vector<std::string> sys_name = {"nom", "jes_u", "jes_d", "jer_u", "jer_d", "jar"};
   for (auto sys : sys_name) {
-    ttree_.push_back(fs->make<TTree>(sys, "color cohernece systematic errors : "+sys));
-  }
-  for (auto tr : ttree_) {
-    TString sys = TString(tr->GetName())+"_";
+    ttree_.push_back(fs->make<TTree>(sys.c_str(), (string("color cohernece systematic errors : ")+sys).c_str()));
+    auto tr = ttree_.back();
 
     tr->Branch("nvtx", &b_nVtx, "nvtx/I");
     tr->Branch("njet", &b_nJet, "njet/I");
@@ -130,20 +121,18 @@ ColorCoherenceAnalyzer::ColorCoherenceAnalyzer(const edm::ParameterSet& iConfig)
     tr->Branch("gdel_eta", &b_gdel_eta, "gdel_eta/F");
     tr->Branch("gdel_phi", &b_gdel_phi, "gdel_phi/F");
     tr->Branch("gdel_r", &b_gdel_r, "gdel_r/F");
-  }   
-  
+  }
+
 }
-ColorCoherenceAnalyzer::~ColorCoherenceAnalyzer(){}
 
 void ColorCoherenceAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   runOnMC_ = !iEvent.isRealData();
 
-  edm::Handle<edm::View<cat::Jet> > jets;
-  iEvent.getByToken(jetToken_, jets);
+  edm::Handle<cat::JetCollection> jets;
   if (!iEvent.getByToken(jetToken_, jets)) return;
 
-  edm::Handle<edm::View<cat::MET> > mets;
+  edm::Handle<cat::METCollection> mets;
   iEvent.getByToken(metToken_, mets);
 
   edm::Handle<int> vtx;
@@ -156,33 +145,33 @@ void ColorCoherenceAnalyzer::analyze(const edm::Event& iEvent, const edm::EventS
   iEvent.getByToken(triggerObjects_, triggerObjects);
 
   const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
-  cat::AnalysisHelper trigHelper = cat::AnalysisHelper(triggerNames, triggerBits, triggerObjects); 
+  cat::AnalysisHelper trigHelper = cat::AnalysisHelper(triggerNames, triggerBits, triggerObjects);
 
   for (int sys = 0; sys < nsys_e; ++sys){
     resetBr();
-    
-    vector<TLorentzVector> seljets = selectJets(jets.product(), (sys_e)sys);
+
+    vector<TLorentzVector>&& seljets = selectJets(*(jets.product()), (sys_e)sys);
     if (seljets.size() < 3) return;
 
     sort(seljets.begin(), seljets.end(), cat::GtByTLVPt);
 
-    b_nVtx = vtx.product()[0];
+    b_nVtx = *vtx;
     b_nJet = seljets.size();
-    
+
     int hlt_count = 0;
     //trigHelper.listFiredTriggers();
     if(trigHelper.triggerFired("HLT_PAJet40_NoJetID_v")) {b_hlt_40_pass = 1; hlt_count++;}
     if(trigHelper.triggerFired("HLT_PAJet60_NoJetID_v")) {b_hlt_60_pass = 1; hlt_count++;}
     if(trigHelper.triggerFired("HLT_PAJet80_NoJetID_v")) {b_hlt_80_pass = 1; hlt_count++;}
-    
+
     if(trigHelper.triggerFired("HLT_PFJet80_v")) {b_hlt_80_pass = 1; hlt_count++;}// dont u use pfjet80 too?
-    if(trigHelper.triggerFired("HLT_PFJet140_v")) {b_hlt_140_pass = 1; hlt_count++;}  
+    if(trigHelper.triggerFired("HLT_PFJet140_v")) {b_hlt_140_pass = 1; hlt_count++;}
     if(trigHelper.triggerFired("HLT_PFJet320_v")) {b_hlt_320_pass = 1; hlt_count++;}
     if(trigHelper.triggerFired("HLT_PFJet400_v")) {b_hlt_400_pass = 1; hlt_count++;}
     if(trigHelper.triggerFired("HLT_PFJet450_v")) {b_hlt_450_pass = 1; hlt_count++;}
     if(trigHelper.triggerFired("HLT_PFJet500_v")) {b_hlt_500_pass = 1; hlt_count++;}
     //if (hlt_count < 1) return;
-    
+
     b_del_eta = copysign(1.0, seljets[1].Eta())*(seljets[2].Eta() - seljets[1].Eta());
     b_del_phi = reco::deltaPhi(seljets[2].Phi(), seljets[1].Phi());
     b_beta = atan2(b_del_phi, b_del_eta);
@@ -193,6 +182,8 @@ void ColorCoherenceAnalyzer::analyze(const edm::Event& iEvent, const edm::EventS
     b_jet1_pt = seljets[0].Pt(); b_jet1_eta = seljets[0].Eta(); b_jet1_phi = seljets[0].Phi();
     b_jet2_pt = seljets[1].Pt(); b_jet2_eta = seljets[1].Eta(); b_jet2_phi = seljets[1].Phi();
     b_jet3_pt = seljets[2].Pt(); b_jet3_eta = seljets[2].Eta(); b_jet3_phi = seljets[2].Phi();
+
+    // TODO: MET uncertainty due to jet energy scale to be added!!!
     b_met = mets->begin()->et();
     b_metSig = mets->begin()->et()/mets->begin()->sumEt();
     ttree_[sys]->Fill();
@@ -200,21 +191,21 @@ void ColorCoherenceAnalyzer::analyze(const edm::Event& iEvent, const edm::EventS
   }
 }
 
-vector<TLorentzVector> ColorCoherenceAnalyzer::selectJets(const edm::View<cat::Jet>* jets, sys_e sys)
+vector<TLorentzVector> ColorCoherenceAnalyzer::selectJets(const cat::JetCollection& jets, sys_e sys) const
 {
   vector<TLorentzVector> seljets;
-  for (auto jet : *jets) {
+  for (auto jet : jets) {
     if (!jet.LooseId()) continue;
     if (jet.pileupJetId() <0.9) continue;
-    TLorentzVector newjet = sysJet(jet, sys);    
+    const TLorentzVector&& newjet = sysJet(jet, sys);
     if (newjet.Pt() <= 20.) continue;
-    
+
     seljets.push_back(newjet);
   }
   return seljets;
 }
 
-TLorentzVector ColorCoherenceAnalyzer::sysJet(cat::Jet jet, sys_e sys)
+TLorentzVector ColorCoherenceAnalyzer::sysJet(const cat::Jet& jet, sys_e sys) const
 {
   if (sys == sys_nom) return jet.tlv();
   if (sys == sys_jes_u) return jet.tlv()*jet.shiftedEnUp();
@@ -222,11 +213,11 @@ TLorentzVector ColorCoherenceAnalyzer::sysJet(cat::Jet jet, sys_e sys)
   if (sys == sys_jer_u) return jet.tlv()*jet.smearedResUp();
   if (sys == sys_jer_d) return jet.tlv()*jet.smearedResDown();
   if (sys == sys_jar) return jarJet(jet);
-  
+
   return jet.tlv();
 }
 
-TLorentzVector ColorCoherenceAnalyzer::jarJet(cat::Jet jet)
+TLorentzVector ColorCoherenceAnalyzer::jarJet(const cat::Jet& jet) const
 {
   // temp... currently doing NOTHING
   TLorentzVector sJet;
@@ -250,12 +241,4 @@ void ColorCoherenceAnalyzer::resetBr()
   b_gjet3_pt = -99; b_gjet3_eta = -99; b_gjet3_phi = -99;
 }
 
-void ColorCoherenceAnalyzer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) 
-{
-  //The following says we do not know what parameters are allowed so do no validation
-  //  // Please change this to state exactly what you do use, even if it is no parameters
-  edm::ParameterSetDescription desc;
-  desc.setUnknown();
-  descriptions.addDefault(desc);
-}
 DEFINE_FWK_MODULE(ColorCoherenceAnalyzer);

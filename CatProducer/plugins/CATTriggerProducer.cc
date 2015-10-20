@@ -41,7 +41,7 @@ private:
   edm::EDGetTokenT<edm::TriggerResults> metFilterBitsPAT_;
   edm::EDGetTokenT<edm::TriggerResults> metFilterBitsRECO_;
 
-  strings hltPaths_;
+  strings selectTrigObjects_;
   pairstrings hltNames_;
   pairstrings metFilterNames_;
   //HLTConfigProvider hltConfig_;
@@ -56,10 +56,10 @@ CATTriggerProducer::CATTriggerProducer(const edm::ParameterSet& pset):
 {
   const boost::regex matchVersion("_v[0-9\\*]+$"); // regexp from HLTrigger/HLTCore/HLTConfigProvider
 
-  for ( auto& hltPath : pset.getParameter<strings>("hltPaths") ){
-    hltPaths_.push_back(hltPath);
+  for ( auto& selectTrigObject : pset.getParameter<strings>("selectTrigObjects") ){
+    selectTrigObjects_.push_back(selectTrigObject);
   }
-  if (hltPaths_.size()){
+  if (selectTrigObjects_.size()){
     produces<pat::TriggerObjectStandAloneCollection >();
   }
 
@@ -101,7 +101,7 @@ void CATTriggerProducer::produce(edm::Event& event, const edm::EventSetup& event
 
   const edm::TriggerNames &trigNames = event.triggerNames(*triggerBits);
 
-  if (hltPaths_.size()){
+  if (selectTrigObjects_.size()){
     // filtering TriggerObjectStandAlone
     edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
     event.getByToken(triggerObjects_, triggerObjects);
@@ -111,8 +111,8 @@ void CATTriggerProducer::produce(edm::Event& event, const edm::EventSetup& event
       trigObj.unpackPathNames(trigNames);
       std::vector<std::string> pathNamesAll  = trigObj.pathNames(false);
       for (unsigned h = 0, n = pathNamesAll.size(); h < n; ++h) {
-	for ( auto& hltPath : hltPaths_ ){
-	  if (pathNamesAll[h].find(hltPath) == 0){
+	for ( auto& selectTrigObject : selectTrigObjects_ ){
+	  if (pathNamesAll[h].find(selectTrigObject) == 0){
 	    if (trigObj.hasPathName( pathNamesAll[h], true, true )){
 	      keepTriggerObject = true;
 	    }
