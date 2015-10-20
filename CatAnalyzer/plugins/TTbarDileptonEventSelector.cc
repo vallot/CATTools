@@ -1,4 +1,3 @@
-#include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -13,7 +12,6 @@
 //#include "DataFormats/Candidate/interface/CompositeCandidate.h"
 //#include "DataFormats/Candidate/interface/CompositeRefCandidate.h"
 #include "DataFormats/Candidate/interface/CompositePtrCandidate.h"
-#include "CommonTools/Utils/interface/PtComparator.h"
 
 using namespace std;
 

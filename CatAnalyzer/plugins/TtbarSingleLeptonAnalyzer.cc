@@ -17,7 +17,6 @@
 //
 //
 
-#include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
@@ -39,7 +38,6 @@
 
 #include "TH1.h"
 #include "TTree.h"
-#include "TFile.h"
 #include "TLorentzVector.h"
 //
 // class declaration

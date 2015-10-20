@@ -1,6 +1,3 @@
-#include <memory>
-
-#include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
@@ -9,7 +6,6 @@
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
-#include "CommonTools/Utils/interface/PtComparator.h"
 
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 
@@ -24,7 +20,6 @@
 
 #include "TString.h"
 #include "TTree.h"
-#include "TFile.h"
 #include "TLorentzVector.h"
 #include "Math/PtEtaPhiM4D.h"
 

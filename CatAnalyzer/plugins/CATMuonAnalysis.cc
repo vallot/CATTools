@@ -1,8 +1,4 @@
-// system include files
-#include <memory>
-
 // user include files
-#include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -24,7 +20,6 @@
 #include "DataFormats/PatCandidates/interface/LookupTableRecord.h"
 
 #include "TH1F.h"
-#include "TFile.h"
 #include "TTree.h"
 
 using namespace std;
