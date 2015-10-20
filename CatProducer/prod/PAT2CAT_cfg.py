@@ -27,34 +27,45 @@ if not runOnMC:
     process.GlobalTag.globaltag = autoCond['run2_data']
 if globalTag:
     process.GlobalTag.globaltag = globalTag
-
 ####################################################################
-#### setting up pat tools - miniaod step
+#### cat tools output
 ####################################################################
-from CATTools.CatProducer.patTools_cff import *
-patTool(process, runOnMC, useMiniAOD)
+process.load("CATTools.CatProducer.catCandidates_cff")    
+from CATTools.CatProducer.catEventContent_cff import *
+process.out.outputCommands = catEventContent
 
+if runOnMC:
+    process.load("CATTools.CatProducer.genWeight_cff")
+    process.load("CATTools.CatProducer.pileupWeight_cff")
+    process.out.outputCommands.extend(catEventContentMC)
+    
+if runGenTop:
+    from CATTools.CatProducer.catGenHFHadronMatching_cff import *
+    genHFTool(process, useMiniAOD)
+    process.load("CATTools.CatProducer.mcTruthTop.mcTruthTop_cff")
+    process.out.outputCommands.extend(catEventContentTOPMC)
+    if not useMiniAOD:
+        process.out.outputCommands.extend(['keep *_catGenTops_*_*',])
+            
+if doSecVertex:
+    process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
+    process.out.outputCommands.extend(catEventContentSecVertexs)
+
+from PhysicsTools.PatAlgos.slimming.miniAOD_tools import miniAOD_customizeOutput
+miniAOD_customizeOutput(process.out)
+    
+process.outpath = cms.EndPath(process.out)    
+process.schedule.append(process.outpath)
 ####################################################################
 #### setting up cat tools
 ####################################################################
 from CATTools.CatProducer.catTools_cff import *
-catTool(process, runOnMC, doSecVertex, useMiniAOD)
-
-from CATTools.CatProducer.catEventContent_cff import *
-process.out.outputCommands = catEventContent
-if runOnMC:
-    process.out.outputCommands.extend(catEventContentMC)
-    if runGenTop:
-        from CATTools.CatProducer.catGenHFHadronMatching_cff import *
-        genHFTool(process, useMiniAOD)
-        process.load("CATTools.CatProducer.mcTruthTop.mcTruthTop_cff")
-        process.out.outputCommands.extend(catEventContentTOPMC)
-        if not useMiniAOD:
-            process.out.outputCommands.extend(['keep *_catGenTops_*_*',])
-            
-if doSecVertex:
-    process.out.outputCommands.extend(catEventContentSecVertexs)
-
+catTool(process, runOnMC, useMiniAOD)
+####################################################################
+#### setting up pat tools - miniAOD step or correcting miniAOD
+####################################################################
+from CATTools.CatProducer.patTools_cff import *
+patTool(process, runOnMC, useMiniAOD)
 ####################################################################
 #### cmsRun options
 ####################################################################
