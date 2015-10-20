@@ -1,4 +1,4 @@
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -26,7 +26,7 @@
 using namespace std;
 using namespace cat;
 
-class h2muAnalyzer : public edm::EDAnalyzer {
+class h2muAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
   explicit h2muAnalyzer(const edm::ParameterSet&);
   ~h2muAnalyzer() {};
@@ -82,6 +82,7 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
   triggerBits_ = consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerBits"));
   triggerObjects_ = consumes<pat::TriggerObjectStandAloneCollection>(iConfig.getParameter<edm::InputTag>("triggerObjects"));
 
+  usesResource("TFileService");
   edm::Service<TFileService> fs;
   ttree_ = fs->make<TTree>("tree", "tree");
   ttree_->Branch("njet", &b_njet, "njet/I");

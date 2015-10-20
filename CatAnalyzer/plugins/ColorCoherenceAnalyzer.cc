@@ -1,4 +1,4 @@
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -26,7 +26,7 @@
 #include <cmath>
 using namespace std;
 
-class ColorCoherenceAnalyzer : public edm::EDAnalyzer{
+class ColorCoherenceAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
   explicit ColorCoherenceAnalyzer(const edm::ParameterSet&);
   ~ColorCoherenceAnalyzer() {};
@@ -73,6 +73,7 @@ ColorCoherenceAnalyzer::ColorCoherenceAnalyzer(const edm::ParameterSet& iConfig)
   triggerBits_ = consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerBits"));
   triggerObjects_ = consumes<pat::TriggerObjectStandAloneCollection>(iConfig.getParameter<edm::InputTag>("triggerObjects"));
 
+  usesResource("TFileService");
   edm::Service<TFileService> fs;
   const std::vector<std::string> sys_name = {"nom", "jes_u", "jes_d", "jer_u", "jer_d", "jar"};
   for (auto sys : sys_name) {

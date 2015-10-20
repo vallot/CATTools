@@ -17,7 +17,7 @@
 //
 //
 
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -45,7 +45,7 @@
 
 using namespace cat;
 
-class TtbarSingleLeptonAnalyzer : public edm::EDAnalyzer {
+class TtbarSingleLeptonAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
   explicit TtbarSingleLeptonAnalyzer(const edm::ParameterSet&);
   ~TtbarSingleLeptonAnalyzer();
@@ -165,6 +165,7 @@ TtbarSingleLeptonAnalyzer::TtbarSingleLeptonAnalyzer(const edm::ParameterSet& iC
 
   b_Jet_CSV  = new std::vector<float>;
 
+  usesResource("TFileService");
   edm::Service<TFileService> fs;
   tree = fs->make<TTree>("tree", "TopTree");
 

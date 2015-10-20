@@ -1,4 +1,4 @@
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -23,7 +23,7 @@
 using namespace std;
 using namespace cat;
 
-class TtbarDiLeptonAnalyzer : public edm::EDAnalyzer {
+class TtbarDiLeptonAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
   explicit TtbarDiLeptonAnalyzer(const edm::ParameterSet&);
   ~TtbarDiLeptonAnalyzer();
@@ -118,6 +118,7 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
 
   solver.reset(new TtFullLepKinSolver(tmassbegin, tmassend, tmassstep, nupars));
 
+  usesResource("TFileService");
   edm::Service<TFileService> fs;
   ttree_ = fs->make<TTree>("tree", "tree");
   ttree_->Branch("parton_channel", &b_partonChannel, "parton_channel/I");
