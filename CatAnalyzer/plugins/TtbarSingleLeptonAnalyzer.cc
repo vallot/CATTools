@@ -621,7 +621,7 @@ bool TtbarSingleLeptonAnalyzer::IsTightElectron(const cat::Electron & i_electron
   GoodElectron &= (i_electron_candidate.pt() > 20);          // pT
   GoodElectron &= (std::abs(i_electron_candidate.eta()) < 2.1);  // eta
   GoodElectron &= (std::abs(i_electron_candidate.scEta()) < 1.4442 || // eta Super-Cluster
-       std::abs(i_electron_candidate.scEta()) > 1.566);
+                   std::abs(i_electron_candidate.scEta()) > 1.566);
 
   // From https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2
   GoodElectron &= i_electron_candidate.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-loose") > 0.0;
@@ -651,7 +651,7 @@ bool TtbarSingleLeptonAnalyzer::IsLooseElectron(const cat::Electron & i_electron
   GoodElectron &= (i_electron_candidate.pt() > 15);          // pT
   GoodElectron &= (std::abs(i_electron_candidate.eta()) < 2.4);  // eta
   GoodElectron &= (std::abs(i_electron_candidate.scEta()) < 1.4442 || // eta Super-Cluster
-       std::abs(i_electron_candidate.scEta()) > 1.566);
+                   std::abs(i_electron_candidate.scEta()) > 1.566);
 
   // From https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2
   GoodElectron &= i_electron_candidate.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-medium") > 0.0;
