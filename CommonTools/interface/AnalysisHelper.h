@@ -14,17 +14,10 @@ namespace cat {
 
 TLorentzVector ToTLorentzVector(const reco::Candidate& t);
 typedef GreaterByPt<reco::Candidate> GtByCandPt;
+bool GtByTLVPt( TLorentzVector & t1, TLorentzVector & t2 );
 
 class AnalysisHelper {
- private:
-
-  edm::TriggerNames triggerNames_;
-  edm::Handle<edm::TriggerResults> triggerResults_;
-  edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects_;
-  bool triggerInfoSet_;
-
  public:
-
   AnalysisHelper(){triggerInfoSet_ = false;}
   AnalysisHelper(const edm::TriggerNames& triggerNames, edm::Handle<edm::TriggerResults> triggerResults, edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects){triggerNames_ = triggerNames; triggerResults_ = triggerResults; triggerObjects_ = triggerObjects; triggerInfoSet_ = true;}
   ~AnalysisHelper(){}
@@ -32,7 +25,14 @@ class AnalysisHelper {
   bool triggerNotSet();
   bool triggerFired(const std::string& trigname);
   bool triggerMatched(const std::string& trigname, const cat::Particle & recoObj, const float dR = 0.1);
+  void listFiredTriggers();
 
+ private:
+
+  edm::TriggerNames triggerNames_;
+  edm::Handle<edm::TriggerResults> triggerResults_;
+  edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects_;
+  bool triggerInfoSet_;
 };
 
 math::XYZTLorentzVector getLVFromPtPhi(const double pt, const double phi);

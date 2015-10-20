@@ -65,107 +65,89 @@ float Jet::smearedRes(int direction) const {
   return fJER;
 }
 
-float Jet::scaleFactorCSVv2(int op, int sys, int flav) const {
+float Jet::scaleFactorCSVv2(Jet::BTAGCSV_CUT cutType, int syst, JETFLAV flav) const {
   if (std::abs(this->eta()) > 2.4 ) return -1; // reject jets out of eta range
   //based on https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation74X50ns
-  if (op == 0 && sys == 0 && flav == 1 && this->pt() > 30 && this->pt() < 670 ) return 0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt())));
-  if (op == 0 && sys == 0 && flav == 0 && this->pt() > 30 && this->pt() < 670 ) return 0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt())));
-  if (op == 0 && sys == -1 && flav == 1 && this->pt() > 30 && this->pt() < 50 ) return (0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt()))))-0.10247411578893661;
-  if (op == 0 && sys == -1 && flav == 1 && this->pt() > 50 && this->pt() < 70 ) return (0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt()))))-0.09483686089515686;
-  if (op == 0 && sys == -1 && flav == 1 && this->pt() > 70 && this->pt() < 100 ) return (0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt()))))-0.075944989919662476;
-  if (op == 0 && sys == -1 && flav == 1 && this->pt() > 100 && this->pt() < 140 ) return (0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt()))))-0.065169334411621094;
-  if (op == 0 && sys == -1 && flav == 1 && this->pt() > 140 && this->pt() < 200 ) return (0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt()))))-0.12829481065273285;
-  if (op == 0 && sys == -1 && flav == 1 && this->pt() > 200 && this->pt() < 300 ) return (0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt()))))-0.21497605741024017;
-  if (op == 0 && sys == -1 && flav == 1 && this->pt() > 300 && this->pt() < 670 ) return (0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt()))))-0.22071903944015503;
-  if (op == 0 && sys == -1 && flav == 0 && this->pt() > 30 && this->pt() < 50 ) return (0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt()))))-0.051237057894468307;
-  if (op == 0 && sys == -1 && flav == 0 && this->pt() > 50 && this->pt() < 70 ) return (0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt()))))-0.04741843044757843;
-  if (op == 0 && sys == -1 && flav == 0 && this->pt() > 70 && this->pt() < 100 ) return (0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt()))))-0.037972494959831238;
-  if (op == 0 && sys == -1 && flav == 0 && this->pt() > 100 && this->pt() < 140 ) return (0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt()))))-0.032584667205810547;
-  if (op == 0 && sys == -1 && flav == 0 && this->pt() > 140 && this->pt() < 200 ) return (0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt()))))-0.064147405326366425;
-  if (op == 0 && sys == -1 && flav == 0 && this->pt() > 200 && this->pt() < 300 ) return (0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt()))))-0.10748802870512009;
-  if (op == 0 && sys == -1 && flav == 0 && this->pt() > 300 && this->pt() < 670 ) return (0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt()))))-0.11035951972007751;
-  if (op == 0 && sys == 1 && flav == 1 && this->pt() > 30 && this->pt() < 50 ) return (0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt()))))+0.10247411578893661;
-  if (op == 0 && sys == 1 && flav == 1 && this->pt() > 50 && this->pt() < 70 ) return (0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt()))))+0.09483686089515686;
-  if (op == 0 && sys == 1 && flav == 1 && this->pt() > 70 && this->pt() < 100 ) return (0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt()))))+0.075944989919662476;
-  if (op == 0 && sys == 1 && flav == 1 && this->pt() > 100 && this->pt() < 140 ) return (0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt()))))+0.065169334411621094;
-  if (op == 0 && sys == 1 && flav == 1 && this->pt() > 140 && this->pt() < 200 ) return (0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt()))))+0.12829481065273285;
-  if (op == 0 && sys == 1 && flav == 1 && this->pt() > 200 && this->pt() < 300 ) return (0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt()))))+0.21497605741024017;
-  if (op == 0 && sys == 1 && flav == 1 && this->pt() > 300 && this->pt() < 670 ) return (0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt()))))+0.22071903944015503;
-  if (op == 0 && sys == 1 && flav == 0 && this->pt() > 30 && this->pt() < 50 ) return (0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt()))))+0.051237057894468307;
-  if (op == 0 && sys == 1 && flav == 0 && this->pt() > 50 && this->pt() < 70 ) return (0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt()))))+0.04741843044757843;
-  if (op == 0 && sys == 1 && flav == 0 && this->pt() > 70 && this->pt() < 100 ) return (0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt()))))+0.037972494959831238;
-  if (op == 0 && sys == 1 && flav == 0 && this->pt() > 100 && this->pt() < 140 ) return (0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt()))))+0.032584667205810547;
-  if (op == 0 && sys == 1 && flav == 0 && this->pt() > 140 && this->pt() < 200 ) return (0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt()))))+0.064147405326366425;
-  if (op == 0 && sys == 1 && flav == 0 && this->pt() > 200 && this->pt() < 300 ) return (0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt()))))+0.10748802870512009;
-  if (op == 0 && sys == 1 && flav == 0 && this->pt() > 300 && this->pt() < 670 ) return (0.901434*((1.+(0.0852659*this->pt()))/(1.+(0.0769021*this->pt()))))+0.11035951972007751;
-  if (op == 1 && sys == 0 && flav == 1 && this->pt() > 30 && this->pt() < 670 ) return 0.968546;
-  if (op == 1 && sys == 0 && flav == 0 && this->pt() > 30 && this->pt() < 670 ) return 0.968546;
-  if (op == 1 && sys == -1 && flav == 1 && this->pt() > 30 && this->pt() < 50 ) return 0.968546-0.093810759484767914;
-  if (op == 1 && sys == -1 && flav == 1 && this->pt() > 50 && this->pt() < 70 ) return 0.968546-0.10516738146543503;
-  if (op == 1 && sys == -1 && flav == 1 && this->pt() > 70 && this->pt() < 100 ) return 0.968546-0.095603741705417633;
-  if (op == 1 && sys == -1 && flav == 1 && this->pt() > 100 && this->pt() < 140 ) return 0.968546-0.11572366207838058;
-  if (op == 1 && sys == -1 && flav == 1 && this->pt() > 140 && this->pt() < 200 ) return 0.968546-0.19687847793102264;
-  if (op == 1 && sys == -1 && flav == 1 && this->pt() > 200 && this->pt() < 300 ) return 0.968546-0.16733628511428833;
-  if (op == 1 && sys == -1 && flav == 1 && this->pt() > 300 && this->pt() < 670 ) return 0.968546-0.25004029273986816;
-  if (op == 1 && sys == -1 && flav == 0 && this->pt() > 30 && this->pt() < 50 ) return 0.968546-0.046905379742383957;
-  if (op == 1 && sys == -1 && flav == 0 && this->pt() > 50 && this->pt() < 70 ) return 0.968546-0.052583690732717514;
-  if (op == 1 && sys == -1 && flav == 0 && this->pt() > 70 && this->pt() < 100 ) return 0.968546-0.047801870852708817;
-  if (op == 1 && sys == -1 && flav == 0 && this->pt() > 100 && this->pt() < 140 ) return 0.968546-0.057861831039190292;
-  if (op == 1 && sys == -1 && flav == 0 && this->pt() > 140 && this->pt() < 200 ) return 0.968546-0.098439238965511322;
-  if (op == 1 && sys == -1 && flav == 0 && this->pt() > 200 && this->pt() < 300 ) return 0.968546-0.083668142557144165;
-  if (op == 1 && sys == -1 && flav == 0 && this->pt() > 300 && this->pt() < 670 ) return 0.968546-0.12502014636993408;
-  if (op == 1 && sys == 1 && flav == 1 && this->pt() > 30 && this->pt() < 50 ) return 0.968546+0.093810759484767914;
-  if (op == 1 && sys == 1 && flav == 1 && this->pt() > 50 && this->pt() < 70 ) return 0.968546+0.10516738146543503;
-  if (op == 1 && sys == 1 && flav == 1 && this->pt() > 70 && this->pt() < 100 ) return 0.968546+0.095603741705417633;
-  if (op == 1 && sys == 1 && flav == 1 && this->pt() > 100 && this->pt() < 140 ) return 0.968546+0.11572366207838058;
-  if (op == 1 && sys == 1 && flav == 1 && this->pt() > 140 && this->pt() < 200 ) return 0.968546+0.19687847793102264;
-  if (op == 1 && sys == 1 && flav == 1 && this->pt() > 200 && this->pt() < 300 ) return 0.968546+0.16733628511428833;
-  if (op == 1 && sys == 1 && flav == 1 && this->pt() > 300 && this->pt() < 670 ) return 0.968546+0.25004029273986816;
-  if (op == 1 && sys == 1 && flav == 0 && this->pt() > 30 && this->pt() < 50 ) return 0.968546+0.046905379742383957;
-  if (op == 1 && sys == 1 && flav == 0 && this->pt() > 50 && this->pt() < 70 ) return 0.968546+0.052583690732717514;
-  if (op == 1 && sys == 1 && flav == 0 && this->pt() > 70 && this->pt() < 100 ) return 0.968546+0.047801870852708817;
-  if (op == 1 && sys == 1 && flav == 0 && this->pt() > 100 && this->pt() < 140 ) return 0.968546+0.057861831039190292;
-  if (op == 1 && sys == 1 && flav == 0 && this->pt() > 140 && this->pt() < 200 ) return 0.968546+0.098439238965511322;
-  if (op == 1 && sys == 1 && flav == 0 && this->pt() > 200 && this->pt() < 300 ) return 0.968546+0.083668142557144165;
-  if (op == 1 && sys == 1 && flav == 0 && this->pt() > 300 && this->pt() < 670 ) return 0.968546+0.12502014636993408;
-  if (op == 2 && sys == 0 && flav == 1 && this->pt() > 30 && this->pt() < 670 ) return 0.924703;
-  if (op == 2 && sys == 0 && flav == 0 && this->pt() > 30 && this->pt() < 670 ) return 0.924703;
-  if (op == 2 && sys == -1 && flav == 1 && this->pt() > 30 && this->pt() < 50 ) return 0.924703-0.077449031174182892;
-  if (op == 2 && sys == -1 && flav == 1 && this->pt() > 50 && this->pt() < 70 ) return 0.924703-0.10176990181207657;
-  if (op == 2 && sys == -1 && flav == 1 && this->pt() > 70 && this->pt() < 100 ) return 0.924703-0.079285271465778351;
-  if (op == 2 && sys == -1 && flav == 1 && this->pt() > 100 && this->pt() < 140 ) return 0.924703-0.19293521344661713;
-  if (op == 2 && sys == -1 && flav == 1 && this->pt() > 140 && this->pt() < 200 ) return 0.924703-0.1810869574546814;
-  if (op == 2 && sys == -1 && flav == 1 && this->pt() > 200 && this->pt() < 300 ) return 0.924703-0.5206335186958313;
-  if (op == 2 && sys == -1 && flav == 1 && this->pt() > 300 && this->pt() < 670 ) return 0.924703-0.42109844088554382;
-  if (op == 2 && sys == -1 && flav == 0 && this->pt() > 30 && this->pt() < 50 ) return 0.924703-0.038724515587091446;
-  if (op == 2 && sys == -1 && flav == 0 && this->pt() > 50 && this->pt() < 70 ) return 0.924703-0.050884950906038284;
-  if (op == 2 && sys == -1 && flav == 0 && this->pt() > 70 && this->pt() < 100 ) return 0.924703-0.039642635732889175;
-  if (op == 2 && sys == -1 && flav == 0 && this->pt() > 100 && this->pt() < 140 ) return 0.924703-0.096467606723308563;
-  if (op == 2 && sys == -1 && flav == 0 && this->pt() > 140 && this->pt() < 200 ) return 0.924703-0.090543478727340698;
-  if (op == 2 && sys == -1 && flav == 0 && this->pt() > 200 && this->pt() < 300 ) return 0.924703-0.26031675934791565;
-  if (op == 2 && sys == -1 && flav == 0 && this->pt() > 300 && this->pt() < 670 ) return 0.924703-0.21054922044277191;
-  if (op == 2 && sys == 1 && flav == 1 && this->pt() > 30 && this->pt() < 50 ) return 0.924703+0.077449031174182892;
-  if (op == 2 && sys == 1 && flav == 1 && this->pt() > 50 && this->pt() < 70 ) return 0.924703+0.10176990181207657;
-  if (op == 2 && sys == 1 && flav == 1 && this->pt() > 70 && this->pt() < 100 ) return 0.924703+0.079285271465778351;
-  if (op == 2 && sys == 1 && flav == 1 && this->pt() > 100 && this->pt() < 140 ) return 0.924703+0.19293521344661713;
-  if (op == 2 && sys == 1 && flav == 1 && this->pt() > 140 && this->pt() < 200 ) return 0.924703+0.1810869574546814;
-  if (op == 2 && sys == 1 && flav == 1 && this->pt() > 200 && this->pt() < 300 ) return 0.924703+0.5206335186958313;
-  if (op == 2 && sys == 1 && flav == 1 && this->pt() > 300 && this->pt() < 670 ) return 0.924703+0.42109844088554382;
-  if (op == 2 && sys == 1 && flav == 0 && this->pt() > 30 && this->pt() < 50 ) return 0.924703+0.038724515587091446;
-  if (op == 2 && sys == 1 && flav == 0 && this->pt() > 50 && this->pt() < 70 ) return 0.924703+0.050884950906038284;
-  if (op == 2 && sys == 1 && flav == 0 && this->pt() > 70 && this->pt() < 100 ) return 0.924703+0.039642635732889175;
-  if (op == 2 && sys == 1 && flav == 0 && this->pt() > 100 && this->pt() < 140 ) return 0.924703+0.096467606723308563;
-  if (op == 2 && sys == 1 && flav == 0 && this->pt() > 140 && this->pt() < 200 ) return 0.924703+0.090543478727340698;
-  if (op == 2 && sys == 1 && flav == 0 && this->pt() > 200 && this->pt() < 300 ) return 0.924703+0.26031675934791565;
-  if (op == 2 && sys == 1 && flav == 0 && this->pt() > 300 && this->pt() < 670 ) return 0.924703+0.21054922044277191;
-  if (op == 0 && sys == 0 && flav == 2 && this->pt() > 30 && this->pt() < 670 ) return 1.;
-  if (op == 0 && sys == 1 && flav == 2 && this->pt() > 30 && this->pt() < 670 ) return 1.+0.15;
-  if (op == 0 && sys == -1 && flav == 2 && this->pt() > 30 && this->pt() < 670 ) return 1.-0.15;
-  if (op == 1 && sys == 0 && flav == 2 && this->pt() > 30 && this->pt() < 670 ) return 1.;
-  if (op == 1 && sys == 1 && flav == 2 && this->pt() > 30 && this->pt() < 670 ) return 1.+0.20;
-  if (op == 1 && sys == -1 && flav == 2 && this->pt() > 30 && this->pt() < 670 ) return 1.-0.20;
-  if (op == 2 && sys == 0 && flav == 2 && this->pt() > 30 && this->pt() < 670 ) return 1.;
-  if (op == 2 && sys == 1 && flav == 2 && this->pt() > 30 && this->pt() < 670 ) return 1.+0.40;
-  if (op == 2 && sys == -1 && flav == 2 && this->pt() > 30 && this->pt() < 670 ) return 1.-0.40;
+  const double pt = this->pt();
+  if ( pt < 30 || pt >= 670 ) return -1;
+
+  if ( flav == JETFLAV_LIGHT ) {
+    switch ( cutType ) {
+      case BTAGCSV_LOOSE : return 1+syst*0.15; break;
+      case BTAGCSV_MEDIUM: return 1+syst*0.20; break;
+      case BTAGCSV_TIGHT : return 1+syst*0.40; break;
+      default: return -1;
+    }
+  }
+
+  if ( cutType == BTAGCSV_LOOSE ) {
+    const double sf0 = 0.901434*(1.+(0.0852659*pt))/(1.+(0.0769021*pt));
+    if ( syst == 0 ) return sf0;
+
+    if ( flav == JETFLAV_C ) {
+      if      ( pt <  50 ) return sf0+syst*0.10247411578893661;
+      else if ( pt <  70 ) return sf0+syst*0.09483686089515686;
+      else if ( pt < 100 ) return sf0+syst*0.075944989919662476;
+      else if ( pt < 140 ) return sf0+syst*0.065169334411621094;
+      else if ( pt < 200 ) return sf0+syst*0.12829481065273285;
+      else if ( pt < 300 ) return sf0+syst*0.21497605741024017;
+      else                return sf0+syst*0.22071903944015503;
+    }
+    else if ( flav == JETFLAV_B ) {
+      if      ( pt <  50 ) return sf0+syst*0.051237057894468307;
+      else if ( pt <  70 ) return sf0+syst*0.04741843044757843;
+      else if ( pt < 100 ) return sf0+syst*0.037972494959831238;
+      else if ( pt < 140 ) return sf0+syst*0.032584667205810547;
+      else if ( pt < 200 ) return sf0+syst*0.064147405326366425;
+      else if ( pt < 300 ) return sf0+syst*0.10748802870512009;
+      else                 return sf0+syst*0.11035951972007751;
+    }
+  }
+  else if ( cutType == BTAGCSV_MEDIUM ) {
+    const double sf0 = 0.968546;
+    if (syst == 0 ) return sf0;
+
+    if ( flav == JETFLAV_C ) {
+      if      ( pt <  50 ) return sf0+syst*0.093810759484767914;
+      else if ( pt <  70 ) return sf0+syst*0.10516738146543503;
+      else if ( pt < 100 ) return sf0+syst*0.095603741705417633;
+      else if ( pt < 140 ) return sf0+syst*0.11572366207838058;
+      else if ( pt < 200 ) return sf0+syst*0.19687847793102264;
+      else if ( pt < 300 ) return sf0+syst*0.16733628511428833;
+      else                 return sf0+syst*0.25004029273986816;
+    }
+    else if ( flav == JETFLAV_B ) {
+      if      ( pt <  50 ) return sf0+syst*0.046905379742383957;
+      else if ( pt <  70 ) return sf0+syst*0.052583690732717514;
+      else if ( pt < 100 ) return sf0+syst*0.047801870852708817;
+      else if ( pt < 140 ) return sf0+syst*0.057861831039190292;
+      else if ( pt < 200 ) return sf0+syst*0.098439238965511322;
+      else if ( pt < 300 ) return sf0+syst*0.083668142557144165;
+      else                 return sf0+syst*0.12502014636993408;
+    }
+  }
+  else if ( cutType == BTAGCSV_TIGHT ) {
+    const double sf0 = 0.924703;
+    if ( syst == 0 ) return sf0;
+
+    if ( flav == JETFLAV_C ) {
+      if      ( pt <  50 ) return sf0+syst*0.077449031174182892;
+      else if ( pt <  70 ) return sf0+syst*0.10176990181207657;
+      else if ( pt < 100 ) return sf0+syst*0.079285271465778351;
+      else if ( pt < 140 ) return sf0+syst*0.19293521344661713;
+      else if ( pt < 200 ) return sf0+syst*0.1810869574546814;
+      else if ( pt < 300 ) return sf0+syst*0.5206335186958313;
+      else                 return sf0+syst*0.42109844088554382;
+    }
+    else if ( flav == JETFLAV_B ) {
+      if      ( pt <  50 ) return sf0+syst*0.038724515587091446;
+      else if ( pt <  70 ) return sf0+syst*0.050884950906038284;
+      else if ( pt < 100 ) return sf0+syst*0.039642635732889175;
+      else if ( pt < 140 ) return sf0+syst*0.096467606723308563;
+      else if ( pt < 200 ) return sf0+syst*0.090543478727340698;
+      else if ( pt < 300 ) return sf0+syst*0.26031675934791565;
+      else                 return sf0+syst*0.21054922044277191;
+    }
+  }
   return -1;
 }
