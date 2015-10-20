@@ -181,6 +181,8 @@ void ColorCoherenceAnalyzer::analyze(const edm::Event& iEvent, const edm::EventS
     b_jet1_pt = seljets[0].Pt(); b_jet1_eta = seljets[0].Eta(); b_jet1_phi = seljets[0].Phi();
     b_jet2_pt = seljets[1].Pt(); b_jet2_eta = seljets[1].Eta(); b_jet2_phi = seljets[1].Phi();
     b_jet3_pt = seljets[2].Pt(); b_jet3_eta = seljets[2].Eta(); b_jet3_phi = seljets[2].Phi();
+
+    // TODO: MET uncertainty due to jet energy scale to be added!!!
     b_met = mets->begin()->et();
     b_metSig = mets->begin()->et()/mets->begin()->sumEt();
     ttree_[sys]->Fill();
