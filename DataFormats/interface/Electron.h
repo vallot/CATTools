@@ -37,7 +37,12 @@ namespace cat {
     float scEta() const { return scEta_; }
     bool passConversionVeto() const { return passConversionVeto_; }
     bool isGsfCtfScPixChargeConsistent() const{ return isGsfCtfScPixChargeConsistent_; }
-
+    bool isEB() const{ return isEB_; }
+    
+    float shiftedEn() const { if (this->isEB()) return 0.01; else return 0.025; }
+    float shiftedEnDown() const {return 1-shiftedEn();}
+    float shiftedEnUp() const {return  1+shiftedEn();}
+    
     int snuID() const {return snuID_;}
     
     void setElectronIDs(const std::vector<pat::Electron::IdPair> & ids) { electronIDs_ = ids; }
@@ -52,6 +57,7 @@ namespace cat {
     void setscEta(float i) { scEta_ = i; }
     void setPassConversionVeto(bool i) {  passConversionVeto_ = i; }
     void setIsGsfCtfScPixChargeConsistent(bool d) { isGsfCtfScPixChargeConsistent_ = d ; }
+    void setIsEB(bool d) { isEB_ = d ; }
 
     void setSNUID(int id) {snuID_ = id;}
     
@@ -65,7 +71,8 @@ namespace cat {
     float scEta_;
     bool passConversionVeto_;
     bool isGsfCtfScPixChargeConsistent_;
-
+    bool isEB_;
+    
     int snuID_;
   };
 }
