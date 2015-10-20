@@ -42,7 +42,7 @@ private:
 
 PileupWeightProducer::PileupWeightProducer(const edm::ParameterSet& pset):
   isStandardWeight_(pset.getParameter<bool>("isStandardWeight")),
-  puToken_(consumes<PUInfos>(pset.getParameter<edm::InputTag>("slimmedAddPileupInfo")))
+  puToken_(consumes<PUInfos>(pset.getParameter<edm::InputTag>("pileupInfo")))
 {
   if ( isStandardWeight_ )
   {
