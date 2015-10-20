@@ -28,11 +28,11 @@ using namespace std;
 
 class ColorCoherenceAnalyzer : public edm::EDAnalyzer{
 public:
-  explicit ColorCoherenceAnalyzer(const edm::ParameterSet&); 
+  explicit ColorCoherenceAnalyzer(const edm::ParameterSet&);
   ~ColorCoherenceAnalyzer() {};
 
   enum sys_e {sys_nom, sys_jes_u, sys_jes_d, sys_jer_u, sys_jer_d, sys_jar, nsys_e};
- 
+
 private:
 
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
@@ -120,8 +120,8 @@ ColorCoherenceAnalyzer::ColorCoherenceAnalyzer(const edm::ParameterSet& iConfig)
     tr->Branch("gdel_eta", &b_gdel_eta, "gdel_eta/F");
     tr->Branch("gdel_phi", &b_gdel_phi, "gdel_phi/F");
     tr->Branch("gdel_r", &b_gdel_r, "gdel_r/F");
-  }   
-  
+  }
+
 }
 
 void ColorCoherenceAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -144,11 +144,11 @@ void ColorCoherenceAnalyzer::analyze(const edm::Event& iEvent, const edm::EventS
   iEvent.getByToken(triggerObjects_, triggerObjects);
 
   const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
-  cat::AnalysisHelper trigHelper = cat::AnalysisHelper(triggerNames, triggerBits, triggerObjects); 
+  cat::AnalysisHelper trigHelper = cat::AnalysisHelper(triggerNames, triggerBits, triggerObjects);
 
   for (int sys = 0; sys < nsys_e; ++sys){
     resetBr();
-    
+
     vector<TLorentzVector>&& seljets = selectJets(jets.product(), (sys_e)sys);
     if (seljets.size() < 3) return;
 
@@ -156,21 +156,21 @@ void ColorCoherenceAnalyzer::analyze(const edm::Event& iEvent, const edm::EventS
 
     b_nVtx = vtx->at(0);
     b_nJet = seljets.size();
-    
+
     int hlt_count = 0;
     //trigHelper.listFiredTriggers();
     if(trigHelper.triggerFired("HLT_PAJet40_NoJetID_v")) {b_hlt_40_pass = 1; hlt_count++;}
     if(trigHelper.triggerFired("HLT_PAJet60_NoJetID_v")) {b_hlt_60_pass = 1; hlt_count++;}
     if(trigHelper.triggerFired("HLT_PAJet80_NoJetID_v")) {b_hlt_80_pass = 1; hlt_count++;}
-    
+
     if(trigHelper.triggerFired("HLT_PFJet80_v")) {b_hlt_80_pass = 1; hlt_count++;}// dont u use pfjet80 too?
-    if(trigHelper.triggerFired("HLT_PFJet140_v")) {b_hlt_140_pass = 1; hlt_count++;}  
+    if(trigHelper.triggerFired("HLT_PFJet140_v")) {b_hlt_140_pass = 1; hlt_count++;}
     if(trigHelper.triggerFired("HLT_PFJet320_v")) {b_hlt_320_pass = 1; hlt_count++;}
     if(trigHelper.triggerFired("HLT_PFJet400_v")) {b_hlt_400_pass = 1; hlt_count++;}
     if(trigHelper.triggerFired("HLT_PFJet450_v")) {b_hlt_450_pass = 1; hlt_count++;}
     if(trigHelper.triggerFired("HLT_PFJet500_v")) {b_hlt_500_pass = 1; hlt_count++;}
     //if (hlt_count < 1) return;
-    
+
     b_del_eta = copysign(1.0, seljets[1].Eta())*(seljets[2].Eta() - seljets[1].Eta());
     b_del_phi = reco::deltaPhi(seljets[2].Phi(), seljets[1].Phi());
     b_beta = atan2(b_del_phi, b_del_eta);
@@ -196,9 +196,9 @@ vector<TLorentzVector> ColorCoherenceAnalyzer::selectJets(const edm::View<cat::J
   for (auto jet : *jets) {
     if (!jet.LooseId()) continue;
     if (jet.pileupJetId() <0.9) continue;
-    TLorentzVector newjet = sysJet(jet, sys);    
+    TLorentzVector newjet = sysJet(jet, sys);
     if (newjet.Pt() <= 20.) continue;
-    
+
     seljets.push_back(newjet);
   }
   return seljets;
@@ -212,7 +212,7 @@ TLorentzVector ColorCoherenceAnalyzer::sysJet(cat::Jet jet, sys_e sys) const
   if (sys == sys_jer_u) return jet.tlv()*jet.smearedResUp();
   if (sys == sys_jer_d) return jet.tlv()*jet.smearedResDown();
   if (sys == sys_jar) return jarJet(jet);
-  
+
   return jet.tlv();
 }
 

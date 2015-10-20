@@ -324,7 +324,7 @@ void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Eve
           } // if(it != 0)
           else momid = 0;
         } // while(momid == id)
-	
+
         int mommomid = momid;
 
         if(mom != 0){
@@ -342,10 +342,10 @@ void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Eve
         } // while(mommomid == momid)
 
         if (abs(momid) == 24 && abs(mommomid) == 6){
-	
+
           if (id == -11 || id == -13) GenLep_m = true;
           if (id ==  11 || id ==  13) GenLep_p = true;
-	
+
           // Taus
           if(abs(id) == 15){
             for(unsigned int h = 0; h <  gp.numberOfDaughters(); h++) {
@@ -357,7 +357,7 @@ void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Eve
           } // if(taus)
 
         } // if(t->W)
-	
+
       }// if (mu || e || tau)
     } // for(genParticles)
 
@@ -520,36 +520,36 @@ void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Eve
       // Jet Cleaning
       TLorentzVector vjet(jet.px(), jet.py(), jet.pz(), jet.energy());
       double dr_LepJet = vjet.DeltaR(lepton);
-      if(dr_LepJet > 0.4) cleanJet = true; 	
+      if(dr_LepJet > 0.4) cleanJet = true;
 
       if(goodJet && cleanJet){
-	// Basic variables
-	b_Jet_px->push_back(jet.px());
-	b_Jet_py->push_back(jet.py());
-	b_Jet_pz->push_back(jet.pz());
-	b_Jet_E ->push_back(jet.energy());
-	
-	// Parton Flavour
-	b_Jet_partonFlavour->push_back(jet.partonFlavour());
-	b_Jet_hadronFlavour->push_back(jet.hadronFlavour());
-	
-	// Smeared and Shifted
-	b_Jet_smearedRes     ->push_back(jet.smearedRes() );
-	b_Jet_smearedResDown ->push_back(jet.smearedResDown());
-	b_Jet_smearedResUp   ->push_back(jet.smearedResUp());
-	b_Jet_shiftedEnUp    ->push_back(jet.shiftedEnUp());
-	b_Jet_shiftedEnDown  ->push_back(jet.shiftedEnDown());
-	
-	// b-tag discriminant
-	float jet_btagDis_CSV = jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
-	b_Jet_CSV ->push_back(jet_btagDis_CSV);
+  // Basic variables
+  b_Jet_px->push_back(jet.px());
+  b_Jet_py->push_back(jet.py());
+  b_Jet_pz->push_back(jet.pz());
+  b_Jet_E ->push_back(jet.energy());
 
-	// BTagSFUtil *fBTagSF;   //The BTag SF utility
-	// fBTagSF = new BTagSFUtil("CSVv2", "Medium", 0);
+  // Parton Flavour
+  b_Jet_partonFlavour->push_back(jet.partonFlavour());
+  b_Jet_hadronFlavour->push_back(jet.hadronFlavour());
 
-	// if (fBTagSF->IsTagged(jet_btagDis_CSV, -999999, jet.pt(), jet.eta()) ){
-	//    std::cout << "Is btag Jet....." << std::endl;
-	// }
+  // Smeared and Shifted
+  b_Jet_smearedRes     ->push_back(jet.smearedRes() );
+  b_Jet_smearedResDown ->push_back(jet.smearedResDown());
+  b_Jet_smearedResUp   ->push_back(jet.smearedResUp());
+  b_Jet_shiftedEnUp    ->push_back(jet.shiftedEnUp());
+  b_Jet_shiftedEnDown  ->push_back(jet.shiftedEnDown());
+
+  // b-tag discriminant
+  float jet_btagDis_CSV = jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
+  b_Jet_CSV ->push_back(jet_btagDis_CSV);
+
+  // BTagSFUtil *fBTagSF;   //The BTag SF utility
+  // fBTagSF = new BTagSFUtil("CSVv2", "Medium", 0);
+
+  // if (fBTagSF->IsTagged(jet_btagDis_CSV, -999999, jet.pt(), jet.eta()) ){
+  //    std::cout << "Is btag Jet....." << std::endl;
+  // }
       }
     }
 
@@ -620,7 +620,7 @@ bool TtbarSingleLeptonAnalyzer::IsTightElectron(const cat::Electron & i_electron
   GoodElectron &= (i_electron_candidate.pt() > 20);          // pT
   GoodElectron &= (std::abs(i_electron_candidate.eta()) < 2.1);  // eta
   GoodElectron &= (std::abs(i_electron_candidate.scEta()) < 1.4442 || // eta Super-Cluster
-		   std::abs(i_electron_candidate.scEta()) > 1.566);
+       std::abs(i_electron_candidate.scEta()) > 1.566);
 
   // From https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2
   GoodElectron &= i_electron_candidate.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-loose") > 0.0;
@@ -650,7 +650,7 @@ bool TtbarSingleLeptonAnalyzer::IsLooseElectron(const cat::Electron & i_electron
   GoodElectron &= (i_electron_candidate.pt() > 15);          // pT
   GoodElectron &= (std::abs(i_electron_candidate.eta()) < 2.4);  // eta
   GoodElectron &= (std::abs(i_electron_candidate.scEta()) < 1.4442 || // eta Super-Cluster
-		   std::abs(i_electron_candidate.scEta()) > 1.566);
+       std::abs(i_electron_candidate.scEta()) > 1.566);
 
   // From https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2
   GoodElectron &= i_electron_candidate.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-medium") > 0.0;

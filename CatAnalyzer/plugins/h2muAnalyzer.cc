@@ -175,7 +175,7 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 
   vector<cat::Muon>&& selectedMuons = selectMuons( muons.product() );
   sort(selectedMuons.begin(), selectedMuons.end(), GtByCandPt());
-  
+
   if (runOnMC_){
     iEvent.getByToken(mcLabel_,genParticles);
     bool bosonSample = false;
@@ -187,15 +187,15 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
       }
       bool isfromBoson = false;
       for (unsigned int i = 0; i < g.numberOfMothers(); ++i){
-	//In case of pdgId() = 23, indicate Z-boson. if it's 25, that becomes higgs.
-	if (g.mother(i)->pdgId() == 23 || g.mother(i)->pdgId() == 25){
-	  isfromBoson = true;
-	  bosonSample = true;
-	}
+  //In case of pdgId() = 23, indicate Z-boson. if it's 25, that becomes higgs.
+  if (g.mother(i)->pdgId() == 23 || g.mother(i)->pdgId() == 25){
+    isfromBoson = true;
+    bosonSample = true;
+  }
       }
       if (isfromBoson){
-	if (g.charge() > 0) genMu1.SetPtEtaPhiM(g.pt(), g.eta(), g.phi(), g.mass());
-	else genMu2.SetPtEtaPhiM(g.pt(), g.eta(), g.phi(), g.mass());
+  if (g.charge() > 0) genMu1.SetPtEtaPhiM(g.pt(), g.eta(), g.phi(), g.mass());
+  else genMu2.SetPtEtaPhiM(g.pt(), g.eta(), g.phi(), g.mass());
       }
     }
     if (bosonSample){
@@ -205,14 +205,14 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
       b_gen_diMu_pt = gen_diMu.Pt(); b_gen_diMu_eta = gen_diMu.Eta(); b_gen_diMu_phi = gen_diMu.Phi(); b_gen_diMu_m = gen_diMu.M();
 
       for (auto m : selectedMuons){
-	if (genMu1.DeltaR(m.tlv()) < 0.1){
-	  b_gen_mu1_ptRes = (m.pt()-genMu1.Pt())/genMu1.Pt();
-	  b_gen_mu1_isLoose = m.isLooseMuon(); b_gen_mu1_isMedium = m.isMediumMuon(); b_gen_mu1_isTight = m.isTightMuon();
-	}
-	if (genMu2.DeltaR(m.tlv()) < 0.1){
-	  b_gen_mu2_ptRes = (m.pt()-genMu2.Pt())/genMu2.Pt();
-	  b_gen_mu2_isLoose = m.isLooseMuon(); b_gen_mu2_isMedium = m.isMediumMuon(); b_gen_mu2_isTight = m.isTightMuon();
-	}
+  if (genMu1.DeltaR(m.tlv()) < 0.1){
+    b_gen_mu1_ptRes = (m.pt()-genMu1.Pt())/genMu1.Pt();
+    b_gen_mu1_isLoose = m.isLooseMuon(); b_gen_mu1_isMedium = m.isMediumMuon(); b_gen_mu1_isTight = m.isTightMuon();
+  }
+  if (genMu2.DeltaR(m.tlv()) < 0.1){
+    b_gen_mu2_ptRes = (m.pt()-genMu2.Pt())/genMu2.Pt();
+    b_gen_mu2_isLoose = m.isLooseMuon(); b_gen_mu2_isMedium = m.isMediumMuon(); b_gen_mu2_isTight = m.isTightMuon();
+  }
       }
     }
   }
@@ -316,7 +316,7 @@ vector<cat::Jet> h2muAnalyzer::selectJets(const edm::View<cat::Jet>* jets, vecto
   for (auto jet : *jets) {
     if (!jet.LooseId()) continue;
     if (jet.pt() <= 30.) continue;
-    if (std::abs(jet.eta()) >= 2.4)	continue;
+    if (std::abs(jet.eta()) >= 2.4)  continue;
     //if (jet.tlv().DeltaR(recomu[0]) <= 0.4) continue;
     //if (jet.tlv().DeltaR(recomu[1]) <= 0.4) continue;
     // printf("jet with pt %4.1f\n", jet.pt());

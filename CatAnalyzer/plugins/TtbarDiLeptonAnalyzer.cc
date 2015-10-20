@@ -250,11 +250,11 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
     if ( !(partonTop_genParticles->empty()) ){
 
-      // Get Top quark pairs 
+      // Get Top quark pairs
       const auto parton1 = &partonTop_genParticles->at(0);
       const auto parton2 = &partonTop_genParticles->at(1);
       // Get W and b quarks
-      if ( parton1 and parton2 ) { 
+      if ( parton1 and parton2 ) {
         const auto partonW1 = parton1->daughter(0);
         const auto partonB1 = parton1->daughter(1);
         const auto partonW2 = parton2->daughter(0);
@@ -266,10 +266,10 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
           const auto partonW21 = partonW2->daughter(0);
 
           // Fill lepton informations
-		  b_partonlep1_pt = partonW11->pt();
-		  b_partonlep1_eta = partonW11->eta();
-		  b_partonlep2_pt = partonW21->pt();
-		  b_partonlep2_eta = partonW21->eta();
+          b_partonlep1_pt = partonW11->pt();
+          b_partonlep1_eta = partonW11->eta();
+          b_partonlep2_pt = partonW21->pt();
+          b_partonlep2_eta = partonW21->eta();
         }
       }
     }
@@ -279,12 +279,12 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     if ( !(pseudoTopHandle->empty()) ){
       b_pseudoTopChannel = CH_NONE;
 
-      // Get Top quark pairs 
+      // Get Top quark pairs
       const auto pseudoTop1 = &pseudoTopHandle->at(0);
       const auto pseudoTop2 = &pseudoTopHandle->at(1);
 
       // Get W and b quarks
-      if ( pseudoTop1 and pseudoTop2 ) { 
+      if ( pseudoTop1 and pseudoTop2 ) {
         const auto pseudoW1 = pseudoTop1->daughter(0);
         const auto pseudoB1 = pseudoTop1->daughter(1);
         const auto pseudoW2 = pseudoTop2->daughter(0);
@@ -298,11 +298,11 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
           // Fill leps informations
           const int pseudoW1DauId = abs(pseudoW11->pdgId());
           const int pseudoW2DauId = abs(pseudoW21->pdgId());
-		  b_pseudoToplep1_pt = pseudoW11->pt();
-		  b_pseudoToplep1_eta = pseudoW11->eta();
-		  b_pseudoToplep2_pt = pseudoW21->pt();
-		  b_pseudoToplep2_eta = pseudoW21->eta();
-          if ( pseudoW1DauId > 10 and pseudoW2DauId > 10 ) { 
+          b_pseudoToplep1_pt = pseudoW11->pt();
+          b_pseudoToplep1_eta = pseudoW11->eta();
+          b_pseudoToplep2_pt = pseudoW21->pt();
+          b_pseudoToplep2_eta = pseudoW21->eta();
+          if ( pseudoW1DauId > 10 and pseudoW2DauId > 10 ) {
             switch ( pseudoW1DauId+pseudoW2DauId ) {
               case 22: b_pseudoTopChannel = CH_ELEL; break;
               case 26: b_pseudoTopChannel = CH_MUMU; break;
@@ -325,7 +325,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   selectElecs(*electrons, recolep);
   if (recolep.size() < 2){
     ttree_->Fill();
-	return;
+    return;
   }
   sort(recolep.begin(), recolep.end(), GtByCandPt());
   const cat::Particle& recolep1 = recolep[0];
@@ -457,7 +457,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_ttbar_phi = ttbar.Phi();
   b_ttbar_m = ttbar.M();
   b_ttbar_rapi = ttbar.Rapidity();
-  
+
   b_maxweight = maxweight;
   //  printf("maxweight %f, top1.M() %f, top2.M() %f \n",maxweight, top1.M(), top2.M() );
   // printf("%2d, %2d, %2d, %2d, %6.2f, %6.2f, %6.2f\n", b_njet, b_nbjet, b_step, b_channel, b_MET, b_ll_mass, b_maxweight);
@@ -510,7 +510,7 @@ std::vector<cat::Jet> TtbarDiLeptonAnalyzer::selectJets(const vector<cat::Jet>& 
   std::vector<cat::Jet> seljets;
   for (auto& jet : jets) {
     if (jet.pt() < 30.) continue;
-    if (std::abs(jet.eta()) > 2.4)	continue;
+    if (std::abs(jet.eta()) > 2.4)  continue;
     if (!jet.LooseId()) continue;
 
     bool hasOverLap = false;
