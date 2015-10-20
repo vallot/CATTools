@@ -34,10 +34,10 @@ public:
 private:
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
 
-  vector<cat::Muon> selectMuons(const edm::View<cat::Muon>* muons ) const;
-  vector<cat::Electron> selectElecs(const edm::View<cat::Electron>* elecs ) const;
-  vector<cat::Jet> selectJets(const edm::View<cat::Jet>* jets, vector<TLorentzVector> recolep) const;
-  vector<cat::Jet> selectBJets(const cat::JetCollection& jets) const;
+  cat::MuonCollection selectMuons(const edm::View<cat::Muon>* muons ) const;
+  cat::ElectronCollection selectElecs(const edm::View<cat::Electron>* elecs ) const;
+  cat::JetCollection selectJets(const edm::View<cat::Jet>* jets, vector<TLorentzVector> recolep) const;
+  cat::JetCollection selectBJets(const cat::JetCollection& jets) const;
   int preSelect(const cat::JetCollection& seljets, float MET) const;
   int JetCategory(const cat::JetCollection& seljets, float MET, float ll_pt) const;
   int JetCat_GC(float mu1_eta, float mu2_eta) const;
@@ -174,7 +174,7 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 
   edm::Handle<reco::GenParticleCollection> genParticles;
 
-  vector<cat::Muon>&& selectedMuons = selectMuons( muons.product() );
+  cat::MuonCollection&& selectedMuons = selectMuons( muons.product() );
   sort(selectedMuons.begin(), selectedMuons.end(), GtByCandPt());
 
   if (runOnMC_){
@@ -238,7 +238,7 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   b_MET = met.Pt();
 
   vector<TLorentzVector> recomu;
-  vector<cat::Jet>&& selectedJets = selectJets( jets.product(), recomu );
+  cat::JetCollection&& selectedJets = selectJets( jets.product(), recomu );
 
   b_njet = selectedJets.size();
 
@@ -277,9 +277,9 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   ttree_->Fill();
 }
 
-vector<cat::Muon> h2muAnalyzer::selectMuons(const edm::View<cat::Muon>* muons ) const
+cat::MuonCollection h2muAnalyzer::selectMuons(const edm::View<cat::Muon>* muons ) const
 {
-  vector<cat::Muon> selmuons;
+  cat::MuonCollection selmuons;
   for (auto mu : *muons) {
     if (!mu.isLooseMuon()) continue;
     if (mu.pt() <= 20.) continue;
@@ -292,9 +292,9 @@ vector<cat::Muon> h2muAnalyzer::selectMuons(const edm::View<cat::Muon>* muons ) 
   return selmuons;
 }
 
-vector<cat::Electron> h2muAnalyzer::selectElecs(const edm::View<cat::Electron>* elecs ) const
+cat::ElectronCollection h2muAnalyzer::selectElecs(const edm::View<cat::Electron>* elecs ) const
 {
-  vector<cat::Electron> selelecs;
+  cat::ElectronCollection selelecs;
   for (auto el : *elecs) {
     if (!el.electronID("cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-medium")) continue;
     if (!el.passConversionVeto()) continue;
@@ -311,9 +311,9 @@ vector<cat::Electron> h2muAnalyzer::selectElecs(const edm::View<cat::Electron>* 
   return selelecs;
 }
 
-vector<cat::Jet> h2muAnalyzer::selectJets(const edm::View<cat::Jet>* jets, vector<TLorentzVector> recomu ) const
+cat::JetCollection h2muAnalyzer::selectJets(const edm::View<cat::Jet>* jets, vector<TLorentzVector> recomu ) const
 {
-  vector<cat::Jet> seljets;
+  cat::JetCollection seljets;
   for (auto jet : *jets) {
     if (!jet.LooseId()) continue;
     if (jet.pt() <= 30.) continue;

@@ -397,8 +397,8 @@ void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Eve
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
 
-  std::vector<cat::Electron> selectedElectrons;
-  std::vector<cat::Electron> vetoElectrons;
+  cat::ElectronCollection selectedElectrons;
+  cat::ElectronCollection vetoElectrons;
 
   Handle<edm::View<cat::Electron> > electrons;
   iEvent.getByToken(electronToken_, electrons);
@@ -417,8 +417,8 @@ void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Eve
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
 
-  std::vector<cat::Muon> selectedMuons;
-  std::vector<cat::Muon> vetoMuons;
+  cat::MuonCollection selectedMuons;
+  cat::MuonCollection vetoMuons;
 
   Handle<edm::View<cat::Muon> > muons;
   iEvent.getByToken(muonToken_, muons);
