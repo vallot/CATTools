@@ -34,19 +34,19 @@ public:
 private:
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
 
-  cat::MuonCollection selectMuons(const edm::View<cat::Muon>* muons ) const;
-  cat::ElectronCollection selectElecs(const edm::View<cat::Electron>* elecs ) const;
-  cat::JetCollection selectJets(const edm::View<cat::Jet>* jets, vector<TLorentzVector> recolep) const;
+  cat::MuonCollection selectMuons(const cat::MuonCollection& muons ) const;
+  cat::ElectronCollection selectElecs(const cat::ElectronCollection& elecs ) const;
+  cat::JetCollection selectJets(const cat::JetCollection& jets, const vector<TLorentzVector>& recolep) const;
   cat::JetCollection selectBJets(const cat::JetCollection& jets) const;
   int preSelect(const cat::JetCollection& seljets, float MET) const;
   int JetCategory(const cat::JetCollection& seljets, float MET, float ll_pt) const;
   int JetCat_GC(float mu1_eta, float mu2_eta) const;
 
-  edm::EDGetTokenT<edm::View<cat::Muon> >     muonToken_;
-  edm::EDGetTokenT<edm::View<cat::Electron> > elecToken_;
-  edm::EDGetTokenT<edm::View<cat::Jet> >      jetToken_;
-  edm::EDGetTokenT<edm::View<cat::MET> >      metToken_;
-  edm::EDGetTokenT<reco::VertexCollection >   vtxToken_;
+  edm::EDGetTokenT<cat::MuonCollection>     muonToken_;
+  edm::EDGetTokenT<cat::ElectronCollection> elecToken_;
+  edm::EDGetTokenT<cat::JetCollection>      jetToken_;
+  edm::EDGetTokenT<cat::METCollection>      metToken_;
+  edm::EDGetTokenT<reco::VertexCollection>   vtxToken_;
   edm::EDGetTokenT<reco::GenParticleCollection> mcLabel_;
   edm::EDGetTokenT<edm::TriggerResults> triggerBits_;
   edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjects_;
@@ -73,11 +73,11 @@ private:
 
 h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
 {
-  muonToken_ = consumes<edm::View<cat::Muon> >(iConfig.getParameter<edm::InputTag>("muons"));
-  elecToken_ = consumes<edm::View<cat::Electron> >(iConfig.getParameter<edm::InputTag>("electrons"));
-  jetToken_  = consumes<edm::View<cat::Jet> >(iConfig.getParameter<edm::InputTag>("jets"));
-  metToken_  = consumes<edm::View<cat::MET> >(iConfig.getParameter<edm::InputTag>("mets"));
-  vtxToken_  = consumes<reco::VertexCollection >(iConfig.getParameter<edm::InputTag>("vertices"));
+  muonToken_ = consumes<cat::MuonCollection>(iConfig.getParameter<edm::InputTag>("muons"));
+  elecToken_ = consumes<cat::ElectronCollection>(iConfig.getParameter<edm::InputTag>("electrons"));
+  jetToken_  = consumes<cat::JetCollection>(iConfig.getParameter<edm::InputTag>("jets"));
+  metToken_  = consumes<cat::METCollection>(iConfig.getParameter<edm::InputTag>("mets"));
+  vtxToken_  = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertices"));
   mcLabel_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcLabel"));
   triggerBits_ = consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerBits"));
   triggerObjects_ = consumes<pat::TriggerObjectStandAloneCollection>(iConfig.getParameter<edm::InputTag>("triggerObjects"));
@@ -160,21 +160,21 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   if (vertices->empty()) return; // skip the event if no PV found
   const reco::Vertex &PV = vertices->front();
 
-  edm::Handle<edm::View<cat::Muon> > muons;
+  edm::Handle<cat::MuonCollection> muons;
   iEvent.getByToken(muonToken_, muons);
 
-  edm::Handle<edm::View<cat::Electron> > electrons;
+  edm::Handle<cat::ElectronCollection> electrons;
   iEvent.getByToken(elecToken_, electrons);
 
-  edm::Handle<edm::View<cat::Jet> > jets;
+  edm::Handle<cat::JetCollection> jets;
   iEvent.getByToken(jetToken_, jets);
 
-  edm::Handle<edm::View<cat::MET> > mets;
+  edm::Handle<cat::METCollection> mets;
   iEvent.getByToken(metToken_, mets);
 
   edm::Handle<reco::GenParticleCollection> genParticles;
 
-  cat::MuonCollection&& selectedMuons = selectMuons( muons.product() );
+  cat::MuonCollection&& selectedMuons = selectMuons( *muons.product() );
   sort(selectedMuons.begin(), selectedMuons.end(), GtByCandPt());
 
   if (runOnMC_){
@@ -238,7 +238,7 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   b_MET = met.Pt();
 
   vector<TLorentzVector> recomu;
-  cat::JetCollection&& selectedJets = selectJets( jets.product(), recomu );
+  cat::JetCollection&& selectedJets = selectJets( *jets.product(), recomu );
 
   b_njet = selectedJets.size();
 
@@ -277,10 +277,10 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   ttree_->Fill();
 }
 
-cat::MuonCollection h2muAnalyzer::selectMuons(const edm::View<cat::Muon>* muons ) const
+cat::MuonCollection h2muAnalyzer::selectMuons(const cat::MuonCollection& muons ) const
 {
   cat::MuonCollection selmuons;
-  for (auto mu : *muons) {
+  for (auto mu : muons) {
     if (!mu.isLooseMuon()) continue;
     if (mu.pt() <= 20.) continue;
     if (std::abs(mu.eta()) >= 2.4) continue;
@@ -292,10 +292,10 @@ cat::MuonCollection h2muAnalyzer::selectMuons(const edm::View<cat::Muon>* muons 
   return selmuons;
 }
 
-cat::ElectronCollection h2muAnalyzer::selectElecs(const edm::View<cat::Electron>* elecs ) const
+cat::ElectronCollection h2muAnalyzer::selectElecs(const cat::ElectronCollection& elecs ) const
 {
   cat::ElectronCollection selelecs;
-  for (auto el : *elecs) {
+  for (auto el : elecs) {
     if (!el.electronID("cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-medium")) continue;
     if (!el.passConversionVeto()) continue;
     if (!el.isPF()) continue;
@@ -311,10 +311,10 @@ cat::ElectronCollection h2muAnalyzer::selectElecs(const edm::View<cat::Electron>
   return selelecs;
 }
 
-cat::JetCollection h2muAnalyzer::selectJets(const edm::View<cat::Jet>* jets, vector<TLorentzVector> recomu ) const
+cat::JetCollection h2muAnalyzer::selectJets(const cat::JetCollection& jets, const vector<TLorentzVector>& recomu ) const
 {
   cat::JetCollection seljets;
-  for (auto jet : *jets) {
+  for (auto jet : jets) {
     if (!jet.LooseId()) continue;
     if (jet.pt() <= 30.) continue;
     if (std::abs(jet.eta()) >= 2.4)  continue;

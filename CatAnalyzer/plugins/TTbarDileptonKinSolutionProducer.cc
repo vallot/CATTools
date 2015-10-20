@@ -28,10 +28,6 @@ public:
   void produce(edm::Event & event, const edm::EventSetup&) override;
 
 private:
-  typedef cat::Muon TMuon;
-  typedef cat::Electron TElectron;;
-  typedef cat::Jet TJet;
-  typedef cat::MET TMET;
   edm::EDGetTokenT<edm::View<reco::CandidatePtr> > leptonPtrToken_;
   edm::EDGetTokenT<edm::View<reco::CandidatePtr> > jetPtrToken_;
   edm::EDGetTokenT<edm::View<reco::Candidate> > leptonToken_;

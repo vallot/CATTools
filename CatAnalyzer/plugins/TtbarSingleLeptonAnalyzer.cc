@@ -65,11 +65,11 @@ private:
   // TTbarMC_ == 2, ttbar Background
   int TTbarMC_;
 
-  edm::EDGetTokenT<edm::View<reco::GenParticle> >  genToken_;
-  edm::EDGetTokenT<edm::View<cat::Muon> >          muonToken_;
-  edm::EDGetTokenT<edm::View<cat::Electron> >      electronToken_;
-  edm::EDGetTokenT<edm::View<cat::Jet> >           jetToken_;
-  edm::EDGetTokenT<edm::View<cat::MET> >           metToken_;
+  edm::EDGetTokenT<reco::GenParticleCollection>  genToken_;
+  edm::EDGetTokenT<cat::MuonCollection>          muonToken_;
+  edm::EDGetTokenT<cat::ElectronCollection>      electronToken_;
+  edm::EDGetTokenT<cat::JetCollection>           jetToken_;
+  edm::EDGetTokenT<cat::METCollection>           metToken_;
   edm::EDGetTokenT<int>                            pvToken_;
   edm::EDGetTokenT<float>                          puWeight_;
 
@@ -139,11 +139,11 @@ TtbarSingleLeptonAnalyzer::TtbarSingleLeptonAnalyzer(const edm::ParameterSet& iC
   TTbarMC_ (iConfig.getUntrackedParameter<int>("TTbarSampleLabel", 0))
 {
   //now do what ever initialization is needed
-  genToken_      = consumes<edm::View<reco::GenParticle> >  (iConfig.getParameter<edm::InputTag>("genLabel"));
-  muonToken_     = consumes<edm::View<cat::Muon> >          (iConfig.getParameter<edm::InputTag>("muonLabel"));
-  electronToken_ = consumes<edm::View<cat::Electron> >      (iConfig.getParameter<edm::InputTag>("electronLabel"));
-  jetToken_      = consumes<edm::View<cat::Jet> >           (iConfig.getParameter<edm::InputTag>("jetLabel"));
-  metToken_      = consumes<edm::View<cat::MET> >           (iConfig.getParameter<edm::InputTag>("metLabel"));
+  genToken_      = consumes<reco::GenParticleCollection>  (iConfig.getParameter<edm::InputTag>("genLabel"));
+  muonToken_     = consumes<cat::MuonCollection>          (iConfig.getParameter<edm::InputTag>("muonLabel"));
+  electronToken_ = consumes<cat::ElectronCollection>      (iConfig.getParameter<edm::InputTag>("electronLabel"));
+  jetToken_      = consumes<cat::JetCollection>           (iConfig.getParameter<edm::InputTag>("jetLabel"));
+  metToken_      = consumes<cat::METCollection>           (iConfig.getParameter<edm::InputTag>("metLabel"));
   pvToken_       = consumes<int>                            (iConfig.getParameter<edm::InputTag>("pvLabel"));
   puWeight_      = consumes<float>                          (iConfig.getParameter<edm::InputTag>("puWeight"));
   triggerBits_ = consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerBits"));
@@ -289,7 +289,7 @@ void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Eve
 
   if(TTbarMC_ > 0) {
 
-    edm::Handle<edm::View<reco::GenParticle> > genParticles;
+    edm::Handle<reco::GenParticleCollection> genParticles;
     iEvent.getByToken(genToken_, genParticles);
 
     // Gen Status: http://home.thep.lu.se/~torbjorn/pythia81html/ParticleProperties.html
@@ -384,7 +384,7 @@ void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Eve
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
 
-  Handle<edm::View<cat::MET> > MET;
+  Handle<cat::METCollection> MET;
   iEvent.getByToken(metToken_, MET);
 
   // MET-PF
@@ -400,7 +400,7 @@ void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Eve
   cat::ElectronCollection selectedElectrons;
   cat::ElectronCollection vetoElectrons;
 
-  Handle<edm::View<cat::Electron> > electrons;
+  Handle<cat::ElectronCollection> electrons;
   iEvent.getByToken(electronToken_, electrons);
 
   for (unsigned int i = 0; i < electrons->size() ; i++) {
@@ -420,7 +420,7 @@ void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Eve
   cat::MuonCollection selectedMuons;
   cat::MuonCollection vetoMuons;
 
-  Handle<edm::View<cat::Muon> > muons;
+  Handle<cat::MuonCollection> muons;
   iEvent.getByToken(muonToken_, muons);
 
   for (unsigned int i = 0; i < muons->size() ; i++) {
@@ -506,7 +506,7 @@ void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Eve
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
 
-    Handle<edm::View<cat::Jet> > jets;
+    Handle<cat::JetCollection> jets;
     iEvent.getByToken(jetToken_, jets);
 
     for (unsigned int i = 0; i < jets->size() ; i++) {

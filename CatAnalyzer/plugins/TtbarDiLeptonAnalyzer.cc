@@ -48,12 +48,12 @@ private:
   edm::EDGetTokenT<cat::ElectronCollection> elecToken_;
   edm::EDGetTokenT<cat::JetCollection>      jetToken_;
   edm::EDGetTokenT<cat::METCollection>      metToken_;
-  edm::EDGetTokenT<reco::VertexCollection >   vtxToken_;
+  edm::EDGetTokenT<reco::VertexCollection>   vtxToken_;
   edm::EDGetTokenT<int>          partonTop_channel_;
   edm::EDGetTokenT<vector<int> > partonTop_modes_;
-  edm::EDGetTokenT<reco::GenParticleCollection > partonTop_genParticles_;
+  edm::EDGetTokenT<reco::GenParticleCollection> partonTop_genParticles_;
 
-  edm::EDGetTokenT<reco::GenParticleCollection > pseudoTop_;
+  edm::EDGetTokenT<reco::GenParticleCollection> pseudoTop_;
 
   TTree * ttree_;
   int b_partonChannel, b_partonMode1, b_partonMode2;
@@ -100,15 +100,15 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   elecToken_ = consumes<cat::ElectronCollection>(iConfig.getParameter<edm::InputTag>("electrons"));
   jetToken_  = consumes<cat::JetCollection>(iConfig.getParameter<edm::InputTag>("jets"));
   metToken_  = consumes<cat::METCollection>(iConfig.getParameter<edm::InputTag>("mets"));
-  vtxToken_  = consumes<reco::VertexCollection >(iConfig.getParameter<edm::InputTag>("vertices"));
+  vtxToken_  = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertices"));
 
   isTTbarMC_ = iConfig.getParameter<bool>("isTTbarMC");
   if ( isTTbarMC_ ) {
     partonTop_channel_ = consumes<int>(iConfig.getParameter<edm::InputTag>("partonTop_channel"));
     partonTop_modes_   = consumes<vector<int> >(iConfig.getParameter<edm::InputTag>("partonTop_modes"));
-    partonTop_genParticles_   = consumes<reco::GenParticleCollection >(iConfig.getParameter<edm::InputTag>("partonTop_genParticles"));
+    partonTop_genParticles_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("partonTop_genParticles"));
 
-    pseudoTop_   = consumes<reco::GenParticleCollection >(iConfig.getParameter<edm::InputTag>("pseudoTop"));
+    pseudoTop_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("pseudoTop"));
   }
 
   const double tmassbegin = iConfig.getParameter<double>       ("tmassbegin");
@@ -231,7 +231,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   if (isTTbarMC_){
     edm::Handle<int> partonTop_channel;
     edm::Handle<vector<int> > partonTop_modes;
-    edm::Handle<reco::GenParticleCollection > partonTop_genParticles;
+    edm::Handle<reco::GenParticleCollection> partonTop_genParticles;
     iEvent.getByToken(partonTop_channel_, partonTop_channel);
     iEvent.getByToken(partonTop_modes_, partonTop_modes);
     iEvent.getByToken(partonTop_genParticles_, partonTop_genParticles);
@@ -272,7 +272,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       }
     }
 
-    edm::Handle<reco::GenParticleCollection > pseudoTopHandle;
+    edm::Handle<reco::GenParticleCollection> pseudoTopHandle;
     iEvent.getByToken(pseudoTop_          , pseudoTopHandle);
     if ( !(pseudoTopHandle->empty()) ){
       b_pseudoTopChannel = CH_NONE;
