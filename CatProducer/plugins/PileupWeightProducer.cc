@@ -41,9 +41,9 @@ private:
 };
 
 PileupWeightProducer::PileupWeightProducer(const edm::ParameterSet& pset):
-  isStandardWeight_(pset.getParameter<bool>("isStandardWeight"))
+  isStandardWeight_(pset.getParameter<bool>("isStandardWeight")),
+  puToken_(consumes<PUInfos>(pset.getParameter<edm::InputTag>("pileupInfo")))
 {
-  puToken_ = consumes<PUInfos>(edm::InputTag("addPileupInfo"));
   if ( isStandardWeight_ )
   {
     std::vector<double> pileupMC = pset.getParameter<std::vector<double> >("pileupMC");

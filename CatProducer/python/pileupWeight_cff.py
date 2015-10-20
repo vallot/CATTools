@@ -6,6 +6,8 @@ pileupWeight = cms.EDProducer("PileupWeightProducer",
     pileupRD = cms.vdouble(),
     pileupUp = cms.vdouble(),
     pileupDn = cms.vdouble(),
+    #pileupInfo = cms.InputTag("addPileupInfo"),
+    pileupInfo = cms.InputTag("slimmedAddPileupInfo"),
     vertex = cms.InputTag("offlineSlimmedPrimaryVertices"),
     simpleWeights = cms.vdouble(),
 )
