@@ -18,7 +18,6 @@
 #include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/Math/interface/deltaPhi.h"
 
-#include "TString.h"
 #include "TTree.h"
 #include "TLorentzVector.h"
 #include "Math/PtEtaPhiM4D.h"
@@ -49,7 +48,6 @@ private:
   edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjects_;
 
   vector<TTree*> ttree_;
-  vector<TString> sys_name;
 
   int b_nVtx, b_nJet, b_hlt_40_pass, b_hlt_60_pass, b_hlt_80_pass, b_hlt_140_pass, b_hlt_320_pass, b_hlt_400_pass, b_hlt_450_pass, b_hlt_500_pass;
   float b_beta, b_del_eta, b_del_phi, b_del_r;
@@ -76,12 +74,10 @@ ColorCoherenceAnalyzer::ColorCoherenceAnalyzer(const edm::ParameterSet& iConfig)
   triggerObjects_ = consumes<pat::TriggerObjectStandAloneCollection>(iConfig.getParameter<edm::InputTag>("triggerObjects"));
 
   edm::Service<TFileService> fs;
-  sys_name = {"nom", "jes_u", "jes_d", "jer_u", "jer_d", "jar"};
+  const std::vector<std::string> sys_name = {"nom", "jes_u", "jes_d", "jer_u", "jer_d", "jar"};
   for (auto sys : sys_name) {
-    ttree_.push_back(fs->make<TTree>(sys, "color cohernece systematic errors : "+sys));
-  }
-  for (auto tr : ttree_) {
-    TString sys = TString(tr->GetName())+"_";
+    ttree_.push_back(fs->make<TTree>(sys.c_str(), (string("color cohernece systematic errors : ")+sys).c_str()));
+    auto tr = ttree_.back();
 
     tr->Branch("nvtx", &b_nVtx, "nvtx/I");
     tr->Branch("njet", &b_nJet, "njet/I");
