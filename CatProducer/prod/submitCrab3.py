@@ -7,7 +7,6 @@ inputFile =""
 submit = False
 lumiMask =""
 globalTag =""
-crabcommand ='crab submit -c crab.py'
 
 try:
     opts, args = getopt.getopt(sys.argv[1:],"hsi:n:l:g:",["requestName","inputFile","lumiMask","globalTag"])
@@ -96,13 +95,15 @@ for dataset in datasets:
     if requestName:
         dataRequestName = '%s_%s'%(requestName,label)
         publishDataName = '%s_%s'%(requestName,dataset.split("/")[2])
-    
-    sendjob = crabcommand + " Data.publishDataName='%s' General.requestName='%s' Data.inputDataset='%s'"%(publishDataName,dataRequestName,dataset) + dataSplitting + dataUnitsPerJob + dataLumiMask
-    print sendjob
+        
     if submit:
-        print "submiting job"
-        os.system(sendjob)
-
+        sendjob = "crab submit -c crab.py Data.publishDataName='%s' General.requestName='%s' Data.inputDataset='%s'"%(publishDataName,dataRequestName,dataset) + dataSplitting + dataUnitsPerJob + dataLumiMask
+    else :
+        sendjob = "crab submit --dryrun -c crab.py Data.publishDataName='%s' General.requestName='%s' Data.inputDataset='%s'"%(publishDataName,dataRequestName,dataset) + dataSplitting + dataUnitsPerJob + dataLumiMask
+        
+    print sendjob
+    print "submiting job"
+    os.system(sendjob)
     #lines = open("crab.py")
     #print lines.read()
     os.remove("crab.py")

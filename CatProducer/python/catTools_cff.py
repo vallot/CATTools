@@ -65,11 +65,7 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
                       process.ApplyBaselineHBHENoiseFilter*  #reject events based
                       process.nEventsFiltered)
         #######################################################################
-        # added slimmedMETsNoHF
-        process.catMETsNoHF = process.catMETs.clone(src = cms.InputTag("slimmedMETsNoHF"))
-        #######################################################################
-        # adding puppi https://twiki.cern.ch/twiki/bin/view/CMS/PUPPI
-        
+        # adding puppi https://twiki.cern.ch/twiki/bin/view/CMS/PUPPI        
         process.catJetsPuppi.src = cms.InputTag("slimmedJetsPuppi")
         process.catMETsPuppi.src = cms.InputTag("slimmedMETsPuppi")
 
@@ -77,7 +73,21 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         ## process.packedPFCandidatesWoMuon  = cms.EDFilter("CandPtrSelector", src = cms.InputTag("packedPFCandidates"), cut = cms.string("fromPV>=2 && abs(pdgId)!=13 " ) )
         ## process.particleFlowNoMuonPUPPI.candName         = 'packedPFCandidatesWoMuon'
         ## process.particleFlowNoMuonPUPPI.vertexName       = 'offlineSlimmedPrimaryVertices'
-        #######################################################################    
+        #######################################################################
+        # MET corrections from https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
+        ## from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
+        ## runMetCorAndUncFromMiniAOD( process, isData= not runOnMC, jecUncFile=jecUncertaintyFile)
+        ## process.patPFMetT1T2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        ## process.patPFMetT1T2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        ## process.patPFMetT2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        ## process.patPFMetT2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+        ## process.shiftedPatJetEnDown.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+        ## process.shiftedPatJetEnUp.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+        ## del process.slimmedMETs.t01Variation
+        ## del process.slimmedMETs.tXYUncForRaw
+        ## del process.slimmedMETs.tXYUncForT1
+            
+        #######################################################################
         ## applying new jec on the fly
         process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
         process.patJetCorrFactors.primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices")
