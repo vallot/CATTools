@@ -1,4 +1,3 @@
-#include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -13,7 +12,6 @@
 //#include "DataFormats/Candidate/interface/CompositeCandidate.h"
 //#include "DataFormats/Candidate/interface/CompositeRefCandidate.h"
 #include "DataFormats/Candidate/interface/CompositePtrCandidate.h"
-#include "CommonTools/Utils/interface/PtComparator.h"
 
 using namespace std;
 
@@ -26,31 +24,27 @@ public:
   void produce(edm::Event & event, const edm::EventSetup&) override;
 
 private:
-  typedef cat::Muon TMuon;
-  typedef cat::Electron TElectron;;
-  typedef cat::Jet TJet;
-  typedef cat::MET TMET;
-  edm::EDGetTokenT<edm::View<TMuon> > muonToken_;
-  edm::EDGetTokenT<edm::View<TElectron> > electronToken_;
-  edm::EDGetTokenT<edm::View<TJet> > jetToken_;
-  edm::EDGetTokenT<edm::View<TMET> > metToken_;
+  edm::EDGetTokenT<cat::MuonCollection> muonToken_;
+  edm::EDGetTokenT<cat::ElectronCollection> electronToken_;
+  edm::EDGetTokenT<cat::JetCollection> jetToken_;
+  edm::EDGetTokenT<cat::METCollection> metToken_;
 
 private:
-  bool isGoodMuon(const TMuon& mu)
+  bool isGoodMuon(const cat::Muon& mu)
   {
     if ( mu.pt() <= 20 or std::abs(mu.eta()) >= 2.4 ) return false;
     if ( mu.relIso(0.4) >= 0.12 ) return false;
     if ( !mu.isTightMuon() ) return false;
     return true;
   }
-  bool isVetoMuon(const TMuon& mu)
+  bool isVetoMuon(const cat::Muon& mu)
   {
     if ( mu.pt() <= 20 or std::abs(mu.eta()) >= 2.4 ) return false;
     if ( mu.relIso(0.4) >= 0.2 ) return false;
     if ( !mu.isLooseMuon() ) return false;
     return true;
   }
-  bool isGoodElectron(const TElectron& el)
+  bool isGoodElectron(const cat::Electron& el)
   {
     if ( el.pt() <= 20 or std::abs(el.eta()) >= 2.4 ) return false;
     //if ( el.relIso(0.3) >= 0.11 ) return false;
@@ -60,7 +54,7 @@ private:
     if ( scEta >= 1.4442 and scEta <= 1.566 ) return false;
     return true;
   }
-  bool isVetoElectron(const TElectron& el)
+  bool isVetoElectron(const cat::Electron& el)
   {
     if ( el.pt()  <= 20 or std::abs(el.eta()) >= 2.4 ) return false;
     if ( !el.electronID(eleVetoIdName_) ) return false;
@@ -71,7 +65,7 @@ private:
     if ( scEta >= 1.566  and relIso03 >= 0.2075 ) return false;
     return true;
   }
-  bool isBjet(const TJet& jet)
+  bool isBjet(const cat::Jet& jet)
   {
     if ( jet.bDiscriminator(bTagName_) >= 0.814 ) return true;
     return false;
@@ -105,10 +99,10 @@ TTbarDileptonEventSelector::TTbarDileptonEventSelector(const edm::ParameterSet& 
   eleVetoIdName_(pset.getParameter<std::string>("eleVetoIdName")),
   bTagName_(pset.getParameter<std::string>("bTagName"))
 {
-  muonToken_ = consumes<edm::View<TMuon> >(pset.getParameter<edm::InputTag>("muons"));
-  electronToken_ = consumes<edm::View<TElectron> >(pset.getParameter<edm::InputTag>("electrons"));
-  jetToken_ = consumes<edm::View<TJet> >(pset.getParameter<edm::InputTag>("jets"));
-  metToken_ = consumes<edm::View<TMET> >(pset.getParameter<edm::InputTag>("mets"));
+  muonToken_ = consumes<cat::MuonCollection>(pset.getParameter<edm::InputTag>("muons"));
+  electronToken_ = consumes<cat::ElectronCollection>(pset.getParameter<edm::InputTag>("electrons"));
+  jetToken_ = consumes<cat::JetCollection>(pset.getParameter<edm::InputTag>("jets"));
+  metToken_ = consumes<cat::METCollection>(pset.getParameter<edm::InputTag>("mets"));
 
   produces<int>("channel");
   produces<int>("nLeptons");
@@ -129,17 +123,17 @@ void TTbarDileptonEventSelector::produce(edm::Event& event, const edm::EventSetu
   std::auto_ptr<std::vector<reco::CandidatePtr> > out_jets(new std::vector<reco::CandidatePtr>);
 
   // MET first
-  edm::Handle<edm::View<TMET> > metHandle;
+  edm::Handle<cat::METCollection> metHandle;
   event.getByToken(metToken_, metHandle);
   const auto& metP4 = metHandle->at(0).p4();
 
   do
   {
     // Do the leptons
-    edm::Handle<edm::View<TMuon> > muonHandle;
+    edm::Handle<cat::MuonCollection> muonHandle;
     event.getByToken(muonToken_, muonHandle);
 
-    edm::Handle<edm::View<TElectron> > electronHandle;
+    edm::Handle<cat::ElectronCollection> electronHandle;
     event.getByToken(electronToken_, electronHandle);
 
     std::vector<reco::CandidatePtr> leptons;
@@ -202,7 +196,7 @@ void TTbarDileptonEventSelector::produce(edm::Event& event, const edm::EventSetu
     }
 
     // Continue to jets
-    edm::Handle<edm::View<TJet> > jetHandle;
+    edm::Handle<cat::JetCollection> jetHandle;
     event.getByToken(jetToken_, jetHandle);
     for ( int i=0, n=jetHandle->size(); i<n; ++i )
     {
@@ -228,8 +222,8 @@ void TTbarDileptonEventSelector::produce(edm::Event& event, const edm::EventSetu
       const string bTagName(bTagName_);
       std::nth_element(out_jets->begin(), out_jets->begin()+nBjets, out_jets->end(),
                        [bTagName](reco::CandidatePtr a, reco::CandidatePtr b){
-                         const double bTag1 = dynamic_cast<const TJet&>(*a).bDiscriminator(bTagName);
-                         const double bTag2 = dynamic_cast<const TJet&>(*b).bDiscriminator(bTagName);
+                         const double bTag1 = dynamic_cast<const cat::Jet&>(*a).bDiscriminator(bTagName);
+                         const double bTag2 = dynamic_cast<const cat::Jet&>(*b).bDiscriminator(bTagName);
                          return bTag1 > bTag2;});
       // Sort by pt for the others
       std::sort(out_jets->begin()+nBjets, out_jets->end(), GtByPtPtr);
