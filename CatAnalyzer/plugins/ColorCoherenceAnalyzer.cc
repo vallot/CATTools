@@ -30,7 +30,7 @@ using namespace std;
 class ColorCoherenceAnalyzer : public edm::EDAnalyzer{
 public:
   explicit ColorCoherenceAnalyzer(const edm::ParameterSet&); 
-  ~ColorCoherenceAnalyzer();
+  ~ColorCoherenceAnalyzer() {};
 
   enum sys_e {sys_nom, sys_jes_u, sys_jes_d, sys_jer_u, sys_jer_d, sys_jar, nsys_e};
  
@@ -38,9 +38,9 @@ private:
 
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
   void resetBr();
-  vector<TLorentzVector> selectJets(const edm::View<cat::Jet>* jets, sys_e sys);
-  TLorentzVector sysJet(cat::Jet, sys_e sys);
-  TLorentzVector jarJet(cat::Jet jet);
+  vector<TLorentzVector> selectJets(const edm::View<cat::Jet>* jets, sys_e sys) const;
+  TLorentzVector sysJet(cat::Jet, sys_e sys) const;
+  TLorentzVector jarJet(cat::Jet jet) const;
 
   edm::EDGetTokenT<edm::View<cat::Jet> >      jetToken_;
   edm::EDGetTokenT<edm::View<cat::MET> >      metToken_;
@@ -127,7 +127,6 @@ ColorCoherenceAnalyzer::ColorCoherenceAnalyzer(const edm::ParameterSet& iConfig)
   }   
   
 }
-ColorCoherenceAnalyzer::~ColorCoherenceAnalyzer(){}
 
 void ColorCoherenceAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
@@ -194,7 +193,7 @@ void ColorCoherenceAnalyzer::analyze(const edm::Event& iEvent, const edm::EventS
   }
 }
 
-vector<TLorentzVector> ColorCoherenceAnalyzer::selectJets(const edm::View<cat::Jet>* jets, sys_e sys)
+vector<TLorentzVector> ColorCoherenceAnalyzer::selectJets(const edm::View<cat::Jet>* jets, sys_e sys) const
 {
   vector<TLorentzVector> seljets;
   for (auto jet : *jets) {
@@ -208,7 +207,7 @@ vector<TLorentzVector> ColorCoherenceAnalyzer::selectJets(const edm::View<cat::J
   return seljets;
 }
 
-TLorentzVector ColorCoherenceAnalyzer::sysJet(cat::Jet jet, sys_e sys)
+TLorentzVector ColorCoherenceAnalyzer::sysJet(cat::Jet jet, sys_e sys) const
 {
   if (sys == sys_nom) return jet.tlv();
   if (sys == sys_jes_u) return jet.tlv()*jet.shiftedEnUp();
@@ -220,7 +219,7 @@ TLorentzVector ColorCoherenceAnalyzer::sysJet(cat::Jet jet, sys_e sys)
   return jet.tlv();
 }
 
-TLorentzVector ColorCoherenceAnalyzer::jarJet(cat::Jet jet)
+TLorentzVector ColorCoherenceAnalyzer::jarJet(cat::Jet jet) const
 {
   // temp... currently doing NOTHING
   TLorentzVector sJet;

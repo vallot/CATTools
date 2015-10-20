@@ -29,18 +29,18 @@ using namespace cat;
 class h2muAnalyzer : public edm::EDAnalyzer {
 public:
   explicit h2muAnalyzer(const edm::ParameterSet&);
-  ~h2muAnalyzer();
+  ~h2muAnalyzer() {};
 
 private:
-  virtual void analyze(const edm::Event&, const edm::EventSetup&);
+  virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
 
-  vector<cat::Muon> selectMuons(const edm::View<cat::Muon>* muons );
-  vector<cat::Electron> selectElecs(const edm::View<cat::Electron>* elecs );
-  vector<cat::Jet> selectJets(const edm::View<cat::Jet>* jets, vector<TLorentzVector> recolep);
-  vector<cat::Jet> selectBJets(vector<cat::Jet> & jets );
-  int preSelect(vector<cat::Jet> seljets, float MET);
-  int JetCategory(vector<cat::Jet> seljets, float MET, float ll_pt);
-  int JetCat_GC(float mu1_eta, float mu2_eta);
+  vector<cat::Muon> selectMuons(const edm::View<cat::Muon>* muons ) const;
+  vector<cat::Electron> selectElecs(const edm::View<cat::Electron>* elecs ) const;
+  vector<cat::Jet> selectJets(const edm::View<cat::Jet>* jets, vector<TLorentzVector> recolep) const;
+  vector<cat::Jet> selectBJets(vector<cat::Jet> & jets) const;
+  int preSelect(vector<cat::Jet> seljets, float MET) const;
+  int JetCategory(vector<cat::Jet> seljets, float MET, float ll_pt) const;
+  int JetCat_GC(float mu1_eta, float mu2_eta) const;
 
   edm::EDGetTokenT<edm::View<cat::Muon> >     muonToken_;
   edm::EDGetTokenT<edm::View<cat::Electron> > elecToken_;
@@ -70,6 +70,7 @@ private:
 
   bool runOnMC_;
 };
+
 h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
 {
   muonToken_ = consumes<edm::View<cat::Muon> >(iConfig.getParameter<edm::InputTag>("muons"));
@@ -133,7 +134,6 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("gen_diMu_m", &b_gen_diMu_m, "gen_diMu_m/F");
 
 }
-h2muAnalyzer::~h2muAnalyzer(){}
 
 void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
@@ -276,7 +276,7 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   ttree_->Fill();
 }
 
-vector<cat::Muon> h2muAnalyzer::selectMuons(const edm::View<cat::Muon>* muons )
+vector<cat::Muon> h2muAnalyzer::selectMuons(const edm::View<cat::Muon>* muons ) const
 {
   vector<cat::Muon> selmuons;
   for (auto mu : *muons) {
@@ -291,7 +291,7 @@ vector<cat::Muon> h2muAnalyzer::selectMuons(const edm::View<cat::Muon>* muons )
   return selmuons;
 }
 
-vector<cat::Electron> h2muAnalyzer::selectElecs(const edm::View<cat::Electron>* elecs )
+vector<cat::Electron> h2muAnalyzer::selectElecs(const edm::View<cat::Electron>* elecs ) const
 {
   vector<cat::Electron> selelecs;
   for (auto el : *elecs) {
@@ -310,7 +310,7 @@ vector<cat::Electron> h2muAnalyzer::selectElecs(const edm::View<cat::Electron>* 
   return selelecs;
 }
 
-vector<cat::Jet> h2muAnalyzer::selectJets(const edm::View<cat::Jet>* jets, vector<TLorentzVector> recomu )
+vector<cat::Jet> h2muAnalyzer::selectJets(const edm::View<cat::Jet>* jets, vector<TLorentzVector> recomu ) const
 {
   vector<cat::Jet> seljets;
   for (auto jet : *jets) {
@@ -325,7 +325,7 @@ vector<cat::Jet> h2muAnalyzer::selectJets(const edm::View<cat::Jet>* jets, vecto
   return seljets;
 }
 
-int h2muAnalyzer::preSelect(vector<cat::Jet> seljets, float MET)
+int h2muAnalyzer::preSelect(vector<cat::Jet> seljets, float MET) const
 {
   int njet = seljets.size();
   if (njet>1){
@@ -342,7 +342,7 @@ int h2muAnalyzer::preSelect(vector<cat::Jet> seljets, float MET)
   return 0;
 }
 
-int h2muAnalyzer::JetCategory(vector<cat::Jet> seljets, float MET, float diMu_pt)
+int h2muAnalyzer::JetCategory(vector<cat::Jet> seljets, float MET, float diMu_pt) const
 {
   int presel = preSelect(seljets, MET);
   if (presel==1){
@@ -368,7 +368,7 @@ int h2muAnalyzer::JetCategory(vector<cat::Jet> seljets, float MET, float diMu_pt
   return 0;
 }
 
-int h2muAnalyzer::JetCat_GC(float mu1_eta, float mu2_eta)
+int h2muAnalyzer::JetCat_GC(float mu1_eta, float mu2_eta) const
 {
   const float eta_mu[2] = {std::abs(mu1_eta),std::abs(mu2_eta)};
   int GC=0;
