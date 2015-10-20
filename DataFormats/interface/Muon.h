@@ -36,6 +36,10 @@ namespace cat {
     int numberOfValidPixelHits() const { return numberOfValidPixelHits_; }
     int trackerLayersWithMeasurement() const { return trackerLayersWithMeasurement_; }
 
+    float shiftedEn() const { if (this->pt() < 100) return 0.002; else return 0.05; }
+    float shiftedEnDown() const {return 1-shiftedEn();}
+    float shiftedEnUp() const {return  1+shiftedEn();}
+
     void setIsGlobalMuon(bool d) { isGlobalMuon_ = d; }
     void setIsSoftMuon(bool d) { isSoftMuon_ = d; }
 
