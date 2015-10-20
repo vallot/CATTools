@@ -48,9 +48,9 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         ## Hcal HBHE https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2
         process.load('CommonTools.RecoAlgos.HBHENoiseFilterResultProducer_cfi')
         process.HBHENoiseFilterResultProducer.minZeros = cms.int32(99999)
-
         process.HBHENoiseFilterResultProducer.IgnoreTS4TS5ifJetInLowBVRegion=cms.bool(False) 
         process.HBHENoiseFilterResultProducer.defaultDecision = cms.string("HBHENoiseFilterResultRun2Loose")
+
         if bunchCrossing == 50:
             process.HBHENoiseFilterResultProducer.IgnoreTS4TS5ifJetInLowBVRegion=cms.bool(True) 
             process.HBHENoiseFilterResultProducer.defaultDecision = cms.string("HBHENoiseFilterResultRun1")
@@ -65,58 +65,13 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
                       process.ApplyBaselineHBHENoiseFilter*  #reject events based
                       process.nEventsFiltered)
         #######################################################################
-        # recompute the T1 PFMET https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
-        from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
-        runMetCorAndUncFromMiniAOD( process, isData= not runOnMC, jecUncFile=jecUncertaintyFile)
-        # MET without HF
-        process.noHFCands = cms.EDFilter("CandPtrSelector",
-                                        src=cms.InputTag("packedPFCandidates"),
-                                        cut=cms.string("abs(pdgId)!=1 && abs(pdgId)!=2 && abs(eta)<3.0"))
-        
-        runMetCorAndUncFromMiniAOD(process, isData=not runOnMC, jecUncFile=jecUncertaintyFile, pfCandColl=cms.InputTag("noHFCands"), postfix="NoHF")
+        # added slimmedMETsNoHF
         process.catMETsNoHF = process.catMETs.clone(src = cms.InputTag("slimmedMETsNoHF"))
-        
-        process.patPFMetT1T2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        process.patPFMetT1T2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        process.patPFMetT2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        process.patPFMetT2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        process.shiftedPatJetEnDown.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
-        process.shiftedPatJetEnUp.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
-    
-        process.patPFMetT1T2CorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        process.patPFMetT1T2SmearCorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        process.patPFMetT2CorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        process.patPFMetT2SmearCorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        process.shiftedPatJetEnDownNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
-        process.shiftedPatJetEnUpNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
-    
-        del process.slimmedMETs.t01Variation
-        #del process.slimmedMETs.t1Uncertainties
-        del process.slimmedMETs.tXYUncForRaw
-        del process.slimmedMETs.tXYUncForT1
-        del process.slimmedMETsNoHF.t01Variation
-        #del process.slimmedMETsNoHF.t1Uncertainties
-        del process.slimmedMETsNoHF.tXYUncForRaw
-        del process.slimmedMETsNoHF.tXYUncForT1
         #######################################################################
-        # redoing puppi from miniAOD as recommended https://twiki.cern.ch/twiki/bin/view/CMS/PUPPI
-        process.load('CommonTools/PileupAlgos/Puppi_cff')
-        process.puppi.candName = cms.InputTag('packedPFCandidates')
-        process.puppi.vertexName = cms.InputTag('offlineSlimmedPrimaryVertices')
+        # adding puppi https://twiki.cern.ch/twiki/bin/view/CMS/PUPPI
         
-        # remaking puppi jets
-        from JMEAnalysis.JetToolbox.jetToolbox_cff import jetToolbox
-        jetToolbox( process, 'ak4', 'ak4JetSubs', 'out', PUMethod='Puppi', miniAOD = useMiniAOD, runOnMC = True,#due to bug in jetToolbox
-                    JETCorrPayload='AK4PFPuppi', JETCorrLevels = ['L1FastJet', 'L2Relative', 'L3Absolute'] )#bug-JETCorrLevels overwritten in jetToolbox
-        process.patJetGenJetMatchAK4PFPuppi.matched = cms.InputTag("slimmedGenJets")
-        process.patJetsAK4PFPuppi.embedGenPartonMatch = cms.bool(False)
-        process.selectedPatJetsAK4PFPuppi.cut = cms.string("pt > 20")
-
-        # remaking puppi met
-        from RecoMET.METProducers.PFMET_cfi import pfMet
-        process.pfMetPuppi = pfMet.clone(src = cms.InputTag('puppi'))
-        process.patPfMetPuppi = process.patMETs.clone(metSource = cms.InputTag("pfMetPuppi"), addGenMET = cms.bool(False))
-        process.catMETsPuppi.src = cms.InputTag("patPfMetPuppi")
+        process.catJetsPuppi.src = cms.InputTag("slimmedJetsPuppi")
+        process.catMETsPuppi.src = cms.InputTag("slimmedMETsPuppi")
 
         # for puppi isolation
         ## process.packedPFCandidatesWoMuon  = cms.EDFilter("CandPtrSelector", src = cms.InputTag("packedPFCandidates"), cut = cms.string("fromPV>=2 && abs(pdgId)!=13 " ) )
@@ -131,11 +86,11 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         ### updating puppi jet jec
         process.patJetPuppiCorrFactorsUpdated = process.patJetCorrFactorsUpdated.clone(
             payload = cms.string('AK4PFPuppi'),
-            src = cms.InputTag("selectedPatJetsAK4PFPuppi"))
+            src = process.catJetsPuppi.src )
         
         process.patJetsPuppiUpdated = process.patJetsUpdated.clone(
             jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetPuppiCorrFactorsUpdated")),
-            jetSource = cms.InputTag("selectedPatJetsAK4PFPuppi"))
+            jetSource = process.catJetsPuppi.src )
         
         process.catJetsPuppi.src = cms.InputTag("patJetsPuppiUpdated")
         #######################################################################
@@ -143,19 +98,22 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         from PhysicsTools.SelectorUtils.tools.vid_id_tools import DataFormat,switchOnVIDElectronIdProducer,setupAllVIDIdsInModule,setupVIDElectronSelection
         electron_ids = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_25ns_V1_cff',
                         'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV60_cff',
-                        'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_nonTrig_V1_cff']
+                        'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_nonTrig_V1_cff',
+                        'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_Trig_V1_cff']
         switchOnVIDElectronIdProducer(process, DataFormat.MiniAOD)
         for idmod in electron_ids:
             setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
 
         process.catElectrons.electronIDSources = cms.PSet(
-            cutBasedElectronID_Spring15_25ns_V1_standalone_loose = cms.InputTag("egmGsfElectronIDs","cutBasedElectronID-Spring15-25ns-V1-standalone-loose"),
-            cutBasedElectronID_Spring15_25ns_V1_standalone_medium = cms.InputTag("egmGsfElectronIDs","cutBasedElectronID-Spring15-25ns-V1-standalone-medium"),
-            cutBasedElectronID_Spring15_25ns_V1_standalone_tight = cms.InputTag("egmGsfElectronIDs","cutBasedElectronID-Spring15-25ns-V1-standalone-tight"),
-            cutBasedElectronID_Spring15_25ns_V1_standalone_veto = cms.InputTag("egmGsfElectronIDs","cutBasedElectronID-Spring15-25ns-V1-standalone-veto"),
-            heepElectronID_HEEPV60 = cms.InputTag("egmGsfElectronIDs","heepElectronID-HEEPV60"),
-            mvaEleID_Spring15_25ns_nonTrig_V1_wp80 = cms.InputTag("egmGsfElectronIDs","mvaEleID-Spring15-25ns-nonTrig-V1-wp80"),
-            mvaEleID_Spring15_25ns_nonTrig_V1_wp90 = cms.InputTag("egmGsfElectronIDs","mvaEleID-Spring15-25ns-nonTrig-V1-wp90")
+            cutBasedElectronID_Spring15_25ns_V1_standalone_loose = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-loose"),
+            cutBasedElectronID_Spring15_25ns_V1_standalone_medium = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-medium"),
+            cutBasedElectronID_Spring15_25ns_V1_standalone_tight = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-tight"),
+            cutBasedElectronID_Spring15_25ns_V1_standalone_veto = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-veto"),
+            heepElectronID_HEEPV60 = cms.InputTag("egmGsfElectronIDs:heepElectronID-HEEPV60"),
+            mvaEleID_Spring15_25ns_nonTrig_V1_wp80 = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-nonTrig-V1-wp80"),
+            mvaEleID_Spring15_25ns_nonTrig_V1_wp90 = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-nonTrig-V1-wp90"),
+            mvaEleID_Spring15_25ns_Trig_V1_wp80 = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-Trig-V1-wp90"),
+            mvaEleID_Spring15_25ns_Trig_V1_wp90 = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-Trig-V1-wp80"),
         )
         
         #######################################################################    
