@@ -31,9 +31,8 @@ class ColorCoherenceAnalyzer : public edm::EDAnalyzer{
 public:
   explicit ColorCoherenceAnalyzer(const edm::ParameterSet&); 
   ~ColorCoherenceAnalyzer();
-  static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
-   enum sys_e {sys_nom, sys_jes_u, sys_jes_d, sys_jer_u, sys_jer_d, sys_jar, nsys_e};
+  enum sys_e {sys_nom, sys_jes_u, sys_jes_d, sys_jer_u, sys_jer_d, sys_jar, nsys_e};
  
 private:
 
@@ -156,7 +155,7 @@ void ColorCoherenceAnalyzer::analyze(const edm::Event& iEvent, const edm::EventS
   for (int sys = 0; sys < nsys_e; ++sys){
     resetBr();
     
-    vector<TLorentzVector> seljets = selectJets(jets.product(), (sys_e)sys);
+    vector<TLorentzVector>&& seljets = selectJets(jets.product(), (sys_e)sys);
     if (seljets.size() < 3) return;
 
     sort(seljets.begin(), seljets.end(), cat::GtByTLVPt);
@@ -245,12 +244,4 @@ void ColorCoherenceAnalyzer::resetBr()
   b_gjet3_pt = -99; b_gjet3_eta = -99; b_gjet3_phi = -99;
 }
 
-void ColorCoherenceAnalyzer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) 
-{
-  //The following says we do not know what parameters are allowed so do no validation
-  //  // Please change this to state exactly what you do use, even if it is no parameters
-  edm::ParameterSetDescription desc;
-  desc.setUnknown();
-  descriptions.addDefault(desc);
-}
 DEFINE_FWK_MODULE(ColorCoherenceAnalyzer);

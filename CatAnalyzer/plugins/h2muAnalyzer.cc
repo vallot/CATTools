@@ -30,7 +30,6 @@ class h2muAnalyzer : public edm::EDAnalyzer {
 public:
   explicit h2muAnalyzer(const edm::ParameterSet&);
   ~h2muAnalyzer();
-  static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
 private:
   virtual void analyze(const edm::Event&, const edm::EventSetup&);
@@ -174,7 +173,7 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 
   edm::Handle<reco::GenParticleCollection> genParticles;
 
-  vector<cat::Muon> selectedMuons = selectMuons( muons.product() );
+  vector<cat::Muon>&& selectedMuons = selectMuons( muons.product() );
   sort(selectedMuons.begin(), selectedMuons.end(), GtByCandPt());
   
   if (runOnMC_){
@@ -238,7 +237,7 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   b_MET = met.Pt();
 
   vector<TLorentzVector> recomu;
-  vector<cat::Jet> selectedJets = selectJets( jets.product(), recomu );
+  vector<cat::Jet>&& selectedJets = selectJets( jets.product(), recomu );
 
   b_njet = selectedJets.size();
 
@@ -371,22 +370,14 @@ int h2muAnalyzer::JetCategory(vector<cat::Jet> seljets, float MET, float diMu_pt
 
 int h2muAnalyzer::JetCat_GC(float mu1_eta, float mu2_eta)
 {
-  float eta_mu[2] = {abs(mu1_eta),abs(mu2_eta)};
-  float GC=0;
+  const float eta_mu[2] = {std::abs(mu1_eta),std::abs(mu2_eta)};
+  int GC=0;
   for(int i=0; i<2; i++){
-    if (eta_mu[i] < 0.8) GC += 1;
-    if (eta_mu[i] > 0.8 && eta_mu[i] < 1.5) GC += 10;
-    if (eta_mu[i] > 1.5 && eta_mu[i] < 2.4) GC += 100;
+    if      (eta_mu[i] < 0.8) GC += 1;
+    else if (eta_mu[i] < 1.5) GC += 10;
+    else if (eta_mu[i] < 2.4) GC += 100;
   }
   return GC;
-}
-
-void h2muAnalyzer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
-  //The following says we do not know what parameters are allowed so do no validation
-  // Please change this to state exactly what you do use, even if it is no parameters
-  edm::ParameterSetDescription desc;
-  desc.setUnknown();
-  descriptions.addDefault(desc);
 }
 
 //define this as a plug-in

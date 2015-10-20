@@ -40,8 +40,8 @@ private:
 
   void selectMuons(const vector<cat::Muon>& muons, Particles& selmuons) const;
   void selectElecs(const vector<cat::Electron>& elecs, Particles& selelecs) const;
-  void selectJets(const Jets& jets, const Particles& recolep, Jets& seljets) const;
-  void selectBJets(const Jets& jets, Jets& selBjets) const;
+  Jets selectJets(const Jets& jets, const Particles& recolep) const;
+  Jets selectBJets(const Jets& jets) const;
   const reco::Candidate* getLast(const reco::Candidate* p) const;
 
   edm::EDGetTokenT<int> recoFiltersToken_;
@@ -369,9 +369,8 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   }
   cutflow_[++b_step][b_channel]++;
 
-  Jets selectedJets, selectedBJets;
-  selectJets(*jets, recolep, selectedJets);
-  selectBJets(selectedJets, selectedBJets);
+  Jets&& selectedJets = selectJets(*jets, recolep);
+  Jets&& selectedBJets = selectBJets(selectedJets);
   const TLorentzVector met = mets->front().tlv();
   b_MET = met.Pt();
   b_njet = selectedJets.size();
@@ -506,9 +505,9 @@ void TtbarDiLeptonAnalyzer::selectElecs(const std::vector<cat::Electron>& elecs,
   }
 }
 
-void TtbarDiLeptonAnalyzer::selectJets(const vector<cat::Jet>& jets, const Particles& recolep, Jets& seljets) const
+std::vector<cat::Jet> TtbarDiLeptonAnalyzer::selectJets(const vector<cat::Jet>& jets, const Particles& recolep) const
 {
-  seljets.clear();
+  std::vector<cat::Jet> seljets;
   for (auto& jet : jets) {
     if (jet.pt() < 30.) continue;
     if (std::abs(jet.eta()) > 2.4)	continue;
@@ -522,15 +521,18 @@ void TtbarDiLeptonAnalyzer::selectJets(const vector<cat::Jet>& jets, const Parti
     // printf("jet with pt %4.1f\n", jet.pt());
     seljets.push_back(jet);
   }
+  return seljets;
 }
 
-void TtbarDiLeptonAnalyzer::selectBJets(const Jets& jets, Jets& selBjets) const
+std::vector<cat::Jet> TtbarDiLeptonAnalyzer::selectBJets(const Jets& jets) const
 {
+  std::vector<cat::Jet> selBjets;
   for (auto& jet : jets) {
     if (jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") < 0.814) continue;
     //printf("b jet with pt %4.1f\n", jet.pt());
     selBjets.push_back(jet);
   }
+  return selBjets;
 }
 
 //define this as a plug-in
