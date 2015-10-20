@@ -129,7 +129,6 @@ void ColorCoherenceAnalyzer::analyze(const edm::Event& iEvent, const edm::EventS
   runOnMC_ = !iEvent.isRealData();
 
   edm::Handle<edm::View<cat::Jet> > jets;
-  iEvent.getByToken(jetToken_, jets);
   if (!iEvent.getByToken(jetToken_, jets)) return;
 
   edm::Handle<edm::View<cat::MET> > mets;
