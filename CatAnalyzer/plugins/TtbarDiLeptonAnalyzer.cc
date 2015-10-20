@@ -37,8 +37,8 @@ private:
 
   void selectMuons(const cat::MuonCollection& muons, ParticleCollection& selmuons) const;
   void selectElecs(const cat::ElectronCollection& elecs, ParticleCollection& selelecs) const;
-  JetCollection selectJets(const JetCollection& jets, const ParticleCollection& recolep) const;
-  JetCollection selectBJets(const JetCollection& jets) const;
+  cat::JetCollection selectJets(const cat::JetCollection& jets, const ParticleCollection& recolep) const;
+  cat::JetCollection selectBJets(const cat::JetCollection& jets) const;
   const reco::Candidate* getLast(const reco::Candidate* p) const;
 
   edm::EDGetTokenT<int> recoFiltersToken_;

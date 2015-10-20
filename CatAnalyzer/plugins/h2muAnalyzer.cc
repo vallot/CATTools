@@ -37,9 +37,9 @@ private:
   vector<cat::Muon> selectMuons(const edm::View<cat::Muon>* muons ) const;
   vector<cat::Electron> selectElecs(const edm::View<cat::Electron>* elecs ) const;
   vector<cat::Jet> selectJets(const edm::View<cat::Jet>* jets, vector<TLorentzVector> recolep) const;
-  vector<cat::Jet> selectBJets(const JetCollection& jets) const;
-  int preSelect(const JetCollection& seljets, float MET) const;
-  int JetCategory(const JetCollection& seljets, float MET, float ll_pt) const;
+  vector<cat::Jet> selectBJets(const cat::JetCollection& jets) const;
+  int preSelect(const cat::JetCollection& seljets, float MET) const;
+  int JetCategory(const cat::JetCollection& seljets, float MET, float ll_pt) const;
   int JetCat_GC(float mu1_eta, float mu2_eta) const;
 
   edm::EDGetTokenT<edm::View<cat::Muon> >     muonToken_;
@@ -325,7 +325,7 @@ vector<cat::Jet> h2muAnalyzer::selectJets(const edm::View<cat::Jet>* jets, vecto
   return seljets;
 }
 
-int h2muAnalyzer::preSelect(const JetCollection& seljets, float MET) const
+int h2muAnalyzer::preSelect(const cat::JetCollection& seljets, float MET) const
 {
   int njet = seljets.size();
   if (njet>1){
@@ -342,7 +342,7 @@ int h2muAnalyzer::preSelect(const JetCollection& seljets, float MET) const
   return 0;
 }
 
-int h2muAnalyzer::JetCategory(const JetCollection& seljets, float MET, float diMu_pt) const
+int h2muAnalyzer::JetCategory(const cat::JetCollection& seljets, float MET, float diMu_pt) const
 {
   int presel = preSelect(seljets, MET);
   if (presel==1){

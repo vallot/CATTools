@@ -37,12 +37,12 @@ private:
 
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
   void resetBr();
-  vector<TLorentzVector> selectJets(const edm::View<cat::Jet>* jets, sys_e sys) const;
-  TLorentzVector sysJet(cat::Jet, sys_e sys) const;
-  TLorentzVector jarJet(cat::Jet jet) const;
+  vector<TLorentzVector> selectJets(const cat::JetCollection& jets, sys_e sys) const;
+  TLorentzVector sysJet(const cat::Jet&, sys_e sys) const;
+  TLorentzVector jarJet(const cat::Jet& jet) const;
 
-  edm::EDGetTokenT<edm::View<cat::Jet> >      jetToken_;
-  edm::EDGetTokenT<edm::View<cat::MET> >      metToken_;
+  edm::EDGetTokenT<cat::JetCollection>      jetToken_;
+  edm::EDGetTokenT<cat::METCollection>      metToken_;
   edm::EDGetTokenT<int>   vtxToken_;
   edm::EDGetTokenT<edm::TriggerResults> triggerBits_;
   edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjects_;
@@ -67,8 +67,8 @@ private:
 
 ColorCoherenceAnalyzer::ColorCoherenceAnalyzer(const edm::ParameterSet& iConfig)
 {
-  jetToken_  = consumes<edm::View<cat::Jet> >(iConfig.getParameter<edm::InputTag>("jets"));
-  metToken_  = consumes<edm::View<cat::MET> >(iConfig.getParameter<edm::InputTag>("mets"));
+  jetToken_  = consumes<cat::JetCollection>(iConfig.getParameter<edm::InputTag>("jets"));
+  metToken_  = consumes<cat::METCollection>(iConfig.getParameter<edm::InputTag>("mets"));
   vtxToken_  = consumes<int>(iConfig.getParameter<edm::InputTag>("vtx"));
   triggerBits_ = consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerBits"));
   triggerObjects_ = consumes<pat::TriggerObjectStandAloneCollection>(iConfig.getParameter<edm::InputTag>("triggerObjects"));
@@ -128,10 +128,10 @@ void ColorCoherenceAnalyzer::analyze(const edm::Event& iEvent, const edm::EventS
 {
   runOnMC_ = !iEvent.isRealData();
 
-  edm::Handle<edm::View<cat::Jet> > jets;
+  edm::Handle<cat::JetCollection> jets;
   if (!iEvent.getByToken(jetToken_, jets)) return;
 
-  edm::Handle<edm::View<cat::MET> > mets;
+  edm::Handle<cat::METCollection> mets;
   iEvent.getByToken(metToken_, mets);
 
   edm::Handle<int> vtx;
@@ -149,7 +149,7 @@ void ColorCoherenceAnalyzer::analyze(const edm::Event& iEvent, const edm::EventS
   for (int sys = 0; sys < nsys_e; ++sys){
     resetBr();
 
-    vector<TLorentzVector>&& seljets = selectJets(jets.product(), (sys_e)sys);
+    vector<TLorentzVector>&& seljets = selectJets(*(jets.product()), (sys_e)sys);
     if (seljets.size() < 3) return;
 
     sort(seljets.begin(), seljets.end(), cat::GtByTLVPt);
@@ -190,13 +190,13 @@ void ColorCoherenceAnalyzer::analyze(const edm::Event& iEvent, const edm::EventS
   }
 }
 
-vector<TLorentzVector> ColorCoherenceAnalyzer::selectJets(const edm::View<cat::Jet>* jets, sys_e sys) const
+vector<TLorentzVector> ColorCoherenceAnalyzer::selectJets(const cat::JetCollection& jets, sys_e sys) const
 {
   vector<TLorentzVector> seljets;
-  for (auto jet : *jets) {
+  for (auto jet : jets) {
     if (!jet.LooseId()) continue;
     if (jet.pileupJetId() <0.9) continue;
-    TLorentzVector newjet = sysJet(jet, sys);
+    const TLorentzVector&& newjet = sysJet(jet, sys);
     if (newjet.Pt() <= 20.) continue;
 
     seljets.push_back(newjet);
@@ -204,7 +204,7 @@ vector<TLorentzVector> ColorCoherenceAnalyzer::selectJets(const edm::View<cat::J
   return seljets;
 }
 
-TLorentzVector ColorCoherenceAnalyzer::sysJet(cat::Jet jet, sys_e sys) const
+TLorentzVector ColorCoherenceAnalyzer::sysJet(const cat::Jet& jet, sys_e sys) const
 {
   if (sys == sys_nom) return jet.tlv();
   if (sys == sys_jes_u) return jet.tlv()*jet.shiftedEnUp();
@@ -216,7 +216,7 @@ TLorentzVector ColorCoherenceAnalyzer::sysJet(cat::Jet jet, sys_e sys) const
   return jet.tlv();
 }
 
-TLorentzVector ColorCoherenceAnalyzer::jarJet(cat::Jet jet) const
+TLorentzVector ColorCoherenceAnalyzer::jarJet(const cat::Jet& jet) const
 {
   // temp... currently doing NOTHING
   TLorentzVector sJet;
