@@ -35,22 +35,19 @@ public:
 private:
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
 
-  typedef std::vector<cat::Particle> Particles;
-  typedef std::vector<cat::Jet> Jets;
-
-  void selectMuons(const vector<cat::Muon>& muons, Particles& selmuons) const;
-  void selectElecs(const vector<cat::Electron>& elecs, Particles& selelecs) const;
-  Jets selectJets(const Jets& jets, const Particles& recolep) const;
-  Jets selectBJets(const Jets& jets) const;
+  void selectMuons(const cat::MuonCollection& muons, ParticleCollection& selmuons) const;
+  void selectElecs(const cat::ElectronCollection& elecs, ParticleCollection& selelecs) const;
+  JetCollection selectJets(const JetCollection& jets, const ParticleCollection& recolep) const;
+  JetCollection selectBJets(const JetCollection& jets) const;
   const reco::Candidate* getLast(const reco::Candidate* p) const;
 
   edm::EDGetTokenT<int> recoFiltersToken_;
   edm::EDGetTokenT<int> trigTokenMUEL_, trigTokenMUMU_, trigTokenELEL_;
 
-  edm::EDGetTokenT<std::vector<cat::Muon> >     muonToken_;
-  edm::EDGetTokenT<std::vector<cat::Electron> > elecToken_;
-  edm::EDGetTokenT<std::vector<cat::Jet> >      jetToken_;
-  edm::EDGetTokenT<std::vector<cat::MET> >      metToken_;
+  edm::EDGetTokenT<cat::MuonCollection>     muonToken_;
+  edm::EDGetTokenT<cat::ElectronCollection> elecToken_;
+  edm::EDGetTokenT<cat::JetCollection>      jetToken_;
+  edm::EDGetTokenT<cat::METCollection>      metToken_;
   edm::EDGetTokenT<reco::VertexCollection >   vtxToken_;
   edm::EDGetTokenT<int>          partonTop_channel_;
   edm::EDGetTokenT<vector<int> > partonTop_modes_;
@@ -99,10 +96,10 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   trigTokenMUMU_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigMUMU"));
   trigTokenELEL_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigELEL"));
 
-  muonToken_ = consumes<std::vector<cat::Muon> >(iConfig.getParameter<edm::InputTag>("muons"));
-  elecToken_ = consumes<std::vector<cat::Electron> >(iConfig.getParameter<edm::InputTag>("electrons"));
-  jetToken_  = consumes<std::vector<cat::Jet> >(iConfig.getParameter<edm::InputTag>("jets"));
-  metToken_  = consumes<std::vector<cat::MET> >(iConfig.getParameter<edm::InputTag>("mets"));
+  muonToken_ = consumes<cat::MuonCollection>(iConfig.getParameter<edm::InputTag>("muons"));
+  elecToken_ = consumes<cat::ElectronCollection>(iConfig.getParameter<edm::InputTag>("electrons"));
+  jetToken_  = consumes<cat::JetCollection>(iConfig.getParameter<edm::InputTag>("jets"));
+  metToken_  = consumes<cat::METCollection>(iConfig.getParameter<edm::InputTag>("mets"));
   vtxToken_  = consumes<reco::VertexCollection >(iConfig.getParameter<edm::InputTag>("vertices"));
 
   isTTbarMC_ = iConfig.getParameter<bool>("isTTbarMC");
@@ -225,10 +222,10 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   edm::Handle<reco::VertexCollection> vertices;      iEvent.getByToken(vtxToken_, vertices);
   if (vertices->empty()){ return;} // skip the event if no PV found
   // const reco::Vertex &PV = vertices->front();
-  edm::Handle<std::vector<cat::Muon> > muons;          iEvent.getByToken(muonToken_, muons);
-  edm::Handle<std::vector<cat::Electron> > electrons;  iEvent.getByToken(elecToken_, electrons);
-  edm::Handle<std::vector<cat::Jet> > jets;            iEvent.getByToken(jetToken_, jets);
-  edm::Handle<std::vector<cat::MET> > mets;            iEvent.getByToken(metToken_, mets);
+  edm::Handle<cat::MuonCollection> muons;          iEvent.getByToken(muonToken_, muons);
+  edm::Handle<cat::ElectronCollection> electrons;  iEvent.getByToken(elecToken_, electrons);
+  edm::Handle<cat::JetCollection> jets;            iEvent.getByToken(jetToken_, jets);
+  edm::Handle<cat::METCollection> mets;            iEvent.getByToken(metToken_, mets);
 
   if (isTTbarMC_){
     edm::Handle<int> partonTop_channel;
@@ -320,7 +317,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_filtered = *recoFiltersHandle == 0 ? false : true;
 
   // Find leptons and sort by pT
-  Particles recolep;
+  ParticleCollection recolep;
   selectMuons(*muons, recolep);
   selectElecs(*electrons, recolep);
   if (recolep.size() < 2){
@@ -369,8 +366,8 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   }
   cutflow_[++b_step][b_channel]++;
 
-  Jets&& selectedJets = selectJets(*jets, recolep);
-  Jets&& selectedBJets = selectBJets(selectedJets);
+  JetCollection&& selectedJets = selectJets(*jets, recolep);
+  JetCollection&& selectedBJets = selectBJets(selectedJets);
   const TLorentzVector met = mets->front().tlv();
   b_MET = met.Pt();
   b_njet = selectedJets.size();
@@ -475,7 +472,7 @@ const reco::Candidate* TtbarDiLeptonAnalyzer::getLast(const reco::Candidate* p) 
   return p;
 }
 
-void TtbarDiLeptonAnalyzer::selectMuons(const std::vector<cat::Muon>& muons, Particles& selmuons) const
+void TtbarDiLeptonAnalyzer::selectMuons(const cat::MuonCollection& muons, ParticleCollection& selmuons) const
 {
   for (auto& mu : muons) {
     if (mu.pt() < 20.) continue;
@@ -488,7 +485,7 @@ void TtbarDiLeptonAnalyzer::selectMuons(const std::vector<cat::Muon>& muons, Par
   }
 }
 
-void TtbarDiLeptonAnalyzer::selectElecs(const std::vector<cat::Electron>& elecs, Particles& selelecs) const
+void TtbarDiLeptonAnalyzer::selectElecs(const cat::ElectronCollection& elecs, ParticleCollection& selelecs) const
 {
   for (auto& el : elecs) {
     if (el.pt() < 20.) continue;
@@ -505,9 +502,9 @@ void TtbarDiLeptonAnalyzer::selectElecs(const std::vector<cat::Electron>& elecs,
   }
 }
 
-std::vector<cat::Jet> TtbarDiLeptonAnalyzer::selectJets(const vector<cat::Jet>& jets, const Particles& recolep) const
+cat::JetCollection TtbarDiLeptonAnalyzer::selectJets(const cat::JetCollection& jets, const ParticleCollection& recolep) const
 {
-  std::vector<cat::Jet> seljets;
+  cat::JetCollection seljets;
   for (auto& jet : jets) {
     if (jet.pt() < 30.) continue;
     if (std::abs(jet.eta()) > 2.4)  continue;
@@ -524,9 +521,9 @@ std::vector<cat::Jet> TtbarDiLeptonAnalyzer::selectJets(const vector<cat::Jet>& 
   return seljets;
 }
 
-std::vector<cat::Jet> TtbarDiLeptonAnalyzer::selectBJets(const Jets& jets) const
+cat::JetCollection TtbarDiLeptonAnalyzer::selectBJets(const JetCollection& jets) const
 {
-  std::vector<cat::Jet> selBjets;
+  cat::JetCollection selBjets;
   for (auto& jet : jets) {
     if (jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") < 0.814) continue;
     //printf("b jet with pt %4.1f\n", jet.pt());

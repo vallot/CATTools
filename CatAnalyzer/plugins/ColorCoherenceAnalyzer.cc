@@ -154,7 +154,7 @@ void ColorCoherenceAnalyzer::analyze(const edm::Event& iEvent, const edm::EventS
 
     sort(seljets.begin(), seljets.end(), cat::GtByTLVPt);
 
-    b_nVtx = vtx->at(0);
+    b_nVtx = *vtx;
     b_nJet = seljets.size();
 
     int hlt_count = 0;
