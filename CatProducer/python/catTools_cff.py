@@ -95,14 +95,17 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
 
         ### updating puppi jet jec
         process.patJetPuppiCorrFactorsUpdated = process.patJetCorrFactorsUpdated.clone(
+            src = process.catJetsPuppi.src,
             payload = cms.string('AK4PFPuppi'),
-            src = process.catJetsPuppi.src )
+            levels = cms.vstring('L2Relative','L3Absolute'),
+            useRho = cms.bool(False))
         
         process.patJetsPuppiUpdated = process.patJetsUpdated.clone(
             jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetPuppiCorrFactorsUpdated")),
             jetSource = process.catJetsPuppi.src )
         
         process.catJetsPuppi.src = cms.InputTag("patJetsPuppiUpdated")
+        process.catJetsPuppi.setGenParticle = cms.bool(False)
         #######################################################################
         ## for egamma pid https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2#Recipe_for_regular_users_for_74X
         from PhysicsTools.SelectorUtils.tools.vid_id_tools import DataFormat,switchOnVIDElectronIdProducer,setupAllVIDIdsInModule,setupVIDElectronSelection
