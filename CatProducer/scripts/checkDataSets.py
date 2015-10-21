@@ -32,7 +32,7 @@ for dataset in datasets:
     
     #print out
     if out != dataset:
-        print "DATASET not fount", dataset,"similar types are"
+        print "DATASET not found", dataset,"similar types are"
         splitDatasetName = dataset.strip().split("/")
         dataPhysics = splitDatasetName[1]
         dataType = splitDatasetName[2]
