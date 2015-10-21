@@ -85,9 +85,6 @@ if not options.inputFiles:
             process.source.fileNames = ['/store/relval/CMSSW_7_4_12/RelValTTbar_13/GEN-SIM-RECO/PU25ns_74X_mcRun2_asymptotic_v2_v2-v1/00000/006F3660-4B5E-E511-B8FD-0025905B8596.root']
         else:
             process.source.fileNames = ['/store/relval/CMSSW_7_4_15/RelValZMM_13/GEN-SIM-RECO/PU25ns_74X_mcRun2_asymptotic_v2-v1/00000/18B13146-3872-E511-A382-00261894394D.root']
-if useMiniAOD and options.runOnRelVal == True:
-    ## Hack to run on relval sample, controlled with runOnRelVal option
-    process.genMetExtractor.metSource = "slimmedMETs::RECO"
 
 if options.inputFiles:
     process.source.fileNames = options.inputFiles
