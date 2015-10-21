@@ -28,13 +28,15 @@ namespace cat {
 
   private:
     edm::EDGetTokenT<pat::METCollection> src_;
+    bool setUnclusteredEn_;
 
   };
 
 } // namespace
 
 cat::CATMETProducer::CATMETProducer(const edm::ParameterSet & iConfig) :
-  src_(consumes<pat::METCollection>(iConfig.getParameter<edm::InputTag>("src")))
+  src_(consumes<pat::METCollection>(iConfig.getParameter<edm::InputTag>("src"))),
+  setUnclusteredEn_(iConfig.getParameter<bool>("setUnclusteredEn"))
 {
   produces<std::vector<cat::MET> >();
 }
@@ -47,10 +49,17 @@ cat::CATMETProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
 
   auto_ptr<vector<cat::MET> >  out(new vector<cat::MET>());
 
-  for (const pat::MET & aPatMET : *src) {
-    cat::MET aMET(aPatMET, aPatMET.sumEt() );
-    out->push_back(aMET);
+  const pat::MET & aPatMET = src->front();
+  cat::MET aMET(aPatMET, aPatMET.sumEt() );
+  if (setUnclusteredEn_){
+    aMET.setUnclusteredEnUp(aPatMET.shiftedPx(pat::MET::UnclusteredEnUp),
+			    aPatMET.shiftedPy(pat::MET::UnclusteredEnUp),
+			    aPatMET.shiftedSumEt(pat::MET::UnclusteredEnUp));
+    aMET.setUnclusteredEnDown(aPatMET.shiftedPx(pat::MET::UnclusteredEnDown),
+			      aPatMET.shiftedPy(pat::MET::UnclusteredEnDown),
+  			      aPatMET.shiftedSumEt(pat::MET::UnclusteredEnDown));
   }
+  out->push_back(aMET);
 
   iEvent.put(out);
 }

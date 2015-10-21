@@ -68,6 +68,7 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         # adding puppi https://twiki.cern.ch/twiki/bin/view/CMS/PUPPI        
         process.catJetsPuppi.src = cms.InputTag("slimmedJetsPuppi")
         process.catMETsPuppi.src = cms.InputTag("slimmedMETsPuppi")
+        process.catMETsPuppi.setUnclusteredEn = cms.bool(False)
 
         # for puppi isolation
         ## process.packedPFCandidatesWoMuon  = cms.EDFilter("CandPtrSelector", src = cms.InputTag("packedPFCandidates"), cut = cms.string("fromPV>=2 && abs(pdgId)!=13 " ) )
@@ -158,4 +159,5 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
     process.load("PhysicsTools.PatAlgos.producersLayer1.metProducer_cfi")
     process.patMETsPfMva = process.patMETs.clone(addGenMET = cms.bool(False), metSource  = cms.InputTag("pfMVAMEt"))
     process.catMETsPfMva = process.catMETs.clone(src = cms.InputTag("patMETsPfMva"))
+    process.catMETsPfMva.setUnclusteredEn = cms.bool(False)
     
