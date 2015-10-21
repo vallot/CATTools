@@ -66,28 +66,17 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
                       process.nEventsFiltered)
         #######################################################################
         # adding puppi https://twiki.cern.ch/twiki/bin/view/CMS/PUPPI        
-        process.catJetsPuppi.src = cms.InputTag("slimmedJetsPuppi")
-        process.catMETsPuppi.src = cms.InputTag("slimmedMETsPuppi")
-        process.catMETsPuppi.setUnclusteredEn = cms.bool(False)
-
+        #process.catJetsPuppi.src = cms.InputTag("slimmedJetsPuppi")
+        #process.catMETsPuppi.src = cms.InputTag("slimmedMETsPuppi")
         # for puppi isolation
         ## process.packedPFCandidatesWoMuon  = cms.EDFilter("CandPtrSelector", src = cms.InputTag("packedPFCandidates"), cut = cms.string("fromPV>=2 && abs(pdgId)!=13 " ) )
         ## process.particleFlowNoMuonPUPPI.candName         = 'packedPFCandidatesWoMuon'
         ## process.particleFlowNoMuonPUPPI.vertexName       = 'offlineSlimmedPrimaryVertices'
         #######################################################################
         # MET corrections from https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
-        ## from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
-        ## runMetCorAndUncFromMiniAOD( process, isData= not runOnMC, jecUncFile=jecUncertaintyFile)
-        ## process.patPFMetT1T2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        ## process.patPFMetT1T2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        ## process.patPFMetT2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        ## process.patPFMetT2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        ## process.shiftedPatJetEnDown.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
-        ## process.shiftedPatJetEnUp.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
-        ## del process.slimmedMETs.t01Variation
-        ## del process.slimmedMETs.tXYUncForRaw
-        ## del process.slimmedMETs.tXYUncForT1
-            
+        from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
+        runMetCorAndUncFromMiniAOD( process, isData= not runOnMC, jecUncFile=jecUncertaintyFile)
+        process.catMETs.src = cms.InputTag("slimmedMETs","","CAT")
         #######################################################################
         ## applying new jec on the fly
         process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
@@ -129,7 +118,6 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
             mvaEleID_Spring15_25ns_Trig_V1_wp80 = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-Trig-V1-wp90"),
             mvaEleID_Spring15_25ns_Trig_V1_wp90 = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-Trig-V1-wp80"),
         )
-        
         #######################################################################    
         # adding pfMVAMet https://twiki.cern.ch/twiki/bin/viewauth/CMS/MVAMet#Spring15_samples_with_25ns_50ns
         # https://github.com/cms-sw/cmssw/blob/CMSSW_7_4_X/RecoMET/METPUSubtraction/test/mvaMETOnMiniAOD_cfg.py

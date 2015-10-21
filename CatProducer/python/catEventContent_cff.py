@@ -20,8 +20,6 @@ catEventContent.extend([
     'keep *_catTrigger_*_*',
     'keep edmTriggerResults_TriggerResults__*',
     'keep patPackedTriggerPrescales_patTrigger__*',
-    'drop *_shifted*_*_*',
-    'drop *_smeared*_*_*',
     ])
 
 catEventContentMC.extend([

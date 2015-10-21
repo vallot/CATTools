@@ -33,7 +33,7 @@ process.nEventsTotal = cms.EDProducer("EventCountProducer")
 process.p = cms.Path(process.nEventsTotal)
 
 ## Output Module Configuration (expects a path 'p')
-process.out = cms.OutputModule("PoolOutputModule",
+process.catOut = cms.OutputModule("PoolOutputModule",
     fileName = cms.untracked.string('catTuple.root'),
     outputCommands = cms.untracked.vstring('drop *')
 )
