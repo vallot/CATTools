@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 def catTool(process, runOnMC=True, useMiniAOD=True):
     bunchCrossing=25
-    globaltag_run2_50ns = ["MCRUN2_74_V9A", "74X_mcRun2_startup_v2", "74X_dataRun2_reMiniAOD_v0", "74X_dataRun2_v2"]
+    globaltag_run2_50ns = ["MCRUN2_74_V9A", "74X_mcRun2_startup_v2", "74X_mcRun2_asymptotic50ns_v0", "74X_dataRun2_v2"]
     for i in globaltag_run2_50ns:
         if i == process.GlobalTag.globaltag:
             bunchCrossing=50
