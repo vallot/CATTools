@@ -9,3 +9,9 @@
 /DoubleEG/Run2015D-PromptReco-v4/MINIAOD
 /DoubleMuon/Run2015D-PromptReco-v4/MINIAOD
 /MuonEG/Run2015D-PromptReco-v4/MINIAOD
+
+/SingleMuon/Run2015C_25ns-05Oct2015-v1/MINIAOD
+/SingleElectron/Run2015C_25ns-05Oct2015-v1/MINIAOD
+/DoubleEG/Run2015C_25ns-05Oct2015-v1/MINIAOD
+/DoubleMuon/Run2015C_25ns-05Oct2015-v1/MINIAOD
+/MuonEG/Run2015C_25ns-05Oct2015-v1/MINIAOD
