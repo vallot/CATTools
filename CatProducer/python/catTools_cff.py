@@ -10,6 +10,9 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
     if runOnMC and bunchCrossing == 50:
         from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
         process.pileupWeight.pileupMC = pileupWeightMap["Startup2015_50ns"]
+        process.pileupWeight.pileupRD = pileupWeightMap["Run2015_50ns"]
+        process.pileupWeight.pileupUp = pileupWeightMap["Run2015_50nsUp"]
+        process.pileupWeight.pileupDn = pileupWeightMap["Run2015_50nsDn"]
 
     useJECfile = True
     
