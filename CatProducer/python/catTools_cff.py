@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 def catTool(process, runOnMC=True, useMiniAOD=True):
     bunchCrossing=25
-    globaltag_run2_50ns = ["MCRUN2_74_V9A", "74X_mcRun2_startup_v2", "74X_dataRun2_reMiniAOD_v0", "74X_dataRun2_v2"]
+    globaltag_run2_50ns = ["MCRUN2_74_V9A", "74X_mcRun2_startup_v2", "74X_mcRun2_asymptotic50ns_v0", "74X_dataRun2_v2"]
     for i in globaltag_run2_50ns:
         if i == process.GlobalTag.globaltag:
             bunchCrossing=50
@@ -10,6 +10,9 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
     if runOnMC and bunchCrossing == 50:
         from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
         process.pileupWeight.pileupMC = pileupWeightMap["Startup2015_50ns"]
+        process.pileupWeight.pileupRD = pileupWeightMap["Run2015_50ns"]
+        process.pileupWeight.pileupUp = pileupWeightMap["Run2015_50nsUp"]
+        process.pileupWeight.pileupDn = pileupWeightMap["Run2015_50nsDn"]
 
     useJECfile = True
     
@@ -66,27 +69,17 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
                       process.nEventsFiltered)
         #######################################################################
         # adding puppi https://twiki.cern.ch/twiki/bin/view/CMS/PUPPI        
-        process.catJetsPuppi.src = cms.InputTag("slimmedJetsPuppi")
-        process.catMETsPuppi.src = cms.InputTag("slimmedMETsPuppi")
-
+        #process.catJetsPuppi.src = cms.InputTag("slimmedJetsPuppi")
+        #process.catMETsPuppi.src = cms.InputTag("slimmedMETsPuppi")
         # for puppi isolation
         ## process.packedPFCandidatesWoMuon  = cms.EDFilter("CandPtrSelector", src = cms.InputTag("packedPFCandidates"), cut = cms.string("fromPV>=2 && abs(pdgId)!=13 " ) )
         ## process.particleFlowNoMuonPUPPI.candName         = 'packedPFCandidatesWoMuon'
         ## process.particleFlowNoMuonPUPPI.vertexName       = 'offlineSlimmedPrimaryVertices'
         #######################################################################
         # MET corrections from https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
-        ## from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
-        ## runMetCorAndUncFromMiniAOD( process, isData= not runOnMC, jecUncFile=jecUncertaintyFile)
-        ## process.patPFMetT1T2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        ## process.patPFMetT1T2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        ## process.patPFMetT2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        ## process.patPFMetT2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-        ## process.shiftedPatJetEnDown.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
-        ## process.shiftedPatJetEnUp.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
-        ## del process.slimmedMETs.t01Variation
-        ## del process.slimmedMETs.tXYUncForRaw
-        ## del process.slimmedMETs.tXYUncForT1
-            
+        from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
+        runMetCorAndUncFromMiniAOD( process, isData= not runOnMC, jecUncFile=jecUncertaintyFile)
+        process.catMETs.src = cms.InputTag("slimmedMETs","","CAT")
         #######################################################################
         ## applying new jec on the fly
         process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
@@ -128,7 +121,6 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
             mvaEleID_Spring15_25ns_Trig_V1_wp80 = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-Trig-V1-wp90"),
             mvaEleID_Spring15_25ns_Trig_V1_wp90 = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-Trig-V1-wp80"),
         )
-        
         #######################################################################    
         # adding pfMVAMet https://twiki.cern.ch/twiki/bin/viewauth/CMS/MVAMet#Spring15_samples_with_25ns_50ns
         # https://github.com/cms-sw/cmssw/blob/CMSSW_7_4_X/RecoMET/METPUSubtraction/test/mvaMETOnMiniAOD_cfg.py
@@ -158,4 +150,5 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
     process.load("PhysicsTools.PatAlgos.producersLayer1.metProducer_cfi")
     process.patMETsPfMva = process.patMETs.clone(addGenMET = cms.bool(False), metSource  = cms.InputTag("pfMVAMEt"))
     process.catMETsPfMva = process.catMETs.clone(src = cms.InputTag("patMETsPfMva"))
+    process.catMETsPfMva.setUnclusteredEn = cms.bool(False)
     

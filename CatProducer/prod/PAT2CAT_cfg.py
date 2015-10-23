@@ -27,35 +27,37 @@ if not runOnMC:
     process.GlobalTag.globaltag = autoCond['run2_data']
 if globalTag:
     process.GlobalTag.globaltag = globalTag
+print "runOnMC =",runOnMC,"and useMiniAOD =",useMiniAOD
+print "process.GlobalTag.globaltag =",process.GlobalTag.globaltag    
 ####################################################################
 #### cat tools output
 ####################################################################
 process.load("CATTools.CatProducer.catCandidates_cff")    
 from CATTools.CatProducer.catEventContent_cff import *
-process.out.outputCommands = catEventContent
+process.catOut.outputCommands = catEventContent
 
 if runOnMC:
     process.load("CATTools.CatProducer.genWeight_cff")
     process.load("CATTools.CatProducer.pileupWeight_cff")
-    process.out.outputCommands.extend(catEventContentMC)
+    process.catOut.outputCommands.extend(catEventContentMC)
     
 if runGenTop:
     from CATTools.CatProducer.catGenHFHadronMatching_cff import *
     genHFTool(process, useMiniAOD)
     process.load("CATTools.CatProducer.mcTruthTop.mcTruthTop_cff")
-    process.out.outputCommands.extend(catEventContentTOPMC)
+    process.catOut.outputCommands.extend(catEventContentTOPMC)
     if not useMiniAOD:
-        process.out.outputCommands.extend(['keep *_catGenTops_*_*',])
+        process.catOut.outputCommands.extend(['keep *_catGenTops_*_*',])
             
 if doSecVertex:
     process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
-    process.out.outputCommands.extend(catEventContentSecVertexs)
+    process.catOut.outputCommands.extend(catEventContentSecVertexs)
 
 from PhysicsTools.PatAlgos.slimming.miniAOD_tools import miniAOD_customizeOutput
-miniAOD_customizeOutput(process.out)
+miniAOD_customizeOutput(process.catOut)
     
-process.outpath = cms.EndPath(process.out)    
-process.schedule.append(process.outpath)
+process.catOutpath = cms.EndPath(process.catOut)    
+process.schedule.append(process.catOutpath)
 ####################################################################
 #### setting up cat tools
 ####################################################################
@@ -88,9 +90,6 @@ if options.inputFiles:
     process.source.fileNames = options.inputFiles
 #pat input files are removed because it would not work if useMiniAOD is on.    
 
-print "runOnMC =",runOnMC,"and useMiniAOD =",useMiniAOD
-print "process.GlobalTag.globaltag =",process.GlobalTag.globaltag
-
 ## to suppress the long output at the end of the job
 process.MessageLogger.cerr.threshold = ''
 if options.maxEvents < 0:
@@ -101,3 +100,4 @@ process.options.wantSummary = False
 #process.options.wantSummary = True
 #process.source.skipEvents = cms.untracked.uint32(3000)
 #process.SimpleMemoryCheck = cms.Service("SimpleMemoryCheck",ignoreTotal = cms.untracked.int32(1) )
+#print "process.catOut.outputCommands", process.catOut.outputCommands
