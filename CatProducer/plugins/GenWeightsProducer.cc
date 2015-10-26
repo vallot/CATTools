@@ -34,6 +34,7 @@ public:
   typedef std::vector<int> vint;
   typedef std::vector<float> vfloat;
   typedef std::vector<std::string> vstring;
+  typedef std::vector<vstring> vvstring;
 
 private:
   const bool enforceUnitGenWeight_;
@@ -64,7 +65,7 @@ GenWeightsProducer::GenWeightsProducer(const edm::ParameterSet& pset):
 
   produces<vstring, edm::InRun>("weightTypes");
   produces<vint, edm::InRun>("weightIdxUB");
-  //produces<vector<vstring>, edm::InRun>("weightParams");
+  produces<vvstring, edm::InRun>("weightParams");
 
   produces<float>("genWeight");
   produces<float>("lheWeight");
@@ -88,7 +89,7 @@ void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
 {
   std::auto_ptr<vstring> weightTypes(new vstring);
   std::auto_ptr<vint> weightIdxUB(new vint);
-  //std::auto_ptr<vector<vstring> > weightParams(new vector<vstring>);
+  std::auto_ptr<vvstring> weightParams(new vvstring);
 
   do {
     edm::Handle<LHERunInfoProduct> lheHandle;
@@ -127,11 +128,11 @@ void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
 
       weightTypes->push_back(weightTypeObj->GetValue());
       int weightSize = 0;
-      //weightParams->push_back(vstring());
+      weightParams->push_back(vstring());
       for ( TXMLNode* weightNode = grpNode->GetChildren(); weightNode != 0; weightNode = weightNode->GetNextNode() )
       {
         if ( string(weightNode->GetNodeName()) != "weight" ) continue;
-        //weightParams->back().push_back(weightNode->GetText());
+        weightParams->back().push_back(weightNode->GetText());
         ++weightSize;
       }
       if ( weightIdxUB->empty() ) weightIdxUB->push_back(weightSize);
@@ -145,7 +146,7 @@ void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
 
   run.put(weightTypes, "weightTypes");
   run.put(weightIdxUB, "weightIdxUB");
-  //run.put(weightParams, "weightParams");
+  run.put(weightParams, "weightParams");
 }
 
 void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& eventSetup)
