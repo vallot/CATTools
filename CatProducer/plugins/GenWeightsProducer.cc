@@ -1,5 +1,5 @@
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/stream/EDProducer.h"
+#include "FWCore/Framework/interface/one/EDProducer.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/Framework/interface/Event.h"
@@ -20,10 +20,11 @@
 
 using namespace std;
 
-class GenWeightsProducer : public edm::stream::EDProducer<>
+class GenWeightsProducer : public edm::one::EDProducer<edm::BeginRunProducer>
 {
 public:
   GenWeightsProducer(const edm::ParameterSet& pset);
+  void beginRunProduce(edm::Run& run, const edm::EventSetup&) override;
   void produce(edm::Event& event, const edm::EventSetup& eventSetup) override;
 
 private:
@@ -62,6 +63,10 @@ GenWeightsProducer::GenWeightsProducer(const edm::ParameterSet& pset):
 
   LHAPDF::initPDFSet(1, pdfName_.c_str());
   if ( doReweightPdf_ ) LHAPDF::initPDFSet(2, generatedPdfName_.c_str());
+}
+
+void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
+{
 }
 
 void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& eventSetup)
