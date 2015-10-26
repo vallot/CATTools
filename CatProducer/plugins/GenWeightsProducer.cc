@@ -58,8 +58,8 @@ GenWeightsProducer::GenWeightsProducer(const edm::ParameterSet& pset):
     if ( generatedPdfName_ != pdfName_ ) doLOReweightPDF_ = true;
   }
 
-  produces<vstring, edm::InRun>("wgtTypes");
-  //produces<vector<vstring>, edm::InRun>("wgtParams");
+  produces<vstring, edm::InRun>("weightTypes");
+  //produces<vector<vstring>, edm::InRun>("weightParams");
 
   produces<float>("genWeight");
   produces<float>("lheWeight");
@@ -90,22 +90,22 @@ void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
     if ( !lheHandle.isValid() ) break;
 
     // Find interested LHE header
-    auto wgtHeader = lheHandle->headers_end();
+    auto weightHeader = lheHandle->headers_end();
     for ( auto itr = lheHandle->headers_begin(); itr != lheHandle->headers_end(); ++ itr )
     {
       // "initrwgt" is the header for the weights
       if ( string(itr->tag()) == "initrwgt" )
       {
-        wgtHeader = itr;
+        weightHeader = itr;
         break;
       }
     }
-    if ( wgtHeader == lheHandle->headers_end() ) break;
+    if ( weightHeader == lheHandle->headers_end() ) break;
 
     // Read LHE using the XML parser
     string contents = "<lhe>"; // Need root node
     contents.reserve(10000); // ~50 char per line, >100 weights
-    for ( auto& line : wgtHeader->lines() ) contents += line;
+    for ( auto& line : weightHeader->lines() ) contents += line;
     contents += "</lhe>"; // Close the root node
     TDOMParser xmlParser; xmlParser.SetValidate(false);
     xmlParser.ParseBuffer(contents.c_str(), contents.size());
@@ -116,15 +116,15 @@ void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
     for ( TXMLNode* grpNode = topNode->GetChildren(); grpNode != 0; grpNode = grpNode->GetNextNode() )
     {
       if ( string(grpNode->GetName()) != "weightgroup" ) continue;
-      auto wgtTypeObj = (TXMLAttr*)grpNode->GetAttributes()->FindObject("type");
-      if ( !wgtTypeObj ) continue;
+      auto weightTypeObj = (TXMLAttr*)grpNode->GetAttributes()->FindObject("type");
+      if ( !weightTypeObj ) continue;
 
-      weightTypes->push_back(wgtTypeObj->GetValue());
+      weightTypes->push_back(weightTypeObj->GetValue());
       weightParams->push_back(vstring());
-      for ( TXMLNode* wgtNode = grpNode->GetChildren(); wgtNode != 0; wgtNode = wgtNode->GetNextNode() )
+      for ( TXMLNode* weightNode = grpNode->GetChildren(); weightNode != 0; weightNode = weightNode->GetNextNode() )
       {
-        if ( string(wgtNode->GetName()) != "weight" ) continue;
-        weightParams->back().push_back(wgtNode->GetText());
+        if ( string(weightNode->GetName()) != "weight" ) continue;
+        weightParams->back().push_back(weightNode->GetText());
       }
     }
 
