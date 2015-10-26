@@ -31,6 +31,7 @@ public:
   void beginRunProduce(edm::Run& run, const edm::EventSetup&) override;
   void produce(edm::Event& event, const edm::EventSetup& eventSetup) override;
 
+  typedef std::vector<int> vint;
   typedef std::vector<float> vfloat;
   typedef std::vector<std::string> vstring;
 
@@ -43,6 +44,8 @@ private:
   const edm::InputTag lheLabel_;
   const edm::EDGetTokenT<LHEEventProduct> lheToken_;
   const edm::EDGetTokenT<GenEventInfoProduct> genInfoToken_;
+
+  vint weightSizes_;
 };
 
 GenWeightsProducer::GenWeightsProducer(const edm::ParameterSet& pset):
@@ -60,6 +63,7 @@ GenWeightsProducer::GenWeightsProducer(const edm::ParameterSet& pset):
   }
 
   produces<vstring, edm::InRun>("weightTypes");
+  produces<vint, edm::InRun>("weightSizes");
   //produces<vector<vstring>, edm::InRun>("weightParams");
 
   produces<float>("genWeight");
@@ -83,7 +87,8 @@ GenWeightsProducer::GenWeightsProducer(const edm::ParameterSet& pset):
 void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
 {
   std::auto_ptr<vstring> weightTypes(new vstring);
-  std::auto_ptr<vector<vstring> > weightParams(new vector<vstring>);
+  std::auto_ptr<vint> weightSizes(new vint);
+  //std::auto_ptr<vector<vstring> > weightParams(new vector<vstring>);
 
   do {
     edm::Handle<LHERunInfoProduct> lheHandle;
@@ -121,17 +126,24 @@ void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
       if ( !weightTypeObj ) continue;
 
       weightTypes->push_back(weightTypeObj->GetValue());
-      weightParams->push_back(vstring());
+      int weightSize = 0;
+      //weightParams->push_back(vstring());
       for ( TXMLNode* weightNode = grpNode->GetChildren(); weightNode != 0; weightNode = weightNode->GetNextNode() )
       {
         if ( string(weightNode->GetName()) != "weight" ) continue;
-        weightParams->back().push_back(weightNode->GetText());
+        //weightParams->back().push_back(weightNode->GetText());
+        ++weightSize;
       }
+      weightSizes->push_back(weightSize);
     }
 
   } while ( false );
 
+  weightSizes_.clear();
+  std::copy(weightSizes->begin(), weightSizes->end(), std::back_inserter(weightSizes_));
+
   run.put(weightTypes, "weightTypes");
+  run.put(weightSizes, "weightSizes");
   //run.put(weightParams, "weightParams");
 }
 
