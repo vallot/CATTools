@@ -14,6 +14,9 @@
 #include "DataFormats/Common/interface/View.h"
 
 #include <LHAPDF/LHAPDF.h>
+#include <TDOMParser.h>
+#include <TXMLNode.h>
+#include <TXMLAttr.h>
 
 #include <memory>
 #include <vector>
@@ -27,6 +30,9 @@ public:
   GenWeightsProducer(const edm::ParameterSet& pset);
   void beginRunProduce(edm::Run& run, const edm::EventSetup&) override;
   void produce(edm::Event& event, const edm::EventSetup& eventSetup) override;
+
+  typedef std::vector<float> vfloat;
+  typedef std::vector<std::string> vstring;
 
 private:
   const bool enforceUnitGenWeight_;
@@ -52,10 +58,12 @@ GenWeightsProducer::GenWeightsProducer(const edm::ParameterSet& pset):
     if ( generatedPdfName_ != pdfName_ ) doLOReweightPDF_ = true;
   }
 
-  produces<std::vector<std::string> >("weightNames");
+  produces<vstring, edm::InRun>("wgtTypes");
+  //produces<vector<vstring>, edm::InRun>("wgtParams");
+
   produces<float>("genWeight");
   produces<float>("lheWeight");
-  produces<std::vector<float> >("pdfWeights");
+  produces<vfloat>("pdfWeights");
   produces<int>("id1");
   produces<int>("id2");
   produces<float>("x1");
@@ -73,21 +81,74 @@ GenWeightsProducer::GenWeightsProducer(const edm::ParameterSet& pset):
 
 void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
 {
-  edm::Handle<LHERunInfoProduct> lheRunInfoHandle;
-  run.getByLabel(lheLabel_, lheRunInfoHandle);
-  if ( !lheRunInfoHandle.isValid() ) return;
+  std::auto_ptr<vstring> weightTypes(new vstring);
+  std::auto_ptr<vector<vstring> > weightParams(new vector<vstring>);
+
+  do {
+    edm::Handle<LHERunInfoProduct> lheHandle;
+    run.getByLabel(lheLabel_, lheHandle);
+    if ( !lheHandle.isValid() ) break;
+
+    // Find interested LHE header
+    auto wgtHeader = lheHandle->headers_end();
+    for ( auto itr = lheHandle->headers_begin(); itr != lheHandle->headers_end(); ++ itr )
+    {
+      // "initrwgt" is the header for the weights
+      if ( string(itr->tag()) == "initrwgt" )
+      {
+        wgtHeader = itr;
+        break;
+      }
+    }
+    if ( wgtHeader == lheHandle->headers_end() ) break;
+
+    // Read LHE using the XML parser
+    string contents = "<lhe>"; // Need root node
+    contents.reserve(10000); // ~50 char per line, >100 weights
+    for ( auto& line : wgtHeader->lines() ) contents += line;
+    contents += "</lhe>"; // Close the root node
+    TDOMParser xmlParser; xmlParser.SetValidate(false);
+    xmlParser.ParseBuffer(contents.c_str(), contents.size());
+    if ( !xmlParser.GetXMLDocument() ) break;
+
+    // XML is ready. Browser the xmldoc and find nodes with weight information
+    TXMLNode* topNode = xmlParser.GetXMLDocument()->GetRootNode();
+    for ( TXMLNode* grpNode = topNode->GetChildren(); grpNode != 0; grpNode = grpNode->GetNextNode() )
+    {
+      if ( string(grpNode->GetName()) != "weightgroup" ) continue;
+      auto wgtTypeObj = (TXMLAttr*)grpNode->GetAttributes()->FindObject("type");
+      if ( !wgtTypeObj ) continue;
+
+      weightTypes->push_back(wgtTypeObj->GetValue());
+      weightParams->push_back(vstring());
+      for ( TXMLNode* wgtNode = grpNode->GetChildren(); wgtNode != 0; wgtNode = wgtNode->GetNextNode() )
+      {
+        if ( string(wgtNode->GetName()) != "weight" ) continue;
+        weightParams->back().push_back(wgtNode->GetText());
+      }
+    }
+
+  } while ( false );
+
+  run.put(weightTypes, "weightTypes");
+  //run.put(weightParams, "weightParams");
 }
 
 void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& eventSetup)
 {
   float lheWeight = 1, genWeight = 1;
-  std::auto_ptr<std::vector<float> > pdfWeights(new std::vector<float>);
+  std::auto_ptr<vfloat> pdfWeights(new vfloat);
   if ( event.isRealData() )
   {
     pdfWeights->push_back(1); // no reweighting
     event.put(std::auto_ptr<float>(new float(lheWeight)), "lheWeight");
     event.put(std::auto_ptr<float>(new float(genWeight)), "genWeight");
     event.put(pdfWeights, "pdfWeights");
+    event.put(std::auto_ptr<int>(new int(0)), "id1");
+    event.put(std::auto_ptr<int>(new int(0)), "id2");
+    event.put(std::auto_ptr<float>(new float(0)), "x1");
+    event.put(std::auto_ptr<float>(new float(0)), "x2");
+    event.put(std::auto_ptr<float>(new float(0)), "Q");
   }
 
   edm::Handle<LHEEventProduct> lheHandle;
