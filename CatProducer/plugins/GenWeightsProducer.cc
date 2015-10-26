@@ -121,7 +121,7 @@ void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
     TXMLNode* topNode = xmlParser.GetXMLDocument()->GetRootNode();
     for ( TXMLNode* grpNode = topNode->GetChildren(); grpNode != 0; grpNode = grpNode->GetNextNode() )
     {
-      if ( string(grpNode->GetName()) != "weightgroup" ) continue;
+      if ( string(grpNode->GetNodeName()) != "weightgroup" ) continue;
       auto weightTypeObj = (TXMLAttr*)grpNode->GetAttributes()->FindObject("type");
       if ( !weightTypeObj ) continue;
 
@@ -130,7 +130,7 @@ void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
       //weightParams->push_back(vstring());
       for ( TXMLNode* weightNode = grpNode->GetChildren(); weightNode != 0; weightNode = weightNode->GetNextNode() )
       {
-        if ( string(weightNode->GetName()) != "weight" ) continue;
+        if ( string(weightNode->GetNodeName()) != "weight" ) continue;
         //weightParams->back().push_back(weightNode->GetText());
         ++weightSize;
       }
