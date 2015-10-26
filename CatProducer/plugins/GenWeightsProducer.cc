@@ -8,6 +8,7 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Utilities/interface/InputTag.h"
 
+#include "SimDataFormats/GeneratorProducts/interface/LHERunInfoProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 #include "DataFormats/Common/interface/View.h"
@@ -20,7 +21,7 @@
 
 using namespace std;
 
-class GenWeightsProducer : public edm::one::EDProducer<edm::BeginRunProducer>
+class GenWeightsProducer : public edm::one::EDProducer<edm::one::SharedResources, edm::BeginRunProducer>
 {
 public:
   GenWeightsProducer(const edm::ParameterSet& pset);
@@ -29,29 +30,29 @@ public:
 
 private:
   const bool enforceUnitGenWeight_;
-  bool doReweightPdf_;
+  bool doLOReweightPDF_;
   const std::string pdfName_;
   std::string generatedPdfName_;
+  const edm::InputTag lheLabel_;
   const edm::EDGetTokenT<LHEEventProduct> lheToken_;
   const edm::EDGetTokenT<GenEventInfoProduct> genInfoToken_;
-  const unsigned int lheWeightIndex_, genWeightIndex_;
 };
 
 GenWeightsProducer::GenWeightsProducer(const edm::ParameterSet& pset):
   enforceUnitGenWeight_(pset.getParameter<bool>("enforceUnitGenWeight")),
   pdfName_(pset.getParameter<std::string>("pdfName")),
+  lheLabel_(pset.getParameter<edm::InputTag>("lheEvent")),
   lheToken_(consumes<LHEEventProduct>(pset.getParameter<edm::InputTag>("lheEvent"))),
-  genInfoToken_(consumes<GenEventInfoProduct>(pset.getParameter<edm::InputTag>("genEventInfo"))),
-  lheWeightIndex_(pset.getParameter<int>("lheWeightIndex")),
-  genWeightIndex_(pset.getParameter<int>("genWeightIndex"))
+  genInfoToken_(consumes<GenEventInfoProduct>(pset.getParameter<edm::InputTag>("genEventInfo")))
 {
-  doReweightPdf_ = false;
+  doLOReweightPDF_ = false;
   if ( pset.existsAs<std::string>("generatedPdfName") )
   {
     generatedPdfName_ = pset.getParameter<std::string>("generatedPdfName");
-    if ( generatedPdfName_ != pdfName_ ) doReweightPdf_ = true;
+    if ( generatedPdfName_ != pdfName_ ) doLOReweightPDF_ = true;
   }
 
+  produces<std::vector<std::string> >("weightNames");
   produces<float>("genWeight");
   produces<float>("lheWeight");
   produces<std::vector<float> >("pdfWeights");
@@ -61,12 +62,20 @@ GenWeightsProducer::GenWeightsProducer(const edm::ParameterSet& pset):
   produces<float>("x2");
   produces<float>("Q");
 
-  LHAPDF::initPDFSet(1, pdfName_.c_str());
-  if ( doReweightPdf_ ) LHAPDF::initPDFSet(2, generatedPdfName_.c_str());
+  if ( doLOReweightPDF_ )
+  {
+    LHAPDF::initPDFSet(1, pdfName_.c_str());
+    LHAPDF::initPDFSet(2, generatedPdfName_.c_str());
+
+    usesResource(); // FIXME What is the resource name of LHAPDF?
+  }
 }
 
 void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
 {
+  edm::Handle<LHERunInfoProduct> lheRunInfoHandle;
+  run.getByLabel(lheLabel_, lheRunInfoHandle);
+  if ( !lheRunInfoHandle.isValid() ) return;
 }
 
 void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& eventSetup)
@@ -91,11 +100,11 @@ void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& event
   //   enforceUnitGenWeight == false : genWeights are scaled by 1/originalWeight.
   //                                   do not scale weight if LHE is not available.
   double originalWeight = 1;
-  if ( lheHandle.isValid() and lheHandle->weights().size() > lheWeightIndex_ ) {
-    lheWeight = lheHandle->weights().at(lheWeightIndex_).wgt;
+  if ( lheHandle.isValid() ) {
+    lheWeight = lheHandle->weights().at(0).wgt;
     originalWeight = std::abs(lheHandle->originalXWGTUP());
   }
-  if ( genInfoHandle->weights().size() > genWeightIndex_ ) genWeight = genInfoHandle->weights().at(genWeightIndex_);
+  genWeight = genInfoHandle->weight();
   if ( enforceUnitGenWeight_ ) {
     lheWeight = lheWeight == 0 ? 0 : lheWeight/std::abs(lheWeight);
     genWeight = genWeight == 0 ? 0 : genWeight/std::abs(genWeight);
@@ -111,12 +120,12 @@ void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& event
   const float x1 = genInfoHandle->pdf()->x.first;
   const float x2 = genInfoHandle->pdf()->x.second;
 
-  const int generatedPdfIdx = doReweightPdf_ ? 2 : 1;
+  const int generatedPdfIdx = doLOReweightPDF_ ? 2 : 1;
   const float xpdf1 = LHAPDF::xfx(generatedPdfIdx, x1, q, id1);
   const float xpdf2 = LHAPDF::xfx(generatedPdfIdx, x2, q, id2);
   const float w0 = xpdf1*xpdf2;
 
-  if ( !doReweightPdf_ ) pdfWeights->push_back(1);
+  if ( !doLOReweightPDF_ ) pdfWeights->push_back(1);
   else
   {
     const float xpdf1_new = LHAPDF::xfx(1, x1, q, id1);
