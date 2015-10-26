@@ -45,7 +45,7 @@ private:
   const edm::EDGetTokenT<LHEEventProduct> lheToken_;
   const edm::EDGetTokenT<GenEventInfoProduct> genInfoToken_;
 
-  vint weightSizes_;
+  vint weightIdxUB_;
 };
 
 GenWeightsProducer::GenWeightsProducer(const edm::ParameterSet& pset):
@@ -63,7 +63,7 @@ GenWeightsProducer::GenWeightsProducer(const edm::ParameterSet& pset):
   }
 
   produces<vstring, edm::InRun>("weightTypes");
-  produces<vint, edm::InRun>("weightSizes");
+  produces<vint, edm::InRun>("weightIdxUB");
   //produces<vector<vstring>, edm::InRun>("weightParams");
 
   produces<float>("genWeight");
@@ -87,7 +87,7 @@ GenWeightsProducer::GenWeightsProducer(const edm::ParameterSet& pset):
 void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
 {
   std::auto_ptr<vstring> weightTypes(new vstring);
-  std::auto_ptr<vint> weightSizes(new vint);
+  std::auto_ptr<vint> weightIdxUB(new vint);
   //std::auto_ptr<vector<vstring> > weightParams(new vector<vstring>);
 
   do {
@@ -134,16 +134,17 @@ void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
         //weightParams->back().push_back(weightNode->GetText());
         ++weightSize;
       }
-      weightSizes->push_back(weightSize);
+      if ( weightIdxUB->empty() ) weightIdxUB->push_back(weightSize);
+      else weightIdxUB->push_back(weightIdxUB->back()+weightSize);
     }
 
   } while ( false );
 
-  weightSizes_.clear();
-  std::copy(weightSizes->begin(), weightSizes->end(), std::back_inserter(weightSizes_));
+  weightIdxUB_.clear();
+  std::copy(weightIdxUB->begin(), weightIdxUB->end(), std::back_inserter(weightIdxUB_));
 
   run.put(weightTypes, "weightTypes");
-  run.put(weightSizes, "weightSizes");
+  run.put(weightIdxUB, "weightIdxUB");
   //run.put(weightParams, "weightParams");
 }
 
