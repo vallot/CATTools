@@ -17,6 +17,7 @@
   <use   name="CondFormats/JetMETObjects"/>
   <use   name="JetMETCorrections/Objects"/>
   <use   name="root"/>
+  <use   name="rootxml"/>
   <use   name="fastjet" />
   <use   name="lhapdf"/>
 </library>
