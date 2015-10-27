@@ -13,7 +13,7 @@ from CATTools.CatAnalyzer.libxrd import *
 
 prefix = "/store/group/CAT"
 
-dsLists = ["RD/prod_Run2015C-PromptReco-v1.txt", "MC/prod_RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9.txt"]
+dsLists = ["RD/prod_Run2015-25ns-RunIISpring15MiniAODv2.txt", "MC/prod_MCRUN2_74_V9-25ns-RunIISpring15MiniAODv2.txt", "MC/prod_MCRUN2_74_V9-25ns-RunIISpring15MiniAODv2-qcd.txt"]
 for dsList in dsLists:
     for d in open("%s/src/CATTools/CatProducer/prod/%s" % (os.environ["CMSSW_BASE"], dsList)).readlines():
         d = d.strip()
