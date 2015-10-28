@@ -13,17 +13,18 @@
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/MET.h"
 
-#include "TopQuarkAnalysis/TopKinFitter/interface/TtFullLepKinSolver.h"
+//#include "TopQuarkAnalysis/TopKinFitter/interface/TtFullLepKinSolver.h"
+#include "CATTools/CatAnalyzer/interface/KinematicSolvers.h"
 
 #include "CATTools/CommonTools/interface/AnalysisHelper.h"
 #include "DataFormats/Math/interface/deltaR.h"
 #include "TTree.h"
-#include "TLorentzVector.h"
+//#include "TLorentzVector.h"
 
 using namespace std;
 using namespace cat;
 
-class TtbarDiLeptonAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
+class TtbarDiLeptonAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources,edm::one::WatchLuminosityBlocks> {
 public:
   explicit TtbarDiLeptonAnalyzer(const edm::ParameterSet&);
   ~TtbarDiLeptonAnalyzer();
@@ -34,6 +35,8 @@ public:
 
 private:
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
+  void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&) override;
+  void endLuminosityBlock(const edm::LuminosityBlock&, const edm::EventSetup&) override {};
 
   void selectMuons(const cat::MuonCollection& muons, ParticleCollection& selmuons) const;
   void selectElecs(const cat::ElectronCollection& elecs, ParticleCollection& selelecs) const;
@@ -78,7 +81,8 @@ private:
   int b_filtered;
   int b_is3lep;
 
-  std::unique_ptr<TtFullLepKinSolver> solver;
+  //std::unique_ptr<TtFullLepKinSolver> solver;
+  std::unique_ptr<KinematicSolver> solver_;
   bool isTTbarMC_;
   //enum TTbarMode { CH_NONE = 0, CH_FULLHADRON = 1, CH_SEMILEPTON, CH_FULLLEPTON };
   //enum DecayMode { CH_HADRON = 1, CH_MUON, CH_ELECTRON, CH_TAU_HADRON, CH_TAU_MUON, CH_TAU_ELECTRON };
@@ -111,12 +115,21 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
     pseudoTop_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("pseudoTop"));
   }
 
-  const double tmassbegin = iConfig.getParameter<double>       ("tmassbegin");
-  const double tmassend   = iConfig.getParameter<double>       ("tmassend");
-  const double tmassstep  = iConfig.getParameter<double>       ("tmassstep");
-  const auto   nupars     = iConfig.getParameter<vector<double> >("neutrino_parameters");
-
-  solver.reset(new TtFullLepKinSolver(tmassbegin, tmassend, tmassstep, nupars));
+  auto solverPSet = iConfig.getParameter<edm::ParameterSet>("solver");
+  auto algoName = solverPSet.getParameter<std::string>("algo");
+  std::transform(algoName.begin(), algoName.end(), algoName.begin(), ::toupper);
+  if      ( algoName == "CMSKIN" ) solver_.reset(new CMSKinSolver(solverPSet));
+  else if ( algoName == "DESYMASSLOOP" ) solver_.reset(new DESYMassLoopSolver(solverPSet));
+  else if ( algoName == "DESYSMEARED" ) solver_.reset(new DESYSmearedSolver(solverPSet));
+  else if ( algoName == "MT2"    ) solver_.reset(new MT2Solver(solverPSet));
+  else if ( algoName == "MAOS"   ) solver_.reset(new MAOSSolver(solverPSet));
+  else if ( algoName == "NUWGT"  ) solver_.reset(new NuWeightSolver(solverPSet));
+  else if ( algoName == "DEFAULT" ) solver_.reset(new TTDileptonSolver(solverPSet));
+  else {
+    cerr << "The solver name \"" << solverPSet.getParameter<std::string>("algo") << "\" is not known please check spellings.\n";
+    cerr << "Fall back to the default dummy solver\n";
+    solver_.reset(new TTDileptonSolver(solverPSet)); // A dummy solver
+  }
 
   usesResource("TFileService");
   edm::Service<TFileService> fs;
@@ -186,6 +199,15 @@ TtbarDiLeptonAnalyzer::~TtbarDiLeptonAnalyzer()
   cout <<"cut flow         emu         ee         mumu"<< endl;
   for ( int i=0; i<NCutflow; ++i ) {
     cout <<"step "<< i << " "<< cutflow_[i][0] <<  " "<< cutflow_[i][1] << " " << cutflow_[i][2] << " " << cutflow_[i][3]<< endl;
+  }
+}
+
+void TtbarDiLeptonAnalyzer::beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&)
+{
+  if ( dynamic_cast<DESYSmearedSolver*>(solver_.get()) != 0 ) {
+    edm::Service<edm::RandomNumberGenerator> rng;
+    CLHEP::HepRandomEngine& engine = rng->getEngine(lumi.index());
+    dynamic_cast<DESYSmearedSolver*>(solver_.get())->setRandom(&engine);
   }
 }
 
@@ -346,7 +368,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
   b_lep1_pt = recolep1.pt(); b_lep1_eta = recolep1.eta(); b_lep1_phi = recolep1.phi();
   b_lep2_pt = recolep2.pt(); b_lep2_eta = recolep2.eta(); b_lep2_phi = recolep2.phi();
-  const TLorentzVector tlv_ll = recolep1.tlv()+recolep2.tlv();
+  const auto tlv_ll = recolep1.p4()+recolep2.p4();
   b_ll_pt = tlv_ll.Pt(); b_ll_eta = tlv_ll.Eta(); b_ll_phi = tlv_ll.Phi(); b_ll_m = tlv_ll.M();
 
   if (b_ll_m < 20.){
@@ -369,8 +391,8 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
   JetCollection&& selectedJets = selectJets(*jets, recolep);
   JetCollection&& selectedBJets = selectBJets(selectedJets);
-  const TLorentzVector met = mets->front().tlv();
-  b_MET = met.Pt();
+  const auto met = mets->front().p4();
+  b_MET = met.pt();
   b_njet = selectedJets.size();
   b_nbjet = selectedBJets.size();
 
@@ -396,42 +418,47 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
   ////////////////////////////////////////////////////////  KIN  /////////////////////////////////////
   //int kin=0;
-  TLorentzVector top1, top2, nu1, nu2;
+  math::XYZTLorentzVector top1, top2, nu1, nu2;
   double maxweight=0;
   //const cat::Jet* kinj1, * kinj2;
 
-  const TLorentzVector recolepLV1= recolep1.tlv();
-  const TLorentzVector recolepLV2= recolep2.tlv();
+  const auto recolepLV1= recolep1.p4();
+  const auto recolepLV2= recolep2.p4();
+  math::XYZTLorentzVector inputLV[5] = {met, recolepLV1, recolepLV2};
   for (auto jet1 = selectedJets.begin(), end = selectedJets.end(); jet1 != end; ++jet1){
-    const TLorentzVector recojet1= jet1->tlv();
+    const auto recojet1= jet1->p4();
     for (auto jet2 = next(jet1); jet2 != end; ++jet2){
 
-      const TLorentzVector recojet2= jet2->tlv();
+      const auto recojet2= jet2->p4();
 
       b_jet1_pt = recojet1.Pt();
       b_jet1_eta = recojet1.Eta();
       b_jet2_pt = recojet2.Pt();
       b_jet2_eta = recojet2.Eta();
 
-      const double xconstraint = recolep1.px()+recolep2.px()+ recojet1.Px() + recojet2.Px() +met.Px();
-      const double yconstraint = recolep1.py()+recolep2.py()+ recojet1.Py() + recojet2.Py() +met.Py();
+      inputLV[3] = recojet1;
+      inputLV[4] = recojet2;
+      solver_->solve(inputLV);
+      const double weight1 = solver_->quality();
+      inputLV[3] = recojet2;
+      inputLV[4] = recojet1;
+      solver_->solve(inputLV);
+      const double weight2 = solver_->quality();
 
-      solver->SetConstraints(xconstraint, yconstraint);
-      const auto nuSol1 = solver->getNuSolution( recolepLV1, recolepLV2 , recojet1, recojet2);
-      const auto nuSol2 = solver->getNuSolution( recolepLV1, recolepLV2 , recojet2, recojet1);
-
-      const double weight1 = nuSol1.weight;
-      const double weight2 = nuSol2.weight;
-
-      if ( weight1 > maxweight and weight1 >= weight2 ) {
-        nu1 = cat::ToTLorentzVector(nuSol1.neutrino);
-        nu2 = cat::ToTLorentzVector(nuSol1.neutrinoBar);
-        maxweight = weight1;
-      }
-      else if ( weight2 > maxweight and weight2 >= weight1 ) {
-        nu1 = cat::ToTLorentzVector(nuSol2.neutrino);
-        nu2 = cat::ToTLorentzVector(nuSol2.neutrinoBar);
+      if ( weight2 > maxweight and weight2 >= weight1 ) {
+        nu1 = solver_->nu1();
+        nu2 = solver_->nu2();
         maxweight = weight2;
+      }
+      else if ( weight1 > maxweight and weight1 >= weight2 ) {
+        // Re-solve with previous jet combinations
+        // Weights are re-calculated since there can be very little difference due to random number effect in smearing algorithm
+        inputLV[3] = recojet1;
+        inputLV[4] = recojet2;
+        solver_->solve(inputLV);
+        nu1 = solver_->nu1();
+        nu2 = solver_->nu2();
+        maxweight = solver_->quality();
       }
       else continue;
 
@@ -449,7 +476,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_top2_phi = top2.Phi();
   b_top2_rapi = top2.Rapidity();
 
-  TLorentzVector ttbar = top1+top2;
+  auto ttbar = top1+top2;
   b_ttbar_pt = ttbar.Pt();
   b_ttbar_eta = ttbar.Eta();
   b_ttbar_phi = ttbar.Phi();
