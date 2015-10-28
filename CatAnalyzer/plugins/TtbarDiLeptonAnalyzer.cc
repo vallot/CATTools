@@ -83,7 +83,6 @@ private:
 
   //std::unique_ptr<TtFullLepKinSolver> solver;
   std::unique_ptr<KinematicSolver> solver_;
-  bool isTTbarMC_;
   //enum TTbarMode { CH_NONE = 0, CH_FULLHADRON = 1, CH_SEMILEPTON, CH_FULLLEPTON };
   //enum DecayMode { CH_HADRON = 1, CH_MUON, CH_ELECTRON, CH_TAU_HADRON, CH_TAU_MUON, CH_TAU_ELECTRON };
 
@@ -106,14 +105,10 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   metToken_  = consumes<cat::METCollection>(iConfig.getParameter<edm::InputTag>("mets"));
   vtxToken_  = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertices"));
 
-  isTTbarMC_ = iConfig.getParameter<bool>("isTTbarMC");
-  if ( isTTbarMC_ ) {
-    partonTop_channel_ = consumes<int>(iConfig.getParameter<edm::InputTag>("partonTop_channel"));
-    partonTop_modes_   = consumes<vector<int> >(iConfig.getParameter<edm::InputTag>("partonTop_modes"));
-    partonTop_genParticles_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("partonTop_genParticles"));
-
-    pseudoTop_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("pseudoTop"));
-  }
+  partonTop_channel_ = consumes<int>(iConfig.getParameter<edm::InputTag>("partonTop_channel"));
+  partonTop_modes_   = consumes<vector<int> >(iConfig.getParameter<edm::InputTag>("partonTop_modes"));
+  partonTop_genParticles_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("partonTop_genParticles"));
+  pseudoTop_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("pseudoTop"));
 
   auto solverPSet = iConfig.getParameter<edm::ParameterSet>("solver");
   auto algoName = solverPSet.getParameter<std::string>("algo");
@@ -235,7 +230,6 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_ttbar_pt = -9; b_ttbar_eta = -9; b_ttbar_phi = -9; b_ttbar_m = -9; b_ttbar_rapi = -9;
   b_tri = -9;
   b_filtered = -9; b_is3lep = -9;
-  if ( isTTbarMC_ and iEvent.isRealData() ) isTTbarMC_ = false;
 
   // bool debug = false;
   // if (iEvent.id().event() == 312909020 || iEvent.id().event() == 255013550){
@@ -250,11 +244,10 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   edm::Handle<cat::JetCollection> jets;            iEvent.getByToken(jetToken_, jets);
   edm::Handle<cat::METCollection> mets;            iEvent.getByToken(metToken_, mets);
 
-  if (isTTbarMC_){
-    edm::Handle<int> partonTop_channel;
+  edm::Handle<int> partonTop_channel;
+  if ( iEvent.getByToken(partonTop_channel_, partonTop_channel)){
     edm::Handle<vector<int> > partonTop_modes;
     edm::Handle<reco::GenParticleCollection> partonTop_genParticles;
-    iEvent.getByToken(partonTop_channel_, partonTop_channel);
     iEvent.getByToken(partonTop_modes_, partonTop_modes);
     iEvent.getByToken(partonTop_genParticles_, partonTop_genParticles);
     if ( (*partonTop_modes).size() == 0 ) {

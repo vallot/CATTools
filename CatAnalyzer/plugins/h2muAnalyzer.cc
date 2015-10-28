@@ -42,6 +42,7 @@ private:
   int JetCategory(const cat::JetCollection& seljets, float MET, float ll_pt) const;
   int JetCat_GC(float mu1_eta, float mu2_eta) const;
 
+  edm::EDGetTokenT<int> recoFiltersToken_;
   edm::EDGetTokenT<cat::MuonCollection>     muonToken_;
   edm::EDGetTokenT<cat::ElectronCollection> elecToken_;
   edm::EDGetTokenT<cat::JetCollection>      jetToken_;
@@ -54,6 +55,7 @@ private:
   TTree * ttree_;
 
   int b_njet, b_step;
+  int b_filtered;
   float b_MET;
   float b_mu1_pt, b_mu1_eta, b_mu1_phi;
   float b_mu2_pt, b_mu2_eta, b_mu2_phi;
@@ -73,6 +75,7 @@ private:
 
 h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
 {
+  recoFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("recoFilters"));
   muonToken_ = consumes<cat::MuonCollection>(iConfig.getParameter<edm::InputTag>("muons"));
   elecToken_ = consumes<cat::ElectronCollection>(iConfig.getParameter<edm::InputTag>("electrons"));
   jetToken_  = consumes<cat::JetCollection>(iConfig.getParameter<edm::InputTag>("jets"));
@@ -88,6 +91,7 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("njet", &b_njet, "njet/I");
   ttree_->Branch("MET", &b_MET, "MET/F");
   ttree_->Branch("step", &b_step, "step/I");
+  ttree_->Branch("filtered", &b_filtered, "filtered/I");
 
   ttree_->Branch("isLoose", &b_isLoose, "isLoose/O");
   ttree_->Branch("isMedium", &b_isMedium, "isMedium/O");
@@ -141,6 +145,7 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   runOnMC_ = !iEvent.isRealData();
 
   b_njet = 0; b_step = 0; b_MET = -9;
+  b_filtered = -9;
   b_mu1_pt = -9; b_mu1_eta = -9; b_mu1_phi = -9;
   b_mu2_pt = -9; b_mu2_eta = -9; b_mu2_phi = -9;
   b_diMu_pt = -9; b_diMu_eta = -9; b_diMu_phi = -9; b_diMu_m = -9;
@@ -171,6 +176,10 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 
   edm::Handle<cat::METCollection> mets;
   iEvent.getByToken(metToken_, mets);
+
+  edm::Handle<int> recoFiltersHandle;
+  iEvent.getByToken(recoFiltersToken_, recoFiltersHandle);
+  b_filtered = *recoFiltersHandle == 0 ? false : true;
 
   edm::Handle<reco::GenParticleCollection> genParticles;
 
@@ -217,7 +226,7 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
       }
     }
   }
-
+  
   if (selectedMuons.size() < 2){
     ttree_->Fill();
     return;
