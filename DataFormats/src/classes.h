@@ -28,6 +28,9 @@ namespace reco {
 
 namespace {
   struct CATTools_DataFormats {
+    std::vector<std::vector<std::string> > vvstr;
+    edm::Wrapper<std::vector<std::vector<std::string> > > vvstrw;
+    edm::Ptr<std::vector<std::vector<std::string> > > vvstrPtr;
 
     cat::Particle a_;
     std::vector<cat::Particle> av;
