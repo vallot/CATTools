@@ -8,6 +8,7 @@ process.options.allowUnscheduled = cms.untracked.bool(True)
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-4-4_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/151025_143547/0000/catTuple_96.root')
+#process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/DoubleMuon/v7-4-4_Run2015C_25ns-05Oct2015-v1/151023_165157/0000/catTuple_10.root')
 
 process.filterRECO = cms.EDFilter("CATTriggerBitCombiner",
     triggerResults = cms.InputTag("TriggerResults::PAT"),
@@ -56,6 +57,8 @@ process.load("CATTools.CatAnalyzer.ttbarDileptonKinSolutionAlgos_cff")
 
 process.ttll = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     recoFilters = cms.InputTag("filterRECO"),
+    nGoodVertex = cms.InputTag("catVertex","nGoodPV"),
+    puweight = cms.InputTag("pileupWeight"),
     trigMUEL = cms.InputTag("filterTrigMUEL"),
     trigMUMU = cms.InputTag("filterTrigMUMU"),
     trigELEL = cms.InputTag("filterTrigELEL"),
@@ -77,6 +80,7 @@ process.ttll = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     solver = process.ttbarDileptonKinAlgoPSetCMSKin,
 )
 process.ttll.solver.tMassStep = 1
+#process.ttll.solver.algo = cms.string('DESYMASSLOOP')
 
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string("top.root"
