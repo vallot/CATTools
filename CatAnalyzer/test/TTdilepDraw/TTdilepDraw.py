@@ -27,12 +27,12 @@ def stack_design(hs, x_name, y_name):
 	return hs
 	
 ############ external infos ############
-datalumi = 226.1
+datalumi = 1280.23
 
 mcfilelist = ['TT_powheg',
               'WJets',
               'SingleTbar_tW',
-              'SingleTop_tW',
+#              'SingleTop_tW',
               'ZZ',
               'WW',
               'WZ',
@@ -40,7 +40,9 @@ mcfilelist = ['TT_powheg',
 rdfilelist = ['MuonEG']
 
 datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json" % os.environ['CMSSW_BASE']))
-color_l = [2, 6, 0, 3, 5, 7, 7, 7, 4]
+mcval_l = [815.96, 61526.7, 35.6, 15.4, 110.8, 66.1, 6025.2]
+color_l = [2, 6, 0, 5, 7, 7, 7, 4]
+#color_l = [2, 6, 0, 3, 5, 7, 7, 7, 4]
 
 massbin = [20, 30, 45, 75, 105, 125, 165, 260, 400]
 njetbin = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
@@ -54,21 +56,23 @@ jetptbin = [30, 50, 80, 130, 210, 500]
 ############ external infos ############
 
 ############ user input infos ############
-step = 6#untill add b_step=6 to tree
+step = 1#untill add b_step=6 to tree
 ############ user input infos ############
 
 #control plot info
 plotvar_l = ["ll_m", "njet", "MET", "nbjet"]
 bins = [massbin, njetbin, metbin, nbjetbin] 
 x_name = ["MuEl M(ll) [GeV/c^{2}]", "MuEl Jet Multiplicity", "MuEl Missing Et[GeV/c]", "MuEl b Jet Multiplicity"]
-tcut = "step >= %d && channel == 1 && tri == 1 && filtered"%step
+tcut = "step >= %d && channel == 1"%step
+#tcut = "step >= %d && channel == 1 && tri == 1 && filtered"%step
 
 #analysis plot info
 if step == 6:
 	plotvar_l = ["top1_pt", "top1_rapi", "ttbar_pt", "ttbar_rapi", "lep1_pt", "lep1_eta", "jet1_pt", "jet1_eta"]
 	bins = [topptbin, toprapibin, topptbin, toprapibin, ptbin, etabin, jetptbin, etabin]
 	x_name = ["MuEl top p_{T} [GeV/c]", "MuEl top Rapidity", "MuEl TTbar p_{T} [GeV/c]", "MuEl TTbar Rapidity", "MuEl S6 lepton p_{T} [GeV/c]", "MuEl lepton #eta", "MuEl S6 Jet p_{T} [GeV/c]", "MuEl Jet #eta"]
-	tcut = "step >= %d && channel == 1 && tri == 1 && filtered && top1_pt > 0"%5
+	tcut = "step >= %d && channel == 1 && top1_pt > 0"%5
+	#tcut = "step >= %d && channel == 1 && tri == 1 && filtered && top1_pt > 0"%5
 
 y_name = "Number of Events"
 signal_tcut = "&& (parton_channel == 2 && ((parton_mode1 == 1 && parton_mode2 == 2) || (parton_mode1 == 2 && parton_mode2 == 1)))"
@@ -95,12 +99,14 @@ for j, plotvar in enumerate(plotvar_l):
 
 	#controlplot_MC
 	for i, file in enumerate(mcfilelist):
+		print file
 		rootfilename = file+".root"
 		tt = ROOT.TFile(rootfilename)
 		tree = tt.ttll.Get("tree")
-		for data in datasets:
-			if data["name"] == file:
-				scale = datalumi/data["lumi"]
+		#for data in datasets:
+		#	if data["name"] == file:
+		#		scale = datalumi/data["lumi"]
+		scale = mcval_l[i]*datalumi/ tree.GetEntries()
 		if file == "TT_powheg":
 			histo1 = copy.deepcopy(hist_maker(file, plotvar, bins[j], x_name[j], y_name, tree, plotvar, tcut+signal_tcut))
 			histo2 = copy.deepcopy(hist_maker(file+" others", plotvar, bins[j], x_name[j], y_name, tree, plotvar, tcut))
@@ -144,6 +150,13 @@ for j, plotvar in enumerate(plotvar_l):
 	leg.SetLineColor(0)
 	leg.SetFillColor(0)
 	leg.AddEntry(h_rd,"Data","lp")
+	leg.AddEntry(mchist_l[7], mcfilelist[6], "f")
+	leg.AddEntry(mchist_l[4], "WW/WZ/ZZ", "f")
+	leg.AddEntry(mchist_l[3], mcfilelist[2], "f")
+	leg.AddEntry(mchist_l[2], mcfilelist[1], "f")
+	leg.AddEntry(mchist_l[1], mcfilelist[0]+" others", "f")
+	leg.AddEntry(mchist_l[0], mcfilelist[0], "f")
+	"""
 	leg.AddEntry(mchist_l[8], mcfilelist[7], "f")
 	leg.AddEntry(mchist_l[5], "WW/WZ/ZZ", "f")
 	leg.AddEntry(mchist_l[4], mcfilelist[3], "f")
@@ -151,6 +164,7 @@ for j, plotvar in enumerate(plotvar_l):
 	leg.AddEntry(mchist_l[2], mcfilelist[1], "f")
 	leg.AddEntry(mchist_l[1], mcfilelist[0]+" others", "f")
 	leg.AddEntry(mchist_l[0], mcfilelist[0], "f")
+	"""
 	leg.Draw("same")
 
 	if "1" in plotvar:
