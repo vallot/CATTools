@@ -17,8 +17,8 @@ process.filterRECO = cms.EDFilter("CATTriggerBitCombiner",
     combineBy = cms.string("and"),
     triggersToMatch = cms.vstring(
         "CSCTightHaloFilter",
-        "EcalDeadCellTriggerPrimitiveFilter",
-        "HBHENoiseFilter",
+        #"EcalDeadCellTriggerPrimitiveFilter",
+        #"HBHENoiseFilter",
         "eeBadScFilter",
         "goodVertices",
     ),
@@ -77,10 +77,11 @@ process.ttll = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
 
     pseudoTop = cms.InputTag("pseudoTop"),
     
-    solver = process.ttbarDileptonKinAlgoPSetCMSKin,
+    #solver = process.ttbarDileptonKinAlgoPSetCMSKin,
+    #solver = process.ttbarDileptonKinAlgoPSetDESYSmeared,
+    solver = process.ttbarDileptonKinAlgoPSetDESYMassLoop,
 )
-process.ttll.solver.tMassStep = 1
-#process.ttll.solver.algo = cms.string('DESYMASSLOOP')
+#process.ttll.solver.tMassStep = 1
 
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string("top.root"
