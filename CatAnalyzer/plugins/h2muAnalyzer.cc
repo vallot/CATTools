@@ -91,7 +91,7 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
 
   usesResource("TFileService");
   edm::Service<TFileService> fs;
-  ttree_ = fs->make<TTree>("tree", "tree");
+  ttree_ = fs->make<TTree>("nom", "nom");
   ttree_->Branch("nvertex", &b_nvertex, "nvertex/I");
   ttree_->Branch("step", &b_step, "step/I");
   ttree_->Branch("channel", &b_channel, "channel/I");
@@ -118,6 +118,10 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("ll_phi", &b_ll_phi, "ll_phi/F");
   ttree_->Branch("ll_m", &b_ll_m, "ll_m/F");
 
+  ttree_->Branch("isLoose", &b_isLoose, "isLoose/O");
+  ttree_->Branch("isMedium", &b_isMedium, "isMedium/O");
+  ttree_->Branch("isTight", &b_isTight, "isTight/O");
+  
   //final hierachy
   //(e.g. In case of 0,1jet, Tight and Loose.Otherwise 2jet include VBF Tight, ggF Tight, Loose)
   ttree_->Branch("jetcat_f_hier", &b_jetcat_f_hier, "jetcat_f_hier/I");
@@ -187,10 +191,10 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   edm::Handle<int> recoFiltersHandle;
   iEvent.getByToken(recoFiltersToken_, recoFiltersHandle);
   b_filtered = *recoFiltersHandle == 0 ? false : true;
-  if (!b_filtered){
-    ttree_->Fill();
-    return;
-  }
+  // if (!b_filtered){
+  //   ttree_->Fill();
+  //   return;
+  // }
   edm::Handle<cat::MuonCollection> muons;          iEvent.getByToken(muonToken_, muons);
   edm::Handle<cat::ElectronCollection> electrons;  iEvent.getByToken(elecToken_, electrons);
   edm::Handle<cat::JetCollection> jets;            iEvent.getByToken(jetToken_, jets);
@@ -247,7 +251,8 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
     return;
   }
   b_step = 1;
-
+  b_step1 = true;
+  
   b_lep1_pt = selectedMuons[0].pt(); b_lep1_eta = selectedMuons[0].eta(); b_lep1_phi = selectedMuons[0].phi();
   b_lep2_pt = selectedMuons[1].pt(); b_lep2_eta = selectedMuons[1].eta(); b_lep2_phi = selectedMuons[1].phi();
 
@@ -273,6 +278,7 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
     return;
   }
   b_step = 2;
+  b_step2 = true;
 
   edm::Handle<edm::TriggerResults> triggerBits;
   edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
@@ -281,18 +287,17 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
   AnalysisHelper trigHelper = AnalysisHelper(triggerNames, triggerBits, triggerObjects);
 
-  if (!trigHelper.triggerFired("HLT_IsoLep24_eta2p1_v")){
-    ttree_->Fill();
-    return;
+  if (trigHelper.triggerFired("HLT_IsoLep24_eta2p1_v")){
+    b_step = 3;
+    b_step3 = true;
   }
-  b_step = 3;
 
-  if ( !trigHelper.triggerMatched("HLT_IsoLep24_eta2p1_v", selectedMuons[0] )
-       && !trigHelper.triggerMatched("HLT_IsoLep24_eta2p1_v", selectedMuons[1] )){
-    ttree_->Fill();
-    return;
+  if ( trigHelper.triggerMatched("HLT_IsoLep24_eta2p1_v", selectedMuons[0] )
+       || trigHelper.triggerMatched("HLT_IsoLep24_eta2p1_v", selectedMuons[1] )){
+    b_tri = true;
+    b_step = 4;
+    b_step4 = true;
   }
-  b_step = 4;
 
   // -----------------------------  Jet Category  -----------------------------------
   b_jetcat_f_hier = JetCategory(selectedJets, b_met, b_ll_pt);

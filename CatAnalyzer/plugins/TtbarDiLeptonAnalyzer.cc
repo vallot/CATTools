@@ -133,7 +133,7 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
 
   usesResource("TFileService");
   edm::Service<TFileService> fs;
-  ttree_ = fs->make<TTree>("tree", "tree");
+  ttree_ = fs->make<TTree>("nom", "nom");
   ttree_->Branch("nvertex", &b_nvertex, "nvertex/I");
   ttree_->Branch("step", &b_step, "step/I");
   ttree_->Branch("channel", &b_channel, "channel/I");
@@ -249,6 +249,8 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_ttbar_pt = -9; b_ttbar_eta = -9; b_ttbar_phi = -9; b_ttbar_m = -9; b_ttbar_rapi = -9;
   b_is3lep = -9;
 
+  cutflow_[0][b_channel]++;
+  
   edm::Handle<int> partonTop_channel;
   if ( iEvent.getByToken(partonTop_channel_, partonTop_channel)){
     edm::Handle<vector<int> > partonTop_modes;
@@ -344,6 +346,8 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   edm::Handle<reco::VertexCollection> vertices;
   iEvent.getByToken(vtxToken_, vertices);
   if (vertices->empty()){ return;} // skip the event if no PV found
+  cutflow_[1][b_channel]++;
+
   // const reco::Vertex &PV = vertices->front();
   edm::Handle<int> nGoodVertexHandle;
   iEvent.getByToken(nGoodVertexToken_, nGoodVertexHandle);
@@ -357,10 +361,12 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   edm::Handle<int> recoFiltersHandle;
   iEvent.getByToken(recoFiltersToken_, recoFiltersHandle);
   b_filtered = *recoFiltersHandle == 0 ? false : true;
-  if (!b_filtered){
-    ttree_->Fill();
-    return;
-  }
+  // if (!b_filtered){
+  //   ttree_->Fill();
+  //   return;
+  // }
+  cutflow_[2][b_channel]++;
+  
   edm::Handle<cat::MuonCollection> muons;          iEvent.getByToken(muonToken_, muons);
   edm::Handle<cat::ElectronCollection> electrons;  iEvent.getByToken(elecToken_, electrons);
   edm::Handle<cat::JetCollection> jets;            iEvent.getByToken(jetToken_, jets);
@@ -374,6 +380,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     ttree_->Fill();
     return;
   }
+  cutflow_[3][b_channel]++;
 
   sort(recolep.begin(), recolep.end(), GtByCandPt());
   const cat::Particle& recolep1 = recolep[0];
@@ -391,7 +398,6 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   else if ( b_channel == CH_MUMU ) iEvent.getByToken(trigTokenMUMU_, trigHandle);
   else if ( b_channel == CH_MUEL ) iEvent.getByToken(trigTokenMUEL_, trigHandle);
   b_tri = *trigHandle;
-  cutflow_[++b_step][b_channel]++;
 
   b_lep1_pt = recolep1.pt(); b_lep1_eta = recolep1.eta(); b_lep1_phi = recolep1.phi();
   b_lep2_pt = recolep2.pt(); b_lep2_eta = recolep2.eta(); b_lep2_phi = recolep2.phi();
@@ -403,16 +409,14 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     return;
   }
   else b_step1 = true;
+  b_step = 1;
+  cutflow_[4][b_channel]++;
 
-  cutflow_[++b_step][b_channel]++;
-
-  if ( (b_channel != CH_MUEL) && ((b_ll_m > 76) && (b_ll_m < 106)) ){
-    ttree_->Fill();
-    return;
+  if ( (b_channel == CH_MUEL) || ((b_ll_m < 76) || (b_ll_m > 106)) ){
+    b_step2 = true;
+    b_step = 2;
+    cutflow_[5][b_channel]++;
   }
-  else b_step2 = true;
-
-  cutflow_[++b_step][b_channel]++;
 
   JetCollection&& selectedJets = selectJets(*jets, recolep);
   JetCollection&& selectedBJets = selectBJets(selectedJets);
@@ -421,28 +425,29 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_njet = selectedJets.size();
   b_nbjet = selectedBJets.size();
 
-  if (selectedJets.size() < 2){
-    ttree_->Fill();
-    return;
+  if (selectedJets.size() >1 ){
+    b_step3 = true;
+    if (b_step == 2){
+      ++b_step;
+      cutflow_[6][b_channel]++;
+    }
   }
-  else b_step3 = true;
-  cutflow_[++b_step][b_channel]++;
 
-  if ((b_channel != CH_MUEL) && (b_met < 40.)){
-    ttree_->Fill();
-    return;
+  if ((b_channel == CH_MUEL) || (b_met > 40.)){
+    b_step4 = true;
+    if (b_step == 3){
+      ++b_step;
+      cutflow_[7][b_channel]++;
+    }
   }
-  else b_step4 = true;
-
-  cutflow_[++b_step][b_channel]++;
-
-  if (selectedBJets.size() == 0){
-    ttree_->Fill();
-    return;
+  
+  if (selectedBJets.size() > 0){
+    b_step5 = true;
+    if (b_step == 4){
+      ++b_step;
+      cutflow_[8][b_channel]++;
+    }
   }
-  else b_step5 = true;
-
-  cutflow_[++b_step][b_channel]++;
 
   ////////////////////////////////////////////////////////  KIN  /////////////////////////////////////
   //int kin=0;
