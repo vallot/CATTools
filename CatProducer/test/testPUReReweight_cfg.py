@@ -14,6 +14,10 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring('file:catTuple.root'))
 process.pileupWeight.weightingMethod = "RedoWeight"
+from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
+process.pileupWeight.pileupRD = pileupWeightMap["Run2015_25nsV1"]
+process.pileupWeight.pileupUp = pileupWeightMap["Run2015Up_25nsV1"]
+process.pileupWeight.pileupDn = pileupWeightMap["Run2015Dn_25nsV1"]
 
 process.out = cms.OutputModule("PoolOutputModule",
     fileName = cms.untracked.string("out.root"),
