@@ -40,7 +40,7 @@ private:
   edm::EDGetTokenT<PUInfos> puToken_;
   edm::EDGetTokenT<reco::VertexCollection> vertexToken_;
 
-  edm::EDGetTokenT<int> nTruePileupToken_;
+  edm::EDGetTokenT<int> nTrueIntrToken_;
 };
 
 PileupWeightProducer::PileupWeightProducer(const edm::ParameterSet& pset)
@@ -72,7 +72,7 @@ PileupWeightProducer::PileupWeightProducer(const edm::ParameterSet& pset)
     }
     else if ( weightingMethod_ == WeightingMethod::OnTheFly )
     {
-      nTruePileupToken_ = consumes<int>(pset.getParameter<edm::InputTag>("nTruePileup"));
+      nTrueIntrToken_ = consumes<int>(pset.getParameter<edm::InputTag>("nTrueIntr"));
     }
     std::vector<double> pileupMC = pset.getParameter<std::vector<double> >("pileupMC");
     std::vector<double> pileupRD = pset.getParameter<std::vector<double> >("pileupRD");
