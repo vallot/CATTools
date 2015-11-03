@@ -1,15 +1,18 @@
 import FWCore.ParameterSet.Config as cms
 
 pileupWeight = cms.EDProducer("PileupWeightProducer",
-    isStandardWeight = cms.bool(True),
+    #weightingMethod = cms.string("NVertex"), # Simple bin-by-bin correction of nVertex distribution. Non standard
+    weightingMethod = cms.string("Standard"), # The Standard method in the CMSSW
+    #weightingMethod = cms.string("OnTheFly"), # this is to be used re-reweight on CATTuple
     pileupMC = cms.vdouble(),
     pileupRD = cms.vdouble(),
     pileupUp = cms.vdouble(),
     pileupDn = cms.vdouble(),
-    #pileupInfo = cms.InputTag("addPileupInfo"),
+    simpleWeights = cms.vdouble(),
+    #pileupInfo = cms.InputTag("addPileupInfo"), # For the AOD and MiniAODv1
     pileupInfo = cms.InputTag("slimmedAddPileupInfo"),
     vertex = cms.InputTag("offlineSlimmedPrimaryVertices"),
-    simpleWeights = cms.vdouble(),
+    nTrueIntr = cms.InputTag("pileupWeight", "nTrueIntr", "CAT"),
 )
 
 pileupWeightMap = {
