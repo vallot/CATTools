@@ -10,8 +10,9 @@ rootfileDir = "/afs/cern.ch/work/j/jlee/h2muAnalyzer_"
 datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json" % os.environ['CMSSW_BASE']))
 
 mchistList = []
-binning = [100, 0, 200]
-plotvar = 'll_m'
+binning = [30, 0, 30]
+#plotvar = 'll_m'
+plotvar = 'nvertex'
 cut = '(step >1)'
 x_name = 'mass [GeV]'
 y_name = 'events'
@@ -39,4 +40,4 @@ tree = tt.h2mu.Get("tree")
 rdhist = getTH1('data', binning, tree, plotvar, cut)
 rdhist.SetLineColor(1)
 
-drawTH1("ll_m", CMS_lumi, mchistList, rdhist, x_name, y_name)
+drawTH1withRatio(plotvar, CMS_lumi, mchistList, rdhist, x_name, y_name)
