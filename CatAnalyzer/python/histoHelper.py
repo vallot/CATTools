@@ -1,4 +1,6 @@
 import ROOT, copy, CMS_lumi, tdrstyle
+import PhysicsTools.PythonAnalysis.rootplot.core as rootplotcore
+tdrstyle.setTDRStyle()
 
 def getTH1(name, binning, tr, br, cut):
     hist = ROOT.TH1F(name, name, binning[0], binning[1], binning[2])
@@ -6,7 +8,35 @@ def getTH1(name, binning, tr, br, cut):
     hist.Sumw2()
     return copy.deepcopy(hist)
 
+def divide_canvas(canvas, ratio_fraction):
+    #### Divide the canvas into two pads; the bottom is ratio_fraction tall.
+    ## Both pads are set to the full canvas size to maintain font sizes
+    ## Fill style 4000 used to ensure pad transparency because of this
+    margins = [ROOT.gStyle.GetPadTopMargin(), ROOT.gStyle.GetPadBottomMargin()]
+    useable_height = 1 - (margins[0] + margins[1])
+    canvas.Clear()
+    pad = ROOT.TPad('mainPad', 'mainPad', 0., 0., 1., 1.)
+    pad.SetFillStyle(4000)
+    pad.Draw()
+    pad.SetBottomMargin(margins[1] + ratio_fraction * useable_height)
+    pad_ratio = ROOT.TPad('ratioPad', 'ratioPad', 0., 0., 1., 1.);
+    pad_ratio.SetFillStyle(4000)
+    pad_ratio.Draw()
+    pad_ratio.SetTopMargin(margins[0] + (1 - ratio_fraction) * useable_height)
+
+    pad.SetTicks(1,1)
+    pad_ratio.SetTicks(1,1)
+    return pad, pad_ratio
+
 def makeCanvas(name, doRatio):
+    H_ref = 600;
+    if doRatio:
+        H_ref = 800;
+    W_ref = 800;
+    canvas = ROOT.TCanvas(name,name,W_ref,H_ref)    
+    return canvas
+
+def setMargins(canvas, doRatio):
     H_ref = 600;
     if doRatio:
         H_ref = 800;
@@ -17,27 +47,46 @@ def makeCanvas(name, doRatio):
     B = 0.12*H_ref 
     L = 0.12*W_ref
     R = 0.04*W_ref
-        
-    canvas = ROOT.TCanvas(name,name,50,50,W,H)
     canvas.SetFillColor(0)
     canvas.SetBorderMode(0)
     canvas.SetFrameFillStyle(0)
     canvas.SetFrameBorderMode(0)
     canvas.SetLeftMargin( L/W )
     canvas.SetRightMargin( R/W )
-    canvas.SetTopMargin( T/H )
-    canvas.SetBottomMargin( B/H )
-    canvas.SetTickx(0)
-    canvas.SetTicky(0)
-    if doRatio:
-        canvas.Divide(1,2)
-    return copy.deepcopy(canvas)
+    #canvas.SetTopMargin( T/H )
+    #canvas.SetBottomMargin( B/H )
+    canvas.SetTickx(1)
+    canvas.SetTicky(1)
+    return canvas
 
-def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=True, doRatio=False):
-    iPos = 11
-    if( iPos==0 ):
-        cmsLumi.relPosX = 0.12
+def setDefAxis(axis, title, offset):
+    axis.SetTitle(title)
+    axis.SetTitleOffset(offset)
+    axis.SetTitleColor(1)
+    axis.SetTitleFont(42)
+    axis.SetTitleSize(0.06)
+    axis.SetLabelColor(1)
+    axis.SetLabelFont(42)
+    axis.SetLabelOffset(0.007)
+    axis.SetLabelSize(0.04)
+    axis.SetAxisColor(1)
+    axis.SetTickLength(0.03)
+    axis.SetNdivisions(510)
+    #axis.SetStripDecimals(True)
+    #axis.SetPadTickX(1)
+    #axis.SetPadTickY(1)
 
+def setDefTH1Style(th1, x_name, y_name):
+    setDefAxis(th1.GetYaxis(),y_name, 1.02)
+    setDefAxis(th1.GetXaxis(),x_name, 0.9)
+    th1.GetYaxis().CenterTitle()
+    ROOT.gStyle.SetStripDecimals(True)
+    ROOT.gStyle.SetPadTickX(1)
+    ROOT.gStyle.SetPadTickY(1)
+    ROOT.gStyle.cd()
+    return th1
+    
+def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=True, ratioRange=0.45):
     leg = ROOT.TLegend(0.7,0.7,0.82,0.88)
     leg.SetTextSize(0.035)
     leg.SetTextFont(42)
@@ -46,28 +95,68 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=True, doRatio=Fal
     leg.AddEntry(data,"Data","lp")
 
     hs = ROOT.THStack("hs_%s_mc"%(name), "hs_%s_mc"%(name))
-    
+    hratio = mclist[0].Clone("hratio")
+    hratio.Reset()
+         
     for mc in mclist:
         hnew = mc.Clone("hnew"+mc.GetName())
         hnew.Sumw2(False)
         hs.Add(hnew)
+        hratio.Add(mc)
         leg.AddEntry(mc, mc.GetName(), "f")
+    hratio.Divide(hratio,data,1.,1.,"B")
+
+    tdrstyle.setTDRStyle()
+
+    setDefTH1Style(data, x_name, y_name)
+    data.SetMaximum(data.GetMaximum()*1.2)
     
-    canvas = makeCanvas(name, doRatio)
-    tdrstyle.setTDRStyle()    
-    cmsLumi.CMS_lumi(canvas, 0, iPos)
+    ratio_fraction = 0
+    if doRatio:
+        ratio_fraction = 0.3        
+        data.GetXaxis().SetLabelSize(0)
+        data.GetXaxis().SetTitleSize(0)
+        data.GetYaxis().CenterTitle()
+        setDefTH1Style(hratio, x_name, "Data/MC")
+        hratio.GetYaxis().SetNdivisions(5)
+            
+    canv = makeCanvas(name, doRatio)
+    pads=[canv]
+    pads = rootplotcore.divide_canvas(canv, ratio_fraction)
+    pads[0].cd()
+    
+    setMargins(pads[0],doRatio)
     if doLog:
-        canvas.SetLogy()
+        pads[0].SetLogy()
     
     data.Draw()
-    data.GetXaxis().SetTitle(x_name)
-    data.GetYaxis().SetTitle(y_name)
-    data.GetYaxis().SetTitleOffset(1)
-    
     hs.Draw("same")
     data.Draw("esamex0")
     leg.Draw("same")
-    canvas.Update()
-    canvas.RedrawAxis()
+    pads[0].Update()
+
+    if doRatio:
+        pads[1].cd()
+        pads[1].SetGridy()
+        setMargins(pads[1],doRatio)
+        hratio.Draw("e")
+        hratio.SetMaximum(1.+ratioRange)
+        hratio.SetMinimum(1.-ratioRange)
+
+    for p in pads:
+        p.RedrawAxis()
+        p.Modified()
+        p.Update()
+
+    canv.cd()    
+    iPos = 11
+    if( iPos==0 ):
+        cmsLumi.relPosX = 0.12    
+    cmsLumi.CMS_lumi(canv, 0, iPos)
     
-    canvas.SaveAs("%s.png"%(name))
+    canv.Modified()
+    canv.Update()
+    canv.SaveAs(name)
+
+    print "finished"
+

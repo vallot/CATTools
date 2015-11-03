@@ -91,7 +91,7 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
 
   usesResource("TFileService");
   edm::Service<TFileService> fs;
-  ttree_ = fs->make<TTree>("tree", "tree");
+  ttree_ = fs->make<TTree>("nom", "nom");
   ttree_->Branch("nvertex", &b_nvertex, "nvertex/I");
   ttree_->Branch("step", &b_step, "step/I");
   ttree_->Branch("channel", &b_channel, "channel/I");
@@ -287,20 +287,17 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
   AnalysisHelper trigHelper = AnalysisHelper(triggerNames, triggerBits, triggerObjects);
 
-  if (!trigHelper.triggerFired("HLT_IsoLep24_eta2p1_v")){
-    ttree_->Fill();
-    return;
+  if (trigHelper.triggerFired("HLT_IsoLep24_eta2p1_v")){
+    b_step = 3;
+    b_step3 = true;
   }
-  b_step = 3;
-  b_step3 = true;
 
-  if ( !trigHelper.triggerMatched("HLT_IsoLep24_eta2p1_v", selectedMuons[0] )
-       && !trigHelper.triggerMatched("HLT_IsoLep24_eta2p1_v", selectedMuons[1] )){
-    ttree_->Fill();
-    return;
+  if ( trigHelper.triggerMatched("HLT_IsoLep24_eta2p1_v", selectedMuons[0] )
+       || trigHelper.triggerMatched("HLT_IsoLep24_eta2p1_v", selectedMuons[1] )){
+    b_tri = true;
+    b_step = 4;
+    b_step4 = true;
   }
-  b_step = 4;
-  b_step5 = true;
 
   // -----------------------------  Jet Category  -----------------------------------
   b_jetcat_f_hier = JetCategory(selectedJets, b_met, b_ll_pt);
