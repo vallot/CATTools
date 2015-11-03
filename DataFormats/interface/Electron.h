@@ -39,7 +39,7 @@ namespace cat {
     bool isGsfCtfScPixChargeConsistent() const{ return isGsfCtfScPixChargeConsistent_; }
     bool isEB() const{ return isEB_; }
     
-    float shiftedEn() const { if (this->isEB()) return 0.01; else return 0.025; }
+    float shiftedEn() const { if (this->isEB()) return 0.006; else return 0.015; }
     float shiftedEnDown() const {return 1-shiftedEn();}
     float shiftedEnUp() const {return  1+shiftedEn();}
     

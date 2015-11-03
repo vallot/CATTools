@@ -1,15 +1,18 @@
 import FWCore.ParameterSet.Config as cms
 
 pileupWeight = cms.EDProducer("PileupWeightProducer",
-    isStandardWeight = cms.bool(True),
+    #weightingMethod = cms.string("NVertex"), # Simple bin-by-bin correction of nVertex distribution. Non standard
+    weightingMethod = cms.string("Standard"), # The Standard method in the CMSSW
+    #weightingMethod = cms.string("RedoWeight"), # this is to be used re-reweight on CATTuple
     pileupMC = cms.vdouble(),
     pileupRD = cms.vdouble(),
     pileupUp = cms.vdouble(),
     pileupDn = cms.vdouble(),
-    #pileupInfo = cms.InputTag("addPileupInfo"),
+    simpleWeights = cms.vdouble(),
+    #pileupInfo = cms.InputTag("addPileupInfo"), # For the AOD and MiniAODv1
     pileupInfo = cms.InputTag("slimmedAddPileupInfo"),
     vertex = cms.InputTag("offlineSlimmedPrimaryVertices"),
-    simpleWeights = cms.vdouble(),
+    nTrueIntr = cms.InputTag("pileupWeight", "nTrueInteraction", "CAT"),
 )
 
 pileupWeightMap = {
@@ -34,13 +37,13 @@ pileupWeightMap = {
     1.40E-02, 2.18E-02, 2.94E-02, 4.00E-02, 5.31E-02,
     6.53E-02, 7.64E-02, 8.42E-02, 8.43E-02, 7.68E-02,
     6.64E-02, 5.69E-02, 4.94E-02, 4.35E-02, 3.84E-02,
-    
+
     3.37E-02, 2.92E-02, 2.49E-02, 2.10E-02, 1.74E-02,
     1.43E-02, 1.16E-02, 9.33E-03, 7.41E-03, 5.81E-03,
     4.49E-03, 3.43E-03, 2.58E-03, 1.91E-03, 1.39E-03,
     1.00E-03, 7.09E-04, 4.93E-04, 3.38E-04, 2.28E-04,
     1.51E-04, 9.83E-05, 6.29E-05, 3.96E-05, 2.45E-05,
-    
+
     1.49E-05, 4.71E-06, 2.36E-06
 ),
 "Summer12_S10":cms.vdouble(
@@ -165,6 +168,54 @@ pileupWeightMap = {
     2.798623e+05, 2.238120e+05, 1.769622e+05, 1.383007e+05, 1.068094e+05,
 ),
 ## based on Cert_246908-258750_13TeV_PromptReco_Collisions15_25ns_JSON.txt
+#pileupCalc.py -i Cert_246908-258750_13TeV_PromptReco_Collisions15_25ns_JSON.txt \
+# --inputLumiJSON pileup_JSON_10-28-2015.txt \
+# --calcMode true --minBiasXsec 69900 --maxPileupBin 50 --numPileupBins 50 pu.root
+"Run2015_25nsV1":cms.vdouble(
+    5.784264635e+04, 3.510369942e+05, 3.622903177e+05, 4.773636472e+05, 7.070508127e+05,
+    1.136638713e+06, 3.491737096e+06, 2.173135103e+07, 8.021722511e+07, 1.553061868e+08,
+    2.207327430e+08, 2.512420657e+08, 2.284340642e+08, 1.633101615e+08, 9.145582404e+07,
+    4.054899528e+07, 1.454868131e+07, 4.369129759e+06, 1.158234546e+06, 2.935596118e+05,
+    7.844338154e+04, 2.436635167e+04, 9.379132734e+03, 4.347098515e+03, 2.198380378e+03,
+    1.117872131e+03, 5.494434772e+02, 2.573455120e+02, 1.143731565e+02, 4.817999154e+01,
+    1.923242175e+01, 7.274470595e+00, 2.607128065e+00, 8.853479056e-01, 2.848750387e-01,
+    8.685255587e-02, 2.508985765e-02, 6.867543911e-03, 1.781120224e-03, 4.376984859e-04,
+    1.019175344e-04, 2.248626707e-05, 4.700923096e-06, 9.312187342e-07, 1.747940650e-07,
+    3.108764812e-08, 5.241531875e-09, 8.360538928e-10, 1.271913685e-10, 1.894207013e-11,
+),
+## based on Cert_246908-258750_13TeV_PromptReco_Collisions15_25ns_JSON.txt
+#pileupCalc.py -i Cert_246908-258750_13TeV_PromptReco_Collisions15_25ns_JSON.txt \
+# --inputLumiJSON pileup_JSON_10-28-2015.txt \
+# --calcMode true --minBiasXsec 73395 --maxPileupBin 50 --numPileupBins 50 pu.root
+"Run2015Up_25nsV1":cms.vdouble(
+    4.938693848e+04, 3.169282485e+05, 3.592472735e+05, 4.137154986e+05, 6.313814766e+05,
+    9.033466601e+05, 2.112785963e+06, 1.063493882e+07, 4.962012428e+07, 1.156155119e+08,
+    1.816270587e+08, 2.291626043e+08, 2.369946302e+08, 1.986114959e+08, 1.333632122e+08,
+    7.184707832e+07, 3.144042804e+07, 1.141578903e+07, 3.550271355e+06, 9.935281860e+05,
+    2.687188291e+05, 7.648332191e+04, 2.492660311e+04, 9.859560910e+03, 4.653572488e+03,
+    2.412617920e+03, 1.271738276e+03, 6.538880787e+02, 3.225849356e+02, 1.518637293e+02,
+    6.811668249e+01, 2.909835185e+01, 1.183743270e+01, 4.585752028e+00, 1.691702176e+00,
+    5.942861120e-01, 1.988036490e-01, 6.333001109e-02, 1.921105065e-02, 5.549443618e-03,
+    1.526530507e-03, 3.998717062e-04, 9.974632379e-05, 2.369389304e-05, 5.359719807e-06,
+    1.154554864e-06, 2.368488946e-07, 4.627101141e-08, 8.607176027e-09, 1.525916615e-09,
+),
+## based on Cert_246908-258750_13TeV_PromptReco_Collisions15_25ns_JSON.txt
+#pileupCalc.py -i Cert_246908-258750_13TeV_PromptReco_Collisions15_25ns_JSON.txt \
+# --inputLumiJSON pileup_JSON_10-28-2015.txt \
+# --calcMode true --minBiasXsec 66405 --maxPileupBin 50 --numPileupBins 50 pu.root
+"Run2015Dn_25nsV1":cms.vdouble(
+    6.753888900e+04, 3.885655211e+05, 3.725583872e+05, 5.529133741e+05, 8.016186247e+05,
+    1.534956709e+06, 6.827598011e+06, 4.254334114e+07, 1.197729050e+08, 2.005647576e+08,
+    2.561532639e+08, 2.564830599e+08, 1.981260239e+08, 1.167974368e+08, 5.293261123e+07,
+    1.885245021e+07, 5.469053336e+06, 1.368547366e+06, 3.229823947e+05, 8.048786044e+04,
+    2.373082045e+04, 8.877932729e+03, 4.031313912e+03, 1.978563288e+03, 9.642092231e+02,
+    4.497806367e+02, 1.984669758e+02, 8.257595619e+01, 3.237265757e+01, 1.195628709e+01,
+    4.159998181e+00, 1.363527832e+00, 4.210234627e-01, 1.224667996e-01, 3.355825760e-02,
+    8.662622542e-03, 2.106536968e-03, 4.825696060e-04, 1.041415859e-04, 2.117213217e-05,
+    4.054934599e-06, 7.316271900e-07, 1.243570567e-07, 1.991664511e-08, 3.003042592e-09,
+    4.254817054e-10, 6.660622054e-11, 0.000000000e+00, 0.000000000e+00, 0.000000000e+00,
+),
+## based on Cert_246908-258750_13TeV_PromptReco_Collisions15_25ns_JSON.txt
 "Run2015_25ns":cms.vdouble(
 3.562366e+04, 2.626834e+05, 3.560686e+05, 3.237645e+05, 5.103119e+05,
 6.756850e+05, 1.133830e+06, 3.213949e+06, 1.628510e+07, 5.743382e+07,
@@ -279,7 +330,7 @@ pileupWeight.pileupRD = pileupWeightMap["Run2015_25ns"]
 pileupWeight.pileupUp = pileupWeightMap["Run2015_25nsUp"]
 pileupWeight.pileupDn = pileupWeightMap["Run2015_25nsDn"]
 
-pileupWeight.isStandardWeight = True
+#pileupWeight.reweightMethod = "NVertex"
 #pileupWeight.simpleWeights = [ # Weights starts from 1-vertex
 #    1,
 #    9.571429, 1.692308, 0.610811, 0.372213, 0.433144,
