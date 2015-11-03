@@ -31,7 +31,7 @@ public:
 private:
   edm::LumiReWeighting lumiWeights_, lumiWeightsUp_, lumiWeightsDn_;
 
-  enum class WeightingMethod { Standard, OnTheFly, NVertex };
+  enum class WeightingMethod { Standard, RedoWeight, NVertex };
   WeightingMethod weightingMethod_;
 
   std::vector<double> simpleWeights_;
@@ -47,10 +47,10 @@ PileupWeightProducer::PileupWeightProducer(const edm::ParameterSet& pset)
 {
   const string methodName = pset.getParameter<string>("weightingMethod");
   if      ( methodName == "Standard" ) weightingMethod_ = WeightingMethod::Standard;
-  else if ( methodName == "OnTheFly" ) weightingMethod_ = WeightingMethod::OnTheFly;
+  else if ( methodName == "RedoWeight" ) weightingMethod_ = WeightingMethod::RedoWeight;
   else if ( methodName == "NVertex"  ) weightingMethod_ = WeightingMethod::NVertex;
   else throw cms::Exception("ConfigError") << "Cannot find weighting method \""
-                                           << methodName << "\", should be Standard, OnTheFly or NVertex\n";
+                                           << methodName << "\", should be Standard, RedoWeight or NVertex\n";
 
   if ( weightingMethod_ == WeightingMethod::NVertex )
   {
@@ -68,7 +68,7 @@ PileupWeightProducer::PileupWeightProducer(const edm::ParameterSet& pset)
       puToken_ = consumes<PUInfos>(pset.getParameter<edm::InputTag>("pileupInfo"));
       vertexToken_ = consumes<reco::VertexCollection>(pset.getParameter<edm::InputTag>("vertex"));
     }
-    else if ( weightingMethod_ == WeightingMethod::OnTheFly )
+    else if ( weightingMethod_ == WeightingMethod::RedoWeight )
     {
       nTrueIntrToken_ = consumes<int>(pset.getParameter<edm::InputTag>("nTrueIntr"));
     }
@@ -137,7 +137,7 @@ void PileupWeightProducer::produce(edm::Event& event, const edm::EventSetup& eve
           }
         }
       }
-      else if ( weightingMethod_ == WeightingMethod::OnTheFly ) {
+      else if ( weightingMethod_ == WeightingMethod::RedoWeight ) {
         edm::Handle<int> nTrueIntrHandle;
         event.getByToken(nTrueIntrToken_, nTrueIntrHandle);
         *nTrueIntr = *nTrueIntrHandle;

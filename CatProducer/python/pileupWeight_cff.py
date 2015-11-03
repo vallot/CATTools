@@ -3,7 +3,7 @@ import FWCore.ParameterSet.Config as cms
 pileupWeight = cms.EDProducer("PileupWeightProducer",
     #weightingMethod = cms.string("NVertex"), # Simple bin-by-bin correction of nVertex distribution. Non standard
     weightingMethod = cms.string("Standard"), # The Standard method in the CMSSW
-    #weightingMethod = cms.string("OnTheFly"), # this is to be used re-reweight on CATTuple
+    #weightingMethod = cms.string("RedoWeight"), # this is to be used re-reweight on CATTuple
     pileupMC = cms.vdouble(),
     pileupRD = cms.vdouble(),
     pileupUp = cms.vdouble(),
@@ -330,7 +330,7 @@ pileupWeight.pileupRD = pileupWeightMap["Run2015_25ns"]
 pileupWeight.pileupUp = pileupWeightMap["Run2015_25nsUp"]
 pileupWeight.pileupDn = pileupWeightMap["Run2015_25nsDn"]
 
-pileupWeight.isStandardWeight = True
+#pileupWeight.reweightMethod = "NVertex"
 #pileupWeight.simpleWeights = [ # Weights starts from 1-vertex
 #    1,
 #    9.571429, 1.692308, 0.610811, 0.372213, 0.433144,
