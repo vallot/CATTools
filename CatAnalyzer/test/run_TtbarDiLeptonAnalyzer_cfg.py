@@ -10,6 +10,13 @@ process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-4-4_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/151025_143547/0000/catTuple_96.root')
 #process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/DoubleMuon/v7-4-4_Run2015C_25ns-05Oct2015-v1/151023_165157/0000/catTuple_10.root')
 
+process.load("CATTools.CatProducer.pileupWeight_cff")
+from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
+process.pileupWeight.weightingMethod = "RedoWeight"
+process.pileupWeight.pileupRD = pileupWeightMap["Run2015_25nsV1"]
+process.pileupWeight.pileupUp = pileupWeightMap["Run2015Up_25nsV1"]
+process.pileupWeight.pileupDn = pileupWeightMap["Run2015Dn_25nsV1"]
+
 process.filterRECO = cms.EDFilter("CATTriggerBitCombiner",
     triggerResults = cms.InputTag("TriggerResults::PAT"),
     secondaryTriggerResults = cms.InputTag("TriggerResults::RECO"),
@@ -55,7 +62,7 @@ process.filterTrigMUMU = process.filterTrigMUEL.clone(
 
 process.load("CATTools.CatAnalyzer.ttbarDileptonKinSolutionAlgos_cff")
 
-process.ttll = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
+process.cattree = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     recoFilters = cms.InputTag("filterRECO"),
     nGoodVertex = cms.InputTag("catVertex","nGoodPV"),
     puweight = cms.InputTag("pileupWeight"),
@@ -81,18 +88,18 @@ process.ttll = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     solver = process.ttbarDileptonKinAlgoPSetDESYSmeared,
     #solver = process.ttbarDileptonKinAlgoPSetDESYMassLoop,
 )
-#process.ttll.solver.tMassStep = 1
-if cms.string('DESYSmeared') == process.ttll.solver.algo:
+#process.cattree.solver.tMassStep = 1
+if cms.string('DESYSmeared') == process.cattree.solver.algo:
     process.RandomNumberGeneratorService = cms.Service("RandomNumberGeneratorService",
-        ttll = cms.PSet(
+        cattree = cms.PSet(
             initialSeed = cms.untracked.uint32(123456),
             engineName = cms.untracked.string('TRandom3')
         )
-    )                               
+    )
 
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string("top.root"
+    fileName = cms.string("cattree.root"
 ))
 
-process.p = cms.Path(process.ttll)
+process.p = cms.Path(process.cattree)
 process.MessageLogger.cerr.FwkReport.reportEvery = 50000

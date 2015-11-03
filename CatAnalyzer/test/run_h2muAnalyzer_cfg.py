@@ -7,10 +7,16 @@ process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
 process.options.allowUnscheduled = cms.untracked.bool(True)
 
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring('file:/xrootd/store/group/CAT/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-4_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/151025_143012/0000/catTuple_85.root')
+    fileNames = cms.untracked.vstring('root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-4_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/151025_143012/0000/catTuple_85.root')
     #fileNames = cms.untracked.vstring('root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/DoubleMuon/v7-4-4_Run2015C_25ns-05Oct2015-v1/151023_165157/0000/catTuple_10.root')
 
 )
+process.load("CATTools.CatProducer.pileupWeight_cff")
+from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
+process.pileupWeight.weightingMethod = "RedoWeight"
+process.pileupWeight.pileupRD = pileupWeightMap["Run2015_25nsV1"]
+process.pileupWeight.pileupUp = pileupWeightMap["Run2015Up_25nsV1"]
+process.pileupWeight.pileupDn = pileupWeightMap["Run2015Dn_25nsV1"]
 
 process.filterRECO = cms.EDFilter("CATTriggerBitCombiner",
     triggerResults = cms.InputTag("TriggerResults::PAT"),
@@ -26,8 +32,8 @@ process.filterRECO = cms.EDFilter("CATTriggerBitCombiner",
     ),
     doFilter = cms.bool(False),
 )
-       
-process.h2mu = cms.EDAnalyzer("h2muAnalyzer",
+
+process.cattree = cms.EDAnalyzer("h2muAnalyzer",
     recoFilters = cms.InputTag("filterRECO"),
     nGoodVertex = cms.InputTag("catVertex","nGoodPV"),
     puweight = cms.InputTag("pileupWeight"),
@@ -43,8 +49,8 @@ process.h2mu = cms.EDAnalyzer("h2muAnalyzer",
 )
 
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string("h2mu.root")
+    fileName = cms.string("cattree.root")
 )
 
-process.p = cms.Path(process.h2mu)
+process.p = cms.Path(process.cattree)
 process.MessageLogger.cerr.FwkReport.reportEvery = 50000
