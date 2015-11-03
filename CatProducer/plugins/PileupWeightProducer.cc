@@ -49,10 +49,8 @@ PileupWeightProducer::PileupWeightProducer(const edm::ParameterSet& pset)
   if      ( methodName == "Standard" ) weightingMethod_ = WeightingMethod::Standard;
   else if ( methodName == "OnTheFly" ) weightingMethod_ = WeightingMethod::OnTheFly;
   else if ( methodName == "NVertex"  ) weightingMethod_ = WeightingMethod::NVertex;
-  else {
-    cerr << "Cannot find weighting method \"" << methodName << "\", should be Standard, OnTheFly or NVertex\n";
-    assert(false); // should be changed to raise exception
-  }
+  else throw cms::Exception("ConfigError") << "Cannot find weighting method \""
+                                           << methodName << "\", should be Standard, OnTheFly or NVertex\n";
 
   if ( weightingMethod_ == WeightingMethod::NVertex )
   {
