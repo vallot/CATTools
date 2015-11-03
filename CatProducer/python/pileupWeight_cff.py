@@ -12,7 +12,7 @@ pileupWeight = cms.EDProducer("PileupWeightProducer",
     #pileupInfo = cms.InputTag("addPileupInfo"), # For the AOD and MiniAODv1
     pileupInfo = cms.InputTag("slimmedAddPileupInfo"),
     vertex = cms.InputTag("offlineSlimmedPrimaryVertices"),
-    nTrueIntr = cms.InputTag("pileupWeight", "nTrueIntr", "CAT"),
+    nTrueIntr = cms.InputTag("pileupWeight", "nTrueInteraction", "CAT"),
 )
 
 pileupWeightMap = {
