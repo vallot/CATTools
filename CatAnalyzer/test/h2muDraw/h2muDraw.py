@@ -2,7 +2,7 @@ import ROOT, CATTools.CatAnalyzer.CMS_lumi, json, os,copy
 from CATTools.CatAnalyzer.histoHelper import *
 ROOT.gROOT.SetBatch(True)
 
-datalumi = 1300
+datalumi = 1280.23
 
 mcfilelist = ['TT_powheg','DYJets']
 rdfilelist = ['SingleMuon_Run2015']
@@ -16,7 +16,7 @@ plotvar = 'nvertex'
 cut = '(step >1)'
 x_name = 'mass [GeV]'
 y_name = 'events'
-CMS_lumi.lumi_sqrtS = "13 TeV, 1.3fb"
+CMS_lumi.lumi_sqrtS = "%.0f pb^{-1}, #sqrt{s} = 13 TeV 25ns "%(datalumi)
 
 for i, mcname in enumerate(mcfilelist):
     rootfilename = rootfileDir + mcname +".root"
@@ -40,4 +40,4 @@ tree = tt.h2mu.Get("tree")
 rdhist = getTH1('data', binning, tree, plotvar, cut)
 rdhist.SetLineColor(1)
 
-drawTH1withRatio(plotvar, CMS_lumi, mchistList, rdhist, x_name, y_name)
+drawTH1(plotvar+".png", CMS_lumi, mchistList, rdhist, x_name, y_name)
