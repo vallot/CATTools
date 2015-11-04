@@ -4,8 +4,8 @@ import sys, os
 
 if len(sys.argv) < 2:
     print sys.argv[0], "PROD_VERSION"
-    print "Default PROD_VERISON = v7-4-3"
-    sys.argv.append('v7-4-3')
+    print "Default PROD_VERISON = v7-4-4"
+    sys.argv.append('v7-4-4')
 
 gidMap = {
     'v7-3-4':'857222646',
@@ -32,10 +32,11 @@ titleIdx = csv[0].index("Title")
 xsecIdx = csv[0].index("Cross section (pb)")
 nevtIdx = csv[0].index("NEvent")
 lumiIdx = csv[0].index("luminosity (pb-1)")
+colourIdx = csv[0].index("colour")
 pathIdx = csv[0].index("Path")
 for l in csv[1:]:
     if len(l) == 0 or len(l[0]) == 0: continue
-    xsec, nevt, lumi = l[xsecIdx], l[nevtIdx], l[lumiIdx]
+    xsec, nevt, lumi, colour = l[xsecIdx], l[nevtIdx], l[lumiIdx], l[colourIdx]
     if xsec == "": xsec = "0"
     if nevt == "": nevt = "0"
     if lumi == "": lumi = "0"
@@ -44,6 +45,7 @@ for l in csv[1:]:
                'xsec':float(xsec),
                'nevt':int(nevt),
                'lumi':float(lumi),
+               'colour':int(colour),               
                'path':l[pathIdx]})
 
 for d in ds:

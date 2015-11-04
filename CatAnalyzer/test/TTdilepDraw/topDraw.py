@@ -74,7 +74,6 @@ for i, mcname in enumerate(mcfilelist):
             scale = datalumi*data["xsec"]
             if mcname == 'DYJets':
                 scale = scale*dyratio[channel][step]
-                print dyratio[channel][step]
     mchist = makeTH1(rfname, tname, mcname, binning, plotvar, mccut,scale)    
     
     mchist.SetFillColor(i+2)
