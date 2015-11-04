@@ -2,7 +2,7 @@
 # sed -i 's/^\/store/root:\/\/cms-xrdr.sdfarm.kr:1094\/\/xrd\/store/g' *
 
 analysis = 'h2muAnalyzer'
-#analysis = 'TtbarDiLeptonAnalyzer'
+analysis = 'TtbarDiLeptonAnalyzer'
 
 pythonCfg = 'run_'+analysis+'_cfg.py'
 
@@ -17,7 +17,11 @@ with open(dataset_json) as data_file:
         datasetName = i['name']
         if "Enriched" in datasetName:
             continue
-        
+        if "ttH" in datasetName:
+            continue       
+        if "ttZ" in datasetName:
+            continue
+
         fileList = datadir + 'dataset_' + datasetName + '.txt'
         jobName = analysis+'_'+datasetName
         createbatch = "create-batch --cfg %s --jobName %s --fileList %s --maxFiles 10"%(pythonCfg, jobName, fileList)
