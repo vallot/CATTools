@@ -1,17 +1,26 @@
-import ROOT, copy, CMS_lumi, tdrstyle
+import math, ROOT, copy, CMS_lumi, tdrstyle
 import PhysicsTools.PythonAnalysis.rootplot.core as rootplotcore
 tdrstyle.setTDRStyle()
 
-def getTH1(name, binning, tr, br, cut):
+def getTH1(name, binning, tr, br, cut, lumiScale = 0.):
     hist = ROOT.TH1F(name, name, binning[0], binning[1], binning[2])
     tr.Project(name, br, cut)
     hist.Sumw2()
+    if lumiScale != 0 and tr.GetEntries():
+        hist.Scale(lumiScale/tr.GetEntries())
     return copy.deepcopy(hist)
 
+def makeTH1(filename, treename, name, binning, br, cut, lumiScale = 0.):
+    tfile = ROOT.TFile(filename)
+    tree = tfile.Get(treename)
+    return getTH1(name, binning, tree, br, cut, lumiScale)
+
+def getEntries(filename, treename):
+    tfile = ROOT.TFile(filename)
+    tree = tfile.Get(treename)
+    return tree.GetEntries()
+           
 def divide_canvas(canvas, ratio_fraction):
-    #### Divide the canvas into two pads; the bottom is ratio_fraction tall.
-    ## Both pads are set to the full canvas size to maintain font sizes
-    ## Fill style 4000 used to ensure pad transparency because of this
     margins = [ROOT.gStyle.GetPadTopMargin(), ROOT.gStyle.GetPadBottomMargin()]
     useable_height = 1 - (margins[0] + margins[1])
     canvas.Clear()
@@ -23,9 +32,6 @@ def divide_canvas(canvas, ratio_fraction):
     pad_ratio.SetFillStyle(4000)
     pad_ratio.Draw()
     pad_ratio.SetTopMargin(margins[0] + (1 - ratio_fraction) * useable_height)
-
-    pad.SetTicks(1,1)
-    pad_ratio.SetTicks(1,1)
     return pad, pad_ratio
 
 def makeCanvas(name, doRatio):
@@ -158,5 +164,14 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
     canv.Update()
     canv.SaveAs(name)
 
-    print "finished"
+def drellYanEstimation(mc_ee_in, mc_ee_out, mc_mm_in, mc_mm_out,
+                       rd_ee_in, rd_mm_in, rd_em_in):    
+    kMM = math.sqrt(rd_mm_in/rd_ee_in)/2.
+    kEE = math.sqrt(rd_ee_in/rd_mm_in)/2.
 
+    rMC_mm = mc_mm_out/mc_mm_in
+    rMC_ee = mc_ee_out/mc_ee_in
+    
+    nOutEst_mm = rMC_mm*(rd_mm_in - rd_em_in*kMM)
+    nOutEst_ee = rMC_ee*(rd_ee_in - rd_em_in*kEE)
+    return nOutEst_ee/mc_ee_out,nOutEst_mm/mc_mm_out
