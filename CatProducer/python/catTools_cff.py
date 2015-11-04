@@ -75,11 +75,14 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         ## process.packedPFCandidatesWoMuon  = cms.EDFilter("CandPtrSelector", src = cms.InputTag("packedPFCandidates"), cut = cms.string("fromPV>=2 && abs(pdgId)!=13 " ) )
         ## process.particleFlowNoMuonPUPPI.candName         = 'packedPFCandidatesWoMuon'
         ## process.particleFlowNoMuonPUPPI.vertexName       = 'offlineSlimmedPrimaryVertices'
+        
         #######################################################################
         # MET corrections from https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
         from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
         runMetCorAndUncFromMiniAOD( process, isData= not runOnMC, jecUncFile=jecUncertaintyFile)
         process.catMETs.src = cms.InputTag("slimmedMETs","","CAT")
+        del process.slimmedMETs.caloMET
+        process.catMETsNoHF = process.catMETs.clone(src = cms.InputTag("slimmedMETsNoHF"))
         #######################################################################
         ## applying new jec on the fly
         process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
@@ -151,4 +154,5 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
     process.patMETsPfMva = process.patMETs.clone(addGenMET = cms.bool(False), metSource  = cms.InputTag("pfMVAMEt"))
     process.catMETsPfMva = process.catMETs.clone(src = cms.InputTag("patMETsPfMva"))
     process.catMETsPfMva.setUnclusteredEn = cms.bool(False)
+    process.catMETsPfMva.setJetMETSyst = cms.bool(False)
     
