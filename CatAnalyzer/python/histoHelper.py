@@ -2,18 +2,22 @@ import math, ROOT, copy, CMS_lumi, tdrstyle
 import PhysicsTools.PythonAnalysis.rootplot.core as rootplotcore
 tdrstyle.setTDRStyle()
 
-def getTH1(name, binning, tr, br, cut, lumiScale = 0.):
-    hist = ROOT.TH1F(name, name, binning[0], binning[1], binning[2])
-    tr.Project(name, br, cut)
-    hist.Sumw2()
-    if lumiScale != 0 and tr.GetEntries():
-        hist.Scale(lumiScale/tr.GetEntries())
+def getTH1(title, binning, tree, plotvar, cut, lumiScale = 0.):
+    if len(binning) == 3:
+        hist = ROOT.TH1F("name", title, binning[0], binning[1], binning[2])
+    else:
+        hist = ROOT.TH1F("name", title, len(binning)-1, binning)
+    tree.Project("name", plotvar, cut)
+    if hist.GetSumw2N() == 0:
+        hist.Sumw2()
+    if lumiScale != 0 and tree.GetEntries():
+        hist.Scale(lumiScale/tree.GetEntries())
     return copy.deepcopy(hist)
 
-def makeTH1(filename, treename, name, binning, br, cut, lumiScale = 0.):
+def makeTH1(filename, treename, title, binning, plotvar, cut, lumiScale = 0.):
     tfile = ROOT.TFile(filename)
     tree = tfile.Get(treename)
-    return getTH1(name, binning, tree, br, cut, lumiScale)
+    return getTH1(title, binning, tree, plotvar, cut, lumiScale)
 
 def getEntries(filename, treename):
     tfile = ROOT.TFile(filename)
@@ -103,20 +107,25 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
     hs = ROOT.THStack("hs_%s_mc"%(name), "hs_%s_mc"%(name))
     hratio = mclist[0].Clone("hratio")
     hratio.Reset()
-         
+    leghist = []
     for mc in mclist:
         hnew = mc.Clone("hnew"+mc.GetName())
         hnew.Sumw2(False)
         hs.Add(hnew)
         hratio.Add(mc)
-        leg.AddEntry(mc, mc.GetName(), "f")
+        if not any(mc.GetTitle() == s for s in leghist):
+            leg.AddEntry(mc, mc.GetTitle(), "f")
+            leghist.append(mc.GetTitle())
+                        
     hratio.Divide(hratio,data,1.,1.,"B")
 
     tdrstyle.setTDRStyle()
 
     setDefTH1Style(data, x_name, y_name)
     data.SetMaximum(data.GetMaximum()*1.2)
-    
+    if doLog:
+        data.SetMaximum(data.GetMaximum()*10)
+        
     ratio_fraction = 0
     if doRatio:
         ratio_fraction = 0.3        
@@ -175,3 +184,9 @@ def drellYanEstimation(mc_ee_in, mc_ee_out, mc_mm_in, mc_mm_out,
     nOutEst_mm = rMC_mm*(rd_mm_in - rd_em_in*kMM)
     nOutEst_ee = rMC_ee*(rd_ee_in - rd_em_in*kEE)
     return nOutEst_ee/mc_ee_out,nOutEst_mm/mc_mm_out
+
+def findDataSet(name, datasets):
+    for data in datasets:
+        if data["name"] == name:
+            return data
+    return None
