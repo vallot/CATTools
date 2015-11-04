@@ -117,7 +117,7 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
             leg.AddEntry(mc, mc.GetTitle(), "f")
             leghist.append(mc.GetTitle())
                         
-    hratio.Divide(hratio,data,1.,1.,"B")
+    hratio.Divide(data,hratio,1.,1.,"B")
 
     tdrstyle.setTDRStyle()
 

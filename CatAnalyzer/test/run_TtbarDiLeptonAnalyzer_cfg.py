@@ -84,8 +84,8 @@ process.cattree = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
 
     pseudoTop = cms.InputTag("pseudoTop"),
     
-    #solver = process.ttbarDileptonKinAlgoPSetCMSKin,
-    solver = process.ttbarDileptonKinAlgoPSetDESYSmeared,
+    solver = process.ttbarDileptonKinAlgoPSetCMSKin,
+    #solver = process.ttbarDileptonKinAlgoPSetDESYSmeared,
     #solver = process.ttbarDileptonKinAlgoPSetDESYMassLoop,
 )
 #process.cattree.solver.tMassStep = 1
