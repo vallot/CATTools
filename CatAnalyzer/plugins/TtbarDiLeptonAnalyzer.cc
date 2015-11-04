@@ -227,8 +227,10 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
   b_nvertex = 0;b_step = -1;b_channel = 0;b_njet = 0;b_nbjet = 0;
   b_step1 = 0;b_step2 = 0;b_step3 = 0;b_step4 = 0;b_step5 = 0;b_tri = 0;b_filtered = 0;
-  b_met = -9;b_puweight = -9;
-
+  b_met = -9;
+  b_puweight = -9;
+  if (!runOnMC_) b_puweight = 1;
+  
   b_lep1_pt = -9;b_lep1_eta = -9;b_lep1_phi = -9;
   b_lep2_pt = -9;b_lep2_eta = -9;b_lep2_phi = -9;
   b_ll_pt = -9;b_ll_eta = -9;b_ll_phi = -9;b_ll_m = -9;
