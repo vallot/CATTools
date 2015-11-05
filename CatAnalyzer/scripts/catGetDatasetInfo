@@ -19,6 +19,13 @@ gid = gidMap[sys.argv[1]]
 from CATTools.CatAnalyzer.libxrd import *
 cmd, xrdbase = guessxrd()
 
+## A hack to add prefix for the sites
+prefix = ""
+hostname = os.environ["HOSTNAME"]
+if "sdfarm" in hostname:
+    prefix = "root://cms-xrdr.sdfarm.kr/"
+##
+
 from urllib import urlopen
 import csv
 gdocbase = "https://docs.google.com/spreadsheets/d/1rWM3AlFKO8IJVaeoQkWZYWwSvicQ1QCXYSzH74QyZqE"
@@ -58,7 +65,7 @@ for d in ds:
         for ff in files:
             if not ff.endswith(".root"): continue
             ff = ff[len(pp)+1:]
-            d['files'].append(ff)
+            d['files'].append(prefix+ff)
     d['files'].sort()
 
 outDir = os.environ["CMSSW_BASE"]+"/src/CATTools/CatAnalyzer/data"
