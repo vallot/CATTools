@@ -10,10 +10,10 @@ rootfileDir = "/cms/scratch/jlee/v7-4-4/h2muAnalyzer_"
 datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json" % os.environ['CMSSW_BASE']))
 
 mchistList = []
-cut = '(step>1)*puweight'
+cut = '(step>1&&isTight==1)*puweight'
 y_name = 'events'
 dolog = False
-plot = 1
+plot = 2
 if plot == 1:
     plotvar = 'll_m'
     x_name = 'mass [GeV]'
@@ -43,5 +43,8 @@ for mcname in mcfilelist:
 
 rootfilename = rootfileDir + rdfilelist[0] +".root"
 rdhist = makeTH1(rootfilename, tname, 'data', binning, plotvar, cut)
+if plot == 1:# blind data around higgs mass
+    for i in range(11):
+        rdhist.SetBinContent(120+i,-1)
 
 drawTH1(plotvar+cut+".png", CMS_lumi, mchistList, rdhist, x_name, y_name,dolog)

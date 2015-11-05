@@ -204,9 +204,9 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   
   edm::Handle<reco::GenParticleCollection> genParticles;
 
-  cat::MuonCollection&& selectedMuons = selectMuons( *muons.product() );
+  cat::MuonCollection selectedMuons = selectMuons( *muons );
   sort(selectedMuons.begin(), selectedMuons.end(), GtByCandPt());
-
+  
   if (runOnMC_){
     iEvent.getByToken(mcLabel_,genParticles);
     bool bosonSample = false;
@@ -252,6 +252,8 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
     ttree_->Fill();
     return;
   }
+  //b_muEtaBin = muEtaBin(selectedMuons);
+			
   b_step = 1;
   b_step1 = true;
   
@@ -289,13 +291,15 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
   AnalysisHelper trigHelper = AnalysisHelper(triggerNames, triggerBits, triggerObjects);
 
-  if (trigHelper.triggerFired("HLT_IsoLep24_eta2p1_v")){
+  if (trigHelper.triggerFired("HLT_IsoMu20_v") || trigHelper.triggerFired("HLT_IsoTrkMu20_v")){
     b_step = 3;
     b_step3 = true;
   }
 
-  if ( trigHelper.triggerMatched("HLT_IsoLep24_eta2p1_v", selectedMuons[0] )
-       || trigHelper.triggerMatched("HLT_IsoLep24_eta2p1_v", selectedMuons[1] )){
+  if ( trigHelper.triggerMatched("HLT_IsoMu20_v", selectedMuons[0]) ||
+       trigHelper.triggerMatched("HLT_IsoMu20_v", selectedMuons[1]) ||
+       trigHelper.triggerMatched("HLT_IsoTrkMu20_v", selectedMuons[0]) ||
+       trigHelper.triggerMatched("HLT_IsoTrkMu20_v", selectedMuons[1])){
     b_tri = true;
     b_step = 4;
     b_step4 = true;
@@ -411,6 +415,16 @@ int h2muAnalyzer::JetCat_GC(float lep1_eta, float lep2_eta) const
   }
   return GC;
 }
-
+// int h2muAnalyzer::muEtaBin(float lep1_eta, float lep2_eta) const
+// {
+//   const float eta_mu[2] = {std::abs(lep1_eta),std::abs(lep2_eta)};
+//   int GC=0;
+//   for(int i=0; i<2; i++){
+//     if      (eta_mu[i] < 0.8) GC += 1;
+//     else if (eta_mu[i] < 1.5) GC += 10;
+//     else if (eta_mu[i] < 2.4) GC += 100;
+//   }
+//   return GC;
+// }
 //define this as a plug-in
 DEFINE_FWK_MODULE(h2muAnalyzer);
