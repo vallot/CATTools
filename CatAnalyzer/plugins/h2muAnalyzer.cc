@@ -168,8 +168,8 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 
   b_isLoose = 0; b_isMedium = 0; b_isTight = 0;
 
-  b_cat_jet = 0;
-  b_cat_eta = 0;
+  b_cat_jet = -1;
+  b_cat_eta = -1;
 
   b_gen_lep1_pt = 0;b_gen_lep1_eta = 0;b_gen_lep1_phi = 0;b_gen_lep1_ptRes = 0;
   b_gen_lep1_isLoose = 0;b_gen_lep1_isMedium = 0;b_gen_lep1_isTight = 0;
@@ -274,6 +274,7 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   cat::JetCollection&& selectedJets = selectJets( *jets.product(), recomu );
 
   b_njet = selectedJets.size();
+  b_cat_eta = etaCategory(b_lep1_eta, b_lep2_eta);
 
   int ll_charge = selectedMuons[0].charge()*selectedMuons[1].charge();
 
@@ -307,7 +308,6 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 
   // -----------------------------  Jet Category  -----------------------------------
   b_cat_jet = jetCategory(selectedJets, b_met, b_ll_pt);
-  b_cat_eta = etaCategory(b_lep1_eta, b_lep2_eta);
 
   ttree_->Fill();
 }
@@ -413,7 +413,14 @@ int h2muAnalyzer::etaCategory(float lep1_eta, float lep2_eta) const
     else if (eta_mu[i] < 1.5) GC += 10;
     else if (eta_mu[i] < 2.4) GC += 100;
   }
-  return GC;
+  if (GC == 2)   return 1; // BB
+  if (GC == 11)  return 2; // BO
+  if (GC == 101) return 3; // BE
+  if (GC == 20)  return 4; // OO
+  if (GC == 110) return 5; // OE
+  if (GC == 200) return 6; // EE
+  
+  return 0;
 }
 //define this as a plug-in
 DEFINE_FWK_MODULE(h2muAnalyzer);
