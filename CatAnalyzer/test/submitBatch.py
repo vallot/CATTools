@@ -21,6 +21,8 @@ with open(dataset_json) as data_file:
             continue       
         if "ttZ" in datasetName:
             continue
+        if "ttW" in datasetName:
+            continue
 
         fileList = datadir + 'dataset_' + datasetName + '.txt'
         jobName = analysis+'_'+datasetName

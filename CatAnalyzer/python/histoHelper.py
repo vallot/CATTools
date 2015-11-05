@@ -154,6 +154,7 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
         pads[1].cd()
         pads[1].SetGridy()
         setMargins(pads[1],doRatio)
+        hratio.SetLineColor(1)
         hratio.Draw("e")
         hratio.SetMaximum(1.+ratioRange)
         hratio.SetMinimum(1.-ratioRange)
