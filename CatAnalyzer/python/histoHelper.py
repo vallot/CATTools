@@ -1,4 +1,4 @@
-import math, ROOT, copy, CMS_lumi, tdrstyle
+import math, array, ROOT, copy, CMS_lumi, tdrstyle
 import PhysicsTools.PythonAnalysis.rootplot.core as rootplotcore
 tdrstyle.setTDRStyle()
 
@@ -6,7 +6,7 @@ def getTH1(title, binning, tree, plotvar, cut, lumiScale = 0.):
     if len(binning) == 3:
         hist = ROOT.TH1F("name", title, binning[0], binning[1], binning[2])
     else:
-        hist = ROOT.TH1F("name", title, len(binning)-1, binning)
+        hist = ROOT.TH1F("name", title, len(binning)-1, array.array('f', binning))
     tree.Project("name", plotvar, cut)
     if hist.GetSumw2N() == 0:
         hist.Sumw2()
@@ -154,6 +154,7 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
         pads[1].cd()
         pads[1].SetGridy()
         setMargins(pads[1],doRatio)
+        hratio.SetLineColor(1)
         hratio.Draw("e")
         hratio.SetMaximum(1.+ratioRange)
         hratio.SetMinimum(1.-ratioRange)

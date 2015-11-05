@@ -2,7 +2,7 @@
 # sed -i 's/^\/store/root:\/\/cms-xrdr.sdfarm.kr:1094\/\/xrd\/store/g' *
 
 analysis = 'h2muAnalyzer'
-analysis = 'TtbarDiLeptonAnalyzer'
+#analysis = 'TtbarDiLeptonAnalyzer'
 
 pythonCfg = 'run_'+analysis+'_cfg.py'
 
@@ -20,6 +20,8 @@ with open(dataset_json) as data_file:
         if "ttH" in datasetName:
             continue       
         if "ttZ" in datasetName:
+            continue
+        if "ttW" in datasetName:
             continue
 
         fileList = datadir + 'dataset_' + datasetName + '.txt'

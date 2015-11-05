@@ -39,8 +39,8 @@ private:
   cat::JetCollection selectJets(const cat::JetCollection& jets, const vector<TLorentzVector>& recolep) const;
   cat::JetCollection selectBJets(const cat::JetCollection& jets) const;
   int preSelect(const cat::JetCollection& seljets, float MET) const;
-  int JetCategory(const cat::JetCollection& seljets, float MET, float ll_pt) const;
-  int JetCat_GC(float lep1_eta, float lep2_eta) const;
+  int jetCategory(const cat::JetCollection& seljets, float MET, float ll_pt) const;
+  int etaCategory(float lep1_eta, float lep2_eta) const;
 
   edm::EDGetTokenT<int> recoFiltersToken_, nGoodVertexToken_;
   edm::EDGetTokenT<float> puweightToken_;
@@ -62,8 +62,8 @@ private:
   float b_lep2_pt, b_lep2_eta, b_lep2_phi;
   float b_ll_pt, b_ll_eta, b_ll_phi, b_ll_m;
 
-  int b_jetcat_f_hier;
-  int b_jetcat_GC;
+  int b_cat_jet;
+  int b_cat_eta;
   bool b_isLoose, b_isMedium, b_isTight;
 
   float b_gen_lep1_pt, b_gen_lep1_eta, b_gen_lep1_phi, b_gen_lep1_ptRes;
@@ -124,10 +124,10 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
   
   //final hierachy
   //(e.g. In case of 0,1jet, Tight and Loose.Otherwise 2jet include VBF Tight, ggF Tight, Loose)
-  ttree_->Branch("jetcat_f_hier", &b_jetcat_f_hier, "jetcat_f_hier/I");
+  ttree_->Branch("cat_jet", &b_cat_jet, "cat_jet/I");
   //Geometrical Categorization
   //only included 0jet and 1jet
-  ttree_->Branch("jetcat_GC", &b_jetcat_GC, "jetcat_GC/I");
+  ttree_->Branch("cat_eta", &b_cat_eta, "cat_eta/I");
 
   ttree_->Branch("gen_lep1_pt", &b_gen_lep1_pt, "gen_lep1_pt/F");
   ttree_->Branch("gen_lep1_eta", &b_gen_lep1_eta, "gen_lep1_eta/F");
@@ -168,8 +168,8 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 
   b_isLoose = 0; b_isMedium = 0; b_isTight = 0;
 
-  b_jetcat_f_hier = 0;
-  b_jetcat_GC = 0;
+  b_cat_jet = -1;
+  b_cat_eta = -1;
 
   b_gen_lep1_pt = 0;b_gen_lep1_eta = 0;b_gen_lep1_phi = 0;b_gen_lep1_ptRes = 0;
   b_gen_lep1_isLoose = 0;b_gen_lep1_isMedium = 0;b_gen_lep1_isTight = 0;
@@ -204,9 +204,9 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   
   edm::Handle<reco::GenParticleCollection> genParticles;
 
-  cat::MuonCollection&& selectedMuons = selectMuons( *muons.product() );
+  cat::MuonCollection selectedMuons = selectMuons( *muons );
   sort(selectedMuons.begin(), selectedMuons.end(), GtByCandPt());
-
+  
   if (runOnMC_){
     iEvent.getByToken(mcLabel_,genParticles);
     bool bosonSample = false;
@@ -252,6 +252,8 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
     ttree_->Fill();
     return;
   }
+  //b_muEtaBin = muEtaBin(selectedMuons);
+			
   b_step = 1;
   b_step1 = true;
   
@@ -272,6 +274,7 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   cat::JetCollection&& selectedJets = selectJets( *jets.product(), recomu );
 
   b_njet = selectedJets.size();
+  b_cat_eta = etaCategory(b_lep1_eta, b_lep2_eta);
 
   int ll_charge = selectedMuons[0].charge()*selectedMuons[1].charge();
 
@@ -289,21 +292,22 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
   AnalysisHelper trigHelper = AnalysisHelper(triggerNames, triggerBits, triggerObjects);
 
-  if (trigHelper.triggerFired("HLT_IsoLep24_eta2p1_v")){
+  if (trigHelper.triggerFired("HLT_IsoMu20_v") || trigHelper.triggerFired("HLT_IsoTrkMu20_v")){
     b_step = 3;
     b_step3 = true;
   }
 
-  if ( trigHelper.triggerMatched("HLT_IsoLep24_eta2p1_v", selectedMuons[0] )
-       || trigHelper.triggerMatched("HLT_IsoLep24_eta2p1_v", selectedMuons[1] )){
+  if ( trigHelper.triggerMatched("HLT_IsoMu20_v", selectedMuons[0]) ||
+       trigHelper.triggerMatched("HLT_IsoMu20_v", selectedMuons[1]) ||
+       trigHelper.triggerMatched("HLT_IsoTrkMu20_v", selectedMuons[0]) ||
+       trigHelper.triggerMatched("HLT_IsoTrkMu20_v", selectedMuons[1])){
     b_tri = true;
     b_step = 4;
     b_step4 = true;
   }
 
   // -----------------------------  Jet Category  -----------------------------------
-  b_jetcat_f_hier = JetCategory(selectedJets, b_met, b_ll_pt);
-  b_jetcat_GC = JetCat_GC(b_lep1_eta, b_lep2_eta);
+  b_cat_jet = jetCategory(selectedJets, b_met, b_ll_pt);
 
   ttree_->Fill();
 }
@@ -374,7 +378,7 @@ int h2muAnalyzer::preSelect(const cat::JetCollection& seljets, float met) const
   return 0;
 }
 
-int h2muAnalyzer::JetCategory(const cat::JetCollection& seljets, float met, float ll_pt) const
+int h2muAnalyzer::jetCategory(const cat::JetCollection& seljets, float met, float ll_pt) const
 {
   int presel = preSelect(seljets, met);
   if (presel==1){
@@ -400,7 +404,7 @@ int h2muAnalyzer::JetCategory(const cat::JetCollection& seljets, float met, floa
   return 0;
 }
 
-int h2muAnalyzer::JetCat_GC(float lep1_eta, float lep2_eta) const
+int h2muAnalyzer::etaCategory(float lep1_eta, float lep2_eta) const
 {
   const float eta_mu[2] = {std::abs(lep1_eta),std::abs(lep2_eta)};
   int GC=0;
@@ -409,8 +413,14 @@ int h2muAnalyzer::JetCat_GC(float lep1_eta, float lep2_eta) const
     else if (eta_mu[i] < 1.5) GC += 10;
     else if (eta_mu[i] < 2.4) GC += 100;
   }
-  return GC;
+  if (GC == 2)   return 1; // BB
+  if (GC == 11)  return 2; // BO
+  if (GC == 101) return 3; // BE
+  if (GC == 20)  return 4; // OO
+  if (GC == 110) return 5; // OE
+  if (GC == 200) return 6; // EE
+  
+  return 0;
 }
-
 //define this as a plug-in
 DEFINE_FWK_MODULE(h2muAnalyzer);
