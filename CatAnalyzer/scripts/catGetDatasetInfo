@@ -65,7 +65,8 @@ for d in ds:
         for ff in files:
             if not ff.endswith(".root"): continue
             ff = ff[len(pp)+1:]
-            d['files'].append(prefix+ff)
+            d['files'].append(ff)
+    d['path'] = prefix + pp
     d['files'].sort()
 
 outDir = os.environ["CMSSW_BASE"]+"/src/CATTools/CatAnalyzer/data"
