@@ -1,4 +1,4 @@
-import math, ROOT, copy, CMS_lumi, tdrstyle
+import math, array, ROOT, copy, CMS_lumi, tdrstyle
 import PhysicsTools.PythonAnalysis.rootplot.core as rootplotcore
 tdrstyle.setTDRStyle()
 
@@ -6,7 +6,7 @@ def getTH1(title, binning, tree, plotvar, cut, lumiScale = 0.):
     if len(binning) == 3:
         hist = ROOT.TH1F("name", title, binning[0], binning[1], binning[2])
     else:
-        hist = ROOT.TH1F("name", title, len(binning)-1, binning)
+        hist = ROOT.TH1F("name", title, len(binning)-1, array.array('f', binning))
     tree.Project("name", plotvar, cut)
     if hist.GetSumw2N() == 0:
         hist.Sumw2()

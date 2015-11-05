@@ -13,11 +13,12 @@ mchistList = []
 cut = '(step>1&&isTight==1)*puweight'
 y_name = 'events'
 dolog = False
-plot = 2
+plot = 1
 if plot == 1:
     plotvar = 'll_m'
     x_name = 'mass [GeV]'
-    binning = [200, 0, 200]
+    #binning = [200, 0, 200]
+    binning = [ 0, 10,20,40,50]
     dolog = True
 if plot == 2:
     plotvar = 'nvertex'
