@@ -23,7 +23,7 @@ cmd, xrdbase = guessxrd()
 prefix = ""
 hostname = os.environ["HOSTNAME"]
 if "sdfarm" in hostname:
-    prefix = "root://cms-xrdr.sdfarm.kr/"
+    prefix = "root://cms-xrdr.sdfarm.kr:1094//"+xrdbase
 ##
 
 from urllib import urlopen
