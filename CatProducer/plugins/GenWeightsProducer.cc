@@ -110,10 +110,10 @@ void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
     if ( weightHeader == lheHandle->headers_end() ) break;
 
     // Read LHE using the XML parser
-    string contents = "<lhe>"; // Need root node
+    string contents = "<lhe>\n"; // Need root node
     contents.reserve(10000); // ~50 char per line, >100 weights
     for ( auto& line : weightHeader->lines() ) contents += line;
-    contents += "</lhe>"; // Close the root node
+    contents += "\n</lhe>\n"; // Close the root node
     TDOMParser xmlParser; xmlParser.SetValidate(false);
     xmlParser.ParseBuffer(contents.c_str(), contents.size());
     if ( !xmlParser.GetXMLDocument() ) break;
