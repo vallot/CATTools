@@ -14,14 +14,20 @@ mchistList = []
 #binning = [30, 0, 30]
 plotvar = 'll_m'
 binning = [50, 0, 200]
-channel = 2
+channel = 1
 step = 4
-cut = '(step>=%i && channel == %i && filtered == 1)*puweight'%(step,channel)
-print "TCut =",cut
 x_name = 'mass [GeV]'
 y_name = 'events'
 CMS_lumi.lumi_sqrtS = "%.0f pb^{-1}, #sqrt{s} = 13 TeV 25ns "%(datalumi)
 tname = "cattree/nom"
+
+
+if channel == 1: ttother_tcut = "!(parton_channel==2 && ((parton_mode1==1 && parton_mode2==2) || (parton_mode1==2 && parton_mode2==1)))"
+elif channel == 2: ttother_tcut = "!(parton_channel==2 && (parton_mode1==2 && parton_mode2==2))"
+elif channel == 3: ttother_tcut = "!(parton_channel==2 && (parton_mode1==1 && parton_mode2==1))"
+cut = '(step>=%i&&channel==%i&&filtered==1)*puweight'%(step,channel)
+ttother_tcut = '(step>=%i && channel == %i && filtered == 1 && %s)*puweight'%(step,channel,ttother_tcut)
+print "TCut =",cut
 
 #DY estimation
 dyratio = [[0 for x in range(6)] for x in range(4)]
@@ -29,16 +35,11 @@ dyratio[1][step] = 1.
 if channel !=1:
     scale = 1.
     dycut = ""
-    if step == 1:
-        dycut = "(step1==1)*"
-    if step == 2:
-        dycut = "(step1==1)*"
-    if step == 3:
-        dycut = "(step1==1)*(step3==1)*"
-    if step == 4:
-        dycut = "(step1==1)*(step3==1)*(step4==1)*"
-    if step == 5:
-        dycut = "(step1==1)*(step3==1)*(step4==1)*(step5==1)*"
+    if step == 1: dycut = "(step1==1)*"
+    if step == 2: dycut = "(step1==1)*"
+    if step == 3: dycut = "(step1==1)*(step3==1)*"
+    if step == 4: dycut = "(step1==1)*(step3==1)*(step4==1)*"
+    if step == 5: dycut = "(step1==1)*(step3==1)*(step4==1)*(step5==1)*"
 
     rfname = rootfileDir + 'DYJets' +".root"
     data = findDataSet('DYJets', datasets)
@@ -79,15 +80,19 @@ for i, mcname in enumerate(mcfilelist):
         scale = scale*dyratio[channel][step]
 
     rfname = rootfileDir + mcname +".root"
-    mchist = makeTH1(rfname, tname, title, binning, plotvar, cut, scale)  
-    mchist = makeTH1(rfname, tname, title, binning, plotvar, cut, scale)  
-    mchist.SetFillColor(colour)
+    mchist = makeTH1(rfname, tname, title, binning, plotvar, cut, scale)
     mchist.SetLineColor(colour)
+    mchist.SetFillColor(colour)
     mchistList.append(mchist)
-
+    if 'TT_powheg' == mcname:
+        ttothers = makeTH1(rfname, tname, title+' others', binning, plotvar, ttother_tcut, scale)
+        ttothers.SetLineColor(906)
+        ttothers.SetFillColor(906)
+        mchistList.append(ttothers)
+        mchist.Add(ttothers, -1)
 
 rfname = rootfileDir + rdfilelist[channel-1] +".root"
 rdhist = makeTH1(rfname, tname, 'data', binning, plotvar, cut)
 rdhist.SetLineColor(1)
 
-drawTH1(plotvar+".png", CMS_lumi, mchistList, rdhist, x_name, y_name, True)
+drawTH1(plotvar+cut+".png", CMS_lumi, mchistList, rdhist, x_name, y_name, True)

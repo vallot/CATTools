@@ -10,15 +10,15 @@ rootfileDir = "/cms/scratch/jlee/v7-4-4/h2muAnalyzer_"
 datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json" % os.environ['CMSSW_BASE']))
 
 mchistList = []
-cut = '(step>1&&isTight==1)*puweight'
+cut = '(step>3&&isTight==1)*puweight'
 y_name = 'events'
 dolog = False
 plot = 1
 if plot == 1:
     plotvar = 'll_m'
     x_name = 'mass [GeV]'
-    #binning = [200, 0, 200]
-    binning = [ 0, 10,20,40,50]
+    binning = [200, 0, 200]
+    #binning = [ 0, 10,20,40,50]
     dolog = True
 if plot == 2:
     plotvar = 'nvertex'
