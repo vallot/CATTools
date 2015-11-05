@@ -19,6 +19,8 @@ gid = gidMap[sys.argv[1]]
 from CATTools.CatAnalyzer.libxrd import *
 cmd, xrdbase = guessxrd()
 
+from ROOT import *
+
 ## A hack to add prefix for the sites
 prefix = ""
 hostname = os.environ["HOSTNAME"]
@@ -52,7 +54,7 @@ for l in csv[1:]:
                'xsec':float(xsec),
                'nevt':int(nevt),
                'lumi':float(lumi),
-               'colour':int(colour),               
+               'colour':eval(colour),
                'path':l[pathIdx]})
 
 for d in ds:
