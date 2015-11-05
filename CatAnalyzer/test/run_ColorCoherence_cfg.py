@@ -3,6 +3,8 @@ process = cms.Process("ColorCoherenceAnalyzer")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
+process.options.allowUnscheduled = cms.untracked.bool(True)
 
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring()
@@ -19,7 +21,9 @@ process.pileupWeight.pileupDn = pileupWeightMap["Run2015Dn_25nsV1"]
 print process.source.fileNames
 process.cc = cms.EDAnalyzer("ColorCoherenceAnalyzer",
     vtx = cms.InputTag("catVertex", "nGoodPV"),
-    puweight = cms.InputTag("pileupWeight"),    
+    pileupWeight = cms.InputTag("pileupWeight"),    
+    pileupWeight_up = cms.InputTag("pileupWeight","up"),    
+    pileupWeight_dn = cms.InputTag("pileupWeight","dn"),    
     jets = cms.InputTag("catJets"),
     mets = cms.InputTag("catMETs"),
     triggerBits = cms.InputTag("TriggerResults","","HLT"),
