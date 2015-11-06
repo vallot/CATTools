@@ -18,9 +18,7 @@ for i, f in enumerate(syst):
     histo = tt.Get("pileup")
     print '#%s'%command
     print '"%s%s":cms.vdouble('%(puname,f)
-    for b in range(histo.GetNbinsX()+1):
-        if b == 0:
-            continue      
+    for b in range(1, histo.GetNbinsX()+1):
         print ("%e,"%histo.GetBinContent(b)),
         if b%5 == 0:
             print
