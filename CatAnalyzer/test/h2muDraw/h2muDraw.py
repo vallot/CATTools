@@ -10,7 +10,7 @@ rootfileDir = "/cms/scratch/jlee/v7-4-4/h2muAnalyzer_"
 datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json" % os.environ['CMSSW_BASE']))
 
 mchistList = []
-cut = '(step>3&&isTight==1)*puweight'
+cut = '(step>3&&isTight==1&&filtered==1)*puweight'
 y_name = 'events'
 dolog = False
 plot = 1

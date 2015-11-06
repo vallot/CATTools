@@ -59,7 +59,7 @@ private:
 
   TTree * ttree_;
   int b_nvertex, b_step, b_channel, b_njet, b_nbjet;
-  bool b_step1, b_step2, b_step3, b_step4, b_step5, b_tri, b_filtered;
+  bool b_step1, b_step2, b_step3, b_step4, b_step5, b_step6, b_tri, b_filtered;
   float b_met, b_puweight;
 
   float b_lep1_pt, b_lep1_eta, b_lep1_phi;
@@ -144,6 +144,7 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("step3", &b_step3, "step3/O");
   ttree_->Branch("step4", &b_step4, "step4/O");
   ttree_->Branch("step5", &b_step5, "step5/O");
+  ttree_->Branch("step6", &b_step6, "step6/O");
   ttree_->Branch("tri", &b_tri, "tri/O");
   ttree_->Branch("filtered", &b_filtered, "filtered/O");
   ttree_->Branch("met", &b_met, "met/F");
@@ -226,7 +227,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   runOnMC_ = !iEvent.isRealData();
 
   b_nvertex = 0;b_step = -1;b_channel = 0;b_njet = 0;b_nbjet = 0;
-  b_step1 = 0;b_step2 = 0;b_step3 = 0;b_step4 = 0;b_step5 = 0;b_tri = 0;b_filtered = 0;
+  b_step1 = 0;b_step2 = 0;b_step3 = 0;b_step4 = 0;b_step5 = 0;b_step6 = 0;b_tri = 0;b_filtered = 0;
   b_met = -9;
   b_puweight = -9;
   if (!runOnMC_) b_puweight = 1;
@@ -520,6 +521,12 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_ttbar_rapi = ttbar.Rapidity();
 
   b_maxweight = maxweight;
+  if (maxweight){
+    b_step6 = true;
+    if (b_step == 5){
+      ++b_step;
+    }
+  }
   //  printf("maxweight %f, top1.M() %f, top2.M() %f \n",maxweight, top1.M(), top2.M() );
   // printf("%2d, %2d, %2d, %2d, %6.2f, %6.2f, %6.2f\n", b_njet, b_nbjet, b_step, b_channel, b_met, b_ll_mass, b_maxweight);
   ttree_->Fill();
