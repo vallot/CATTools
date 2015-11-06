@@ -285,6 +285,13 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   b_step = 2;
   b_step2 = true;
 
+  if (b_ll_m < 20){
+    ttree_->Fill();
+    return;
+  }
+  b_step = 3;
+  b_step3 = true;
+  
   edm::Handle<edm::TriggerResults> triggerBits;
   edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
   iEvent.getByToken(triggerBits_, triggerBits);
@@ -293,8 +300,8 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   AnalysisHelper trigHelper = AnalysisHelper(triggerNames, triggerBits, triggerObjects);
 
   if (trigHelper.triggerFired("HLT_IsoMu20_v") || trigHelper.triggerFired("HLT_IsoTrkMu20_v")){
-    b_step = 3;
-    b_step3 = true;
+    b_step = 4;
+    b_step4 = true;
   }
 
   if ( trigHelper.triggerMatched("HLT_IsoMu20_v", selectedMuons[0]) ||
@@ -302,8 +309,8 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
        trigHelper.triggerMatched("HLT_IsoTrkMu20_v", selectedMuons[0]) ||
        trigHelper.triggerMatched("HLT_IsoTrkMu20_v", selectedMuons[1])){
     b_tri = true;
-    b_step = 4;
-    b_step4 = true;
+    b_step = 5;
+    b_step5 = true;
   }
 
   // -----------------------------  Jet Category  -----------------------------------
@@ -382,11 +389,11 @@ int h2muAnalyzer::jetCategory(const cat::JetCollection& seljets, float met, floa
 {
   int presel = preSelect(seljets, met);
   if (presel==1){
-    if (b_ll_pt<=10){return 1;}
+    if (ll_pt<=10){return 1;}
     else{return 2;}
   }
   if (presel==2){
-    if (b_ll_pt<=10){return 3;}
+    if (ll_pt<=10){return 3;}
     else{return 4;}
   }
   if (presel==3){
