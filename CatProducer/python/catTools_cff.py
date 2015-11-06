@@ -17,10 +17,10 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
     useJECfile = True
     
     if runOnMC:
-        era = "Summer15_{}nsV5_MC".format(bunchCrossing)
+        era = "Summer15_{}nsV6_MC".format(bunchCrossing)
     else:
-        era = "Summer15_{}nsV5_DATA".format(bunchCrossing)
-    jecUncertaintyFile = "CATTools/CatProducer/data/Summer15_{}nsV5_DATA_UncertaintySources_AK4PFchs.txt".format(bunchCrossing)
+        era = "Summer15_{}nsV6_DATA".format(bunchCrossing)
+    jecUncertaintyFile = "CATTools/CatProducer/data/Summer15_{}nsV6_DATA_UncertaintySources_AK4PFchs.txt".format(bunchCrossing)
                                                     
     if useJECfile:
         from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
