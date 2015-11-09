@@ -71,7 +71,7 @@ lumiMask =""
 globalTag =""
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:],"hsi:n:l:g:b",["requestName","inputFile","lumiMask","globalTag","submitBlock"])
+    opts, args = getopt.getopt(sys.argv[1:],"hsi:n:l:g:b:",["requestName","inputFile","lumiMask","globalTag","submitBlock"])
 except getopt.GetoptError:          
     print 'Usage : ./submitCrab3.py -n <requestName> -i <inputFile> -l <lumiMask> -g <globalTag>'
     sys.exit(2)
