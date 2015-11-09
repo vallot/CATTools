@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 import os,json,sys,shutil,time,getopt
 
-def submitjob(requestName, dataset, globalTag, lumiMask, submitBlock):
-    if submitBlock == 1 and 'QCD' in dataset:
-        return
-    if submitBlock == 2 and 'QCD' not in dataset:
-        return
+def submitjob(requestName, dataset, globalTag, lumiMask, submit):
     print "creating job"
     print dataset
 
@@ -60,9 +56,9 @@ def submitjob(requestName, dataset, globalTag, lumiMask, submitBlock):
     #lines = open("crab.py")
     #print lines.read()
     os.remove("crab.py")
-    time.sleep(5)
+    #time.sleep(5)
     
-submitBlock = -1
+submitBlock = None
 requestName = ""
 datasets = []
 inputFile =None
@@ -103,7 +99,12 @@ if inputFile is None:
     os.system(catGetDatasetInfo)
     datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json"%os.environ['CMSSW_BASE']))
     for d in datasets:
-        submitjob(requestName, d['DataSetName'], d['GlobalTag'], d['LumiMask'], submitBlock)
+        dataset = d['DataSetName']
+        if submitBlock == '1' and 'QCD' in dataset:
+            continue
+        if submitBlock == '2' and 'QCD' not in dataset:
+            continue
+        submitjob(requestName, dataset, d['GlobalTag'], d['LumiMask'], submit)
 
 else:
     for dataset in datasets:
@@ -111,7 +112,7 @@ else:
             continue
         if dataset.startswith("#"):
             continue
-        submitjob(requestName, dataset, globalTag, lumiMask, submitBlock)
+        submitjob(requestName, dataset, globalTag, lumiMask, submit)
         
 
 if not submit:
