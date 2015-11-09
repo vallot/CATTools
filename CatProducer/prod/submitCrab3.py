@@ -52,11 +52,11 @@ def submitjob(requestName, dataset, globalTag, lumiMask, submit):
 
     print sendjob
     print "submiting job"
-    #os.system(sendjob)
+    os.system(sendjob)
     #lines = open("crab.py")
     #print lines.read()
     os.remove("crab.py")
-    #time.sleep(5)
+    time.sleep(5)
     
 submitBlock = None
 requestName = ""
