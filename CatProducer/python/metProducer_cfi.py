@@ -7,7 +7,7 @@ catMETs = cms.EDProducer("CATMETProducer",
 )
 catMETsPuppi = cms.EDProducer("CATMETProducer",
     src = cms.InputTag("slimmedMETsPuppi"),
-    setUnclusteredEn = cms.bool(False),
-    setJetMETSyst = cms.bool(False), # currently not working
+    setUnclusteredEn = cms.bool(True),
+    setJetMETSyst = cms.bool(True), # currently not working
 )
 #There is a CMS rule that we are supposed to use one module per cfi file.  

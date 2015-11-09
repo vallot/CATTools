@@ -15,36 +15,35 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         process.pileupWeight.pileupDn = pileupWeightMap["Run2015_50nsDn"]
 
     useJECfile = True
+    era = "Summer15_{}nsV6".format(bunchCrossing)
     
+    jecUncertaintyFile = "CATTools/CatProducer/data/%s_DATA_UncertaintySources_AK4PFchs.txt"%era
     if runOnMC:
-        era = "Summer15_{}nsV5_MC".format(bunchCrossing)
+        era = era+"_MC"
     else:
-        era = "Summer15_{}nsV5_DATA".format(bunchCrossing)
-    jecUncertaintyFile = "CATTools/CatProducer/data/Summer15_{}nsV5_DATA_UncertaintySources_AK4PFchs.txt".format(bunchCrossing)
-                                                    
+        era = era+"_DATA"
+    
     if useJECfile:
         from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
         process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
-            connect = cms.string('sqlite_fip:CATTools/CatProducer/data/'+era+'.db'),
+            connect = cms.string('sqlite_fip:CATTools/CatProducer/data/%s.db'%era),
             toGet = cms.VPSet(
                 cms.PSet(
                     record = cms.string("JetCorrectionsRecord"),
-                    tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PF"),
+                    tag = cms.string("JetCorrectorParametersCollection_%s_AK4PF"%era),
                     label= cms.untracked.string("AK4PF")),
                 cms.PSet(
                     record = cms.string("JetCorrectionsRecord"),
-                    tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PFchs"),
+                    tag = cms.string("JetCorrectorParametersCollection_%s_AK4PFchs"%era),
                     label= cms.untracked.string("AK4PFchs")),
                 cms.PSet(
                     record = cms.string("JetCorrectionsRecord"),
-                    tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PFPuppi"),
+                    tag = cms.string("JetCorrectorParametersCollection_%s_AK4PFPuppi"%era),
                     label= cms.untracked.string("AK4PFPuppi")),
             )
         )
         process.es_prefer_jec = cms.ESPrefer("PoolDBESSource","jec")
         print "JEC based on", process.jec.connect
-
-    process.catJetsPuppi.payloadName = cms.string("AK4PFchs") #temp for now
     
     if useMiniAOD: ## corrections when using miniAOD
         #######################################################################
@@ -77,13 +76,6 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         ## process.particleFlowNoMuonPUPPI.vertexName       = 'offlineSlimmedPrimaryVertices'
         
         #######################################################################
-        # MET corrections from https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
-        from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
-        runMetCorAndUncFromMiniAOD( process, isData= not runOnMC, jecUncFile=jecUncertaintyFile)
-        process.catMETs.src = cms.InputTag("slimmedMETs","","CAT")
-        del process.slimmedMETs.caloMET
-        process.catMETsNoHF = process.catMETs.clone(src = cms.InputTag("slimmedMETsNoHF"))
-        #######################################################################
         ## applying new jec on the fly
         process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
         process.patJetCorrFactors.primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices")
@@ -102,6 +94,21 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         
         process.catJetsPuppi.src = cms.InputTag("patJetsPuppiUpdated")
         process.catJetsPuppi.setGenParticle = cms.bool(False)
+        #######################################################################
+        # MET corrections from https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
+        from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
+        runMetCorAndUncFromMiniAOD( process, isData= not runOnMC, jecUncFile=jecUncertaintyFile, jetColl= process.catJets.src)
+        process.catMETs.src = cms.InputTag("slimmedMETs","","CAT")
+        del process.slimmedMETs.caloMET
+
+        ## redoing noHF met due to new correction
+        process.noHFCands = cms.EDFilter("CandPtrSelector",src=cms.InputTag("packedPFCandidates"),
+                                         cut=cms.string("abs(pdgId)!=1 && abs(pdgId)!=2 && abs(eta)<3.0"))
+        runMetCorAndUncFromMiniAOD(process,isData=not runOnMC,pfCandColl=cms.InputTag("noHFCands"),postfix="NoHF",
+                                   jecUncFile=jecUncertaintyFile, jetColl= process.catJets.src)
+
+        process.catMETsNoHF = process.catMETs.clone(src = cms.InputTag("slimmedMETsNoHF","","CAT"))
+        del process.slimmedMETsNoHF.caloMET
         #######################################################################
         ## for egamma pid https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2#Recipe_for_regular_users_for_74X
         from PhysicsTools.SelectorUtils.tools.vid_id_tools import DataFormat,switchOnVIDElectronIdProducer,setupAllVIDIdsInModule,setupVIDElectronSelection
