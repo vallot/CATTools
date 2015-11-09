@@ -4,15 +4,15 @@ import sys, os
 
 if len(sys.argv) < 2:
     print sys.argv[0], "PROD_VERSION"
-    print "Default PROD_VERISON = v7-4-4"
-    sys.argv.append('v7-4-4')
+    print "Default PROD_VERISON = v7-4-5"
+    sys.argv.append('v7-4-5')
 
 gidMap = {
     'v7-3-4':'857222646',
     'v7-4-1':'212761185',
     'v7-4-2':'398123591',
     'v7-4-3':'512197961',
-    'v7-4-4':'1038794205',
+    'v7-4-5':'1038794205',
     'v7-4-5':'519625370',
 }
 gid = gidMap[sys.argv[1]]
@@ -44,6 +44,9 @@ nevtIdx = csv[0].index("NEvent")
 lumiIdx = csv[0].index("luminosity (pb-1)")
 colourIdx = csv[0].index("colour")
 pathIdx = csv[0].index("Path")
+DataSetNameIdx = csv[0].index("DataSetName")
+GlobalTagIdx = csv[0].index("GlobalTag")
+LumiMaskIdx = csv[0].index("LumiMask")
 for l in csv[1:]:
     if len(l) == 0 or len(l[0]) == 0: continue
     xsec, nevt, lumi, colour = l[xsecIdx], l[nevtIdx], l[lumiIdx], l[colourIdx]
@@ -56,21 +59,11 @@ for l in csv[1:]:
                'nevt':int(nevt),
                'lumi':float(lumi),
                'colour':eval(colour),
-               'path':l[pathIdx]})
-
-for d in ds:
-    pp = d['path']
-    d['files'] = []
-    d['size'] = 0
-    for dd in listxrd(pp)[0]:
-        files, size = listxrd(dd)
-        d['size'] += size
-        for ff in files:
-            if not ff.endswith(".root"): continue
-            ff = ff[len(pp)+1:]
-            d['files'].append(ff)
-    d['path'] = prefix + pp
-    d['files'].sort()
+               'path':l[pathIdx],
+               'DataSetName':l[DataSetNameIdx],
+               'GlobalTag':l[GlobalTagIdx],
+               'LumiMask':l[LumiMaskIdx],
+               })
 
 outDir = os.environ["CMSSW_BASE"]+"/src/CATTools/CatAnalyzer/data"
 if not os.path.exists(outDir): os.makedirs(outDir)
@@ -80,6 +73,26 @@ f = open("%s/dataset.json" % outDir, "w")
 print "Saving dataset info to %s/dataset.json" % outDir
 print>>f, json.dumps(ds)
 f.close()
+
+# since all files are at kisti
+if not "sdfarm" in hostname:    
+    sys.exit()
+
+for d in ds:
+    pp = d['path']
+    d['files'] = []
+    d['size'] = 0
+    for dd in listxrd(pp)[0]:
+        print dd
+        files, size = listxrd(dd)
+        d['size'] += size
+        for ff in files:
+            if not ff.endswith(".root"): continue
+            ff = ff[len(pp)+1:]
+            d['files'].append(ff)
+    d['path'] = prefix + pp
+    d['files'].sort()
+
 for d in ds:
     print "Saving a dataset info to %s/dataset_%s.txt" % (outDir, d['name'])
     f = open("%s/dataset_%s.txt" % (outDir, d['name']), "w")

@@ -1,37 +1,12 @@
 #!/usr/bin/env python
-import os,sys,getopt,shutil
+import os,sys,getopt,shutil,json
 
-datasets = []
+datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json"%os.environ['CMSSW_BASE']))
 
-try:
-    opts, args = getopt.getopt(sys.argv[1:],"h:i:",["inputFile"])
-except getopt.GetoptError:          
-    print 'Usage : ./checkDataSets.py -i <inputFile>'
-    sys.exit(2)
-
-for opt, arg in opts:
-    if opt == '-h':
-        print 'Usage : ./checkDataSets.py -i <inputFile>'
-        sys.exit()
-    elif opt in ("-i", "--inputFile"):
-        inputFile = arg
-        if os.path.isfile(inputFile):
-            lines = open(inputFile)
-            datasets = lines.readlines()
-        else:
-            datasets.append(inputFile)
-            
-#print datasets
-for dataset in datasets:
-    if len(dataset) < 10:
-        continue
-    if dataset.startswith("#"):
-        continue
-    #print dataset
+for d in datasets:
+    dataset = d['DataSetName']
     out=os.popen("cli --query='%s' --limit=0"%(dataset)).read()
-    
-    #print out
-    if out != dataset:
+    if out.rstrip() != dataset:
         print "DATASET not found", dataset,"similar types are"
         splitDatasetName = dataset.strip().split("/")
         dataPhysics = splitDatasetName[1]
