@@ -83,7 +83,6 @@ for d in ds:
     d['files'] = []
     d['size'] = 0
     for dd in listxrd(pp)[0]:
-        print dd
         files, size = listxrd(dd)
         d['size'] += size
         for ff in files:
