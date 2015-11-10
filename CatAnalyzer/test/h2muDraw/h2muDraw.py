@@ -4,16 +4,17 @@ ROOT.gROOT.SetBatch(True)
 
 datalumi = 1280.23
 
-mcfilelist = ['GG_HToMuMu','VBF_HToMuMu','WW','WZ','ZZ','TT_powheg','DYJets','DYJets_10to50']
+mcfilelist = ['GG_HToMuMu','VBF_HToMuMu','WW','WZ','ZZ','TT_powheg','DYJets','DYJets_10to50','WJets']
 rdfilelist = ['SingleMuon_Run2015']
 rootfileDir = "/cms/scratch/jlee/v7-4-4/h2muAnalyzer_"
 datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json" % os.environ['CMSSW_BASE']))
 
 mchistList = []
-cut = '(step>3&&isTight==1&&filtered==1)*puweight'
+cut = '(cat_eta==1&&ll_m>50&&step>=5&&isTight==1&&filtered==1)*puweight'
+cut = '(ll_m>50&&step>=5&&isTight==1&&filtered==1)*puweight'
 y_name = 'events'
 dolog = False
-plot = 1
+plot = 4
 if plot == 1:
     plotvar = 'll_m'
     x_name = 'mass [GeV]'
@@ -24,6 +25,19 @@ if plot == 2:
     plotvar = 'nvertex'
     x_name = 'no. vertex'
     binning = [30, 0, 30]
+if plot == 3:
+    plotvar = 'lep1_pt'
+    x_name = 'leading muon p_{T} [GeV]'
+    binning = [100, 0, 100]
+if plot == 4:
+    plotvar = 'lep2_pt,lep1_pt'
+    x_name = 'sub-leading muon p_{T} [GeV]'
+    binning = [100, 0, 100]
+if plot == 5:
+    plotvar = 'll_pt'
+    x_name = 'di-muon p_{T} [GeV]'
+    binning = [100, 0, 100]
+
 
 CMS_lumi.lumi_sqrtS = "%.0f pb^{-1}, #sqrt{s} = 13 TeV 25ns "%(datalumi)
 tname = "cattree/nom"
