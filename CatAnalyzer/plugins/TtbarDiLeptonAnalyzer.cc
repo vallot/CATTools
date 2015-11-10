@@ -347,16 +347,6 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     }
   }
 
-  edm::Handle<reco::VertexCollection> vertices;
-  iEvent.getByToken(vtxToken_, vertices);
-  if (vertices->empty()){ return;} // skip the event if no PV found
-  cutflow_[1][b_channel]++;
-
-  // const reco::Vertex &PV = vertices->front();
-  edm::Handle<int> nGoodVertexHandle;
-  iEvent.getByToken(nGoodVertexToken_, nGoodVertexHandle);
-  b_nvertex = *nGoodVertexHandle;
-
   if (runOnMC_){
     edm::Handle<float> puweightHandle;
     iEvent.getByToken(puweightToken_, puweightHandle);
@@ -365,6 +355,20 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     iEvent.getByToken(genweightToken_, genweightHandle);
     b_weight = (*genweightHandle)*b_puweight;
   }
+  
+  edm::Handle<reco::VertexCollection> vertices;
+  iEvent.getByToken(vtxToken_, vertices);
+  if (vertices->empty()){ // skip the event if no PV found
+    ttree_->Fill();
+    return;
+  }
+  cutflow_[1][b_channel]++;
+
+  // const reco::Vertex &PV = vertices->front();
+  edm::Handle<int> nGoodVertexHandle;
+  iEvent.getByToken(nGoodVertexToken_, nGoodVertexHandle);
+  b_nvertex = *nGoodVertexHandle;
+
   edm::Handle<int> recoFiltersHandle;
   iEvent.getByToken(recoFiltersToken_, recoFiltersHandle);
   b_filtered = *recoFiltersHandle == 0 ? false : true;

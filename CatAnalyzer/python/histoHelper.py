@@ -2,28 +2,32 @@ import math, array, ROOT, copy, CMS_lumi, tdrstyle
 import PhysicsTools.PythonAnalysis.rootplot.core as rootplotcore
 tdrstyle.setTDRStyle()
 
-def getTH1(title, binning, tree, plotvar, cut, lumiScale = 0.):
+def getTH1(title, binning, tree, plotvar, cut, scale = 0.):
     if len(binning) == 3:
-        hist = ROOT.TH1F("name", title, binning[0], binning[1], binning[2])
+        hist = ROOT.TH1D("name", title, binning[0], binning[1], binning[2])
     else:
-        hist = ROOT.TH1F("name", title, len(binning)-1, array.array('f', binning))
+        hist = ROOT.TH1D("name", title, len(binning)-1, array.array('f', binning))
     tree.Project("name", plotvar, cut)
     if hist.GetSumw2N() == 0:
         hist.Sumw2()
-    if lumiScale != 0 and tree.GetEntries():
-        hist.Scale(lumiScale/tree.GetEntries())
+    if scale != 0:
+        hist.Scale(scale)
     return copy.deepcopy(hist)
 
-def makeTH1(filename, treename, title, binning, plotvar, cut, lumiScale = 0.):
+def makeTH1(filename, treename, title, binning, plotvar, cut, scale = 0.):
     tfile = ROOT.TFile(filename)
-    tree = tfile.Get(treename)
-    return getTH1(title, binning, tree, plotvar, cut, lumiScale)
+    tree  = tfile.Get(treename)
+    return getTH1(title, binning, tree, plotvar, cut, scale)
 
 def getEntries(filename, treename):
     tfile = ROOT.TFile(filename)
-    tree = tfile.Get(treename)
-    return tree.GetEntries()
-           
+    tree  = tfile.Get(treename)
+    return tree.GetEntriesFast()
+
+def getWeightedEntries(filename, treename, plotvar, weight):
+    weighthist = makeTH1(filename, treename, '', [1, 0, 1], plotvar,weight)    
+    return weighthist.Integral(-1,2)
+
 def divide_canvas(canvas, ratio_fraction):
     margins = [ROOT.gStyle.GetPadTopMargin(), ROOT.gStyle.GetPadBottomMargin()]
     useable_height = 1 - (margins[0] + margins[1])

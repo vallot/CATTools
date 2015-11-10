@@ -4,17 +4,17 @@ ROOT.gROOT.SetBatch(True)
 
 datalumi = 1280.23
 
-mcfilelist = ['GG_HToMuMu','VBF_HToMuMu','WW','WZ','ZZ','TT_powheg','DYJets','DYJets_10to50','WJets']
+mcfilelist = ['GG_HToMuMu','VBF_HToMuMu','WW','WZ','ZZ','TT_powheg','DYJets','DYJets_10to50']#,'WJets']
 rdfilelist = ['SingleMuon_Run2015']
 rootfileDir = "/cms/scratch/jlee/v7-4-4/h2muAnalyzer_"
 datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json" % os.environ['CMSSW_BASE']))
 
 mchistList = []
-cut = '(cat_eta==1&&ll_m>50&&step>=5&&isTight==1&&filtered==1)*puweight'
-cut = '(ll_m>50&&step>=5&&isTight==1&&filtered==1)*puweight'
+cut = '(cat_eta==1&&ll_m>50&&step>=5&&isTight==1&&filtered==1)*weight'
+cut = '(ll_m>50&&step>=5&&isTight==1&&filtered==1)*weight'
 y_name = 'events'
 dolog = False
-plot = 4
+plot = 3
 if plot == 1:
     plotvar = 'll_m'
     x_name = 'mass [GeV]'
@@ -50,14 +50,18 @@ for mcname in mcfilelist:
     if "HToMuMu" in mcname:
         scale = scale*30.
         title = title+" #times 30"
-    rootfilename = rootfileDir + mcname +".root"
-    mchist = makeTH1(rootfilename, tname, title, binning, plotvar, cut, scale)    
+    rfname = rootfileDir + mcname +".root"
+
+    wentries = getWeightedEntries(rfname, tname, "tri",'weight')
+    scale = scale/wentries
+    
+    mchist = makeTH1(rfname, tname, title, binning, plotvar, cut, scale)    
     mchist.SetFillColor(colour)
     mchist.SetLineColor(colour)
     mchistList.append(mchist)
 
-rootfilename = rootfileDir + rdfilelist[0] +".root"
-rdhist = makeTH1(rootfilename, tname, 'data', binning, plotvar, cut)
+rfname = rootfileDir + rdfilelist[0] +".root"
+rdhist = makeTH1(rfname, tname, 'data', binning, plotvar, cut)
 if plot == 1:# blind data around higgs mass
     for i in range(11):
         rdhist.SetBinContent(120+i,-1)
