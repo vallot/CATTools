@@ -181,7 +181,7 @@ void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& event
   //   enforceUnitGenWeight == false : genWeights are scaled by 1/originalWeight.
   //                                   do not scale weight if LHE is not available.
   double originalWeight = 1;
-  if ( lheHandle.isValid() ) {
+  if ( lheHandle.isValid() and !lheHandle->weights().empty() ) {
     lheWeight = lheHandle->weights().at(0).wgt;
     originalWeight = std::abs(lheHandle->originalXWGTUP());
   }
