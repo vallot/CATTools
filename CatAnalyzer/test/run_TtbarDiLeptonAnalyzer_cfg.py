@@ -4,6 +4,7 @@ process = cms.Process("TtbarDiLeptonAnalyzer")
 process.load("FWCore.MessageService.MessageLogger_cfi")
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
+
 process.options.allowUnscheduled = cms.untracked.bool(True)
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
@@ -45,18 +46,18 @@ process.filterTrigMUEL = cms.EDFilter("CATTriggerBitCombiner",
 
 process.filterTrigELEL = process.filterTrigMUEL.clone(
     triggersToMatch = cms.vstring(
-        "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v",
-        "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
+        "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
+ ## "HLT_Ele23_WPLoose_Gsf_v",
     ),
 )
 
 process.filterTrigMUMU = process.filterTrigMUEL.clone(
     triggersToMatch = cms.vstring(
-      "HLT_Mu17_Mu8_DZ_v",
-      "HLT_Mu17_TkMu8_DZ_v",
-      "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",
-      "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v",
-      "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v",
+        "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",
+        "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",
+ ## "HLT_IsoMu20_v",
+ ## "HLT_IsoTkMu20_v",
+ ## "HLT_IsoMu27_v",
     ),
 )
 
@@ -65,6 +66,7 @@ process.load("CATTools.CatAnalyzer.ttbarDileptonKinSolutionAlgos_cff")
 process.cattree = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     recoFilters = cms.InputTag("filterRECO"),
     nGoodVertex = cms.InputTag("catVertex","nGoodPV"),
+    genweight = cms.InputTag("genWeight","genWeight"),
     puweight = cms.InputTag("pileupWeight"),
     trigMUEL = cms.InputTag("filterTrigMUEL"),
     trigMUMU = cms.InputTag("filterTrigMUMU"),

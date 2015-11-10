@@ -14,19 +14,19 @@ mchistList = []
 #binning = [30, 0, 30]
 plotvar = 'll_m'
 binning = [50, 0, 200]
-channel = 1
+channel = 2
 step = 4
 x_name = 'mass [GeV]'
 y_name = 'events'
 CMS_lumi.lumi_sqrtS = "%.0f pb^{-1}, #sqrt{s} = 13 TeV 25ns "%(datalumi)
 tname = "cattree/nom"
 
-
+weight = 'weight'
 if channel == 1: ttother_tcut = "!(parton_channel==2 && ((parton_mode1==1 && parton_mode2==2) || (parton_mode1==2 && parton_mode2==1)))"
 elif channel == 2: ttother_tcut = "!(parton_channel==2 && (parton_mode1==2 && parton_mode2==2))"
 elif channel == 3: ttother_tcut = "!(parton_channel==2 && (parton_mode1==1 && parton_mode2==1))"
-cut = '(step>=%i&&channel==%i&&filtered==1)*puweight'%(step,channel)
-ttother_tcut = '(step>=%i && channel == %i && filtered == 1 && %s)*puweight'%(step,channel,ttother_tcut)
+cut = '(step>=%i&&channel==%i&&filtered==1)*%s'%(step,channel,weight)
+ttother_tcut = '(step>=%i && channel == %i && filtered == 1 && %s)*%s'%(step,channel,ttother_tcut,weight)
 print "TCut =",cut
 
 #DY estimation
@@ -44,18 +44,23 @@ if channel !=1:
     rfname = rootfileDir + 'DYJets' +".root"
     data = findDataSet('DYJets', datasets)
     scale = datalumi*data["xsec"]
-    mc_ee_in = makeTH1(rfname,tname,"mc_ee_in", binning, plotvar, dycut+'(filtered==1 && channel==2 && step2==0)*(puweight)', scale)
-    mc_mm_in = makeTH1(rfname,tname,"mc_mm_in", binning, plotvar, dycut+'(filtered==1 && channel==3 && step2==0)*(puweight)', scale)
-    mc_ee_out = makeTH1(rfname,tname,"mc_ee_in", binning, plotvar, dycut+'(filtered==1 && channel==2 && step2==1)*(puweight)', scale)
-    mc_mm_out = makeTH1(rfname,tname,"mc_mm_in", binning, plotvar, dycut+'(filtered==1 && channel==3 && step2==1)*(puweight)', scale)
+    wentries = getWeightedEntries(rfname, tname, "tri",weight)
+    scale = scale/wentries
+    
+    mc_ee_in = makeTH1(rfname,tname,"mc_ee_in", binning, plotvar, dycut+'(filtered==1 && channel==2 && step2==0)*(%s)'%(weight), scale)
+    mc_mm_in = makeTH1(rfname,tname,"mc_mm_in", binning, plotvar, dycut+'(filtered==1 && channel==3 && step2==0)*(%s)'%(weight), scale)
+    mc_ee_out = makeTH1(rfname,tname,"mc_ee_in", binning, plotvar, dycut+'(filtered==1 && channel==2 && step2==1)*(%s)'%(weight), scale)
+    mc_mm_out = makeTH1(rfname,tname,"mc_mm_in", binning, plotvar, dycut+'(filtered==1 && channel==3 && step2==1)*(%s)'%(weight), scale)
 
     rfname = rootfileDir + 'DYJets_10to50' +".root"
     data = findDataSet('DYJets_10to50', datasets)
     scale = datalumi*data["xsec"]
-    mc_ee_in.Add(makeTH1(rfname,tname,"mc_ee_in", binning, plotvar, dycut+'(filtered==1 && channel==2 && step2==0)*(puweight)', scale))
-    mc_mm_in.Add(makeTH1(rfname,tname,"mc_mm_in", binning, plotvar, dycut+'(filtered==1 && channel==3 && step2==0)*(puweight)', scale))
-    mc_ee_out.Add(makeTH1(rfname,tname,"mc_ee_in", binning, plotvar, dycut+'(filtered==1 && channel==2 && step2==1)*(puweight)', scale))
-    mc_mm_out.Add(makeTH1(rfname,tname,"mc_mm_in", binning, plotvar, dycut+'(filtered==1 && channel==3 && step2==1)*(puweight)', scale))
+    wentries = getWeightedEntries(rfname, tname, "tri",weight)
+    scale = scale/wentries
+    mc_ee_in.Add(makeTH1(rfname,tname,"mc_ee_in", binning, plotvar, dycut+'(filtered==1 && channel==2 && step2==0)*(%s)'%(weight), scale))
+    mc_mm_in.Add(makeTH1(rfname,tname,"mc_mm_in", binning, plotvar, dycut+'(filtered==1 && channel==3 && step2==0)*(%s)'%(weight), scale))
+    mc_ee_out.Add(makeTH1(rfname,tname,"mc_ee_in", binning, plotvar, dycut+'(filtered==1 && channel==2 && step2==1)*(%s)'%(weight), scale))
+    mc_mm_out.Add(makeTH1(rfname,tname,"mc_mm_in", binning, plotvar, dycut+'(filtered==1 && channel==3 && step2==1)*(%s)'%(weight), scale))
     
     rfname = rootfileDir+rdfilelist[1-1]+".root"
     rd_em_in = makeTH1(rfname, tname,'rd_ee_in', binning, plotvar, dycut+'(filtered==1 && channel==1 && ((ll_m > 76) && (ll_m < 106)))')
@@ -80,6 +85,9 @@ for i, mcname in enumerate(mcfilelist):
         scale = scale*dyratio[channel][step]
 
     rfname = rootfileDir + mcname +".root"
+    wentries = getWeightedEntries(rfname, tname, "tri",weight)
+    scale = scale/wentries
+    
     mchist = makeTH1(rfname, tname, title, binning, plotvar, cut, scale)
     mchist.SetLineColor(colour)
     mchist.SetFillColor(colour)
