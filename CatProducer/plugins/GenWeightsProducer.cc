@@ -110,10 +110,15 @@ void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
     if ( weightHeader == lheHandle->headers_end() ) break;
 
     // Read LHE using the XML parser
-    string contents = "<lhe>"; // Need root node
+    string contents = "<lhe>\n"; // Need root node
     contents.reserve(10000); // ~50 char per line, >100 weights
-    for ( auto& line : weightHeader->lines() ) contents += line;
-    contents += "</lhe>"; // Close the root node
+    for ( auto line : weightHeader->lines() )
+    {
+      line = line.substr(line.find_first_not_of(" \t\r\t"), line.find_last_not_of(" \n\r\t"));
+      if ( line.empty() or line[0] != '<' or line[line.size()-1] != '>' ) continue;
+      contents += line + "\n";
+    }
+    contents += "\n</lhe>\n"; // Close the root node
     TDOMParser xmlParser; xmlParser.SetValidate(false);
     xmlParser.ParseBuffer(contents.c_str(), contents.size());
     if ( !xmlParser.GetXMLDocument() ) break;
@@ -176,7 +181,7 @@ void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& event
   //   enforceUnitGenWeight == false : genWeights are scaled by 1/originalWeight.
   //                                   do not scale weight if LHE is not available.
   double originalWeight = 1;
-  if ( lheHandle.isValid() ) {
+  if ( lheHandle.isValid() and !lheHandle->weights().empty() ) {
     lheWeight = lheHandle->weights().at(0).wgt;
     originalWeight = std::abs(lheHandle->originalXWGTUP());
   }

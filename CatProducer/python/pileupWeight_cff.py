@@ -322,13 +322,52 @@ pileupWeightMap = {
 0.000000e+00, 0.000000e+00, 0.000000e+00, 0.000000e+00, 0.000000e+00,
 0.000000e+00, 0.000000e+00, 0.000000e+00, 0.000000e+00,
 ),
+#pileupCalc.py -i Cert_246908-259891_13TeV_PromptReco_Collisions15_25ns_JSON_Silver.txt --inputLumiJSON /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/PileUp/pileup_latest.txt --calcMode true --minBiasXsec 69000 --maxPileupBin 50 --numPileupBins 50 PileUpData.root
+"Run2015_25nsSilver":cms.vdouble(
+9.373792e+04, 5.147748e+05, 5.477386e+05, 7.272656e+05, 9.528581e+05,
+1.594241e+06, 5.994059e+06, 3.688192e+07, 1.337298e+08, 2.646688e+08,
+3.566119e+08, 3.752351e+08, 3.201104e+08, 2.175155e+08, 1.165450e+08,
+4.982125e+07, 1.818759e+07, 7.115496e+06, 3.802231e+06, 2.238755e+06,
+1.082882e+06, 3.899426e+05, 1.035763e+05, 2.127373e+04, 4.110165e+03,
+1.110691e+03, 4.444823e+02, 1.968216e+02, 8.462925e+01, 3.452794e+01,
+1.333227e+01, 4.871099e+00, 1.683953e+00, 5.508210e-01, 1.704775e-01,
+4.992282e-02, 1.383267e-02, 3.626510e-03, 8.995978e-04, 2.111478e-04,
+4.689276e-05, 9.853920e-06, 1.959294e-06, 3.686198e-07, 6.562482e-08,
+1.105342e-08, 1.762478e-09, 2.614969e-10, 4.768003e-11, 0.000000e+00,
+),
+#pileupCalc.py -i Cert_246908-259891_13TeV_PromptReco_Collisions15_25ns_JSON_Silver.txt --inputLumiJSON /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/PileUp/pileup_latest.txt --calcMode true --minBiasXsec 72450 --maxPileupBin 50 --numPileupBins 50 PileUpDataUp.root
+"Run2015_25nsSilverUp":cms.vdouble(
+7.893101e+04, 4.684151e+05, 5.290962e+05, 6.458729e+05, 8.704214e+05,
+1.224246e+06, 3.418512e+06, 1.852572e+07, 8.223574e+07, 1.962966e+08,
+3.040807e+08, 3.569436e+08, 3.442281e+08, 2.729589e+08, 1.750935e+08,
+9.054778e+07, 3.844931e+07, 1.454236e+07, 6.162293e+06, 3.487670e+06,
+2.100740e+06, 1.050937e+06, 4.019842e+05, 1.164671e+05, 2.645202e+04,
+5.431173e+03, 1.410622e+03, 5.475743e+02, 2.502406e+02, 1.138022e+02,
+4.952263e+01, 2.050837e+01, 8.077706e+00, 3.025884e+00, 1.078004e+00,
+3.652502e-01, 1.176960e-01, 3.606893e-02, 1.051249e-02, 2.913933e-03,
+7.681675e-04, 1.925913e-04, 4.592234e-05, 1.041407e-05, 2.246101e-06,
+4.607372e-07, 8.988719e-08, 1.667630e-08, 2.942386e-09, 4.960389e-10,
+),
+#pileupCalc.py -i Cert_246908-259891_13TeV_PromptReco_Collisions15_25ns_JSON_Silver.txt --inputLumiJSON /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/PileUp/pileup_latest.txt --calcMode true --minBiasXsec 68827 --maxPileupBin 50 --numPileupBins 50 PileUpDataDn.root
+"Run2015_25nsSilverDn":cms.vdouble(
+9.453443e+04, 5.172013e+05, 5.488862e+05, 7.316891e+05, 9.575754e+05,
+1.619101e+06, 6.187616e+06, 3.815594e+07, 1.367797e+08, 2.682355e+08,
+3.589656e+08, 3.755619e+08, 3.181626e+08, 2.143289e+08, 1.137139e+08,
+4.813486e+07, 1.747653e+07, 6.893342e+06, 3.722577e+06, 2.179011e+06,
+1.037810e+06, 3.667765e+05, 9.555545e+04, 1.933479e+04, 3.752038e+03,
+1.041156e+03, 4.218684e+02, 1.864341e+02, 7.972045e+01, 3.232314e+01,
+1.239948e+01, 4.499465e+00, 1.544464e+00, 5.014779e-01, 1.540215e-01,
+4.474717e-02, 1.229715e-02, 3.196678e-03, 7.860492e-04, 1.828349e-04,
+4.022806e-05, 8.372651e-06, 1.648401e-06, 3.070010e-07, 5.408534e-08,
+9.014751e-09, 1.417573e-09, 2.107582e-10, 3.776435e-11, 0.000000e+00,
+),
 }
 
 ## Put values
 pileupWeight.pileupMC = pileupWeightMap["Startup2015_25ns"]
-pileupWeight.pileupRD = pileupWeightMap["Run2015_25ns"]
-pileupWeight.pileupUp = pileupWeightMap["Run2015_25nsUp"]
-pileupWeight.pileupDn = pileupWeightMap["Run2015_25nsDn"]
+pileupWeight.pileupRD = pileupWeightMap["Run2015_25nsSilver"]
+pileupWeight.pileupUp = pileupWeightMap["Run2015_25nsSilverUp"]
+pileupWeight.pileupDn = pileupWeightMap["Run2015_25nsSilverDn"]
 
 #pileupWeight.reweightMethod = "NVertex"
 #pileupWeight.simpleWeights = [ # Weights starts from 1-vertex

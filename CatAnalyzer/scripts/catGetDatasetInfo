@@ -4,8 +4,8 @@ import sys, os
 
 if len(sys.argv) < 2:
     print sys.argv[0], "PROD_VERSION"
-    print "Default PROD_VERISON = v7-4-3"
-    sys.argv.append('v7-4-3')
+    print "Default PROD_VERISON = v7-4-5"
+    sys.argv.append('v7-4-5')
 
 gidMap = {
     'v7-3-4':'857222646',
@@ -13,11 +13,21 @@ gidMap = {
     'v7-4-2':'398123591',
     'v7-4-3':'512197961',
     'v7-4-4':'1038794205',
+    'v7-4-5':'519625370',
 }
 gid = gidMap[sys.argv[1]]
 
 from CATTools.CatAnalyzer.libxrd import *
 cmd, xrdbase = guessxrd()
+
+from ROOT import *
+
+## A hack to add prefix for the sites
+prefix = ""
+hostname = os.environ["HOSTNAME"]
+if "sdfarm" in hostname:
+    prefix = "root://cms-xrdr.sdfarm.kr:1094//"+xrdbase
+##
 
 from urllib import urlopen
 import csv
@@ -32,10 +42,14 @@ titleIdx = csv[0].index("Title")
 xsecIdx = csv[0].index("Cross section (pb)")
 nevtIdx = csv[0].index("NEvent")
 lumiIdx = csv[0].index("luminosity (pb-1)")
+colourIdx = csv[0].index("colour")
 pathIdx = csv[0].index("Path")
+DataSetNameIdx = csv[0].index("DataSetName")
+GlobalTagIdx = csv[0].index("GlobalTag")
+LumiMaskIdx = csv[0].index("LumiMask")
 for l in csv[1:]:
     if len(l) == 0 or len(l[0]) == 0: continue
-    xsec, nevt, lumi = l[xsecIdx], l[nevtIdx], l[lumiIdx]
+    xsec, nevt, lumi, colour = l[xsecIdx], l[nevtIdx], l[lumiIdx], l[colourIdx]
     if xsec == "": xsec = "0"
     if nevt == "": nevt = "0"
     if lumi == "": lumi = "0"
@@ -44,7 +58,25 @@ for l in csv[1:]:
                'xsec':float(xsec),
                'nevt':int(nevt),
                'lumi':float(lumi),
-               'path':l[pathIdx]})
+               'colour':eval(colour),
+               'path':l[pathIdx],
+               'DataSetName':l[DataSetNameIdx],
+               'GlobalTag':l[GlobalTagIdx],
+               'LumiMask':l[LumiMaskIdx],
+               })
+
+outDir = os.environ["CMSSW_BASE"]+"/src/CATTools/CatAnalyzer/data"
+if not os.path.exists(outDir): os.makedirs(outDir)
+
+import json
+f = open("%s/dataset.json" % outDir, "w")
+print "Saving dataset info to %s/dataset.json" % outDir
+print>>f, json.dumps(ds)
+f.close()
+
+# since all files are at kisti
+if not "sdfarm" in hostname:    
+    sys.exit()
 
 for d in ds:
     pp = d['path']
@@ -57,16 +89,9 @@ for d in ds:
             if not ff.endswith(".root"): continue
             ff = ff[len(pp)+1:]
             d['files'].append(ff)
+    d['path'] = prefix + pp
     d['files'].sort()
 
-outDir = os.environ["CMSSW_BASE"]+"/src/CATTools/CatAnalyzer/data"
-if not os.path.exists(outDir): os.makedirs(outDir)
-
-import json
-f = open("%s/dataset.json" % outDir, "w")
-print "Saving dataset info to %s/dataset.json" % outDir
-print>>f, json.dumps(ds)
-f.close()
 for d in ds:
     print "Saving a dataset info to %s/dataset_%s.txt" % (outDir, d['name'])
     f = open("%s/dataset_%s.txt" % (outDir, d['name']), "w")

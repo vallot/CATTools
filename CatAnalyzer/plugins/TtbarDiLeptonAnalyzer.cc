@@ -45,7 +45,7 @@ private:
   const reco::Candidate* getLast(const reco::Candidate* p) const;
 
   edm::EDGetTokenT<int> recoFiltersToken_, nGoodVertexToken_;
-  edm::EDGetTokenT<float> puweightToken_;
+  edm::EDGetTokenT<float> genweightToken_, puweightToken_;
   edm::EDGetTokenT<int> trigTokenMUEL_, trigTokenMUMU_, trigTokenELEL_;
 
   edm::EDGetTokenT<cat::MuonCollection>     muonToken_;
@@ -59,8 +59,8 @@ private:
 
   TTree * ttree_;
   int b_nvertex, b_step, b_channel, b_njet, b_nbjet;
-  bool b_step1, b_step2, b_step3, b_step4, b_step5, b_tri, b_filtered;
-  float b_met, b_puweight;
+  bool b_step1, b_step2, b_step3, b_step4, b_step5, b_step6, b_tri, b_filtered;
+  float b_met, b_weight, b_puweight;
 
   float b_lep1_pt, b_lep1_eta, b_lep1_phi;
   float b_lep2_pt, b_lep2_eta, b_lep2_phi;
@@ -99,6 +99,7 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
 {
   recoFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("recoFilters"));
   nGoodVertexToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("nGoodVertex"));
+  genweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("genweight"));
   puweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("puweight"));
   trigTokenMUEL_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigMUEL"));
   trigTokenMUMU_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigMUMU"));
@@ -144,9 +145,11 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("step3", &b_step3, "step3/O");
   ttree_->Branch("step4", &b_step4, "step4/O");
   ttree_->Branch("step5", &b_step5, "step5/O");
+  ttree_->Branch("step6", &b_step6, "step6/O");
   ttree_->Branch("tri", &b_tri, "tri/O");
   ttree_->Branch("filtered", &b_filtered, "filtered/O");
   ttree_->Branch("met", &b_met, "met/F");
+  ttree_->Branch("weight", &b_weight, "weight/F");
   ttree_->Branch("puweight", &b_puweight, "puweight/F");
 
   ttree_->Branch("lep1_pt", &b_lep1_pt, "lep1_pt/F");
@@ -226,10 +229,9 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   runOnMC_ = !iEvent.isRealData();
 
   b_nvertex = 0;b_step = -1;b_channel = 0;b_njet = 0;b_nbjet = 0;
-  b_step1 = 0;b_step2 = 0;b_step3 = 0;b_step4 = 0;b_step5 = 0;b_tri = 0;b_filtered = 0;
+  b_step1 = 0;b_step2 = 0;b_step3 = 0;b_step4 = 0;b_step5 = 0;b_step6 = 0;b_tri = 0;b_filtered = 0;
   b_met = -9;
-  b_puweight = -9;
-  if (!runOnMC_) b_puweight = 1;
+  b_weight = 1; b_puweight = 1;
   
   b_lep1_pt = -9;b_lep1_eta = -9;b_lep1_phi = -9;
   b_lep2_pt = -9;b_lep2_eta = -9;b_lep2_phi = -9;
@@ -345,9 +347,21 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     }
   }
 
+  if (runOnMC_){
+    edm::Handle<float> puweightHandle;
+    iEvent.getByToken(puweightToken_, puweightHandle);
+    b_puweight = *puweightHandle;
+    edm::Handle<float> genweightHandle;
+    iEvent.getByToken(genweightToken_, genweightHandle);
+    b_weight = (*genweightHandle)*b_puweight;
+  }
+  
   edm::Handle<reco::VertexCollection> vertices;
   iEvent.getByToken(vtxToken_, vertices);
-  if (vertices->empty()){ return;} // skip the event if no PV found
+  if (vertices->empty()){ // skip the event if no PV found
+    ttree_->Fill();
+    return;
+  }
   cutflow_[1][b_channel]++;
 
   // const reco::Vertex &PV = vertices->front();
@@ -355,11 +369,6 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   iEvent.getByToken(nGoodVertexToken_, nGoodVertexHandle);
   b_nvertex = *nGoodVertexHandle;
 
-  if (runOnMC_){
-    edm::Handle<float> puweightHandle;
-    iEvent.getByToken(puweightToken_, puweightHandle);
-    b_puweight = *puweightHandle;
-  }
   edm::Handle<int> recoFiltersHandle;
   iEvent.getByToken(recoFiltersToken_, recoFiltersHandle);
   b_filtered = *recoFiltersHandle == 0 ? false : true;
@@ -520,6 +529,12 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_ttbar_rapi = ttbar.Rapidity();
 
   b_maxweight = maxweight;
+  if (maxweight){
+    b_step6 = true;
+    if (b_step == 5){
+      ++b_step;
+    }
+  }
   //  printf("maxweight %f, top1.M() %f, top2.M() %f \n",maxweight, top1.M(), top2.M() );
   // printf("%2d, %2d, %2d, %2d, %6.2f, %6.2f, %6.2f\n", b_njet, b_nbjet, b_step, b_channel, b_met, b_ll_mass, b_maxweight);
   ttree_->Fill();
@@ -588,7 +603,7 @@ cat::JetCollection TtbarDiLeptonAnalyzer::selectBJets(const JetCollection& jets)
 {
   cat::JetCollection selBjets;
   for (auto& jet : jets) {
-    if (jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") < 0.814) continue;
+    if (jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") < 0.605) continue;
     //printf("b jet with pt %4.1f\n", jet.pt());
     selBjets.push_back(jet);
   }

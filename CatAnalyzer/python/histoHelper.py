@@ -1,25 +1,33 @@
-import math, ROOT, copy, CMS_lumi, tdrstyle
+import math, array, ROOT, copy, CMS_lumi, tdrstyle
 import PhysicsTools.PythonAnalysis.rootplot.core as rootplotcore
 tdrstyle.setTDRStyle()
 
-def getTH1(name, binning, tr, br, cut, lumiScale = 0.):
-    hist = ROOT.TH1F(name, name, binning[0], binning[1], binning[2])
-    tr.Project(name, br, cut)
-    hist.Sumw2()
-    if lumiScale != 0 and tr.GetEntries():
-        hist.Scale(lumiScale/tr.GetEntries())
+def getTH1(title, binning, tree, plotvar, cut, scale = 0.):
+    if len(binning) == 3:
+        hist = ROOT.TH1D("name", title, binning[0], binning[1], binning[2])
+    else:
+        hist = ROOT.TH1D("name", title, len(binning)-1, array.array('f', binning))
+    tree.Project("name", plotvar, cut)
+    if hist.GetSumw2N() == 0:
+        hist.Sumw2()
+    if scale != 0:
+        hist.Scale(scale)
     return copy.deepcopy(hist)
 
-def makeTH1(filename, treename, name, binning, br, cut, lumiScale = 0.):
+def makeTH1(filename, treename, title, binning, plotvar, cut, scale = 0.):
     tfile = ROOT.TFile(filename)
-    tree = tfile.Get(treename)
-    return getTH1(name, binning, tree, br, cut, lumiScale)
+    tree  = tfile.Get(treename)
+    return getTH1(title, binning, tree, plotvar, cut, scale)
 
 def getEntries(filename, treename):
     tfile = ROOT.TFile(filename)
-    tree = tfile.Get(treename)
-    return tree.GetEntries()
-           
+    tree  = tfile.Get(treename)
+    return tree.GetEntriesFast()
+
+def getWeightedEntries(filename, treename, plotvar, weight):
+    weighthist = makeTH1(filename, treename, '', [1, 0, 1], plotvar,weight)    
+    return weighthist.Integral(-1,2)
+
 def divide_canvas(canvas, ratio_fraction):
     margins = [ROOT.gStyle.GetPadTopMargin(), ROOT.gStyle.GetPadBottomMargin()]
     useable_height = 1 - (margins[0] + margins[1])
@@ -103,20 +111,25 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
     hs = ROOT.THStack("hs_%s_mc"%(name), "hs_%s_mc"%(name))
     hratio = mclist[0].Clone("hratio")
     hratio.Reset()
-         
+    leghist = []
     for mc in mclist:
         hnew = mc.Clone("hnew"+mc.GetName())
         hnew.Sumw2(False)
         hs.Add(hnew)
         hratio.Add(mc)
-        leg.AddEntry(mc, mc.GetName(), "f")
-    hratio.Divide(hratio,data,1.,1.,"B")
+        if not any(mc.GetTitle() == s for s in leghist):
+            leg.AddEntry(mc, mc.GetTitle(), "f")
+            leghist.append(mc.GetTitle())
+                        
+    hratio.Divide(data,hratio,1.,1.,"B")
 
     tdrstyle.setTDRStyle()
 
     setDefTH1Style(data, x_name, y_name)
     data.SetMaximum(data.GetMaximum()*1.2)
-    
+    if doLog:
+        data.SetMaximum(data.GetMaximum()*10)
+        
     ratio_fraction = 0
     if doRatio:
         ratio_fraction = 0.3        
@@ -145,6 +158,7 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
         pads[1].cd()
         pads[1].SetGridy()
         setMargins(pads[1],doRatio)
+        hratio.SetLineColor(1)
         hratio.Draw("e")
         hratio.SetMaximum(1.+ratioRange)
         hratio.SetMinimum(1.-ratioRange)
@@ -175,3 +189,9 @@ def drellYanEstimation(mc_ee_in, mc_ee_out, mc_mm_in, mc_mm_out,
     nOutEst_mm = rMC_mm*(rd_mm_in - rd_em_in*kMM)
     nOutEst_ee = rMC_ee*(rd_ee_in - rd_em_in*kEE)
     return nOutEst_ee/mc_ee_out,nOutEst_mm/mc_mm_out
+
+def findDataSet(name, datasets):
+    for data in datasets:
+        if data["name"] == name:
+            return data
+    return None

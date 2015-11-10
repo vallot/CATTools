@@ -39,11 +39,11 @@ private:
   cat::JetCollection selectJets(const cat::JetCollection& jets, const vector<TLorentzVector>& recolep) const;
   cat::JetCollection selectBJets(const cat::JetCollection& jets) const;
   int preSelect(const cat::JetCollection& seljets, float MET) const;
-  int JetCategory(const cat::JetCollection& seljets, float MET, float ll_pt) const;
-  int JetCat_GC(float lep1_eta, float lep2_eta) const;
+  int jetCategory(const cat::JetCollection& seljets, float MET, float ll_pt) const;
+  int etaCategory(float lep1_eta, float lep2_eta) const;
 
   edm::EDGetTokenT<int> recoFiltersToken_, nGoodVertexToken_;
-  edm::EDGetTokenT<float> puweightToken_;
+  edm::EDGetTokenT<float> genweightToken_, puweightToken_;
   edm::EDGetTokenT<cat::MuonCollection>     muonToken_;
   edm::EDGetTokenT<cat::ElectronCollection> elecToken_;
   edm::EDGetTokenT<cat::JetCollection>      jetToken_;
@@ -56,14 +56,14 @@ private:
   TTree * ttree_;
   int b_nvertex, b_step, b_channel, b_njet, b_nbjet;
   bool b_step1, b_step2, b_step3, b_step4, b_step5, b_tri, b_filtered;
-  float b_met, b_puweight;
+  float b_met, b_weight, b_puweight;
 
   float b_lep1_pt, b_lep1_eta, b_lep1_phi;
   float b_lep2_pt, b_lep2_eta, b_lep2_phi;
   float b_ll_pt, b_ll_eta, b_ll_phi, b_ll_m;
 
-  int b_jetcat_f_hier;
-  int b_jetcat_GC;
+  int b_cat_jet;
+  int b_cat_eta;
   bool b_isLoose, b_isMedium, b_isTight;
 
   float b_gen_lep1_pt, b_gen_lep1_eta, b_gen_lep1_phi, b_gen_lep1_ptRes;
@@ -79,6 +79,7 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
 {
   recoFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("recoFilters"));
   nGoodVertexToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("nGoodVertex"));
+  genweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("genweight"));
   puweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("puweight"));
   muonToken_ = consumes<cat::MuonCollection>(iConfig.getParameter<edm::InputTag>("muons"));
   elecToken_ = consumes<cat::ElectronCollection>(iConfig.getParameter<edm::InputTag>("electrons"));
@@ -105,6 +106,7 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("tri", &b_tri, "tri/O");
   ttree_->Branch("filtered", &b_filtered, "filtered/O");
   ttree_->Branch("met", &b_met, "met/F");
+  ttree_->Branch("weight", &b_weight, "weight/F");
   ttree_->Branch("puweight", &b_puweight, "puweight/F");
 
   ttree_->Branch("lep1_pt", &b_lep1_pt, "lep1_pt/F");
@@ -124,10 +126,10 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
   
   //final hierachy
   //(e.g. In case of 0,1jet, Tight and Loose.Otherwise 2jet include VBF Tight, ggF Tight, Loose)
-  ttree_->Branch("jetcat_f_hier", &b_jetcat_f_hier, "jetcat_f_hier/I");
+  ttree_->Branch("cat_jet", &b_cat_jet, "cat_jet/I");
   //Geometrical Categorization
   //only included 0jet and 1jet
-  ttree_->Branch("jetcat_GC", &b_jetcat_GC, "jetcat_GC/I");
+  ttree_->Branch("cat_eta", &b_cat_eta, "cat_eta/I");
 
   ttree_->Branch("gen_lep1_pt", &b_gen_lep1_pt, "gen_lep1_pt/F");
   ttree_->Branch("gen_lep1_eta", &b_gen_lep1_eta, "gen_lep1_eta/F");
@@ -159,8 +161,7 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   b_nvertex = 0;b_step = -1;b_channel = 0;b_njet = 0;b_nbjet = 0;
   b_step1 = 0;b_step2 = 0;b_step3 = 0;b_step4 = 0;b_step5 = 0;b_tri = 0;b_filtered = 0;
   b_met = -9;
-  b_puweight = -9;
-  if (!runOnMC_) b_puweight = 1;
+  b_weight = 1; b_puweight = 1;
 
   b_lep1_pt = -9;b_lep1_eta = -9;b_lep1_phi = -9;
   b_lep2_pt = -9;b_lep2_eta = -9;b_lep2_phi = -9;
@@ -168,8 +169,8 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 
   b_isLoose = 0; b_isMedium = 0; b_isTight = 0;
 
-  b_jetcat_f_hier = 0;
-  b_jetcat_GC = 0;
+  b_cat_jet = -1;
+  b_cat_eta = -1;
 
   b_gen_lep1_pt = 0;b_gen_lep1_eta = 0;b_gen_lep1_phi = 0;b_gen_lep1_ptRes = 0;
   b_gen_lep1_isLoose = 0;b_gen_lep1_isMedium = 0;b_gen_lep1_isTight = 0;
@@ -177,19 +178,25 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   b_gen_lep2_isLoose = 0;b_gen_lep2_isMedium = 0;b_gen_lep2_isTight = 0;
   b_gen_ll_pt = 0;b_gen_ll_eta = 0;b_gen_ll_phi = 0;b_gen_ll_m = 0;
 
-  edm::Handle<reco::VertexCollection> vertices;
-  iEvent.getByToken(vtxToken_, vertices);
-  if (vertices->empty()){ return;} // skip the event if no PV found
-  // const reco::Vertex &PV = vertices->front();
-  edm::Handle<int> nGoodVertexHandle;
-  iEvent.getByToken(nGoodVertexToken_, nGoodVertexHandle);
-  b_nvertex = *nGoodVertexHandle;
-
   if (runOnMC_){
     edm::Handle<float> puweightHandle;
     iEvent.getByToken(puweightToken_, puweightHandle);
     b_puweight = *puweightHandle;
+    edm::Handle<float> genweightHandle;
+    iEvent.getByToken(genweightToken_, genweightHandle);
+    b_weight = (*genweightHandle)*b_puweight;
   }
+  
+  edm::Handle<reco::VertexCollection> vertices;
+  iEvent.getByToken(vtxToken_, vertices);
+  if (vertices->empty()){ // skip the event if no PV found
+    ttree_->Fill();
+    return;
+  }
+  edm::Handle<int> nGoodVertexHandle;
+  iEvent.getByToken(nGoodVertexToken_, nGoodVertexHandle);
+  b_nvertex = *nGoodVertexHandle;
+
   edm::Handle<int> recoFiltersHandle;
   iEvent.getByToken(recoFiltersToken_, recoFiltersHandle);
   b_filtered = *recoFiltersHandle == 0 ? false : true;
@@ -204,9 +211,9 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   
   edm::Handle<reco::GenParticleCollection> genParticles;
 
-  cat::MuonCollection&& selectedMuons = selectMuons( *muons.product() );
+  cat::MuonCollection selectedMuons = selectMuons( *muons );
   sort(selectedMuons.begin(), selectedMuons.end(), GtByCandPt());
-
+  
   if (runOnMC_){
     iEvent.getByToken(mcLabel_,genParticles);
     bool bosonSample = false;
@@ -252,6 +259,8 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
     ttree_->Fill();
     return;
   }
+  //b_muEtaBin = muEtaBin(selectedMuons);
+			
   b_step = 1;
   b_step1 = true;
   
@@ -272,6 +281,7 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   cat::JetCollection&& selectedJets = selectJets( *jets.product(), recomu );
 
   b_njet = selectedJets.size();
+  b_cat_eta = etaCategory(b_lep1_eta, b_lep2_eta);
 
   int ll_charge = selectedMuons[0].charge()*selectedMuons[1].charge();
 
@@ -282,6 +292,13 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   b_step = 2;
   b_step2 = true;
 
+  if (b_ll_m < 20){
+    ttree_->Fill();
+    return;
+  }
+  b_step = 3;
+  b_step3 = true;
+  
   edm::Handle<edm::TriggerResults> triggerBits;
   edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
   iEvent.getByToken(triggerBits_, triggerBits);
@@ -289,21 +306,22 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
   AnalysisHelper trigHelper = AnalysisHelper(triggerNames, triggerBits, triggerObjects);
 
-  if (trigHelper.triggerFired("HLT_IsoLep24_eta2p1_v")){
-    b_step = 3;
-    b_step3 = true;
-  }
-
-  if ( trigHelper.triggerMatched("HLT_IsoLep24_eta2p1_v", selectedMuons[0] )
-       || trigHelper.triggerMatched("HLT_IsoLep24_eta2p1_v", selectedMuons[1] )){
-    b_tri = true;
+  if (trigHelper.triggerFired("HLT_IsoMu20_v") || trigHelper.triggerFired("HLT_IsoTrkMu20_v")){
     b_step = 4;
     b_step4 = true;
   }
 
+  if ( trigHelper.triggerMatched("HLT_IsoMu20_v", selectedMuons[0]) ||
+       trigHelper.triggerMatched("HLT_IsoMu20_v", selectedMuons[1]) ||
+       trigHelper.triggerMatched("HLT_IsoTrkMu20_v", selectedMuons[0]) ||
+       trigHelper.triggerMatched("HLT_IsoTrkMu20_v", selectedMuons[1])){
+    b_tri = true;
+    b_step = 5;
+    b_step5 = true;
+  }
+
   // -----------------------------  Jet Category  -----------------------------------
-  b_jetcat_f_hier = JetCategory(selectedJets, b_met, b_ll_pt);
-  b_jetcat_GC = JetCat_GC(b_lep1_eta, b_lep2_eta);
+  b_cat_jet = jetCategory(selectedJets, b_met, b_ll_pt);
 
   ttree_->Fill();
 }
@@ -374,15 +392,15 @@ int h2muAnalyzer::preSelect(const cat::JetCollection& seljets, float met) const
   return 0;
 }
 
-int h2muAnalyzer::JetCategory(const cat::JetCollection& seljets, float met, float ll_pt) const
+int h2muAnalyzer::jetCategory(const cat::JetCollection& seljets, float met, float ll_pt) const
 {
   int presel = preSelect(seljets, met);
   if (presel==1){
-    if (b_ll_pt<=10){return 1;}
+    if (ll_pt<=10){return 1;}
     else{return 2;}
   }
   if (presel==2){
-    if (b_ll_pt<=10){return 3;}
+    if (ll_pt<=10){return 3;}
     else{return 4;}
   }
   if (presel==3){
@@ -400,7 +418,7 @@ int h2muAnalyzer::JetCategory(const cat::JetCollection& seljets, float met, floa
   return 0;
 }
 
-int h2muAnalyzer::JetCat_GC(float lep1_eta, float lep2_eta) const
+int h2muAnalyzer::etaCategory(float lep1_eta, float lep2_eta) const
 {
   const float eta_mu[2] = {std::abs(lep1_eta),std::abs(lep2_eta)};
   int GC=0;
@@ -409,8 +427,14 @@ int h2muAnalyzer::JetCat_GC(float lep1_eta, float lep2_eta) const
     else if (eta_mu[i] < 1.5) GC += 10;
     else if (eta_mu[i] < 2.4) GC += 100;
   }
-  return GC;
+  if (GC == 2)   return 1; // BB
+  if (GC == 11)  return 2; // BO
+  if (GC == 101) return 3; // BE
+  if (GC == 20)  return 4; // OO
+  if (GC == 110) return 5; // OE
+  if (GC == 200) return 6; // EE
+  
+  return 0;
 }
-
 //define this as a plug-in
 DEFINE_FWK_MODULE(h2muAnalyzer);
