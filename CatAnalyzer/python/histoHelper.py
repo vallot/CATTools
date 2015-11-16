@@ -6,7 +6,7 @@ def getTH1(title, binning, tree, plotvar, cut, scale = 0.):
     if len(binning) == 3:
         hist = ROOT.TH1D("name", title, binning[0], binning[1], binning[2])
     else:
-        hist = ROOT.TH1D("name", title, len(binning)-1, array.array('f', binning))
+        hist = ROOT.TH1D("name", title, len(binning)-1, array.array('f', binning))      
     tree.Project("name", plotvar, cut)
     if hist.GetSumw2N() == 0:
         hist.Sumw2()
@@ -17,7 +17,16 @@ def getTH1(title, binning, tree, plotvar, cut, scale = 0.):
 def makeTH1(filename, treename, title, binning, plotvar, cut, scale = 0.):
     tfile = ROOT.TFile(filename)
     tree  = tfile.Get(treename)
-    return getTH1(title, binning, tree, plotvar, cut, scale)
+    
+    if len(binning) == 3:
+        hist = ROOT.TH1D("temp", title, binning[0], binning[1], binning[2])
+    else:
+        hist = ROOT.TH1D("temp", title, len(binning)-1, array.array('f', binning))      
+        
+    for var in plotvar.split(','):
+        hist.Add(getTH1(title, binning, tree, var, cut, scale))
+        
+    return copy.deepcopy(hist)
 
 def getEntries(filename, treename):
     tfile = ROOT.TFile(filename)
