@@ -81,6 +81,7 @@ if not "sdfarm" in hostname:
 era = sys.argv[1]
 storageprefix = "/store/group/CAT"
 unmatching = []
+emptydirectory = []
 print "Listing dataset location"
 print "-"*80
 for d in ds:
@@ -91,7 +92,16 @@ for d in ds:
     pdName, sdName = dataSetName[1], dataSetName[2]
     path = "%s/%s/%s_%s" % (storageprefix, pdName, era, sdName)
     pathname = ''
-    for ll in listxrd(path)[0]: pathname = ll 
+    ## #pathnames = map( lambda x: x, listxrd(path)[0] )
+    ## pathnames = listxrd(path)[0]
+    ## sorted(pathnames)
+    ## print pathnames
+    tempVersion = 0
+    for ll in listxrd(path)[0]:
+        currentVersion = int(ll[-13:-7] + ll[-6:])
+        if currentVersion > tempVersion:
+            tempVersion = currentVersion
+            pathname = ll 
     print pathname
 
     pp = d['path']
@@ -116,11 +126,20 @@ for d in ds:
     f.close()
     if not pathname in pp:
         unmatching.append(pathname)
+    if len(d['files']) == 0:
+        emptydirectory.append(pdName)
 print "-"*80
 
 if len(unmatching) > 0:
     print 'List of datasets not matching with database'
     for i in unmatching:
         print i
+    print "-"*80
 
+if len(emptydirectory) > 0:
+    print 'List of datasets with no data'
+    for i in emptydirectory:
+        print i
+    print "-"*80
+   
 print "Saved dataset location info to %s/dataset_SampleName.txt" % (outDir)
