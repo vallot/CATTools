@@ -13,13 +13,10 @@ process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094//xrd/store/group
 
 import os
 useGold = True
+isRunData = True
 catmet = 'catMETsNoHF'
 if useGold:
     catmet = 'catMETs'
-    isRunData = False
-    for f in process.source.fileNames:
-        if 'Run2015' in f:
-            isRunData = True
     if isRunData:
         lumiFile = 'Cert_246908-259891_13TeV_PromptReco_Collisions15_25ns_JSON.txt'
         from FWCore.PythonUtilities.LumiList import LumiList
