@@ -119,6 +119,8 @@ def setDefTH1Style(th1, x_name, y_name):
     
 def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=True, ratioRange=0.45):
     leg = ROOT.TLegend(0.7,0.68,0.87,0.92)
+    leg.SetBorderSize(0)
+    leg.SetNColumns(2)
     leg.SetTextSize(0.028)
     leg.SetTextFont(42)
     leg.SetLineColor(0)

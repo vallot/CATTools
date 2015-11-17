@@ -2,7 +2,7 @@
 # sed -i 's/^\/store/root:\/\/cms-xrdr.sdfarm.kr:1094\/\/xrd\/store/g' *
 
 analysis = 'h2muAnalyzer'
-analysis = 'TtbarDiLeptonAnalyzer'
+#analysis = 'TtbarDiLeptonAnalyzer'
 
 pythonCfg = 'run_'+analysis+'_cfg.py'
 
@@ -15,7 +15,7 @@ with open(dataset_json) as data_file:
     for i in data:
         #print data[0]
         datasetName = i['name']
-        if "Enriched" in datasetName:
+        if "QCD" in datasetName:
             continue
         if "ttH" in datasetName:
             continue       
