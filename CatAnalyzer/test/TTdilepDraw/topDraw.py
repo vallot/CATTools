@@ -1,31 +1,65 @@
-import ROOT, CATTools.CatAnalyzer.CMS_lumi, json, os,copy
+#!/usr/bin/env python
+import ROOT, CATTools.CatAnalyzer.CMS_lumi, json, os, getopt, sys
 from CATTools.CatAnalyzer.histoHelper import *
 ROOT.gROOT.SetBatch(True)
+'''
+topDraw.py -a 1 -s 1 -c 'tri==1&&filtered==1' -b [40,0,40] -p nvertex -x 'no. vertex' &
+topDraw.py -a 1 -s 1 -b [100,-3,3] -p lep1_eta,lep2_eta -x '#eta' &
+'''
+datalumi = 1.56
+CMS_lumi.lumi_sqrtS = "%.2f fb^{-1}, #sqrt{s} = 13 TeV "%(datalumi)
+datalumi = datalumi*1000 # due to fb
 
-datalumi = 1.65
-
-mcfilelist = ['TT_powheg','DYJets','DYJets_10to50']
+mcfilelist = ['WW','WZ','ZZ','TT_powheg','DYJets','DYJets_10to50']#,'WJets']
 rdfilelist = ['MuonEG_Run2015','DoubleEG_Run2015','DoubleMuon_Run2015']
 rootfileDir = "/cms/scratch/jlee/v7-4-5/TtbarDiLeptonAnalyzer_"
+
 datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json" % os.environ['CMSSW_BASE']))
 
-mchistList = []
-#plotvar = 'nvertex'
-#binning = [30, 0, 30]
+cut = 'tri==1&&filtered==1'
+weight = 'weight'
 plotvar = 'll_m'
-binning = [50, 0, 200]
+binning = [200, 0, 200]
 x_name = 'mass [GeV]'
 y_name = 'events'
-CMS_lumi.lumi_sqrtS = "%.2f fb^{-1}, #sqrt{s} = 13 TeV"%(datalumi)
-tname = "cattree/nom"
+dolog = False
 channel = 1
-step = 4
-cut = 'filtered==1&&tri==1'
-weight = 'weight'
-datalumi = datalumi*1000 # due to fb
+step = 1
+try:
+    opts, args = getopt.getopt(sys.argv[1:],"hdc:w:b:p:x:y:a:s:",["cut","weight","binning","plotvar","x_name","y_name","dolog","channel","step"])
+except getopt.GetoptError:          
+    print 'Usage : ./topDraw.py.py -c <cut> -w <weight> -b <binning> -p <plotvar> -x <x_name> -y <y_name> -d <dolog>'
+    sys.exit(2)
+for opt, arg in opts:
+    if opt == '-h':
+        print 'Usage : ./topDraw.py.py -c <cut> -w <weight> -b <binning> -p <plotvar> -x <x_name> -y <y_name> -d <dolog>'
+        sys.exit()
+    elif opt in ("-c", "--cut"):
+        cut = arg
+    elif opt in ("-a", "--channel"):
+        channel = int(arg)
+    elif opt in ("-s", "--step"):
+        step = int(arg)
+    elif opt in ("-w", "--weight"):
+        weight = arg
+    elif opt in ("-b", "--binning"):
+        binning = eval(arg)
+    elif opt in ("-p", "--plotvar"):
+        plotvar = arg
+    elif opt in ("-x", "--x_name"):
+        x_name = arg
+    elif opt in ("-y", "--y_name"):
+        y_name = arg
+    elif opt in ("-d", "--dolog"):
+        dolog = True
+
+tname = "cattree/nom"
+mchistList = []
+
 if channel == 1: ttother_tcut = "!(parton_channel==2 && ((parton_mode1==1 && parton_mode2==2) || (parton_mode1==2 && parton_mode2==1)))"
 elif channel == 2: ttother_tcut = "!(parton_channel==2 && (parton_mode1==2 && parton_mode2==2))"
 elif channel == 3: ttother_tcut = "!(parton_channel==2 && (parton_mode1==1 && parton_mode2==1))"
+
 stepch_tcut =  'step>=%i&&channel==%i'%(step,channel)
 tcut = '(%s&&%s)*%s'%(stepch_tcut,cut,weight)
 ttother_tcut = '(%s&&%s&&%s)*%s'%(stepch_tcut,cut,ttother_tcut,weight)

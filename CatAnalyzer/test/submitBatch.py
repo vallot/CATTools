@@ -2,7 +2,7 @@
 # sed -i 's/^\/store/root:\/\/cms-xrdr.sdfarm.kr:1094\/\/xrd\/store/g' *
 
 analysis = 'h2muAnalyzer'
-#analysis = 'TtbarDiLeptonAnalyzer'
+analysis = 'TtbarDiLeptonAnalyzer'
 
 pythonCfg = 'run_'+analysis+'_cfg.py'
 
