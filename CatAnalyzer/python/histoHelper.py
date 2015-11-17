@@ -6,8 +6,16 @@ def getTH1(title, binning, tree, plotvar, cut, scale = 0.):
     if len(binning) == 3:
         hist = ROOT.TH1D("name", title, binning[0], binning[1], binning[2])
     else:
-        hist = ROOT.TH1D("name", title, len(binning)-1, array.array('f', binning))      
+        hist = ROOT.TH1D("name", title, len(binning)-1, array.array('f', binning))
     tree.Project("name", plotvar, cut)
+    if "1" in plotvar:
+        if len(binning) == 3:
+            hist2 = ROOT.TH1D("name2", title, binning[0], binning[1], binning[2])
+        else:
+            hist2 = ROOT.TH1D("name2", title, len(binning)-1, array.array('f', binning))
+        plotvar = plotvar.replace("1", "2")
+        tree.Project("name2", plotvar, cut)
+        hist.Add(hist2)
     if hist.GetSumw2N() == 0:
         hist.Sumw2()
     if scale != 0:
@@ -34,7 +42,7 @@ def getEntries(filename, treename):
     return tree.GetEntriesFast()
 
 def getWeightedEntries(filename, treename, plotvar, weight):
-    weighthist = makeTH1(filename, treename, '', [1, 0, 1], plotvar,weight)    
+    weighthist = makeTH1(filename, treename, '', [1, 0, 1], plotvar, weight)    
     return weighthist.Integral(-1,2)
 
 def divide_canvas(canvas, ratio_fraction):
@@ -87,11 +95,11 @@ def setDefAxis(axis, title, offset):
     axis.SetTitleOffset(offset)
     axis.SetTitleColor(1)
     axis.SetTitleFont(42)
-    axis.SetTitleSize(0.06)
+    axis.SetTitleSize(0.043)
     axis.SetLabelColor(1)
     axis.SetLabelFont(42)
     axis.SetLabelOffset(0.007)
-    axis.SetLabelSize(0.04)
+    axis.SetLabelSize(0.03)
     axis.SetAxisColor(1)
     axis.SetTickLength(0.03)
     axis.SetNdivisions(510)
@@ -100,8 +108,8 @@ def setDefAxis(axis, title, offset):
     #axis.SetPadTickY(1)
 
 def setDefTH1Style(th1, x_name, y_name):
-    setDefAxis(th1.GetYaxis(),y_name, 1.02)
-    setDefAxis(th1.GetXaxis(),x_name, 0.9)
+    setDefAxis(th1.GetYaxis(),y_name, 1.2)
+    setDefAxis(th1.GetXaxis(),x_name, 1)
     th1.GetYaxis().CenterTitle()
     ROOT.gStyle.SetStripDecimals(True)
     ROOT.gStyle.SetPadTickX(1)
@@ -110,8 +118,8 @@ def setDefTH1Style(th1, x_name, y_name):
     return th1
     
 def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=True, ratioRange=0.45):
-    leg = ROOT.TLegend(0.7,0.7,0.82,0.88)
-    leg.SetTextSize(0.035)
+    leg = ROOT.TLegend(0.7,0.68,0.87,0.92)
+    leg.SetTextSize(0.028)
     leg.SetTextFont(42)
     leg.SetLineColor(0)
     leg.SetFillColor(0)
@@ -121,21 +129,22 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
     hratio = mclist[0].Clone("hratio")
     hratio.Reset()
     leghist = []
-    for mc in mclist:
+    for i, mc in enumerate(mclist):
         hnew = mc.Clone("hnew"+mc.GetName())
         hnew.Sumw2(False)
         hs.Add(hnew)
         hratio.Add(mc)
-        if not any(mc.GetTitle() == s for s in leghist):
-            leg.AddEntry(mc, mc.GetTitle(), "f")
-            leghist.append(mc.GetTitle())
+        inversed = mclist[len(mclist)-1-i]
+        if not any(inversed.GetTitle() == s for s in leghist):
+            leg.AddEntry(inversed, inversed.GetTitle(), "f")
+            leghist.append(inversed.GetTitle())
                         
     hratio.Divide(data,hratio,1.,1.,"B")
 
     tdrstyle.setTDRStyle()
 
     setDefTH1Style(data, x_name, y_name)
-    data.SetMaximum(data.GetMaximum()*1.2)
+    data.SetMaximum(data.GetMaximum()*1.8)
     if doLog:
         data.SetMaximum(data.GetMaximum()*10)
         
