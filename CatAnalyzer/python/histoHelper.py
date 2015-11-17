@@ -110,8 +110,10 @@ def setDefTH1Style(th1, x_name, y_name):
     return th1
     
 def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=True, ratioRange=0.45):
-    leg = ROOT.TLegend(0.7,0.7,0.82,0.88)
-    leg.SetTextSize(0.035)
+    leg = ROOT.TLegend(0.7,0.68,0.87,0.92)
+    leg.SetBorderSize(0)
+    leg.SetNColumns(2)
+    leg.SetTextSize(0.025)
     leg.SetTextFont(42)
     leg.SetLineColor(0)
     leg.SetFillColor(0)
@@ -129,7 +131,7 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
         if not any(mc.GetTitle() == s for s in leghist):
             leg.AddEntry(mc, mc.GetTitle(), "f")
             leghist.append(mc.GetTitle())
-                        
+    
     hratio.Divide(data,hratio,1.,1.,"B")
 
     tdrstyle.setTDRStyle()
