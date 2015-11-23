@@ -1,58 +1,29 @@
-import ROOT, CATTools.CatAnalyzer.CMS_lumi
-import copy, sys, json, os
+#!/usr/bin/env python
+import ROOT, CATTools.CatAnalyzer.CMS_lumi, json, os, getopt, sys
 from CATTools.CatAnalyzer.histoHelper import *
 ROOT.gROOT.SetBatch(True)
+'''
+topDraw.py -a 1 -s 1 -c 'tri==1&&filtered==1' -b [40,0,40] -p nvertex -x 'no. vertex' &
+topDraw.py -a 1 -s 1 -b [100,-3,3] -p lep1_eta,lep2_eta -x '#eta' &
+'''
+datalumi = 1.56
+CMS_lumi.lumi_sqrtS = "%.2f fb^{-1}, #sqrt{s} = 13 TeV "%(datalumi)
+datalumi = datalumi*1000 # due to fb
 
-datalumi = 1.65
-
-mcfilelist = ['TT_powheg','DYJets','DYJets_10to50']
-mcfilelist = ['TT_powheg', 'WJets', 'SingleTbar_tW', 'SingleTop_tW', 'ZZ', 'WW', 'WZ', 'DYJets', 'DYJets_10to50']
+mcfilelist = ['WW','WZ','ZZ','TT_powheg','DYJets','DYJets_10to50']#,'WJets']
+#mcfilelist = ['TT_powheg', 'WJets', 'SingleTbar_tW', 'SingleTop_tW', 'ZZ', 'WW', 'WZ', 'DYJets', 'DYJets_10to50']
 rdfilelist = ['MuonEG_Run2015','DoubleEG_Run2015','DoubleMuon_Run2015']
 rootfileDir = "/cms/scratch/jlee/v7-4-5/TtbarDiLeptonAnalyzer_"
+
 datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json" % os.environ['CMSSW_BASE']))
 
-#bin define
-ptbin = [20, 0, 200]
-etabin = [20, -2.5, 2.5]
-massbin = [60, 20, 320]
-njetbin = [10, 0, 10]
-nbjetbin = [6, 0, 6]
-rapibin = [10, -2.5, 2.5]
-
-plotvar_l = ["ll_m", "njet", "met", "nbjet"]
-x_name_l = ["M(ll) [GeV/c^{2}]", "Jet Multiplicity", "Missing Et [GeV]", "b Jet Multiplicity"]
-binset_l = [massbin, njetbin, ptbin, nbjetbin]
-
-if step >= 5:
-	plotvar_l = ["top1_pt", "top1_rapi", "ttbar_pt", "ttbar_rapi", "lep1_pt", "lep1_eta", "jet1_pt", "jet1_eta"]
-	binset_l = [ptbin, rapibin, ptbin, rapibin, ptbin, etabin, ptbin, etabin]
-	x_name_l = ["Top p_{T} [GeV/c]", "Top Rapidity", "TTbar p_{T} [GeV/c]", "TTbar Rapidity", "lepton p_{T} [GeV/c]", "lepton #eta", "Jet p_{T} [GeV/c]", "Jet #eta"]
-
-mchistList = []
-CMS_lumi.lumi_sqrtS = "%.2f fb^{-1}, #sqrt{s} = 13 TeV"%(datalumi)
-tname = "cattree/nom"
-
-step = 1
-channel_name = sys.argv[1]
-channel_l = ['MuEl', 'ElEl', 'MuMu']
-channel = channel_l.index(channel_name)+1
-plotvar = sys.argv[2]
-print plotvar
-
-cut = 'filtered==1&&tri==1'
+cut = 'tri==1&&filtered==1'
 weight = 'weight'
 #weight = 'weight/puweight'
-datalumi = datalumi*1000 # due to fb
-if channel == 1: ttother_tcut = "!(parton_channel==2 && ((parton_mode1==1 && parton_mode2==2) || (parton_mode1==2 && parton_mode2==1)))"
-elif channel == 2: ttother_tcut = "!(parton_channel==2 && (parton_mode1==2 && parton_mode2==2))"
-elif channel == 3: ttother_tcut = "!(parton_channel==2 && (parton_mode1==1 && parton_mode2==1))"
-stepch_tcut =  'step>=%i&&channel==%i'%(step,channel)
-tcut = '(%s&&%s)*%s'%(stepch_tcut,cut,weight)
-ttother_tcut = '(%s&&%s&&%s)*%s'%(stepch_tcut,cut,ttother_tcut,weight)
-print "TCut =",tcut
 
-binning = binset_l[plotvar_l.index(plotvar)]
-x_name = "Step "+str(step)+" "+channel_name+" "+x_name_l[plotvar_l.index(plotvar)]
+plotvar = 'll_m'
+binning = [200, 0, 200]
+x_name = 'mass [GeV]'
 y_name = 'Number of Events'
 if len(binning) <= 3:
     num = (binning[2]-binning[1])/float(binning[0])
@@ -61,6 +32,54 @@ if len(binning) <= 3:
             unit = "["+x_name.split('[')[1]
         else: unit = ""
         y_name = y_name + "/%g%s"%(num,unit)
+dolog = False
+channel = 1
+step = 1
+
+try:
+    opts, args = getopt.getopt(sys.argv[1:],"hdc:w:b:p:x:y:a:s:",["cut","weight","binning","plotvar","x_name","y_name","dolog","channel","step"])
+except getopt.GetoptError:          
+    print 'Usage : ./topDraw.py.py -c <cut> -w <weight> -b <binning> -p <plotvar> -x <x_name> -y <y_name> -d <dolog>'
+    sys.exit(2)
+for opt, arg in opts:
+    if opt == '-h':
+        print 'Usage : ./topDraw.py.py -c <cut> -w <weight> -b <binning> -p <plotvar> -x <x_name> -y <y_name> -d <dolog>'
+        sys.exit()
+    elif opt in ("-c", "--cut"):
+        cut = arg
+    elif opt in ("-a", "--channel"):
+        channel = int(arg)
+    elif opt in ("-s", "--step"):
+        step = int(arg)
+    elif opt in ("-w", "--weight"):
+        weight = arg
+    elif opt in ("-b", "--binning"):
+        binning = eval(arg)
+    elif opt in ("-p", "--plotvar"):
+        plotvar = arg
+    elif opt in ("-x", "--x_name"):
+        x_name = arg
+    elif opt in ("-y", "--y_name"):
+        y_name = arg
+    elif opt in ("-d", "--dolog"):
+        dolog = True
+
+tname = "cattree/nom"
+mchistList = []
+
+if channel == 1: ttother_tcut = "!(parton_channel==2 && ((parton_mode1==1 && parton_mode2==2) || (parton_mode1==2 && parton_mode2==1)))"
+elif channel == 2: ttother_tcut = "!(parton_channel==2 && (parton_mode1==2 && parton_mode2==2))"
+elif channel == 3: ttother_tcut = "!(parton_channel==2 && (parton_mode1==1 && parton_mode2==1))"
+
+stepch_tcut =  'step>=%i&&channel==%i'%(step,channel)
+tcut = '(%s&&%s)*%s'%(stepch_tcut,cut,weight)
+ttother_tcut = '(%s&&%s&&%s)*%s'%(stepch_tcut,cut,ttother_tcut,weight)
+print "TCut =",tcut
+
+binning = binset_l[plotvar_l.index(plotvar)]
+x_name = "Step "+str(step)+" "+channel_name+" "+x_name
+
+print plotvar
 
 #DY estimation
 dyratio = [[0 for x in range(7)] for x in range(4)]

@@ -8,14 +8,6 @@ def getTH1(title, binning, tree, plotvar, cut, scale = 0.):
     else:
         hist = ROOT.TH1D("name", title, len(binning)-1, array.array('f', binning))
     tree.Project("name", plotvar, cut)
-    if "1" in plotvar:
-        if len(binning) == 3:
-            hist2 = ROOT.TH1D("name2", title, binning[0], binning[1], binning[2])
-        else:
-            hist2 = ROOT.TH1D("name2", title, len(binning)-1, array.array('f', binning))
-        plotvar = plotvar.replace("1", "2")
-        tree.Project("name2", plotvar, cut)
-        hist.Add(hist2)
     if hist.GetSumw2N() == 0:
         hist.Sumw2()
     if scale != 0:
@@ -118,10 +110,11 @@ def setDefTH1Style(th1, x_name, y_name):
     return th1
     
 def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=True, ratioRange=0.45):
-    leg = ROOT.TLegend(0.7,0.68,0.87,0.92)
+    #leg = ROOT.TLegend(0.58,0.78,0.8,0.9)
+    leg = ROOT.TLegend(0.71,0.68,0.88,0.91)
     leg.SetBorderSize(0)
-    leg.SetNColumns(2)
-    leg.SetTextSize(0.028)
+    #leg.SetNColumns(2)
+    leg.SetTextSize(0.029)
     leg.SetTextFont(42)
     leg.SetLineColor(0)
     leg.SetFillColor(0)
@@ -141,6 +134,7 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
             leg.AddEntry(inversed, inversed.GetTitle(), "f")
             leghist.append(inversed.GetTitle())
                         
+    #hratio.Divide(data,mclist[0],1.,1.,"B")
     hratio.Divide(data,hratio,1.,1.,"B")
 
     tdrstyle.setTDRStyle()
@@ -148,6 +142,7 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
     setDefTH1Style(data, x_name, y_name)
     data.SetMaximum(data.GetMaximum()*1.8)
     if doLog:
+        #data.SetMaximum(10**7)
         data.SetMaximum(data.GetMaximum()*10)
         
     ratio_fraction = 0
@@ -170,6 +165,7 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
     
     data.Draw()
     hs.Draw("same")
+    #hs.Draw("samenostack")
     data.Draw("esamex0")
     leg.Draw("same")
     pads[0].Update()
