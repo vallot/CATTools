@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 import ROOT,os
 
-puname = 'Run2015_25nsSilver'
-certJSON = 'Cert_246908-259891_13TeV_PromptReco_Collisions15_25ns_JSON_Silver.txt'
-#puname = 'Run2015_25ns'
-#certJSON = 'Cert_246908-258750_13TeV_PromptReco_Collisions15_25ns_JSON.txt'
+#puname = 'Run2015_25ns_246908-260627_Silver'
+#certJSON = 'Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON_Silver.txt'
+puname = 'Run2015_25ns_246908-260627'
+certJSON = 'Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON.txt'
 minBiasXsec = 69000.
 
 syst = ['', 'Up', 'Dn']

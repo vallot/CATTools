@@ -14,6 +14,8 @@
 
 #include "DataFormats/Common/interface/View.h"
 
+#include "DataFormats/Provenance/interface/LuminosityBlockRange.h"
+
 #include <memory>
 #include <vector>
 #include <string>
@@ -41,6 +43,9 @@ private:
   edm::EDGetTokenT<reco::VertexCollection> vertexToken_;
 
   edm::EDGetTokenT<int> nTrueIntrToken_;
+
+  std::vector<edm::LuminosityBlockRange> luminositySectionsBlockRanges_;
+
 };
 
 PileupWeightProducer::PileupWeightProducer(const edm::ParameterSet& pset)
@@ -96,6 +101,8 @@ PileupWeightProducer::PileupWeightProducer(const edm::ParameterSet& pset)
     lumiWeightsDn_ = edm::LumiReWeighting(pileupMCTmp, pileupDnTmp);
   }
 
+  luminositySectionsBlockRanges_ = pset.getUntrackedParameter< std::vector<edm::LuminosityBlockRange> >("LuminositySectionsBlockRange");
+
   produces<int>("nTrueInteraction");
   produces<float>("");
   produces<float>("up");
@@ -106,9 +113,9 @@ PileupWeightProducer::PileupWeightProducer(const edm::ParameterSet& pset)
 void PileupWeightProducer::produce(edm::Event& event, const edm::EventSetup& eventSetup)
 {
   std::auto_ptr<int> nTrueIntr(new int(-1));
-  std::auto_ptr<float> weight(new float(1.));
-  std::auto_ptr<float> weightUp(new float(1.));
-  std::auto_ptr<float> weightDn(new float(1.));
+  std::auto_ptr<float> weight(new float(0.));
+  std::auto_ptr<float> weightUp(new float(0.));
+  std::auto_ptr<float> weightDn(new float(0.));
 
   if ( !event.isRealData() ){
     if ( weightingMethod_ == WeightingMethod::NVertex) {
@@ -147,6 +154,21 @@ void PileupWeightProducer::produce(edm::Event& event, const edm::EventSetup& eve
         *weight   = lumiWeights_.weight(*nTrueIntr);
         *weightUp = lumiWeightsUp_.weight(*nTrueIntr);
         *weightDn = lumiWeightsDn_.weight(*nTrueIntr);
+      }
+    }
+  }
+  else {
+    edm::RunNumber_t             kRun  = event.id().run();
+    edm::LuminosityBlockNumber_t kLumi = event.id().luminosityBlock();
+    for(std::vector<edm::LuminosityBlockRange>::iterator oneLumiRange = luminositySectionsBlockRanges_.begin();
+	oneLumiRange != luminositySectionsBlockRanges_.end(); ++oneLumiRange){
+      if ( kRun < (*oneLumiRange).startRun() ) {
+	break;
+      }
+      if ( (*oneLumiRange).endRun() < kRun ) continue;
+      if ( (*oneLumiRange).startLumi() <= kLumi && kLumi <= (*oneLumiRange).endLumi() ){
+	*weight = 1;
+	break;
       }
     }
   }
