@@ -5,7 +5,8 @@ from array import *
 
 class HistMaker(object):
     def __init__(self, inFileNames, outFileName,
-                 modName = "ntuple", treeName = "event", eventCount = "hNEvent"):
+                 modName = "ntuple", treeName = "event", eventCount = "hNEvent",
+                 includeOverflow = False):
         self.weightVar = "1"
         self.precut = "1"
         self.h1 = {}
@@ -129,9 +130,13 @@ class HistMaker(object):
                     h = TH1F(histName, title, len(bins)-1, bins)
                     h.Sumw2()
                     if self.isMC: h.SetOption("hist")
-                    xmax = h.GetXaxis().GetXmax()-1e-9*h.GetXaxis().GetBinWidth(len(bins))
-                    if self.isMC: self.chain.Draw("min(%s,%f)>>%s" % (varexp, xmax, histName), "(%s)*(%s)" % (self.weightVar, stackedCut), "goff")
-                    else: self.chain.Draw("min(%s,%f)>>%s" % (varexp, xmax, histName), "%s" % stackedCut, "goff")
+                    if includeOverflow:
+                        xmax = h.GetXaxis().GetXmax()-0.5*h.GetXaxis().GetBinWidth(len(bins))
+                        if self.isMC: self.chain.Draw("min(%s,%f)>>%s" % (varexp, xmax, histName), "(%s)*(%s)" % (self.weightVar, stackedCut), "goff")
+                        else: self.chain.Draw("min(%s,%f)>>%s" % (varexp, xmax, histName), "%s" % stackedCut, "goff")
+                    else:
+                        if self.isMC: self.chain.Draw("%s>>%s" % (varexp, histName), "(%s)*(%s)" % (self.weightVar, stackedCut), "goff")
+                        else: self.chain.Draw("%s>>%s" % (varexp, histName), "%s" % stackedCut, "goff")
                 elif histName in self.h2:
                     varexp, title, binsX, binsY = self.h2[histName]
                     h = TH2F(histName, title, len(binsX)-1, binsX, len(binsY)-1, binsY)
