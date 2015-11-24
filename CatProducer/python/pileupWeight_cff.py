@@ -1,5 +1,5 @@
 import FWCore.ParameterSet.Config as cms
-from   FWCore.PythonUtilities.LumiList import LumiList
+#from   FWCore.PythonUtilities.LumiList import LumiList
 
 pileupWeight = cms.EDProducer("PileupWeightProducer",
     #weightingMethod = cms.string("NVertex"), # Simple bin-by-bin correction of nVertex distribution. Non standard
@@ -14,7 +14,7 @@ pileupWeight = cms.EDProducer("PileupWeightProducer",
     pileupInfo = cms.InputTag("slimmedAddPileupInfo"),
     vertex = cms.InputTag("offlineSlimmedPrimaryVertices"),
     nTrueIntr = cms.InputTag("pileupWeight", "nTrueInteraction", "CAT"),
-    LuminositySectionsBlockRange = LumiList('LumiMask/Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON.txt').getVLuminosityBlockRange()
+    #LuminositySectionsBlockRange = LumiList('LumiMask/Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON.txt').getVLuminosityBlockRange()
 )
 
 pileupWeightMap = {

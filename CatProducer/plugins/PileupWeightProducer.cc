@@ -44,7 +44,7 @@ private:
 
   edm::EDGetTokenT<int> nTrueIntrToken_;
 
-  std::vector<edm::LuminosityBlockRange> luminositySectionsBlockRanges_;
+  //  std::vector<edm::LuminosityBlockRange> luminositySectionsBlockRanges_;
 
 };
 
@@ -101,7 +101,7 @@ PileupWeightProducer::PileupWeightProducer(const edm::ParameterSet& pset)
     lumiWeightsDn_ = edm::LumiReWeighting(pileupMCTmp, pileupDnTmp);
   }
 
-  luminositySectionsBlockRanges_ = pset.getUntrackedParameter< std::vector<edm::LuminosityBlockRange> >("LuminositySectionsBlockRange");
+  //  luminositySectionsBlockRanges_ = pset.getUntrackedParameter< std::vector<edm::LuminosityBlockRange> >("LuminositySectionsBlockRange");
 
   produces<int>("nTrueInteraction");
   produces<float>("");
@@ -157,21 +157,21 @@ void PileupWeightProducer::produce(edm::Event& event, const edm::EventSetup& eve
       }
     }
   }
-  else {
-    edm::RunNumber_t             kRun  = event.id().run();
-    edm::LuminosityBlockNumber_t kLumi = event.id().luminosityBlock();
-    for(std::vector<edm::LuminosityBlockRange>::iterator oneLumiRange = luminositySectionsBlockRanges_.begin();
-	oneLumiRange != luminositySectionsBlockRanges_.end(); ++oneLumiRange){
-      if ( kRun < (*oneLumiRange).startRun() ) {
-	break;
-      }
-      if ( (*oneLumiRange).endRun() < kRun ) continue;
-      if ( (*oneLumiRange).startLumi() <= kLumi && kLumi <= (*oneLumiRange).endLumi() ){
-	*weight = 1;
-	break;
-      }
-    }
-  }
+  // else {
+  //   edm::RunNumber_t             kRun  = event.id().run();
+  //   edm::LuminosityBlockNumber_t kLumi = event.id().luminosityBlock();
+  //   for(std::vector<edm::LuminosityBlockRange>::iterator oneLumiRange = luminositySectionsBlockRanges_.begin();
+  // 	oneLumiRange != luminositySectionsBlockRanges_.end(); ++oneLumiRange){
+  //     if ( kRun < (*oneLumiRange).startRun() ) {
+  // 	break;
+  //     }
+  //     if ( (*oneLumiRange).endRun() < kRun ) continue;
+  //     if ( (*oneLumiRange).startLumi() <= kLumi && kLumi <= (*oneLumiRange).endLumi() ){
+  // 	*weight = 1;
+  // 	break;
+  //     }
+  //   }
+  // }
 
   event.put(nTrueIntr, "nTrueInteraction");
   event.put(weight  , "");
