@@ -14,19 +14,23 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         process.pileupWeight.pileupUp = pileupWeightMap["Run2015_50nsUp"]
         process.pileupWeight.pileupDn = pileupWeightMap["Run2015_50nsDn"]
 
-    from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
-    from FWCore.PythonUtilities.LumiList import LumiList
-    process.pileupWeight.LuminositySectionsBlockRange = LumiList('LumiMask/Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON.txt').getVLuminosityBlockRange()
-    process.pileupWeight.pileupMC = pileupWeightMap["Startup2015_25ns"]
-    process.pileupWeight.pileupRD = pileupWeightMap["Run2015_25ns_246908-260627"]
-    process.pileupWeight.pileupUp = pileupWeightMap["Run2015_25ns_246908-260627_Up"]
-    process.pileupWeight.pileupDn = pileupWeightMap["Run2015_25ns_246908-260627_Dn"]
-    
-    process.pileupWeightSilver = process.pileupWeight.clone()
-    process.pileupWeight.LuminositySectionsBlockRange = LumiList('LumiMask/Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON_Silver.txt').getVLuminosityBlockRange()
-    process.pileupWeightSilver.pileupRD = pileupWeightMap["Run2015_25ns_246908-260627_Silver"]
-    process.pileupWeightSilver.pileupUp = pileupWeightMap["Run2015_25ns_246908-260627_Silver_Up"]
-    process.pileupWeightSilver.pileupDn = pileupWeightMap["Run2015_25ns_246908-260627_Silver_Dn"]
+    lumiJSON = 'Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON'
+    if runOnMC:
+        from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
+        from FWCore.PythonUtilities.LumiList import LumiList
+        process.pileupWeight.pileupMC = pileupWeightMap["Startup2015_25ns"]
+        process.pileupWeight.pileupRD = pileupWeightMap["Run2015_25ns_246908-260627"]
+        process.pileupWeight.pileupUp = pileupWeightMap["Run2015_25ns_246908-260627_Up"]
+        process.pileupWeight.pileupDn = pileupWeightMap["Run2015_25ns_246908-260627_Dn"]
+        process.pileupWeightSilver = process.pileupWeight.clone()
+        process.pileupWeightSilver.pileupRD = pileupWeightMap["Run2015_25ns_246908-260627_Silver"]
+        process.pileupWeightSilver.pileupUp = pileupWeightMap["Run2015_25ns_246908-260627_Silver_Up"]
+        process.pileupWeightSilver.pileupDn = pileupWeightMap["Run2015_25ns_246908-260627_Silver_Dn"]
+    else:
+        process.lumiMask = cms.EDProducer("LumiMaskProducer",
+            LumiSections = LumiList('LumiMask/%s.txt'%lumiJSON).getVLuminosityBlockRange())
+        process.lumiMaskSilver = cms.EDProducer("LumiMaskProducer",
+            LumiSections = LumiList('LumiMask/%s_Silver.txt'%lumiJSON).getVLuminosityBlockRange())
     
     useJECfile = True
     era = "Summer15_{}nsV6".format(bunchCrossing)
