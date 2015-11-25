@@ -14,8 +14,6 @@
 
 #include "DataFormats/Common/interface/View.h"
 
-#include "DataFormats/Provenance/interface/LuminosityBlockRange.h"
-
 #include <memory>
 #include <vector>
 #include <string>
@@ -97,6 +95,7 @@ PileupWeightProducer::PileupWeightProducer(const edm::ParameterSet& pset)
     lumiWeightsUp_ = edm::LumiReWeighting(pileupMCTmp, pileupUpTmp);
     lumiWeightsDn_ = edm::LumiReWeighting(pileupMCTmp, pileupDnTmp);
   }
+
   produces<int>("nTrueInteraction");
   produces<float>("");
   produces<float>("up");
@@ -107,9 +106,9 @@ PileupWeightProducer::PileupWeightProducer(const edm::ParameterSet& pset)
 void PileupWeightProducer::produce(edm::Event& event, const edm::EventSetup& eventSetup)
 {
   std::auto_ptr<int> nTrueIntr(new int(-1));
-  std::auto_ptr<float> weight(new float(0.));
-  std::auto_ptr<float> weightUp(new float(0.));
-  std::auto_ptr<float> weightDn(new float(0.));
+  std::auto_ptr<float> weight(new float(1.));
+  std::auto_ptr<float> weightUp(new float(1.));
+  std::auto_ptr<float> weightDn(new float(1.));
 
   if ( !event.isRealData() ){
     if ( weightingMethod_ == WeightingMethod::NVertex) {
