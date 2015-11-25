@@ -18,13 +18,13 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
     if runOnMC:
         from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
         process.pileupWeight.pileupMC = pileupWeightMap["Startup2015_25ns"]
-        process.pileupWeight.pileupRD = pileupWeightMap["Run2015_25ns_246908-260627"]
-        process.pileupWeight.pileupUp = pileupWeightMap["Run2015_25ns_246908-260627_Up"]
-        process.pileupWeight.pileupDn = pileupWeightMap["Run2015_25ns_246908-260627_Dn"]
+        process.pileupWeight.pileupRD = pileupWeightMap["%s"%lumiJSON]
+        process.pileupWeight.pileupUp = pileupWeightMap["%s_Up"%lumiJSON]
+        process.pileupWeight.pileupDn = pileupWeightMap["%s_Dn"%lumiJSON]
         process.pileupWeightSilver = process.pileupWeight.clone()
-        process.pileupWeightSilver.pileupRD = pileupWeightMap["Run2015_25ns_246908-260627_Silver"]
-        process.pileupWeightSilver.pileupUp = pileupWeightMap["Run2015_25ns_246908-260627_Silver_Up"]
-        process.pileupWeightSilver.pileupDn = pileupWeightMap["Run2015_25ns_246908-260627_Silver_Dn"]
+        process.pileupWeightSilver.pileupRD = pileupWeightMap["%s_Silver"%lumiJSON]
+        process.pileupWeightSilver.pileupUp = pileupWeightMap["%s_Silver_Up"%lumiJSON]
+        process.pileupWeightSilver.pileupDn = pileupWeightMap["%s_Silver_Dn"%lumiJSON]
     else:
         from FWCore.PythonUtilities.LumiList import LumiList
         process.lumiMask = cms.EDProducer("LumiMaskProducer",

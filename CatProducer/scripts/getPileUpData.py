@@ -47,7 +47,7 @@ for i, f in enumerate(syst):
     tt = ROOT.TFile(PileUpData)
     histo = tt.Get("pileup")
     outfile.write('#%s \n'%command)
-    outfile.write('"%s%s":cms.vdouble('%(puname,f))
+    outfile.write('"%s%s":cms.vdouble(\n'%(puname,f))
     for b in range(1, histo.GetNbinsX()+1):
         outfile.write("%e,"%histo.GetBinContent(b))
         if b%5 == 0:
