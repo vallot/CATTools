@@ -17,7 +17,6 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
     lumiJSON = 'Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON'
     if runOnMC:
         from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
-        from FWCore.PythonUtilities.LumiList import LumiList
         process.pileupWeight.pileupMC = pileupWeightMap["Startup2015_25ns"]
         process.pileupWeight.pileupRD = pileupWeightMap["Run2015_25ns_246908-260627"]
         process.pileupWeight.pileupUp = pileupWeightMap["Run2015_25ns_246908-260627_Up"]
@@ -27,6 +26,7 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         process.pileupWeightSilver.pileupUp = pileupWeightMap["Run2015_25ns_246908-260627_Silver_Up"]
         process.pileupWeightSilver.pileupDn = pileupWeightMap["Run2015_25ns_246908-260627_Silver_Dn"]
     else:
+        from FWCore.PythonUtilities.LumiList import LumiList
         process.lumiMask = cms.EDProducer("LumiMaskProducer",
             LumiSections = LumiList('LumiMask/%s.txt'%lumiJSON).getVLuminosityBlockRange())
         process.lumiMaskSilver = cms.EDProducer("LumiMaskProducer",
