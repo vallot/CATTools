@@ -1,3 +1,4 @@
+#!/usr/bin/env python 
 # catGetDatasetInfo v7-4-4 # to make dataset lists
 # sed -i 's/^\/store/root:\/\/cms-xrdr.sdfarm.kr:1094\/\/xrd\/store/g' *
 
@@ -15,7 +16,7 @@ with open(dataset_json) as data_file:
     for i in data:
         #print data[0]
         datasetName = i['name']
-        if "Enriched" in datasetName:
+        if "QCD" in datasetName:
             continue
         if "ttH" in datasetName:
             continue       
