@@ -2,28 +2,41 @@ import math, array, ROOT, copy, CMS_lumi, tdrstyle
 import PhysicsTools.PythonAnalysis.rootplot.core as rootplotcore
 tdrstyle.setTDRStyle()
 
-def getTH1(title, binning, tree, plotvar, cut, lumiScale = 0.):
+def getTH1(title, binning, tree, plotvar, cut, scale = 0.):
     if len(binning) == 3:
-        hist = ROOT.TH1F("name", title, binning[0], binning[1], binning[2])
+        hist = ROOT.TH1D("name", title, binning[0], binning[1], binning[2])
     else:
-        hist = ROOT.TH1F("name", title, len(binning)-1, array.array('f', binning))
+        hist = ROOT.TH1D("name", title, len(binning)-1, array.array('f', binning))      
     tree.Project("name", plotvar, cut)
     if hist.GetSumw2N() == 0:
         hist.Sumw2()
-    if lumiScale != 0 and tree.GetEntries():
-        hist.Scale(lumiScale/tree.GetEntries())
+    if scale != 0:
+        hist.Scale(scale)
     return copy.deepcopy(hist)
 
-def makeTH1(filename, treename, title, binning, plotvar, cut, lumiScale = 0.):
+def makeTH1(filename, treename, title, binning, plotvar, cut, scale = 0.):
     tfile = ROOT.TFile(filename)
-    tree = tfile.Get(treename)
-    return getTH1(title, binning, tree, plotvar, cut, lumiScale)
+    tree  = tfile.Get(treename)
+    
+    if len(binning) == 3:
+        hist = ROOT.TH1D("temp", title, binning[0], binning[1], binning[2])
+    else:
+        hist = ROOT.TH1D("temp", title, len(binning)-1, array.array('f', binning))      
+        
+    for var in plotvar.split(','):
+        hist.Add(getTH1(title, binning, tree, var, cut, scale))
+        
+    return copy.deepcopy(hist)
 
 def getEntries(filename, treename):
     tfile = ROOT.TFile(filename)
-    tree = tfile.Get(treename)
-    return tree.GetEntries()
-           
+    tree  = tfile.Get(treename)
+    return tree.GetEntriesFast()
+
+def getWeightedEntries(filename, treename, plotvar, weight):
+    weighthist = makeTH1(filename, treename, '', [1, 0, 1], plotvar,weight)    
+    return weighthist.Integral(-1,2)
+
 def divide_canvas(canvas, ratio_fraction):
     margins = [ROOT.gStyle.GetPadTopMargin(), ROOT.gStyle.GetPadBottomMargin()]
     useable_height = 1 - (margins[0] + margins[1])
@@ -97,8 +110,10 @@ def setDefTH1Style(th1, x_name, y_name):
     return th1
     
 def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=True, ratioRange=0.45):
-    leg = ROOT.TLegend(0.7,0.7,0.82,0.88)
-    leg.SetTextSize(0.035)
+    leg = ROOT.TLegend(0.7,0.68,0.87,0.92)
+    leg.SetBorderSize(0)
+    leg.SetNColumns(2)
+    leg.SetTextSize(0.025)
     leg.SetTextFont(42)
     leg.SetLineColor(0)
     leg.SetFillColor(0)

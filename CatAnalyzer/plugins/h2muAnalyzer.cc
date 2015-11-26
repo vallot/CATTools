@@ -43,7 +43,7 @@ private:
   int etaCategory(float lep1_eta, float lep2_eta) const;
 
   edm::EDGetTokenT<int> recoFiltersToken_, nGoodVertexToken_;
-  edm::EDGetTokenT<float> puweightToken_;
+  edm::EDGetTokenT<float> genweightToken_, puweightToken_;
   edm::EDGetTokenT<cat::MuonCollection>     muonToken_;
   edm::EDGetTokenT<cat::ElectronCollection> elecToken_;
   edm::EDGetTokenT<cat::JetCollection>      jetToken_;
@@ -56,7 +56,7 @@ private:
   TTree * ttree_;
   int b_nvertex, b_step, b_channel, b_njet, b_nbjet;
   bool b_step1, b_step2, b_step3, b_step4, b_step5, b_tri, b_filtered;
-  float b_met, b_puweight;
+  float b_met, b_weight, b_puweight;
 
   float b_lep1_pt, b_lep1_eta, b_lep1_phi;
   float b_lep2_pt, b_lep2_eta, b_lep2_phi;
@@ -79,6 +79,7 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
 {
   recoFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("recoFilters"));
   nGoodVertexToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("nGoodVertex"));
+  genweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("genweight"));
   puweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("puweight"));
   muonToken_ = consumes<cat::MuonCollection>(iConfig.getParameter<edm::InputTag>("muons"));
   elecToken_ = consumes<cat::ElectronCollection>(iConfig.getParameter<edm::InputTag>("electrons"));
@@ -105,6 +106,7 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("tri", &b_tri, "tri/O");
   ttree_->Branch("filtered", &b_filtered, "filtered/O");
   ttree_->Branch("met", &b_met, "met/F");
+  ttree_->Branch("weight", &b_weight, "weight/F");
   ttree_->Branch("puweight", &b_puweight, "puweight/F");
 
   ttree_->Branch("lep1_pt", &b_lep1_pt, "lep1_pt/F");
@@ -159,8 +161,7 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   b_nvertex = 0;b_step = -1;b_channel = 0;b_njet = 0;b_nbjet = 0;
   b_step1 = 0;b_step2 = 0;b_step3 = 0;b_step4 = 0;b_step5 = 0;b_tri = 0;b_filtered = 0;
   b_met = -9;
-  b_puweight = -9;
-  if (!runOnMC_) b_puweight = 1;
+  b_weight = 1; b_puweight = 1;
 
   b_lep1_pt = -9;b_lep1_eta = -9;b_lep1_phi = -9;
   b_lep2_pt = -9;b_lep2_eta = -9;b_lep2_phi = -9;
@@ -177,19 +178,25 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   b_gen_lep2_isLoose = 0;b_gen_lep2_isMedium = 0;b_gen_lep2_isTight = 0;
   b_gen_ll_pt = 0;b_gen_ll_eta = 0;b_gen_ll_phi = 0;b_gen_ll_m = 0;
 
-  edm::Handle<reco::VertexCollection> vertices;
-  iEvent.getByToken(vtxToken_, vertices);
-  if (vertices->empty()){ return;} // skip the event if no PV found
-  // const reco::Vertex &PV = vertices->front();
-  edm::Handle<int> nGoodVertexHandle;
-  iEvent.getByToken(nGoodVertexToken_, nGoodVertexHandle);
-  b_nvertex = *nGoodVertexHandle;
-
   if (runOnMC_){
     edm::Handle<float> puweightHandle;
     iEvent.getByToken(puweightToken_, puweightHandle);
     b_puweight = *puweightHandle;
+    edm::Handle<float> genweightHandle;
+    iEvent.getByToken(genweightToken_, genweightHandle);
+    b_weight = (*genweightHandle)*b_puweight;
   }
+  
+  edm::Handle<reco::VertexCollection> vertices;
+  iEvent.getByToken(vtxToken_, vertices);
+  if (vertices->empty()){ // skip the event if no PV found
+    ttree_->Fill();
+    return;
+  }
+  edm::Handle<int> nGoodVertexHandle;
+  iEvent.getByToken(nGoodVertexToken_, nGoodVertexHandle);
+  b_nvertex = *nGoodVertexHandle;
+
   edm::Handle<int> recoFiltersHandle;
   iEvent.getByToken(recoFiltersToken_, recoFiltersHandle);
   b_filtered = *recoFiltersHandle == 0 ? false : true;

@@ -12,11 +12,13 @@ h2muDraw.py -c 'll_m>50&&step>=5&&isTight==1&&filtered==1' -b [100,0,100] -p lep
 h2muDraw.py -c 'll_m>50&&step>=5&&isTight==1&&filtered==1' -b [100,0,100] -p met -x 'met  [GeV]' &
 h2muDraw.py -c 'll_m>50&&step>=5&&isTight==1&&filtered==1' -b [100,-3,3] -p lep1_eta,lep2_eta -x '#eta' &
 '''
-datalumi = 1280.23
+datalumi = 1915
+rootfileDir = "/cms/scratch/jlee/v7-4-5/h2muAnalyzer_"
+
 CMS_lumi.lumi_sqrtS = "%.0f pb^{-1}, #sqrt{s} = 13 TeV 25ns "%(datalumi)
 mcfilelist = ['GG_HToMuMu','VBF_HToMuMu','WW','WZ','ZZ','TT_powheg','DYJets','DYJets_10to50']#,'WJets']
 rdfilelist = ['SingleMuon_Run2015']
-rootfileDir = "/cms/scratch/jlee/v7-4-5/h2muAnalyzer_"
+
 datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json" % os.environ['CMSSW_BASE']))
 
 cut = 'll_m>50&&step>=5&&isTight==1&&filtered==1'
@@ -54,6 +56,7 @@ for opt, arg in opts:
     elif opt in ("-d", "--dolog"):
         dolog = True
 print plotvar, x_name, fname
+
 tname = "cattree/nom"
 mchistList = []
 tcut = '(%s)*%s'%(cut,weight)
