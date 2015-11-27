@@ -1,3 +1,4 @@
+#!/usr/bin/env python 
 # catGetDatasetInfo v7-4-4 # to make dataset lists
 # sed -i 's/^\/store/root:\/\/cms-xrdr.sdfarm.kr:1094\/\/xrd\/store/g' *
 

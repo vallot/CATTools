@@ -28,15 +28,16 @@ binning = [200, 0, 200]
 x_name = 'mass [GeV]'
 y_name = 'events'
 dolog = False
+fname = plotvar
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:],"hdc:w:b:p:x:y:",["cut","weight","binning","plotvar","x_name","y_name","dolog"])
+    opts, args = getopt.getopt(sys.argv[1:],"hdc:w:b:p:x:y:f:",["cut","weight","binning","plotvar","x_name","y_name","f_name","dolog"])
 except getopt.GetoptError:          
-    print 'Usage : ./h2muDraw.py -c <cut> -w <weight> -b <binning> -p <plotvar> -x <x_name> -y <y_name> -d <dolog>'
+    print 'Usage : ./h2muDraw.py -c <cut> -w <weight> -b <binning> -p <plotvar> -x <x_name> -y <y_name> -f <f_name> -d <dolog>'
     sys.exit(2)
 for opt, arg in opts:
     if opt == '-h':
-        print 'Usage : ./h2muDraw.py -c <cut> -w <weight> -b <binning> -p <plotvar> -x <x_name> -y <y_name> -d <dolog>'
+        print 'Usage : ./h2muDraw.py -c <cut> -w <weight> -b <binning> -p <plotvar> -x <x_name> -y <y_name> -f <f_name> -d <dolog>'
         sys.exit()
     elif opt in ("-c", "--cut"):
         cut = arg
@@ -50,8 +51,11 @@ for opt, arg in opts:
         x_name = arg
     elif opt in ("-y", "--y_name"):
         y_name = arg
+    elif opt in ("-f", "--f_name"):
+        fname = arg
     elif opt in ("-d", "--dolog"):
         dolog = True
+print plotvar, x_name, fname
 
 tname = "cattree/nom"
 mchistList = []
@@ -81,4 +85,4 @@ if plotvar == 'll_m':# blind data around higgs mass
     for i in range(11):
         rdhist.SetBinContent(120+i,0)
 
-drawTH1(plotvar+tcut+".png", CMS_lumi, mchistList, rdhist, x_name, y_name,dolog)
+drawTH1(fname+".png", CMS_lumi, mchistList, rdhist, x_name, y_name,dolog)
