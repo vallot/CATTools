@@ -14,6 +14,24 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         process.pileupWeight.pileupUp = pileupWeightMap["Run2015_50nsUp"]
         process.pileupWeight.pileupDn = pileupWeightMap["Run2015_50nsDn"]
 
+    lumiJSON = 'Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON'
+    if runOnMC:
+        from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
+        process.pileupWeight.pileupMC = pileupWeightMap["Startup2015_25ns"]
+        process.pileupWeight.pileupRD = pileupWeightMap["%s"%lumiJSON]
+        process.pileupWeight.pileupUp = pileupWeightMap["%s_Up"%lumiJSON]
+        process.pileupWeight.pileupDn = pileupWeightMap["%s_Dn"%lumiJSON]
+        process.pileupWeightSilver = process.pileupWeight.clone()
+        process.pileupWeightSilver.pileupRD = pileupWeightMap["%s_Silver"%lumiJSON]
+        process.pileupWeightSilver.pileupUp = pileupWeightMap["%s_Silver_Up"%lumiJSON]
+        process.pileupWeightSilver.pileupDn = pileupWeightMap["%s_Silver_Dn"%lumiJSON]
+    else:
+        from FWCore.PythonUtilities.LumiList import LumiList
+        process.lumiMask = cms.EDProducer("LumiMaskProducer",
+            LumiSections = LumiList('LumiMask/%s.txt'%lumiJSON).getVLuminosityBlockRange())
+        process.lumiMaskSilver = cms.EDProducer("LumiMaskProducer",
+            LumiSections = LumiList('LumiMask/%s_Silver.txt'%lumiJSON).getVLuminosityBlockRange())
+    
     useJECfile = True
     era = "Summer15_{}nsV6".format(bunchCrossing)
     

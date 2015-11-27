@@ -36,7 +36,7 @@ private:
 
   cat::MuonCollection selectMuons(const cat::MuonCollection& muons ) const;
   cat::ElectronCollection selectElecs(const cat::ElectronCollection& elecs ) const;
-  cat::JetCollection selectJets(const cat::JetCollection& jets, const vector<TLorentzVector>& recolep) const;
+  cat::JetCollection selectJets(const cat::JetCollection& jets, cat::MuonCollection & recolep) const;
   cat::JetCollection selectBJets(const cat::JetCollection& jets) const;
   int preSelect(const cat::JetCollection& seljets, float MET) const;
   int jetCategory(const cat::JetCollection& seljets, float MET, float ll_pt) const;
@@ -277,9 +277,7 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   TLorentzVector met = mets->front().tlv();
   b_met = met.Pt();
 
-  vector<TLorentzVector> recomu;
-  cat::JetCollection&& selectedJets = selectJets( *jets.product(), recomu );
-
+  cat::JetCollection&& selectedJets = selectJets( *jets.product(), selectedMuons );  
   b_njet = selectedJets.size();
   b_cat_eta = etaCategory(b_lep1_eta, b_lep2_eta);
 
@@ -360,10 +358,10 @@ cat::ElectronCollection h2muAnalyzer::selectElecs(const cat::ElectronCollection&
   return selelecs;
 }
 
-cat::JetCollection h2muAnalyzer::selectJets(const cat::JetCollection& jets, const vector<TLorentzVector>& recomu ) const
+cat::JetCollection h2muAnalyzer::selectJets(const cat::JetCollection& jets, cat::MuonCollection& recomu ) const
 {
   cat::JetCollection seljets;
-  for (auto jet : jets) {
+  for (auto jet : jets) {    
     if (!jet.LooseId()) continue;
     if (jet.pt() <= 30.) continue;
     if (std::abs(jet.eta()) >= 2.4)  continue;

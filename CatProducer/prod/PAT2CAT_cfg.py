@@ -37,9 +37,11 @@ from CATTools.CatProducer.catEventContent_cff import *
 process.catOut.outputCommands = catEventContent
 
 if runOnMC:
-    process.load("CATTools.CatProducer.genWeight_cff")
     process.load("CATTools.CatProducer.pileupWeight_cff")
+    process.load("CATTools.CatProducer.genWeight_cff")
     process.catOut.outputCommands.extend(catEventContentMC)
+else: 
+    process.catOut.outputCommands.extend(catEventContentRD)
     
 if runGenTop:
     from CATTools.CatProducer.catGenHFHadronMatching_cff import *

@@ -2,6 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 catEventContent = cms.untracked.vstring()
 catEventContentMC = cms.untracked.vstring()
+catEventContentRD = cms.untracked.vstring()
 catEventContentTOPMC = cms.untracked.vstring()
 catEventContentSecVertexs = cms.untracked.vstring()
 
@@ -20,13 +21,18 @@ catEventContent.extend([
     'keep *_catTrigger_*_*',
     'keep edmTriggerResults_TriggerResults__*',
     'keep patPackedTriggerPrescales_patTrigger__*',
+    'keep *_lumiMask*_*_*',
+    ])
+
+catEventContentRD.extend([
+    'keep *_lumiMask*_*_*',
     ])
 
 catEventContentMC.extend([
     'keep recoGenParticles_prunedGenParticles_*_*',
     'keep *_slimmedGenJets_*_*',
     'keep *_genWeight_*_*',
-    'keep *_pileupWeight_*_*',
+    'keep *_pileupWeight*_*_*',
     #'keep *_matchGenBHadron_*_*',
     #'keep *_matchGenCHadron_*_*',
     ])
