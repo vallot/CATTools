@@ -54,7 +54,7 @@ def genHFTool(process, useMiniAOD = True):
     process.matchGenCHadron.jetFlavourInfos = "genJetFlavourInfos"
      
     process.load("TopQuarkAnalysis.TopTools.GenTtbarCategorizer_cfi")
-    process.GenTtbarCategories20 = process.categorizeGenTtbar.clone(
+    process.GenTtbarCategories = process.categorizeGenTtbar.clone(
        genJets = cms.InputTag(genJetCollection),
        genJetPtMin = cms.double(20.)
     )
