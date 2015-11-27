@@ -28,14 +28,14 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
     else:
         from FWCore.PythonUtilities.LumiList import LumiList
         process.lumiMask = cms.EDProducer("LumiMaskProducer",
-            LumiSections = LumiList('LumiMask/%s.txt'%lumiJSON).getVLuminosityBlockRange())
+            LumiSections = LumiList('../data/LumiMask/%s.txt'%lumiJSON).getVLuminosityBlockRange())
         process.lumiMaskSilver = cms.EDProducer("LumiMaskProducer",
-            LumiSections = LumiList('LumiMask/%s_Silver.txt'%lumiJSON).getVLuminosityBlockRange())
+            LumiSections = LumiList('../data/LumiMask/%s_Silver.txt'%lumiJSON).getVLuminosityBlockRange())
     
     useJECfile = True
     era = "Summer15_{}nsV6".format(bunchCrossing)
     
-    jecUncertaintyFile = "CATTools/CatProducer/data/%s_DATA_UncertaintySources_AK4PFchs.txt"%era
+    jecUncertaintyFile = "CATTools/CatProducer/data/JEC/%s_DATA_UncertaintySources_AK4PFchs.txt"%era
     if runOnMC:
         era = era+"_MC"
     else:
@@ -44,7 +44,7 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
     if useJECfile:
         from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
         process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
-            connect = cms.string('sqlite_fip:CATTools/CatProducer/data/%s.db'%era),
+            connect = cms.string('sqlite_fip:CATTools/CatProducer/data/JEC/%s.db'%era),
             toGet = cms.VPSet(
                 cms.PSet(
                     record = cms.string("JetCorrectionsRecord"),

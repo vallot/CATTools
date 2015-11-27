@@ -104,7 +104,7 @@ if inputFile is None:
             continue
         if submitBlock == '2' and 'QCD' not in dataset:
             continue
-        submitjob(requestName, dataset, d['GlobalTag'], d['LumiMask'], submit)
+        submitjob(requestName, dataset, d['GlobalTag'], '../data/LumiMask/'+d['LumiMask'], submit)
 
 else:
     for dataset in datasets:
