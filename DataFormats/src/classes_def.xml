@@ -1,4 +1,8 @@
 <lcgdict>
+  <class name="std::vector<std::vector<std::string> >" />
+  <class name="edm::Wrapper<std::vector<std::vector<std::string> > >" />
+  <class name="edm::Ptr<std::vector<std::vector<std::string> > >" />
+
 
   <class name="cat::Particle"/>
   <class name="std::vector<cat::Particle>"/>
@@ -6,6 +10,12 @@
   <class name="edm::Wrapper<std::vector<cat::Particle> >"/>
   <class name="edm::Ptr<cat::Particle>"/>
 
+  <class name="cat::Lepton"/>
+  <class name="std::vector<cat::Lepton>"/>
+  <class name="edm::Wrapper<cat::Lepton>"/>
+  <class name="edm::Wrapper<std::vector<cat::Lepton> >"/>
+  <class name="edm::Ptr<cat::Lepton>"/>
+  
   <class name="cat::Muon"/>
   <class name="std::vector<cat::Muon>"/>
   <class name="edm::Wrapper<cat::Muon>"/>

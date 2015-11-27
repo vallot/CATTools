@@ -14,7 +14,6 @@
 #include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
-#include "FWCore/Utilities/interface/isFinite.h"
 #include "DataFormats/MuonReco/interface/MuonCocktails.h" // for cocktail muon
 
 using namespace edm;
@@ -34,23 +33,17 @@ namespace cat {
 
   private:
     edm::EDGetTokenT<pat::MuonCollection> src_;
-    edm::EDGetTokenT<pat::MuonCollection> shiftedEnDownSrc_;
-    edm::EDGetTokenT<pat::MuonCollection> shiftedEnUpSrc_;
     edm::EDGetTokenT<reco::GenParticleCollection> mcLabel_;
     edm::EDGetTokenT<reco::VertexCollection> vertexLabel_;
     edm::EDGetTokenT<reco::BeamSpot> beamLineSrc_;
     bool runOnMC_;
 
     typedef math::XYZPoint Point;
-
   };
-
 } // namespace
 
 cat::CATMuonProducer::CATMuonProducer(const edm::ParameterSet & iConfig) :
   src_(consumes<pat::MuonCollection>(iConfig.getParameter<edm::InputTag>("src"))),
-  shiftedEnDownSrc_(consumes<pat::MuonCollection>(iConfig.getParameter<edm::InputTag>("shiftedEnDownSrc"))),
-  shiftedEnUpSrc_(consumes<pat::MuonCollection>(iConfig.getParameter<edm::InputTag>("shiftedEnUpSrc"))),
   mcLabel_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcLabel"))),
   vertexLabel_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexLabel"))),
   beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc")))
@@ -81,63 +74,31 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
   reco::BeamSpot beamSpot = *beamSpotHandle;
   reco::TrackBase::Point beamPoint(beamSpot.x0(), beamSpot.y0(), beamSpot.z0());
 
-  edm::Handle<pat::MuonCollection> shiftedEnDownSrc;
-  edm::Handle<pat::MuonCollection> shiftedEnUpSrc;
-  if (runOnMC_){
-    iEvent.getByToken(shiftedEnDownSrc_, shiftedEnDownSrc);
-    iEvent.getByToken(shiftedEnUpSrc_, shiftedEnUpSrc);
-  }
-
   auto_ptr<vector<cat::Muon> >  out(new vector<cat::Muon>());
-  int j = 0;
   for (const pat::Muon & aPatMuon : *src) {
     cat::Muon aMuon(aPatMuon);
 
-    /// cat default variables ///
-
-    if (runOnMC_){
-      aMuon.setShiftedEnDown(shiftedEnDownSrc->at(j).pt() );
-      aMuon.setShiftedEnUp(shiftedEnUpSrc->at(j).pt() );
-    }
-    ++j;
-
-    double pt    = aPatMuon.pt() ;
-
-    double chIso04 = aPatMuon.pfIsolationR04().sumChargedHadronPt;
-    double nhIso04 = aPatMuon.pfIsolationR04().sumNeutralHadronEt;
-    double phIso04 = aPatMuon.pfIsolationR04().sumPhotonEt;
-    double puIso04 = aPatMuon.pfIsolationR04().sumPUPt;
-    aMuon.setChargedHadronIso04( chIso04 );
-    aMuon.setNeutralHadronIso04( nhIso04 );
-    aMuon.setPhotonIso04( phIso04 );
-    aMuon.setPUChargedHadronIso04( puIso04 );
-    aMuon.setrelIso(0.4, chIso04, nhIso04, phIso04, puIso04, pt);
-
-    double chIso03 = aPatMuon.pfIsolationR03().sumChargedHadronPt;
-    double nhIso03 = aPatMuon.pfIsolationR03().sumNeutralHadronEt;
-    double phIso03 = aPatMuon.pfIsolationR03().sumPhotonEt;
-    double puIso03 = aPatMuon.pfIsolationR03().sumPUPt;
-    aMuon.setChargedHadronIso03( chIso03 );
-    aMuon.setNeutralHadronIso03( nhIso03 );
-    aMuon.setPhotonIso03( phIso03 );
-    aMuon.setPUChargedHadronIso03( puIso03 );
-    aMuon.setrelIso(0.3, chIso03, nhIso03, phIso03, puIso03, pt);
-
-    // cout << "aPatMuon.chargedHadronIso() " << aPatMuon.chargedHadronIso()
-    // 	 << " aPatMuon.pfIsolationR04 " <<  aPatMuon.pfIsolationR04().sumChargedHadronPt
-    // 	 << endl;
-
-    aMuon.setIsGlobalMuon( aPatMuon.isGlobalMuon() );
-    aMuon.setIsPFMuon( aPatMuon.isPFMuon() );
-    aMuon.setIsTightMuon( aPatMuon.isTightMuon(pv) );
-    aMuon.setIsMediumMuon( aPatMuon.isMediumMuon() );
-    aMuon.setIsLooseMuon( aPatMuon.isLooseMuon() );
-    aMuon.setIsSoftMuon( aPatMuon.isSoftMuon(pv) );
-
     if (runOnMC_){
       aMuon.setGenParticleRef(aPatMuon.genParticleRef());
-      aMuon.setMCMatched( mcMatch( aPatMuon.p4(), genParticles ) );
+      aMuon.setMCMatched( mcMatch( aPatMuon.p4(), genParticles ) );      
     }
+
+    aMuon.setChargedHadronIso04( aPatMuon.pfIsolationR04().sumChargedHadronPt );
+    aMuon.setNeutralHadronIso04( aPatMuon.pfIsolationR04().sumNeutralHadronEt );
+    aMuon.setPhotonIso04( aPatMuon.pfIsolationR04().sumPhotonEt );
+    aMuon.setPUChargedHadronIso04( aPatMuon.pfIsolationR04().sumPUPt );
+
+    aMuon.setChargedHadronIso03( aPatMuon.pfIsolationR03().sumChargedHadronPt );
+    aMuon.setNeutralHadronIso03( aPatMuon.pfIsolationR03().sumNeutralHadronEt );
+    aMuon.setPhotonIso03( aPatMuon.pfIsolationR03().sumPhotonEt );
+    aMuon.setPUChargedHadronIso03( aPatMuon.pfIsolationR03().sumPUPt );
+
+    aMuon.setIsGlobalMuon( aPatMuon.isGlobalMuon() );
+    aMuon.setIsPF( aPatMuon.isPFMuon() );
+    aMuon.setIsTight( aPatMuon.isTightMuon(pv) );
+    aMuon.setIsMedium( aPatMuon.isMediumMuon() );
+    aMuon.setIsLoose( aPatMuon.isLooseMuon() );
+    aMuon.setIsSoftMuon( aPatMuon.isSoftMuon(pv) );
 
     aMuon.setNumberOfMatchedStations( aPatMuon.numberOfMatchedStations() );
 
@@ -180,10 +141,8 @@ bool cat::CATMuonProducer::mcMatch( const reco::Candidate::LorentzVector& lepton
       mother = mother->mother();
     }
   }
-
   return out;
 }
-
 
 bool cat::CATMuonProducer::MatchObjects( const reco::Candidate::LorentzVector& pasObj, const reco::Candidate::LorentzVector& proObj, bool exact ) {
   double proEta = proObj.eta();
@@ -202,9 +161,6 @@ bool cat::CATMuonProducer::MatchObjects( const reco::Candidate::LorentzVector& p
   else return ( dRval < 0.025 && dPtRel < 0.025 );
 }
 
-
-
 #include "FWCore/Framework/interface/MakerMacros.h"
 using namespace cat;
 DEFINE_FWK_MODULE(CATMuonProducer);
-

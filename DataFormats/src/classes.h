@@ -1,6 +1,7 @@
 #include "DataFormats/Common/interface/Wrapper.h"
 
 #include "CATTools/DataFormats/interface/Particle.h"
+#include "CATTools/DataFormats/interface/Lepton.h"
 #include "CATTools/DataFormats/interface/Muon.h"
 #include "CATTools/DataFormats/interface/Electron.h"
 #include "CATTools/DataFormats/interface/Photon.h"
@@ -27,12 +28,21 @@ namespace reco {
 
 namespace {
   struct CATTools_DataFormats {
+    std::vector<std::vector<std::string> > vvstr;
+    edm::Wrapper<std::vector<std::vector<std::string> > > vvstrw;
+    edm::Ptr<std::vector<std::vector<std::string> > > vvstrPtr;
 
     cat::Particle a_;
     std::vector<cat::Particle> av;
     edm::Wrapper<cat::Particle> aw;
     edm::Wrapper<std::vector<cat::Particle> > avw;
     edm::Ptr<cat::Particle> aPtr;
+
+    cat::Lepton l_;
+    std::vector<cat::Lepton> lv;
+    edm::Wrapper<cat::Lepton> lw;
+    edm::Wrapper<std::vector<cat::Lepton> > lvw;
+    edm::Ptr<cat::Lepton> lPtr;
 
     cat::Muon m_;
     std::vector<cat::Muon> mv;

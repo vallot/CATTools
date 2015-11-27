@@ -76,7 +76,7 @@ void CandConsumers::init(const edm::ParameterSet& gpset, const std::string psetN
   }
 }
 
-int CandConsumers::load(const edm::Event& event)
+int CandConsumers::load(const edm::Event& event, const bool doException)
 {
   int nFailure = 0;
   const size_t nCand = candTokens_.size();
@@ -86,6 +86,7 @@ int CandConsumers::load(const edm::Event& event)
     event.getByToken(candTokens_[iCand], srcHandle);
     if ( !srcHandle.isValid() )
     {
+      if ( doException ) throw cms::Exception("DataError") << "Cannot load " << srcHandle;
       ++nFailure;
       continue;
     }
@@ -123,6 +124,7 @@ int CandConsumers::load(const edm::Event& event)
       {
         double val = 0;
         if ( vmapHandles[j].isValid() ) val = (*vmapHandles[j])[candRef];
+        else if ( doException ) throw cms::Exception("DataError") << "Cannot load " << vmapHandles[j];
         candVars_[iCand][j+nExpr+nBExprs]->push_back(val);
       }
     }

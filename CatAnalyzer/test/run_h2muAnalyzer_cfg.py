@@ -1,39 +1,63 @@
 import FWCore.ParameterSet.Config as cms
-import os
 process = cms.Process("h2muAnalyzer")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
+process.options.allowUnscheduled = cms.untracked.bool(True)
 
-datadir = '/xrootd/store/user/jlee/SingleMuon/v7-4-1_Run2015C-PromptReco-v1/150913_173449/0000/'
-datadir = '/xrootd/store/group/CAT/GluGlu_HToMuMu_M125_13TeV_powheg_pythia8/v7-4-1_RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/150917_142416/0000/'
 process.source = cms.Source("PoolSource",
-    #fileNames = cms.untracked.vstring('file:/xrootd/store/user/jlee/SingleMuon/v7-4-1_Run2015C-PromptReco-v1/150913_173449/0000/catTuple_125.root')
-    fileNames = cms.untracked.vstring()
+    fileNames = cms.untracked.vstring('root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-5_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/151109_232735/0000/catTuple_88.root')
+    #fileNames = cms.untracked.vstring('root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/DoubleMuon/v7-4-4_Run2015C_25ns-05Oct2015-v1/151023_165157/0000/catTuple_10.root')
 )
 
-for f in os.listdir(datadir):
-    process.source.fileNames.append("file:"+datadir+f)
+import os
+useGold = False
+catmet = 'catMETsNoHF'
+if useGold:
+    catmet = 'catMETs'
+    isRunData = False
+    for f in process.source.fileNames:
+        if 'Run2015' in f:
+            isRunData = True
+    if isRunData:
+        lumiFile = 'Cert_246908-259891_13TeV_PromptReco_Collisions15_25ns_JSON.txt'
+        from FWCore.PythonUtilities.LumiList import LumiList
+        lumiList = LumiList(os.environ["CMSSW_BASE"]+'/src/CATTools/CatProducer/prod/LumiMask/'+lumiFile)
+        process.source.lumisToProcess = lumiList.getVLuminosityBlockRange()
+    
+    process.load("CATTools.CatProducer.pileupWeight_cff")
+    from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
+    process.pileupWeight.weightingMethod = "RedoWeight"
+    process.pileupWeight.pileupRD = pileupWeightMap["Run2015_25nsV1"]
+    process.pileupWeight.pileupUp = pileupWeightMap["Run2015Up_25nsV1"]
+    process.pileupWeight.pileupDn = pileupWeightMap["Run2015Dn_25nsV1"]
 
-print process.source.fileNames
-runOnMC=True
-### for run data
-lumiFile = 'Cert_246908-255031_13TeV_PromptReco_Collisions15_25ns_JSON_v2.txt'
-for i in process.source.fileNames:
-    if 'Run2015' in i:
-        runOnMC=False
-if not runOnMC:
-    from FWCore.PythonUtilities.LumiList import LumiList
-    lumiList = LumiList(os.environ["CMSSW_BASE"]+'/src/CATTools/CatProducer/prod/LumiMask/'+lumiFile)
-    process.source.lumisToProcess = lumiList.getVLuminosityBlockRange()
-    print process.source.lumisToProcess
-        
-process.h2mu = cms.EDAnalyzer("h2muAnalyzer",
+process.filterRECO = cms.EDFilter("CATTriggerBitCombiner",
+    triggerResults = cms.InputTag("TriggerResults::PAT"),
+    secondaryTriggerResults = cms.InputTag("TriggerResults::RECO"),
+    triggerPrescales = cms.InputTag("patTrigger"),
+    combineBy = cms.string("and"),
+    triggersToMatch = cms.vstring(
+        "CSCTightHaloFilter",
+        #"EcalDeadCellTriggerPrimitiveFilter",
+        #"HBHENoiseFilter",
+        "eeBadScFilter",
+        "goodVertices",
+    ),
+    doFilter = cms.bool(False),
+)
+
+process.cattree = cms.EDAnalyzer("h2muAnalyzer",
+    recoFilters = cms.InputTag("filterRECO"),
+    nGoodVertex = cms.InputTag("catVertex","nGoodPV"),
+    genweight = cms.InputTag("genWeight","genWeight"),
+    puweight = cms.InputTag("pileupWeight"),
     vertices = cms.InputTag("catVertex"),
     muons = cms.InputTag("catMuons"),
     electrons = cms.InputTag("catElectrons"),
     jets = cms.InputTag("catJets"),
-    mets = cms.InputTag("catMETs"),
+    mets = cms.InputTag(catmet),
     mcLabel = cms.InputTag("prunedGenParticles"),
     triggerBits = cms.InputTag("TriggerResults","","HLT"),
     triggerObjects = cms.InputTag("catTrigger"),
@@ -41,8 +65,8 @@ process.h2mu = cms.EDAnalyzer("h2muAnalyzer",
 )
 
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string("h2mu.root")
+    fileName = cms.string("cattree.root")
 )
 
-process.p = cms.Path(process.h2mu)
+process.p = cms.Path(process.cattree)
 process.MessageLogger.cerr.FwkReport.reportEvery = 50000

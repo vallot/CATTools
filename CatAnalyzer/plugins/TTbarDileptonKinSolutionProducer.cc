@@ -1,4 +1,3 @@
-#include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -14,7 +13,6 @@
 //#include "DataFormats/Candidate/interface/CompositeCandidate.h"
 //#include "DataFormats/Candidate/interface/CompositeRefCandidate.h"
 #include "DataFormats/Candidate/interface/CompositePtrCandidate.h"
-#include "CommonTools/Utils/interface/PtComparator.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 
 using namespace std;
@@ -30,10 +28,6 @@ public:
   void produce(edm::Event & event, const edm::EventSetup&) override;
 
 private:
-  typedef cat::Muon TMuon;
-  typedef cat::Electron TElectron;;
-  typedef cat::Jet TJet;
-  typedef cat::MET TMET;
   edm::EDGetTokenT<edm::View<reco::CandidatePtr> > leptonPtrToken_;
   edm::EDGetTokenT<edm::View<reco::CandidatePtr> > jetPtrToken_;
   edm::EDGetTokenT<edm::View<reco::Candidate> > leptonToken_;

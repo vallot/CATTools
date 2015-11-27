@@ -35,19 +35,41 @@ namespace cat {
     float pileupJetId() const { return pileupJetId_; }
     float chargedEmEnergyFraction() const { return chargedEmEnergyFraction_; }
 
-    /// \return secondary vertex b-tagging information
+    // return the matched MC parton flavour (from the shower, used e.g. for b-tagging)
+    int partonFlavour() const{ return partonFlavour_;}
+    int hadronFlavour() const{ return hadronFlavour_;}
+    // pdgId of the matched MC parton from hard scattering (i.e. the closest quark or gluon of status == 3)
+    int partonPdgId() const{ return partonPdgId_;}
+    const reco::GenJet * genJet() const { return genJetFwdRef_.get();}
+
+    float bDiscriminator(const std::string &theLabel) const;
+    const std::vector<std::pair<std::string, float> > & getPairDiscri() const {return pairDiscriVector_; }
+
+    bool CSVv2L(){ return (bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") > 0.605);}
+    bool CSVv2M(){ return (bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") > 0.890);}
+    bool CSVv2T(){ return (bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") > 0.970);}
+
+    enum BTAGCSV_CUT { BTAGCSV_LOOSE=0, BTAGCSV_MEDIUM, BTAGCSV_TIGHT };
+    enum JETFLAV { JETFLAV_B=0, JETFLAV_C=1, JETFLAV_LIGHT=2 };
+    float scaleFactorCSVv2(BTAGCSV_CUT op, int systDir, JETFLAV flav) const;
+    // op 0 = loose, 1 = medium, 2 = tight
+    // sys 0 = central, 1 = up, -1 = down
+    // flav 0 = b, 1 = c, 2 = light
+    
+    void bDiscriminatorPrint() const;
     // combinedSecondaryVertexBJetTags
     float vtxMass() const { return vtxMass_ ; }
     int vtxNtracks() const { return vtxNtracks_ ; }
     float vtx3DVal() const { return vtx3DVal_; }
     float vtx3DSig() const { return vtx3DSig_; }
 
-    // return the matched MC parton flavour (from the shower, used e.g. for b-tagging)
-    int partonFlavour() const{ return partonFlavour_;}
-    int hadronFlavour() const{ return hadronFlavour_;}
-    // pdgId of the matched MC parton from hard scattering (i.e. the closest quark or gluon of status == 3)
-    int partonPdgId() const{ return partonPdgId_;}
+    float shiftedEnDown() const {return  shiftedEnDown_;}
+    float shiftedEnUp() const  {return  shiftedEnUp_;}
+    float smearedRes(int direction=0) const; // 0, +1, -1 for smeared, smearedUp, smearedDown
+    float smearedResUp() const { return smearedRes(+1); };
+    float smearedResDown() const { return smearedRes(-1); };
 
+    
     void setLooseJetID(bool id) { looseJetID_ = id; }
     void setTightJetID(bool id) { tightJetID_ = id; }
     void setTightLepVetoJetID(bool id) { tightLepVetoJetID_ = id; }
@@ -63,10 +85,7 @@ namespace cat {
     void setPartonFlavour(int i) { partonFlavour_ = i; }
     void setHadronFlavour(int i) { hadronFlavour_ = i; }
     void setPartonPdgId(int i) { partonPdgId_ = i; }
-
-    float bDiscriminator(const std::string &theLabel) const;
-    const std::vector<std::pair<std::string, float> > & getPairDiscri() const {return pairDiscriVector_; }
-    void bDiscriminatorPrint() const;
+    void setGenJetRef(const edm::FwdRef<reco::GenJetCollection> & gj){ genJetFwdRef_ = gj;}
 
     void setBDiscriminators(const std::vector<std::pair<std::string, float> > & ids) { pairDiscriVector_ = ids; }
     void addBDiscriminatorPair(const std::pair<std::string, float> & thePair) {pairDiscriVector_.push_back(thePair);}
@@ -75,16 +94,6 @@ namespace cat {
 
     void setShiftedEnDown(float f) { shiftedEnDown_ = f;}
     void setShiftedEnUp(float f) { shiftedEnUp_ = f;}
-
-    float shiftedEnDown() const {return  shiftedEnDown_;}
-    float shiftedEnUp() const  {return  shiftedEnUp_;}
-    float smearedRes(int direction=0) const; // 0, +1, -1 for smeared, smearedUp, smearedDown
-    float smearedResUp() const { return smearedRes(+1); };
-    float smearedResDown() const { return smearedRes(-1); };
-
-    const reco::GenJet * genJet() const { return genJetFwdRef_.get();}
-    void setGenJetRef(const edm::FwdRef<reco::GenJetCollection> & gj){ genJetFwdRef_ = gj;}
-    //edm::FwdRef<reco::GenJetCollection> const & genJetFwdRef() const { return genJetFwdRef_; }
 
   private:
 

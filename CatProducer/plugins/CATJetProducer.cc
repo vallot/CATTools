@@ -13,7 +13,6 @@
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
-#include "FWCore/Utilities/interface/isFinite.h"
 
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
@@ -44,6 +43,7 @@ namespace cat {
 
     const std::vector<std::string> btagNames_;
     std::string uncertaintyTag_, payloadName_;
+    bool setGenParticle_;
     bool runOnMC_;
     //PFJetIDSelectionFunctor pfjetIDFunctor;
     JetCorrectionUncertainty *jecUnc;
@@ -54,7 +54,8 @@ namespace cat {
 cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
   src_(consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("src"))),
   btagNames_(iConfig.getParameter<std::vector<std::string> >("btagNames")),
-  payloadName_(iConfig.getParameter<std::string>("payloadName"))
+  payloadName_(iConfig.getParameter<std::string>("payloadName")),
+  setGenParticle_(iConfig.getParameter<bool>("setGenParticle"))
 {
   produces<std::vector<cat::Jet> >();
   ///  pfjetIDFunctor = PFJetIDSelectionFunctor(PFJetIDSelectionFunctor::FIRSTDATA,PFJetIDSelectionFunctor::LOOSE);
@@ -151,7 +152,7 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
     if (runOnMC_){
       // adding genJet
       aJet.setGenJetRef(aPatJet.genJetFwdRef());
-      aJet.setGenParticleRef(aPatJet.genParticleRef());
+      if (setGenParticle_) aJet.setGenParticleRef(aPatJet.genParticleRef());
     }
 
     out->push_back(aJet);

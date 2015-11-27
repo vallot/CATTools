@@ -11,7 +11,6 @@ config.JobType.psetName    = 'PAT2CAT_cfg.py'
 
 config.section_("Data")
 config.Data.publication  = False
-config.Data.publishDataName = 'cat'
 
 config.section_("Site")
 # Where the output files will be transmitted to

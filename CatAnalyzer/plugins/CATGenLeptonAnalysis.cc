@@ -1,4 +1,3 @@
-#include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 
@@ -9,7 +8,6 @@
 #include "DataFormats/Math/interface/deltaPhi.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
-#include "CommonTools/Utils/interface/TFileDirectory.h"
 
 #include "TH1F.h"
 #include "TH2F.h"
