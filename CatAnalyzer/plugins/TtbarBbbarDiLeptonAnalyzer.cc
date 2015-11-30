@@ -502,7 +502,7 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     b_puweight = *puweightHandle;
     edm::Handle<float> genweightHandle;
     iEvent.getByToken(genweightToken_, genweightHandle);
-    b_weight = (*genweightHandle)*b_puweight;
+    b_weight = (*genweightHandle);//*b_puweight;
 
     //////
     edm::Handle<int> genTtbarIdHandle;
