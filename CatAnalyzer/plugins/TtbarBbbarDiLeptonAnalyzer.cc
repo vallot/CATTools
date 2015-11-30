@@ -506,16 +506,13 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
 
     //////
     edm::Handle<int> genTtbarIdHandle;
-    iEvent.getByToken(genTtbarIdToken_, genTtbarIdHandle);
-    b_genTtbarId = *genTtbarIdHandle;
+    if(iEvent.getByToken(genTtbarIdToken_, genTtbarIdHandle))     b_genTtbarId = *genTtbarIdHandle;
 
     edm::Handle<int> genTtbarIdHandle30;
-    iEvent.getByToken(genTtbarIdToken30_, genTtbarIdHandle30);
-    b_genTtbarId30 = *genTtbarIdHandle30;
+    if(iEvent.getByToken(genTtbarIdToken30_, genTtbarIdHandle30)) b_genTtbarId30 = *genTtbarIdHandle30;
 
     edm::Handle<int> genTtbarIdHandle40;
-    iEvent.getByToken(genTtbarIdToken40_, genTtbarIdHandle40);
-    b_genTtbarId40 = *genTtbarIdHandle40;
+    if(iEvent.getByToken(genTtbarIdToken40_, genTtbarIdHandle40)) b_genTtbarId40 = *genTtbarIdHandle40;
 
     edm::Handle<reco::GenJetCollection> genJets;
     iEvent.getByToken(GenJetsToken_, genJets);
