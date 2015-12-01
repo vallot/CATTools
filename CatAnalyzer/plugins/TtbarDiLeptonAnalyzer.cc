@@ -70,6 +70,11 @@ private:
   float b_partonlep1_pt, b_partonlep1_eta;
   float b_partonlep2_pt, b_partonlep2_eta;
   bool b_partonInPhase, b_partonInPhaseJet, b_partonInPhaseLep;
+
+  float b_gentop1_pt, b_gentop1_eta, b_gentop1_phi, b_gentop1_rapi;
+  float b_gentop2_pt, b_gentop2_eta, b_gentop2_phi, b_gentop2_rapi;
+  float b_genttbar_pt, b_genttbar_eta, b_genttbar_phi, b_genttbar_m, b_genttbar_rapi;
+
   int b_pseudoTopChannel;
   float b_pseudoToplep1_pt, b_pseudoToplep1_eta;
   float b_pseudoToplep2_pt, b_pseudoToplep2_eta;
@@ -174,6 +179,18 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("partonInPhaseLep", &b_partonInPhaseLep, "partonInPhaseLep/O");
   ttree_->Branch("partonInPhaseJet", &b_partonInPhaseJet, "partonInPhaseJet/O");
 
+  ttree_->Branch("gentop1_pt", &b_gentop1_pt, "gentop1_pt/F");
+  ttree_->Branch("gentop1_eta", &b_gentop1_eta, "gentop1_eta/F");
+  ttree_->Branch("gentop1_rapi", &b_gentop1_rapi, "gentop1_rapi/F");
+  ttree_->Branch("gentop2_pt", &b_gentop2_pt, "gentop2_pt/F");
+  ttree_->Branch("gentop2_eta", &b_gentop2_eta, "gentop2_eta/F");
+  ttree_->Branch("gentop2_rapi", &b_gentop2_rapi, "gentop2_rapi/F");
+  ttree_->Branch("genttbar_pt", &b_genttbar_pt, "genttbar_pt/F");
+  ttree_->Branch("genttbar_eta", &b_genttbar_eta, "genttbar_eta/F");
+  ttree_->Branch("genttbar_phi", &b_genttbar_phi, "genttbar_phi/F");
+  ttree_->Branch("genttbar_rapi", &b_genttbar_rapi, "genttbar_rapi/F");
+  ttree_->Branch("genttbar_m", &b_genttbar_m, "genttbar_m/F");
+
   ttree_->Branch("pseudoTop_channel", &b_pseudoTopChannel, "pseudoTop_channel/I");
   ttree_->Branch("pseudoToplep1_pt", &b_pseudoToplep1_pt, "pseudoToplep1_pt/F");
   ttree_->Branch("pseudoToplep1_eta", &b_pseudoToplep1_eta, "pseudoToplep1_eta/F");
@@ -209,9 +226,9 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
 
 TtbarDiLeptonAnalyzer::~TtbarDiLeptonAnalyzer()
 {
-  cout <<"cut flow         emu         ee         mumu"<< endl;
+  cout <<"     cut flow   emu    ee    mumu"<< endl;
   for ( int i=0; i<NCutflow; ++i ) {
-    cout <<"step "<< i << " "<< cutflow_[i][0] <<  " "<< cutflow_[i][1] << " " << cutflow_[i][2] << " " << cutflow_[i][3]<< endl;
+    cout <<"step "<< i << "    "<< cutflow_[i][0] <<  "   "<< cutflow_[i][1] << "   " << cutflow_[i][2] << "   " << cutflow_[i][3]<< endl;
   }
 }
 
@@ -241,6 +258,11 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_partonlep1_pt = -9; b_partonlep1_eta = -9;
   b_partonlep2_pt = -9; b_partonlep2_eta = -9;
   b_partonInPhase = 0; b_partonInPhaseLep = false; b_partonInPhaseJet = false;
+
+  b_gentop1_pt = -9; b_gentop1_eta = -9; b_gentop1_phi = -9; b_gentop1_rapi = -9;
+  b_gentop2_pt = -9; b_gentop2_eta = -9; b_gentop2_phi = -9; b_gentop2_rapi = -9;
+  b_genttbar_pt = -9; b_genttbar_eta = -9; b_genttbar_phi = -9; b_genttbar_m = -9; b_genttbar_rapi = -9;
+
   b_pseudoTopChannel = -1;
   b_pseudoToplep1_pt = -9; b_pseudoToplep1_eta = -9;
   b_pseudoToplep2_pt = -9; b_pseudoToplep2_eta = -9;
@@ -314,6 +336,23 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       // Get Top quark pairs
       const auto pseudoTop1 = &pseudoTopHandle->at(0);
       const auto pseudoTop2 = &pseudoTopHandle->at(1);
+      const auto gentop1 = pseudoTop1->p4();
+      const auto gentop2 = pseudoTop2->p4();
+      b_gentop1_pt = gentop1.Pt();
+      b_gentop1_eta = gentop1.Eta();
+      b_gentop1_phi = gentop1.Phi();
+      b_gentop1_rapi = gentop1.Rapidity();
+      b_gentop2_pt = gentop2.Pt();
+      b_gentop2_eta = gentop2.Eta();
+      b_gentop2_phi = gentop2.Phi();
+      b_gentop2_rapi = gentop2.Rapidity();
+
+      auto genttbar = gentop1+gentop2;
+      b_genttbar_pt = genttbar.Pt();
+      b_genttbar_eta = genttbar.Eta();
+      b_genttbar_phi = genttbar.Phi();
+      b_genttbar_m = genttbar.M();
+      b_genttbar_rapi = genttbar.Rapidity();
 
       // Get W and b quarks
       if ( pseudoTop1 and pseudoTop2 ) {
@@ -555,9 +594,9 @@ void TtbarDiLeptonAnalyzer::selectMuons(const cat::MuonCollection& muons, Partic
   for (auto& mu : muons) {
     if (mu.pt() < 20.) continue;
     if (std::abs(mu.eta()) > 2.4) continue;
-    //if (!mu.isMediumMuon()) continue;
     if (!mu.isTightMuon()) continue;
     if (mu.relIso(0.4) > 0.12) continue;
+    //if (mu.relIso(0.4) > 0.15) continue;//forsync
     //printf("muon with pt %4.1f, POG loose id %d, tight id %d\n", mu.pt(), mu.isLooseMuon(), mu.isTightMuon());
     selmuons.push_back(mu);
   }
@@ -569,12 +608,7 @@ void TtbarDiLeptonAnalyzer::selectElecs(const cat::ElectronCollection& elecs, Pa
     if (el.pt() < 20.) continue;
     if ((std::abs(el.scEta()) > 1.4442) && (std::abs(el.scEta()) < 1.566)) continue;
     if (std::abs(el.eta()) > 2.4) continue;
-    //if (!el.electronID("cutBasedElectronID-Spring15-50ns-V1-standalone-medium")) continue;
-    //if (el.electronID("cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-medium") == 0) continue;
     if ( !el.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-medium") ) continue;
-    //if (!el.passConversionVeto()) continue;
-    //if (!el.isPF()) continue;
-
     //printf("electron with pt %4.1f\n", el.pt());
     selelecs.push_back(el);
   }
@@ -604,6 +638,7 @@ cat::JetCollection TtbarDiLeptonAnalyzer::selectBJets(const JetCollection& jets)
   cat::JetCollection selBjets;
   for (auto& jet : jets) {
     if (jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") < 0.605) continue;
+    //if (jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") < 0.89) continue;//forsync
     //printf("b jet with pt %4.1f\n", jet.pt());
     selBjets.push_back(jet);
   }
