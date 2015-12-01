@@ -5,6 +5,7 @@
 
 #include "TFile.h"
 #include "TH1D.h"
+#include "CATTools/DataFormats/interface/Jet.h"
 
 class CSVHelper
 {
@@ -12,8 +13,10 @@ class CSVHelper
     CSVHelper(std::string hf="", std::string lf="");
 
     //double getCSVWeight(std::vector<double> jetPts, std::vector<double> jetEtas, std::vector<double> jetCSVs,
-    float getCSVWeight(std::vector<double> jetPts, std::vector<double> jetEtas, std::vector<double> jetCSVs,
-                       std::vector<int> jetFlavors, int iSys, double &csvWgtHF, double &csvWgtLF, double &csvWgtCF);
+    //float getCSVWeight(std::vector<double> jetPts, std::vector<double> jetEtas, std::vector<double> jetCSVs,
+    //                   std::vector<int> jetFlavors, int iSys, double &csvWgtHF, double &csvWgtLF, double &csvWgtCF);
+    float getCSVWeight(cat::JetCollection jets, int iSys);//, double &csvWgtHF, double &csvWgtLF, double &csvWgtCF);
+
 
   private:
     void fillCSVHistos(TFile *fileHF, TFile *fileLF);
