@@ -8,28 +8,30 @@ process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
 process.options.allowUnscheduled = cms.untracked.bool(True)
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
-process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-4-4_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/151025_143547/0000/catTuple_96.root')
+#process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-4-6_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/151127_200613/0000/catTuple_1.root')
+#process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-6_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/151130_231748/0000/catTuple_1.root')
+process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/DoubleMuon/v7-4-6_Run2015D-PromptReco-v4/151127_194953/0000/catTuple_1.root')
 #process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/DoubleMuon/v7-4-4_Run2015C_25ns-05Oct2015-v1/151023_165157/0000/catTuple_10.root')
 
-import os
-useGold = True
-isRunData = True
+#import os
+#useGold = True
+#isRunData = False
 catmet = 'catMETsNoHF'
-if useGold:
-    catmet = 'catMETs'
-    if isRunData:
-        lumiFile = 'Cert_246908-259891_13TeV_PromptReco_Collisions15_25ns_JSON.txt'
-        from FWCore.PythonUtilities.LumiList import LumiList
-        lumiList = LumiList(os.environ["CMSSW_BASE"]+'/src/CATTools/CatProducer/prod/LumiMask/'+lumiFile)
-        process.source.lumisToProcess = lumiList.getVLuminosityBlockRange()
+#if useGold:
+#    catmet = 'catMETs'
+#    if isRunData:
+#        #lumiFile = 'Cert_246908-259891_13TeV_PromptReco_Collisions15_25ns_JSON.txt'
+#        lumiFile = 'Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON.txt'
+#        from FWCore.PythonUtilities.LumiList import LumiList
+#        lumiList = LumiList(os.environ["CMSSW_BASE"]+'/src/CATTools/CatProducer/prod/LumiMask/'+lumiFile)
+#        process.source.lumisToProcess = lumiList.getVLuminosityBlockRange()
     
-    process.load("CATTools.CatProducer.pileupWeight_cff")
-    from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
-    process.pileupWeight.weightingMethod = "RedoWeight"
-    process.pileupWeight.pileupRD = pileupWeightMap["Run2015_25nsV1"]
-    process.pileupWeight.pileupUp = pileupWeightMap["Run2015Up_25nsV1"]
-    process.pileupWeight.pileupDn = pileupWeightMap["Run2015Dn_25nsV1"]
-    
+#    process.load("CATTools.CatProducer.pileupWeight_cff")
+#    from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
+#    process.pileupWeight.weightingMethod = "RedoWeight"
+#    process.pileupWeight.pileupRD = pileupWeightMap["Run2015_25nsV1"]
+#    process.pileupWeight.pileupUp = pileupWeightMap["Run2015Up_25nsV1"]
+#    process.pileupWeight.pileupDn = pileupWeightMap["Run2015Dn_25nsV1"]
 process.filterRECO = cms.EDFilter("CATTriggerBitCombiner",
     triggerResults = cms.InputTag("TriggerResults::PAT"),
     secondaryTriggerResults = cms.InputTag("TriggerResults::RECO"),
@@ -37,8 +39,8 @@ process.filterRECO = cms.EDFilter("CATTriggerBitCombiner",
     combineBy = cms.string("and"),
     triggersToMatch = cms.vstring(
         "CSCTightHaloFilter",
-        #"EcalDeadCellTriggerPrimitiveFilter",
-        #"HBHENoiseFilter",
+#        "EcalDeadCellTriggerPrimitiveFilter",
+#        "HBHENoiseFilter",
         "eeBadScFilter",
         "goodVertices",
     ),
@@ -58,18 +60,18 @@ process.filterTrigMUEL = cms.EDFilter("CATTriggerBitCombiner",
 
 process.filterTrigELEL = process.filterTrigMUEL.clone(
     triggersToMatch = cms.vstring(
-        "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
- ## "HLT_Ele23_WPLoose_Gsf_v",
+        "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v",
+        "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
     ),
 )
 
 process.filterTrigMUMU = process.filterTrigMUEL.clone(
     triggersToMatch = cms.vstring(
-        "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",
-        "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",
- ## "HLT_IsoMu20_v",
- ## "HLT_IsoTkMu20_v",
- ## "HLT_IsoMu27_v",
+#      "HLT_Mu17_Mu8_DZ_v",
+#      "HLT_Mu17_TkMu8_DZ_v",
+      "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",
+      "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v",
+      "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v",
     ),
 )
 
@@ -79,7 +81,12 @@ process.cattree = cms.EDAnalyzer("TtbarBbbarDiLeptonAnalyzer",
     recoFilters = cms.InputTag("filterRECO"),
     nGoodVertex = cms.InputTag("catVertex","nGoodPV"),
     genweight = cms.InputTag("genWeight","genWeight"),
+    genweightQ = cms.InputTag("genWeight","Q"),
+    genweightPDF = cms.InputTag("genWeight","pdfWeights"),
+
     puweight = cms.InputTag("pileupWeight"),
+    puweightUp = cms.InputTag("pileupWeight","up"),
+    puweightDown = cms.InputTag("pileupWeight","dn"),
     trigMUEL = cms.InputTag("filterTrigMUEL"),
     trigMUMU = cms.InputTag("filterTrigMUMU"),
     trigELEL = cms.InputTag("filterTrigELEL"),
@@ -121,3 +128,7 @@ process.TFileService = cms.Service("TFileService",
 
 process.p = cms.Path(process.cattree)
 process.MessageLogger.cerr.FwkReport.reportEvery = 50000
+
+from customise_cff import *
+customise(process)
+
