@@ -58,6 +58,8 @@ private:
   cat::JetCollection selectBJets(const cat::JetCollection& jets, double workingpoint) const;
   const reco::Candidate* getLast(const reco::Candidate* p) const;
 
+  void book(TTree* tree);
+
   edm::EDGetTokenT<int> recoFiltersToken_, nGoodVertexToken_;
   edm::EDGetTokenT<float> genweightToken_, puweightToken_, puweightUpToken_, puweightDownToken_, genweightQToken_;
   edm::EDGetTokenT<int> trigTokenMUEL_, trigTokenMUMU_, trigTokenELEL_;
@@ -215,127 +217,132 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
   edm::Service<TFileService> fs;
   ttree_ = fs->make<TTree>("nom", "nom");
   ttree2_ = fs->make<TTree>("nom2", "nom2");
-  ttree_->Branch("nvertex", &b_nvertex, "nvertex/I");
-  ttree_->Branch("step", &b_step, "step/I");
-  ttree_->Branch("channel", &b_channel, "channel/I");
-  ttree_->Branch("njet30", &b_njet30, "njet30/I");
-  ttree_->Branch("nbjetL30", &b_nbjetL30, "nbjetL30/I");
-  ttree_->Branch("nbjetM30", &b_nbjetM30, "nbjetM30/I");
-  ttree_->Branch("nbjetT30", &b_nbjetT30, "nbjetT30/I");
-  ttree_->Branch("step1", &b_step1, "step1/O");
-  ttree_->Branch("step2", &b_step2, "step2/O");
-  ttree_->Branch("step3", &b_step3, "step3/O");
-  ttree_->Branch("step4", &b_step4, "step4/O");
-  ttree_->Branch("step5", &b_step5, "step5/O");
-  ttree_->Branch("step6", &b_step6, "step6/O");
-  ttree_->Branch("tri", &b_tri, "tri/O");
-  ttree_->Branch("filtered", &b_filtered, "filtered/O");
-  ttree_->Branch("met", &b_met, "met/F");
-  ttree_->Branch("metphi", &b_metphi, "metphi/F");
 
-  ttree_->Branch("weight", &b_weight, "weight/F");
-  ttree_->Branch("weightQ", &b_weightQ, "weightQ/F");
-  ttree_->Branch("pdfWeihgts","std::vector<float>",&b_pdfWeights);
-
-  ttree_->Branch("puweight", &b_puweight, "puweight/F");
-  ttree_->Branch("puweightUp", &b_puweightUp, "puweightUp/F");
-  ttree_->Branch("puweightDown", &b_puweightDown, "puweightDown/F");
-  ttree_->Branch("lepweight", &b_lepweight, "lepweight/F");
-  ttree_->Branch("genTtbarId", &b_genTtbarId, "genTtbarId/I");
-  ttree_->Branch("genTtbarId30", &b_genTtbarId30, "genTtbarId30/I");
-  ttree_->Branch("genTtbarId40", &b_genTtbarId40, "genTtbarId40/I");
-
-  ttree_->Branch("NgenJet", &b_NgenJet, "NgenJet/I");
-  ttree_->Branch("NgenJet30", &b_NgenJet30, "NgenJet30/I");
-  ttree_->Branch("NgenJet40", &b_NgenJet40, "NgenJet40/I");
-
-
-  ttree_->Branch("lep1_pt", &b_lep1_pt, "lep1_pt/F");
-  ttree_->Branch("lep1_eta", &b_lep1_eta, "lep1_eta/F");
-  ttree_->Branch("lep1_phi", &b_lep1_phi, "lep1_phi/F");
-  ttree_->Branch("lep1_RelIso", &b_lep1_RelIso, "lep1_RelIso/F");
-  ttree_->Branch("lep2_pt", &b_lep2_pt, "lep2_pt/F");
-  ttree_->Branch("lep2_eta", &b_lep2_eta, "lep2_eta/F");
-  ttree_->Branch("lep2_phi", &b_lep2_phi, "lep2_phi/F");
-  ttree_->Branch("lep2_RelIso", &b_lep2_RelIso, "lep2_RelIso/F");
-  ttree_->Branch("ll_pt", &b_ll_pt, "ll_pt/F");
-  ttree_->Branch("ll_eta", &b_ll_eta, "ll_eta/F");
-  ttree_->Branch("ll_phi", &b_ll_phi, "ll_phi/F");
-  ttree_->Branch("ll_m", &b_ll_m, "ll_m/F");
-  
-  ttree_->Branch("parton_channel", &b_partonChannel, "parton_channel/I");
-  ttree_->Branch("parton_mode1", &b_partonMode1, "parton_mode1/I");
-  ttree_->Branch("partonlep1_pt", &b_partonlep1_pt, "partonlep1_pt/F");
-  ttree_->Branch("partonlep1_eta", &b_partonlep1_eta, "partonlep1_eta/F");
-  ttree_->Branch("partonlep2_pt", &b_partonlep2_pt, "partonlep2_pt/F");
-  ttree_->Branch("partonlep2_eta", &b_partonlep2_eta, "partonlep2_eta/F");
-  ttree_->Branch("parton_mode2", &b_partonMode2, "parton_mode2/I");
-  ttree_->Branch("partonInPhase", &b_partonInPhase, "partonInPhase/O");
-  ttree_->Branch("partonInPhaseLep", &b_partonInPhaseLep, "partonInPhaseLep/O");
-  ttree_->Branch("partonInPhaseJet", &b_partonInPhaseJet, "partonInPhaseJet/O");
-
-  ttree_->Branch("pseudoTop_channel", &b_pseudoTopChannel, "pseudoTop_channel/I");
-  ttree_->Branch("pseudoToplep1_pt", &b_pseudoToplep1_pt, "pseudoToplep1_pt/F");
-  ttree_->Branch("pseudoToplep1_eta", &b_pseudoToplep1_eta, "pseudoToplep1_eta/F");
-  ttree_->Branch("pseudoToplep2_pt", &b_pseudoToplep2_pt, "pseudoToplep2_pt/F");
-  ttree_->Branch("pseudoToplep2_eta", &b_pseudoToplep2_eta, "pseudoToplep2_eta/F");
-  ttree_->Branch("pseudoInPhase", &b_pseudoInPhase, "pseudoInPhase/O");
-
-  ttree_->Branch("jets_pt","std::vector<double>",&b_jets_pt);
-  ttree_->Branch("jets_eta","std::vector<double>",&b_jets_eta);
-  ttree_->Branch("jets_phi","std::vector<double>",&b_jets_phi);
-  ttree_->Branch("jets_flavor","std::vector<int>",&b_jets_flavor);
-  ttree_->Branch("jets_bDiscriminatorCSV","std::vector<double>",&b_jets_bDiscriminatorCSV);
-  ttree_->Branch("csvd_jetid","std::vector<int>",&b_csvd_jetid);
-
-  ttree_->Branch("csvweight", &b_csvweight, "csvweight/F");
-  ttree_->Branch("csvweight_JES_Up",          &b_csvweight_JES_Up,          "csvweight_JES_Up/F");          
-  ttree_->Branch("csvweight_JES_Down",        &b_csvweight_JES_Down,        "csvweight_JES_Down/F");
-  ttree_->Branch("csvweight_LF_Up",           &b_csvweight_LF_Up,           "csvweight_LF_Up/F");
-  ttree_->Branch("csvweight_LF_Down",         &b_csvweight_LF_Down,         "csvweight_LF_Down/F");
-  ttree_->Branch("csvweight_HF_Up",           &b_csvweight_HF_Up,           "csvweight_HF_Up/F");
-  ttree_->Branch("csvweight_HF_Down",         &b_csvweight_HF_Down,         "csvweight_HF_Down/F");
-  ttree_->Branch("csvweight_HF_Stats1_Up",    &b_csvweight_HF_Stats1_Up,    "csvweight_HF_Stats1_Up/F");
-  ttree_->Branch("csvweight_HF_Stats1_Down",  &b_csvweight_HF_Stats1_Down,  "csvweight_HF_Stats1_Down/F");
-  ttree_->Branch("csvweight_HF_Stats2_Up",    &b_csvweight_HF_Stats2_Up,    "csvweight_HF_Stats2_Up/F");
-  ttree_->Branch("csvweight_HF_Stats2_Down",  &b_csvweight_HF_Stats2_Down,  "csvweight_HF_Stats2_Down/F");
-  ttree_->Branch("csvweight_LF_Stats1_Up",    &b_csvweight_LF_Stats1_Up,    "csvweight_LF_Stats1_Up/F");
-  ttree_->Branch("csvweight_LF_Stats1_Down",  &b_csvweight_LF_Stats1_Down,  "csvweight_LF_Stats1_Down/F");
-  ttree_->Branch("csvweight_LF_Stats2_Up",    &b_csvweight_LF_Stats2_Up,    "csvweight_LF_Stats2_Up/F");
-  ttree_->Branch("csvweight_LF_Stats2_Down",  &b_csvweight_LF_Stats2_Down,  "csvweight_LF_Stats2_Down/F");
-  ttree_->Branch("csvweight_Charm_Err1_Up",   &b_csvweight_Charm_Err1_Up,   "csvweight_Charm_Err1_Up/F");
-  ttree_->Branch("csvweight_Charm_Err1_Down", &b_csvweight_Charm_Err1_Down, "csvweight_Charm_Err1_Down/F");
-  ttree_->Branch("csvweight_Charm_Err2_Up",   &b_csvweight_Charm_Err2_Up,   "csvweight_Charm_Err2_Up/F");
-  ttree_->Branch("csvweight_Charm_Err2_Down", &b_csvweight_Charm_Err2_Down, "csvweight_Charm_Err2_Down/F");
-
-
-/*
-  ttree_->Branch("jet1_pt", &b_jet1_pt, "jet1_pt/F");
-  ttree_->Branch("jet2_pt", &b_jet2_pt, "jet2_pt/F");
-  ttree_->Branch("jet1_eta", &b_jet1_eta, "jet1_eta/F");
-  ttree_->Branch("jet2_eta", &b_jet2_eta, "jet2_eta/F");
-  ttree_->Branch("jet1_CSVInclV2", &b_jet1_CSVInclV2, "jet1_CSVInclV2/F");
-  ttree_->Branch("jet2_CSVInclV2", &b_jet2_CSVInclV2, "jet2_CSVInclV2/F");
-
-  ttree_->Branch("top1_pt", &b_top1_pt, "top1_pt/F");
-  ttree_->Branch("top1_eta", &b_top1_eta, "top1_eta/F");
-  ttree_->Branch("top1_phi", &b_top1_phi, "top1_phi/F");
-  ttree_->Branch("top1_rapi", &b_top1_rapi, "top1_rapi/F");
-  ttree_->Branch("top2_pt", &b_top2_pt, "top2_pt/F");
-  ttree_->Branch("top2_eta", &b_top2_eta, "top2_eta/F");
-  ttree_->Branch("top2_phi", &b_top2_phi, "top2_phi/F");
-  ttree_->Branch("top2_rapi", &b_top2_rapi, "top2_rapi/F");
-  ttree_->Branch("ttbar_pt", &b_ttbar_pt, "ttbar_pt/F");
-  ttree_->Branch("ttbar_eta", &b_ttbar_eta, "ttbar_eta/F");
-  ttree_->Branch("ttbar_phi", &b_ttbar_phi, "ttbar_phi/F");
-  ttree_->Branch("ttbar_rapi", &b_ttbar_rapi, "ttbar_rapi/F");
-  ttree_->Branch("ttbar_m", &b_ttbar_m, "ttbar_m/F");
-*/
-  ttree_->Branch("is3lep", &b_is3lep, "is3lep/I");
-
-  ttree2_->CopyAddresses(ttree_);
+  book(ttree_);
+  book(ttree2_);
 
   for (int i = 0; i < NCutflow; i++) cutflow_.push_back({0,0,0,0});
+}
+
+void TtbarBbbarDiLeptonAnalyzer::book(TTree* tree){
+  tree->Branch("nvertex", &b_nvertex, "nvertex/I");
+  tree->Branch("step", &b_step, "step/I");
+  tree->Branch("channel", &b_channel, "channel/I");
+  tree->Branch("njet30", &b_njet30, "njet30/I");
+  tree->Branch("nbjetL30", &b_nbjetL30, "nbjetL30/I");
+  tree->Branch("nbjetM30", &b_nbjetM30, "nbjetM30/I");
+  tree->Branch("nbjetT30", &b_nbjetT30, "nbjetT30/I");
+  tree->Branch("step1", &b_step1, "step1/O");
+  tree->Branch("step2", &b_step2, "step2/O");
+  tree->Branch("step3", &b_step3, "step3/O");
+  tree->Branch("step4", &b_step4, "step4/O");
+  tree->Branch("step5", &b_step5, "step5/O");
+  tree->Branch("step6", &b_step6, "step6/O");
+  tree->Branch("tri", &b_tri, "tri/O");
+  tree->Branch("filtered", &b_filtered, "filtered/O");
+  tree->Branch("met", &b_met, "met/F");
+  tree->Branch("metphi", &b_metphi, "metphi/F");
+
+  tree->Branch("weight", &b_weight, "weight/F");
+  tree->Branch("weightQ", &b_weightQ, "weightQ/F");
+  tree->Branch("pdfWeihgts","std::vector<float>",&b_pdfWeights);
+
+  tree->Branch("puweight", &b_puweight, "puweight/F");
+  tree->Branch("puweightUp", &b_puweightUp, "puweightUp/F");
+  tree->Branch("puweightDown", &b_puweightDown, "puweightDown/F");
+  tree->Branch("lepweight", &b_lepweight, "lepweight/F");
+  tree->Branch("genTtbarId", &b_genTtbarId, "genTtbarId/I");
+  tree->Branch("genTtbarId30", &b_genTtbarId30, "genTtbarId30/I");
+  tree->Branch("genTtbarId40", &b_genTtbarId40, "genTtbarId40/I");
+
+  tree->Branch("NgenJet", &b_NgenJet, "NgenJet/I");
+  tree->Branch("NgenJet30", &b_NgenJet30, "NgenJet30/I");
+  tree->Branch("NgenJet40", &b_NgenJet40, "NgenJet40/I");
+
+
+  tree->Branch("lep1_pt", &b_lep1_pt, "lep1_pt/F");
+  tree->Branch("lep1_eta", &b_lep1_eta, "lep1_eta/F");
+  tree->Branch("lep1_phi", &b_lep1_phi, "lep1_phi/F");
+  tree->Branch("lep1_RelIso", &b_lep1_RelIso, "lep1_RelIso/F");
+  tree->Branch("lep2_pt", &b_lep2_pt, "lep2_pt/F");
+  tree->Branch("lep2_eta", &b_lep2_eta, "lep2_eta/F");
+  tree->Branch("lep2_phi", &b_lep2_phi, "lep2_phi/F");
+  tree->Branch("lep2_RelIso", &b_lep2_RelIso, "lep2_RelIso/F");
+  tree->Branch("ll_pt", &b_ll_pt, "ll_pt/F");
+  tree->Branch("ll_eta", &b_ll_eta, "ll_eta/F");
+  tree->Branch("ll_phi", &b_ll_phi, "ll_phi/F");
+  tree->Branch("ll_m", &b_ll_m, "ll_m/F");
+  
+  tree->Branch("parton_channel", &b_partonChannel, "parton_channel/I");
+  tree->Branch("parton_mode1", &b_partonMode1, "parton_mode1/I");
+  tree->Branch("partonlep1_pt", &b_partonlep1_pt, "partonlep1_pt/F");
+  tree->Branch("partonlep1_eta", &b_partonlep1_eta, "partonlep1_eta/F");
+  tree->Branch("partonlep2_pt", &b_partonlep2_pt, "partonlep2_pt/F");
+  tree->Branch("partonlep2_eta", &b_partonlep2_eta, "partonlep2_eta/F");
+  tree->Branch("parton_mode2", &b_partonMode2, "parton_mode2/I");
+  tree->Branch("partonInPhase", &b_partonInPhase, "partonInPhase/O");
+  tree->Branch("partonInPhaseLep", &b_partonInPhaseLep, "partonInPhaseLep/O");
+  tree->Branch("partonInPhaseJet", &b_partonInPhaseJet, "partonInPhaseJet/O");
+
+  tree->Branch("pseudoTop_channel", &b_pseudoTopChannel, "pseudoTop_channel/I");
+  tree->Branch("pseudoToplep1_pt", &b_pseudoToplep1_pt, "pseudoToplep1_pt/F");
+  tree->Branch("pseudoToplep1_eta", &b_pseudoToplep1_eta, "pseudoToplep1_eta/F");
+  tree->Branch("pseudoToplep2_pt", &b_pseudoToplep2_pt, "pseudoToplep2_pt/F");
+  tree->Branch("pseudoToplep2_eta", &b_pseudoToplep2_eta, "pseudoToplep2_eta/F");
+  tree->Branch("pseudoInPhase", &b_pseudoInPhase, "pseudoInPhase/O");
+
+  tree->Branch("jets_pt","std::vector<double>",&b_jets_pt);
+  tree->Branch("jets_eta","std::vector<double>",&b_jets_eta);
+  tree->Branch("jets_phi","std::vector<double>",&b_jets_phi);
+  tree->Branch("jets_flavor","std::vector<int>",&b_jets_flavor);
+  tree->Branch("jets_bDiscriminatorCSV","std::vector<double>",&b_jets_bDiscriminatorCSV);
+  tree->Branch("csvd_jetid","std::vector<int>",&b_csvd_jetid);
+
+  tree->Branch("csvweight", &b_csvweight, "csvweight/F");
+  tree->Branch("csvweight_JES_Up",          &b_csvweight_JES_Up,          "csvweight_JES_Up/F");          
+  tree->Branch("csvweight_JES_Down",        &b_csvweight_JES_Down,        "csvweight_JES_Down/F");
+  tree->Branch("csvweight_LF_Up",           &b_csvweight_LF_Up,           "csvweight_LF_Up/F");
+  tree->Branch("csvweight_LF_Down",         &b_csvweight_LF_Down,         "csvweight_LF_Down/F");
+  tree->Branch("csvweight_HF_Up",           &b_csvweight_HF_Up,           "csvweight_HF_Up/F");
+  tree->Branch("csvweight_HF_Down",         &b_csvweight_HF_Down,         "csvweight_HF_Down/F");
+  tree->Branch("csvweight_HF_Stats1_Up",    &b_csvweight_HF_Stats1_Up,    "csvweight_HF_Stats1_Up/F");
+  tree->Branch("csvweight_HF_Stats1_Down",  &b_csvweight_HF_Stats1_Down,  "csvweight_HF_Stats1_Down/F");
+  tree->Branch("csvweight_HF_Stats2_Up",    &b_csvweight_HF_Stats2_Up,    "csvweight_HF_Stats2_Up/F");
+  tree->Branch("csvweight_HF_Stats2_Down",  &b_csvweight_HF_Stats2_Down,  "csvweight_HF_Stats2_Down/F");
+  tree->Branch("csvweight_LF_Stats1_Up",    &b_csvweight_LF_Stats1_Up,    "csvweight_LF_Stats1_Up/F");
+  tree->Branch("csvweight_LF_Stats1_Down",  &b_csvweight_LF_Stats1_Down,  "csvweight_LF_Stats1_Down/F");
+  tree->Branch("csvweight_LF_Stats2_Up",    &b_csvweight_LF_Stats2_Up,    "csvweight_LF_Stats2_Up/F");
+  tree->Branch("csvweight_LF_Stats2_Down",  &b_csvweight_LF_Stats2_Down,  "csvweight_LF_Stats2_Down/F");
+  tree->Branch("csvweight_Charm_Err1_Up",   &b_csvweight_Charm_Err1_Up,   "csvweight_Charm_Err1_Up/F");
+  tree->Branch("csvweight_Charm_Err1_Down", &b_csvweight_Charm_Err1_Down, "csvweight_Charm_Err1_Down/F");
+  tree->Branch("csvweight_Charm_Err2_Up",   &b_csvweight_Charm_Err2_Up,   "csvweight_Charm_Err2_Up/F");
+  tree->Branch("csvweight_Charm_Err2_Down", &b_csvweight_Charm_Err2_Down, "csvweight_Charm_Err2_Down/F");
+
+/*
+  tree->Branch("jet1_pt", &b_jet1_pt, "jet1_pt/F");
+  tree->Branch("jet2_pt", &b_jet2_pt, "jet2_pt/F");
+  tree->Branch("jet1_eta", &b_jet1_eta, "jet1_eta/F");
+  tree->Branch("jet2_eta", &b_jet2_eta, "jet2_eta/F");
+  tree->Branch("jet1_CSVInclV2", &b_jet1_CSVInclV2, "jet1_CSVInclV2/F");
+  tree->Branch("jet2_CSVInclV2", &b_jet2_CSVInclV2, "jet2_CSVInclV2/F");
+
+  tree->Branch("top1_pt", &b_top1_pt, "top1_pt/F");
+  tree->Branch("top1_eta", &b_top1_eta, "top1_eta/F");
+  tree->Branch("top1_phi", &b_top1_phi, "top1_phi/F");
+  tree->Branch("top1_rapi", &b_top1_rapi, "top1_rapi/F");
+  tree->Branch("top2_pt", &b_top2_pt, "top2_pt/F");
+  tree->Branch("top2_eta", &b_top2_eta, "top2_eta/F");
+  tree->Branch("top2_phi", &b_top2_phi, "top2_phi/F");
+  tree->Branch("top2_rapi", &b_top2_rapi, "top2_rapi/F");
+  tree->Branch("ttbar_pt", &b_ttbar_pt, "ttbar_pt/F");
+  tree->Branch("ttbar_eta", &b_ttbar_eta, "ttbar_eta/F");
+  tree->Branch("ttbar_phi", &b_ttbar_phi, "ttbar_phi/F");
+  tree->Branch("ttbar_rapi", &b_ttbar_rapi, "ttbar_rapi/F");
+  tree->Branch("ttbar_m", &b_ttbar_m, "ttbar_m/F");
+*/
+  tree->Branch("is3lep", &b_is3lep, "is3lep/I");
+
+
 }
 
 TtbarBbbarDiLeptonAnalyzer::~TtbarBbbarDiLeptonAnalyzer()
