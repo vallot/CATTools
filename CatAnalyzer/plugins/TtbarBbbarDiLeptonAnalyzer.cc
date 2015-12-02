@@ -17,7 +17,7 @@
 //#include "TopQuarkAnalysis/TopKinFitter/interface/TtFullLepKinSolver.h"
 //#include "CATTools/CatAnalyzer/interface/KinematicSolvers.h"
 #include "CATTools/CatAnalyzer/interface/CSVHelper.h"
-#include "CATTools/CatAnalyzer/interface/LeptonWeight.h"
+//#include "CATTools/CatAnalyzer/interface/LeptonWeight.h"
 
 #include "CATTools/CommonTools/interface/AnalysisHelper.h"
 #include "DataFormats/Math/interface/deltaR.h"
@@ -639,23 +639,23 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
   b_lep1_pt = recolep1.pt(); b_lep1_eta = recolep1.eta(); b_lep1_phi = recolep1.phi();
   b_lep2_pt = recolep2.pt(); b_lep2_eta = recolep2.eta(); b_lep2_phi = recolep2.phi();
 
-  LeptonWeight LepWeight;
+  //LeptonWeight LepWeight;
   double sf1 = 1.0;
   double sf2 = 1.0;
   if (pdgIdSum == 24) {
       b_lep1_RelIso = recolep1.relIso();     b_lep2_RelIso = recolep2.relIso(0.4);
-      sf1 =  LepWeight.SF(b_lep1_pt, b_lep1_eta, LeptonWeight::Electron);
-      sf2 =  LepWeight.SF(b_lep2_pt, b_lep2_eta, LeptonWeight::Muon); 
+      //sf1 =  LepWeight.SF(b_lep1_pt, b_lep1_eta, LeptonWeight::Electron);
+      //sf2 =  LepWeight.SF(b_lep2_pt, b_lep2_eta, LeptonWeight::Muon); 
    } // emu
   if (pdgIdSum == 22) {
       b_lep1_RelIso = recolep1.relIso();     b_lep2_RelIso = recolep2.relIso();    
-      sf1 =  LepWeight.SF(b_lep1_pt, b_lep1_eta, LeptonWeight::Electron);
-      sf2 =  LepWeight.SF(b_lep2_pt, b_lep2_eta, LeptonWeight::Electron);
+      //sf1 =  LepWeight.SF(b_lep1_pt, b_lep1_eta, LeptonWeight::Electron);
+      //sf2 =  LepWeight.SF(b_lep2_pt, b_lep2_eta, LeptonWeight::Electron);
    } // ee
   if (pdgIdSum == 26) {
       b_lep1_RelIso = recolep1.relIso(0.4);  b_lep2_RelIso = recolep2.relIso(0.4); 
-      sf1 =  LepWeight.SF(b_lep1_pt, b_lep1_eta, LeptonWeight::Muon);
-      sf2 =  LepWeight.SF(b_lep2_pt, b_lep2_eta, LeptonWeight::Muon);
+      //sf1 =  LepWeight.SF(b_lep1_pt, b_lep1_eta, LeptonWeight::Muon);
+      //sf2 =  LepWeight.SF(b_lep2_pt, b_lep2_eta, LeptonWeight::Muon);
    } // mumu
 
   if(runOnMC_) b_lepweight = sf1 * sf2;
