@@ -78,7 +78,7 @@ private:
 
   edm::EDGetTokenT<reco::GenParticleCollection> partonTop_genParticles_, pseudoTop_;
 
-  TTree * ttree_;
+  TTree * ttree_, * ttree2_;
   int b_nvertex, b_step, b_channel;
   bool b_step1, b_step2, b_step3, b_step4, b_step5, b_step6, b_tri, b_filtered;
   float b_met, b_metphi;
@@ -214,6 +214,7 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
   usesResource("TFileService");
   edm::Service<TFileService> fs;
   ttree_ = fs->make<TTree>("nom", "nom");
+  ttree2_ = fs->make<TTree>("nom2", "nom2");
   ttree_->Branch("nvertex", &b_nvertex, "nvertex/I");
   ttree_->Branch("step", &b_step, "step/I");
   ttree_->Branch("channel", &b_channel, "channel/I");
@@ -331,6 +332,8 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
   ttree_->Branch("ttbar_m", &b_ttbar_m, "ttbar_m/F");
 */
   ttree_->Branch("is3lep", &b_is3lep, "is3lep/I");
+
+  ttree2_->CopyAddresses(ttree_);
 
   for (int i = 0; i < NCutflow; i++) cutflow_.push_back({0,0,0,0});
 }
@@ -835,6 +838,7 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
   //  printf("maxweight %f, top1.M() %f, top2.M() %f \n",maxweight, top1.M(), top2.M() );
   // printf("%2d, %2d, %2d, %2d, %6.2f, %6.2f, %6.2f\n", b_njet, b_nbjet, b_step, b_channel, b_met, b_ll_mass, b_maxweight);
   ttree_->Fill();
+  ttree2_->Fill(); 
 }
 
 const reco::Candidate* TtbarBbbarDiLeptonAnalyzer::getLast(const reco::Candidate* p) const
