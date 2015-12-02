@@ -475,24 +475,8 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_njet = selectedJets.size();
   b_nbjet = selectedBJets.size();
 
-  if ((b_channel == CH_MUEL) || (b_met > 40.)){
-    b_step3 = true;
-    if (b_step == 2){
-      ++b_step;
-      cutflow_[6][b_channel]++;
-    }
-  }
-
-  if (selectedJets.size() >1 ){
-    b_step4 = true;
-    if (b_step == 3){
-      ++b_step;
-      cutflow_[7][b_channel]++;
-    }
-  }
-
   /*
-  if (selectedJets.size() >1 ){
+  if ((b_channel == CH_MUEL) || (b_met > 40.)){
     b_step3 = true;
     if (b_step == 2){
       ++b_step;
@@ -500,7 +484,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     }
   }
 
-  if ((b_channel == CH_MUEL) || (b_met > 40.)){
+  if (selectedJets.size() >1 ){
     b_step4 = true;
     if (b_step == 3){
       ++b_step;
@@ -508,6 +492,22 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     }
   }
   */
+
+  if (selectedJets.size() >1 ){
+    b_step3 = true;
+    if (b_step == 2){
+      ++b_step;
+      cutflow_[6][b_channel]++;
+    }
+  }
+
+  if ((b_channel == CH_MUEL) || (b_met > 40.)){
+    b_step4 = true;
+    if (b_step == 3){
+      ++b_step;
+      cutflow_[7][b_channel]++;
+    }
+  }
   
   if (selectedBJets.size() > 0){
     b_step5 = true;
@@ -585,6 +585,13 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_ttbar_m = ttbar.M();
   b_ttbar_rapi = ttbar.Rapidity();
 
+  if (b_genttbar_pt>0 && b_ttbar_pt > 0){
+    printf("reco1 pt %6.2f, eta %6.2f, rapidity %6.2f\n", b_top1_pt, b_top1_eta, b_top1_rapi);
+    printf("reco2 pt %6.2f, eta %6.2f, rapidity %6.2f\n", b_top2_pt, b_top2_eta, b_top2_rapi);
+    printf("gen1  pt %6.2f, eta %6.2f, rapidity %6.2f\n", b_gentop1_pt, b_gentop1_eta, b_gentop1_rapi);
+    printf("gen2  pt %6.2f, eta %6.2f, rapidity %6.2f\n\n", b_gentop2_pt, b_gentop2_eta, b_gentop2_rapi);
+  }
+
   b_maxweight = maxweight;
   if (maxweight){
     b_step6 = true;
@@ -613,8 +620,7 @@ void TtbarDiLeptonAnalyzer::selectMuons(const cat::MuonCollection& muons, Partic
     if (mu.pt() < 20.) continue;
     if (std::abs(mu.eta()) > 2.4) continue;
     if (!mu.isTightMuon()) continue;
-    if (mu.relIso(0.4) > 0.12) continue;
-    //if (mu.relIso(0.4) > 0.15) continue;//forsync
+    if (mu.relIso(0.4) > 0.15) continue;
     //printf("muon with pt %4.1f, POG loose id %d, tight id %d\n", mu.pt(), mu.isLooseMuon(), mu.isTightMuon());
     selmuons.push_back(mu);
   }
