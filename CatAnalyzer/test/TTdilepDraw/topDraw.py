@@ -12,7 +12,8 @@ datalumi = datalumi*1000 # due to fb
 
 mcfilelist = ['TT_powheg', 'WJets', 'SingleTbar_tW', 'SingleTop_tW', 'ZZ', 'WW', 'WZ', 'DYJets', 'DYJets_10to50']
 rdfilelist = ['MuonEG_Run2015','DoubleEG_Run2015','DoubleMuon_Run2015']
-rootfileDir = "/cms/scratch/jlee/v7-4-5/TtbarDiLeptonAnalyzer_"
+rootfileDir = "/cms/scratch/tt8888tt/cattools_v745/src/CATTools/CatAnalyzer/test/v745/"
+#rootfileDir = "/cms/scratch/jlee/v7-4-5/TtbarDiLeptonAnalyzer_"
 channel_name = ['MuEl', 'ElEl', 'MuMu']
 
 datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json" % os.environ['CMSSW_BASE']))
@@ -26,17 +27,17 @@ weight = 'weight'
 binning = [60, 20, 320]
 plotvar = 'll_m'
 x_name = 'mass [GeV]'
-y_name = 'Number of Events'
+y_name = 'Events'
 dolog = False
 
 try:
     opts, args = getopt.getopt(sys.argv[1:],"hdc:w:b:p:x:y:a:s:",["cut","weight","binning","plotvar","x_name","y_name","dolog","channel","step"])
 except getopt.GetoptError:          
-    print 'Usage : ./topDraw.py.py -c <cut> -w <weight> -b <binning> -p <plotvar> -x <x_name> -y <y_name> -d <dolog>'
+    print 'Usage : ./topDraw.py -c <cut> -w <weight> -b <binning> -p <plotvar> -x <x_name> -y <y_name> -d <dolog>'
     sys.exit(2)
 for opt, arg in opts:
     if opt == '-h':
-        print 'Usage : ./topDraw.py.py -c <cut> -w <weight> -b <binning> -p <plotvar> -x <x_name> -y <y_name> -d <dolog>'
+        print 'Usage : ./topDraw.py -c <cut> -w <weight> -b <binning> -p <plotvar> -x <x_name> -y <y_name> -d <dolog>'
         sys.exit()
     elif opt in ("-c", "--cut"):
         cut = arg
@@ -71,7 +72,7 @@ stepch_tcut =  'step>=%i&&channel==%i'%(step,channel)
 tcut = '(%s&&%s)*%s'%(stepch_tcut,cut,weight)
 ttother_tcut = '(%s&&%s&&%s)*%s'%(stepch_tcut,cut,ttother_tcut,weight)
 print "TCut =",tcut
-x_name = "Step "+str(step)+" "+channel_name[channel-1]+" "+x_name
+x_name = channel_name[channel-1]+" "+x_name
 if len(binning) <= 3:
     num = (binning[2]-binning[1])/float(binning[0])
     if num != 1:
@@ -139,7 +140,6 @@ for i, mcname in enumerate(mcfilelist):
 	title = data["title"]
 	if 'DYJets' in mcname:
 		scale = scale*dyratio[channel][step]
-		#print "dyratio[%d][%d] %f"%(channel, step, dyratio[channel][step])
 
 	rfname = rootfileDir + mcname +".root"
 
@@ -150,14 +150,12 @@ for i, mcname in enumerate(mcfilelist):
 	mchist.SetLineColor(colour)
 	mchist.SetFillColor(colour)
 	mchistList.append(mchist)
-	if 'TT_powheg' == mcname:
+	if 'TT' in mcname:
 		ttothers = makeTH1(rfname, tname, title+' others', binning, plotvar, ttother_tcut, scale)
 		ttothers.SetLineColor(906)
 		ttothers.SetFillColor(906)
 		mchistList.append(ttothers)
 		mchist.Add(ttothers, -1)
-	if 'DYJets' in mcname:
-		print mcname, "esti", channel, scale, mchist.GetMaximum()
 
 rfname = rootfileDir + rdfilelist[channel-1] +".root"
 rdhist = makeTH1(rfname, tname, 'data', binning, plotvar, tcut)
