@@ -475,6 +475,23 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_njet = selectedJets.size();
   b_nbjet = selectedBJets.size();
 
+  if ((b_channel == CH_MUEL) || (b_met > 40.)){
+    b_step3 = true;
+    if (b_step == 2){
+      ++b_step;
+      cutflow_[6][b_channel]++;
+    }
+  }
+
+  if (selectedJets.size() >1 ){
+    b_step4 = true;
+    if (b_step == 3){
+      ++b_step;
+      cutflow_[7][b_channel]++;
+    }
+  }
+
+  /*
   if (selectedJets.size() >1 ){
     b_step3 = true;
     if (b_step == 2){
@@ -490,6 +507,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       cutflow_[7][b_channel]++;
     }
   }
+  */
   
   if (selectedBJets.size() > 0){
     b_step5 = true;
