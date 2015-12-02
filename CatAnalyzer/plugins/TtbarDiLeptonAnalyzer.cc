@@ -44,7 +44,7 @@ private:
   cat::JetCollection selectBJets(const cat::JetCollection& jets) const;
   const reco::Candidate* getLast(const reco::Candidate* p) const;
 
-  edm::EDGetTokenT<int> recoFiltersToken_, nGoodVertexToken_;
+  edm::EDGetTokenT<int> recoFiltersToken_, nGoodVertexToken_, lumiSelectionToken_;
   edm::EDGetTokenT<float> genweightToken_, puweightToken_;
   edm::EDGetTokenT<int> trigTokenMUEL_, trigTokenMUMU_, trigTokenELEL_;
 
@@ -104,6 +104,7 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
 {
   recoFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("recoFilters"));
   nGoodVertexToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("nGoodVertex"));
+  lumiSelectionToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("lumiSelection"));
   genweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("genweight"));
   puweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("puweight"));
   trigTokenMUEL_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigMUEL"));
@@ -408,6 +409,12 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   iEvent.getByToken(nGoodVertexToken_, nGoodVertexHandle);
   b_nvertex = *nGoodVertexHandle;
 
+  edm::Handle<int> lumiSelectionHandle;
+  iEvent.getByToken(lumiSelectionToken_, lumiSelectionHandle);
+  if (!runOnMC_){
+    if (*lumiSelectionHandle == 0) return;
+  }
+  
   edm::Handle<int> recoFiltersHandle;
   iEvent.getByToken(recoFiltersToken_, recoFiltersHandle);
   b_filtered = *recoFiltersHandle == 0 ? false : true;

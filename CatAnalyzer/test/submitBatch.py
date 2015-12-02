@@ -3,9 +3,10 @@
 # sed -i 's/^\/store/root:\/\/cms-xrdr.sdfarm.kr:1094\/\/xrd\/store/g' *
 
 analysis = 'h2muAnalyzer'
-analysis = 'TtbarDiLeptonAnalyzer'
+#analysis = 'TtbarDiLeptonAnalyzer'
 
 pythonCfg = 'run_'+analysis+'_cfg.py'
+#analysis=analysis+'Silver'
 
 import os,json
 datadir = os.environ["CMSSW_BASE"]+'/src/CATTools/CatAnalyzer/data/'
@@ -20,10 +21,10 @@ with open(dataset_json) as data_file:
             continue
         if "ttH" in datasetName:
             continue       
-        if "ttZ" in datasetName:
-            continue
-        if "ttW" in datasetName:
-            continue
+        #if "ttZ" in datasetName:
+        #    continue
+        #if "ttW" in datasetName:
+        #    continue
 
         fileList = datadir + 'dataset_' + datasetName + '.txt'
         jobName = analysis+'_'+datasetName
