@@ -687,27 +687,26 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
   }
   if (runOnMC_){
      //double csvWgtHF, csvWgtLF, csvWgtCF;
-     b_csvweight         = csvWeight->getCSVWeight(selectedJets, 0);//, csvWgtHF, csvWgtLF, csvWgtCF);
-/* 
-     b_csvweight_JES_Up  = csvWeight->getCSVWeight(b_jets_pt, b_jets_eta, b_jets_phi, b_jets_flavor, 0, csvWgtHF, csvWgtLF, csvWgtCF);
-     b_csvweight_JES_Down= csvWeight->getCSVWeight(b_jets_pt, b_jets_eta, b_jets_phi, b_jets_flavor, 0, csvWgtHF, csvWgtLF, csvWgtCF);
-     b_csvweight_LF_Up   = csvWeight->getCSVWeight(b_jets_pt, b_jets_eta, b_jets_phi, b_jets_flavor, 0, csvWgtHF, csvWgtLF, csvWgtCF);
-     b_csvweight_LF_Down = csvWeight->getCSVWeight(b_jets_pt, b_jets_eta, b_jets_phi, b_jets_flavor, 0, csvWgtHF, csvWgtLF, csvWgtCF);
-     b_csvweight_HF_Up   = csvWeight->getCSVWeight(b_jets_pt, b_jets_eta, b_jets_phi, b_jets_flavor, 0, csvWgtHF, csvWgtLF, csvWgtCF);
-     b_csvweight_HF_Down = csvWeight->getCSVWeight(b_jets_pt, b_jets_eta, b_jets_phi, b_jets_flavor, 0, csvWgtHF, csvWgtLF, csvWgtCF);
-     b_csvweight_HF_Stats1_Up  = csvWeight->getCSVWeight(b_jets_pt, b_jets_eta, b_jets_phi, b_jets_flavor, 0, csvWgtHF, csvWgtLF, csvWgtCF);
-     b_csvweight_HF_Stats1_Down= csvWeight->getCSVWeight(b_jets_pt, b_jets_eta, b_jets_phi, b_jets_flavor, 0, csvWgtHF, csvWgtLF, csvWgtCF);
-     b_csvweight_HF_Stats2_Up  = csvWeight->getCSVWeight(b_jets_pt, b_jets_eta, b_jets_phi, b_jets_flavor, 0, csvWgtHF, csvWgtLF, csvWgtCF);
-     b_csvweight_HF_Stats2_Down= csvWeight->getCSVWeight(b_jets_pt, b_jets_eta, b_jets_phi, b_jets_flavor, 0, csvWgtHF, csvWgtLF, csvWgtCF);
-     b_csvweight_LF_Stats1_Up  = csvWeight->getCSVWeight(b_jets_pt, b_jets_eta, b_jets_phi, b_jets_flavor, 0, csvWgtHF, csvWgtLF, csvWgtCF);
-     b_csvweight_LF_Stats1_Down= csvWeight->getCSVWeight(b_jets_pt, b_jets_eta, b_jets_phi, b_jets_flavor, 0, csvWgtHF, csvWgtLF, csvWgtCF);
-     b_csvweight_LF_Stats2_Up  = csvWeight->getCSVWeight(b_jets_pt, b_jets_eta, b_jets_phi, b_jets_flavor, 0, csvWgtHF, csvWgtLF, csvWgtCF);
-     b_csvweight_LF_Stats2_Down= csvWeight->getCSVWeight(b_jets_pt, b_jets_eta, b_jets_phi, b_jets_flavor, 0, csvWgtHF, csvWgtLF, csvWgtCF);
-     b_csvweight_Charm_Err1_Up = csvWeight->getCSVWeight(b_jets_pt, b_jets_eta, b_jets_phi, b_jets_flavor, 0, csvWgtHF, csvWgtLF, csvWgtCF);
-     b_csvweight_Charm_Err1_Down= csvWeight->getCSVWeight(b_jets_pt, b_jets_eta, b_jets_phi, b_jets_flavor, 0, csvWgtHF, csvWgtLF, csvWgtCF);
-     b_csvweight_Charm_Err2_Up  = csvWeight->getCSVWeight(b_jets_pt, b_jets_eta, b_jets_phi, b_jets_flavor, 0, csvWgtHF, csvWgtLF, csvWgtCF);
-     b_csvweight_Charm_Err2_Down= csvWeight->getCSVWeight(b_jets_pt, b_jets_eta, b_jets_phi, b_jets_flavor, 0, csvWgtHF, csvWgtLF, csvWgtCF);
-*/
+     b_csvweight         = csvWeight->getCSVWeight(selectedJets, 0);//); 
+     b_csvweight_JES_Up  = csvWeight->getCSVWeight(selectedJets, 7);
+     b_csvweight_JES_Down= csvWeight->getCSVWeight(selectedJets, 8);
+     b_csvweight_LF_Up   = csvWeight->getCSVWeight(selectedJets, 9);
+     b_csvweight_LF_Down = csvWeight->getCSVWeight(selectedJets, 10);
+     b_csvweight_HF_Up   = csvWeight->getCSVWeight(selectedJets, 11);
+     b_csvweight_HF_Down = csvWeight->getCSVWeight(selectedJets, 12);
+     b_csvweight_HF_Stats1_Up  = csvWeight->getCSVWeight(selectedJets, 13);
+     b_csvweight_HF_Stats1_Down= csvWeight->getCSVWeight(selectedJets, 14);
+     b_csvweight_HF_Stats2_Up  = csvWeight->getCSVWeight(selectedJets, 15);
+     b_csvweight_HF_Stats2_Down= csvWeight->getCSVWeight(selectedJets, 16);
+     b_csvweight_LF_Stats1_Up  = csvWeight->getCSVWeight(selectedJets, 17);
+     b_csvweight_LF_Stats1_Down= csvWeight->getCSVWeight(selectedJets, 18);
+     b_csvweight_LF_Stats2_Up  = csvWeight->getCSVWeight(selectedJets, 19);
+     b_csvweight_LF_Stats2_Down= csvWeight->getCSVWeight(selectedJets, 20);
+     b_csvweight_Charm_Err1_Up = csvWeight->getCSVWeight(selectedJets, 21);
+     b_csvweight_Charm_Err1_Down= csvWeight->getCSVWeight(selectedJets, 22);
+     b_csvweight_Charm_Err2_Up  = csvWeight->getCSVWeight(selectedJets, 23);
+     b_csvweight_Charm_Err2_Down= csvWeight->getCSVWeight(selectedJets, 24);
+
   }
   //csvd order
   std::vector< std::pair<int,double> > vecJetBDisc(mapJetBDiscriminator.begin(), mapJetBDiscriminator.end());
@@ -855,7 +854,7 @@ void TtbarBbbarDiLeptonAnalyzer::selectMuons(const cat::MuonCollection& muons, L
     if (std::abs(mu.eta()) > 2.4) continue;
     //if (!mu.isMediumMuon()) continue;
     if (!mu.isTightMuon()) continue;
-    if (mu.relIso(0.4) > 0.12) continue;
+    if (mu.relIso(0.4) > 0.15) continue;
     //printf("muon with pt %4.1f, POG loose id %d, tight id %d\n", mu.pt(), mu.isLooseMuon(), mu.isTightMuon());
     selmuons.push_back(mu);
   }
