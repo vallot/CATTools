@@ -60,7 +60,7 @@ private:
 
   void book(TTree* tree);
 
-  edm::EDGetTokenT<int> recoFiltersToken_, nGoodVertexToken_;
+  edm::EDGetTokenT<int> recoFiltersToken_, nGoodVertexToken_, lumiSelectionToken_;
   edm::EDGetTokenT<float> genweightToken_, puweightToken_, puweightUpToken_, puweightDownToken_, genweightQToken_;
   edm::EDGetTokenT<int> trigTokenMUEL_, trigTokenMUMU_, trigTokenELEL_;
 
@@ -162,6 +162,7 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
 {
   recoFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("recoFilters"));
   nGoodVertexToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("nGoodVertex"));
+  lumiSelectionToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("lumiSelection"));
   genweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("genweight"));
   genweightQToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("genweightQ"));
   pdfWeightsToken_   = consumes<vector<float> >(iConfig.getParameter<edm::InputTag>("genweightPDF"));
@@ -588,6 +589,12 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
   edm::Handle<int> nGoodVertexHandle;
   iEvent.getByToken(nGoodVertexToken_, nGoodVertexHandle);
   b_nvertex = *nGoodVertexHandle;
+
+  edm::Handle<int> lumiSelectionHandle;
+  iEvent.getByToken(lumiSelectionToken_, lumiSelectionHandle);
+  if (!runOnMC_){
+    if (*lumiSelectionHandle == 0) return;
+  }
 
   edm::Handle<int> recoFiltersHandle;
   iEvent.getByToken(recoFiltersToken_, recoFiltersHandle);

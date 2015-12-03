@@ -17,6 +17,7 @@ process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 #useGold = True
 #isRunData = False
 catmet = 'catMETsNoHF'
+lumiMask = 'lumiMask'
 #if useGold:
 #    catmet = 'catMETs'
 #    if isRunData:
@@ -84,6 +85,7 @@ process.cattree = cms.EDAnalyzer("TtbarBbbarDiLeptonAnalyzer",
     genweightQ = cms.InputTag("genWeight","Q"),
     genweightPDF = cms.InputTag("genWeight","pdfWeights"),
 
+    lumiSelection = cms.InputTag(lumiMask),
     puweight = cms.InputTag("pileupWeight"),
     puweightUp = cms.InputTag("pileupWeight","up"),
     puweightDown = cms.InputTag("pileupWeight","dn"),
@@ -129,6 +131,4 @@ process.TFileService = cms.Service("TFileService",
 process.p = cms.Path(process.cattree)
 process.MessageLogger.cerr.FwkReport.reportEvery = 50000
 
-#from customise_cff import *
-#customise(process)
 
