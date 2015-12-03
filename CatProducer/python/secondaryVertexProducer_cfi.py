@@ -1,8 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
-catSecVertexs = cms.EDProducer("CATSecVertexProducer",
-    muonSrc = cms.InputTag("slimmedMuons"),
-    elecSrc = cms.InputTag("slimmedElectrons"),
+catSecVertexs = cms.EDProducer("CATSecVertexV4Producer",
+    pfSrc  = cms.InputTag("packedPFCandidates"),
     vertexLabel = cms.InputTag("catVertex"),
     track = cms.PSet(
         minPt = cms.double(1.0),
@@ -22,4 +21,7 @@ catSecVertexs = cms.EDProducer("CATSecVertexProducer",
     rawMassMax = cms.double(4),
     massMin = cms.double(2.80),
     massMax = cms.double(3.40),
+    applyCut = cms.bool(True)
 )
+
+
