@@ -335,10 +335,10 @@ cat::MuonCollection h2muAnalyzer::selectMuons(const cat::MuonCollection& muons )
 {
   cat::MuonCollection selmuons;
   for (auto mu : muons) {
-    if (!mu.isLooseMuon()) continue;
     if (mu.pt() <= 20.) continue;
     if (std::abs(mu.eta()) >= 2.4) continue;
-    if (mu.relIso(0.4) >= 0.12) continue;
+    if (!mu.isLooseMuon()) continue;
+    if (mu.relIso(0.4) >= 0.15) continue;
     //printf("muon with pt %4.1f, POG loose id %d, tight id %d\n", mu.pt(), mu.isLooseMuon(), mu.isTightMuon());
     selmuons.push_back(mu);
   }
@@ -350,15 +350,10 @@ cat::ElectronCollection h2muAnalyzer::selectElecs(const cat::ElectronCollection&
 {
   cat::ElectronCollection selelecs;
   for (auto el : elecs) {
-    if (!el.electronID("cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-medium")) continue;
-    if (!el.passConversionVeto()) continue;
-    if (!el.isPF()) continue;
-    if (el.pt() <= 20.) continue;
-    if ((std::abs(el.scEta()) <= 1.4442) && (el.relIso(0.3) >= 0.1649)) continue;
-    if ((std::abs(el.scEta()) >= 1.566) && (el.relIso(0.3) >= 0.2075)) continue;
+    if (el.pt() < 20.) continue;
     if ((std::abs(el.scEta()) > 1.4442) && (std::abs(el.scEta()) < 1.566)) continue;
-    if (std::abs(el.eta()) >= 2.5) continue;
-    if (el.pt() < 5) continue;
+    if (std::abs(el.eta()) > 2.4) continue;
+    if ( !el.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-medium") ) continue;
     //printf("electron with pt %4.1f\n", el.pt());
     selelecs.push_back(el);
   }
