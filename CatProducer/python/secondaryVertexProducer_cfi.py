@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-catSecVertexs = cms.EDProducer("CATSecVertexV4Producer",
+catSecVertexs = cms.EDProducer("CATSecVertexProducer",
     pfSrc  = cms.InputTag("packedPFCandidates"),
     vertexLabel = cms.InputTag("catVertex"),
     track = cms.PSet(
