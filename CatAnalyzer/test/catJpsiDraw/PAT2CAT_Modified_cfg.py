@@ -100,40 +100,6 @@ if options.maxEvents < 0:
     process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.options.wantSummary = False
 
-process.catV2Match = cms.EDProducer("MCMatcher",     # cut on deltaR, deltaPt/Pt; pick best by deltaR
-    src     = cms.InputTag("catSecVertexsV2"),        # RECO objects to match
-    matched = cms.InputTag("genParticles"), # mc-truth particle collection
-    mcPdgId     = cms.vint32(443),           # one or more PDG ID (13 = muon); absolute values (see below)
-    checkCharge = cms.bool(True),           # True = require RECO and MC objects to have the same charge
-    mcStatus = cms.vint32(3),               # PYTHIA status code (1 = stable, 2 = shower, 3 = hard scattering)
-    maxDeltaR = cms.double(0.15),            # Minimum deltaR for the match
-    maxDPtRel = cms.double(0.05),            # Minimum deltaPt/Pt for the match
-    resolveAmbiguities = cms.bool(True),    # Forbid two RECO objects to match to the same GEN object
-    resolveByMatchQuality = cms.bool(True) # False = just match input in order; True = pick lowest deltaR pair first
-)
-process.catV3Match = cms.EDProducer("MCMatcher",     # cut on deltaR, deltaPt/Pt; pick best by deltaR
-    src     = cms.InputTag("catSecVertexsV3"),        # RECO objects to match
-    matched = cms.InputTag("genParticles"), # mc-truth particle collection
-    mcPdgId     = cms.vint32(443),           # one or more PDG ID (13 = muon); absolute values (see below)
-    checkCharge = cms.bool(True),           # True = require RECO and MC objects to have the same charge
-    mcStatus = cms.vint32(3),               # PYTHIA status code (1 = stable, 2 = shower, 3 = hard scattering)
-    maxDeltaR = cms.double(0.15),            # Minimum deltaR for the match
-    maxDPtRel = cms.double(0.05),            # Minimum deltaPt/Pt for the match
-    resolveAmbiguities = cms.bool(True),    # Forbid two RECO objects to match to the same GEN object
-    resolveByMatchQuality = cms.bool(True) # False = just match input in order; True = pick lowest deltaR pair first
-)
-process.catV4Match = cms.EDProducer("MCMatcher",     # cut on deltaR, deltaPt/Pt; pick best by deltaR
-    src     = cms.InputTag("catSecVertexsV4"),        # RECO objects to match
-    matched = cms.InputTag("genParticles"), # mc-truth particle collection
-    mcPdgId     = cms.vint32(443),           # one or more PDG ID (13 = muon); absolute values (see below)
-    checkCharge = cms.bool(True),           # True = require RECO and MC objects to have the same charge
-    mcStatus = cms.vint32(3),               # PYTHIA status code (1 = stable, 2 = shower, 3 = hard scattering)
-    maxDeltaR = cms.double(0.15),            # Minimum deltaR for the match
-    maxDPtRel = cms.double(0.05),            # Minimum deltaPt/Pt for the match
-    resolveAmbiguities = cms.bool(True),    # Forbid two RECO objects to match to the same GEN object
-    resolveByMatchQuality = cms.bool(True) # False = just match input in order; True = pick lowest deltaR pair first
-)
-
 ## for debugging
 #process.options.wantSummary = True
 #process.source.skipEvents = cms.untracked.uint32(3000)
@@ -141,15 +107,8 @@ process.catV4Match = cms.EDProducer("MCMatcher",     # cut on deltaR, deltaPt/Pt
 #print "process.catOut.outputCommands", process.catOut.outputCommands
 
 if doSecVertex :
-  if not useMiniAOD :
-    process.catOut.outputCommands.extend(['keep *_catSecVertexsV2_*_*',     ])
-    process.catOut.outputCommands.extend(['keep *_catV2Match_*_*',     ])
-  process.catOut.outputCommands.extend(['keep *_catSecVertexsV3_*_*',     ])
-  process.catOut.outputCommands.extend(['keep *_catSecVertexsV4_*_*',     ])
-  process.catOut.outputCommands.extend(['keep *_catV3Match_*_*',     ])
-  process.catOut.outputCommands.extend(['keep *_catV4Match_*_*',     ])
+  process.catOut.outputCommands.extend(['keep *_catSecVertexs_*_*',     ])
   process.catOut.outputCommands.extend(['keep *_genParticles_*_*',     ])
 
-## for Jpsi to MuMu samples
+## for Jpsi to MuMu samples. Gen weight failed for jpsimm sample.
 process.catOut.outputCommands.remove('keep *_genWeight_*_*')
-#process.options.skipEvent=
