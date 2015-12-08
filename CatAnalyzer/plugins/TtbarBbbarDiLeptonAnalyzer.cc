@@ -89,6 +89,7 @@ private:
   float b_lep1_pt, b_lep1_eta, b_lep1_phi, b_lep1_RelIso;
   float b_lep2_pt, b_lep2_eta, b_lep2_phi, b_lep2_RelIso;
   float b_ll_pt, b_ll_eta, b_ll_phi, b_ll_m;
+  int   b_lep1_q, b_lep2_q;
  
  //for ttbb 
   std::vector<double> b_jets_pt;
@@ -265,10 +266,13 @@ void TtbarBbbarDiLeptonAnalyzer::book(TTree* tree){
   tree->Branch("lep1_eta", &b_lep1_eta, "lep1_eta/F");
   tree->Branch("lep1_phi", &b_lep1_phi, "lep1_phi/F");
   tree->Branch("lep1_RelIso", &b_lep1_RelIso, "lep1_RelIso/F");
+  tree->Branch("lep1_q", &b_lep1_q, "lep1_q/I");
   tree->Branch("lep2_pt", &b_lep2_pt, "lep2_pt/F");
   tree->Branch("lep2_eta", &b_lep2_eta, "lep2_eta/F");
   tree->Branch("lep2_phi", &b_lep2_phi, "lep2_phi/F");
   tree->Branch("lep2_RelIso", &b_lep2_RelIso, "lep2_RelIso/F");
+  tree->Branch("lep2_q", &b_lep2_q, "lep2_q/I");
+
   tree->Branch("ll_pt", &b_ll_pt, "ll_pt/F");
   tree->Branch("ll_eta", &b_ll_eta, "ll_eta/F");
   tree->Branch("ll_phi", &b_ll_phi, "ll_phi/F");
@@ -378,8 +382,8 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
   b_genTtbarId=0; b_genTtbarId30=0; b_genTtbarId40=0;
   b_NgenJet=0; b_NgenJet30=0; b_NgenJet40=0; 
  
-  b_lep1_pt = -9;b_lep1_eta = -9;b_lep1_phi = -9; b_lep1_RelIso = -9;
-  b_lep2_pt = -9;b_lep2_eta = -9;b_lep2_phi = -9; b_lep2_RelIso = -9;
+  b_lep1_pt = -9;b_lep1_eta = -9;b_lep1_phi = -9; b_lep1_RelIso = -9; b_lep1_q=0;
+  b_lep2_pt = -9;b_lep2_eta = -9;b_lep2_phi = -9; b_lep2_RelIso = -9; b_lep2_q=0;
   b_ll_pt = -9;b_ll_eta = -9;b_ll_phi = -9;b_ll_m = -9;
 
   b_partonChannel = -1; b_partonMode1 = -1; b_partonMode2 = -1;
@@ -643,8 +647,8 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
   else if ( b_channel == CH_MUEL ) iEvent.getByToken(trigTokenMUEL_, trigHandle);
   b_tri = *trigHandle;
 
-  b_lep1_pt = recolep1.pt(); b_lep1_eta = recolep1.eta(); b_lep1_phi = recolep1.phi();
-  b_lep2_pt = recolep2.pt(); b_lep2_eta = recolep2.eta(); b_lep2_phi = recolep2.phi();
+  b_lep1_pt = recolep1.pt(); b_lep1_eta = recolep1.eta(); b_lep1_phi = recolep1.phi(); b_lep1_q = recolep1.charge();
+  b_lep2_pt = recolep2.pt(); b_lep2_eta = recolep2.eta(); b_lep2_phi = recolep2.phi(); b_lep2_q = recolep2.charge();
 
   //LeptonWeight LepWeight;
   double sf1 = 1.0;
@@ -670,11 +674,7 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
   const auto tlv_ll = recolep1.p4()+recolep2.p4();
   b_ll_pt = tlv_ll.Pt(); b_ll_eta = tlv_ll.Eta(); b_ll_phi = tlv_ll.Phi(); b_ll_m = tlv_ll.M();
 
-  if (b_ll_m < 20. || recolep1.charge() * recolep2.charge() > 0){
-    ttree_->Fill();
-    return;
-  }
-  else b_step1 = true;
+  if (b_ll_m > 20. && recolep1.charge() * recolep2.charge() < 0) b_step1 = true;
   b_step = 1;
   cutflow_[4][b_channel]++;
 
