@@ -16,7 +16,7 @@
 
 //#include "TopQuarkAnalysis/TopKinFitter/interface/TtFullLepKinSolver.h"
 //#include "CATTools/CatAnalyzer/interface/KinematicSolvers.h"
-#include "CATTools/CatAnalyzer/interface/CSVHelper.h"
+//#include "CATTools/CatAnalyzer/interface/CSVHelper.h"
 //#include "CATTools/CatAnalyzer/interface/LeptonWeight.h"
 
 #include "CATTools/CommonTools/interface/AnalysisHelper.h"
@@ -36,7 +36,7 @@ struct bigger_second
       return lhs.second > rhs.second;
    }
 };
-typedef std::pair<int,double> data_t;
+typedef std::pair<int,float> data_t;
 
 class TtbarBbbarDiLeptonAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources,edm::one::WatchLuminosityBlocks> {
 public:
@@ -94,11 +94,11 @@ private:
   int   b_lep1_q, b_lep2_q;
  
  //for ttbb 
-  std::vector<double> b_jets_pt;
-  std::vector<double> b_jets_eta;
-  std::vector<double> b_jets_phi;
+  std::vector<float> b_jets_pt;
+  std::vector<float> b_jets_eta;
+  std::vector<float> b_jets_phi;
   std::vector<int>    b_jets_flavor;
-  std::vector<double> b_jets_bDiscriminatorCSV;
+  std::vector<float> b_jets_bDiscriminatorCSV;
   std::vector<int>    b_csvd_jetid;
  
   //mc
@@ -117,6 +117,7 @@ private:
   int b_NgenJet, b_NgenJet30, b_NgenJet40;
 
   //mc
+/*
   float  b_lepweight;
   float  b_csvweight;
   float  b_csvweight_JES_Up;
@@ -137,7 +138,7 @@ private:
   float  b_csvweight_Charm_Err1_Down;
   float  b_csvweight_Charm_Err2_Up;
   float  b_csvweight_Charm_Err2_Down;
-
+*/
 
 /* 
   //float b_jet1_pt, b_jet1_eta, b_jet1_CSVInclV2;
@@ -156,7 +157,7 @@ private:
   const static int NCutflow = 10;
   std::vector<std::vector<int> > cutflow_;
   bool runOnMC_;
-  CSVHelper *csvWeight;
+  //CSVHelper *csvWeight;
 };
 //
 // constructors and destructor
@@ -199,7 +200,7 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
   partonTop_genParticles_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("partonTop_genParticles"));
   pseudoTop_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("pseudoTop"));
 
-  csvWeight = new CSVHelper();
+  //csvWeight = new CSVHelper();
 /*
   auto solverPSet = iConfig.getParameter<edm::ParameterSet>("solver");
   auto algoName = solverPSet.getParameter<std::string>("algo");
@@ -255,7 +256,7 @@ void TtbarBbbarDiLeptonAnalyzer::book(TTree* tree){
   tree->Branch("puweight", &b_puweight, "puweight/F");
   tree->Branch("puweightUp", &b_puweightUp, "puweightUp/F");
   tree->Branch("puweightDown", &b_puweightDown, "puweightDown/F");
-  tree->Branch("lepweight", &b_lepweight, "lepweight/F");
+//  tree->Branch("lepweight", &b_lepweight, "lepweight/F");
   tree->Branch("genTtbarId", &b_genTtbarId, "genTtbarId/I");
   tree->Branch("genTtbarId30", &b_genTtbarId30, "genTtbarId30/I");
   tree->Branch("genTtbarId40", &b_genTtbarId40, "genTtbarId40/I");
@@ -299,13 +300,13 @@ void TtbarBbbarDiLeptonAnalyzer::book(TTree* tree){
   tree->Branch("pseudoToplep2_eta", &b_pseudoToplep2_eta, "pseudoToplep2_eta/F");
   tree->Branch("pseudoInPhase", &b_pseudoInPhase, "pseudoInPhase/O");
 
-  tree->Branch("jets_pt","std::vector<double>",&b_jets_pt);
-  tree->Branch("jets_eta","std::vector<double>",&b_jets_eta);
-  tree->Branch("jets_phi","std::vector<double>",&b_jets_phi);
+  tree->Branch("jets_pt","std::vector<float>",&b_jets_pt);
+  tree->Branch("jets_eta","std::vector<float>",&b_jets_eta);
+  tree->Branch("jets_phi","std::vector<float>",&b_jets_phi);
   tree->Branch("jets_flavor","std::vector<int>",&b_jets_flavor);
-  tree->Branch("jets_bDiscriminatorCSV","std::vector<double>",&b_jets_bDiscriminatorCSV);
+  tree->Branch("jets_bDiscriminatorCSV","std::vector<float>",&b_jets_bDiscriminatorCSV);
   tree->Branch("csvd_jetid","std::vector<int>",&b_csvd_jetid);
-
+/*
   tree->Branch("csvweight", &b_csvweight, "csvweight/F");
   tree->Branch("csvweight_JES_Up",          &b_csvweight_JES_Up,          "csvweight_JES_Up/F");          
   tree->Branch("csvweight_JES_Down",        &b_csvweight_JES_Down,        "csvweight_JES_Down/F");
@@ -325,6 +326,7 @@ void TtbarBbbarDiLeptonAnalyzer::book(TTree* tree){
   tree->Branch("csvweight_Charm_Err1_Down", &b_csvweight_Charm_Err1_Down, "csvweight_Charm_Err1_Down/F");
   tree->Branch("csvweight_Charm_Err2_Up",   &b_csvweight_Charm_Err2_Up,   "csvweight_Charm_Err2_Up/F");
   tree->Branch("csvweight_Charm_Err2_Down", &b_csvweight_Charm_Err2_Down, "csvweight_Charm_Err2_Down/F");
+*/
 
 /*
   tree->Branch("jet1_pt", &b_jet1_pt, "jet1_pt/F");
@@ -379,7 +381,7 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
   b_step1 = 0;b_step2 = 0;b_step3 = 0;b_step4 = 0;b_step5 = 0;b_step6 = 0;b_tri = 0;b_filtered = 0;
   b_met = -9; b_metphi = -9;
   b_weight = 1; b_weightQ = 1; b_puweight = 1; b_puweightUp = 1; b_puweightDown =1;
-  b_lepweight = 1;
+  //b_lepweight = 1;
   b_pdfWeights.clear();
 
   b_genTtbarId=0; b_genTtbarId30=0; b_genTtbarId40=0;
@@ -404,7 +406,7 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
   b_jets_flavor.clear();
   b_jets_bDiscriminatorCSV.clear();
   b_csvd_jetid.clear();
-
+/*
   b_csvweight = 1;
   b_csvweight_JES_Up = 1;
   b_csvweight_JES_Down = 1;
@@ -424,7 +426,7 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
   b_csvweight_Charm_Err1_Down = 1;
   b_csvweight_Charm_Err2_Up = 1;
   b_csvweight_Charm_Err2_Down = 1;
-
+*/
 
 /*  
   b_jet1_pt = -9; b_jet1_eta = -9; b_jet1_CSVInclV2 = -9;
@@ -674,8 +676,8 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
   b_lep2_pt = recolep2.pt(); b_lep2_eta = recolep2.eta(); b_lep2_phi = recolep2.phi(); b_lep2_q = recolep2.charge();
 
   //LeptonWeight LepWeight;
-  double sf1 = 1.0;
-  double sf2 = 1.0;
+  //double sf1 = 1.0;
+  //double sf2 = 1.0;
   if (pdgIdSum == 24) {
       b_lep1_RelIso = recolep1.relIso();     b_lep2_RelIso = recolep2.relIso(0.4);
       //sf1 =  LepWeight.SF(b_lep1_pt, b_lep1_eta, LeptonWeight::Electron);
@@ -692,7 +694,7 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
       //sf2 =  LepWeight.SF(b_lep2_pt, b_lep2_eta, LeptonWeight::Muon);
    } // mumu
 
-  if(runOnMC_) b_lepweight = sf1 * sf2;
+  //if(runOnMC_) b_lepweight = sf1 * sf2;
 
   const auto tlv_ll = recolep1.p4()+recolep2.p4();
   b_ll_pt = tlv_ll.Pt(); b_ll_eta = tlv_ll.Eta(); b_ll_phi = tlv_ll.Phi(); b_ll_m = tlv_ll.M();
@@ -713,9 +715,9 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
   JetCollection&& selectedBJetsT = selectBJets(selectedJets,0.970);
 
   int idx=0;
-  std::map<int,double> mapJetBDiscriminator;
+  std::map<int,float> mapJetBDiscriminator;
   for (auto jet1 = selectedJets.begin(), end = selectedJets.end(); jet1 != end; ++jet1){
-    double bDisCSV= jet1->bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
+    float bDisCSV= (float) jet1->bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
     int flavor = jet1->partonFlavour();
     mapJetBDiscriminator[idx] = bDisCSV;
     idx++;
@@ -725,7 +727,7 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     b_jets_flavor.push_back(flavor);
     b_jets_bDiscriminatorCSV.push_back(bDisCSV);
   }
-  if (runOnMC_){
+  /*if (runOnMC_){
      //double csvWgtHF, csvWgtLF, csvWgtCF;
      b_csvweight         = csvWeight->getCSVWeight(selectedJets, 0);//); 
      b_csvweight_JES_Up  = csvWeight->getCSVWeight(selectedJets, 7);
@@ -747,11 +749,11 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
      b_csvweight_Charm_Err2_Up  = csvWeight->getCSVWeight(selectedJets, 23);
      b_csvweight_Charm_Err2_Down= csvWeight->getCSVWeight(selectedJets, 24);
 
-  }
+  }*/
   //csvd order
-  std::vector< std::pair<int,double> > vecJetBDisc(mapJetBDiscriminator.begin(), mapJetBDiscriminator.end());
+  std::vector< std::pair<int,float> > vecJetBDisc(mapJetBDiscriminator.begin(), mapJetBDiscriminator.end());
   std::sort(vecJetBDisc.begin(), vecJetBDisc.end(), bigger_second<data_t>());
-  for(std::vector< std::pair<int,double> >::iterator it = vecJetBDisc.begin() ; it != vecJetBDisc.end(); ++it)
+  for(std::vector< std::pair<int,float> >::iterator it = vecJetBDisc.begin() ; it != vecJetBDisc.end(); ++it)
       b_csvd_jetid.push_back((*it).first);
 
   const auto met = mets->front().p4();
