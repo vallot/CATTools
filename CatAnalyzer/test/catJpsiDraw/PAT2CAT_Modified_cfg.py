@@ -28,7 +28,8 @@ if not runOnMC:
 if globalTag:
     process.GlobalTag.globaltag = globalTag
 print "runOnMC =",runOnMC,"and useMiniAOD =",useMiniAOD
-print "process.GlobalTag.globaltag =",process.GlobalTag.globaltag    
+print "process.GlobalTag.globaltag =",process.GlobalTag.globaltag   
+print options.inputFiles 
 ####################################################################
 #### cat tools output
 ####################################################################
@@ -105,10 +106,40 @@ process.options.wantSummary = False
 #process.source.skipEvents = cms.untracked.uint32(3000)
 #process.SimpleMemoryCheck = cms.Service("SimpleMemoryCheck",ignoreTotal = cms.untracked.int32(1) )
 #print "process.catOut.outputCommands", process.catOut.outputCommands
+import glob
+#process.source.fileNames = glob.glob("/store/user/geonmo/TT_TuneCUETP8M1_13TeV-powheg-pythia8/crab_Jpsi_filtered_20151203/151203_150032/0000/*.root")
 
 if doSecVertex :
-  process.catOut.outputCommands.extend(['keep *_catSecVertexs_*_*',     ])
+  process.catOut.outputCommands.extend(['keep *_catSecVertexs*_*_*',     ])
   process.catOut.outputCommands.extend(['keep *_genParticles_*_*',     ])
 
 ## for Jpsi to MuMu samples. Gen weight failed for jpsimm sample.
 process.catOut.outputCommands.remove('keep *_genWeight_*_*')
+process.catSecVertexsV2 = process.catSecVertexs.clone()
+process.catSecVertexsV3 = process.catSecVertexs.clone()
+process.catSecVertexsV40 = process.catSecVertexs.clone()
+process.catSecVertexsV41 = process.catSecVertexs.clone()
+process.catSecVertexsV42 = process.catSecVertexs.clone()
+
+
+### For V1 producer,
+process.catSecVertexs.mode=cms.int32(0)
+
+### For V2 producer,
+process.catSecVertexsV2.mode=cms.int32(1)
+process.catSecVertexsV2.muonSrc = cms.InputTag("patMuons")
+process.catSecVertexsV2.elecSrc = cms.InputTag("patElectrons")
+
+### For V3 producer,
+process.catSecVertexsV3.mode=cms.int32(2)
+
+
+### For V4.0 producer(lepton + lepton),
+process.catSecVertexsV40.mode=cms.int32(3)
+process.catSecVertexsV40.pfmode=cms.int32(0)
+### For V4.1 producer(lepton + Charged PFcandidate[opposite sign]),
+process.catSecVertexsV41.mode=cms.int32(3)
+process.catSecVertexsV41.pfmode=cms.int32(1)
+### For V4.2 producer(Just opposite sign),
+process.catSecVertexsV42.mode=cms.int32(3)
+process.catSecVertexsV42.pfmode=cms.int32(2)
