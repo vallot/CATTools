@@ -9,6 +9,8 @@ process.options.allowUnscheduled = cms.untracked.bool(True)
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 #process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-4-6_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/151127_200613/0000/catTuple_1.root')
+#process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094//xrd//store/group/CAT/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-6_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/151130_231748/0000/catTuple_1.root')
+process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094//xrd//store/group/CAT/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-6_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/151127_200111/0000/catTuple_1.root')
 #process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-6_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/151130_231748/0000/catTuple_1.root')
 #process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/DoubleMuon/v7-4-6_Run2015D-PromptReco-v4/151127_194953/0000/catTuple_1.root')
 #process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/DoubleMuon/v7-4-4_Run2015C_25ns-05Oct2015-v1/151023_165157/0000/catTuple_10.root')
@@ -111,6 +113,7 @@ process.cattree = cms.EDAnalyzer("TtbarBbbarDiLeptonAnalyzer",
     genTtbarId40 = cms.InputTag("GenTtbarCategories40", "genTtbarId"),
 
     GenJets = cms.InputTag("slimmedGenJets"),
+    GenParticles = cms.InputTag("prunedGenParticles"),
     #solver = process.ttbarDileptonKinAlgoPSetCMSKin,
     #solver = process.ttbarDileptonKinAlgoPSetDESYSmeared,
     #solver = process.ttbarDileptonKinAlgoPSetDESYMassLoop,

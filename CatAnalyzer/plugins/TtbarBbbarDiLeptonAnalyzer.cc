@@ -57,6 +57,7 @@ private:
   cat::JetCollection selectJets(const cat::JetCollection& jets, const LeptonCollection& recolep) const;
   cat::JetCollection selectBJets(const cat::JetCollection& jets, double workingpoint) const;
   const reco::Candidate* getLast(const reco::Candidate* p) const;
+  const bool isLastP( const reco::GenParticle& p) const;
 
   void book(TTree* tree);
 
@@ -73,6 +74,7 @@ private:
   edm::EDGetTokenT<vector<int> > partonTop_modes_;
   edm::EDGetTokenT<vector<float> > pdfWeightsToken_;
   edm::EDGetTokenT<reco::GenJetCollection> GenJetsToken_;
+  edm::EDGetTokenT<reco::GenParticleCollection> GenParticlesToken_;
 
   edm::EDGetTokenT<int> genTtbarIdToken_;
   edm::EDGetTokenT<int> genTtbarIdToken30_;
@@ -181,6 +183,7 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
   genTtbarIdToken30_  = consumes<int>(iConfig.getParameter<edm::InputTag>("genTtbarId30"));
   genTtbarIdToken40_  = consumes<int>(iConfig.getParameter<edm::InputTag>("genTtbarId40"));
   GenJetsToken_     = consumes<reco::GenJetCollection>(iConfig.getParameter<edm::InputTag>("GenJets"));
+  GenParticlesToken_     = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("GenParticles"));
 
   //NgenJet30Token_           = consumes<int>(iConfig.getParameter<edm::InputTag>("NgenJet30"));
   //genTtbarLeptonDecayToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("genTtbarLeptonDecay"));
@@ -435,6 +438,7 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
   cutflow_[0][b_channel]++;
   
   edm::Handle<int> partonTop_channel;
+  edm::Handle<reco::GenParticleCollection> genParticles;
   if ( iEvent.getByToken(partonTop_channel_, partonTop_channel)){
     edm::Handle<vector<int> > partonTop_modes;
     edm::Handle<reco::GenParticleCollection> partonTop_genParticles;
@@ -525,6 +529,25 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
       }
     }
   }
+  else if(iEvent.getByToken(GenParticlesToken_, genParticles)){
+    int is_partonInPhaseLep=0;
+    for ( auto  aParticle = genParticles->begin(),end = genParticles->end(); aParticle != end; ++aParticle ) { 
+      const reco::GenParticle& p = *aParticle;
+      if ( !(abs(p.pdgId()) > 21 && abs(p.pdgId()) << 26)  ) continue;
+      bool isLast = isLastP(p);
+      if(isLast != true) continue;
+      unsigned int nDaughters = p.numberOfDaughters();
+      for ( unsigned iDaughter=0; iDaughter<nDaughters; ++iDaughter ) {
+          const reco::Candidate* daugh = p.daughter(iDaughter);
+	  if ( daugh->pt() > 20 && std::abs(daugh->eta()) < 2.4 && (std::abs(daugh->pdgId()) == 11 || std::abs(daugh->pdgId()) == 13) )
+          {
+             is_partonInPhaseLep++;
+	     //b_partonInPhaseLep = true;
+          }
+      }
+    }
+    if(is_partonInPhaseLep>1) b_partonInPhaseLep = true;
+  } 
 
   if (runOnMC_){
     edm::Handle<float> puweightHandle;
@@ -854,7 +877,24 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
   ttree_->Fill();
   ttree2_->Fill(); 
 }
+const bool TtbarBbbarDiLeptonAnalyzer::isLastP( const reco::GenParticle& p) const
+{
 
+   bool out = true;
+
+   int id = abs( p.pdgId() );
+
+   unsigned int nDaughters = p.numberOfDaughters();
+   for ( unsigned iDaughter=0; iDaughter<nDaughters; ++iDaughter ) {
+     const reco::Candidate* daugh = p.daughter(iDaughter);
+     if( abs(daugh->pdgId()) == id) {
+       out = false;
+       break;
+     }
+   }
+
+   return out;
+}
 const reco::Candidate* TtbarBbbarDiLeptonAnalyzer::getLast(const reco::Candidate* p) const
 {
   for ( size_t i=0, n=p->numberOfDaughters(); i<n; ++i )
