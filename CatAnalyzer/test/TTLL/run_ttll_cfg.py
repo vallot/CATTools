@@ -72,10 +72,6 @@ process.ttll = cms.EDFilter("TTLLEventSelector",
     bTagName = cms.string("pfCombinedInclusiveSecondaryVertexV2BJetTags"),
     bTagMin = cms.double(0.605),
 
-    # Generator level objects
-    isMC = cms.bool(True),
-    ## To be added later
-
     # Filters
     filterRECO = cms.InputTag("filterRECO"),
     trigMUEL = cms.InputTag("filterTrigMUEL"),
