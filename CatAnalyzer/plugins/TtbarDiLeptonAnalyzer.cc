@@ -352,7 +352,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         leptonIdxs.push_back(i);
       }
       if ( leptonIdxs.size() < 2 ) break;
-      std::nth_element(leptonIdxs.begin(), leptonIdxs.end(), leptonIdxs.begin()+2,
+      std::nth_element(leptonIdxs.begin(), leptonIdxs.begin()+2, leptonIdxs.end(),
                        [&](size_t i, size_t j){return pseudoTopLeptonHandle->at(i).pt() > pseudoTopLeptonHandle->at(j).pt();});
       const auto lepton1 = pseudoTopLeptonHandle->at(leptonIdxs[0]).p4();
       const auto lepton2 = pseudoTopLeptonHandle->at(leptonIdxs[1]).p4();
@@ -366,7 +366,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         }
       }
 
-      //std::nth_element(neutrinoIdxs.begin(), neutrinoIdxs.end(), neutrinoIdxs.begin()+2,
+      //std::nth_element(neutrinoIdxs.begin(), neutrinoIdxs.begin()+2, neutrinoIdxs.end(),
       //                 [&](size_t i, size_t j){return pseudoTopLeptonHandle->at(i).pt() > pseudoTopLeptonHandle->at(j).pt();});
       auto nu1 = pseudoTopNeutrinoHandle->at(0).p4(), nu2 = pseudoTopNeutrinoHandle->at(1).p4();
 
@@ -378,7 +378,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         bjetIdxs.push_back(i);
       }
       if ( bjetIdxs.size() < 2 ) break;
-      std::nth_element(bjetIdxs.begin(), bjetIdxs.end(), bjetIdxs.begin()+2,
+      std::nth_element(bjetIdxs.begin(), bjetIdxs.begin()+2, bjetIdxs.end(),
                       [&](size_t i, size_t j){return pseudoTopJetHandle->at(i).pt() > pseudoTopJetHandle->at(j).pt();});
       auto bjet1 = pseudoTopJetHandle->at(bjetIdxs[0]).p4(), bjet2 = pseudoTopJetHandle->at(bjetIdxs[1]).p4();
 
