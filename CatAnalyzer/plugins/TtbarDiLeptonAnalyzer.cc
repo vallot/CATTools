@@ -310,17 +310,17 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         const auto partonW2 = parton2->daughter(0);
         const auto partonB2 = parton2->daughter(1);
 
-	if ( (partonB1->pt() > 30 && std::abs(partonB1->eta()) < 2.4) && 
-	     (partonB2->pt() > 30 && std::abs(partonB2->eta()) < 2.4))
-	  b_partonInPhaseJet = true;
+        if ( (partonB1->pt() > 30 && std::abs(partonB1->eta()) < 2.4) && 
+            (partonB2->pt() > 30 && std::abs(partonB2->eta()) < 2.4))
+          b_partonInPhaseJet = true;
 	
         // Get W daughters
         if ( partonW1 and partonW2 and partonB1 and partonB2 ) {
           const auto partonW11 = partonW1->daughter(0);
           const auto partonW21 = partonW2->daughter(0);
-	  if ( (partonW11->pt() > 20 && std::abs(partonW11->eta()) < 2.4 && (std::abs(partonW11->pdgId()) == 11 || std::abs(partonW11->pdgId()) == 13) ) && 
-	       (partonW21->pt() > 20 && std::abs(partonW21->eta()) < 2.4 && (std::abs(partonW11->pdgId()) == 11 || std::abs(partonW11->pdgId()) == 13) ))
-	    b_partonInPhaseLep = true;
+          if ( (partonW11->pt() > 20 && std::abs(partonW11->eta()) < 2.4 && (std::abs(partonW11->pdgId()) == 11 || std::abs(partonW11->pdgId()) == 13) ) && 
+              (partonW21->pt() > 20 && std::abs(partonW21->eta()) < 2.4 && (std::abs(partonW11->pdgId()) == 11 || std::abs(partonW11->pdgId()) == 13) ))
+            b_partonInPhaseLep = true;
 
           // Fill lepton informations
           b_partonlep1_pt = partonW11->pt();
@@ -373,7 +373,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       // Jet acceptance and generator level b tag
       for ( size_t i=0, n=pseudoTopJetHandle->size(); i<n; ++i ) {
         const auto& x = pseudoTopJetHandle->at(i);
-        if ( x.pt() < 20 or std::abs(x.eta()) > 2.5 ) continue;
+        if ( x.pt() < 30 or std::abs(x.eta()) > 2.5 ) continue;
         if ( abs(x.pdgId()) != 5 ) continue;
         bjetIdxs.push_back(i);
       }
