@@ -113,8 +113,8 @@ struct ControlPlots
     // There are step0a, step0b and step0c cut steps
     // By putting step0a to underflow bin and step0b to -1, step0c to 0,
     // We can start cut steps from 1.
-    hCutstep = dir.make<TH1F>("cutstep", "cutstep", 10, -2, 10);
-    hCutstepNoweight = dir.make<TH1F>("cutstepNoweight", "cutstepNoweight", 10, -2, 10);
+    hCutstep = dir.make<TH1F>("cutstep", "cutstep", 12, -2, 10);
+    hCutstepNoweight = dir.make<TH1F>("cutstepNoweight", "cutstepNoweight", 12, -2, 10);
 
     hCutstep->GetXaxis()->SetBinLabel(1, "S0a all event");
     hCutstep->GetXaxis()->SetBinLabel(2, "S0b Trigger");
@@ -640,9 +640,9 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   h_mm.hCutstepNoweight->Fill(-2);
   h_mm.h0a_vertex_n->Fill(weight);
 
-  h_mm.hCutstep->Fill(-2, weight);
-  h_mm.hCutstepNoweight->Fill(-2);
-  h_mm.h0a_vertex_n->Fill(weight);
+  h_em.hCutstep->Fill(-2, weight);
+  h_em.hCutstepNoweight->Fill(-2);
+  h_em.h0a_vertex_n->Fill(weight);
 
   // ElEl channel Cutstep 0b with trigger requirements
   int cutstep_ee = -2;
