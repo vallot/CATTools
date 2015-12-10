@@ -49,7 +49,7 @@ struct ControlPlots
   H1 h1_leptons_n;
   H1 h1_lepton1_pt, h1_lepton1_eta, h1_lepton1_phi, h1_lepton1_q;
   H1 h1_lepton2_pt, h1_lepton2_eta, h1_lepton2_phi, h1_lepton2_q;
-  H1 h1_z_m, h1_z_pt, h1_z_eta, h1_z_phi, h1_z_q;
+  H1 h1_z_m, h1_z_pt, h1_z_eta, h1_z_phi;
   H1 h1_jets_n, h1_jets_ht;
   H1 h1_jet1_m, h1_jet1_pt, h1_jet1_eta, h1_jet1_phi, h1_jet1_btag;
   H1 h1_jet2_m, h1_jet2_pt, h1_jet2_eta, h1_jet2_phi, h1_jet2_btag;
@@ -63,7 +63,7 @@ struct ControlPlots
   H1 h2_leptons_n;
   H1 h2_lepton1_pt, h2_lepton1_eta, h2_lepton1_phi, h2_lepton1_q;
   H1 h2_lepton2_pt, h2_lepton2_eta, h2_lepton2_phi, h2_lepton2_q;
-  H1 h2_z_m, h2_z_pt, h2_z_eta, h2_z_phi, h2_z_q;
+  H1 h2_z_m, h2_z_pt, h2_z_eta, h2_z_phi;
   H1 h2_jets_n, h2_jets_ht;
   H1 h2_jet1_m, h2_jet1_pt, h2_jet1_eta, h2_jet1_phi, h2_jet1_btag;
   H1 h2_jet2_m, h2_jet2_pt, h2_jet2_eta, h2_jet2_phi, h2_jet2_btag;
@@ -74,7 +74,7 @@ struct ControlPlots
 
   H1 h3_vertex_n;
   H1 h3_met_pt, h3_met_phi;
-  H1 h3_z_m, h3_z_pt, h3_z_eta, h3_z_phi, h3_z_q;
+  H1 h3_z_m, h3_z_pt, h3_z_eta, h3_z_phi;
   H1 h3_jets_n, h3_jets_ht;
   H1 h3_jet1_m, h3_jet1_pt, h3_jet1_eta, h3_jet1_phi, h3_jet1_btag;
   H1 h3_jet2_m, h3_jet2_pt, h3_jet2_eta, h3_jet2_phi, h3_jet2_btag;
@@ -85,7 +85,7 @@ struct ControlPlots
 
   H1 h4_vertex_n;
   H1 h4_met_pt, h4_met_phi;
-  H1 h4_z_m, h4_z_pt, h4_z_eta, h4_z_phi, h4_z_q;
+  H1 h4_z_m, h4_z_pt, h4_z_eta, h4_z_phi;
   H1 h4_jets_n, h4_jets_ht;
   H1 h4_jet1_m, h4_jet1_pt, h4_jet1_eta, h4_jet1_phi, h4_jet1_btag;
   H1 h4_jet2_m, h4_jet2_pt, h4_jet2_eta, h4_jet2_phi, h4_jet2_btag;
@@ -96,7 +96,7 @@ struct ControlPlots
 
   H1 h5_vertex_n;
   H1 h5_met_pt, h5_met_phi;
-  H1 h5_z_m, h5_z_pt, h5_z_eta, h5_z_phi, h5_z_q;
+  H1 h5_z_m, h5_z_pt, h5_z_eta, h5_z_phi;
   H1 h5_jets_n, h5_jets_ht;
   H1 h5_jet1_m, h5_jet1_pt, h5_jet1_eta, h5_jet1_phi, h5_jet1_btag;
   H1 h5_jet2_m, h5_jet2_pt, h5_jet2_eta, h5_jet2_phi, h5_jet2_btag;
@@ -179,7 +179,6 @@ struct ControlPlots
     h1_z_pt  = subdir.make<TH1F>("z_pt", "z_pt", 1000, 0, 1000);
     h1_z_eta = subdir.make<TH1F>("z_eta", "z_eta", 100, -maxeta, maxeta);
     h1_z_phi = subdir.make<TH1F>("z_phi", "z_phi", 100, -pi, pi);
-    h1_z_q   = subdir.make<TH1F>("z_q", "z_q", 3, -1.5, 1.5);
 
     h1_jets_n = subdir.make<TH1F>("jets_n", "jets_n", 10, 0, 10);
     h1_jets_ht = subdir.make<TH1F>("jets_ht", "jets_ht", 1000, 0, 1000);
@@ -233,7 +232,6 @@ struct ControlPlots
     h2_z_pt  = subdir.make<TH1F>("z_pt", "z_pt", 1000, 0, 1000);
     h2_z_eta = subdir.make<TH1F>("z_eta", "z_eta", 100, -maxeta, maxeta);
     h2_z_phi = subdir.make<TH1F>("z_phi", "z_phi", 100, -pi, pi);
-    h2_z_q   = subdir.make<TH1F>("z_q", "z_q", 3, -1.5, 1.5);
 
     h2_jets_n = subdir.make<TH1F>("jets_n", "jets_n", 10, 0, 10);
     h2_jets_ht = subdir.make<TH1F>("jets_ht", "jets_ht", 1000, 0, 1000);
@@ -276,7 +274,6 @@ struct ControlPlots
     h3_z_pt  = subdir.make<TH1F>("z_pt", "z_pt", 1000, 0, 1000);
     h3_z_eta = subdir.make<TH1F>("z_eta", "z_eta", 100, -maxeta, maxeta);
     h3_z_phi = subdir.make<TH1F>("z_phi", "z_phi", 100, -pi, pi);
-    h3_z_q   = subdir.make<TH1F>("z_q", "z_q", 3, -1.5, 1.5);
 
     h3_jets_n = subdir.make<TH1F>("jets_n", "jets_n", 10, 0, 10);
     h3_jets_ht = subdir.make<TH1F>("jets_ht", "jets_ht", 1000, 0, 1000);
@@ -319,7 +316,6 @@ struct ControlPlots
     h4_z_pt  = subdir.make<TH1F>("z_pt", "z_pt", 1000, 0, 1000);
     h4_z_eta = subdir.make<TH1F>("z_eta", "z_eta", 100, -maxeta, maxeta);
     h4_z_phi = subdir.make<TH1F>("z_phi", "z_phi", 100, -pi, pi);
-    h4_z_q   = subdir.make<TH1F>("z_q", "z_q", 3, -1.5, 1.5);
 
     h4_jets_n = subdir.make<TH1F>("jets_n", "jets_n", 10, 0, 10);
     h4_jets_ht = subdir.make<TH1F>("jets_ht", "jets_ht", 1000, 0, 1000);
@@ -362,7 +358,6 @@ struct ControlPlots
     h5_z_pt  = subdir.make<TH1F>("z_pt", "z_pt", 1000, 0, 1000);
     h5_z_eta = subdir.make<TH1F>("z_eta", "z_eta", 100, -maxeta, maxeta);
     h5_z_phi = subdir.make<TH1F>("z_phi", "z_phi", 100, -pi, pi);
-    h5_z_q   = subdir.make<TH1F>("z_q", "z_q", 3, -1.5, 1.5);
 
     h5_jets_n = subdir.make<TH1F>("jets_n", "jets_n", 10, 0, 10);
     h5_jets_ht = subdir.make<TH1F>("jets_ht", "jets_ht", 1000, 0, 1000);
@@ -746,7 +741,8 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
   int cutstep = 1;
   if ( leptons_n < 2 or lepton1.isNull() or lepton2.isNull() or
-       (lepton1->p4()+lepton2->p4()).mass() < 20 )
+       (lepton1->p4()+lepton2->p4()).mass() < 20 or
+       lepton1->charge()+lepton2->charge() != 0 )
   {
     channel = CH_NONE;
     cutstep = std::max(cutstep_ee, std::max(cutstep_mm, cutstep_em)); // reset the cut step
@@ -755,7 +751,6 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   {
     const auto zP4 = lepton1->p4()+lepton2->p4();
     const auto z_m = zP4.mass();
-    const auto z_q = lepton1->charge()+lepton2->charge();
     switch ( channel )
     {
       ////////////////////////////////////////
@@ -782,7 +777,6 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_ee.h1_z_pt->Fill(zP4.pt(), weight);
         h_ee.h1_z_eta->Fill(zP4.eta(), weight);
         h_ee.h1_z_phi->Fill(zP4.phi(), weight);
-        h_ee.h1_z_q->Fill(z_q, weight);
         h_ee.h1_jets_n->Fill(jets_n, weight);
         h_ee.h1_jets_ht->Fill(jets_ht, weight);
         if ( jets_n >= 1 )
@@ -847,7 +841,6 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_ee.h2_z_pt->Fill(zP4.pt(), weight);
         h_ee.h2_z_eta->Fill(zP4.eta(), weight);
         h_ee.h2_z_phi->Fill(zP4.phi(), weight);
-        h_ee.h2_z_q->Fill(lepton1->charge()+lepton2->charge(), weight);
         h_ee.h2_jets_n->Fill(jets_n, weight);
         h_ee.h2_jets_ht->Fill(jets_ht, weight);
         if ( jets_n >= 1 )
@@ -903,7 +896,6 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_ee.h3_z_pt->Fill(zP4.pt(), weight);
         h_ee.h3_z_eta->Fill(zP4.eta(), weight);
         h_ee.h3_z_phi->Fill(zP4.phi(), weight);
-        h_ee.h3_z_q->Fill(lepton1->charge()+lepton2->charge(), weight);
         h_ee.h3_jets_n->Fill(jets_n, weight);
         h_ee.h3_jets_ht->Fill(jets_ht, weight);
         const auto& jet1 = dynamic_cast<const cat::Jet&>(*out_jets->at(0));
@@ -953,7 +945,6 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_ee.h4_z_pt->Fill(zP4.pt(), weight);
         h_ee.h4_z_eta->Fill(zP4.eta(), weight);
         h_ee.h4_z_phi->Fill(zP4.phi(), weight);
-        h_ee.h4_z_q->Fill(lepton1->charge()+lepton2->charge(), weight);
         h_ee.h4_jets_n->Fill(jets_n, weight);
         h_ee.h4_jets_ht->Fill(jets_ht, weight);
         h_ee.h4_jet1_m->Fill(jet1.mass(), weight);
@@ -1001,7 +992,6 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_ee.h5_z_pt->Fill(zP4.pt(), weight);
         h_ee.h5_z_eta->Fill(zP4.eta(), weight);
         h_ee.h5_z_phi->Fill(zP4.phi(), weight);
-        h_ee.h5_z_q->Fill(lepton1->charge()+lepton2->charge(), weight);
         h_ee.h5_jets_n->Fill(jets_n, weight);
         h_ee.h5_jets_ht->Fill(jets_ht, weight);
         h_ee.h5_jet1_m->Fill(jet1.mass(), weight);
@@ -1062,7 +1052,6 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_mm.h1_z_pt->Fill(zP4.pt(), weight);
         h_mm.h1_z_eta->Fill(zP4.eta(), weight);
         h_mm.h1_z_phi->Fill(zP4.phi(), weight);
-        h_mm.h1_z_q->Fill(z_q, weight);
         h_mm.h1_jets_n->Fill(jets_n, weight);
         h_mm.h1_jets_ht->Fill(jets_ht, weight);
         if ( jets_n >= 1 )
@@ -1127,7 +1116,6 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_mm.h2_z_pt->Fill(zP4.pt(), weight);
         h_mm.h2_z_eta->Fill(zP4.eta(), weight);
         h_mm.h2_z_phi->Fill(zP4.phi(), weight);
-        h_mm.h2_z_q->Fill(lepton1->charge()+lepton2->charge(), weight);
         h_mm.h2_jets_n->Fill(jets_n, weight);
         h_mm.h2_jets_ht->Fill(jets_ht, weight);
         if ( jets_n >= 1 )
@@ -1183,7 +1171,6 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_mm.h3_z_pt->Fill(zP4.pt(), weight);
         h_mm.h3_z_eta->Fill(zP4.eta(), weight);
         h_mm.h3_z_phi->Fill(zP4.phi(), weight);
-        h_mm.h3_z_q->Fill(lepton1->charge()+lepton2->charge(), weight);
         h_mm.h3_jets_n->Fill(jets_n, weight);
         h_mm.h3_jets_ht->Fill(jets_ht, weight);
         const auto& jet1 = dynamic_cast<const cat::Jet&>(*out_jets->at(0));
@@ -1233,7 +1220,6 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_mm.h4_z_pt->Fill(zP4.pt(), weight);
         h_mm.h4_z_eta->Fill(zP4.eta(), weight);
         h_mm.h4_z_phi->Fill(zP4.phi(), weight);
-        h_mm.h4_z_q->Fill(lepton1->charge()+lepton2->charge(), weight);
         h_mm.h4_jets_n->Fill(jets_n, weight);
         h_mm.h4_jets_ht->Fill(jets_ht, weight);
         h_mm.h4_jet1_m->Fill(jet1.mass(), weight);
@@ -1281,7 +1267,6 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_mm.h5_z_pt->Fill(zP4.pt(), weight);
         h_mm.h5_z_eta->Fill(zP4.eta(), weight);
         h_mm.h5_z_phi->Fill(zP4.phi(), weight);
-        h_mm.h5_z_q->Fill(lepton1->charge()+lepton2->charge(), weight);
         h_mm.h5_jets_n->Fill(jets_n, weight);
         h_mm.h5_jets_ht->Fill(jets_ht, weight);
         h_mm.h5_jet1_m->Fill(jet1.mass(), weight);
@@ -1342,7 +1327,6 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_em.h1_z_pt->Fill(zP4.pt(), weight);
         h_em.h1_z_eta->Fill(zP4.eta(), weight);
         h_em.h1_z_phi->Fill(zP4.phi(), weight);
-        h_em.h1_z_q->Fill(z_q, weight);
         h_em.h1_jets_n->Fill(jets_n, weight);
         h_em.h1_jets_ht->Fill(jets_ht, weight);
         if ( jets_n >= 1 )
@@ -1407,7 +1391,6 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_em.h2_z_pt->Fill(zP4.pt(), weight);
         h_em.h2_z_eta->Fill(zP4.eta(), weight);
         h_em.h2_z_phi->Fill(zP4.phi(), weight);
-        h_em.h2_z_q->Fill(lepton1->charge()+lepton2->charge(), weight);
         h_em.h2_jets_n->Fill(jets_n, weight);
         h_em.h2_jets_ht->Fill(jets_ht, weight);
         if ( jets_n >= 1 )
@@ -1463,7 +1446,6 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_em.h3_z_pt->Fill(zP4.pt(), weight);
         h_em.h3_z_eta->Fill(zP4.eta(), weight);
         h_em.h3_z_phi->Fill(zP4.phi(), weight);
-        h_em.h3_z_q->Fill(lepton1->charge()+lepton2->charge(), weight);
         h_em.h3_jets_n->Fill(jets_n, weight);
         h_em.h3_jets_ht->Fill(jets_ht, weight);
         const auto& jet1 = dynamic_cast<const cat::Jet&>(*out_jets->at(0));
@@ -1514,7 +1496,6 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_em.h4_z_pt->Fill(zP4.pt(), weight);
         h_em.h4_z_eta->Fill(zP4.eta(), weight);
         h_em.h4_z_phi->Fill(zP4.phi(), weight);
-        h_em.h4_z_q->Fill(lepton1->charge()+lepton2->charge(), weight);
         h_em.h4_jets_n->Fill(jets_n, weight);
         h_em.h4_jets_ht->Fill(jets_ht, weight);
         h_em.h4_jet1_m->Fill(jet1.mass(), weight);
@@ -1562,7 +1543,6 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_em.h5_z_pt->Fill(zP4.pt(), weight);
         h_em.h5_z_eta->Fill(zP4.eta(), weight);
         h_em.h5_z_phi->Fill(zP4.phi(), weight);
-        h_em.h5_z_q->Fill(lepton1->charge()+lepton2->charge(), weight);
         h_em.h5_jets_n->Fill(jets_n, weight);
         h_em.h5_jets_ht->Fill(jets_ht, weight);
         h_em.h5_jet1_m->Fill(jet1.mass(), weight);
