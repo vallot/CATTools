@@ -111,7 +111,7 @@ void CATGenLeptonAnalysis::analyze(const edm::Event& event, const edm::EventSetu
 {
   edm::Handle<float> genWeightHandle;
   event.getByToken(genWeightToken_, genWeightHandle);
-  const auto weight = *genWeightHandle == 0 ? 0 : *genWeightHandle/abs(*genWeightHandle);
+  const auto weight = *genWeightHandle;
 
   edm::Handle<reco::GenParticleCollection> genParticlesHandle;
   event.getByToken(genParticlesToken_, genParticlesHandle);
