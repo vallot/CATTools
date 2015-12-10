@@ -69,7 +69,8 @@ process.ttll = cms.EDFilter("TTLLEventSelector",
 
     # Physics object selection
     electronID = cms.string("cutBasedElectronID-Spring15-25ns-V1-standalone-medium"),
-    bTagName = cms.string("combinedInclusiveSecondaryVertexV2BJetTags"),
+    bTagName = cms.string("pfCombinedInclusiveSecondaryVertexV2BJetTags"),
+    bTagMin = cms.double(0.605),
 
     # Generator level objects
     isMC = cms.bool(True),

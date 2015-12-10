@@ -436,7 +436,7 @@ private:
   }
   bool isBjet(const cat::Jet& jet)
   {
-    if ( jet.bDiscriminator(bTagName_) >= 0.814 ) return true;
+    if ( jet.bDiscriminator(bTagName_) >= bTagMin_ ) return true;
     return false;
   }
 
@@ -450,6 +450,7 @@ private:
   const int filterCutStepBefore_;
   const std::string elIdName_;
   const std::string bTagName_;
+  const double bTagMin_;
 };
 
 }
@@ -460,7 +461,8 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   isMC_(pset.getParameter<bool>("isMC")),
   filterCutStepBefore_(pset.getParameter<int>("filterCutStepBefore")),
   elIdName_(pset.getParameter<string>("electronID")),
-  bTagName_(pset.getParameter<string>("bTagName"))
+  bTagName_(pset.getParameter<string>("bTagName")),
+  bTagMin_(pset.getParameter<double>("bTagMin"))
 {
   muonToken_ = consumes<cat::MuonCollection>(pset.getParameter<edm::InputTag>("muons"));
   electronToken_ = consumes<cat::ElectronCollection>(pset.getParameter<edm::InputTag>("electrons"));
