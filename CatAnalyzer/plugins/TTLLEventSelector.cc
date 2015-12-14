@@ -401,7 +401,10 @@ public:
   bool filter(edm::Event& event, const edm::EventSetup&) override;
 
 private:
+  typedef std::vector<float> vfloat;
   edm::EDGetTokenT<float> genWeightToken_, pileupWeightToken_;
+  edm::EDGetTokenT<vfloat> genWeightsToken_;
+  unsigned int genWeightIndex_;
 
   edm::EDGetTokenT<cat::MuonCollection> muonToken_;
   edm::EDGetTokenT<cat::ElectronCollection> electronToken_;
@@ -447,9 +450,9 @@ private:
   };
 
   const int filterCutStepBefore_;
-  const std::string elIdName_;
-  const std::string bTagName_;
-  const double bTagMin_;
+  std::string elIdName_;
+  std::string bTagName_;
+  double bTagMin_;
 };
 
 }
@@ -457,24 +460,38 @@ private:
 using namespace cat;
 
 TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
-  filterCutStepBefore_(pset.getParameter<int>("filterCutStepBefore")),
-  elIdName_(pset.getParameter<string>("electronID")),
-  bTagName_(pset.getParameter<string>("bTagName")),
-  bTagMin_(pset.getParameter<double>("bTagMin"))
+  filterCutStepBefore_(pset.getParameter<int>("filterCutStepBefore"))
 {
-  muonToken_ = consumes<cat::MuonCollection>(pset.getParameter<edm::InputTag>("muons"));
-  electronToken_ = consumes<cat::ElectronCollection>(pset.getParameter<edm::InputTag>("electrons"));
-  jetToken_ = consumes<cat::JetCollection>(pset.getParameter<edm::InputTag>("jets"));
-  metToken_ = consumes<cat::METCollection>(pset.getParameter<edm::InputTag>("mets"));
-  nVertexToken_ = consumes<int>(pset.getParameter<edm::InputTag>("nVertex"));
+  const auto muonSet = pset.getParameter<edm::ParameterSet>("muon");
+  muonToken_ = consumes<cat::MuonCollection>(muonSet.getParameter<edm::InputTag>("src"));
 
-  recoFilterToken_ = consumes<int>(pset.getParameter<edm::InputTag>("filterRECO"));
-  trigElElToken_ = consumes<int>(pset.getParameter<edm::InputTag>("trigELEL"));
-  trigMuMuToken_ = consumes<int>(pset.getParameter<edm::InputTag>("trigMUMU"));
-  trigMuElToken_ = consumes<int>(pset.getParameter<edm::InputTag>("trigMUEL"));
+  const auto electronSet = pset.getParameter<edm::ParameterSet>("electron");
+  electronToken_ = consumes<cat::ElectronCollection>(electronSet.getParameter<edm::InputTag>("src"));
+  elIdName_ = electronSet.getParameter<string>("idName");
 
-  genWeightToken_ = consumes<float>(pset.getParameter<edm::InputTag>("genWeight"));
-  pileupWeightToken_ = consumes<float>(pset.getParameter<edm::InputTag>("pileupWeight"));
+  const auto jetSet = pset.getParameter<edm::ParameterSet>("jet");
+  jetToken_ = consumes<cat::JetCollection>(jetSet.getParameter<edm::InputTag>("src"));
+  bTagName_ = jetSet.getParameter<string>("bTagName");
+  bTagMin_ = jetSet.getParameter<double>("bTagMin");
+
+  const auto metSet = pset.getParameter<edm::ParameterSet>("met");
+  metToken_ = consumes<cat::METCollection>(pset.getParameter<edm::InputTag>("src"));
+
+  const auto vertexSet = pset.getParameter<edm::ParameterSet>("vertex");
+  nVertexToken_ = consumes<int>(vertexSet.getParameter<edm::InputTag>("nVertex"));
+  pileupWeightToken_ = consumes<float>(vertexSet.getParameter<edm::InputTag>("pileupWeight"));
+
+  const auto filterSet = pset.getParameter<edm::ParameterSet>("filters");
+  recoFilterToken_ = consumes<int>(filterSet.getParameter<edm::InputTag>("filterRECO"));
+  trigElElToken_ = consumes<int>(filterSet.getParameter<edm::InputTag>("trigELEL"));
+  trigMuMuToken_ = consumes<int>(filterSet.getParameter<edm::InputTag>("trigMUMU"));
+  trigMuElToken_ = consumes<int>(filterSet.getParameter<edm::InputTag>("trigMUEL"));
+
+  const auto genWeightSet = pset.getParameter<edm::ParameterSet>("genWeight");
+  genWeightIndex_ = genWeightSet.getParameter<unsigned int>("index");
+  const auto genWeightTag = genWeightSet.getParameter<edm::InputTag>("src");
+  if ( genWeightIndex_ == 0 )  genWeightToken_ = consumes<float>(genWeightTag);
+  else genWeightsToken_ = consumes<vfloat>(genWeightTag);
 
   // Fill histograms, etc
   usesResource("TFileService");
@@ -525,8 +542,18 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   {
     edm::Handle<float> fHandle;
 
-    event.getByToken(genWeightToken_, fHandle);
-    const float genWeight = *fHandle;
+    float genWeight = 1.;
+    if ( genWeightIndex_ )
+    {
+      event.getByToken(genWeightToken_, fHandle);
+      genWeight = *fHandle;
+    }
+    else
+    {
+      edm::Handle<vfloat> vfHandle;
+      event.getByToken(genWeightsToken_, vfHandle);
+      genWeight = vfHandle->at(genWeightIndex_-1);
+    }
 
     event.getByToken(pileupWeightToken_, fHandle);
     const float pileupWeight = *fHandle;
