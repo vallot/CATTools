@@ -71,8 +71,8 @@ private:
   float b_partonlep2_pt, b_partonlep2_eta;
   bool b_partonInPhase, b_partonInPhaseJet, b_partonInPhaseLep;
 
-  float b_gentop1_pt, b_gentop1_eta, b_gentop1_phi, b_gentop1_rapi;
-  float b_gentop2_pt, b_gentop2_eta, b_gentop2_phi, b_gentop2_rapi;
+  float b_gentop1_pt, b_gentop1_eta, b_gentop1_phi, b_gentop1_rapi, b_gentop1_m;
+  float b_gentop2_pt, b_gentop2_eta, b_gentop2_phi, b_gentop2_rapi, b_gentop2_m;
   float b_genttbar_pt, b_genttbar_eta, b_genttbar_phi, b_genttbar_m, b_genttbar_rapi;
 
   int b_pseudoTopChannel;
@@ -82,8 +82,8 @@ private:
     
   float b_jet1_pt, b_jet1_eta, b_jet1_CSVInclV2;
   float b_jet2_pt, b_jet2_eta, b_jet2_CSVInclV2;
-  float b_top1_pt, b_top1_eta, b_top1_phi, b_top1_rapi;
-  float b_top2_pt, b_top2_eta, b_top2_phi, b_top2_rapi;
+  float b_top1_pt, b_top1_eta, b_top1_phi, b_top1_rapi, b_top1_m;
+  float b_top2_pt, b_top2_eta, b_top2_phi, b_top2_rapi, b_top2_m;
   float b_ttbar_pt, b_ttbar_eta, b_ttbar_phi, b_ttbar_m, b_ttbar_rapi;
   float b_maxweight;
   int b_is3lep;
@@ -183,9 +183,11 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("gentop1_pt", &b_gentop1_pt, "gentop1_pt/F");
   ttree_->Branch("gentop1_eta", &b_gentop1_eta, "gentop1_eta/F");
   ttree_->Branch("gentop1_rapi", &b_gentop1_rapi, "gentop1_rapi/F");
+  ttree_->Branch("gentop1_m", &b_gentop1_m, "gentop1_m/F");
   ttree_->Branch("gentop2_pt", &b_gentop2_pt, "gentop2_pt/F");
   ttree_->Branch("gentop2_eta", &b_gentop2_eta, "gentop2_eta/F");
   ttree_->Branch("gentop2_rapi", &b_gentop2_rapi, "gentop2_rapi/F");
+  ttree_->Branch("gentop2_m", &b_gentop2_m, "gentop2_m/F");
   ttree_->Branch("genttbar_pt", &b_genttbar_pt, "genttbar_pt/F");
   ttree_->Branch("genttbar_eta", &b_genttbar_eta, "genttbar_eta/F");
   ttree_->Branch("genttbar_phi", &b_genttbar_phi, "genttbar_phi/F");
@@ -210,10 +212,12 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("top1_eta", &b_top1_eta, "top1_eta/F");
   ttree_->Branch("top1_phi", &b_top1_phi, "top1_phi/F");
   ttree_->Branch("top1_rapi", &b_top1_rapi, "top1_rapi/F");
+  ttree_->Branch("top1_m", &b_top1_m, "top1_m/F");
   ttree_->Branch("top2_pt", &b_top2_pt, "top2_pt/F");
   ttree_->Branch("top2_eta", &b_top2_eta, "top2_eta/F");
   ttree_->Branch("top2_phi", &b_top2_phi, "top2_phi/F");
   ttree_->Branch("top2_rapi", &b_top2_rapi, "top2_rapi/F");
+  ttree_->Branch("top2_m", &b_top2_m, "top2_m/F");
   ttree_->Branch("ttbar_pt", &b_ttbar_pt, "ttbar_pt/F");
   ttree_->Branch("ttbar_eta", &b_ttbar_eta, "ttbar_eta/F");
   ttree_->Branch("ttbar_phi", &b_ttbar_phi, "ttbar_phi/F");
@@ -260,8 +264,8 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_partonlep2_pt = -9; b_partonlep2_eta = -9;
   b_partonInPhase = 0; b_partonInPhaseLep = false; b_partonInPhaseJet = false;
 
-  b_gentop1_pt = -9; b_gentop1_eta = -9; b_gentop1_phi = -9; b_gentop1_rapi = -9;
-  b_gentop2_pt = -9; b_gentop2_eta = -9; b_gentop2_phi = -9; b_gentop2_rapi = -9;
+  b_gentop1_pt = -9; b_gentop1_eta = -9; b_gentop1_phi = -9; b_gentop1_rapi = -9; b_gentop1_m = -9;
+  b_gentop2_pt = -9; b_gentop2_eta = -9; b_gentop2_phi = -9; b_gentop2_rapi = -9; b_gentop2_m = -9;
   b_genttbar_pt = -9; b_genttbar_eta = -9; b_genttbar_phi = -9; b_genttbar_m = -9; b_genttbar_rapi = -9;
 
   b_pseudoTopChannel = -1;
@@ -271,8 +275,8 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   
   b_jet1_pt = -9; b_jet1_eta = -9; b_jet1_CSVInclV2 = -9;
   b_jet2_pt = -9; b_jet2_eta = -9; b_jet2_CSVInclV2 = -9;
-  b_top1_pt = -9; b_top1_eta = -9; b_top1_phi = -9; b_top1_rapi = -9;
-  b_top2_pt = -9; b_top2_eta = -9; b_top2_phi = -9; b_top2_rapi = -9;
+  b_top1_pt = -9; b_top1_eta = -9; b_top1_phi = -9; b_top1_rapi = -9; b_top1_m = -9;
+  b_top2_pt = -9; b_top2_eta = -9; b_top2_phi = -9; b_top2_rapi = -9; b_top2_m = -9;
   b_ttbar_pt = -9; b_ttbar_eta = -9; b_ttbar_phi = -9; b_ttbar_m = -9; b_ttbar_rapi = -9;
   b_is3lep = -9;
 
@@ -343,10 +347,12 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       b_gentop1_eta = gentop1.Eta();
       b_gentop1_phi = gentop1.Phi();
       b_gentop1_rapi = gentop1.Rapidity();
+      b_gentop1_m = gentop1.M();
       b_gentop2_pt = gentop2.Pt();
       b_gentop2_eta = gentop2.Eta();
       b_gentop2_phi = gentop2.Phi();
       b_gentop2_rapi = gentop2.Rapidity();
+      b_gentop2_m = gentop2.M();
 
       auto genttbar = gentop1+gentop2;
       b_genttbar_pt = genttbar.Pt();
@@ -374,6 +380,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
           b_pseudoToplep1_eta = pseudoW11->eta();
           b_pseudoToplep2_pt = pseudoW21->pt();
           b_pseudoToplep2_eta = pseudoW21->eta();
+
           if ( pseudoW1DauId > 10 and pseudoW2DauId > 10 ) {
             switch ( pseudoW1DauId+pseudoW2DauId ) {
 	    case 22: b_pseudoTopChannel = CH_ELEL; break;
@@ -562,7 +569,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       else if ( weight1 > maxweight and weight1 >= weight2 ) {
         // Re-solve with previous jet combinations
         // Weights are re-calculated since there can be very little difference due to random number effect in smearing algorithm
-	inputLV[3] = recojet1;
+   	    inputLV[3] = recojet1;
         inputLV[4] = recojet2;
         solver_->solve(inputLV);
         nu1 = solver_->nu1();
@@ -571,8 +578,8 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       }
       else continue;
 
-      top1 = recolepLV1+recojet1+nu1;
-      top2 = recolepLV2+recojet2+nu2;
+      top1 = recolepLV1+inputLV[3]+nu1;
+      top2 = recolepLV2+inputLV[4]+nu2;
     }
   }
 
@@ -580,10 +587,13 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_top1_eta = top1.Eta();
   b_top1_phi = top1.Phi();
   b_top1_rapi = top1.Rapidity();
+  b_top1_m = top1.M();
   b_top2_pt = top2.Pt();
   b_top2_eta = top2.Eta();
   b_top2_phi = top2.Phi();
   b_top2_rapi = top2.Rapidity();
+  b_top2_m = top2.M();
+  //cout << b_top1_m <<"   " << b_top2_m << endl;
 
   auto ttbar = top1+top2;
   b_ttbar_pt = ttbar.Pt();
@@ -592,18 +602,12 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_ttbar_m = ttbar.M();
   b_ttbar_rapi = ttbar.Rapidity();
 
-  if (b_genttbar_pt>0 && b_ttbar_pt > 0){
-    printf("reco1 pt %6.2f, eta %6.2f, rapidity %6.2f\n", b_top1_pt, b_top1_eta, b_top1_rapi);
-    printf("reco2 pt %6.2f, eta %6.2f, rapidity %6.2f\n", b_top2_pt, b_top2_eta, b_top2_rapi);
-    printf("gen1  pt %6.2f, eta %6.2f, rapidity %6.2f\n", b_gentop1_pt, b_gentop1_eta, b_gentop1_rapi);
-    printf("gen2  pt %6.2f, eta %6.2f, rapidity %6.2f\n\n", b_gentop2_pt, b_gentop2_eta, b_gentop2_rapi);
-  }
-
   b_maxweight = maxweight;
   if (maxweight){
     b_step6 = true;
     if (b_step == 5){
       ++b_step;
+      cutflow_[9][b_channel]++;
     }
   }
   //  printf("maxweight %f, top1.M() %f, top2.M() %f \n",maxweight, top1.M(), top2.M() );
