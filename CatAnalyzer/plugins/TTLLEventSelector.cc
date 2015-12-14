@@ -476,16 +476,16 @@ private:
   typedef reco::Candidate::LorentzVector LorentzVector;
   enum Channel { CH_NONE=-1, CH_MUMU, CH_ELEL, CH_MUEL };
 
-  // B tagging
-  const std::string bTagName_;
-  enum class BTagWP { CSVL, CSVM, CSVT } bTagWP_;
-
   // Energy scales
   int muonScale_, electronScale_, jetScale_, jetResol_;
 
   bool isMC_;
   const int filterCutStepBefore_;
+
+  // ID variables
+  std::string bTagName_;
   std::string elIdName_;
+  enum class BTagWP { CSVL, CSVM, CSVT } bTagWP_;
 };
 
 }
@@ -493,7 +493,6 @@ private:
 using namespace cat;
 
 TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
-  bTagName_("pfCombinedInclusiveSecondaryVertexV2BJetTags"),
   isMC_(pset.getParameter<bool>("isMC")),
   filterCutStepBefore_(pset.getParameter<int>("filterCutStepBefore"))
 {
@@ -510,6 +509,7 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   jetToken_ = consumes<cat::JetCollection>(jetSet.getParameter<edm::InputTag>("src"));
   jetScale_ = jetSet.getParameter<int>("scaleDirection");
   jetResol_ = jetSet.getParameter<int>("resolDirection");
+  bTagName_ = jetSet.getParameter<string>("bTagName");
   const auto bTagWPStr = jetSet.getParameter<string>("bTagWP");
   if      ( bTagWPStr == "CSVL" ) bTagWP_ = BTagWP::CSVL;
   else if ( bTagWPStr == "CSVM" ) bTagWP_ = BTagWP::CSVM;
