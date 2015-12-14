@@ -7,33 +7,33 @@ ttll = cms.EDFilter("TTLLEventSelector",
     # Physics objects
     muon = cms.PSet(
         src = cms.InputTag("catMuons"),
-        scale = cms.string("0"),
-        #scale = cms.string("+"),
-        #scale = cms.string("-"),
+        scaleDirection = cms.int32(0),
+        #scaleDirection = cms.int32(-1),
+        #scaleDirection = cms.int32(+1),
     ),
 
     electron = cms.PSet(
         src = cms.InputTag("catElectrons"),
         idName = cms.string("cutBasedElectronID-Spring15-25ns-V1-standalone-medium"),
-        scale = cms.string("0"),
-        #scale = cms.string("+"),
-        #scale = cms.string("-"),
+        scaleDirection = cms.int32(0),
+        #scaleDirection = cms.int32(-1),
+        #scaleDirection = cms.int32(+1),
     ),
 
     jet = cms.PSet(
         src = cms.InputTag("catJets"),
         bTagName = cms.string("pfCombinedInclusiveSecondaryVertexV2BJetTags"),
-        bTagMin = cms.double(0.605),
-        scale = cms.string("0"),
-        #scale = cms.string("+"),
-        #scale = cms.string("-"),
+        bTagWP = cms.string("CSVL"),
+        scaleDirection = cms.int32(0),
+        #scaleDirection = cms.int32(-1),
+        #scaleDirection = cms.int32(+1),
+        resolDirection = cms.int32(0),
+        #resolDirection = cms.int32(-1),
+        #resolDirection = cms.int32(+1),
     ),
 
     met = cms.PSet(
         src = cms.InputTag("catMETs"),
-        scale = cms.string("0"),
-        #scale = cms.string("+"),
-        #scale = cms.string("-"),
     ),
 
     vertex = cms.PSet(

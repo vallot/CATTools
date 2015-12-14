@@ -517,7 +517,7 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   else edm::LogError("TTLLEventSelector") << "Wrong bTagWP parameter " << bTagWPStr;
 
   const auto metSet = pset.getParameter<edm::ParameterSet>("met");
-  metToken_ = consumes<cat::METCollection>(pset.getParameter<edm::InputTag>("src"));
+  metToken_ = consumes<cat::METCollection>(metSet.getParameter<edm::InputTag>("src"));
 
   const auto vertexSet = pset.getParameter<edm::ParameterSet>("vertex");
   nVertexToken_ = consumes<int>(vertexSet.getParameter<edm::InputTag>("nVertex"));
@@ -591,7 +591,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     edm::Handle<float> fHandle;
 
     float genWeight = 1.;
-    if ( genWeightIndex_ )
+    if ( genWeightIndex_ == 0 )
     {
       event.getByToken(genWeightToken_, fHandle);
       genWeight = *fHandle;

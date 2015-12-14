@@ -26,14 +26,14 @@ filterTrigMUEL = cms.EDFilter("CATTriggerBitCombiner",
     doFilter = cms.bool(False),
 )
 
-filterTrigELEL = process.filterTrigMUEL.clone(
+filterTrigELEL = filterTrigMUEL.clone(
     triggersToMatch = cms.vstring(
         "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
         "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v",
     ),
 )
 
-filterTrigMUMU = process.filterTrigMUEL.clone(
+filterTrigMUMU = filterTrigMUEL.clone(
     triggersToMatch = cms.vstring(
         "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",
         #"HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",
