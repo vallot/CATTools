@@ -1,6 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 ttll = cms.EDFilter("TTLLEventSelector",
+    isMC = cms.bool(True),
     filterCutStepBefore = cms.int32(4),
 
     # Physics objects

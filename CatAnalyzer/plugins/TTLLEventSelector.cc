@@ -449,6 +449,7 @@ private:
     CH_NONE=-1, CH_MUMU, CH_ELEL, CH_MUEL
   };
 
+  bool isMC_;
   const int filterCutStepBefore_;
   std::string elIdName_;
   std::string bTagName_;
@@ -460,6 +461,7 @@ private:
 using namespace cat;
 
 TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
+  isMC_(pset.getParameter<bool>("isMC")),
   filterCutStepBefore_(pset.getParameter<int>("filterCutStepBefore"))
 {
   const auto muonSet = pset.getParameter<edm::ParameterSet>("muon");
@@ -487,11 +489,14 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   trigMuMuToken_ = consumes<int>(filterSet.getParameter<edm::InputTag>("trigMUMU"));
   trigMuElToken_ = consumes<int>(filterSet.getParameter<edm::InputTag>("trigMUEL"));
 
-  const auto genWeightSet = pset.getParameter<edm::ParameterSet>("genWeight");
-  genWeightIndex_ = genWeightSet.getParameter<unsigned int>("index");
-  const auto genWeightTag = genWeightSet.getParameter<edm::InputTag>("src");
-  if ( genWeightIndex_ == 0 )  genWeightToken_ = consumes<float>(genWeightTag);
-  else genWeightsToken_ = consumes<vfloat>(genWeightTag);
+  if ( isMC_ )
+  {
+    const auto genWeightSet = pset.getParameter<edm::ParameterSet>("genWeight");
+    genWeightIndex_ = genWeightSet.getParameter<unsigned int>("index");
+    const auto genWeightTag = genWeightSet.getParameter<edm::InputTag>("src");
+    if ( genWeightIndex_ == 0 )  genWeightToken_ = consumes<float>(genWeightTag);
+    else genWeightsToken_ = consumes<vfloat>(genWeightTag);
+  }
 
   // Fill histograms, etc
   usesResource("TFileService");
@@ -499,8 +504,11 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
 
   auto doverall = fs->mkdir("overall", "overall");
   h_weight = doverall.make<TH1F>("weight", "weight", 200, -10, 10);
-  h_genWeight = doverall.make<TH1F>("genWeight", "genWeight", 200, -10, 10);
-  h_pileupWeight = doverall.make<TH1F>("pileupWeight", "pileupWeight", 200, -10, 10);
+  if ( isMC_ )
+  {
+    h_genWeight = doverall.make<TH1F>("genWeight", "genWeight", 200, -10, 10);
+    h_pileupWeight = doverall.make<TH1F>("pileupWeight", "pileupWeight", 200, -10, 10);
+  }
 
   h_ee.book(fs->mkdir("ee"));
   h_mm.book(fs->mkdir("mm"));
@@ -515,7 +523,7 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
 
 bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 {
-  const bool isMC = !event.isRealData();
+  if ( event.isRealData() ) isMC_ = false;
 
   // Get physics objects
   edm::Handle<cat::MuonCollection> muonHandle;
@@ -538,7 +546,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
   // Compute event weight - from generator, pileup, etc
   double weight = 1.0;
-  if ( isMC )
+  if ( isMC_ )
   {
     edm::Handle<float> fHandle;
 
