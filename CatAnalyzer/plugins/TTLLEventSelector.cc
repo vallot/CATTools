@@ -395,6 +395,7 @@ public:
 
 private:
   typedef std::vector<float> vfloat;
+  typedef std::vector<double> vdouble;
   edm::EDGetTokenT<float> genWeightToken_, pileupWeightToken_;
   edm::EDGetTokenT<vfloat> genWeightsToken_;
   unsigned int genWeightIndex_;
@@ -465,12 +466,29 @@ private:
     return false;
   }
 
+  float getSF(const double pt, const double eta, const vdouble& ptbins, const vdouble& etabins, const vdouble& values)
+  {
+    auto ptbin = std::lower_bound(ptbins.begin(), ptbins.end(), pt);
+    if ( ptbin == ptbins.end() ) return 1;
+    auto etabin = std::lower_bound(etabins.begin(), etabins.end(), eta);
+    if ( etabin == etabins.end() ) return 1;
+
+    const int column = ptbin-ptbins.begin();
+    const int row = etabin-etabins.begin();
+
+    return values.at(row*ptbins.size()+column);
+  }
+
 private:
   typedef reco::Candidate::LorentzVector LorentzVector;
   enum Channel { CH_NONE=-1, CH_MUMU, CH_ELEL, CH_MUEL };
 
   // Energy scales
   int muonScale_, electronScale_, jetScale_, jetResol_;
+
+  // Efficiency SF
+  vdouble muonEffEtabins_, muonEffPtbins_, muonEffSFValues_;
+  vdouble electronEffEtabins_, electronEffPtbins_, electronEffSFValues_;
 
   bool isMC_;
   const int filterCutStepBefore_;
@@ -492,11 +510,27 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   const auto muonSet = pset.getParameter<edm::ParameterSet>("muon");
   muonToken_ = consumes<cat::MuonCollection>(muonSet.getParameter<edm::InputTag>("src"));
   muonScale_ = muonSet.getParameter<int>("scaleDirection");
+  if ( isMC_ )
+  {
+    const auto muonEffSFSet = muonSet.getParameter<edm::ParameterSet>("efficiencySF");
+    muonEffEtabins_ = muonEffSFSet.getParameter<vdouble>("etabins");
+    muonEffPtbins_ = muonEffSFSet.getParameter<vdouble>("ptbins");
+    // FIXME : check that these bins are monolothically increasing
+    muonEffSFValues_ = muonEffSFSet.getParameter<vdouble>("values");
+  }
 
   const auto electronSet = pset.getParameter<edm::ParameterSet>("electron");
   electronToken_ = consumes<cat::ElectronCollection>(electronSet.getParameter<edm::InputTag>("src"));
   elIdName_ = electronSet.getParameter<string>("idName");
   electronScale_ = electronSet.getParameter<int>("scaleDirection");
+  if ( isMC_ )
+  {
+    const auto electronEffSFSet = electronSet.getParameter<edm::ParameterSet>("efficiencySF");
+    electronEffEtabins_ = electronEffSFSet.getParameter<vdouble>("etabins");
+    electronEffPtbins_ = electronEffSFSet.getParameter<vdouble>("ptbins");
+    // FIXME : check that these bins are monolothically increasing
+    electronEffSFValues_ = electronEffSFSet.getParameter<vdouble>("values");
+  }
 
   const auto jetSet = pset.getParameter<edm::ParameterSet>("jet");
   jetToken_ = consumes<cat::JetCollection>(jetSet.getParameter<edm::InputTag>("src"));
@@ -606,8 +640,8 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     h_genWeight->Fill(genWeight);
     h_pileupWeight->Fill(pileupWeight);
     weight *= genWeight*pileupWeight;
+    // NOTE: weight value to be multiplied by lepton SF, etc.
   }
-  h_weight->Fill(weight);
 
   // Get event filters and triggers
   edm::Handle<int> trigHandle;
@@ -667,6 +701,31 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       }
     }
   }
+  // Apply lepton SF
+  if ( channel == CH_ELEL )
+  {
+    const double w1 = getSF(lepton1->pt(), lepton1->eta(),
+                            electronEffPtbins_, electronEffEtabins_, electronEffSFValues_);
+    const double w2 = getSF(lepton2->pt(), lepton2->eta(),
+                            electronEffPtbins_, electronEffEtabins_, electronEffSFValues_);
+    weight *= w1*w2;
+  }
+  else if ( channel == CH_MUMU )
+  {
+    const double w1 = getSF(lepton1->pt(), lepton1->eta(),
+                            muonEffPtbins_, muonEffEtabins_, muonEffSFValues_);
+    const double w2 = getSF(lepton2->pt(), lepton2->eta(),
+                            muonEffPtbins_, muonEffEtabins_, muonEffSFValues_);
+    weight *= w1*w2;
+  }
+  else if ( channel == CH_MUEL )
+  {
+    const double w1 = getSF(lepton1->pt(), lepton1->eta(),
+                            electronEffPtbins_, electronEffEtabins_, electronEffSFValues_);
+    const double w2 = getSF(lepton2->pt(), lepton2->eta(),
+                            muonEffPtbins_, muonEffEtabins_, muonEffSFValues_);
+    weight *= w1*w2;
+  }
 
   // Select good jets
   int bjets_n = 0;
@@ -692,6 +751,8 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
               return shiftedJetPt(*a) > shiftedJetPt(*b);});
 
   // Check cut steps and fill histograms
+  h_weight->Fill(weight);
+
   h_ee.hCutstep->Fill(-2, weight);
   h_ee.hCutstepNoweight->Fill(-2);
   h_ee.h0a_vertex_n->Fill(nVertex, weight);
