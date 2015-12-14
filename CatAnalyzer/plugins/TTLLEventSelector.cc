@@ -574,6 +574,10 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   const double met_pt = metP4.pt();
   const double met_phi = metP4.phi();
 
+  edm::Handle<int> nVertexHandle;
+  event.getByToken(nVertexToken_, nVertexHandle);
+  const int nVertex = *nVertexHandle;
+
   std::auto_ptr<std::vector<reco::CandidatePtr> > out_leptons(new std::vector<reco::CandidatePtr>());
   std::auto_ptr<std::vector<reco::CandidatePtr> > out_jets(new std::vector<reco::CandidatePtr>());
 
@@ -690,15 +694,15 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   // Check cut steps and fill histograms
   h_ee.hCutstep->Fill(-2, weight);
   h_ee.hCutstepNoweight->Fill(-2);
-  h_ee.h0a_vertex_n->Fill(weight);
+  h_ee.h0a_vertex_n->Fill(nVertex, weight);
 
   h_mm.hCutstep->Fill(-2, weight);
   h_mm.hCutstepNoweight->Fill(-2);
-  h_mm.h0a_vertex_n->Fill(weight);
+  h_mm.h0a_vertex_n->Fill(nVertex, weight);
 
   h_em.hCutstep->Fill(-2, weight);
   h_em.hCutstepNoweight->Fill(-2);
-  h_em.h0a_vertex_n->Fill(weight);
+  h_em.h0a_vertex_n->Fill(nVertex, weight);
 
   // ElEl channel Cutstep 0b with trigger requirements
   int cutstep_ee = -2;
@@ -707,7 +711,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     ++cutstep_ee;
     h_ee.hCutstep->Fill(-1, weight);
     h_ee.hCutstepNoweight->Fill(-1);
-    h_ee.h0b_vertex_n->Fill(weight);
+    h_ee.h0b_vertex_n->Fill(nVertex, weight);
     h_ee.h0b_met_pt->Fill(met_pt, weight);
     h_ee.h0b_met_phi->Fill(met_phi, weight);
     h_ee.h0b_leptons_n->Fill(leptons_n, weight);
@@ -721,7 +725,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       ++cutstep_ee;
       h_ee.hCutstep->Fill(0., weight);
       h_ee.hCutstepNoweight->Fill(0.);
-      h_ee.h0c_vertex_n->Fill(weight);
+      h_ee.h0c_vertex_n->Fill(nVertex, weight);
       h_ee.h0c_met_pt->Fill(met_pt, weight);
       h_ee.h0c_met_phi->Fill(met_phi, weight);
       h_ee.h0c_leptons_n->Fill(leptons_n, weight);
@@ -737,7 +741,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     ++cutstep_mm;
     h_mm.hCutstep->Fill(-1, weight);
     h_mm.hCutstepNoweight->Fill(-1);
-    h_mm.h0b_vertex_n->Fill(weight);
+    h_mm.h0b_vertex_n->Fill(nVertex, weight);
     h_mm.h0b_met_pt->Fill(met_pt, weight);
     h_mm.h0b_met_phi->Fill(met_phi, weight);
     h_mm.h0b_leptons_n->Fill(leptons_n, weight);
@@ -751,7 +755,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       ++cutstep_mm;
       h_mm.hCutstep->Fill(0., weight);
       h_mm.hCutstepNoweight->Fill(0.);
-      h_mm.h0c_vertex_n->Fill(weight);
+      h_mm.h0c_vertex_n->Fill(nVertex, weight);
       h_mm.h0c_met_pt->Fill(met_pt, weight);
       h_mm.h0c_met_phi->Fill(met_phi, weight);
       h_mm.h0c_leptons_n->Fill(leptons_n, weight);
@@ -767,7 +771,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     ++cutstep_em;
     h_em.hCutstep->Fill(-1, weight);
     h_em.hCutstepNoweight->Fill(-1);
-    h_em.h0b_vertex_n->Fill(weight);
+    h_em.h0b_vertex_n->Fill(nVertex, weight);
     h_em.h0b_met_pt->Fill(met_pt, weight);
     h_em.h0b_met_phi->Fill(met_phi, weight);
     h_em.h0b_leptons_n->Fill(leptons_n, weight);
@@ -781,7 +785,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       ++cutstep_em;
       h_em.hCutstep->Fill(0., weight);
       h_em.hCutstepNoweight->Fill(0.);
-      h_em.h0c_vertex_n->Fill(weight);
+      h_em.h0c_vertex_n->Fill(nVertex, weight);
       h_em.h0c_met_pt->Fill(met_pt, weight);
       h_em.h0c_met_phi->Fill(met_phi, weight);
       h_em.h0c_leptons_n->Fill(leptons_n, weight);
@@ -813,7 +817,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
         h_ee.hCutstep->Fill(cutstep, weight);
         h_ee.hCutstepNoweight->Fill(cutstep);
-        h_ee.h1_vertex_n->Fill(weight);
+        h_ee.h1_vertex_n->Fill(nVertex, weight);
         h_ee.h1_met_pt->Fill(met_pt, weight);
         h_ee.h1_met_phi->Fill(met_phi, weight);
         h_ee.h1_leptons_n->Fill(leptons_n, weight);
@@ -876,7 +880,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         ++cutstep;
         h_ee.hCutstep->Fill(cutstep, weight);
         h_ee.hCutstepNoweight->Fill(cutstep);
-        h_ee.h2_vertex_n->Fill(weight);
+        h_ee.h2_vertex_n->Fill(nVertex, weight);
         h_ee.h2_met_pt->Fill(met_pt, weight);
         h_ee.h2_met_phi->Fill(met_phi, weight);
         h_ee.h2_leptons_n->Fill(leptons_n, weight);
@@ -939,7 +943,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         ++cutstep;
         h_ee.hCutstep->Fill(cutstep, weight);
         h_ee.hCutstepNoweight->Fill(cutstep);
-        h_ee.h3_vertex_n->Fill(weight);
+        h_ee.h3_vertex_n->Fill(nVertex, weight);
         h_ee.h3_met_pt->Fill(met_pt, weight);
         h_ee.h3_met_phi->Fill(met_phi, weight);
         h_ee.h3_z_m->Fill(zP4.mass(), weight);
@@ -987,7 +991,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         ++cutstep;
         h_ee.hCutstep->Fill(cutstep, weight);
         h_ee.hCutstepNoweight->Fill(cutstep);
-        h_ee.h4_vertex_n->Fill(weight);
+        h_ee.h4_vertex_n->Fill(nVertex, weight);
         h_ee.h4_met_pt->Fill(met_pt, weight);
         h_ee.h4_met_phi->Fill(met_phi, weight);
         h_ee.h4_z_m->Fill(zP4.mass(), weight);
@@ -1033,7 +1037,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         ++cutstep;
         h_ee.hCutstep->Fill(cutstep, weight);
         h_ee.hCutstepNoweight->Fill(cutstep);
-        h_ee.h5_vertex_n->Fill(weight);
+        h_ee.h5_vertex_n->Fill(nVertex, weight);
         h_ee.h5_met_pt->Fill(met_pt, weight);
         h_ee.h5_met_phi->Fill(met_phi, weight);
         h_ee.h5_z_m->Fill(zP4.mass(), weight);
@@ -1084,7 +1088,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
         h_mm.hCutstep->Fill(cutstep, weight);
         h_mm.hCutstepNoweight->Fill(cutstep);
-        h_mm.h1_vertex_n->Fill(weight);
+        h_mm.h1_vertex_n->Fill(nVertex, weight);
         h_mm.h1_met_pt->Fill(met_pt, weight);
         h_mm.h1_met_phi->Fill(met_phi, weight);
         h_mm.h1_leptons_n->Fill(leptons_n, weight);
@@ -1147,7 +1151,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         ++cutstep;
         h_mm.hCutstep->Fill(cutstep, weight);
         h_mm.hCutstepNoweight->Fill(cutstep);
-        h_mm.h2_vertex_n->Fill(weight);
+        h_mm.h2_vertex_n->Fill(nVertex, weight);
         h_mm.h2_met_pt->Fill(met_pt, weight);
         h_mm.h2_met_phi->Fill(met_phi, weight);
         h_mm.h2_leptons_n->Fill(leptons_n, weight);
@@ -1210,7 +1214,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         ++cutstep;
         h_mm.hCutstep->Fill(cutstep, weight);
         h_mm.hCutstepNoweight->Fill(cutstep);
-        h_mm.h3_vertex_n->Fill(weight);
+        h_mm.h3_vertex_n->Fill(nVertex, weight);
         h_mm.h3_met_pt->Fill(met_pt, weight);
         h_mm.h3_met_phi->Fill(met_phi, weight);
         h_mm.h3_z_m->Fill(zP4.mass(), weight);
@@ -1258,7 +1262,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         ++cutstep;
         h_mm.hCutstep->Fill(cutstep, weight);
         h_mm.hCutstepNoweight->Fill(cutstep);
-        h_mm.h4_vertex_n->Fill(weight);
+        h_mm.h4_vertex_n->Fill(nVertex, weight);
         h_mm.h4_met_pt->Fill(met_pt, weight);
         h_mm.h4_met_phi->Fill(met_phi, weight);
         h_mm.h4_z_m->Fill(zP4.mass(), weight);
@@ -1304,7 +1308,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         ++cutstep;
         h_mm.hCutstep->Fill(cutstep, weight);
         h_mm.hCutstepNoweight->Fill(cutstep);
-        h_mm.h5_vertex_n->Fill(weight);
+        h_mm.h5_vertex_n->Fill(nVertex, weight);
         h_mm.h5_met_pt->Fill(met_pt, weight);
         h_mm.h5_met_phi->Fill(met_phi, weight);
         h_mm.h5_z_m->Fill(zP4.mass(), weight);
@@ -1356,7 +1360,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
         h_em.hCutstep->Fill(cutstep, weight);
         h_em.hCutstepNoweight->Fill(cutstep);
-        h_em.h1_vertex_n->Fill(weight);
+        h_em.h1_vertex_n->Fill(nVertex, weight);
         h_em.h1_met_pt->Fill(met_pt, weight);
         h_em.h1_met_phi->Fill(met_phi, weight);
         h_em.h1_leptons_n->Fill(leptons_n, weight);
@@ -1419,7 +1423,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         ++cutstep;
         h_em.hCutstep->Fill(cutstep, weight);
         h_em.hCutstepNoweight->Fill(cutstep);
-        h_em.h2_vertex_n->Fill(weight);
+        h_em.h2_vertex_n->Fill(nVertex, weight);
         h_em.h2_met_pt->Fill(met_pt, weight);
         h_em.h2_met_phi->Fill(met_phi, weight);
         h_em.h2_leptons_n->Fill(leptons_n, weight);
@@ -1482,7 +1486,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         ++cutstep;
         h_em.hCutstep->Fill(cutstep, weight);
         h_em.hCutstepNoweight->Fill(cutstep);
-        h_em.h3_vertex_n->Fill(weight);
+        h_em.h3_vertex_n->Fill(nVertex, weight);
         h_em.h3_met_pt->Fill(met_pt, weight);
         h_em.h3_met_phi->Fill(met_phi, weight);
         h_em.h3_z_m->Fill(zP4.mass(), weight);
@@ -1531,7 +1535,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         ++cutstep;
         h_em.hCutstep->Fill(cutstep, weight);
         h_em.hCutstepNoweight->Fill(cutstep);
-        h_em.h4_vertex_n->Fill(weight);
+        h_em.h4_vertex_n->Fill(nVertex, weight);
         h_em.h4_met_pt->Fill(met_pt, weight);
         h_em.h4_met_phi->Fill(met_phi, weight);
         h_em.h4_z_m->Fill(zP4.mass(), weight);
@@ -1577,7 +1581,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         ++cutstep;
         h_em.hCutstep->Fill(cutstep, weight);
         h_em.hCutstepNoweight->Fill(cutstep);
-        h_em.h5_vertex_n->Fill(weight);
+        h_em.h5_vertex_n->Fill(nVertex, weight);
         h_em.h5_met_pt->Fill(met_pt, weight);
         h_em.h5_met_phi->Fill(met_phi, weight);
         h_em.h5_z_m->Fill(zP4.mass(), weight);
