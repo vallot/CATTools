@@ -20,9 +20,13 @@ for j in js:
     datasetName = j['DataSetName']
     name = j['name']
     title = j['title']
-    if datasetName.endswith("/MINIAOD"): dataList.append(j)
+    if datasetName.endswith("/MINIAOD"):
+        if datasetName.startswith("/Jet"): continue
+        dataList.append(j)
     elif title.startswith('t#bar{t}'): sigList.append(j)
-    else: bkgList.append(j)
+    else:
+        if datasetName.startswith("QCD"): continue
+        bkgList.append(j)
 
 ## Undertainty variations
 systAll = {
