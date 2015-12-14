@@ -420,16 +420,42 @@ private:
   ControlPlots h_ee, h_mm, h_em;
 
 private:
+  double shiftedMuonPt(const cat::Muon& mu) { return mu.pt()*(1.+muonScale_*mu.shiftedEn()); }
+  double shiftedElectronPt(const cat::Electron& el) { return el.pt()*(1.+electronScale_*el.shiftedEn()); }
+  double shiftedLepPt(const reco::Candidate& cand)
+  {
+    auto muonP = dynamic_cast<const cat::Muon*>(&cand);
+    auto electronP = dynamic_cast<const cat::Electron*>(&cand);
+    if ( muonP ) return shiftedMuonPt(*muonP);
+    else if ( electronP ) return shiftedElectronPt(*electronP);
+    return cand.pt();
+  }
+  double shiftedJetPt(const reco::Candidate& cand)
+  {
+    const auto jet = dynamic_cast<const cat::Jet&>(cand);
+    double pt = jet.pt();
+    if      ( jetScale_ == +1 ) pt *= jet.shiftedEnUp();
+    else if ( jetScale_ == -1 ) pt *= jet.shiftedEnDown();
+
+    if ( isMC_ ) pt *= jet.smearedRes(jetResol_);
+
+    return pt;
+  }
+
   bool isGoodMuon(const cat::Muon& mu)
   {
-    if ( mu.pt() <= 20 or std::abs(mu.eta()) >= 2.4 ) return false;
-    if ( mu.relIso(0.4) >= 0.12 ) return false;
+    if ( std::abs(mu.eta()) >= 2.4 ) return false;
+    if ( shiftedMuonPt(mu) <= 20 ) return false;
+
+    if ( mu.relIso(0.4) >= 0.15 ) return false;
     if ( !mu.isTightMuon() ) return false;
     return true;
   }
   bool isGoodElectron(const cat::Electron& el)
   {
-    if ( el.pt() <= 20 or std::abs(el.eta()) >= 2.4 ) return false;
+    if ( std::abs(el.eta()) >= 2.4 ) return false;
+    if ( shiftedElectronPt(el) <= 20 ) return false;
+
     //if ( el.relIso(0.3) >= 0.11 ) return false;
     if ( !el.electronID(elIdName_) ) return false;
     if ( !el.isPF() or !el.passConversionVeto() ) return false;
@@ -439,21 +465,27 @@ private:
   }
   bool isBjet(const cat::Jet& jet)
   {
-    if ( jet.bDiscriminator(bTagName_) >= bTagMin_ ) return true;
+    const double bTag = jet.bDiscriminator(bTagName_);
+    if      ( bTagWP_ == BTagWP::CSVL ) return bTag > 0.605;
+    else if ( bTagWP_ == BTagWP::CSVM ) return bTag > 0.890;
+    else if ( bTagWP_ == BTagWP::CSVT ) return bTag > 0.970;
     return false;
   }
 
 private:
   typedef reco::Candidate::LorentzVector LorentzVector;
-  enum CHANNEL {
-    CH_NONE=-1, CH_MUMU, CH_ELEL, CH_MUEL
-  };
+  enum Channel { CH_NONE=-1, CH_MUMU, CH_ELEL, CH_MUEL };
+
+  // B tagging
+  const std::string bTagName_;
+  enum class BTagWP { CSVL, CSVM, CSVT } bTagWP_;
+
+  // Energy scales
+  int muonScale_, electronScale_, jetScale_, jetResol_;
 
   bool isMC_;
   const int filterCutStepBefore_;
   std::string elIdName_;
-  std::string bTagName_;
-  double bTagMin_;
 };
 
 }
@@ -461,20 +493,28 @@ private:
 using namespace cat;
 
 TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
+  bTagName_("pfCombinedInclusiveSecondaryVertexV2BJetTags"),
   isMC_(pset.getParameter<bool>("isMC")),
   filterCutStepBefore_(pset.getParameter<int>("filterCutStepBefore"))
 {
   const auto muonSet = pset.getParameter<edm::ParameterSet>("muon");
   muonToken_ = consumes<cat::MuonCollection>(muonSet.getParameter<edm::InputTag>("src"));
+  muonScale_ = muonSet.getParameter<int>("scaleDirection");
 
   const auto electronSet = pset.getParameter<edm::ParameterSet>("electron");
   electronToken_ = consumes<cat::ElectronCollection>(electronSet.getParameter<edm::InputTag>("src"));
   elIdName_ = electronSet.getParameter<string>("idName");
+  electronScale_ = electronSet.getParameter<int>("scaleDirection");
 
   const auto jetSet = pset.getParameter<edm::ParameterSet>("jet");
   jetToken_ = consumes<cat::JetCollection>(jetSet.getParameter<edm::InputTag>("src"));
-  bTagName_ = jetSet.getParameter<string>("bTagName");
-  bTagMin_ = jetSet.getParameter<double>("bTagMin");
+  jetScale_ = jetSet.getParameter<int>("scaleDirection");
+  jetResol_ = jetSet.getParameter<int>("resolDirection");
+  const auto bTagWPStr = jetSet.getParameter<string>("bTagWP");
+  if      ( bTagWPStr == "CSVL" ) bTagWP_ = BTagWP::CSVL;
+  else if ( bTagWPStr == "CSVM" ) bTagWP_ = BTagWP::CSVM;
+  else if ( bTagWPStr == "CSVT" ) bTagWP_ = BTagWP::CSVT;
+  else edm::LogError("TTLLEventSelector") << "Wrong bTagWP parameter " << bTagWPStr;
 
   const auto metSet = pset.getParameter<edm::ParameterSet>("met");
   metToken_ = consumes<cat::METCollection>(pset.getParameter<edm::InputTag>("src"));
@@ -589,36 +629,29 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   for ( int i=0, n=muonHandle->size(); i<n; ++i )
   {
     auto& p = muonHandle->at(i);
-    if ( p.pt() < 20 or abs(p.eta()) >= 2.4 ) continue;
 
     reco::CandidatePtr muonPtr = reco::CandidatePtr(muonHandle, i);
+    if ( isGoodMuon(p) ) out_leptons->push_back(muonPtr);
 
-    if ( isGoodMuon(p) )
-    {
-      leptons_st += p.pt();
-      out_leptons->push_back(muonPtr);
-    }
+    leptons_st += shiftedMuonPt(p);
   }
   for ( int i=0, n=electronHandle->size(); i<n; ++i )
   {
     auto& p = electronHandle->at(i);
-    if ( p.pt() < 20 or std::abs(p.eta()) > 2.4 ) continue;
 
     reco::CandidatePtr electronPtr = reco::CandidatePtr(electronHandle, i);
+    if ( isGoodElectron(p) ) out_leptons->push_back(electronPtr);
 
-    if ( isGoodElectron(p) )
-    {
-      leptons_st += p.pt();
-      out_leptons->push_back(electronPtr);
-    }
+    leptons_st += shiftedElectronPt(p);
   }
-  auto GtByPtPtr = [](reco::CandidatePtr a, reco::CandidatePtr b){return a->pt() > b->pt();};
   const int leptons_n = out_leptons->size();
   reco::CandidatePtr lepton1, lepton2;
-  CHANNEL channel = CH_NONE;
+  Channel channel = CH_NONE;
   if ( leptons_n >= 2 ) {
     // Partial sort to select leading 2 leptons
-    std::nth_element(out_leptons->begin(), out_leptons->begin()+2, out_leptons->end(), GtByPtPtr);
+    std::nth_element(out_leptons->begin(), out_leptons->begin()+2, out_leptons->end(),
+                     [&](reco::CandidatePtr a, reco::CandidatePtr b){
+                       return shiftedLepPt(*a) > shiftedLepPt(*b);});
 
     // Set lepton1 and 2
     lepton1 = out_leptons->at(0); lepton2 = out_leptons->at(1);
@@ -644,21 +677,24 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   for ( int i=0, n=jetHandle->size(); i<n; ++i )
   {
     auto& jet = jetHandle->at(i);
+    const double pt = shiftedJetPt(jet);
 
-    if ( jet.pt() < 30 or std::abs(jet.eta()) > 2.5 ) continue;
+    if ( pt < 30 or std::abs(jet.eta()) > 2.5 ) continue;
     if ( leptons_n >= 1 and deltaR(jet.p4(), out_leptons->at(0)->p4()) < 0.5 ) continue;
     if ( leptons_n >= 2 and deltaR(jet.p4(), out_leptons->at(1)->p4()) < 0.5 ) continue;
 
-    jets_ht += jet.pt();
+    jets_ht += pt;
     out_jets->push_back(reco::CandidatePtr(jetHandle, i));
     if ( isBjet(jet) )
     {
-      bjets_ht += jet.pt();
+      bjets_ht += pt;
       ++bjets_n;
     }
   }
   const int jets_n = out_jets->size();
-  std::sort(out_jets->begin(), out_jets->end(), GtByPtPtr);
+  std::sort(out_jets->begin(), out_jets->end(),
+            [&](reco::CandidatePtr a, reco::CandidatePtr b){
+              return shiftedJetPt(*a) > shiftedJetPt(*b);});
 
   // Check cut steps and fill histograms
   h_ee.hCutstep->Fill(-2, weight);
