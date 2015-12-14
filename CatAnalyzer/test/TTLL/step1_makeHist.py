@@ -6,6 +6,9 @@ if os.path.exists(outDir):
     print "Directory already exists. remove or rename it."
     os.exit()
 os.mkdir(outDir)
+os.system("ln -s ../analyze_sig_cfg.py %s/analyze_sig_cfg.py" % outDir)
+os.system("ln -s ../analyze_bkg_cfg.py %s/analyze_bkg_cfg.py" % outDir)
+os.system("ln -s ../analyze_data_cfg.py %s/analyze_data_cfg.py" % outDir)
 
 ## Load JSON file and categorize datasets
 import json
@@ -25,7 +28,7 @@ for j in js:
         dataList.append(j)
     elif title.startswith('t#bar{t}'): sigList.append(j)
     else:
-        if datasetName.startswith("QCD"): continue
+        if datasetName.startswith("/QCD"): continue
         bkgList.append(j)
 
 ## Undertainty variations
@@ -54,10 +57,10 @@ out = open("%s/submit.sh" % outDir, "w")
 for d in sigList:
     name = d['name']
     title = d['title']
-    submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 100"
+    submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 25"
     submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
 
-    print>>out, submitCmd
+    print>>out, (submitCmd + " --jobName %s/central" % name)
     ## Loop over all systematics
     for systName in systAll:
         arg = systAll[systName]
@@ -72,10 +75,10 @@ for d in sigList:
 
 for d in bkgList:
     name = d['name']
-    submitCmd  = "create-batch --cfg analyze_bkg_cfg.py --maxFiles 100"
+    submitCmd  = "create-batch --cfg analyze_bkg_cfg.py --maxFiles 25"
     submitCmd += " --jobName %s --fileList %s/dataset_%s.txt" % (name, dataDir, name)
 
-    print>>out, submitCmd
+    print>>out, (submitCmd + " --jobName %s/central" % name)
     ## Loop over all systematics
     for systName in systAll:
         arg = systAll[systName]
@@ -86,10 +89,10 @@ for d in bkgList:
 
 for d in dataList:
     name = d['name']
-    submitCmd  = "create-batch --cfg analyze_data_cfg.py --maxFiles 100"
+    submitCmd  = "create-batch --cfg analyze_data_cfg.py --maxFiles 25"
     submitCmd += " --jobName %s --fileList %s/dataset_%s.txt" % (name, dataDir, name)
 
-    print>>out, submitCmd
+    print>>out, (submitCmd + " --jobName %s/central" % name)
     ## Loop over all systematics
     for systName in systAll:
         arg = systAll[systName]
