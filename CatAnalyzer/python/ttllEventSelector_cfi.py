@@ -1,4 +1,5 @@
 import FWCore.ParameterSet.Config as cms
+from CATTools.CatAnalyzer.leptonSF_cff import *
 
 ttll = cms.EDFilter("TTLLEventSelector",
     isMC = cms.bool(True),
@@ -10,6 +11,7 @@ ttll = cms.EDFilter("TTLLEventSelector",
         scaleDirection = cms.int32(0),
         #scaleDirection = cms.int32(-1),
         #scaleDirection = cms.int32(+1),
+        efficiencySF = muonSFTight,
     ),
 
     electron = cms.PSet(
@@ -18,6 +20,7 @@ ttll = cms.EDFilter("TTLLEventSelector",
         scaleDirection = cms.int32(0),
         #scaleDirection = cms.int32(-1),
         #scaleDirection = cms.int32(+1),
+        efficiencySF = electronSFCutBasedMedium,
     ),
 
     jet = cms.PSet(

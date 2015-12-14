@@ -25,5 +25,5 @@ process.p = cms.Path(process.ttll)
 
 ## Customise with cmd arguments
 import sys
-if len(sys.argv) > 1:
-    for l in sys.argv[1:]: exec('process.ttll.'+l)
+if len(sys.argv) > 2:
+    for l in sys.argv[2:]: exec('process.ttll.'+l)

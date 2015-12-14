@@ -469,14 +469,14 @@ private:
   float getSF(const double pt, const double eta, const vdouble& ptbins, const vdouble& etabins, const vdouble& values)
   {
     auto ptbin = std::lower_bound(ptbins.begin(), ptbins.end(), pt);
-    if ( ptbin == ptbins.end() ) return 1;
+    if ( ptbin == ptbins.end() or ptbin+1 == ptbins.end() ) return 1;
     auto etabin = std::lower_bound(etabins.begin(), etabins.end(), eta);
-    if ( etabin == etabins.end() ) return 1;
+    if ( etabin == etabins.end() or etabin+1 == etabins.end() ) return 1;
 
     const int column = ptbin-ptbins.begin();
     const int row = etabin-etabins.begin();
 
-    return values.at(row*ptbins.size()+column);
+    return values.at(row*(ptbins.size()-1)+column);
   }
 
 private:
