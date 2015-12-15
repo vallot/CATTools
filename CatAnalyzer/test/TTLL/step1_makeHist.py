@@ -46,12 +46,6 @@ systMC = {
     'pileup/dn':'vertex.pileupWeight="pileupWeight:dn"',
 }
 
-systSig_aMC = {}
-for i in range(1, 11):
-    systSig_aMC['gen_scale/%d' % i] = 'src="genWeight:pdfWeights" genWeight.index=%d' % i
-for i in range(11, 112):
-    systSig_aMC['gen_PDF/%d' % i] = ('src="genWeight:pdfWeights" genWeight.index=%d' % i)
-
 ## Write script to run create-batch
 out = open("%s/submit_sig.sh" % outDir, "w")
 for d in sigList:
@@ -60,13 +54,28 @@ for d in sigList:
     submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 25"
     submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
 
-    ## Special care for systematic study samples
-    if '_scale' in name:
-        continue
-
     print>>out, (submitCmd + " --jobName %s/central" % name)
-    ## Loop over all systematics
 
+    ## Scale up/down systematic undertainty from LHE weight
+    ## This uncertainty have to be combined with envelope
+    ## Let us assume index1-10 are for the scale variations (muF & muR)
+    if '_aMC' in name or '_powheg' in name:
+        print>>out, "## Scale variations in aMC@NLO sample"
+        for i in range(1,9): # total 8 scale variations, 3 muF x 3 muR and one for central weight
+            arg =  'src="genWeight:pdfWeights" genWeight.index=%d' % i
+            print>>out, (submitCmd + (" --jobName %s/gen_scale/%d --args '%s'" % (name, i, arg)))
+
+        if '_scale' not in name:
+            if '_aMC' in name: weightSize = 110
+            elif '_powheg' in name: weightSize = 248
+            ## NOTE: there is weight vector, but we don't do it for LO generator here.
+            ##elif '_madgraph' in name: weightSize = 445
+            else weightSize = 0
+            for i in range(9, weightSize+1):
+                arg = 'src="genWeight:pdfWeights" genWeight.index=%d' % i
+                print>>out, (submitCmd + (" --jobName %s/gen_PDF/%d --args '%s'" % (name, i, arg)))
+
+    ## Loop over all systematics
     for systName in systAll:
         arg = systAll[systName]
         print>>out, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, arg)))
