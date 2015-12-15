@@ -2,8 +2,8 @@
 
 from ROOT import *
 
-xHi = 6025.2
-xLo20to50 = 3205.6
+xHi = 3*2008.4
+xLo20to50 = 3*3205.6-xHi
 doAddSF = False
 #doAddSF = True
 
