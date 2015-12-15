@@ -4,7 +4,7 @@ import sys, os
 outDir = "step1_makeHist"
 if os.path.exists(outDir):
     print "Directory already exists. remove or rename it."
-    os.exit()
+    sys.exit()
 os.mkdir(outDir)
 os.system("ln -s ../analyze_sig_cfg.py %s/analyze_sig_cfg.py" % outDir)
 os.system("ln -s ../analyze_bkg_cfg.py %s/analyze_bkg_cfg.py" % outDir)
@@ -53,15 +53,20 @@ for i in range(11, 112):
     systSig_aMC['gen_PDF/%d' % i] = ('src="genWeight:pdfWeights" genWeight.index=%d' % i)
 
 ## Write script to run create-batch
-out = open("%s/submit.sh" % outDir, "w")
+out = open("%s/submit_sig.sh" % outDir, "w")
 for d in sigList:
     name = d['name']
     title = d['title']
     submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 25"
     submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
 
+    ## Special care for systematic study samples
+    if '_scale' in name:
+        continue
+
     print>>out, (submitCmd + " --jobName %s/central" % name)
     ## Loop over all systematics
+
     for systName in systAll:
         arg = systAll[systName]
         print>>out, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, arg)))
@@ -72,7 +77,9 @@ for d in sigList:
         for systName in systSig_aMC:
             arg = systSig_aMC[systName]
             print>>out, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, arg)))
+out.close()
 
+out = open("%s/submit_bkg.sh" % outDir, "w")
 for d in bkgList:
     name = d['name']
     submitCmd  = "create-batch --cfg analyze_bkg_cfg.py --maxFiles 25"
@@ -86,7 +93,9 @@ for d in bkgList:
     for systName in systMC:
         arg = systMC[systName]
         print>>out, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, arg)))
+out.close()
 
+out = open("%s/submit_data.sh" % outDir, "w")
 for d in dataList:
     name = d['name']
     submitCmd  = "create-batch --cfg analyze_data_cfg.py --maxFiles 25"
@@ -97,5 +106,8 @@ for d in dataList:
     for systName in systAll:
         arg = systAll[systName]
         print>>out, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, arg)))
+out.close()
 
-os.system("chmod +x %s/submit.sh" % outDir)
+os.system("chmod +x %s/submit_sig.sh" % outDir)
+os.system("chmod +x %s/submit_bkg.sh" % outDir)
+os.system("chmod +x %s/submit_data.sh" % outDir)
