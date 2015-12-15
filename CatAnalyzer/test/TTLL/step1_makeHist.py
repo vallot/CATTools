@@ -70,7 +70,7 @@ for d in sigList:
             elif '_powheg' in name: weightSize = 248
             ## NOTE: there is weight vector, but we don't do it for LO generator here.
             ##elif '_madgraph' in name: weightSize = 445
-            else weightSize = 0
+            else: weightSize = 0
             for i in range(9, weightSize+1):
                 arg = 'src="genWeight:pdfWeights" genWeight.index=%d' % i
                 print>>out, (submitCmd + (" --jobName %s/gen_PDF/%d --args '%s'" % (name, i, arg)))
@@ -82,10 +82,6 @@ for d in sigList:
     for systName in systMC:
         arg = systMC[systName]
         print>>out, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, arg)))
-    if 'aMC' in title:
-        for systName in systSig_aMC:
-            arg = systSig_aMC[systName]
-            print>>out, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, arg)))
 out.close()
 
 out = open("%s/submit_bkg.sh" % outDir, "w")
