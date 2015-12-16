@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-ttbarDileptonKin = cms.EDProducer("TTbarDileptonKinSolutionProducer",
+ttbarDileptonKin = cms.EDProducer("TTLLKinSolutionProducer",
     solver = cms.PSet(algo = cms.string("Default"),), ## Default dummy algorithm
     leptons = cms.InputTag("leptons"), ## lepton in CandidatePtr
     jets = cms.InputTag("jets"), ## jet in CandidatePtr

@@ -19,11 +19,11 @@ using namespace std;
 
 namespace cat {
 
-class TTbarDileptonKinSolutionProducer : public edm::stream::EDProducer<>
+class TTLLKinSolutionProducer : public edm::stream::EDProducer<>
 {
 public:
-  TTbarDileptonKinSolutionProducer(const edm::ParameterSet& pset);
-  virtual ~TTbarDileptonKinSolutionProducer() {};
+  TTLLKinSolutionProducer(const edm::ParameterSet& pset);
+  virtual ~TTLLKinSolutionProducer() {};
   void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&) override;
   void produce(edm::Event & event, const edm::EventSetup&) override;
 
@@ -47,7 +47,7 @@ private:
 
 using namespace cat;
 
-TTbarDileptonKinSolutionProducer::TTbarDileptonKinSolutionProducer(const edm::ParameterSet& pset)
+TTLLKinSolutionProducer::TTLLKinSolutionProducer(const edm::ParameterSet& pset)
 {
   leptonPtrToken_ = mayConsume<edm::View<reco::CandidatePtr> >(pset.getParameter<edm::InputTag>("leptons"));
   leptonToken_ = mayConsume<edm::View<reco::Candidate> >(pset.getParameter<edm::InputTag>("leptons"));
@@ -81,7 +81,7 @@ TTbarDileptonKinSolutionProducer::TTbarDileptonKinSolutionProducer(const edm::Pa
   produces<floats>("dphi");
 }
 
-void TTbarDileptonKinSolutionProducer::beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&)
+void TTLLKinSolutionProducer::beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&)
 {
   if ( dynamic_cast<DESYSmearedSolver*>(solver_.get()) != 0 ) {
     edm::Service<edm::RandomNumberGenerator> rng;
@@ -90,7 +90,7 @@ void TTbarDileptonKinSolutionProducer::beginLuminosityBlock(const edm::Luminosit
   }
 }
 
-void TTbarDileptonKinSolutionProducer::produce(edm::Event& event, const edm::EventSetup&)
+void TTLLKinSolutionProducer::produce(edm::Event& event, const edm::EventSetup&)
 {
   std::auto_ptr<CandColl> cands(new CandColl);
   //auto candsRefProd = event.getRefBeforePut<CRCandColl>();
@@ -249,5 +249,5 @@ void TTbarDileptonKinSolutionProducer::produce(edm::Event& event, const edm::Eve
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"
-DEFINE_FWK_MODULE(TTbarDileptonKinSolutionProducer);
+DEFINE_FWK_MODULE(TTLLKinSolutionProducer);
 
