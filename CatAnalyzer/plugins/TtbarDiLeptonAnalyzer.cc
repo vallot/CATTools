@@ -383,12 +383,11 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
           if ( pseudoW1DauId > 10 and pseudoW2DauId > 10 ) {
             switch ( pseudoW1DauId+pseudoW2DauId ) {
-	    case 22: b_pseudoTopChannel = CH_ELEL; break;
-	    case 26: b_pseudoTopChannel = CH_MUMU; break;
-	    default: b_pseudoTopChannel = CH_MUEL;
+		      case 22: b_pseudoTopChannel = CH_ELEL; break;
+		      case 26: b_pseudoTopChannel = CH_MUMU; break;
+	  	      default: b_pseudoTopChannel = CH_MUEL;
             }
           }
-	  b_partonInPhase = true;
         }
       }
     }
@@ -447,6 +446,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   cutflow_[3][b_channel]++;
 
   sort(recolep.begin(), recolep.end(), GtByCandPt());
+  recolep.erase(recolep.begin()+2,recolep.end());
   const cat::Particle& recolep1 = recolep[0];
   const cat::Particle& recolep2 = recolep[1];
 
@@ -601,6 +601,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_ttbar_phi = ttbar.Phi();
   b_ttbar_m = ttbar.M();
   b_ttbar_rapi = ttbar.Rapidity();
+
 
   b_maxweight = maxweight;
   if (maxweight){
