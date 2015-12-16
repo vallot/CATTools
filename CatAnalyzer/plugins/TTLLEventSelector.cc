@@ -124,7 +124,6 @@ struct ControlPlots
     hCutstep->GetXaxis()->SetBinLabel(6, "S3 nJet2");
     hCutstep->GetXaxis()->SetBinLabel(7, "S4 MET40");
     hCutstep->GetXaxis()->SetBinLabel(8, "S5 nBJet1");
-    hCutstep->GetXaxis()->SetBinLabel(9, "S6 nBJet2");
 
     hCutstepNoweight->GetXaxis()->SetBinLabel(1, "S0a all event");
     hCutstepNoweight->GetXaxis()->SetBinLabel(2, "S0b Trigger");
@@ -134,7 +133,6 @@ struct ControlPlots
     hCutstepNoweight->GetXaxis()->SetBinLabel(6, "S3 nJet2");
     hCutstepNoweight->GetXaxis()->SetBinLabel(7, "S4 MET40");
     hCutstepNoweight->GetXaxis()->SetBinLabel(8, "S5 nBJet1");
-    hCutstepNoweight->GetXaxis()->SetBinLabel(9, "S6 nBJet2");
 
     auto subdir = dir.mkdir("step0a");
     h0a_vertex_n = subdir.make<TH1D>("vertex_n", "vertex_n", 100, 0, 100);
@@ -1705,7 +1703,9 @@ TTLLEventSelector::~TTLLEventSelector()
     const int n = h_em.hCutstepNoweight->GetNbinsX();
     for ( int i=1; i<n; ++i )
     {
-      cout << "Step" << i;
+      const string name(h_ee.hCutstepNoweight->GetXaxis()->GetBinLabel(i));
+      if ( name.empty() ) break;
+      cout << name.substr(0, name.find(' '));
       cout << '\t' << h_ee.hCutstepNoweight->GetBinContent(i);
       cout << '\t' << h_mm.hCutstepNoweight->GetBinContent(i);
       cout << '\t' << h_em.hCutstepNoweight->GetBinContent(i) << endl;
