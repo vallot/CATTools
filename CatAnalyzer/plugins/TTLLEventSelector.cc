@@ -868,7 +868,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   {
     const auto zP4 = lepton1->p4()+lepton2->p4();
     const auto z_m = zP4.mass();
-    if ( channel == CH_ELEL )
+    if ( channel == CH_ELEL and cutstep_ee == 0 )
     {
       ////////////////////////////////////////
       // First scan cut flow for ee channel //
@@ -1140,7 +1140,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_ee.h5_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
       }
     }
-    else if ( channel == CH_MUMU ) {
+    else if ( channel == CH_MUMU and cutstep_mm == 0 ) {
       /////////////////////////////////////////
       // Next scan cut flow for mumu channel //
       /////////////////////////////////////////
@@ -1411,7 +1411,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_mm.h5_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
       }
     }
-    else if ( channel == CH_MUEL )
+    else if ( channel == CH_MUEL and cutstep_em == 0 )
     {
       ///////////////////////////////////////////
       // Finally scan cut flow for emu channel //
