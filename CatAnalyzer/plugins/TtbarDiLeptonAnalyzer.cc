@@ -55,7 +55,8 @@ private:
   edm::EDGetTokenT<reco::VertexCollection>   vtxToken_;
   edm::EDGetTokenT<int>          partonTop_channel_;
   edm::EDGetTokenT<vector<int> > partonTop_modes_;
-  edm::EDGetTokenT<reco::GenParticleCollection> partonTop_genParticles_, pseudoTop_;
+  edm::EDGetTokenT<reco::GenParticleCollection> partonTop_genParticles_;
+  edm::EDGetTokenT<edm::View<reco::Candidate> > pseudoTop_leptons_, pseudoTop_neutrinos_, pseudoTop_jets_;
 
   TTree * ttree_;
   int b_nvertex, b_step, b_channel, b_njet, b_nbjet;
@@ -120,7 +121,9 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   partonTop_channel_ = consumes<int>(iConfig.getParameter<edm::InputTag>("partonTop_channel"));
   partonTop_modes_   = consumes<vector<int> >(iConfig.getParameter<edm::InputTag>("partonTop_modes"));
   partonTop_genParticles_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("partonTop_genParticles"));
-  pseudoTop_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("pseudoTop"));
+  pseudoTop_leptons_   = consumes<edm::View<reco::Candidate> >(edm::InputTag("pseudoTop", "leptons"));
+  pseudoTop_neutrinos_   = consumes<edm::View<reco::Candidate> >(edm::InputTag("pseudoTop", "neutrinos"));
+  pseudoTop_jets_ = consumes<edm::View<reco::Candidate> >(edm::InputTag("pseudoTop", "jets"));
 
   auto solverPSet = iConfig.getParameter<edm::ParameterSet>("solver");
   auto algoName = solverPSet.getParameter<std::string>("algo");
@@ -311,17 +314,17 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         const auto partonW2 = parton2->daughter(0);
         const auto partonB2 = parton2->daughter(1);
 
-	if ( (partonB1->pt() > 30 && std::abs(partonB1->eta()) < 2.4) && 
-	     (partonB2->pt() > 30 && std::abs(partonB2->eta()) < 2.4))
-	  b_partonInPhaseJet = true;
+        if ( (partonB1->pt() > 30 && std::abs(partonB1->eta()) < 2.4) && 
+            (partonB2->pt() > 30 && std::abs(partonB2->eta()) < 2.4))
+          b_partonInPhaseJet = true;
 	
         // Get W daughters
         if ( partonW1 and partonW2 and partonB1 and partonB2 ) {
           const auto partonW11 = partonW1->daughter(0);
           const auto partonW21 = partonW2->daughter(0);
-	  if ( (partonW11->pt() > 20 && std::abs(partonW11->eta()) < 2.4 && (std::abs(partonW11->pdgId()) == 11 || std::abs(partonW11->pdgId()) == 13) ) && 
-	       (partonW21->pt() > 20 && std::abs(partonW21->eta()) < 2.4 && (std::abs(partonW11->pdgId()) == 11 || std::abs(partonW11->pdgId()) == 13) ))
-	    b_partonInPhaseLep = true;
+          if ( (partonW11->pt() > 20 && std::abs(partonW11->eta()) < 2.4 && (std::abs(partonW11->pdgId()) == 11 || std::abs(partonW11->pdgId()) == 13) ) && 
+              (partonW21->pt() > 20 && std::abs(partonW21->eta()) < 2.4 && (std::abs(partonW11->pdgId()) == 11 || std::abs(partonW11->pdgId()) == 13) ))
+            b_partonInPhaseLep = true;
 
           // Fill lepton informations
           b_partonlep1_pt = partonW11->pt();
@@ -333,16 +336,81 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       if (b_partonInPhaseJet && b_partonInPhaseLep) b_partonInPhase = true;
     }
 
-    edm::Handle<reco::GenParticleCollection> pseudoTopHandle;
-    iEvent.getByToken(pseudoTop_          , pseudoTopHandle);
-    if ( !(pseudoTopHandle->empty()) ){
-      b_pseudoTopChannel = CH_NONE;
+    // Start to build pseudo top
+    b_pseudoTopChannel = CH_NONE;
+    edm::Handle<edm::View<reco::Candidate> > pseudoTopLeptonHandle;
+    edm::Handle<edm::View<reco::Candidate> > pseudoTopNeutrinoHandle;
+    edm::Handle<edm::View<reco::Candidate> > pseudoTopJetHandle;
+    iEvent.getByToken(pseudoTop_leptons_, pseudoTopLeptonHandle);
+    iEvent.getByToken(pseudoTop_neutrinos_, pseudoTopNeutrinoHandle);
+    iEvent.getByToken(pseudoTop_jets_, pseudoTopJetHandle);
+    do {
+      // Basic lepton, jet multiplicity
+      if ( pseudoTopLeptonHandle->size() < 2 or pseudoTopJetHandle->size() < 2 or pseudoTopNeutrinoHandle->size() < 2 ) break;
 
-      // Get Top quark pairs
-      const auto pseudoTop1 = &pseudoTopHandle->at(0);
-      const auto pseudoTop2 = &pseudoTopHandle->at(1);
-      const auto gentop1 = pseudoTop1->p4();
-      const auto gentop2 = pseudoTop2->p4();
+      std::vector<size_t> leptonIdxs, neutrinoIdxs, bjetIdxs;
+      // Lepton acceptance cuts
+      for ( size_t i=0, n=pseudoTopLeptonHandle->size(); i<n; ++i ) {
+        const auto& x = pseudoTopLeptonHandle->at(i);
+        if ( x.pt() < 20 or std::abs(x.eta()) > 2.5 ) continue;
+        leptonIdxs.push_back(i);
+      }
+      if ( leptonIdxs.size() < 2 ) break;
+      std::nth_element(leptonIdxs.begin(), leptonIdxs.begin()+2, leptonIdxs.end(),
+                       [&](size_t i, size_t j){return pseudoTopLeptonHandle->at(i).pt() > pseudoTopLeptonHandle->at(j).pt();});
+      const auto lepton1 = pseudoTopLeptonHandle->at(leptonIdxs[0]).p4();
+      const auto lepton2 = pseudoTopLeptonHandle->at(leptonIdxs[1]).p4();
+      const int pseudoW1DauId = abs(pseudoTopLeptonHandle->at(leptonIdxs[0]).pdgId());
+      const int pseudoW2DauId = abs(pseudoTopLeptonHandle->at(leptonIdxs[1]).pdgId());
+      if ( pseudoW1DauId > 10 and pseudoW2DauId > 10 ) {
+        switch ( pseudoW1DauId+pseudoW2DauId ) {
+          case 22: b_pseudoTopChannel = CH_ELEL; break;
+          case 26: b_pseudoTopChannel = CH_MUMU; break;
+          default: b_pseudoTopChannel = CH_MUEL;
+        }
+      }
+
+      //std::nth_element(neutrinoIdxs.begin(), neutrinoIdxs.begin()+2, neutrinoIdxs.end(),
+      //                 [&](size_t i, size_t j){return pseudoTopLeptonHandle->at(i).pt() > pseudoTopLeptonHandle->at(j).pt();});
+      auto nu1 = pseudoTopNeutrinoHandle->at(0).p4(), nu2 = pseudoTopNeutrinoHandle->at(1).p4();
+
+      // Jet acceptance and generator level b tag
+      for ( size_t i=0, n=pseudoTopJetHandle->size(); i<n; ++i ) {
+        const auto& x = pseudoTopJetHandle->at(i);
+        if ( x.pt() < 30 or std::abs(x.eta()) > 2.5 ) continue;
+        if ( abs(x.pdgId()) != 5 ) continue;
+        bjetIdxs.push_back(i);
+      }
+      if ( bjetIdxs.size() < 2 ) break;
+      std::nth_element(bjetIdxs.begin(), bjetIdxs.begin()+2, bjetIdxs.end(),
+                      [&](size_t i, size_t j){return pseudoTopJetHandle->at(i).pt() > pseudoTopJetHandle->at(j).pt();});
+      auto bjet1 = pseudoTopJetHandle->at(bjetIdxs[0]).p4(), bjet2 = pseudoTopJetHandle->at(bjetIdxs[1]).p4();
+
+      // Do the W combinations
+      auto w1 = lepton1 + nu1;
+      auto w2 = lepton2 + nu2;
+      if ( true ) {
+        const auto w1Alt = lepton1 + nu2;
+        const auto w2Alt = lepton2 + nu1;
+
+        const double wMass = 80.4;
+        const double dm = std::abs(w1.mass()-wMass)+std::abs(w2.mass()-wMass);
+        const double dmAlt = std::abs(w1Alt.mass()-wMass)+std::abs(w2Alt.mass()-wMass);
+        if ( dm > dmAlt ) { w1 = w1Alt; w2 = w2Alt; std::swap(nu1, nu2); }
+      }
+      // Do the top combinations
+      auto gentop1 = w1 + bjet1;
+      auto gentop2 = w2 + bjet2;
+      if ( true ) {
+        const auto t1Alt = w1 + bjet2;
+        const auto t2Alt = w2 + bjet1;
+
+        const double tMass = 172.5;
+        const double dm = std::abs(gentop1.mass()-tMass)+std::abs(gentop2.mass()-tMass);
+        const double dmAlt = std::abs(t1Alt.mass()-tMass)+std::abs(t2Alt.mass()-tMass);
+        if ( dm > dmAlt ) { gentop1 = t1Alt; gentop2 = t2Alt; std::swap(bjet1, bjet2); }
+      }
+
       b_gentop1_pt = gentop1.Pt();
       b_gentop1_eta = gentop1.Eta();
       b_gentop1_phi = gentop1.Phi();
@@ -354,6 +422,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       b_gentop2_rapi = gentop2.Rapidity();
       b_gentop2_m = gentop2.M();
 
+      // Get Top quark pairs
       auto genttbar = gentop1+gentop2;
       b_genttbar_pt = genttbar.Pt();
       b_genttbar_eta = genttbar.Eta();
@@ -361,37 +430,13 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       b_genttbar_m = genttbar.M();
       b_genttbar_rapi = genttbar.Rapidity();
 
-      // Get W and b quarks
-      if ( pseudoTop1 and pseudoTop2 ) {
-        const auto pseudoW1 = pseudoTop1->daughter(0);
-        const auto pseudoB1 = pseudoTop1->daughter(1);
-        const auto pseudoW2 = pseudoTop2->daughter(0);
-        const auto pseudoB2 = pseudoTop2->daughter(1);
+      b_pseudoToplep1_pt = lepton1.pt();
+      b_pseudoToplep1_eta = lepton1.eta();
+      b_pseudoToplep2_pt = lepton2.pt();
+      b_pseudoToplep2_eta = lepton2.eta();
 
-        // Get W daughters
-        if ( pseudoW1 and pseudoW2 and pseudoB1 and pseudoB2 ) {
-          const auto pseudoW11 = pseudoW1->daughter(0);
-          const auto pseudoW21 = pseudoW2->daughter(0);
-
-          // Fill leps informations
-          const int pseudoW1DauId = abs(pseudoW11->pdgId());
-          const int pseudoW2DauId = abs(pseudoW21->pdgId());
-          b_pseudoToplep1_pt = pseudoW11->pt();
-          b_pseudoToplep1_eta = pseudoW11->eta();
-          b_pseudoToplep2_pt = pseudoW21->pt();
-          b_pseudoToplep2_eta = pseudoW21->eta();
-
-          if ( pseudoW1DauId > 10 and pseudoW2DauId > 10 ) {
-            switch ( pseudoW1DauId+pseudoW2DauId ) {
-	    case 22: b_pseudoTopChannel = CH_ELEL; break;
-	    case 26: b_pseudoTopChannel = CH_MUMU; break;
-	    default: b_pseudoTopChannel = CH_MUEL;
-            }
-          }
-	  b_partonInPhase = true;
-        }
-      }
-    }
+      b_partonInPhase = true;
+    } while ( false );
   }
 
   if (runOnMC_){
