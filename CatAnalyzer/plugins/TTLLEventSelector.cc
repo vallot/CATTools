@@ -392,6 +392,7 @@ class TTLLEventSelector : public edm::one::EDFilter<edm::one::SharedResources>
 public:
   TTLLEventSelector(const edm::ParameterSet& pset);
   bool filter(edm::Event& event, const edm::EventSetup&) override;
+  ~TTLLEventSelector();
 
 private:
   typedef std::vector<float> vfloat;
@@ -1693,6 +1694,24 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   event.put(out_jets, "jets");
 
   return cutstep >= filterCutStepBefore_;
+}
+
+TTLLEventSelector::~TTLLEventSelector()
+{
+  if ( h_em.hCutstepNoweight )
+  {
+    cout << "---- cut flows without weight ----\n";
+    cout << "Step\tee\tmumu\temu\n";
+    const int n = h_em.hCutstepNoweight->GetNbinsX();
+    for ( int i=1; i<n; ++i )
+    {
+      cout << "Step" << i;
+      cout << '\t' << h_ee.hCutstepNoweight->GetBinContent(i);
+      cout << '\t' << h_mm.hCutstepNoweight->GetBinContent(i);
+      cout << '\t' << h_em.hCutstepNoweight->GetBinContent(i) << endl;
+    }
+    cout << "-----------------------------------\n";
+  }
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"
