@@ -700,31 +700,31 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         if ( pdgId1 == 13 and pdgId2 == 11 ) std::swap(lepton1, lepton2);
       }
     }
-  }
-  // Apply lepton SF
-  if ( channel == CH_ELEL )
-  {
-    const double w1 = getSF(lepton1->pt(), lepton1->eta(),
-                            electronEffPtbins_, electronEffEtabins_, electronEffSFValues_);
-    const double w2 = getSF(lepton2->pt(), lepton2->eta(),
-                            electronEffPtbins_, electronEffEtabins_, electronEffSFValues_);
-    weight *= w1*w2;
-  }
-  else if ( channel == CH_MUMU )
-  {
-    const double w1 = getSF(lepton1->pt(), lepton1->eta(),
-                            muonEffPtbins_, muonEffEtabins_, muonEffSFValues_);
-    const double w2 = getSF(lepton2->pt(), lepton2->eta(),
-                            muonEffPtbins_, muonEffEtabins_, muonEffSFValues_);
-    weight *= w1*w2;
-  }
-  else if ( channel == CH_MUEL )
-  {
-    const double w1 = getSF(lepton1->pt(), lepton1->eta(),
-                            electronEffPtbins_, electronEffEtabins_, electronEffSFValues_);
-    const double w2 = getSF(lepton2->pt(), lepton2->eta(),
-                            muonEffPtbins_, muonEffEtabins_, muonEffSFValues_);
-    weight *= w1*w2;
+    // Apply lepton SF
+    if ( channel == CH_ELEL )
+    {
+      const double w1 = getSF(lepton1->pt(), lepton1->eta(),
+          electronEffPtbins_, electronEffEtabins_, electronEffSFValues_);
+      const double w2 = getSF(lepton2->pt(), lepton2->eta(),
+          electronEffPtbins_, electronEffEtabins_, electronEffSFValues_);
+      weight *= w1*w2;
+    }
+    else if ( channel == CH_MUMU )
+    {
+      const double w1 = getSF(lepton1->pt(), lepton1->eta(),
+          muonEffPtbins_, muonEffEtabins_, muonEffSFValues_);
+      const double w2 = getSF(lepton2->pt(), lepton2->eta(),
+          muonEffPtbins_, muonEffEtabins_, muonEffSFValues_);
+      weight *= w1*w2;
+    }
+    else if ( channel == CH_MUEL )
+    {
+      const double w1 = getSF(lepton1->pt(), lepton1->eta(),
+          electronEffPtbins_, electronEffEtabins_, electronEffSFValues_);
+      const double w2 = getSF(lepton2->pt(), lepton2->eta(),
+          muonEffPtbins_, muonEffEtabins_, muonEffSFValues_);
+      weight *= w1*w2;
+    }
   }
 
   // Select good jets
