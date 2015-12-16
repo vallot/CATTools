@@ -414,8 +414,8 @@ private:
   ControlPlots h_ee, h_mm, h_em;
 
 private:
-  double shiftedMuonPt(const cat::Muon& mu) { return mu.pt()*(1.+muonScale_*mu.shiftedEn()); }
-  double shiftedElectronPt(const cat::Electron& el) { return el.pt()*(1.+electronScale_*el.shiftedEn()); }
+  double shiftedMuonPt(const cat::Muon& mu) { return mu.pt()+muonScale_*mu.shiftedEn(); }
+  double shiftedElectronPt(const cat::Electron& el) { return el.pt()+electronScale_*el.shiftedEn(); }
   double shiftedLepPt(const reco::Candidate& cand)
   {
     auto muonP = dynamic_cast<const cat::Muon*>(&cand);
