@@ -63,7 +63,7 @@ process.filterTrigMUMU = process.filterTrigMUEL.clone(
     ),
 )
 
-process.load("CATTools.CatAnalyzer.ttbarDileptonKinSolutionAlgos_cff")
+process.load("CATTools.CatAnalyzer.ttll.ttbarDileptonKinSolutionAlgos_cff")
 
 process.cattree = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     recoFilters = cms.InputTag("filterRECO"),
