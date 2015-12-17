@@ -438,7 +438,7 @@ private:
   bool isGoodMuon(const cat::Muon& mu)
   {
     if ( std::abs(mu.eta()) > 2.4 ) return false;
-    if ( shiftedMuonPt(mu) <= 20 ) return false;
+    if ( shiftedMuonPt(mu) < 20 ) return false;
 
     if ( mu.relIso(0.4) > 0.15 ) return false;
     if ( !mu.isTightMuon() ) return false;
@@ -453,7 +453,7 @@ private:
     if ( !el.electronID(elIdName_) ) return false;
     //if ( !el.isPF() or !el.passConversionVeto() ) return false;
     const double scEta = std::abs(el.scEta());
-    if ( scEta >= 1.4442 and scEta <= 1.566 ) return false;
+    if ( scEta > 1.4442 and scEta < 1.566 ) return false;
     return true;
   }
   bool isBjet(const cat::Jet& jet)
