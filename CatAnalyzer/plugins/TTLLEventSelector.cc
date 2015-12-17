@@ -437,21 +437,21 @@ private:
 
   bool isGoodMuon(const cat::Muon& mu)
   {
-    if ( std::abs(mu.eta()) >= 2.4 ) return false;
+    if ( std::abs(mu.eta()) > 2.4 ) return false;
     if ( shiftedMuonPt(mu) <= 20 ) return false;
 
-    if ( mu.relIso(0.4) >= 0.15 ) return false;
+    if ( mu.relIso(0.4) > 0.15 ) return false;
     if ( !mu.isTightMuon() ) return false;
     return true;
   }
   bool isGoodElectron(const cat::Electron& el)
   {
-    if ( std::abs(el.eta()) >= 2.4 ) return false;
-    if ( shiftedElectronPt(el) <= 20 ) return false;
+    if ( std::abs(el.eta()) > 2.4 ) return false;
+    if ( shiftedElectronPt(el) < 20 ) return false;
 
     //if ( el.relIso(0.3) >= 0.11 ) return false;
     if ( !el.electronID(elIdName_) ) return false;
-    if ( !el.isPF() or !el.passConversionVeto() ) return false;
+    //if ( !el.isPF() or !el.passConversionVeto() ) return false;
     const double scEta = std::abs(el.scEta());
     if ( scEta >= 1.4442 and scEta <= 1.566 ) return false;
     return true;
@@ -703,25 +703,25 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     if ( channel == CH_ELEL )
     {
       const double w1 = getSF(lepton1->pt(), lepton1->eta(),
-          electronEffPtbins_, electronEffEtabins_, electronEffSFValues_);
+                              electronEffPtbins_, electronEffEtabins_, electronEffSFValues_);
       const double w2 = getSF(lepton2->pt(), lepton2->eta(),
-          electronEffPtbins_, electronEffEtabins_, electronEffSFValues_);
+                              electronEffPtbins_, electronEffEtabins_, electronEffSFValues_);
       weight *= w1*w2;
     }
     else if ( channel == CH_MUMU )
     {
       const double w1 = getSF(lepton1->pt(), lepton1->eta(),
-          muonEffPtbins_, muonEffEtabins_, muonEffSFValues_);
+                              muonEffPtbins_, muonEffEtabins_, muonEffSFValues_);
       const double w2 = getSF(lepton2->pt(), lepton2->eta(),
-          muonEffPtbins_, muonEffEtabins_, muonEffSFValues_);
-      weight *= w1*w2;
+                                muonEffPtbins_, muonEffEtabins_, muonEffSFValues_);
+        weight *= w1*w2;
     }
     else if ( channel == CH_MUEL )
     {
       const double w1 = getSF(lepton1->pt(), lepton1->eta(),
-          electronEffPtbins_, electronEffEtabins_, electronEffSFValues_);
+                              electronEffPtbins_, electronEffEtabins_, electronEffSFValues_);
       const double w2 = getSF(lepton2->pt(), lepton2->eta(),
-          muonEffPtbins_, muonEffEtabins_, muonEffSFValues_);
+                              muonEffPtbins_, muonEffEtabins_, muonEffSFValues_);
       weight *= w1*w2;
     }
   }
@@ -732,8 +732,8 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   for ( int i=0, n=jetHandle->size(); i<n; ++i )
   {
     auto& jet = jetHandle->at(i);
-    if ( std::abs(jet.eta()) > 2.5 ) continue;
-    if ( !jet.looseJetID() ) continue;
+    if ( std::abs(jet.eta()) > 2.4 ) continue;
+    if ( !jet.LooseId() ) continue;
 
     const double pt = shiftedJetPt(jet);
     if ( pt < 30 ) continue;
