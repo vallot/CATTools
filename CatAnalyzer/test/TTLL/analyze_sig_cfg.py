@@ -15,14 +15,15 @@ process.source.fileNames = [
 
 process.load("CATTools.CatAnalyzer.filters_cff")
 process.load("CATTools.CatAnalyzer.ttll.ttllEventSelector_cfi")
+process.load("CATTools.CatAnalyzer.ttll.ttllGenFilters_cff")
 
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string("hist.root"),
 )
 
-process.p = cms.Path(process.ttll)
+process.p = cms.Path(prcess.ttllPartonTTLL*process.ttll)
 
 ## Customise with cmd arguments
 import sys
 if len(sys.argv) > 2:
-    for l in sys.argv[2:]: exec('process.ttll.'+l)
+    for l in sys.argv[2:]: exec('process.'+l)

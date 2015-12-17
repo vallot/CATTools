@@ -9,5 +9,3 @@ filterPartonTTLL = cms.EDFilter("TTLLGenCategoryFilter",
     addJetType = cms.string("*"),
 )
 
-filterParonTTOthers = filterPartonTTLL.clone(invert = cms.bool(True))
-

@@ -31,19 +31,26 @@ for j in js:
         if datasetName.startswith("/QCD"): continue
         bkgList.append(j)
 
+## Split ttbar signals by generator level categories
+sigTypes = {
+    'LL':'filterPartonTTLL.invert=False',
+    'Others':'filterPartonTTLL.invert=True',
+    ## FIXME: add ttbb, ttjj others
+}
+
 ## Undertainty variations
 systAll = {
-    'lep_pt/up':'muon.scaleDirection=1 electron.scaleDirection=1',
-    'lep_pt/dn':'muon.scaleDirection=-1 electron.scaleDirection=-1',
-    'jet_cor/up':'jet.scaleDirection=1',
-    'jet_cor/dn':'jet.scaleDirection=-1',
+    'lep_pt/up':'ttll.muon.scaleDirection=1 ttll.electron.scaleDirection=1',
+    'lep_pt/dn':'ttll.muon.scaleDirection=-1 ttll.electron.scaleDirection=-1',
+    'jet_cor/up':'ttll.jet.scaleDirection=1',
+    'jet_cor/dn':'ttll.jet.scaleDirection=-1',
 }
 
 systMC = {
-    'jet_res/up':'jet.resolDirection=1',
-    'jet_res/dn':'jet.resolDirection=-1',
-    'pileup/up':'vertex.pileupWeight="pileupWeight:up"',
-    'pileup/dn':'vertex.pileupWeight="pileupWeight:dn"',
+    'jet_res/up':'ttll.jet.resolDirection=1',
+    'jet_res/dn':'ttll.jet.resolDirection=-1',
+    'pileup/up':'ttll.vertex.pileupWeight="pileupWeight:up"',
+    'pileup/dn':'ttll.vertex.pileupWeight="pileupWeight:dn"',
 }
 
 ## Write script to run create-batch
@@ -54,34 +61,38 @@ for d in sigList:
     submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 25"
     submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
 
-    print>>out, (submitCmd + " --jobName %s/central" % name)
+    for ss in sigTypes:
+        name = name+ss
+        print>>out, (submitCmd + " --jobName %s/central" % name)
 
-    ## Scale up/down systematic undertainty from LHE weight
-    ## This uncertainty have to be combined with envelope
-    ## Let us assume index1-10 are for the scale variations (muF & muR)
-    if '_aMC' in name or '_powheg' in name:
-        print>>out, "## Scale variations in aMC@NLO sample"
-        for i in range(1,9): # total 8 scale variations, 3 muF x 3 muR and one for central weight
-            arg =  'src="genWeight:pdfWeights" genWeight.index=%d' % i
-            print>>out, (submitCmd + (" --jobName %s/gen_scale/%d --args '%s'" % (name, i, arg)))
+        ## Scale up/down systematic undertainty from LHE weight
+        ## This uncertainty have to be combined with envelope
+        ## Let us assume index1-10 are for the scale variations (muF & muR)
+        if '_aMC' in name or '_powheg' in name:
+            print>>out, "## Scale variations in aMC@NLO sample"
+            for i in range(1,9): # total 8 scale variations, 3 muF x 3 muR and one for central weight
+                arg =  'ttll.src="genWeight:pdfWeights" ttll.genWeight.index=%d' % i
+                arg += " "+sigTypes[ss]
+                print>>out, (submitCmd + (" --jobName %s/gen_scale/%d --args '%s'" % (name, i, arg)))
 
-        if '_scale' not in name:
-            if '_aMC' in name: weightSize = 110
-            elif '_powheg' in name: weightSize = 248
-            ## NOTE: there is weight vector, but we don't do it for LO generator here.
-            ##elif '_madgraph' in name: weightSize = 445
-            else: weightSize = 0
-            for i in range(9, weightSize+1):
-                arg = 'src="genWeight:pdfWeights" genWeight.index=%d' % i
-                print>>out, (submitCmd + (" --jobName %s/gen_PDF/%d --args '%s'" % (name, i, arg)))
+            if '_scale' not in name:
+                if '_aMC' in name: weightSize = 110
+                elif '_powheg' in name: weightSize = 248
+                ## NOTE: there is weight vector, but we don't do it for LO generator here.
+                ##elif '_madgraph' in name: weightSize = 445
+                else: weightSize = 0
+                for i in range(9, weightSize+1):
+                    arg = 'ttll.src="genWeight:pdfWeights" ttll.genWeight.index=%d' % i
+                    arg += " "+sigTypes[ss]
+                    print>>out, (submitCmd + (" --jobName %s/gen_PDF/%d --args '%s'" % (name, i, arg)))
 
-    ## Loop over all systematics
-    for systName in systAll:
-        arg = systAll[systName]
-        print>>out, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, arg)))
-    for systName in systMC:
-        arg = systMC[systName]
-        print>>out, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, arg)))
+        ## Loop over all systematics
+        for systName in systAll:
+            arg = systAll[systName]
+            print>>out, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, arg)))
+        for systName in systMC:
+            arg = systMC[systName]
+            print>>out, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, arg)))
 out.close()
 
 out = open("%s/submit_bkg.sh" % outDir, "w")
