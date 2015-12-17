@@ -581,6 +581,7 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   h_em.book(fs->mkdir("em"));
 
   produces<int>("channel");
+  produces<float>("weight");
   produces<float>("met");
   produces<float>("metphi");
   produces<std::vector<cat::Lepton> >("leptons");
@@ -1703,6 +1704,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   }
 
   event.put(std::auto_ptr<int>(new int(channel)), "channel");
+  event.put(std::auto_ptr<float>(new float(weight)), "weight");
   event.put(std::auto_ptr<float>(new float(metP4.pt())), "met");
   event.put(std::auto_ptr<float>(new float(metP4.phi())), "metphi");
   event.put(out_leptons, "leptons");
