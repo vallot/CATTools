@@ -480,6 +480,7 @@ private:
 
 private:
   typedef reco::Candidate::LorentzVector LorentzVector;
+  typedef std::vector<LorentzVector> LorentzVectors;
   enum Channel { CH_NONE=-1, CH_MUMU, CH_ELEL, CH_MUEL };
 
   // Energy scales
@@ -583,8 +584,8 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   produces<int>("channel");
   produces<float>("met");
   produces<float>("metphi");
-  produces<std::vector<reco::CandidatePtr> >("leptons");
-  produces<std::vector<reco::CandidatePtr> >("jets");
+  produces<LorentzVectors>("leptons");
+  produces<LorentzVectors>("jets");
 }
 
 bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
@@ -611,8 +612,8 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   event.getByToken(nVertexToken_, nVertexHandle);
   const int nVertex = *nVertexHandle;
 
-  std::auto_ptr<std::vector<reco::CandidatePtr> > out_leptons(new std::vector<reco::CandidatePtr>());
-  std::auto_ptr<std::vector<reco::CandidatePtr> > out_jets(new std::vector<reco::CandidatePtr>());
+  std::vector<reco::CandidatePtr> selectedLeptons;
+  std::vector<reco::CandidatePtr> selectedJets;
 
   // Compute event weight - from generator, pileup, etc
   double weight = 1.0;
@@ -661,7 +662,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     auto& p = muonHandle->at(i);
 
     reco::CandidatePtr muonPtr = reco::CandidatePtr(muonHandle, i);
-    if ( isGoodMuon(p) ) out_leptons->push_back(muonPtr);
+    if ( isGoodMuon(p) ) selectedLeptons.push_back(muonPtr);
 
     leptons_st += shiftedMuonPt(p);
   }
@@ -670,21 +671,21 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     auto& p = electronHandle->at(i);
 
     reco::CandidatePtr electronPtr = reco::CandidatePtr(electronHandle, i);
-    if ( isGoodElectron(p) ) out_leptons->push_back(electronPtr);
+    if ( isGoodElectron(p) ) selectedLeptons.push_back(electronPtr);
 
     leptons_st += shiftedElectronPt(p);
   }
-  const int leptons_n = out_leptons->size();
+  const int leptons_n = selectedLeptons.size();
   reco::CandidatePtr lepton1, lepton2;
   Channel channel = CH_NONE;
   if ( leptons_n >= 2 ) {
     // Partial sort to select leading 2 leptons
-    std::nth_element(out_leptons->begin(), out_leptons->begin()+2, out_leptons->end(),
+    std::nth_element(selectedLeptons.begin(), selectedLeptons.begin()+2, selectedLeptons.end(),
                      [&](reco::CandidatePtr a, reco::CandidatePtr b){
                        return shiftedLepPt(*a) > shiftedLepPt(*b);});
 
     // Set lepton1 and 2
-    lepton1 = out_leptons->at(0); lepton2 = out_leptons->at(1);
+    lepton1 = selectedLeptons.at(0); lepton2 = selectedLeptons.at(1);
 
     const int pdgId1 = std::abs(lepton1->pdgId());
     const int pdgId2 = std::abs(lepton2->pdgId());
@@ -737,15 +738,15 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
     const double pt = shiftedJetPt(jet);
     if ( pt < 30 ) continue;
-    if ( leptons_n >= 1 and deltaR(jet.p4(), out_leptons->at(0)->p4()) < 0.4 ) continue;
-    if ( leptons_n >= 2 and deltaR(jet.p4(), out_leptons->at(1)->p4()) < 0.4 ) continue;
+    if ( leptons_n >= 1 and deltaR(jet.p4(), selectedLeptons.at(0)->p4()) < 0.4 ) continue;
+    if ( leptons_n >= 2 and deltaR(jet.p4(), selectedLeptons.at(1)->p4()) < 0.4 ) continue;
 
     jets_ht += pt;
-    out_jets->push_back(reco::CandidatePtr(jetHandle, i));
+    selectedJets.push_back(reco::CandidatePtr(jetHandle, i));
     if ( isBjet(jet) ) ++bjets_n;
   }
-  const int jets_n = out_jets->size();
-  std::sort(out_jets->begin(), out_jets->end(),
+  const int jets_n = selectedJets.size();
+  std::sort(selectedJets.begin(), selectedJets.end(),
             [&](reco::CandidatePtr a, reco::CandidatePtr b){
               return shiftedJetPt(*a) > shiftedJetPt(*b);});
 
@@ -897,7 +898,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_ee.h1_jets_ht->Fill(jets_ht, weight);
         if ( jets_n >= 1 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(0));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(0));
           h_ee.h1_jet1_m->Fill(jet.mass(), weight);
           h_ee.h1_jet1_pt->Fill(jet.pt(), weight);
           h_ee.h1_jet1_eta->Fill(jet.eta(), weight);
@@ -906,7 +907,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         }
         if ( jets_n >= 2 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(1));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(1));
           h_ee.h1_jet2_m->Fill(jet.mass(), weight);
           h_ee.h1_jet2_pt->Fill(jet.pt(), weight);
           h_ee.h1_jet2_eta->Fill(jet.eta(), weight);
@@ -915,7 +916,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         }
         if ( jets_n >= 3 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(2));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
           h_ee.h1_jet3_m->Fill(jet.mass(), weight);
           h_ee.h1_jet3_pt->Fill(jet.pt(), weight);
           h_ee.h1_jet3_eta->Fill(jet.eta(), weight);
@@ -924,7 +925,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         }
         if ( jets_n >= 4 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(3));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
           h_ee.h1_jet4_m->Fill(jet.mass(), weight);
           h_ee.h1_jet4_pt->Fill(jet.pt(), weight);
           h_ee.h1_jet4_eta->Fill(jet.eta(), weight);
@@ -960,7 +961,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_ee.h2_jets_ht->Fill(jets_ht, weight);
         if ( jets_n >= 1 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(0));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(0));
           h_ee.h2_jet1_m->Fill(jet.mass(), weight);
           h_ee.h2_jet1_pt->Fill(jet.pt(), weight);
           h_ee.h2_jet1_eta->Fill(jet.eta(), weight);
@@ -969,7 +970,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         }
         if ( jets_n >= 2 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(1));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(1));
           h_ee.h2_jet2_m->Fill(jet.mass(), weight);
           h_ee.h2_jet2_pt->Fill(jet.pt(), weight);
           h_ee.h2_jet2_eta->Fill(jet.eta(), weight);
@@ -978,7 +979,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         }
         if ( jets_n >= 3 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(2));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
           h_ee.h2_jet3_m->Fill(jet.mass(), weight);
           h_ee.h2_jet3_pt->Fill(jet.pt(), weight);
           h_ee.h2_jet3_eta->Fill(jet.eta(), weight);
@@ -987,7 +988,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         }
         if ( jets_n >= 4 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(3));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
           h_ee.h2_jet4_m->Fill(jet.mass(), weight);
           h_ee.h2_jet4_pt->Fill(jet.pt(), weight);
           h_ee.h2_jet4_eta->Fill(jet.eta(), weight);
@@ -1012,13 +1013,13 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_ee.h3_z_phi->Fill(zP4.phi(), weight);
         h_ee.h3_jets_n->Fill(jets_n, weight);
         h_ee.h3_jets_ht->Fill(jets_ht, weight);
-        const auto& jet1 = dynamic_cast<const cat::Jet&>(*out_jets->at(0));
+        const auto& jet1 = dynamic_cast<const cat::Jet&>(*selectedJets.at(0));
         h_ee.h3_jet1_m->Fill(jet1.mass(), weight);
         h_ee.h3_jet1_pt->Fill(jet1.pt(), weight);
         h_ee.h3_jet1_eta->Fill(jet1.eta(), weight);
         h_ee.h3_jet1_phi->Fill(jet1.phi(), weight);
         h_ee.h3_jet1_btag->Fill(jet1.bDiscriminator(bTagName_), weight);
-        const auto& jet2 = dynamic_cast<const cat::Jet&>(*out_jets->at(1));
+        const auto& jet2 = dynamic_cast<const cat::Jet&>(*selectedJets.at(1));
         h_ee.h3_jet2_m->Fill(jet2.mass(), weight);
         h_ee.h3_jet2_pt->Fill(jet2.pt(), weight);
         h_ee.h3_jet2_eta->Fill(jet2.eta(), weight);
@@ -1026,7 +1027,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_ee.h3_jet2_btag->Fill(jet2.bDiscriminator(bTagName_), weight);
         if ( jets_n >= 3 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(2));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
           h_ee.h3_jet3_m->Fill(jet.mass(), weight);
           h_ee.h3_jet3_pt->Fill(jet.pt(), weight);
           h_ee.h3_jet3_eta->Fill(jet.eta(), weight);
@@ -1035,7 +1036,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         }
         if ( jets_n >= 4 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(3));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
           h_ee.h3_jet4_m->Fill(jet.mass(), weight);
           h_ee.h3_jet4_pt->Fill(jet.pt(), weight);
           h_ee.h3_jet4_eta->Fill(jet.eta(), weight);
@@ -1072,7 +1073,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_ee.h4_jet2_btag->Fill(jet2.bDiscriminator(bTagName_), weight);
         if ( jets_n >= 3 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(2));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
           h_ee.h4_jet3_m->Fill(jet.mass(), weight);
           h_ee.h4_jet3_pt->Fill(jet.pt(), weight);
           h_ee.h4_jet3_eta->Fill(jet.eta(), weight);
@@ -1081,7 +1082,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         }
         if ( jets_n >= 4 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(3));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
           h_ee.h4_jet4_m->Fill(jet.mass(), weight);
           h_ee.h4_jet4_pt->Fill(jet.pt(), weight);
           h_ee.h4_jet4_eta->Fill(jet.eta(), weight);
@@ -1118,7 +1119,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_ee.h5_jet2_btag->Fill(jet2.bDiscriminator(bTagName_), weight);
         if ( jets_n >= 3 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(2));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
           h_ee.h5_jet3_m->Fill(jet.mass(), weight);
           h_ee.h5_jet3_pt->Fill(jet.pt(), weight);
           h_ee.h5_jet3_eta->Fill(jet.eta(), weight);
@@ -1127,7 +1128,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         }
         if ( jets_n >= 4 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(3));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
           h_ee.h5_jet4_m->Fill(jet.mass(), weight);
           h_ee.h5_jet4_pt->Fill(jet.pt(), weight);
           h_ee.h5_jet4_eta->Fill(jet.eta(), weight);
@@ -1168,7 +1169,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_mm.h1_jets_ht->Fill(jets_ht, weight);
         if ( jets_n >= 1 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(0));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(0));
           h_mm.h1_jet1_m->Fill(jet.mass(), weight);
           h_mm.h1_jet1_pt->Fill(jet.pt(), weight);
           h_mm.h1_jet1_eta->Fill(jet.eta(), weight);
@@ -1177,7 +1178,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         }
         if ( jets_n >= 2 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(1));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(1));
           h_mm.h1_jet2_m->Fill(jet.mass(), weight);
           h_mm.h1_jet2_pt->Fill(jet.pt(), weight);
           h_mm.h1_jet2_eta->Fill(jet.eta(), weight);
@@ -1186,7 +1187,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         }
         if ( jets_n >= 3 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(2));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
           h_mm.h1_jet3_m->Fill(jet.mass(), weight);
           h_mm.h1_jet3_pt->Fill(jet.pt(), weight);
           h_mm.h1_jet3_eta->Fill(jet.eta(), weight);
@@ -1195,7 +1196,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         }
         if ( jets_n >= 4 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(3));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
           h_mm.h1_jet4_m->Fill(jet.mass(), weight);
           h_mm.h1_jet4_pt->Fill(jet.pt(), weight);
           h_mm.h1_jet4_eta->Fill(jet.eta(), weight);
@@ -1231,7 +1232,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_mm.h2_jets_ht->Fill(jets_ht, weight);
         if ( jets_n >= 1 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(0));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(0));
           h_mm.h2_jet1_m->Fill(jet.mass(), weight);
           h_mm.h2_jet1_pt->Fill(jet.pt(), weight);
           h_mm.h2_jet1_eta->Fill(jet.eta(), weight);
@@ -1240,7 +1241,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         }
         if ( jets_n >= 2 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(1));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(1));
           h_mm.h2_jet2_m->Fill(jet.mass(), weight);
           h_mm.h2_jet2_pt->Fill(jet.pt(), weight);
           h_mm.h2_jet2_eta->Fill(jet.eta(), weight);
@@ -1249,7 +1250,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         }
         if ( jets_n >= 3 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(2));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
           h_mm.h2_jet3_m->Fill(jet.mass(), weight);
           h_mm.h2_jet3_pt->Fill(jet.pt(), weight);
           h_mm.h2_jet3_eta->Fill(jet.eta(), weight);
@@ -1258,7 +1259,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         }
         if ( jets_n >= 4 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(3));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
           h_mm.h2_jet4_m->Fill(jet.mass(), weight);
           h_mm.h2_jet4_pt->Fill(jet.pt(), weight);
           h_mm.h2_jet4_eta->Fill(jet.eta(), weight);
@@ -1283,13 +1284,13 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_mm.h3_z_phi->Fill(zP4.phi(), weight);
         h_mm.h3_jets_n->Fill(jets_n, weight);
         h_mm.h3_jets_ht->Fill(jets_ht, weight);
-        const auto& jet1 = dynamic_cast<const cat::Jet&>(*out_jets->at(0));
+        const auto& jet1 = dynamic_cast<const cat::Jet&>(*selectedJets.at(0));
         h_mm.h3_jet1_m->Fill(jet1.mass(), weight);
         h_mm.h3_jet1_pt->Fill(jet1.pt(), weight);
         h_mm.h3_jet1_eta->Fill(jet1.eta(), weight);
         h_mm.h3_jet1_phi->Fill(jet1.phi(), weight);
         h_mm.h3_jet1_btag->Fill(jet1.bDiscriminator(bTagName_), weight);
-        const auto& jet2 = dynamic_cast<const cat::Jet&>(*out_jets->at(1));
+        const auto& jet2 = dynamic_cast<const cat::Jet&>(*selectedJets.at(1));
         h_mm.h3_jet2_m->Fill(jet2.mass(), weight);
         h_mm.h3_jet2_pt->Fill(jet2.pt(), weight);
         h_mm.h3_jet2_eta->Fill(jet2.eta(), weight);
@@ -1297,7 +1298,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_mm.h3_jet2_btag->Fill(jet2.bDiscriminator(bTagName_), weight);
         if ( jets_n >= 3 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(2));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
           h_mm.h3_jet3_m->Fill(jet.mass(), weight);
           h_mm.h3_jet3_pt->Fill(jet.pt(), weight);
           h_mm.h3_jet3_eta->Fill(jet.eta(), weight);
@@ -1306,7 +1307,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         }
         if ( jets_n >= 4 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(3));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
           h_mm.h3_jet4_m->Fill(jet.mass(), weight);
           h_mm.h3_jet4_pt->Fill(jet.pt(), weight);
           h_mm.h3_jet4_eta->Fill(jet.eta(), weight);
@@ -1343,7 +1344,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_mm.h4_jet2_btag->Fill(jet2.bDiscriminator(bTagName_), weight);
         if ( jets_n >= 3 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(2));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
           h_mm.h4_jet3_m->Fill(jet.mass(), weight);
           h_mm.h4_jet3_pt->Fill(jet.pt(), weight);
           h_mm.h4_jet3_eta->Fill(jet.eta(), weight);
@@ -1352,7 +1353,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         }
         if ( jets_n >= 4 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(3));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
           h_mm.h4_jet4_m->Fill(jet.mass(), weight);
           h_mm.h4_jet4_pt->Fill(jet.pt(), weight);
           h_mm.h4_jet4_eta->Fill(jet.eta(), weight);
@@ -1389,7 +1390,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_mm.h5_jet2_btag->Fill(jet2.bDiscriminator(bTagName_), weight);
         if ( jets_n >= 3 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(2));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
           h_mm.h5_jet3_m->Fill(jet.mass(), weight);
           h_mm.h5_jet3_pt->Fill(jet.pt(), weight);
           h_mm.h5_jet3_eta->Fill(jet.eta(), weight);
@@ -1398,7 +1399,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         }
         if ( jets_n >= 4 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(3));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
           h_mm.h5_jet4_m->Fill(jet.mass(), weight);
           h_mm.h5_jet4_pt->Fill(jet.pt(), weight);
           h_mm.h5_jet4_eta->Fill(jet.eta(), weight);
@@ -1440,7 +1441,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_em.h1_jets_ht->Fill(jets_ht, weight);
         if ( jets_n >= 1 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(0));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(0));
           h_em.h1_jet1_m->Fill(jet.mass(), weight);
           h_em.h1_jet1_pt->Fill(jet.pt(), weight);
           h_em.h1_jet1_eta->Fill(jet.eta(), weight);
@@ -1449,7 +1450,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         }
         if ( jets_n >= 2 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(1));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(1));
           h_em.h1_jet2_m->Fill(jet.mass(), weight);
           h_em.h1_jet2_pt->Fill(jet.pt(), weight);
           h_em.h1_jet2_eta->Fill(jet.eta(), weight);
@@ -1458,7 +1459,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         }
         if ( jets_n >= 3 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(2));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
           h_em.h1_jet3_m->Fill(jet.mass(), weight);
           h_em.h1_jet3_pt->Fill(jet.pt(), weight);
           h_em.h1_jet3_eta->Fill(jet.eta(), weight);
@@ -1467,7 +1468,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         }
         if ( jets_n >= 4 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(3));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
           h_em.h1_jet4_m->Fill(jet.mass(), weight);
           h_em.h1_jet4_pt->Fill(jet.pt(), weight);
           h_em.h1_jet4_eta->Fill(jet.eta(), weight);
@@ -1503,7 +1504,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_em.h2_jets_ht->Fill(jets_ht, weight);
         if ( jets_n >= 1 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(0));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(0));
           h_em.h2_jet1_m->Fill(jet.mass(), weight);
           h_em.h2_jet1_pt->Fill(jet.pt(), weight);
           h_em.h2_jet1_eta->Fill(jet.eta(), weight);
@@ -1512,7 +1513,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         }
         if ( jets_n >= 2 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(1));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(1));
           h_em.h2_jet2_m->Fill(jet.mass(), weight);
           h_em.h2_jet2_pt->Fill(jet.pt(), weight);
           h_em.h2_jet2_eta->Fill(jet.eta(), weight);
@@ -1521,7 +1522,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         }
         if ( jets_n >= 3 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(2));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
           h_em.h2_jet3_m->Fill(jet.mass(), weight);
           h_em.h2_jet3_pt->Fill(jet.pt(), weight);
           h_em.h2_jet3_eta->Fill(jet.eta(), weight);
@@ -1530,7 +1531,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         }
         if ( jets_n >= 4 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(3));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
           h_em.h2_jet4_m->Fill(jet.mass(), weight);
           h_em.h2_jet4_pt->Fill(jet.pt(), weight);
           h_em.h2_jet4_eta->Fill(jet.eta(), weight);
@@ -1555,13 +1556,13 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_em.h3_z_phi->Fill(zP4.phi(), weight);
         h_em.h3_jets_n->Fill(jets_n, weight);
         h_em.h3_jets_ht->Fill(jets_ht, weight);
-        const auto& jet1 = dynamic_cast<const cat::Jet&>(*out_jets->at(0));
+        const auto& jet1 = dynamic_cast<const cat::Jet&>(*selectedJets.at(0));
         h_em.h3_jet1_m->Fill(jet1.mass(), weight);
         h_em.h3_jet1_pt->Fill(jet1.pt(), weight);
         h_em.h3_jet1_eta->Fill(jet1.eta(), weight);
         h_em.h3_jet1_phi->Fill(jet1.phi(), weight);
         h_em.h3_jet1_btag->Fill(jet1.bDiscriminator(bTagName_), weight);
-        const auto& jet2 = dynamic_cast<const cat::Jet&>(*out_jets->at(1));
+        const auto& jet2 = dynamic_cast<const cat::Jet&>(*selectedJets.at(1));
         h_em.h3_jet2_m->Fill(jet2.mass(), weight);
         h_em.h3_jet2_pt->Fill(jet2.pt(), weight);
         h_em.h3_jet2_eta->Fill(jet2.eta(), weight);
@@ -1569,7 +1570,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_em.h3_jet2_btag->Fill(jet2.bDiscriminator(bTagName_), weight);
         if ( jets_n >= 3 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(2));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
           h_em.h3_jet3_m->Fill(jet.mass(), weight);
           h_em.h3_jet3_pt->Fill(jet.pt(), weight);
           h_em.h3_jet3_eta->Fill(jet.eta(), weight);
@@ -1578,7 +1579,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         }
         if ( jets_n >= 4 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(3));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
           h_em.h3_jet4_m->Fill(jet.mass(), weight);
           h_em.h3_jet4_pt->Fill(jet.pt(), weight);
           h_em.h3_jet4_eta->Fill(jet.eta(), weight);
@@ -1616,7 +1617,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_em.h4_jet2_btag->Fill(jet2.bDiscriminator(bTagName_), weight);
         if ( jets_n >= 3 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(2));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
           h_em.h4_jet3_m->Fill(jet.mass(), weight);
           h_em.h4_jet3_pt->Fill(jet.pt(), weight);
           h_em.h4_jet3_eta->Fill(jet.eta(), weight);
@@ -1625,7 +1626,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         }
         if ( jets_n >= 4 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(3));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
           h_em.h4_jet4_m->Fill(jet.mass(), weight);
           h_em.h4_jet4_pt->Fill(jet.pt(), weight);
           h_em.h4_jet4_eta->Fill(jet.eta(), weight);
@@ -1662,7 +1663,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_em.h5_jet2_btag->Fill(jet2.bDiscriminator(bTagName_), weight);
         if ( jets_n >= 3 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(2));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
           h_em.h5_jet3_m->Fill(jet.mass(), weight);
           h_em.h5_jet3_pt->Fill(jet.pt(), weight);
           h_em.h5_jet3_eta->Fill(jet.eta(), weight);
@@ -1671,7 +1672,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         }
         if ( jets_n >= 4 )
         {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*out_jets->at(3));
+          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
           h_em.h5_jet4_m->Fill(jet.mass(), weight);
           h_em.h5_jet4_pt->Fill(jet.pt(), weight);
           h_em.h5_jet4_eta->Fill(jet.eta(), weight);
@@ -1683,6 +1684,19 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_em.h5_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
       }
     }
+  }
+
+  std::auto_ptr<LorentzVectors> out_leptons(new LorentzVectors);
+  std::auto_ptr<LorentzVectors> out_jets(new LorentzVectors);
+  for ( auto x : selectedLeptons )
+  {
+    const double scale = shiftedLepPt(*x)/x->pt();
+    out_leptons->push_back(x->p4()*scale);
+  }
+  for ( auto x : selectedJets )
+  {
+    const double scale = shiftedJetPt(*x)/x->pt();
+    out_jets->push_back(x->p4()*scale);
   }
 
   event.put(std::auto_ptr<int>(new int(channel)), "channel");
