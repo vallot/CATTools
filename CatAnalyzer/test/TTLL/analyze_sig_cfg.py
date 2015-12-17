@@ -21,7 +21,7 @@ process.TFileService = cms.Service("TFileService",
     fileName = cms.string("hist.root"),
 )
 
-process.p = cms.Path(prcess.ttllPartonTTLL*process.ttll)
+process.p = cms.Path(process.filterPartonTTLL*process.ttll)
 
 ## Customise with cmd arguments
 import sys

@@ -479,8 +479,7 @@ private:
   }
 
 private:
-  typedef reco::Candidate::LorentzVector LorentzVector;
-  typedef std::vector<LorentzVector> LorentzVectors;
+  typedef reco::Candidate::LorentzVector LV;
   enum Channel { CH_NONE=-1, CH_MUMU, CH_ELEL, CH_MUEL };
 
   // Energy scales
@@ -584,8 +583,8 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   produces<int>("channel");
   produces<float>("met");
   produces<float>("metphi");
-  produces<LorentzVectors>("leptons");
-  produces<LorentzVectors>("jets");
+  produces<std::vector<cat::Lepton> >("leptons");
+  produces<std::vector<cat::Jet> >("jets");
 }
 
 bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
@@ -1686,17 +1685,21 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     }
   }
 
-  std::auto_ptr<LorentzVectors> out_leptons(new LorentzVectors);
-  std::auto_ptr<LorentzVectors> out_jets(new LorentzVectors);
+  std::auto_ptr<std::vector<cat::Lepton> > out_leptons(new std::vector<cat::Lepton>());
+  std::auto_ptr<std::vector<cat::Jet> > out_jets(new std::vector<cat::Jet>());
   for ( auto x : selectedLeptons )
   {
     const double scale = shiftedLepPt(*x)/x->pt();
-    out_leptons->push_back(x->p4()*scale);
+    cat::Lepton lep(dynamic_cast<const cat::Lepton&>(*x));
+    lep.setP4(x->p4()*scale);
+    out_leptons->push_back(lep);
   }
   for ( auto x : selectedJets )
   {
     const double scale = shiftedJetPt(*x)/x->pt();
-    out_jets->push_back(x->p4()*scale);
+    cat::Jet jet(dynamic_cast<const cat::Jet&>(*x));
+    jet.setP4(x->p4()*scale);
+    out_jets->push_back(jet);
   }
 
   event.put(std::auto_ptr<int>(new int(channel)), "channel");

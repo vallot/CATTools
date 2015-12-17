@@ -15,10 +15,12 @@ public:
   bool filter(edm::Event& event, const edm::EventSetup&) override;
 
 private:
+  const bool doInvert_;
+
   typedef std::vector<int> vint;
   enum InputType { IN_PartonTop, IN_PseudoTop, IN_Hadron } inputType_;
-  enum DecayMode { CH_HADRON = 0, CH_MUON, CH_ELECTRON, CH_TAU_HADRON, CH_TAU_MUON, CH_TAU_ELECTRON } decayMode_;
-  const bool doInvert_;
+  enum DecayMode { CH_HADRON = 0, CH_MUON, CH_ELECTRON, 
+                   CH_TAU_HADRON, CH_TAU_MUON, CH_TAU_ELECTRON } decayMode_;
 
   // For the parton top
   edm::EDGetTokenT<reco::GenParticleCollection> parton_srcToken_;
@@ -28,6 +30,7 @@ private:
   bool vetoTau_;
 
   // FIXME : classification by pseudotop, hadrons to be added
+
 };
 
 TTLLGenCategoryFilter::TTLLGenCategoryFilter(const edm::ParameterSet& pset):
@@ -51,14 +54,9 @@ TTLLGenCategoryFilter::TTLLGenCategoryFilter(const edm::ParameterSet& pset):
       parton_channelToken_ = consumes<int>(edm::InputTag(labelName, "channel"));
       parton_modesToken_ = consumes<vint>(edm::InputTag(labelName, "modes"));
       parton_jetToken_ = consumes<reco::GenJetCollection>(edm::InputTag(labelName, "qcdJets"));
-      break;
-    }
-    case IN_PseudoTop: {
-      break;
-    }
-    case IN_Hadron: {
-      break;
-    }
+    } break;
+    case IN_PseudoTop: break;
+    case IN_Hadron: break;
   }
 
 }
@@ -79,12 +77,13 @@ bool TTLLGenCategoryFilter::filter(edm::Event& event, const edm::EventSetup&)
       event.getByToken(parton_modesToken_, modesHandle);
       event.getByToken(parton_jetToken_, jetHandle);
 
-      const int channel = *channelHandle;
+      //const int channel = *channelHandle;
       const int mode1 = modesHandle->at(0);
       const int mode2 = modesHandle->at(1);
 
       // Dilepton channel only
-      if ( channel != 3 ) break;
+      //if ( channel != 3 ) break;
+      if ( mode1 % 3 == 0 or mode2 % 3 == 0 ) break;
 
       // Veto tau channel if set
       if ( vetoTau_ )
@@ -92,16 +91,16 @@ bool TTLLGenCategoryFilter::filter(edm::Event& event, const edm::EventSetup&)
         if ( mode1 >= CH_TAU_HADRON ) break;
         if ( mode2 >= CH_TAU_HADRON ) break;
       }
-    }
-    case IN_PseudoTop: {
-      break;
-    }
-    case IN_Hadron: {
-      break;
-    }
+      accept = true;
+    } break;
+
+    case IN_PseudoTop: break;
+    case IN_Hadron: break;
   }
 
   if ( doInvert_ ) return !accept;
   return accept;
 }
 
+#include "FWCore/Framework/interface/MakerMacros.h"
+DEFINE_FWK_MODULE(TTLLGenCategoryFilter);
