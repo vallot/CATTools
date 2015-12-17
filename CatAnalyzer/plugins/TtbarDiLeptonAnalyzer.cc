@@ -492,6 +492,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   cutflow_[3][b_channel]++;
 
   sort(recolep.begin(), recolep.end(), GtByCandPt());
+  recolep.erase(recolep.begin()+2,recolep.end());
   const cat::Particle& recolep1 = recolep[0];
   const cat::Particle& recolep2 = recolep[1];
 
@@ -646,6 +647,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_ttbar_phi = ttbar.Phi();
   b_ttbar_m = ttbar.M();
   b_ttbar_rapi = ttbar.Rapidity();
+
 
   b_maxweight = maxweight;
   if (maxweight){
