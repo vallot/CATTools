@@ -14,7 +14,7 @@ process.source.fileNames = [
 ]
 
 process.load("CATTools.CatAnalyzer.filters_cff")
-process.load("CATTools.CatAnalyzer.ttllEventSelector_cfi")
+process.load("CATTools.CatAnalyzer.ttll.ttllEventSelector_cfi")
 
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string("hist.root"),

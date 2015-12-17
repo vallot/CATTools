@@ -15,7 +15,7 @@ process.source.fileNames = [
 #process.source.fileNames.append('/store/group/CAT/DoubleMuon/v7-4-4_Run2015C_25ns-05Oct2015-v1/151023_165157/0000/catTuple_10.root')
 
 process.load("CATTools.CatAnalyzer.filters_cff")
-process.load("CATTools.CatAnalyzer.ttllEventSelector_cfi")
+process.load("CATTools.CatAnalyzer.ttll.ttllEventSelector_cfi")
 
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string("hist.root"),
