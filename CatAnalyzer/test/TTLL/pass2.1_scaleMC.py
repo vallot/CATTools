@@ -9,7 +9,7 @@ info = {}
 for x in json.loads(open(jsdir+"/dataset.json").read()):
     info[x["name"]] = x
 
-srcdir = "step1_makeHist"
+srcdir = "pass1_makeHist"
 for srcpath, dirs, files in os.walk(srcdir):
     rootFiles = [x for x in files if x.endswith('.root')]
     if len(rootFiles) == 0: continue
@@ -25,7 +25,7 @@ for srcpath, dirs, files in os.walk(srcdir):
     xsec = info[name]["xsec"]
 
     ## Prepare output directory
-    outpath = srcpath.replace(srcdir, 'step2_mergeHist')
+    outpath = srcpath.replace(srcdir, 'pass2_mergeHist')
     if not os.path.exists(outpath): os.makedirs(outpath)
     for file in files:
         print "@@ Producing plots for the sample", srcpath
