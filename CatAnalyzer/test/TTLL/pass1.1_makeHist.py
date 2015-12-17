@@ -58,7 +58,7 @@ out = open("%s/submit_sig.sh" % outDir, "w")
 for d in sigList:
     name = d['name']
     title = d['title']
-    submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 25"
+    submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 100"
     submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
 
     for ss in sigTypes:
@@ -98,7 +98,7 @@ out.close()
 out = open("%s/submit_bkg.sh" % outDir, "w")
 for d in bkgList:
     name = d['name']
-    submitCmd  = "create-batch --cfg analyze_bkg_cfg.py --maxFiles 25"
+    submitCmd  = "create-batch --cfg analyze_bkg_cfg.py --maxFiles 100"
     submitCmd += " --jobName %s --fileList %s/dataset_%s.txt" % (name, dataDir, name)
 
     print>>out, (submitCmd + " --jobName %s/central" % name)
@@ -114,7 +114,7 @@ out.close()
 out = open("%s/submit_data.sh" % outDir, "w")
 for d in dataList:
     name = d['name']
-    submitCmd  = "create-batch --cfg analyze_data_cfg.py --maxFiles 25"
+    submitCmd  = "create-batch --cfg analyze_data_cfg.py --maxFiles 100"
     submitCmd += " --jobName %s --fileList %s/dataset_%s.txt" % (name, dataDir, name)
 
     print>>out, (submitCmd + " --jobName %s/central" % name)
