@@ -50,6 +50,8 @@ process.ttbar = cms.EDAnalyzer("CATGenTopAnalysis",
     partonTop = cms.InputTag("partonTop"),
     pseudoTop = cms.InputTag("pseudoTop"),
     filterTaus = cms.bool(False),
+    weight = cms.InputTag("genWeight", "genWeight"),
+    weightIndex = cms.uint32(0),
 )
 
 process.ttbarNoTau = process.ttbar.clone(filterTaus = cms.bool(True))

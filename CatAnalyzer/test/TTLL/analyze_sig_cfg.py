@@ -23,6 +23,8 @@ process.TFileService = cms.Service("TFileService",
 )
 
 process.agen = cms.EDAnalyzer("CATGenTopAnalysis",
+    weightIndex = cms.uint32(0),
+    weight = cms.InputTag("genWeight", "genWeight"),
     channel = cms.InputTag("partonTop","channel"),
     modes = cms.InputTag("partonTop", "modes"),
     partonTop = cms.InputTag("partonTop"),

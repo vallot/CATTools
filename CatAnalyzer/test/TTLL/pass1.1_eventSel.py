@@ -72,6 +72,7 @@ for d in sigList:
             print>>out, "## Scale variations in aMC@NLO sample"
             for i in range(1,9): # total 8 scale variations, 3 muF x 3 muR and one for central weight
                 arg =  'ttll.src="genWeight:pdfWeights" ttll.genWeight.index=%d' % i
+                arg += ' agen.weight="genWeight:pdfWeights" agen.weightIndex=%d' % i
                 arg += " "+sigTypes[ss]
                 print>>out, (submitCmd + (" --jobName %s/gen_scale/%d --args '%s'" % (name, i, arg)))
 
@@ -83,6 +84,7 @@ for d in sigList:
                 else: weightSize = 0
                 for i in range(9, weightSize+1):
                     arg = 'ttll.src="genWeight:pdfWeights" ttll.genWeight.index=%d' % i
+                    arg += ' agen.weight="genWeight:pdfWeights" agen.weightIndex=%d' % i
                     arg += " "+sigTypes[ss]
                     print>>out, (submitCmd + (" --jobName %s/gen_PDF/%d --args '%s'" % (name, i, arg)))
 
