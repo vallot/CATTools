@@ -40,7 +40,7 @@ def hadd(d):
         print "+"*40
         print
 
-pass1Dir = "pass1_makeHist"
+pass1Dir = "pass1"
 outFiles = []
 for sample in os.listdir(pass1Dir):
     sample = pathjoin(pass1Dir, sample)

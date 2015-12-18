@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import sys, os
-outDir = "pass1_makeHist"
+outDir = "pass1"
 if os.path.exists(outDir):
     print "Directory already exists. remove or rename it."
     sys.exit()
