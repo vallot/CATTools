@@ -110,8 +110,8 @@ def setDefTH1Style(th1, x_name, y_name):
     return th1
     
 def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=True, ratioRange=0.45):
-    #leg = ROOT.TLegend(0.58,0.78,0.8,0.9)
-    leg = ROOT.TLegend(0.71,0.68,0.88,0.91)
+    leg = ROOT.TLegend(0.58,0.78,0.8,0.9)
+    #leg = ROOT.TLegend(0.71,0.68,0.88,0.91)
     leg.SetBorderSize(0)
     #leg.SetNColumns(2)
     leg.SetTextSize(0.029)
@@ -162,7 +162,7 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
     setMargins(pads[0],doRatio)
     if doLog:
         pads[0].SetLogy()
-    
+
     data.Draw()
     hs.Draw("same")
     #hs.Draw("samenostack")
@@ -193,6 +193,7 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
     canv.Modified()
     canv.Update()
     canv.SaveAs(name)
+    canv.SaveAs(name.split('.')[0]+'.C')
 
 def drellYanEstimation(mc_ee_in, mc_ee_out, mc_mm_in, mc_mm_out,
                        rd_ee_in, rd_mm_in, rd_em_in):    

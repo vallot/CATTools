@@ -435,7 +435,6 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       b_pseudoToplep2_pt = lepton2.pt();
       b_pseudoToplep2_eta = lepton2.eta();
 
-      b_partonInPhase = true;
     } while ( false );
   }
 
