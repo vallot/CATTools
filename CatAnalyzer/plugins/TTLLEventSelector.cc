@@ -25,11 +25,12 @@ namespace cat {
 
 struct ControlPlots
 {
-  const static int nMaxCutstep = 8; // 5+3
+  const static int nMaxCutstep;
   typedef TH1D* H1;
-  typedef TH2F* H2;
+  typedef TH2D* H2;
 
   H1 hCutstep, hCutstepNoweight;
+  H2 h2Cutstep;
 
   H1 h0a_vertex_n;
 
@@ -119,8 +120,9 @@ struct ControlPlots
     // There are step0a, step0b and step0c cut steps
     // By putting step0a to underflow bin and step0b to -1, step0c to 0,
     // We can start cut steps from 1.
-    hCutstep = dir.make<TH1D>("cutstep", "cutstep", 12, -2, 10);
+    hCutstep = dir.make<TH1D>("cutstep", "cutstep", nMaxCutstep, -2, nMaxCutstep-2);
     hCutstepNoweight = dir.make<TH1D>("cutstepNoweight", "cutstepNoweight", nMaxCutstep, -2, nMaxCutstep-2);
+    h2Cutstep = dir.make<TH2D>("cutcorrelation", "cutcorrelation", nMaxCutstep, -2, nMaxCutstep-2, nMaxCutstep, -2, nMaxCutstep-2);
 
     hCutstep->GetXaxis()->SetBinLabel(1, "S0a all event");
     hCutstep->GetXaxis()->SetBinLabel(2, "S0b Trigger");
@@ -139,6 +141,24 @@ struct ControlPlots
     hCutstepNoweight->GetXaxis()->SetBinLabel(6, "S3 nJet2");
     hCutstepNoweight->GetXaxis()->SetBinLabel(7, "S4 MET40");
     hCutstepNoweight->GetXaxis()->SetBinLabel(8, "S5 nBJet1");
+
+    h2Cutstep->GetXaxis()->SetBinLabel(1, "S0a all event");
+    h2Cutstep->GetXaxis()->SetBinLabel(2, "S0b Trigger");
+    h2Cutstep->GetXaxis()->SetBinLabel(3, "S0c Event filter");
+    h2Cutstep->GetXaxis()->SetBinLabel(4, "S1 Dilepton");
+    h2Cutstep->GetXaxis()->SetBinLabel(5, "S2 Z veto");
+    h2Cutstep->GetXaxis()->SetBinLabel(6, "S3 nJet2");
+    h2Cutstep->GetXaxis()->SetBinLabel(7, "S4 MET40");
+    h2Cutstep->GetXaxis()->SetBinLabel(8, "S5 nBJet1");
+
+    h2Cutstep->GetYaxis()->SetBinLabel(1, "S0a all event");
+    h2Cutstep->GetYaxis()->SetBinLabel(2, "S0b Trigger");
+    h2Cutstep->GetYaxis()->SetBinLabel(3, "S0c Event filter");
+    h2Cutstep->GetYaxis()->SetBinLabel(4, "S1 Dilepton");
+    h2Cutstep->GetYaxis()->SetBinLabel(5, "S2 Z veto");
+    h2Cutstep->GetYaxis()->SetBinLabel(6, "S3 nJet2");
+    h2Cutstep->GetYaxis()->SetBinLabel(7, "S4 MET40");
+    h2Cutstep->GetYaxis()->SetBinLabel(8, "S5 nBJet1");
 
     auto subdir = dir.mkdir("step0a");
     h0a_vertex_n = subdir.make<TH1D>("vertex_n", "vertex_n", 100, 0, 100);
@@ -395,6 +415,7 @@ struct ControlPlots
 
   };
 };
+const int ControlPlots::nMaxCutstep = 8; // 5+3
 
 class TTLLEventSelector : public edm::one::EDFilter<edm::one::SharedResources>
 {
@@ -501,7 +522,7 @@ private:
   vdouble electronEffEtabins_, electronEffPtbins_, electronEffSFValues_;
 
   bool isMC_;
-  const int filterCutstepBefore_;
+  const int ignoreFilterBefore_;
 
   // ID variables
   std::string bTagName_;
@@ -515,7 +536,7 @@ using namespace cat;
 
 TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   isMC_(pset.getParameter<bool>("isMC")),
-  filterCutstepBefore_(pset.getParameter<int>("filterCutstepBefore"))
+  ignoreFilterBefore_(pset.getParameter<int>("ignoreFilterBefore"))
 {
   const auto muonSet = pset.getParameter<edm::ParameterSet>("muon");
   muonToken_ = consumes<cat::MuonCollection>(muonSet.getParameter<edm::InputTag>("src"));
@@ -892,6 +913,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     // Step5 one b jet
     if ( bjets_n >= 1 ) cutstepBits[4] = true;
 
+    // Set the cut step of this event
     const int nstep = cutstepBits.size();
     for ( cutstep=0; cutstep<nstep; ++cutstep )
     {
@@ -1762,6 +1784,19 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     }
   }
 
+  // Fill cut flow 2D plot
+  for ( int istep=1, nstep=cutstepBits.size(); istep<=nstep; ++istep )
+  {
+    const bool res1 = cutstepBits[istep-1];
+    for ( int jstep=1; jstep<=nstep; ++jstep )
+    {
+      const bool res2 = cutstepBits[jstep-1];
+      const int result = res1 && res2;
+      if      ( channel == CH_ELEL ) h_ee.h2Cutstep->Fill(istep, jstep, result*weight);
+      else if ( channel == CH_MUMU ) h_mm.h2Cutstep->Fill(istep, jstep, result*weight);
+      else if ( channel == CH_MUEL ) h_em.h2Cutstep->Fill(istep, jstep, result*weight);
+    }
+  }
 
   std::auto_ptr<std::vector<cat::Lepton> > out_leptons(new std::vector<cat::Lepton>());
   std::auto_ptr<std::vector<cat::Jet> > out_jets(new std::vector<cat::Jet>());
@@ -1787,7 +1822,8 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   event.put(out_leptons, "leptons");
   event.put(out_jets, "jets");
 
-  return cutstep >= filterCutstepBefore_;
+  // Apply filter
+  return cutstep >= ignoreFilterBefore_;
 }
 
 TTLLEventSelector::~TTLLEventSelector()

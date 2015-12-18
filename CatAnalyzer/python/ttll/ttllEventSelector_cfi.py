@@ -3,7 +3,7 @@ from CATTools.CatAnalyzer.leptonSF_cff import *
 
 ttll = cms.EDFilter("TTLLEventSelector",
     isMC = cms.bool(True),
-    filterCutstepBefore = cms.int32(4),
+    ignoreFilterBefore = cms.int32(4), ## Apply filter from this step
 
     # Physics objects
     muon = cms.PSet(
