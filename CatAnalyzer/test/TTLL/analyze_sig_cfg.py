@@ -22,7 +22,19 @@ process.TFileService = cms.Service("TFileService",
     fileName = cms.string("hist.root"),
 )
 
-process.p = cms.Path(process.filterPartonTTLL*process.ttll)#*process.ntuple)
+process.agen = cms.EDAnalyzer("CATGenTopAnalysis",
+    channel = cms.InputTag("partonTop","channel"),
+    modes = cms.InputTag("partonTop", "modes"),
+    partonTop = cms.InputTag("partonTop"),
+    pseudoTop = cms.InputTag("pseudoTop"),
+    filterTaus = cms.bool(False),
+)
+
+process.p = cms.Path(
+    process.agen
+  + process.filterPartonTTLL*process.ttll
+#  * process.ntuple
+)
 
 ## Customise with cmd arguments
 import sys
