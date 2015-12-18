@@ -127,3 +127,12 @@ out.close()
 os.system("chmod +x %s/submit_sig.sh" % outDir)
 os.system("chmod +x %s/submit_bkg.sh" % outDir)
 os.system("chmod +x %s/submit_data.sh" % outDir)
+
+print "Prepared to submit cmsRun jobs."
+print "Submit jobs using helper script under pass1 directory yourself."
+print "> cd pass1"
+print "> ./submit_data.sh"
+print "> ./submit_sig.sh"
+print "> ./submit_bkg.sh"
+print ""
+
