@@ -15,15 +15,16 @@ process.source.fileNames = [
 #process.source.fileNames.append('/store/group/CAT/DoubleMuon/v7-4-4_Run2015C_25ns-05Oct2015-v1/151023_165157/0000/catTuple_10.root')
 
 process.load("CATTools.CatAnalyzer.filters_cff")
-process.load("CATTools.CatAnalyzer.ttllEventSelector_cfi")
+process.load("CATTools.CatAnalyzer.ttll.ttllEventSelector_cfi")
+process.load("CATTools.CatAnalyzer.ttll.ntuple_cff")
 
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string("hist.root"),
 )
 
-process.p = cms.Path(process.ttll)
+process.p = cms.Path(process.ttll)#*process.ntuple)
 
 ## Customise with cmd arguments
 import sys
 if len(sys.argv) > 2:
-    for l in sys.argv[2:]: exec('process.ttll.'+l)
+    for l in sys.argv[2:]: exec('process.'+l)

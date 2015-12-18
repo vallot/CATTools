@@ -40,10 +40,10 @@ def hadd(d):
         print "+"*40
         print
 
-step1Dir = "step1_makeHist"
+pass1Dir = "pass1"
 outFiles = []
-for sample in os.listdir(step1Dir):
-    sample = pathjoin(step1Dir, sample)
+for sample in os.listdir(pass1Dir):
+    sample = pathjoin(pass1Dir, sample)
     if not isdir(sample): continue
 
     hadd(pathjoin(sample,'central'))
