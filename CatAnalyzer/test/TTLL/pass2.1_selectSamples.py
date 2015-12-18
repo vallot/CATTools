@@ -76,3 +76,4 @@ f.close()
 
 print "%s/samples.json is created." % outbase
 print "You can edit json file manually if needed"
+print "Warning!!! some samples are known to be overapping. Please remove them manually!!!"
