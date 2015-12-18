@@ -25,6 +25,7 @@ namespace cat {
 
 struct ControlPlots
 {
+  const static int nMaxCutstep = 12;
   typedef TH1D* H1;
   typedef TH2F* H2;
 
@@ -114,7 +115,7 @@ struct ControlPlots
     // By putting step0a to underflow bin and step0b to -1, step0c to 0,
     // We can start cut steps from 1.
     hCutstep = dir.make<TH1D>("cutstep", "cutstep", 12, -2, 10);
-    hCutstepNoweight = dir.make<TH1D>("cutstepNoweight", "cutstepNoweight", 12, -2, 10);
+    hCutstepNoweight = dir.make<TH1D>("cutstepNoweight", "cutstepNoweight", nMaxCutstep, -2, nMaxCutstep-2);
 
     hCutstep->GetXaxis()->SetBinLabel(1, "S0a all event");
     hCutstep->GetXaxis()->SetBinLabel(2, "S0b Trigger");
@@ -490,7 +491,7 @@ private:
   vdouble electronEffEtabins_, electronEffPtbins_, electronEffSFValues_;
 
   bool isMC_;
-  const int filterCutStepBefore_;
+  const int filterCutstepBefore_;
 
   // ID variables
   std::string bTagName_;
@@ -504,7 +505,7 @@ using namespace cat;
 
 TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   isMC_(pset.getParameter<bool>("isMC")),
-  filterCutStepBefore_(pset.getParameter<int>("filterCutStepBefore"))
+  filterCutstepBefore_(pset.getParameter<int>("filterCutstepBefore"))
 {
   const auto muonSet = pset.getParameter<edm::ParameterSet>("muon");
   muonToken_ = consumes<cat::MuonCollection>(muonSet.getParameter<edm::InputTag>("src"));
@@ -856,6 +857,9 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     }
   }
 
+  std::vector<bool> cutstepBits(ControlPlots::nMaxCutstep);
+  for ( auto x : cutstepBits ) x = false;
+
   int cutstep = 1;
   if ( leptons_n < 2 or lepton1.isNull() or lepton2.isNull() or
        (lepton1->p4()+lepton2->p4()).mass() < 20 or
@@ -863,6 +867,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   {
     channel = CH_NONE;
     cutstep = std::max(cutstep_ee, std::max(cutstep_mm, cutstep_em)); // reset the cut step
+    for ( int i=0; i<cutstep; ++i ) cutstepBits[i+2] = true;
   }
   else
   {
@@ -1710,7 +1715,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   event.put(out_leptons, "leptons");
   event.put(out_jets, "jets");
 
-  return cutstep >= filterCutStepBefore_;
+  return cutstep >= filterCutstepBefore_;
 }
 
 TTLLEventSelector::~TTLLEventSelector()
