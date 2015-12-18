@@ -16,11 +16,12 @@ ttll = cms.EDFilter("TTLLEventSelector",
 
     electron = cms.PSet(
         src = cms.InputTag("catElectrons"),
-        idName = cms.string("cutBasedElectronID-Spring15-25ns-V1-standalone-medium"),
+        #idName = cms.string("cutBasedElectronID-Spring15-25ns-V1-standalone-medium"),
+        idName = cms.string("mvaEleID-Spring15-25ns-Trig-V1-wp90"),
         scaleDirection = cms.int32(0),
         #scaleDirection = cms.int32(-1),
         #scaleDirection = cms.int32(+1),
-        efficiencySF = electronSFCutBasedMedium,
+        efficiencySF = electronSFWP90,
     ),
 
     jet = cms.PSet(
