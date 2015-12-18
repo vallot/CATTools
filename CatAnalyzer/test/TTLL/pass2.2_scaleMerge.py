@@ -7,7 +7,7 @@ import string
 
 srcbase, outbase = "pass1", "pass2"
 
-mergeList = json.loads(open(srcbase+"/samples.json").read())
+mergeList = json.loads(open(outbase+"/samples.json").read())
 
 ## Start mergin
 for outfileName in mergeList:

@@ -4,15 +4,24 @@ import json
 import sys, os
 import string
 
+blacklist = [
+    "ZZTo", "ZZto", "WWTo", "WZTo", "GluGluTo", "WpWp", "WW_dps",
+    "HToMuMu",
+]
 srcbase, outbase = "pass1", "pass2"
 
 jsdir = "%s/src/CATTools/CatAnalyzer/data" % os.environ["CMSSW_BASE"]
 
 ## Build (filesystem safe) title -> dataset info list mapping
 info = {}
+blacklisted = []
 for x in json.loads(open(jsdir+"/dataset.json").read()):
     title = x["title"]
     name = x["name"]
+
+    if any([b in name for b in blacklist]):
+        blacklisted.append(name)
+        continue
 
     safeTitle = list(title)
     validChars = list(string.ascii_letters) + list(string.digits) + ['-_.']
@@ -36,6 +45,7 @@ for path, dirs, files in os.walk(srcbase):
 
     ## Special care for ttbar signal samples due to gen level splitting
     nameInInfo = name
+    if nameInInfo in blacklisted: continue
     if name.startswith("TT"):
         if name.endswith("LL"): nameInInfo = name[:-2]
         elif name.endswith("LLOthers"): nameInInfo = name[:-8]
@@ -74,6 +84,9 @@ f = open("%s/samples.json" % outbase, "w")
 f.write(js)
 f.close()
 
+print "NOTE: you can give blacklist by editing this script"
+print "Following samples are blacklisted"
+print " ","\n  ".join(blacklisted)
 print "%s/samples.json is created." % outbase
 print "You can edit json file manually if needed"
-print "Warning!!! some samples are known to be overapping. Please remove them manually!!!"
+print "WARNING!!! some samples are known to be overapping. Please remove them manually!!!"
