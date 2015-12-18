@@ -25,7 +25,7 @@ namespace cat {
 
 struct ControlPlots
 {
-  const static int nMaxCutstep = 12;
+  const static int nMaxCutstep = 8; // 5+3
   typedef TH1D* H1;
   typedef TH2F* H2;
 
@@ -51,6 +51,7 @@ struct ControlPlots
   H1 h1_lepton1_pt, h1_lepton1_eta, h1_lepton1_phi, h1_lepton1_q;
   H1 h1_lepton2_pt, h1_lepton2_eta, h1_lepton2_phi, h1_lepton2_q;
   H1 h1_z_m, h1_z_pt, h1_z_eta, h1_z_phi;
+  H1 h1_z_m_noveto;
   H1 h1_jets_n, h1_jets_ht;
   H1 h1_jet1_m, h1_jet1_pt, h1_jet1_eta, h1_jet1_phi, h1_jet1_btag;
   H1 h1_jet2_m, h1_jet2_pt, h1_jet2_eta, h1_jet2_phi, h1_jet2_btag;
@@ -65,6 +66,7 @@ struct ControlPlots
   H1 h2_lepton1_pt, h2_lepton1_eta, h2_lepton1_phi, h2_lepton1_q;
   H1 h2_lepton2_pt, h2_lepton2_eta, h2_lepton2_phi, h2_lepton2_q;
   H1 h2_z_m, h2_z_pt, h2_z_eta, h2_z_phi;
+  H1 h2_z_m_noveto;
   H1 h2_jets_n, h2_jets_ht;
   H1 h2_jet1_m, h2_jet1_pt, h2_jet1_eta, h2_jet1_phi, h2_jet1_btag;
   H1 h2_jet2_m, h2_jet2_pt, h2_jet2_eta, h2_jet2_phi, h2_jet2_btag;
@@ -76,6 +78,7 @@ struct ControlPlots
   H1 h3_vertex_n;
   H1 h3_met_pt, h3_met_phi;
   H1 h3_z_m, h3_z_pt, h3_z_eta, h3_z_phi;
+  H1 h3_z_m_noveto;
   H1 h3_jets_n, h3_jets_ht;
   H1 h3_jet1_m, h3_jet1_pt, h3_jet1_eta, h3_jet1_phi, h3_jet1_btag;
   H1 h3_jet2_m, h3_jet2_pt, h3_jet2_eta, h3_jet2_phi, h3_jet2_btag;
@@ -87,6 +90,7 @@ struct ControlPlots
   H1 h4_vertex_n;
   H1 h4_met_pt, h4_met_phi;
   H1 h4_z_m, h4_z_pt, h4_z_eta, h4_z_phi;
+  H1 h4_z_m_noveto;
   H1 h4_jets_n, h4_jets_ht;
   H1 h4_jet1_m, h4_jet1_pt, h4_jet1_eta, h4_jet1_phi, h4_jet1_btag;
   H1 h4_jet2_m, h4_jet2_pt, h4_jet2_eta, h4_jet2_phi, h4_jet2_btag;
@@ -98,6 +102,7 @@ struct ControlPlots
   H1 h5_vertex_n;
   H1 h5_met_pt, h5_met_phi;
   H1 h5_z_m, h5_z_pt, h5_z_eta, h5_z_phi;
+  H1 h5_z_m_noveto;
   H1 h5_jets_n, h5_jets_ht;
   H1 h5_jet1_m, h5_jet1_pt, h5_jet1_eta, h5_jet1_phi, h5_jet1_btag;
   H1 h5_jet2_m, h5_jet2_pt, h5_jet2_eta, h5_jet2_phi, h5_jet2_btag;
@@ -176,6 +181,7 @@ struct ControlPlots
     h1_z_pt  = subdir.make<TH1D>("z_pt", "z_pt", 1000, 0, 1000);
     h1_z_eta = subdir.make<TH1D>("z_eta", "z_eta", 100, -maxeta, maxeta);
     h1_z_phi = subdir.make<TH1D>("z_phi", "z_phi", 100, -pi, pi);
+    h1_z_m_noveto = subdir.make<TH1D>("z_m_noveto", "z_m_noveto", 1000, 0, 1000);
 
     h1_jets_n = subdir.make<TH1D>("jets_n", "jets_n", 10, 0, 10);
     h1_jets_ht = subdir.make<TH1D>("jets_ht", "jets_ht", 1000, 0, 1000);
@@ -228,6 +234,7 @@ struct ControlPlots
     h2_z_pt  = subdir.make<TH1D>("z_pt", "z_pt", 1000, 0, 1000);
     h2_z_eta = subdir.make<TH1D>("z_eta", "z_eta", 100, -maxeta, maxeta);
     h2_z_phi = subdir.make<TH1D>("z_phi", "z_phi", 100, -pi, pi);
+    h2_z_m_noveto = subdir.make<TH1D>("z_m_noveto", "z_m_noveto", 1000, 0, 1000);
 
     h2_jets_n = subdir.make<TH1D>("jets_n", "jets_n", 10, 0, 10);
     h2_jets_ht = subdir.make<TH1D>("jets_ht", "jets_ht", 1000, 0, 1000);
@@ -269,6 +276,7 @@ struct ControlPlots
     h3_z_pt  = subdir.make<TH1D>("z_pt", "z_pt", 1000, 0, 1000);
     h3_z_eta = subdir.make<TH1D>("z_eta", "z_eta", 100, -maxeta, maxeta);
     h3_z_phi = subdir.make<TH1D>("z_phi", "z_phi", 100, -pi, pi);
+    h3_z_m_noveto = subdir.make<TH1D>("z_m_noveto", "z_m_noveto", 1000, 0, 1000);
 
     h3_jets_n = subdir.make<TH1D>("jets_n", "jets_n", 10, 0, 10);
     h3_jets_ht = subdir.make<TH1D>("jets_ht", "jets_ht", 1000, 0, 1000);
@@ -310,6 +318,7 @@ struct ControlPlots
     h4_z_pt  = subdir.make<TH1D>("z_pt", "z_pt", 1000, 0, 1000);
     h4_z_eta = subdir.make<TH1D>("z_eta", "z_eta", 100, -maxeta, maxeta);
     h4_z_phi = subdir.make<TH1D>("z_phi", "z_phi", 100, -pi, pi);
+    h4_z_m_noveto = subdir.make<TH1D>("z_m_noveto", "z_m_noveto", 1000, 0, 1000);
 
     h4_jets_n = subdir.make<TH1D>("jets_n", "jets_n", 10, 0, 10);
     h4_jets_ht = subdir.make<TH1D>("jets_ht", "jets_ht", 1000, 0, 1000);
@@ -351,6 +360,7 @@ struct ControlPlots
     h5_z_pt  = subdir.make<TH1D>("z_pt", "z_pt", 1000, 0, 1000);
     h5_z_eta = subdir.make<TH1D>("z_eta", "z_eta", 100, -maxeta, maxeta);
     h5_z_phi = subdir.make<TH1D>("z_phi", "z_phi", 100, -pi, pi);
+    h5_z_m_noveto = subdir.make<TH1D>("z_m_noveto", "z_m_noveto", 1000, 0, 1000);
 
     h5_jets_n = subdir.make<TH1D>("jets_n", "jets_n", 10, 0, 10);
     h5_jets_ht = subdir.make<TH1D>("jets_ht", "jets_ht", 1000, 0, 1000);
@@ -862,43 +872,32 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   // Check each cut steps
   int cutstep = -1;
   // bitset for the cut steps, fill the results only for events that pass step0a,0b,0c
-  std::vector<bool> cutstepBits(ControlPlots::nMaxCutstep-2);
-  for ( auto x : cutstepBits ) x = false;
+  std::bitset<ControlPlots::nMaxCutstep-2> cutstepBits(0);
+  //for ( auto x : cutstepBits ) x = false;
   if ( (channel == CH_ELEL and cutstep_ee == 0) or
        (channel == CH_MUMU and cutstep_mm == 0) or
        (channel == CH_MUEL and cutstep_em == 0) )
   {
-    cutstep = 0;
     // Step1 Dilepton
-    if ( leptons_n >= 2 and z_m >= 20 and lepton1->charge()+lepton2->charge() == 0 ) 
+    if ( leptons_n >= 2 and z_m >= 20 and lepton1->charge()+lepton2->charge() == 0 )
     {
-      ++cutstep;
       cutstepBits[0] = true;
       // Step2 Z mass veto : Step1 have to be required by construction
-      if ( channel == CH_MUEL or !(76 <= z_m and z_m <= 106) )
-      {
-        ++cutstep;
-        cutstepBits[1] = true;
-      }
+      if ( channel == CH_MUEL or !(76 <= z_m and z_m <= 106) ) cutstepBits[1] = true;
     }
     // Step3 Minimal jet multiplicity
-    if ( jets_n >= 2 )
-    {
-      ++cutstep;
-      cutstepBits[2] = true;
-    }
+    if ( jets_n >= 2 ) cutstepBits[2] = true;
     // Step4 Missing transverse momentum
-    if ( channel == CH_MUEL or met_pt >= 40 )
-    {
-      ++cutstep;
-      cutstepBits[3] = true;
-    }
+    if ( channel == CH_MUEL or met_pt >= 40 ) cutstepBits[3] = true;
     // Step5 one b jet
-    if ( bjets_n >= 1 )
+    if ( bjets_n >= 1 ) cutstepBits[4] = true;
+
+    const int nstep = cutstepBits.size();
+    for ( cutstep=0; cutstep<nstep; ++cutstep )
     {
-      ++cutstep;
-      cutstepBits[4] = true;
+      if ( !cutstepBits[cutstep] ) break;
     }
+
   }
   else
   {
@@ -906,17 +905,13 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   }
 
   // Cut step is ready. Now proceed to fill histograms
-  int icutstep = -1;
   switch (1) default: {
-    // Finalize pre-selection and begin cut flows with basic dileptons to existence
-    if ( cutstep <= -1 ) break;
-    ++icutstep; // =0
+    int icutstep = 0;
 
-    const auto zP4 = lepton1->p4()+lepton2->p4();
-
-    // Finalize post-preselection and start cut step 1
     if ( cutstep <= 0 ) break;
     ++icutstep; // =1
+
+    const auto zP4 = lepton1->p4()+lepton2->p4();
 
     if ( channel == CH_ELEL )
     {
@@ -1726,6 +1721,47 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       h_em.h5_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
     }
   } // switch(1)
+
+  // Cutsomized cutflow without z-veto cut to be used in DY estimation and other studies
+  for ( int istep=1, nstep=cutstepBits.size(); istep<=nstep; ++istep )
+  {
+    if ( istep != 2 and !cutstepBits[istep-1] ) break;
+
+    if ( channel == CH_ELEL )
+    {
+      switch ( istep )
+      {
+        case 5: h_ee.h5_z_m_noveto->Fill(z_m, weight);
+        case 4: h_ee.h4_z_m_noveto->Fill(z_m, weight);
+        case 3: h_ee.h3_z_m_noveto->Fill(z_m, weight);
+        case 2: h_ee.h2_z_m_noveto->Fill(z_m, weight);
+        case 1: h_ee.h1_z_m_noveto->Fill(z_m, weight);
+      }
+    }
+    else if ( channel == CH_MUMU )
+    {
+      switch ( istep )
+      {
+        case 5: h_mm.h5_z_m_noveto->Fill(z_m, weight);
+        case 4: h_mm.h4_z_m_noveto->Fill(z_m, weight);
+        case 3: h_mm.h3_z_m_noveto->Fill(z_m, weight);
+        case 2: h_mm.h2_z_m_noveto->Fill(z_m, weight);
+        case 1: h_mm.h1_z_m_noveto->Fill(z_m, weight);
+      }
+    }
+    else if ( channel == CH_MUEL )
+    {
+      switch ( istep )
+      {
+        case 5: h_em.h5_z_m_noveto->Fill(z_m, weight);
+        case 4: h_em.h4_z_m_noveto->Fill(z_m, weight);
+        case 3: h_em.h3_z_m_noveto->Fill(z_m, weight);
+        case 2: h_em.h2_z_m_noveto->Fill(z_m, weight);
+        case 1: h_em.h1_z_m_noveto->Fill(z_m, weight);
+      }
+    }
+  }
+
 
   std::auto_ptr<std::vector<cat::Lepton> > out_leptons(new std::vector<cat::Lepton>());
   std::auto_ptr<std::vector<cat::Jet> > out_jets(new std::vector<cat::Jet>());
