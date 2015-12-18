@@ -3,7 +3,9 @@ from CATTools.CatAnalyzer.leptonSF_cff import *
 
 ttll = cms.EDFilter("TTLLEventSelector",
     isMC = cms.bool(True),
-    ignoreFilterBefore = cms.int32(4), ## Apply filter from this step
+    ## alwaysAcceptAfter : Accept event even though selection may fail _AFTER_ this step
+    ## Use case: store ntuple only for events that passes step4
+    applyFilterAt = cms.int32(4),
 
     # Physics objects
     muon = cms.PSet(

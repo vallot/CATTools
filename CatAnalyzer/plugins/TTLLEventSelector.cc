@@ -522,7 +522,7 @@ private:
   vdouble electronEffEtabins_, electronEffPtbins_, electronEffSFValues_;
 
   bool isMC_;
-  const int ignoreFilterBefore_;
+  const int applyFilterAt_;
 
   // ID variables
   std::string bTagName_;
@@ -536,7 +536,7 @@ using namespace cat;
 
 TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   isMC_(pset.getParameter<bool>("isMC")),
-  ignoreFilterBefore_(pset.getParameter<int>("ignoreFilterBefore"))
+  applyFilterAt_(pset.getParameter<int>("applyFilterAt"))
 {
   const auto muonSet = pset.getParameter<edm::ParameterSet>("muon");
   muonToken_ = consumes<cat::MuonCollection>(muonSet.getParameter<edm::InputTag>("src"));
@@ -1822,8 +1822,10 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   event.put(out_leptons, "leptons");
   event.put(out_jets, "jets");
 
-  // Apply filter
-  return cutstep >= ignoreFilterBefore_;
+  // Apply filter at the given step.
+  if ( cutstep >= applyFilterAt_ ) return true;
+
+  return false;
 }
 
 TTLLEventSelector::~TTLLEventSelector()
