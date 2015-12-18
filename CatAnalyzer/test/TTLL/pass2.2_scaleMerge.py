@@ -54,7 +54,7 @@ for outfileName in mergeList:
                         hout.Reset()
                     hout = out_chdir.Get(stepName)
                     hout.Add(hsrc)
-                    hout.Write()
+                    hout.Write("", TObject.kOverwrite)
                 ## Control plots under cut step directory
                 else:
                     if i == 0: out_chdir.mkdir(stepName)
@@ -70,5 +70,5 @@ for outfileName in mergeList:
                             hout.Reset()
                         hout = out_stepdir.Get(histName)
                         hout.Add(hsrc)
-                        hout.Write()
+                        hout.Write("", TObject.kOverwrite)
 
