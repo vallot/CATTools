@@ -34,10 +34,16 @@ for x in json.loads(open(jsdir+"/dataset.json").read()):
         'xsec':x['xsec'], 'DataSetName':x["DataSetName"], "colour":x["colour"]}
 
 ## Get directory structure to reorganize input
+srcList = {}
 mergeList = {}
 for path, dirs, files in os.walk(srcbase):
     rootFiles = [x for x in files if x.endswith('.root')]
     if len(rootFiles) == 0: continue
+
+    pp = path.split('/')[1:]
+    if pp[0] not in srcList: srcList[pp[0]] = {}
+    if len(pp) == 1: srcList[pp[0]]['central'] = files
+    elif len(pp) > 1: srcList[pp[0]][pp[1]] = files
 
     ## Split sample name and uncertainty variations from the path name
     pp = path[len(srcbase)+1:].split('/')
@@ -47,8 +53,8 @@ for path, dirs, files in os.walk(srcbase):
     nameInInfo = name
     if nameInInfo in blacklisted: continue
     if name.startswith("TT"):
-        if name.endswith("LL"): nameInInfo = name[:-2]
-        elif name.endswith("LLOthers"): nameInInfo = name[:-8]
+        if name.endswith("_LL"): nameInInfo = name[:-2]
+        elif name.endswith("_LLOthers"): nameInInfo = name[:-8]
 
     xsec = info[nameInInfo]['xsec']
     color = info[nameInInfo]['colour']
@@ -59,8 +65,8 @@ for path, dirs, files in os.walk(srcbase):
 
     ## Put back suffix
     if name.startswith("TT"):
-        if name.endswith("LL"): safeTitle += "_LL"
-        elif name.endswith("LLOthers"): safeTitle += "_LLOthers"
+        if name.endswith("_LL"): safeTitle += "_LL"
+        elif name.endswith("_LLOthers"): safeTitle += "_LLOthers"
 
     for f in rootFiles:
         outpath = [outbase]
@@ -79,8 +85,12 @@ for path, dirs, files in os.walk(srcbase):
 if not os.path.exists(outbase): os.mkdir(outbase)
 
 js = json.dumps(mergeList, indent=4, sort_keys=True)
-js = js.replace("},", "},\n")
 f = open("%s/samples.json" % outbase, "w")
+f.write(js)
+f.close()
+
+js = json.dumps(srcList, indent=4, sort_keys=True)
+f = open("%s/samples.json" % srcbase, "w")
 f.write(js)
 f.close()
 

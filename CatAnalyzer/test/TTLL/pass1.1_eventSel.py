@@ -62,7 +62,7 @@ for d in sigList:
     submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
 
     for ss in sigTypes:
-        name = name+ss
+        name = name+'_'+ss
         print>>out, (submitCmd + " --jobName %s/central" % name)
 
         ## Scale up/down systematic undertainty from LHE weight
