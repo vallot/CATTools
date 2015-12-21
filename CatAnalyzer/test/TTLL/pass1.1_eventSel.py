@@ -9,6 +9,7 @@ os.mkdir(outDir)
 os.system("ln -s ../analyze_sig_cfg.py %s/analyze_sig_cfg.py" % outDir)
 os.system("ln -s ../analyze_bkg_cfg.py %s/analyze_bkg_cfg.py" % outDir)
 os.system("ln -s ../analyze_data_cfg.py %s/analyze_data_cfg.py" % outDir)
+os.system("ln -s ../customise_saveEvent_cfg.py %s/customise_saveEvent_cfg.py" % outDir)
 
 ## Load JSON file and categorize datasets
 import json
@@ -63,7 +64,7 @@ for d in sigList:
 
     for ss in sigTypes:
         name = name+'_'+ss
-        print>>out, (submitCmd + " --jobName %s/central" % name)
+        print>>out, (submitCmd + " --jobName %s/central --customise customise_saveEvent_cfg.py" % name)
 
         ## Scale up/down systematic undertainty from LHE weight
         ## This uncertainty have to be combined with envelope
@@ -103,7 +104,7 @@ for d in bkgList:
     submitCmd  = "create-batch --cfg analyze_bkg_cfg.py --maxFiles 100"
     submitCmd += " --jobName %s --fileList %s/dataset_%s.txt" % (name, dataDir, name)
 
-    print>>out, (submitCmd + " --jobName %s/central" % name)
+    print>>out, (submitCmd + " --jobName %s/central --customise customise_saveEvent_cfg.py" % name)
     ## Loop over all systematics
     for systName in systAll:
         arg = systAll[systName]
@@ -119,7 +120,7 @@ for d in dataList:
     submitCmd  = "create-batch --cfg analyze_data_cfg.py --maxFiles 100"
     submitCmd += " --jobName %s --fileList %s/dataset_%s.txt" % (name, dataDir, name)
 
-    print>>out, (submitCmd + " --jobName %s/central" % name)
+    print>>out, (submitCmd + " --jobName %s/central --customise customise_saveEvent_cfg.py" % name)
     ## Loop over all systematics
     for systName in systAll:
         arg = systAll[systName]
