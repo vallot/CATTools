@@ -32,7 +32,8 @@ def hadd(d):
         print "*"*40
         print
         os.system(cmd)
-        os.system("rm -rf %s" % d)
+        os.system("rm -rf %s/*.tgz" % d)
+        os.system("tar czf %s/log.tgz %s/*.log %s/*.err" % (d, d, d))
     else:
         print
         print "+"*40
