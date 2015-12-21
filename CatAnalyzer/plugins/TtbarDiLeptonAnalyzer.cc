@@ -67,6 +67,10 @@ private:
   float b_lep2_pt, b_lep2_eta, b_lep2_phi;
   float b_ll_pt, b_ll_eta, b_ll_phi, b_ll_m;
   
+  float b_partontop1_pt, b_partontop1_eta, b_partontop1_phi, b_partontop1_rapi, b_partontop1_m;
+  float b_partontop2_pt, b_partontop2_eta, b_partontop2_phi, b_partontop2_rapi, b_partontop2_m;
+  float b_partonttbar_pt, b_partonttbar_eta, b_partonttbar_phi, b_partonttbar_m, b_partonttbar_rapi;
+
   int b_partonChannel, b_partonMode1, b_partonMode2;
   float b_partonlep1_pt, b_partonlep1_eta;
   float b_partonlep2_pt, b_partonlep2_eta;
@@ -77,8 +81,8 @@ private:
   float b_genttbar_pt, b_genttbar_eta, b_genttbar_phi, b_genttbar_m, b_genttbar_rapi;
 
   int b_pseudoTopChannel;
-  float b_pseudoToplep1_pt, b_pseudoToplep1_eta;
-  float b_pseudoToplep2_pt, b_pseudoToplep2_eta;
+  float b_genlep1_pt, b_genlep1_eta;
+  float b_genlep2_pt, b_genlep2_eta;
   bool b_pseudoInPhase;
     
   float b_jet1_pt, b_jet1_eta, b_jet1_CSVInclV2;
@@ -172,6 +176,20 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("ll_phi", &b_ll_phi, "ll_phi/F");
   ttree_->Branch("ll_m", &b_ll_m, "ll_m/F");
   
+  ttree_->Branch("partontop1_pt", &b_partontop1_pt, "partontop1_pt/F");
+  ttree_->Branch("partontop1_eta", &b_partontop1_eta, "partontop1_eta/F");
+  ttree_->Branch("partontop1_rapi", &b_partontop1_rapi, "partontop1_rapi/F");
+  ttree_->Branch("partontop1_m", &b_partontop1_m, "partontop1_m/F");
+  ttree_->Branch("partontop2_pt", &b_partontop2_pt, "partontop2_pt/F");
+  ttree_->Branch("partontop2_eta", &b_partontop2_eta, "partontop2_eta/F");
+  ttree_->Branch("partontop2_rapi", &b_partontop2_rapi, "partontop2_rapi/F");
+  ttree_->Branch("partontop2_m", &b_partontop2_m, "partontop2_m/F");
+  ttree_->Branch("partonttbar_pt", &b_partonttbar_pt, "partonttbar_pt/F");
+  ttree_->Branch("partonttbar_eta", &b_partonttbar_eta, "partonttbar_eta/F");
+  ttree_->Branch("partonttbar_phi", &b_partonttbar_phi, "partonttbar_phi/F");
+  ttree_->Branch("partonttbar_rapi", &b_partonttbar_rapi, "partonttbar_rapi/F");
+  ttree_->Branch("partonttbar_m", &b_partonttbar_m, "partonttbar_m/F");
+
   ttree_->Branch("parton_channel", &b_partonChannel, "parton_channel/I");
   ttree_->Branch("parton_mode1", &b_partonMode1, "parton_mode1/I");
   ttree_->Branch("partonlep1_pt", &b_partonlep1_pt, "partonlep1_pt/F");
@@ -198,10 +216,10 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   ttree_->Branch("genttbar_m", &b_genttbar_m, "genttbar_m/F");
 
   ttree_->Branch("pseudoTop_channel", &b_pseudoTopChannel, "pseudoTop_channel/I");
-  ttree_->Branch("pseudoToplep1_pt", &b_pseudoToplep1_pt, "pseudoToplep1_pt/F");
-  ttree_->Branch("pseudoToplep1_eta", &b_pseudoToplep1_eta, "pseudoToplep1_eta/F");
-  ttree_->Branch("pseudoToplep2_pt", &b_pseudoToplep2_pt, "pseudoToplep2_pt/F");
-  ttree_->Branch("pseudoToplep2_eta", &b_pseudoToplep2_eta, "pseudoToplep2_eta/F");
+  ttree_->Branch("genlep1_pt", &b_genlep1_pt, "genlep1_pt/F");
+  ttree_->Branch("genlep1_eta", &b_genlep1_eta, "genlep1_eta/F");
+  ttree_->Branch("genlep2_pt", &b_genlep2_pt, "genlep2_pt/F");
+  ttree_->Branch("genlep2_eta", &b_genlep2_eta, "genlep2_eta/F");
   ttree_->Branch("pseudoInPhase", &b_pseudoInPhase, "pseudoInPhase/O");
 
   ttree_->Branch("jet1_pt", &b_jet1_pt, "jet1_pt/F");
@@ -262,6 +280,10 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_lep2_pt = -9;b_lep2_eta = -9;b_lep2_phi = -9;
   b_ll_pt = -9;b_ll_eta = -9;b_ll_phi = -9;b_ll_m = -9;
 
+  b_partontop1_pt = -9; b_partontop1_eta = -9; b_partontop1_phi = -9; b_partontop1_rapi = -9; b_partontop1_m = -9;
+  b_partontop2_pt = -9; b_partontop2_eta = -9; b_partontop2_phi = -9; b_partontop2_rapi = -9; b_partontop2_m = -9;
+  b_partonttbar_pt = -9; b_partonttbar_eta = -9; b_partonttbar_phi = -9; b_partonttbar_m = -9; b_partonttbar_rapi = -9;
+
   b_partonChannel = -1; b_partonMode1 = -1; b_partonMode2 = -1;
   b_partonlep1_pt = -9; b_partonlep1_eta = -9;
   b_partonlep2_pt = -9; b_partonlep2_eta = -9;
@@ -272,8 +294,8 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   b_genttbar_pt = -9; b_genttbar_eta = -9; b_genttbar_phi = -9; b_genttbar_m = -9; b_genttbar_rapi = -9;
 
   b_pseudoTopChannel = -1;
-  b_pseudoToplep1_pt = -9; b_pseudoToplep1_eta = -9;
-  b_pseudoToplep2_pt = -9; b_pseudoToplep2_eta = -9;
+  b_genlep1_pt = -9; b_genlep1_eta = -9;
+  b_genlep2_pt = -9; b_genlep2_eta = -9;
   b_pseudoInPhase = false;
   
   b_jet1_pt = -9; b_jet1_eta = -9; b_jet1_CSVInclV2 = -9;
@@ -307,6 +329,25 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       // Get Top quark pairs
       const auto parton1 = &partonTop_genParticles->at(0);
       const auto parton2 = &partonTop_genParticles->at(1);
+      b_partontop1_pt = parton1->pt();
+      b_partontop1_eta = parton1->eta();
+      b_partontop1_phi = parton1->phi();
+      b_partontop1_rapi = parton1->rapidity();
+      b_partontop1_m = parton1->mass();
+      b_partontop2_pt = parton2->pt();
+      b_partontop2_eta = parton2->eta();
+      b_partontop2_phi = parton2->phi();
+      b_partontop2_rapi = parton2->rapidity();
+      b_partontop2_m = parton2->mass();
+
+      // Get Top quark pairs
+      auto partonttbar = parton1->p4()+parton2->p4();
+      b_partonttbar_pt = partonttbar.Pt();
+      b_partonttbar_eta = partonttbar.Eta();
+      b_partonttbar_phi = partonttbar.Phi();
+      b_partonttbar_m = partonttbar.M();
+      b_partonttbar_rapi = partonttbar.Rapidity();
+
       // Get W and b quarks
       if ( parton1 and parton2 ) {
         const auto partonW1 = parton1->daughter(0);
@@ -430,10 +471,10 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       b_genttbar_m = genttbar.M();
       b_genttbar_rapi = genttbar.Rapidity();
 
-      b_pseudoToplep1_pt = lepton1.pt();
-      b_pseudoToplep1_eta = lepton1.eta();
-      b_pseudoToplep2_pt = lepton2.pt();
-      b_pseudoToplep2_eta = lepton2.eta();
+      b_genlep1_pt = lepton1.pt();
+      b_genlep1_eta = lepton1.eta();
+      b_genlep2_pt = lepton2.pt();
+      b_genlep2_eta = lepton2.eta();
 
     } while ( false );
   }
@@ -689,7 +730,9 @@ void TtbarDiLeptonAnalyzer::selectElecs(const cat::ElectronCollection& elecs, Pa
     if (el.pt() < 20.) continue;
     if ((std::abs(el.scEta()) > 1.4442) && (std::abs(el.scEta()) < 1.566)) continue;
     if (std::abs(el.eta()) > 2.4) continue;
-    if ( !el.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-medium") ) continue;
+    if ( !el.electronID("mvaEleID-Spring15-25ns-Trig-V1-wp") ) continue;
+    //if ( !el.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-medium") ) continue;
+    if (el.relIso(0.3) > 0.12) continue;
     //printf("electron with pt %4.1f\n", el.pt());
     selelecs.push_back(el);
   }
