@@ -16,7 +16,7 @@ def hadd(d):
 
     rootFiles = []
     for x in os.listdir(d):
-        if not x.endswith('.root'): continue
+        if not x.endswith('.root') or not x.startswith("hist_"): continue
         x = pathjoin(d, x)
         if os.stat(x).st_size <= 200: continue
         rootFiles.append(x)
