@@ -13,3 +13,6 @@ def customise(process):
             SelectEvents = cms.vstring('p'),
         ),
     )
+
+    if hasattr(process, 'outPath'): process.outPath += process.out
+    else: process.outPath = cms.EndPath(process.out)
