@@ -38,6 +38,9 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
   taunus_.push_back(null);
   taunus_.push_back(null);
 
+  quarksfromW_.push_back(null);
+  quarksfromW_.push_back(null);
+
   std::vector<bool> electronic(2,static_cast<bool>(false));
   std::vector<bool> muonic(2,static_cast<bool>(false));
   std::vector<bool> taunic(2,static_cast<bool>(false));
@@ -108,6 +111,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
       //debug
       //cout << "nW daughters= " << nWDaughters << endl;
       int nWleptonDaughters = 0;
+      int nWquarkDaughters = 0;
       for ( unsigned iWDaughter=0; iWDaughter<nWDaughters; ++iWDaughter ) {
 	const reco::Candidate* decay = daugh->daughter(iWDaughter);
 	int decayId = abs(decay->pdgId());
@@ -201,6 +205,9 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
           }
 	} else if( decayId < 6 ){
           hadronic[ntop] = true;
+          if(nWquarkDaughters == 2) break;
+          quarksfromW_[nWquarkDaughters] = decay->p4();  
+          nWquarkDaughters++;
         } else {
           continue;
         }
@@ -501,7 +508,16 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     //  addJets.push_back(gJet.p4());
     //}
 
-    if(bJetFromTopIds.count(idx) > 0) addJets.push_back( gJet.p4() );
+    if(bJetFromTopIds.count(idx) < 1 && bJetFromWIds.count(idx) < 1 && cJetFromWIds.count(idx) < 1) {
+      double minDRWquarks = 999;
+      for(unsigned int i=0 ; i < quarksfromW_.size() ; i++){
+        double dR = reco::deltaR(gJet.eta(), gJet.phi(), quarksfromW_[i].eta(), quarksfromW_[i].phi());
+        if( dR < minDRWquarks ) minDRWquarks = dR;
+      }
+      if( minDRWquarks > 0.5 ){
+        addJets.push_back( gJet.p4() );
+      }
+    }
 
     if(bJetIds.count(idx) > 0){
       bJetsBHad.push_back( gJet.p4() );
