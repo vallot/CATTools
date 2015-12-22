@@ -17,7 +17,9 @@ GenTop::~GenTop() {
 }
 
 //void GenTop::building( const std::vector<reco::GenJet>* genJets, const std::vector<reco::GenParticle>* genParticles  ){
-void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenParticleCollection> genParticles ){
+void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenParticleCollection> genParticles, 
+                      Handle<std::vector<int> > genBHadFlavour, Handle<std::vector<int> > genBHadJetIndex, 
+                      Handle<std::vector<int> > genCHadFlavour, Handle<std::vector<int> > genCHadJetIndex){
 
   math::XYZTLorentzVector null(0,0,0,0);
 
@@ -361,6 +363,93 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
   NJets30_ = 0;
   NJets40_ = 0;
 
+  // Map <jet index, number of specific hadrons in jet>
+  // B jets with b hadrons directly from t->b decay
+  std::map<int, int> bJetFromTopIds;
+  // B jets with b hadrons from W->b decay
+  std::map<int, int> bJetFromWIds;
+  // C jets with c hadrons from W->c decay
+  std::map<int, int> cJetFromWIds;
+  // B jets with b hadrons before top quark decay chain
+  std::map<int, int> bJetAdditionalIds;
+  // C jets with c hadrons before top quark decay chain
+  std::map<int, int> cJetAdditionalIds;
+  std::map<int, int> bJetIds;
+  std::map<int, int> cJetIds;
+
+  // Count number of specific b hadrons in each c jet
+  for(size_t hadronId = 0; hadronId < genBHadJetIndex->size(); ++hadronId) {
+    // Index of jet associated to the hadron
+    const int jetIndex = genBHadJetIndex->at(hadronId);
+    // Skip hadrons which have no associated jet
+    if(jetIndex < 0) continue;
+    const int flavour = genBHadFlavour->at(hadronId);
+    if(bJetIds.count(jetIndex) < 1) bJetIds[jetIndex] = 1;
+    else bJetIds[jetIndex]++;
+
+    // Jet from t->b decay [pdgId(top)=6]
+    if(std::abs(flavour) == 6) {
+            if(bJetFromTopIds.count(jetIndex) < 1) bJetFromTopIds[jetIndex] = 1;
+            else bJetFromTopIds[jetIndex]++;
+            continue;
+    }
+    // Jet from W->b decay [pdgId(W)=24]
+    if(std::abs(flavour) == 24) {
+            if(bJetFromWIds.count(jetIndex) < 1) bJetFromWIds[jetIndex] = 1;
+            else bJetFromWIds[jetIndex]++;
+            continue;
+    }
+    // Identify jets with b hadrons not from top-quark or W-boson decay
+    if(bJetAdditionalIds.count(jetIndex) < 1) bJetAdditionalIds[jetIndex] = 1;
+    else bJetAdditionalIds[jetIndex]++;
+
+  }
+
+  // Cleaning up b jets from W->b decays
+  for(std::map<int, int>::iterator it = bJetFromWIds.begin(); it != bJetFromWIds.end(); ) {
+    // Cannot be a b jet from t->b decay
+    if(bJetFromTopIds.count(it->first) > 0) bJetFromWIds.erase(it++);
+    else ++it;
+  }
+
+  // Cleaning up additional b jets
+  for(std::map<int, int>::iterator it = bJetAdditionalIds.begin(); it != bJetAdditionalIds.end(); ) {
+    // Cannot be a b jet from t->b decay
+    if(bJetFromTopIds.count(it->first) > 0) bJetAdditionalIds.erase(it++);
+    // Cannot be a b jet from W->b decay
+    else if(bJetFromWIds.count(it->first) > 0) bJetAdditionalIds.erase(it++);
+    else ++it;
+  }
+
+  // Count number of specific c hadrons in each c jet
+  for(size_t hadronId = 0; hadronId < genCHadJetIndex->size(); ++hadronId) {
+    // Index of jet associated to the hadron
+    const int jetIndex = genCHadJetIndex->at(hadronId);
+    // Skip hadrons which have no associated jet
+    if(jetIndex < 0) continue;
+    if(bJetIds.count(jetIndex) > 0) continue;
+    if(cJetIds.count(jetIndex) < 1) cJetIds[jetIndex] = 1;
+    else cJetIds[jetIndex]++;
+    // Flavour of the hadron's origin
+    const int flavour = genCHadFlavour->at(hadronId);
+    // Jet from W->c decay [pdgId(W)=24]
+    if(std::abs(flavour) == 24) {
+      if(cJetFromWIds.count(jetIndex) < 1) cJetFromWIds[jetIndex] = 1;
+      else cJetFromWIds[jetIndex]++;
+      continue;
+    }
+    // Identify jets with c hadrons not from W-boson decay
+    if(cJetAdditionalIds.count(jetIndex) < 1) cJetAdditionalIds[jetIndex] = 1;
+    else cJetAdditionalIds[jetIndex]++;
+  }
+
+  // Cleaning up additional c jets
+  for(std::map<int, int>::iterator it = cJetAdditionalIds.begin(); it != cJetAdditionalIds.end(); ) {
+    // Cannot be a c jet from W->c decay
+    if(cJetFromWIds.count(it->first) > 0) cJetAdditionalIds.erase(it++);
+    else ++it;
+  }
+
   //Gen-jets loop
   //for (std::vector<reco::GenJet>::const_iterator genJet=genJets->begin();genJet!=genJets->end();++genJet, ++idx){
   for (reco::GenJetCollection::const_iterator genJet=genJets->begin();genJet!=genJets->end();++genJet, ++idx){
@@ -402,18 +491,30 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     if( gJet.pt() > 20 && std::abs(gJet.eta()) < 2.5 ) NJets20_++;
     if( gJet.pt() > 10 && std::abs(gJet.eta()) < 2.5 ) NJets10_++;
 
-    double minDRtop = 999;
-    for(unsigned int i=0 ; i < bquarksfromtop.size() ; i++){
-      double dR = reco::deltaR(gJet.eta(), gJet.phi(), bquarksfromtop[i].eta(), bquarksfromtop[i].phi());
-      if( dR < minDRtop ) minDRtop = dR;
-    }
+    //double minDRtop = 999;
+    //for(unsigned int i=0 ; i < bquarksfromtop.size() ; i++){
+    //  double dR = reco::deltaR(gJet.eta(), gJet.phi(), bquarksfromtop[i].eta(), bquarksfromtop[i].phi());
+    //  if( dR < minDRtop ) minDRtop = dR;
+    //}
 
-    if( minDRtop > 0.5 ){
-      addJets.push_back(gJet.p4());
+    //if( minDRtop > 0.5 ){
+    //  addJets.push_back(gJet.p4());
+    //}
+
+    if(bJetFromTopIds.count(idx) > 0) addJets.push_back( gJet.p4() );
+
+    if(bJetIds.count(idx) > 0){
+      bJetsBHad.push_back( gJet.p4() );
+      if(bJetFromTopIds.count(idx) < 1) addbJetsBHad.push_back( gJet.p4() ); 
+    }
+    
+    if(cJetIds.count(idx) > 0){
+      cJetsCHad.push_back( gJet.p4() );
     }
 
     //Looking at Jet constituents
     //bool istopdecay = false;
+    /*
     std::vector <const reco::GenParticle*> mcparts = genJet->getGenConstituents();
     for (unsigned i = 0; i < mcparts.size (); i++) {
       const GenParticle* mcpart = mcparts[i];
@@ -441,9 +542,10 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
         }
       }
     }
+    */
   }
 
-
+  /*
   for( std::map<const reco::Candidate*, vector<int> >::iterator it = mapBHadronToJets.begin() ; it != mapBHadronToJets.end(); it++){
 
     const reco::Candidate* BHadron = (*it).first;
@@ -507,6 +609,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     if( minDR < 0.5) continue;
     addbJetsBHad.push_back( genJet.p4() );
   }
+  */
 
   std::sort(bJetsBHad.begin(), bJetsBHad.end(), GreaterByPt<reco::Candidate::LorentzVector>());
   std::sort(addbJetsBHad.begin(), addbJetsBHad.end(), GreaterByPt<reco::Candidate::LorentzVector>());
@@ -541,6 +644,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     if( addbJetsBHad[i].pt() > 40 && std::abs(addbJetsBHad[i].eta()) < 2.5) NaddbJets40BHad_++;
   }
 
+  /*
   for( std::map<int, vector<const reco::Candidate*> >::iterator it = mapJetToCHadrons.begin() ; it != mapJetToCHadrons.end(); it++){
     if( (*it).second.size() > 1) cout << "!!! This jet matches with more than 1 hadron !!!" << endl;
     int idx = (*it).first;
@@ -550,6 +654,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     if( mapJetToBMatched[idx]  == 1 ) continue; //if it is assigned as b-jet, do not count it as c-jet
     cJetsCHad.push_back( genJet.p4() );
   }
+  */
 
   std::sort(cJetsCHad.begin(), cJetsCHad.end(), GreaterByPt<reco::Candidate::LorentzVector>());
 
