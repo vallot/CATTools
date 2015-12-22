@@ -34,6 +34,7 @@ def hadd(d):
         os.system(cmd)
         os.system("rm -rf %s/*.tgz" % d)
         os.system("tar czf %s/log.tgz %s/*.log %s/*.err" % (d, d, d))
+        os.system("rm -f %s/*.log %s/*.err" % (d, d))
     else:
         print
         print "+"*40
