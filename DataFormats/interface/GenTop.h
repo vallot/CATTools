@@ -253,6 +253,7 @@ namespace cat {
     LorentzVectors addbJets_;
     LorentzVectors addbJetsHad_;
     LorentzVectors addJets_;
+    LorentzVectors quarksfromW_;
 
     float ttbarmass_;
 
