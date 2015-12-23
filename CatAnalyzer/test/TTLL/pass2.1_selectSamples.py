@@ -37,7 +37,7 @@ for x in json.loads(open(jsdir+"/dataset.json").read()):
 srcList = {}
 mergeList = {}
 for path, dirs, files in os.walk(srcbase):
-    rootFiles = [x for x in files if x.endswith('.root')]
+    rootFiles = [x for x in files if x.endswith('.root') and not x.startswith('out_')]
     if len(rootFiles) == 0: continue
 
     pp = path.split('/')[1:]
@@ -53,8 +53,8 @@ for path, dirs, files in os.walk(srcbase):
     nameInInfo = name
     if nameInInfo in blacklisted: continue
     if name.startswith("TT"):
-        if name.endswith("_LL"): nameInInfo = name[:-2]
-        elif name.endswith("_LLOthers"): nameInInfo = name[:-8]
+        if name.endswith("_LL"): nameInInfo = name[:-3]
+        elif name.endswith("_Others"): nameInInfo = name[:-7]
 
     xsec = info[nameInInfo]['xsec']
     color = info[nameInInfo]['colour']
@@ -66,7 +66,7 @@ for path, dirs, files in os.walk(srcbase):
     ## Put back suffix
     if name.startswith("TT"):
         if name.endswith("_LL"): safeTitle += "_LL"
-        elif name.endswith("_LLOthers"): safeTitle += "_LLOthers"
+        elif name.endswith("_Others"): safeTitle += "_Others"
 
     for f in rootFiles:
         outpath = [outbase]
