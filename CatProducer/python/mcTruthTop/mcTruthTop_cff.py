@@ -10,4 +10,3 @@ partonTop = cms.EDProducer("PartonTopProducer",
 from TopQuarkAnalysis.TopEventProducers.producers.pseudoTop_cfi import *
 
 from TopQuarkAnalysis.TopTools.GenTtbarCategorizer_cfi import *
-from CATTools.CatProducer.mcTruthTop.genTopProducer_cfi import *
