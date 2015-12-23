@@ -63,7 +63,7 @@ for d in sigList:
     submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
 
     for ss in sigTypes:
-        name = name+'_'+ss
+        name = d['name']+'_'+ss
         print>>out, (submitCmd + " --jobName %s/central --customise customise_saveEvent_cfg.py" % name)
 
         ## Scale up/down systematic undertainty from LHE weight
