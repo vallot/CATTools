@@ -60,6 +60,8 @@ namespace cat {
     void setIsEB(bool d) { isEB_ = d ; }
 
     void setSNUID(int id) {snuID_ = id;}
+
+    float scaleFactor(const std::string& name) const;
     
   private:
 
