@@ -61,7 +61,7 @@ namespace cat {
 
     void setSNUID(int id) {snuID_ = id;}
 
-    float scaleFactor(const std::string& name) const;
+    float scaleFactor(const std::string& name, int sign = 0) const;
     
   private:
 

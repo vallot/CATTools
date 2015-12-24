@@ -50,7 +50,7 @@ namespace cat {
     void setNumberOfValidPixelHits(int i) { numberOfValidPixelHits_ = i; }
     void setTackerLayersWithMeasurement(int i) { trackerLayersWithMeasurement_ = i; }
 
-    float scaleFactor(const std::string& name) const;
+    float scaleFactor(const std::string& name, int sign = 0) const;
     
   private:
 
