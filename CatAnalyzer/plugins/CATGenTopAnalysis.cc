@@ -10,8 +10,8 @@
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
 #include "Math/GenVector/Boost.h"
-#include "TH1F.h"
-#include "TH2F.h"
+#include "TH1D.h"
+#include "TH2D.h"
 
 #include <iostream>
 
@@ -53,8 +53,8 @@ private:
     return true;
   }
 
-  typedef TH1F* H1;
-  typedef TH2F* H2;
+  typedef TH1D* H1;
+  typedef TH2D* H2;
 
   enum {
     SL_topPt        , SL_topPtTtbarSys, SL_topY         ,
@@ -69,6 +69,8 @@ private:
   };
 
   // 1D histograms
+  H1 hWeight_; // Weight distribution
+
   std::vector<H1> hFulParton_; // Full phase space parton level
   std::vector<H1> hFidParton_; // Fiducial phase space parton level
   std::vector<H1> hComParton_; // Parton particle common phase space parton level
@@ -167,17 +169,17 @@ CATGenTopAnalysis::CATGenTopAnalysis(const edm::ParameterSet& pset):
 
     const string name = names[i];
     const string title = string(name) + ";" + titles[i];
-    hFulParton_.push_back(dirFulParton.make<TH1F>(name.c_str(), title.c_str(), nbins, binPtr));
-    hFidParton_.push_back(dirFidParton.make<TH1F>(name.c_str(), title.c_str(), nbins, binPtr));
-    hComParton_.push_back(dirComParton.make<TH1F>(name.c_str(), title.c_str(), nbins, binPtr));
-    hComPseudo_.push_back(dirComPseudo.make<TH1F>(name.c_str(), title.c_str(), nbins, binPtr));
-    hPseudo_.push_back(dirPseudo.make<TH1F>(name.c_str(), title.c_str(), nbins, binPtr));
-    hChPseudo_.push_back(dirChPseudo.make<TH1F>(name.c_str(), title.c_str(), nbins, binPtr));
+    hFulParton_.push_back(dirFulParton.make<TH1D>(name.c_str(), title.c_str(), nbins, binPtr));
+    hFidParton_.push_back(dirFidParton.make<TH1D>(name.c_str(), title.c_str(), nbins, binPtr));
+    hComParton_.push_back(dirComParton.make<TH1D>(name.c_str(), title.c_str(), nbins, binPtr));
+    hComPseudo_.push_back(dirComPseudo.make<TH1D>(name.c_str(), title.c_str(), nbins, binPtr));
+    hPseudo_.push_back(dirPseudo.make<TH1D>(name.c_str(), title.c_str(), nbins, binPtr));
+    hChPseudo_.push_back(dirChPseudo.make<TH1D>(name.c_str(), title.c_str(), nbins, binPtr));
 
     const string name2 = "resp_"+names[i];
     const string title2 = names[i]+";Particle level "+titles[i]+";Parton level "+titles[i];
-    h2_.push_back(dirPseudo.make<TH2F>(name2.c_str(), title2.c_str(), nbins, binPtr, nbins, binPtr));
-    h2Com_.push_back(dirComPseudo.make<TH2F>(name2.c_str(), title2.c_str(), nbins, binPtr, nbins, binPtr));
+    h2_.push_back(dirPseudo.make<TH2D>(name2.c_str(), title2.c_str(), nbins, binPtr, nbins, binPtr));
+    h2Com_.push_back(dirComPseudo.make<TH2D>(name2.c_str(), title2.c_str(), nbins, binPtr, nbins, binPtr));
   }
 
   assert(hFulParton_.size() == END);
@@ -197,17 +199,17 @@ CATGenTopAnalysis::CATGenTopAnalysis(const edm::ParameterSet& pset):
     "#tau hadronic+jet", "#tau#rightarrow l+jet", "#tau dilepton"
   };
 
-  hFulParton_Channel_ = dirFulParton.make<TH1F>("channel", "channel", 9, 0, 9);
-  hFidParton_Channel_ = dirFidParton.make<TH1F>("channel", "channel", 9, 0, 9);
-  hComParton_Channel_ = dirComParton.make<TH1F>("channel", "channel", 9, 0, 9);
-  hComPseudo_Channel_ = dirComPseudo.make<TH1F>("channel", "channel", 9, 0, 9);
-  hPseudo_Channel_    = dirPseudo.make<TH1F>("channel", "channel", 9, 0, 9);
-  hChPseudo_Channel_  = dirChPseudo.make<TH1F>("channel", "channel", 9, 0, 9);
+  hFulParton_Channel_ = dirFulParton.make<TH1D>("channel", "channel", 9, 0, 9);
+  hFidParton_Channel_ = dirFidParton.make<TH1D>("channel", "channel", 9, 0, 9);
+  hComParton_Channel_ = dirComParton.make<TH1D>("channel", "channel", 9, 0, 9);
+  hComPseudo_Channel_ = dirComPseudo.make<TH1D>("channel", "channel", 9, 0, 9);
+  hPseudo_Channel_    = dirPseudo.make<TH1D>("channel", "channel", 9, 0, 9);
+  hChPseudo_Channel_  = dirChPseudo.make<TH1D>("channel", "channel", 9, 0, 9);
 
-  h2DebugChannel_  = fs->make<TH2F>("h2DebugChannel", "No filter debug;Parton;Pseudotop", 9, 0, 9, 9, 0, 9);
-  h2PseudoChannel_ = fs->make<TH2F>("h2PseudoChannel", "Pseudotop phase space;Parton;Pseudotop", 9, 0, 9, 9, 0, 9);
-  h2ComChannel_    = fs->make<TH2F>("h2ComChannel", "Common phase space;Parton;Pseudotop", 9, 0,9, 9, 0, 9);
-  h2ChChannel_     = fs->make<TH2F>("h2ChChannel", "Common phase space same channel;Parton;Pseudotop", 9, 0, 9, 9, 0, 9);
+  h2DebugChannel_  = fs->make<TH2D>("h2DebugChannel", "No filter debug;Parton;Pseudotop", 9, 0, 9, 9, 0, 9);
+  h2PseudoChannel_ = fs->make<TH2D>("h2PseudoChannel", "Pseudotop phase space;Parton;Pseudotop", 9, 0, 9, 9, 0, 9);
+  h2ComChannel_    = fs->make<TH2D>("h2ComChannel", "Common phase space;Parton;Pseudotop", 9, 0,9, 9, 0, 9);
+  h2ChChannel_     = fs->make<TH2D>("h2ChChannel", "Common phase space same channel;Parton;Pseudotop", 9, 0, 9, 9, 0, 9);
 
   std::vector<H2> hh = {h2DebugChannel_, h2PseudoChannel_, h2ComChannel_, h2ChChannel_};
   for ( int i=0, n=channelNames.size(); i<n; ++i ) {
@@ -229,6 +231,8 @@ CATGenTopAnalysis::CATGenTopAnalysis(const edm::ParameterSet& pset):
     h2ChChannel_    ->GetYaxis()->SetBinLabel(i+1, channelNames[i]);
   }
 
+  hWeight_ = fs->make<TH1D>("hWeight", "weights", 100, -5, 5);
+
 }
 
 void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup&)
@@ -246,6 +250,8 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup&)
     event.getByToken(weightsToken_, vfHandle);
     weight = vfHandle->at(weightIndex_-1);
   }
+
+  hWeight_->Fill(weight);
 
   edm::Handle<int> channelHandle;
   event.getByToken(channelToken_, channelHandle);
