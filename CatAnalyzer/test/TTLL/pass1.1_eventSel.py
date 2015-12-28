@@ -16,6 +16,14 @@ import json
 dataDir = "%s/src/CATTools/CatAnalyzer/data" % os.environ["CMSSW_BASE"]
 js = json.loads(open("%s/dataset.json" % dataDir).read())
 
+def isBlacklisted(name):
+    for x in [
+        "GluGluToZZ", "HToMuMu", "WpWp", "WW_dps",
+        "WWTo2L2Nu_powheg", "WZTo", "ZZTo",
+        "SingleElectron_Run2015", "SingleMuon_Run2015", ]:
+        if x in name: return True
+    return False
+
 sigList = []
 bkgList = []
 datList = []
@@ -38,6 +46,7 @@ for j in js:
 out = open("%s/submit_dat_central.sh" % outDir, "w")
 for d in datList:
     name = d['name']
+    if isBlacklisted(name): continue
     submitCmd  = "create-batch --cfg analyze_data_cfg.py --maxFiles 100"
     submitCmd += " --jobName %s --fileList %s/dataset_%s.txt" % (name, dataDir, name)
 
@@ -47,6 +56,7 @@ out.close()
 out = open("%s/submit_bkg_central.sh" % outDir, "w")
 for d in bkgList:
     name = d['name']
+    if isBlacklisted(name): continue
     submitCmd  = "create-batch --cfg analyze_bkg_cfg.py --maxFiles 100"
     submitCmd += " --jobName %s --fileList %s/dataset_%s.txt" % (name, dataDir, name)
 
@@ -54,6 +64,7 @@ for d in bkgList:
 
 for d in sigList: ## TTbar others are treated as background
     name = d['name']
+    if isBlacklisted(name): continue
     submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 100"
     submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
 
@@ -64,6 +75,7 @@ out.close()
 out = open("%s/submit_sig_central.sh" % outDir, "w")
 for d in sigList:
     name = d['name']
+    if isBlacklisted(name): continue
     submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 100"
     submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
 
@@ -91,19 +103,22 @@ for systName in systAny:
 
     for d in datList:
         name = d['name']
+        if isBlacklisted(name): continue
         submitCmd  = "create-batch --cfg analyze_data_cfg.py --maxFiles 100"
         submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
         print>>out_dat, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, syst)))
 
     for d in bkgList:
         name = d['name']
+        if isBlacklisted(name): continue
         submitCmd  = "create-batch --cfg analyze_bkg_cfg.py --maxFiles 100"
         submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
         print>>out_bkg, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, syst)))
 
     for d in sigList:
-        if '_scaleup' in d or '_scaledown' in d: continue ## Skip this variations for scale up/down samples
+        if '_scaleup' in name or '_scaledown' in name: continue ## Skip this variations for scale up/down samples
         name = d['name']
+        if isBlacklisted(name): continue
         submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 100"
         submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
 
@@ -122,6 +137,7 @@ for systName in systMC:
 
     for d in bkgList:
         name = d['name']
+        if isBlacklisted(name): continue
         submitCmd  = "create-batch --cfg analyze_bkg_cfg.py --maxFiles 100"
         submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
         print>>out_bkg, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, syst)))
@@ -129,6 +145,7 @@ for systName in systMC:
     for d in sigList:
         if '_scaleup' in name or '_scaledown' in name: continue ## Skip this variations for scale up/down samples
         name = d['name']
+        if isBlacklisted(name): continue
         submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 100"
         submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
 
@@ -143,6 +160,7 @@ for i in range(1,9): # total 8 scale variations, 3 muF x 3 muR and one for centr
     syst = 'ttll.genWeight.src="genWeight:pdfWeights" ttll.genWeight.index=%d' % i
     for d in bkgList:
         name = d['name']
+        if isBlacklisted(name): continue
         submitCmd  = "create-batch --cfg analyze_bkg_cfg.py --maxFiles 100"
         submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
         print>>out_bkg, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, syst)))
@@ -152,6 +170,7 @@ for i in range(1,9): # total 8 scale variations, 3 muF x 3 muR and one for centr
     for d in sigList:
         name = d['name']
         if '_scaleup' not in name and '_scaledown' not in name: continue ## Apply this for scale up/down samples # FIXME : this can be changed
+        if isBlacklisted(name): continue
         submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 100"
         submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
 
@@ -164,6 +183,7 @@ for i in range(1,9): # total 8 scale variations, 3 muF x 3 muR and one for centr
 ## -- for note madgraph weightSize = 445 + 8 variations
 for d in bkgList:
     name = d['name']
+    if isBlacklisted(name): continue
     if '_aMC' in name: weightSize = 110
     elif '_powheg' in name: weightSize = 248
     else: continue
@@ -177,6 +197,7 @@ for d in bkgList:
 
 for d in sigList:
     name = d['name']
+    if isBlacklisted(name): continue
     if '_scale' in name: continue
     if '_aMC' in name: weightSize = 110
     elif '_powheg' in name: weightSize = 248
