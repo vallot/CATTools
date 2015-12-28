@@ -547,7 +547,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
     ////////////////////////////////////////////////////////  KIN  /////////////////////////////////////
     //int kin=0;
-    math::XYZTLorentzVector top1, top2, nu1, nu2;
+    math::XYZTLorentzVector top1, top2, nu1, nu2, bjet1, bjet2;
     double maxweight=0;
     //const cat::Jet* kinj1, * kinj2;
 
@@ -587,15 +587,25 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	}
 	else continue;
 
-	b_jet1_pt = recojet1.Pt();
-	b_jet1_eta = recojet1.Eta();
-	b_jet2_pt = recojet2.Pt();
-	b_jet2_eta = recojet2.Eta();
+	//saving results
+	bjet1 = recojet1;
+	bjet2 = recojet2;
 
 	top1 = recolepLV1+inputLV[3]+nu1;
 	top2 = recolepLV2+inputLV[4]+nu2;
+
       }
     }
+
+	if (bjet1.Pt() < bjet2.Pt()) { swap(bjet1, bjet2); }
+
+	b_jet1_pt = bjet1.Pt();
+	b_jet1_eta = bjet1.Eta();
+	b_jet2_pt = bjet2.Pt();
+	b_jet2_eta = bjet2.Eta();
+    cout << "jet: " << b_jet1_pt << "   " << b_jet2_pt << endl;
+
+	if (top1.Pt() < top2.Pt()) { swap(top1, top2); }
 
     b_top1_pt = top1.Pt();
     b_top1_eta = top1.Eta();
@@ -607,7 +617,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     b_top2_phi = top2.Phi();
     b_top2_rapi = top2.Rapidity();
     b_top2_m = top2.M();
-    //cout << b_top1_m <<"   " << b_top2_m << endl;
+    cout << "top: " << b_top1_pt << "   " << b_top2_pt << endl;
 
     auto ttbar = top1+top2;
     b_ttbar_pt = ttbar.Pt();
