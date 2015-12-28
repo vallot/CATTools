@@ -90,13 +90,13 @@ for d in sigList:
                     arg += ' agen.weight="genWeight:pdfWeights" agen.weightIndex=%d' % i
                     print>>out, (submitCmd + (" --jobName %s/gen_PDF/%d --args '%s'" % (name, i, arg)))
 
-        ## Loop over all systematics
-        for systName in systAll:
-            arg = sigTypes[ss] + ' ' + systAll[systName]
-            print>>out, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, arg)))
-        for systName in systMC:
-            arg = sigTypes[ss] + ' ' + systMC[systName]
-            print>>out, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, arg)))
+                ## Loop over all systematics
+                for systName in systAll:
+                    arg = sigTypes[ss] + ' ' + systAll[systName]
+                    print>>out, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, arg)))
+                for systName in systMC:
+                    arg = sigTypes[ss] + ' ' + systMC[systName]
+                    print>>out, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, arg)))
 out.close()
 
 out = open("%s/submit_bkg.sh" % outDir, "w")
