@@ -70,7 +70,7 @@ for d in sigList:
         ## This uncertainty have to be combined with envelope
         ## Let us assume index1-10 are for the scale variations (muF & muR)
         if '_aMC' in name or '_powheg' in name:
-            print>>out, "## Scale variations in aMC@NLO sample"
+            print>>out, "## Scale variations in ", name, "sample"
             for i in range(1,9): # total 8 scale variations, 3 muF x 3 muR and one for central weight
                 arg =  'ttll.src="genWeight:pdfWeights" ttll.genWeight.index=%d' % i
                 arg += ' agen.weight="genWeight:pdfWeights" agen.weightIndex=%d' % i
