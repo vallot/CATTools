@@ -3,6 +3,7 @@
 import sys, os
 from os.path import isdir as isdir
 from os.path import join as pathjoin
+from multiprocessing import Pool
 
 def hadd(d):
     d = d.rstrip('/')
@@ -43,25 +44,29 @@ def hadd(d):
         print "+"*40
         print
 
-pass1Dir = "pass1"
-outFiles = []
-for sample in os.listdir(pass1Dir):
-    sample = pathjoin(pass1Dir, sample)
-    if not isdir(sample): continue
+if __name__ == '__main__':
+    pool = Pool(30)
+    pass1Dir = "pass1"
+    outFiles = []
+    for sample in os.listdir(pass1Dir):
+        sample = pathjoin(pass1Dir, sample)
+        if not isdir(sample): continue
 
-    hadd(pathjoin(sample,'central'))
-    outFiles.append(pathjoin(sample,'central.root'))
+        pool.apply_async(hadd, [pathjoin(sample,'central')])
+        outFiles.append(pathjoin(sample,'central.root'))
 
-    for category in os.listdir(sample):
-        if category == 'central': continue
-        category = pathjoin(sample, category)
-        if not isdir(category): continue
+        for category in os.listdir(sample):
+            if category == 'central': continue
+            category = pathjoin(sample, category)
+            if not isdir(category): continue
 
-        for direction in os.listdir(category):
-            direction = pathjoin(category, direction)
-            if not isdir(direction): continue
-            hadd(direction)
-            outFiles.append(direction+'.root')
+            for direction in os.listdir(category):
+                direction = pathjoin(category, direction)
+                if not isdir(direction): continue
+                pool.apply_async(hadd, [direction])
+                outFiles.append(direction+'.root')
 
-for l in outFiles:
-    print l
+    pool.close()
+    pool.join()
+    for l in outFiles:
+        print l
