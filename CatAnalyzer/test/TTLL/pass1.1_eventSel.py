@@ -64,7 +64,8 @@ for d in sigList:
 
     for ss in sigTypes:
         name = d['name']+'_'+ss
-        print>>out, (submitCmd + " --jobName %s/central --customise customise_saveEvent_cfg.py" % name)
+        arg = sigTypes[ss]
+        print>>out, (submitCmd + " --jobName %s/central --customise customise_saveEvent_cfg.py --args '%s'" % (name, arg))
 
         ## Scale up/down systematic undertainty from LHE weight
         ## This uncertainty have to be combined with envelope
