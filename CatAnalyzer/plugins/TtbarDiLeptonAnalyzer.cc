@@ -155,6 +155,41 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   for (int sys = 0; sys < nsys_e; ++sys){
     ttree_.push_back(fs->make<TTree>(sys_name[sys].c_str(), sys_name[sys].c_str()));
     auto tr = ttree_.back();
+    tr->Branch("nvertex", &b_nvertex, "nvertex/I");
+    tr->Branch("step", &b_step, "step/I");
+    tr->Branch("channel", &b_channel, "channel/I");
+    tr->Branch("njet", &b_njet, "njet/I");
+    tr->Branch("nbjet", &b_nbjet, "nbjet/I");
+    tr->Branch("step1", &b_step1, "step1/O");
+    tr->Branch("step2", &b_step2, "step2/O");
+    tr->Branch("step3", &b_step3, "step3/O");
+    tr->Branch("step4", &b_step4, "step4/O");
+    tr->Branch("step5", &b_step5, "step5/O");
+    tr->Branch("step6", &b_step6, "step6/O");
+    tr->Branch("tri", &b_tri, "tri/O");
+    tr->Branch("filtered", &b_filtered, "filtered/O");
+    tr->Branch("met", &b_met, "met/F");
+    tr->Branch("weight", &b_weight, "weight/F");
+    tr->Branch("puweight", &b_puweight, "puweight/F");
+    tr->Branch("puweight_up", &b_puweight_up, "puweight_up/F");
+    tr->Branch("puweight_dn", &b_puweight_dn, "puweight_dn/F");
+    tr->Branch("genweight", &b_genweight, "genweight/F");
+    tr->Branch("lepweight", &b_lepweight, "lepweight/F");
+    tr->Branch("btagweight", &b_btagweight, "btagweight/F");
+    tr->Branch("btagweight_up", &b_btagweight_up, "btagweight_up/F");
+    tr->Branch("btagweight_dn", &b_btagweight_dn, "btagweight_dn/F");
+
+    tr->Branch("lep1_pt", &b_lep1_pt, "lep1_pt/F");
+    tr->Branch("lep1_eta", &b_lep1_eta, "lep1_eta/F");
+    tr->Branch("lep1_phi", &b_lep1_phi, "lep1_phi/F");
+    tr->Branch("lep2_pt", &b_lep2_pt, "lep2_pt/F");
+    tr->Branch("lep2_eta", &b_lep2_eta, "lep2_eta/F");
+    tr->Branch("lep2_phi", &b_lep2_phi, "lep2_phi/F");
+    tr->Branch("ll_pt", &b_ll_pt, "ll_pt/F");
+    tr->Branch("ll_eta", &b_ll_eta, "ll_eta/F");
+    tr->Branch("ll_phi", &b_ll_phi, "ll_phi/F");
+    tr->Branch("ll_m", &b_ll_m, "ll_m/F");
+
     tr->Branch("partontop1_pt", &b_partontop1_pt, "partontop1_pt/F");
     tr->Branch("partontop1_eta", &b_partontop1_eta, "partontop1_eta/F");
     tr->Branch("partontop1_rapi", &b_partontop1_rapi, "partontop1_rapi/F");
@@ -676,8 +711,8 @@ float TtbarDiLeptonAnalyzer::selectElecs(const cat::ElectronCollection& elecs, P
   float weight = 1.;
   for (auto& e : elecs) {
     cat::Electron el(e);
-    if (sys == sys_mu_u) el.setP4(e.p4() * e.shiftedEnUp());
-    if (sys == sys_mu_d) el.setP4(e.p4() * e.shiftedEnDown());
+    if (sys == sys_el_u) el.setP4(e.p4() * e.shiftedEnUp());
+    if (sys == sys_el_d) el.setP4(e.p4() * e.shiftedEnDown());
     
     if (el.pt() < 20.) continue;
     if ((std::abs(el.scEta()) > 1.4442) && (std::abs(el.scEta()) < 1.566)) continue;
