@@ -74,7 +74,7 @@ for d in sigList:
             print>>out, "## Scale variations in ", name, "sample"
             for i in range(1,9): # total 8 scale variations, 3 muF x 3 muR and one for central weight
                 arg = sigTypes[ss]
-                arg += ' ttll.src="genWeight:pdfWeights" ttll.genWeight.index=%d' % i
+                arg += ' ttll.genWeight.src="genWeight:pdfWeights" ttll.genWeight.index=%d' % i
                 arg += ' agen.weight="genWeight:pdfWeights" agen.weightIndex=%d' % i
                 print>>out, (submitCmd + (" --jobName %s/gen_scale/%d --args '%s'" % (name, i, arg)))
 
@@ -86,7 +86,7 @@ for d in sigList:
                 else: weightSize = 0
                 for i in range(9, weightSize+1):
                     arg = sigTypes[ss]
-                    arg += ' ttll.src="genWeight:pdfWeights" ttll.genWeight.index=%d' % i
+                    arg += ' ttll.genWeight.src="genWeight:pdfWeights" ttll.genWeight.index=%d' % i
                     arg += ' agen.weight="genWeight:pdfWeights" agen.weightIndex=%d' % i
                     print>>out, (submitCmd + (" --jobName %s/gen_PDF/%d --args '%s'" % (name, i, arg)))
 
