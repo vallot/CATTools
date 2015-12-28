@@ -32,13 +32,6 @@ for j in js:
         if datasetName.startswith("/QCD"): continue
         bkgList.append(j)
 
-## Split ttbar signals by generator level categories
-sigTypes = {
-    'LL':'filterPartonTTLL.invert=False',
-    'Others':'filterPartonTTLL.invert=True',
-    ## FIXME: add ttbb, ttjj others
-}
-
 ## Undertainty variations
 systAll = {
     'lep_pt/up':'ttll.muon.scaleDirection=1 ttll.electron.scaleDirection=1',
@@ -55,48 +48,72 @@ systMC = {
 }
 
 ## Write script to run create-batch
+## Start from the signal process
 out = open("%s/submit_sig.sh" % outDir, "w")
 for d in sigList:
-    name = d['name']
+    name = d['name']+'_LL'
     title = d['title']
     submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 100"
     submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
 
-    for ss in sigTypes:
-        name = d['name']+'_'+ss
-        arg = sigTypes[ss]
-        print>>out, (submitCmd + " --jobName %s/central --customise customise_saveEvent_cfg.py --args '%s'" % (name, arg))
+    arg0 = 'filterPartonTTLL.invert=False'
+    print>>out, (submitCmd + " --jobName %s/central --customise customise_saveEvent_cfg.py --args '%s'" % (name, arg0))
 
-        ## Scale up/down systematic undertainty from LHE weight
-        ## This uncertainty have to be combined with envelope
-        ## Let us assume index1-10 are for the scale variations (muF & muR)
-        if '_aMC' in name or '_powheg' in name:
-            print>>out, "## Scale variations in ", name, "sample"
-            for i in range(1,9): # total 8 scale variations, 3 muF x 3 muR and one for central weight
-                arg = sigTypes[ss]
-                arg += ' ttll.genWeight.src="genWeight:pdfWeights" ttll.genWeight.index=%d' % i
-                arg += ' agen.weight="genWeight:pdfWeights" agen.weightIndex=%d' % i
-                print>>out, (submitCmd + (" --jobName %s/gen_scale/%d --args '%s'" % (name, i, arg)))
+    ## Scale up/down systematic uncertainty from LHE weight
+    ## This uncertainty have to be combined with envelope
+    ## Let us assume index1-10 are for the scale variations (muF & muR)
+    ## NOTE: there is weight vector, but we don't do it for LO generator here.
+    ## -- for note madgraph weightSize = 445 + 8 variations
+    if '_aMC' in name: weightSize = 110
+    elif '_powheg' in name: weightSize = 248
+    else: continue
 
-            if '_scale' not in name:
-                if '_aMC' in name: weightSize = 110
-                elif '_powheg' in name: weightSize = 248
-                ## NOTE: there is weight vector, but we don't do it for LO generator here.
-                ##elif '_madgraph' in name: weightSize = 445
-                else: weightSize = 0
-                for i in range(9, weightSize+1):
-                    arg = sigTypes[ss]
-                    arg += ' ttll.genWeight.src="genWeight:pdfWeights" ttll.genWeight.index=%d' % i
-                    arg += ' agen.weight="genWeight:pdfWeights" agen.weightIndex=%d' % i
-                    print>>out, (submitCmd + (" --jobName %s/gen_PDF/%d --args '%s'" % (name, i, arg)))
+    print>>out, "## Scale variations in ", name, "sample"
+    for i in range(1,9): # total 8 scale variations, 3 muF x 3 muR and one for central weight
+        arg = arg0
+        arg += ' ttll.genWeight.src="genWeight:pdfWeights" ttll.genWeight.index=%d' % i
+        arg += ' agen.weight="genWeight:pdfWeights" agen.weightIndex=%d' % i
+        print>>out, (submitCmd + (" --jobName %s/gen_scale/%d --args '%s'" % (name, i, arg)))
 
-                ## Loop over all systematics
-                for systName in systAll:
-                    arg = sigTypes[ss] + ' ' + systAll[systName]
-                    print>>out, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, arg)))
-                for systName in systMC:
-                    arg = sigTypes[ss] + ' ' + systMC[systName]
-                    print>>out, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, arg)))
+    ## Proceed to the PDF variations, no need to run on scale variation samples
+    if '_scale' in name: continue
+
+    for i in range(9, weightSize+1):
+        arg = arg0
+        arg += ' ttll.genWeight.src="genWeight:pdfWeights" ttll.genWeight.index=%d' % i
+        arg += ' agen.weight="genWeight:pdfWeights" agen.weightIndex=%d' % i
+        print>>out, (submitCmd + (" --jobName %s/gen_PDF/%d --args '%s'" % (name, i, arg)))
+
+    ## Loop over all systematics
+    for systName in systAll:
+        arg = arg0 + ' ' + systAll[systName]
+        print>>out, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, arg)))
+    for systName in systMC:
+        arg = arg0 + ' ' + systMC[systName]
+        print>>out, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, arg)))
+
+## Continue to ttbar-others
+for d in sigList:
+    name = d['name']+'_Others'
+
+    if '_aMC' not in name and '_powheg' not in name: continue
+    if '_scale' in name: continue
+
+    title = d['title']
+    submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 100"
+    submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
+
+    arg0 = 'filterPartonTTLL.invert=True'
+    print>>out, (submitCmd + " --jobName %s/central --customise customise_saveEvent_cfg.py --args '%s'" % (name, arg0))
+
+    ## Loop over all systematics
+    for systName in systAll:
+        arg = arg0 + ' ' + systAll[systName]
+        print>>out, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, arg)))
+    for systName in systMC:
+        arg = arg0 + ' ' + systMC[systName]
+        print>>out, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, arg)))
+
 out.close()
 
 out = open("%s/submit_bkg.sh" % outDir, "w")
