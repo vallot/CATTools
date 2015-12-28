@@ -73,9 +73,9 @@ for d in sigList:
         if '_aMC' in name or '_powheg' in name:
             print>>out, "## Scale variations in ", name, "sample"
             for i in range(1,9): # total 8 scale variations, 3 muF x 3 muR and one for central weight
-                arg =  'ttll.src="genWeight:pdfWeights" ttll.genWeight.index=%d' % i
+                arg = sigTypes[ss]
+                arg += ' ttll.src="genWeight:pdfWeights" ttll.genWeight.index=%d' % i
                 arg += ' agen.weight="genWeight:pdfWeights" agen.weightIndex=%d' % i
-                arg += " "+sigTypes[ss]
                 print>>out, (submitCmd + (" --jobName %s/gen_scale/%d --args '%s'" % (name, i, arg)))
 
             if '_scale' not in name:
@@ -85,17 +85,17 @@ for d in sigList:
                 ##elif '_madgraph' in name: weightSize = 445
                 else: weightSize = 0
                 for i in range(9, weightSize+1):
-                    arg = 'ttll.src="genWeight:pdfWeights" ttll.genWeight.index=%d' % i
+                    arg = sigTypes[ss]
+                    arg += ' ttll.src="genWeight:pdfWeights" ttll.genWeight.index=%d' % i
                     arg += ' agen.weight="genWeight:pdfWeights" agen.weightIndex=%d' % i
-                    arg += " "+sigTypes[ss]
                     print>>out, (submitCmd + (" --jobName %s/gen_PDF/%d --args '%s'" % (name, i, arg)))
 
         ## Loop over all systematics
         for systName in systAll:
-            arg = systAll[systName]
+            arg = sigTypes[ss] + ' ' + systAll[systName]
             print>>out, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, arg)))
         for systName in systMC:
-            arg = systMC[systName]
+            arg = sigTypes[ss] + ' ' + systMC[systName]
             print>>out, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, arg)))
 out.close()
 
