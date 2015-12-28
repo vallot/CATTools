@@ -56,7 +56,7 @@ private:
   typedef TH1D* H1;
   typedef TH2D* H2;
 
-  enum {
+  enum H {
     SL_topPt        , SL_topPtTtbarSys, SL_topY         ,
     SL_ttbarDelPhi  , SL_topPtLead    , SL_topPtSubLead ,
     SL_ttbarPt      , SL_ttbarY       , SL_ttbarMass    ,
@@ -111,50 +111,29 @@ CATGenTopAnalysis::CATGenTopAnalysis(const edm::ParameterSet& pset):
   usesResource("TFileService");
   edm::Service<TFileService> fs;
 
-  const std::vector<std::vector<float> > bins = {
-    {0, 60, 100, 150, 200, 260, 320, 400, 500}, // d15
-    {0, 60, 100, 150, 200, 260, 320, 400, 500}, // d16
-    {-2.5,-1.6,-1.2,-0.8,-0.4, 0.0, 0.4, 0.8, 1.2, 1.6, 2.5}, // d17
-    {0,2,2.75,3,3.15}, // d18
-    {0,60,100,150,200,260,320,400,500}, //d19
-    {0,60,100,150,200,260,320,400,500}, //d20
-    {0.0,20,45,75,120,190,255}, //d21
-    {-2.5,-1.3,-0.9,-0.6,-0.3,0,0.3,0.6,0.9,1.3,2.5}, //d22
-    {345,400,470,550,650,800,1100,1600}, //d23
-    {0,65,125,200,290,400}, //d24
-    {0,60,115,190,275,380,500}, //d25
-    {-2.5,-1.6,-1,-0.5,0,0.5,1,1.6,2.5}, //d26
-    {0,1.89,2.77,3.05,3.15}, //d27
-    {0,75,130,200,290,400}, //d28
-    {0,55,120,200,290,400}, //d29
-    {0,30,80,170,300},
-    {-2.5,-1.5,-1,-0.5,0,0.5,1,1.5,2.5},
-    {340,380,470,620,820,1100,1600},
-  };
+  typedef std::tuple<std::string, std::string, int, double, double> HDEF;
+  std::map<H, HDEF> hdefs;
+  hdefs[SL_topPt         ] = HDEF("SL_topPt", "top p_{T} (GeV)", 1000, 0, 1000);
+  hdefs[SL_topPtTtbarSys ] = HDEF("SL_topPtTtbarSys", "top p_{T} at CM frame (GeV)", 1000, 0, 1000);
+  hdefs[SL_topY          ] = HDEF("SL_topY", "top rapidity", 100, -5, 5);
+  hdefs[SL_ttbarDelPhi   ] = HDEF("SL_ttbarDelPhi", "#delta#phi(top1, top2)", 100, 0, 3.15);
+  hdefs[SL_topPtLead     ] = HDEF("SL_topPtLead", "Leading top p_{T} (GeV)", 1000, 0, 1000);
+  hdefs[SL_topPtSubLead  ] = HDEF("SL_topPtSubLead", "Subleading top p_{T} (GeV)", 1000, 0, 1000);
+  hdefs[SL_ttbarPt       ] = HDEF("SL_ttbarPt", "t#bar{t} p_{T} (GeV)", 1000, 0, 1000);
+  hdefs[SL_ttbarY        ] = HDEF("SL_ttbarY", "t#bar{t} rapidity (GeV)", 100, -5, 5);
+  hdefs[SL_ttbarMass     ] = HDEF("SL_ttbarMass", "t#bar{t} mass (GeV)", 5000, 0, 5000);
 
-  const std::vector<std::string> names = {
-    "SL_topPt", "SL_topPtTtbarSys", "SL_topY", "SL_ttbarDelPhi",
-    "SL_topPtLead", "SL_topPtSubLead",
-    "SL_ttbarPt", "SL_ttbarY", "SL_ttbarMass",
+  hdefs[DL_topPt         ] = HDEF("DL_topPt", "top p_{T} (GeV)", 1000, 0, 1000);
+  hdefs[DL_topPtTtbarSys ] = HDEF("DL_topPtTtbarSys", "top p_{T} at CM frame (GeV)", 1000, 0, 1000);
+  hdefs[DL_topY          ] = HDEF("DL_topY", "top rapidity", 100, -5, 5);
+  hdefs[DL_ttbarDelPhi   ] = HDEF("DL_ttbarDelPhi", "#delta#phi(top1, top2)", 100, 0, 3.15);
+  hdefs[DL_topPtLead     ] = HDEF("DL_topPtLead", "Leading top p_{T} (GeV)", 1000, 0, 1000);
+  hdefs[DL_topPtSubLead  ] = HDEF("DL_topPtSubLead", "Subleading top p_{T} (GeV)", 1000, 0, 1000);
+  hdefs[DL_ttbarPt       ] = HDEF("DL_ttbarPt", "t#bar{t} p_{T} (GeV)", 1000, 0, 1000);
+  hdefs[DL_ttbarY        ] = HDEF("DL_ttbarY", "t#bar{t} rapidity (GeV)", 100, -5, 5);
+  hdefs[DL_ttbarMass     ] = HDEF("DL_ttbarMass", "t#bar{t} mass (GeV)", 5000, 0, 5000);
 
-    "DL_topPt", "DL_topPtTtbarSys", "DL_topY", "DL_ttbarDelPhi",
-    "DL_topPtLead", "DL_topPtSubLead",
-    "DL_ttbarPt", "DL_ttbarY", "DL_ttbarMass",
-  };
-
-  const std::vector<std::string> titles = {
-    "top p_{T} (GeV)", "top p_{T} at CM frame (GeV)", "top rapidity", "#delta#phi(top1, top2)",
-    "Leading top p_{T} (GeV)", "Subleading top p_{T} (GeV)",
-    "t#bar{T} p_{T} (GeV)", "t#bar{t} rapidity (GeV)", "t#bar{t} mass (GeV)",
-
-    "top p_{T} (GeV)", "top p_{T} at CM frame (GeV)", "top rapidity", "#delta#phi(top1, top2)",
-    "Leading top p_{T} (GeV)", "Subleading top p_{T} (GeV)",
-    "t#bar{T} p_{T} (GeV)", "t#bar{t} rapidity (GeV)", "t#bar{t} mass (GeV)",
-  };
-
-  assert(bins.size() == END);
-  assert(names.size() == END);
-  assert(titles.size() == END);
+  assert(hdefs.size() == END);
 
   auto dirFulParton = fs->mkdir("FullParton");
   auto dirFidParton = fs->mkdir("FiducialParton");
@@ -163,23 +142,25 @@ CATGenTopAnalysis::CATGenTopAnalysis(const edm::ParameterSet& pset):
   auto dirPseudo = fs->mkdir("Particle");
   auto dirChPseudo = fs->mkdir("ChFilteredParticle");
 
-  for ( size_t i=0; i<END; ++i ) {
-    const int nbins = bins[i].size()-1;
-    const float* binPtr = &bins[i][0];
+  for ( auto x : hdefs ) {
+    const auto name = std::get<0>(x.second);
+    const auto title0 = std::get<1>(x.second);
+    const auto title = name+";"+title0;
+    const auto nbins = std::get<2>(x.second);
+    const auto xlo = std::get<3>(x.second);
+    const auto xhi = std::get<4>(x.second);
 
-    const string name = names[i];
-    const string title = string(name) + ";" + titles[i];
-    hFulParton_.push_back(dirFulParton.make<TH1D>(name.c_str(), title.c_str(), nbins, binPtr));
-    hFidParton_.push_back(dirFidParton.make<TH1D>(name.c_str(), title.c_str(), nbins, binPtr));
-    hComParton_.push_back(dirComParton.make<TH1D>(name.c_str(), title.c_str(), nbins, binPtr));
-    hComPseudo_.push_back(dirComPseudo.make<TH1D>(name.c_str(), title.c_str(), nbins, binPtr));
-    hPseudo_.push_back(dirPseudo.make<TH1D>(name.c_str(), title.c_str(), nbins, binPtr));
-    hChPseudo_.push_back(dirChPseudo.make<TH1D>(name.c_str(), title.c_str(), nbins, binPtr));
+    hFulParton_.push_back(dirFulParton.make<TH1D>(name.c_str(), title.c_str(), nbins, xlo, xhi));
+    hFidParton_.push_back(dirFidParton.make<TH1D>(name.c_str(), title.c_str(), nbins, xlo, xhi));
+    hComParton_.push_back(dirComParton.make<TH1D>(name.c_str(), title.c_str(), nbins, xlo, xhi));
+    hComPseudo_.push_back(dirComPseudo.make<TH1D>(name.c_str(), title.c_str(), nbins, xlo, xhi));
+    hPseudo_.push_back(dirPseudo.make<TH1D>(name.c_str(), title.c_str(), nbins, xlo, xhi));
+    hChPseudo_.push_back(dirChPseudo.make<TH1D>(name.c_str(), title.c_str(), nbins, xlo, xhi));
 
-    const string name2 = "resp_"+names[i];
-    const string title2 = names[i]+";Particle level "+titles[i]+";Parton level "+titles[i];
-    h2_.push_back(dirPseudo.make<TH2D>(name2.c_str(), title2.c_str(), nbins, binPtr, nbins, binPtr));
-    h2Com_.push_back(dirComPseudo.make<TH2D>(name2.c_str(), title2.c_str(), nbins, binPtr, nbins, binPtr));
+    const string name2 = "resp_"+name;
+    const string title2 = name+";Particle level "+title0+";Parton level "+title0;
+    h2_.push_back(dirPseudo.make<TH2D>(name2.c_str(), title2.c_str(), nbins, xlo, xhi, nbins, xlo, xhi));
+    h2Com_.push_back(dirComPseudo.make<TH2D>(name2.c_str(), title2.c_str(), nbins, xlo, xhi, nbins, xlo, xhi));
   }
 
   assert(hFulParton_.size() == END);
