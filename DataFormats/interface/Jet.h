@@ -50,8 +50,7 @@ namespace cat {
     bool CSVv2T(){ return (bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") > 0.970);}
 
     enum BTAGCSV_CUT { BTAGCSV_LOOSE=0, BTAGCSV_MEDIUM, BTAGCSV_TIGHT };
-    enum JETFLAV { JETFLAV_B=0, JETFLAV_C=1, JETFLAV_LIGHT=2 };
-    float scaleFactorCSVv2(BTAGCSV_CUT op, int systDir, JETFLAV flav) const;
+    float scaleFactorCSVv2(BTAGCSV_CUT op, int systDir) const;
     // op 0 = loose, 1 = medium, 2 = tight
     // sys 0 = central, 1 = up, -1 = down
     // flav 0 = b, 1 = c, 2 = light

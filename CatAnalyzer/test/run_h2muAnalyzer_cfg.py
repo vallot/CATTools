@@ -13,7 +13,7 @@ process.source = cms.Source("PoolSource",
     #fileNames = cms.untracked.vstring('file:%s/src/CATTools/CatProducer/prod/catTuple.root'%os.environ["CMSSW_BASE"])
 )
 
-useSilver = False
+useSilver = True
 catmet = 'catMETs'
 lumiMask = 'lumiMask'
 pileupWeight = 'pileupWeight'
