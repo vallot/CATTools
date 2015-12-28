@@ -28,9 +28,16 @@ for outfileName in mergeList:
         scale = 1.0
         if type == 'MC':
             ## Get the sum of weights
-            hWeight = fsrc.Get("ttll/overall/weight")
-            sumW = hWeight.Integral()*hWeight.GetMean()
-            if sumW != 0.0: scale = x['xsec']/sumW
+            if fsrc.GetDirectory("agen") != None:
+                hWeight = fsrc.Get("agen/hWeight")
+                ## Get weight distribution before gen filter - only if exists
+            else:
+                hWeight = fsrc.Get("ttll/overall/weight")
+            if hWeight != None:
+                sumW = hWeight.Integral()*hWeight.GetMean()
+                if sumW != 0.0: scale = x['xsec']/sumW
+            else:
+                print "Cannot find weight histogram!!! Skipping cross section normalization."
 
         ## Visit all cut flows and do the normalization
         src_moddir = fsrc.Get("ttll")
