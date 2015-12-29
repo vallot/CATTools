@@ -18,6 +18,7 @@
 
 #include "CATTools/CommonTools/interface/AnalysisHelper.h"
 #include "DataFormats/Math/interface/deltaR.h"
+#include "DataFormats/Math/interface/deltaPhi.h"
 #include "TTree.h"
 //#include "TLorentzVector.h"
 
@@ -71,7 +72,7 @@ private:
   
   float b_partontop1_pt, b_partontop1_eta, b_partontop1_phi, b_partontop1_rapi, b_partontop1_m;
   float b_partontop2_pt, b_partontop2_eta, b_partontop2_phi, b_partontop2_rapi, b_partontop2_m;
-  float b_partonttbar_pt, b_partonttbar_eta, b_partonttbar_phi, b_partonttbar_m, b_partonttbar_rapi;
+  float b_partonttbar_pt, b_partonttbar_eta, b_partonttbar_dphi, b_partonttbar_m, b_partonttbar_rapi;
 
   int b_partonChannel, b_partonMode1, b_partonMode2;
   float b_partonlep1_pt, b_partonlep1_eta;
@@ -80,18 +81,20 @@ private:
 
   float b_gentop1_pt, b_gentop1_eta, b_gentop1_phi, b_gentop1_rapi, b_gentop1_m;
   float b_gentop2_pt, b_gentop2_eta, b_gentop2_phi, b_gentop2_rapi, b_gentop2_m;
-  float b_genttbar_pt, b_genttbar_eta, b_genttbar_phi, b_genttbar_m, b_genttbar_rapi;
+  float b_genttbar_pt, b_genttbar_eta, b_genttbar_dphi, b_genttbar_m, b_genttbar_rapi;
 
   int b_pseudoTopChannel;
   float b_genlep1_pt, b_genlep1_eta;
   float b_genlep2_pt, b_genlep2_eta;
+  float b_genjet1_pt, b_genjet1_eta;
+  float b_genjet2_pt, b_genjet2_eta;
   bool b_pseudoInPhase;
     
   float b_jet1_pt, b_jet1_eta, b_jet1_CSVInclV2;
   float b_jet2_pt, b_jet2_eta, b_jet2_CSVInclV2;
   float b_top1_pt, b_top1_eta, b_top1_phi, b_top1_rapi, b_top1_m;
   float b_top2_pt, b_top2_eta, b_top2_phi, b_top2_rapi, b_top2_m;
-  float b_ttbar_pt, b_ttbar_eta, b_ttbar_phi, b_ttbar_m, b_ttbar_rapi;
+  float b_ttbar_pt, b_ttbar_eta, b_ttbar_dphi, b_ttbar_m, b_ttbar_rapi;
   float b_maxweight;
   int b_is3lep;
 
@@ -200,7 +203,7 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
     tr->Branch("partontop2_m", &b_partontop2_m, "partontop2_m/F");
     tr->Branch("partonttbar_pt", &b_partonttbar_pt, "partonttbar_pt/F");
     tr->Branch("partonttbar_eta", &b_partonttbar_eta, "partonttbar_eta/F");
-    tr->Branch("partonttbar_phi", &b_partonttbar_phi, "partonttbar_phi/F");
+    tr->Branch("partonttbar_dphi", &b_partonttbar_dphi, "partonttbar_dphi/F");
     tr->Branch("partonttbar_rapi", &b_partonttbar_rapi, "partonttbar_rapi/F");
     tr->Branch("partonttbar_m", &b_partonttbar_m, "partonttbar_m/F");
 
@@ -225,7 +228,7 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
     tr->Branch("gentop2_m", &b_gentop2_m, "gentop2_m/F");
     tr->Branch("genttbar_pt", &b_genttbar_pt, "genttbar_pt/F");
     tr->Branch("genttbar_eta", &b_genttbar_eta, "genttbar_eta/F");
-    tr->Branch("genttbar_phi", &b_genttbar_phi, "genttbar_phi/F");
+    tr->Branch("genttbar_dphi", &b_genttbar_dphi, "genttbar_dphi/F");
     tr->Branch("genttbar_rapi", &b_genttbar_rapi, "genttbar_rapi/F");
     tr->Branch("genttbar_m", &b_genttbar_m, "genttbar_m/F");
 
@@ -234,6 +237,10 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
     tr->Branch("genlep1_eta", &b_genlep1_eta, "genlep1_eta/F");
     tr->Branch("genlep2_pt", &b_genlep2_pt, "genlep2_pt/F");
     tr->Branch("genlep2_eta", &b_genlep2_eta, "genlep2_eta/F");
+    tr->Branch("genjet1_pt", &b_genjet1_pt, "genjet1_pt/F");
+    tr->Branch("genjet1_eta", &b_genjet1_eta, "genjet1_eta/F");
+    tr->Branch("genjet2_pt", &b_genjet2_pt, "genjet2_pt/F");
+    tr->Branch("genjet2_eta", &b_genjet2_eta, "genjet2_eta/F");
     tr->Branch("pseudoInPhase", &b_pseudoInPhase, "pseudoInPhase/O");
 
     tr->Branch("jet1_pt", &b_jet1_pt, "jet1_pt/F");
@@ -255,7 +262,7 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
     tr->Branch("top2_m", &b_top2_m, "top2_m/F");
     tr->Branch("ttbar_pt", &b_ttbar_pt, "ttbar_pt/F");
     tr->Branch("ttbar_eta", &b_ttbar_eta, "ttbar_eta/F");
-    tr->Branch("ttbar_phi", &b_ttbar_phi, "ttbar_phi/F");
+    tr->Branch("ttbar_dphi", &b_ttbar_dphi, "ttbar_dphi/F");
     tr->Branch("ttbar_rapi", &b_ttbar_rapi, "ttbar_rapi/F");
     tr->Branch("ttbar_m", &b_ttbar_m, "ttbar_m/F");
 
@@ -435,7 +442,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     auto genttbar = gentop1+gentop2;
     b_genttbar_pt = genttbar.Pt();
     b_genttbar_eta = genttbar.Eta();
-    b_genttbar_phi = genttbar.Phi();
+    b_genttbar_dphi = deltaPhi(gentop1.Phi(), gentop2.Phi());
     b_genttbar_m = genttbar.M();
     b_genttbar_rapi = genttbar.Rapidity();
 
@@ -443,6 +450,11 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     b_genlep1_eta = lepton1.eta();
     b_genlep2_pt = lepton2.pt();
     b_genlep2_eta = lepton2.eta();
+
+    b_genjet1_pt = bjet1.pt();
+    b_genjet1_eta = bjet1.eta();
+    b_genjet2_pt = bjet2.pt();
+    b_genjet2_eta = bjet2.eta();
 
       } while ( false );
     }
@@ -657,7 +669,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     auto ttbar = top1+top2;
     b_ttbar_pt = ttbar.Pt();
     b_ttbar_eta = ttbar.Eta();
-    b_ttbar_phi = ttbar.Phi();
+    b_ttbar_dphi = deltaPhi(top1.Phi(), top2.Phi());
     b_ttbar_m = ttbar.M();
     b_ttbar_rapi = ttbar.Rapidity();
 
@@ -781,7 +793,7 @@ void TtbarDiLeptonAnalyzer::resetBr()
 
   b_partontop1_pt = -9; b_partontop1_eta = -9; b_partontop1_phi = -9; b_partontop1_rapi = -9; b_partontop1_m = -9;
   b_partontop2_pt = -9; b_partontop2_eta = -9; b_partontop2_phi = -9; b_partontop2_rapi = -9; b_partontop2_m = -9;
-  b_partonttbar_pt = -9; b_partonttbar_eta = -9; b_partonttbar_phi = -9; b_partonttbar_m = -9; b_partonttbar_rapi = -9;
+  b_partonttbar_pt = -9; b_partonttbar_eta = -9; b_partonttbar_dphi = -9; b_partonttbar_m = -9; b_partonttbar_rapi = -9;
 
   b_partonChannel = -1; b_partonMode1 = -1; b_partonMode2 = -1;
   b_partonlep1_pt = -9; b_partonlep1_eta = -9;
@@ -790,18 +802,20 @@ void TtbarDiLeptonAnalyzer::resetBr()
 
   b_gentop1_pt = -9; b_gentop1_eta = -9; b_gentop1_phi = -9; b_gentop1_rapi = -9; b_gentop1_m = -9;
   b_gentop2_pt = -9; b_gentop2_eta = -9; b_gentop2_phi = -9; b_gentop2_rapi = -9; b_gentop2_m = -9;
-  b_genttbar_pt = -9; b_genttbar_eta = -9; b_genttbar_phi = -9; b_genttbar_m = -9; b_genttbar_rapi = -9;
+  b_genttbar_pt = -9; b_genttbar_eta = -9; b_genttbar_dphi = -9; b_genttbar_m = -9; b_genttbar_rapi = -9;
 
   b_pseudoTopChannel = -1;
   b_genlep1_pt = -9; b_genlep1_eta = -9;
   b_genlep2_pt = -9; b_genlep2_eta = -9;
+  b_genjet1_pt = -9; b_genjet1_eta = -9;
+  b_genjet2_pt = -9; b_genjet2_eta = -9;
   b_pseudoInPhase = false;
   
   b_jet1_pt = -9; b_jet1_eta = -9; b_jet1_CSVInclV2 = -9;
   b_jet2_pt = -9; b_jet2_eta = -9; b_jet2_CSVInclV2 = -9;
   b_top1_pt = -9; b_top1_eta = -9; b_top1_phi = -9; b_top1_rapi = -9; b_top1_m = -9;
   b_top2_pt = -9; b_top2_eta = -9; b_top2_phi = -9; b_top2_rapi = -9; b_top2_m = -9;
-  b_ttbar_pt = -9; b_ttbar_eta = -9; b_ttbar_phi = -9; b_ttbar_m = -9; b_ttbar_rapi = -9;
+  b_ttbar_pt = -9; b_ttbar_eta = -9; b_ttbar_dphi = -9; b_ttbar_m = -9; b_ttbar_rapi = -9;
   b_is3lep = -9;
 }
   
