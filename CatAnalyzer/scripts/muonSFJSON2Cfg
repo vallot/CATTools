@@ -10,6 +10,7 @@ if not os.path.exists("%s/MuonID_Z_RunCD_Reco74X_Dec1.json" % muonSFBase) or \
     print "Cannot find SF json files under", muonSFBase
     print "Please download them from the official muon twiki page,"
     print "https://twiki.cern.ch/twiki/bin/viewauth/CMS/MuonReferenceEffsRun2"
+    print "and place under %s" % muonSFBase
     sys.exit(1)
 
 import json
