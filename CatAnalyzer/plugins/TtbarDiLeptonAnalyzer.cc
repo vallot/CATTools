@@ -58,7 +58,7 @@ private:
 
     const int column = ptbin-ptbins.begin();
     const int row = etabin-etabins.begin();
-
+	
     return values.at(row*(ptbins.size()-1)+column);
   }
   float getSF(const cat::Particle& p, int sys) const
@@ -373,6 +373,23 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         // Get Top quark pairs
         const auto parton1 = &partonTop_genParticles->at(0);
         const auto parton2 = &partonTop_genParticles->at(1);
+        b_partontop1_pt = parton1->pt();
+        b_partontop1_eta = parton1->eta();
+        b_partontop1_phi = parton1->phi();
+        b_partontop1_rapi = parton1->rapidity();
+        b_partontop1_m = parton1->mass();
+        b_partontop2_pt = parton2->pt();
+        b_partontop2_eta = parton2->eta();
+        b_partontop2_rapi = parton2->rapidity();
+        b_partontop2_m = parton2->mass();
+
+        // Get TTbar
+        auto partonttbar = parton1->p4()+parton2->p4();
+        b_partonttbar_pt = partonttbar.Pt();
+        b_partonttbar_eta = partonttbar.Eta();
+        b_partonttbar_m = partonttbar.M();
+        b_partonttbar_rapi = partonttbar.Rapidity();
+
         // Get W and b quarks
         if ( parton1 and parton2 ) {
           const auto partonW1 = parton1->daughter(0);
@@ -418,7 +435,8 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         // Lepton acceptance cuts
         for ( size_t i=0, n=pseudoTopLeptonHandle->size(); i<n; ++i ) {
           const auto& x = pseudoTopLeptonHandle->at(i);
-          if ( x.pt() < 20 or std::abs(x.eta()) > 2.5 ) continue;
+          if ( x.pt() < 20 or std::abs(x.eta()) > 2.4 ) continue;
+          if ( abs(x.pdgId()) != 11 and abs(x.pdgId()) != 13 ) continue;
           leptonIdxs.push_back(i);
         }
         if ( leptonIdxs.size() < 2 ) break;
@@ -428,12 +446,11 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         const auto lepton2 = pseudoTopLeptonHandle->at(leptonIdxs[1]).p4();
         const int pseudoW1DauId = abs(pseudoTopLeptonHandle->at(leptonIdxs[0]).pdgId());
         const int pseudoW2DauId = abs(pseudoTopLeptonHandle->at(leptonIdxs[1]).pdgId());
-        if ( pseudoW1DauId > 10 and pseudoW2DauId > 10 ) {
-          switch ( pseudoW1DauId+pseudoW2DauId ) {
-            case 22: b_pseudoTopChannel = CH_ELEL; break;
-            case 26: b_pseudoTopChannel = CH_MUMU; break;
-            default: b_pseudoTopChannel = CH_MUEL;
-          }
+        switch ( pseudoW1DauId+pseudoW2DauId ) {
+          case 22: b_pseudoTopChannel = CH_ELEL; break;
+          case 26: b_pseudoTopChannel = CH_MUMU; break;
+          case 24: b_pseudoTopChannel = CH_MUEL; break;
+          default: b_pseudoTopChannel = CH_NONE;
         }
 
         //std::nth_element(neutrinoIdxs.begin(), neutrinoIdxs.begin()+2, neutrinoIdxs.end(),
@@ -443,7 +460,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         // Jet acceptance and generator level b tag
         for ( size_t i=0, n=pseudoTopJetHandle->size(); i<n; ++i ) {
           const auto& x = pseudoTopJetHandle->at(i);
-          if ( x.pt() < 30 or std::abs(x.eta()) > 2.5 ) continue;
+          if ( x.pt() < 30 or std::abs(x.eta()) > 2.4 ) continue;
           if ( abs(x.pdgId()) != 5 ) continue;
           bjetIdxs.push_back(i);
         }
@@ -477,6 +494,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
           if ( dm > dmAlt ) { gentop1 = t1Alt; gentop2 = t2Alt; std::swap(bjet1, bjet2); }
         }
 
+        if (gentop1.Pt() < gentop2.Pt()) { swap(gentop1, gentop2); }
         b_gentop1_pt = gentop1.Pt();
         b_gentop1_eta = gentop1.Eta();
         b_gentop1_phi = gentop1.Phi();
@@ -697,7 +715,6 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     }
 
     if (bjet1.Pt() < bjet2.Pt()) { swap(bjet1, bjet2); }
-
     b_jet1_pt = bjet1.Pt();
     b_jet1_eta = bjet1.Eta();
     b_jet2_pt = bjet2.Pt();
@@ -705,7 +722,6 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     cout << "jet: " << b_jet1_pt << "   " << b_jet2_pt << endl;
 
     if (top1.Pt() < top2.Pt()) { swap(top1, top2); }
-
     b_top1_pt = top1.Pt();
     b_top1_eta = top1.Eta();
     b_top1_phi = top1.Phi();
