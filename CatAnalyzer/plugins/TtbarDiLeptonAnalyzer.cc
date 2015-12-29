@@ -56,17 +56,17 @@ private:
     auto etabin = std::lower_bound(etabins.begin(), etabins.end(), eta);
     if ( etabin == etabins.end() or etabin+1 == etabins.end() ) return 1;
 
-    const int column = ptbin-ptbins.begin();
-    const int row = etabin-etabins.begin();
+    const int column = etabin-etabins.begin();
+    const int row = ptbin-ptbins.begin();
 	
-    return values.at(row*(ptbins.size()-1)+column);
+    return values.at(row*(etabins.size()-1)+column);
   }
   float getSF(const cat::Particle& p, int sys) const
   {
     const int aid = abs(p.pdgId());
-    const double pt = p.pt(), eta = p.eta();
+    const double pt = p.pt(), eta = (aid == 11 ? p.eta() : std::abs(p.eta()));
     const auto& ptbins = (aid == 11 ? elecSFPtBins_ : muonSFPtBins_);
-    const auto& etabins = (aid == 11 ? elecSFEtaBins_ : muonSFEtaBins_);
+    const auto& etabins = (aid == 11 ? elecSFEtaBins_ : muonSFAbsEtaBins_);
     const auto& values = (aid == 11 ? elecSFValues_ : muonSFValues_);
     const auto& errors = (aid == 11 ? elecSFErrors_ : muonSFErrors_);
 
@@ -133,7 +133,7 @@ private:
   //enum TTbarMode { CH_NONE = 0, CH_FULLHADRON = 1, CH_SEMILEPTON, CH_FULLLEPTON };
   //enum DecayMode { CH_HADRON = 1, CH_MUON, CH_ELECTRON, CH_TAU_HADRON, CH_TAU_MUON, CH_TAU_ELECTRON };
 
-  vdouble muonSFEtaBins_, muonSFPtBins_, muonSFValues_, muonSFErrors_;
+  vdouble muonSFAbsEtaBins_, muonSFPtBins_, muonSFValues_, muonSFErrors_;
   vdouble elecSFEtaBins_, elecSFPtBins_, elecSFValues_, elecSFErrors_;
 
   const static int NCutflow = 10;
@@ -162,8 +162,8 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   const auto muonSet = iConfig.getParameter<edm::ParameterSet>("muon");
   muonToken_ = consumes<cat::MuonCollection>(muonSet.getParameter<edm::InputTag>("src"));
   const auto muonSFSet = muonSet.getParameter<edm::ParameterSet>("effSF");
-  muonSFPtBins_ = muonSFSet.getParameter<vdouble>("ptbins");
-  muonSFEtaBins_ = muonSFSet.getParameter<vdouble>("etabins");
+  muonSFPtBins_ = muonSFSet.getParameter<vdouble>("pt_bins");
+  muonSFAbsEtaBins_ = muonSFSet.getParameter<vdouble>("abseta_bins");
   muonSFValues_ = muonSFSet.getParameter<vdouble>("values");
   muonSFErrors_ = muonSFSet.getParameter<vdouble>("errors");
   assert(muonSFValues_.size() == muonSFErrors_.size());
@@ -171,8 +171,8 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   const auto elecSet = iConfig.getParameter<edm::ParameterSet>("electron");
   elecToken_ = consumes<cat::ElectronCollection>(elecSet.getParameter<edm::InputTag>("src"));
   const auto elecSFSet = elecSet.getParameter<edm::ParameterSet>("effSF");
-  elecSFPtBins_ = elecSFSet.getParameter<vdouble>("ptbins");
-  elecSFEtaBins_ = elecSFSet.getParameter<vdouble>("etabins");
+  elecSFPtBins_ = elecSFSet.getParameter<vdouble>("pt_bins");
+  elecSFEtaBins_ = elecSFSet.getParameter<vdouble>("eta_bins");
   elecSFValues_ = elecSFSet.getParameter<vdouble>("values");
   elecSFErrors_ = elecSFSet.getParameter<vdouble>("errors");
   assert(elecSFValues_.size() == elecSFErrors_.size());
