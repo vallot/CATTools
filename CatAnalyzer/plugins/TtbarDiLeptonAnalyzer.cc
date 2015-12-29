@@ -64,7 +64,7 @@ private:
   float getSF(const cat::Particle& p, int sys) const
   {
     const int aid = abs(p.pdgId());
-    const double pt = p.pt(), eta = std::abs(p.eta());
+    const double pt = p.pt(), eta = p.eta();
     const auto& ptbins = (aid == 11 ? elecSFPtBins_ : muonSFPtBins_);
     const auto& etabins = (aid == 11 ? elecSFEtaBins_ : muonSFEtaBins_);
     const auto& values = (aid == 11 ? elecSFValues_ : muonSFValues_);
