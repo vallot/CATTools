@@ -1,10 +1,10 @@
-# !/usr/bin/python
+#!/usr/bin/python
 
 from ROOT import *
 import math
 datalumi = 2.11*1000
 
-rootfileDir = "/cms/home/jhgoh/work/CMS/TopAnalysis/CATTools/CMSSW_7_4_15/src/CATTools/CatAnalyzer/test/TTLL/pass2/central"
+rootfileDir = "pass2/central"
 
 stepList = [1,2,3,4,5]
 
