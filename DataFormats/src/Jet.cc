@@ -68,12 +68,16 @@ float Jet::smearedRes(int direction, int era) const {
   return fJER;
 }
 
-float Jet::scaleFactorCSVv2(Jet::BTAGCSV_CUT cutType, int syst, JETFLAV flav) const {
+float Jet::scaleFactorCSVv2(Jet::BTAGCSV_CUT cutType, int syst) const {
   if (std::abs(this->eta()) > 2.4 ) return -1; // reject jets out of eta range
   //based on https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation74X50ns
   const double pt = this->pt();
   if ( pt < 20 || pt > 1000 ) return -1;
 
+  int flav = 2;
+  if (std::abs(this->partonFlavour()) == 5) flav = 0;
+  if (std::abs(this->partonFlavour()) == 4) flav = 1;
+  
   if (cutType == 0 && syst == 0 && flav == 1 && pt >= 30 && pt < 670 ) return 0.908299+(2.70877e-06*(log(pt+370.144)*(log(pt+370.144)*(3-(-(104.614*log(pt+370.144)))))));
   if (cutType == 0 && syst == 0 && flav == 0 && pt >= 30 && pt < 670 ) return 0.908299+(2.70877e-06*(log(pt+370.144)*(log(pt+370.144)*(3-(-(104.614*log(pt+370.144)))))));
   if (cutType == 0 && syst == -1 && flav == 1 && pt >= 30 && pt < 50 ) return 0.908299+((2.70877e-06*(log(pt+370.144)*(log(pt+370.144)*(3-(-(104.614*log(pt+370.144)))))))-0.044655226171016693);

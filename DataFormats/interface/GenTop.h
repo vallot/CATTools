@@ -74,7 +74,7 @@ namespace cat {
     const math::XYZTLorentzVector addJets2() const { return addJets_[1]; }
 
     //void building( const std::vector<reco::GenJet>* genJets, const std::vector<reco::GenParticle>* genParticles );
-    void building( Handle<reco::GenJetCollection> genJets, Handle<reco::GenParticleCollection> genParticles );
+    void building( Handle<reco::GenJetCollection> genJets, Handle<reco::GenParticleCollection> genParticles, Handle<std::vector<int> > genBHadFlavour, Handle<std::vector<int> > genBHadJetIndex, Handle<std::vector<int> > genCHadFlavour, Handle<std::vector<int> > genCHadJetIndex  );
 
     float ttbarmass() const { return ttbarmass_; }
 
@@ -253,6 +253,7 @@ namespace cat {
     LorentzVectors addbJets_;
     LorentzVectors addbJetsHad_;
     LorentzVectors addJets_;
+    LorentzVectors quarksfromW_;
 
     float ttbarmass_;
 

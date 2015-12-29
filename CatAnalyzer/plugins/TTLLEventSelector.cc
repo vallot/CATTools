@@ -518,8 +518,8 @@ private:
   int muonScale_, electronScale_, jetScale_, jetResol_;
 
   // Efficiency SF
-  vdouble muonEffEtabins_, muonEffPtbins_, muonEffSFValues_;
-  vdouble electronEffEtabins_, electronEffPtbins_, electronEffSFValues_;
+  vdouble muonEffEtabins_, muonEffPtbins_, muonEffSFValues_, muonEffSFErrors_;
+  vdouble electronEffEtabins_, electronEffPtbins_, electronEffSFValues_, electronEffSFErrors_;
 
   bool isMC_;
   const int applyFilterAt_;
@@ -548,6 +548,16 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
     muonEffPtbins_ = muonEffSFSet.getParameter<vdouble>("ptbins");
     // FIXME : check that these bins are monolothically increasing
     muonEffSFValues_ = muonEffSFSet.getParameter<vdouble>("values");
+    const auto sfErrors = muonEffSFSet.getParameter<vdouble>("errors");
+    assert(muonEffSFValues_.size() == sfErrors.size());
+    const int sfErrDirection = muonSet.getParameter<int>("efficiencySFDirection");
+    if ( sfErrDirection != 0 )
+    {
+      for ( int i=0, n=muonEffSFValues_.size(); i<n; ++i )
+      {
+        muonEffSFValues_[i] += sfErrDirection*sfErrors[i];
+      }
+    }
   }
 
   const auto electronSet = pset.getParameter<edm::ParameterSet>("electron");
@@ -561,6 +571,17 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
     electronEffPtbins_ = electronEffSFSet.getParameter<vdouble>("ptbins");
     // FIXME : check that these bins are monolothically increasing
     electronEffSFValues_ = electronEffSFSet.getParameter<vdouble>("values");
+    electronEffSFErrors_ = electronEffSFSet.getParameter<vdouble>("errors");
+    const auto sfErrors = electronEffSFSet.getParameter<vdouble>("errors");
+    assert(electronEffSFValues_.size() == sfErrors.size());
+    const int sfErrDirection = electronSet.getParameter<int>("efficiencySFDirection");
+    if ( sfErrDirection != 0 )
+    {
+      for ( int i=0, n=electronEffSFValues_.size(); i<n; ++i )
+      {
+        electronEffSFValues_[i] += sfErrDirection*sfErrors[i];
+      }
+    }
   }
 
   const auto jetSet = pset.getParameter<edm::ParameterSet>("jet");
