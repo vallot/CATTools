@@ -3,7 +3,9 @@ from CATTools.CatAnalyzer.leptonSF_cff import *
 
 ttll = cms.EDFilter("TTLLEventSelector",
     isMC = cms.bool(True),
-    filterCutStepBefore = cms.int32(4),
+    ## alwaysAcceptAfter : Accept event even though selection may fail _AFTER_ this step
+    ## Use case: store ntuple only for events that passes step4
+    applyFilterAt = cms.int32(4),
 
     # Physics objects
     muon = cms.PSet(
@@ -16,11 +18,12 @@ ttll = cms.EDFilter("TTLLEventSelector",
 
     electron = cms.PSet(
         src = cms.InputTag("catElectrons"),
-        idName = cms.string("cutBasedElectronID-Spring15-25ns-V1-standalone-medium"),
+        #idName = cms.string("cutBasedElectronID-Spring15-25ns-V1-standalone-medium"),
+        idName = cms.string("mvaEleID-Spring15-25ns-Trig-V1-wp90"),
         scaleDirection = cms.int32(0),
         #scaleDirection = cms.int32(-1),
         #scaleDirection = cms.int32(+1),
-        efficiencySF = electronSFCutBasedMedium,
+        efficiencySF = electronSFWP90,
     ),
 
     jet = cms.PSet(

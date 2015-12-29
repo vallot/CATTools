@@ -25,10 +25,12 @@ namespace cat {
 
 struct ControlPlots
 {
+  const static int nMaxCutstep;
   typedef TH1D* H1;
-  typedef TH2F* H2;
+  typedef TH2D* H2;
 
   H1 hCutstep, hCutstepNoweight;
+  H2 h2Cutstep;
 
   H1 h0a_vertex_n;
 
@@ -50,6 +52,7 @@ struct ControlPlots
   H1 h1_lepton1_pt, h1_lepton1_eta, h1_lepton1_phi, h1_lepton1_q;
   H1 h1_lepton2_pt, h1_lepton2_eta, h1_lepton2_phi, h1_lepton2_q;
   H1 h1_z_m, h1_z_pt, h1_z_eta, h1_z_phi;
+  H1 h1_z_m_noveto;
   H1 h1_jets_n, h1_jets_ht;
   H1 h1_jet1_m, h1_jet1_pt, h1_jet1_eta, h1_jet1_phi, h1_jet1_btag;
   H1 h1_jet2_m, h1_jet2_pt, h1_jet2_eta, h1_jet2_phi, h1_jet2_btag;
@@ -64,6 +67,7 @@ struct ControlPlots
   H1 h2_lepton1_pt, h2_lepton1_eta, h2_lepton1_phi, h2_lepton1_q;
   H1 h2_lepton2_pt, h2_lepton2_eta, h2_lepton2_phi, h2_lepton2_q;
   H1 h2_z_m, h2_z_pt, h2_z_eta, h2_z_phi;
+  H1 h2_z_m_noveto;
   H1 h2_jets_n, h2_jets_ht;
   H1 h2_jet1_m, h2_jet1_pt, h2_jet1_eta, h2_jet1_phi, h2_jet1_btag;
   H1 h2_jet2_m, h2_jet2_pt, h2_jet2_eta, h2_jet2_phi, h2_jet2_btag;
@@ -75,6 +79,7 @@ struct ControlPlots
   H1 h3_vertex_n;
   H1 h3_met_pt, h3_met_phi;
   H1 h3_z_m, h3_z_pt, h3_z_eta, h3_z_phi;
+  H1 h3_z_m_noveto;
   H1 h3_jets_n, h3_jets_ht;
   H1 h3_jet1_m, h3_jet1_pt, h3_jet1_eta, h3_jet1_phi, h3_jet1_btag;
   H1 h3_jet2_m, h3_jet2_pt, h3_jet2_eta, h3_jet2_phi, h3_jet2_btag;
@@ -86,6 +91,7 @@ struct ControlPlots
   H1 h4_vertex_n;
   H1 h4_met_pt, h4_met_phi;
   H1 h4_z_m, h4_z_pt, h4_z_eta, h4_z_phi;
+  H1 h4_z_m_noveto;
   H1 h4_jets_n, h4_jets_ht;
   H1 h4_jet1_m, h4_jet1_pt, h4_jet1_eta, h4_jet1_phi, h4_jet1_btag;
   H1 h4_jet2_m, h4_jet2_pt, h4_jet2_eta, h4_jet2_phi, h4_jet2_btag;
@@ -97,6 +103,7 @@ struct ControlPlots
   H1 h5_vertex_n;
   H1 h5_met_pt, h5_met_phi;
   H1 h5_z_m, h5_z_pt, h5_z_eta, h5_z_phi;
+  H1 h5_z_m_noveto;
   H1 h5_jets_n, h5_jets_ht;
   H1 h5_jet1_m, h5_jet1_pt, h5_jet1_eta, h5_jet1_phi, h5_jet1_btag;
   H1 h5_jet2_m, h5_jet2_pt, h5_jet2_eta, h5_jet2_phi, h5_jet2_btag;
@@ -113,8 +120,9 @@ struct ControlPlots
     // There are step0a, step0b and step0c cut steps
     // By putting step0a to underflow bin and step0b to -1, step0c to 0,
     // We can start cut steps from 1.
-    hCutstep = dir.make<TH1D>("cutstep", "cutstep", 12, -2, 10);
-    hCutstepNoweight = dir.make<TH1D>("cutstepNoweight", "cutstepNoweight", 12, -2, 10);
+    hCutstep = dir.make<TH1D>("cutstep", "cutstep", nMaxCutstep, -2, nMaxCutstep-2);
+    hCutstepNoweight = dir.make<TH1D>("cutstepNoweight", "cutstepNoweight", nMaxCutstep, -2, nMaxCutstep-2);
+    h2Cutstep = dir.make<TH2D>("cutcorrelation", "cutcorrelation", nMaxCutstep, -2, nMaxCutstep-2, nMaxCutstep, -2, nMaxCutstep-2);
 
     hCutstep->GetXaxis()->SetBinLabel(1, "S0a all event");
     hCutstep->GetXaxis()->SetBinLabel(2, "S0b Trigger");
@@ -133,6 +141,24 @@ struct ControlPlots
     hCutstepNoweight->GetXaxis()->SetBinLabel(6, "S3 nJet2");
     hCutstepNoweight->GetXaxis()->SetBinLabel(7, "S4 MET40");
     hCutstepNoweight->GetXaxis()->SetBinLabel(8, "S5 nBJet1");
+
+    h2Cutstep->GetXaxis()->SetBinLabel(1, "S0a all event");
+    h2Cutstep->GetXaxis()->SetBinLabel(2, "S0b Trigger");
+    h2Cutstep->GetXaxis()->SetBinLabel(3, "S0c Event filter");
+    h2Cutstep->GetXaxis()->SetBinLabel(4, "S1 Dilepton");
+    h2Cutstep->GetXaxis()->SetBinLabel(5, "S2 Z veto");
+    h2Cutstep->GetXaxis()->SetBinLabel(6, "S3 nJet2");
+    h2Cutstep->GetXaxis()->SetBinLabel(7, "S4 MET40");
+    h2Cutstep->GetXaxis()->SetBinLabel(8, "S5 nBJet1");
+
+    h2Cutstep->GetYaxis()->SetBinLabel(1, "S0a all event");
+    h2Cutstep->GetYaxis()->SetBinLabel(2, "S0b Trigger");
+    h2Cutstep->GetYaxis()->SetBinLabel(3, "S0c Event filter");
+    h2Cutstep->GetYaxis()->SetBinLabel(4, "S1 Dilepton");
+    h2Cutstep->GetYaxis()->SetBinLabel(5, "S2 Z veto");
+    h2Cutstep->GetYaxis()->SetBinLabel(6, "S3 nJet2");
+    h2Cutstep->GetYaxis()->SetBinLabel(7, "S4 MET40");
+    h2Cutstep->GetYaxis()->SetBinLabel(8, "S5 nBJet1");
 
     auto subdir = dir.mkdir("step0a");
     h0a_vertex_n = subdir.make<TH1D>("vertex_n", "vertex_n", 100, 0, 100);
@@ -165,16 +191,17 @@ struct ControlPlots
     h1_lepton1_eta = subdir.make<TH1D>("lepton1_eta", "lepton1_eta", 100, -maxeta, maxeta);
     h1_lepton1_phi = subdir.make<TH1D>("lepton1_phi", "lepton1_phi", 100, -pi, pi);
     h1_lepton1_q   = subdir.make<TH1D>("lepton1_q", "lepton1_q", 3, -1.5, 1.5);
-       
+
     h1_lepton2_pt  = subdir.make<TH1D>("lepton2_pt", "lepton2_pt", 1000, 0, 1000);
     h1_lepton2_eta = subdir.make<TH1D>("lepton2_eta", "lepton2_eta", 100, -maxeta, maxeta);
     h1_lepton2_phi = subdir.make<TH1D>("lepton2_phi", "lepton2_phi", 100, -pi, pi);
     h1_lepton2_q   = subdir.make<TH1D>("lepton2_q", "lepton2_q", 3, -1.5, 1.5);
-       
+
     h1_z_m   = subdir.make<TH1D>("z_m", "z_m", 1000, 0, 1000);
     h1_z_pt  = subdir.make<TH1D>("z_pt", "z_pt", 1000, 0, 1000);
     h1_z_eta = subdir.make<TH1D>("z_eta", "z_eta", 100, -maxeta, maxeta);
     h1_z_phi = subdir.make<TH1D>("z_phi", "z_phi", 100, -pi, pi);
+    h1_z_m_noveto = subdir.make<TH1D>("z_m_noveto", "z_m_noveto", 1000, 0, 1000);
 
     h1_jets_n = subdir.make<TH1D>("jets_n", "jets_n", 10, 0, 10);
     h1_jets_ht = subdir.make<TH1D>("jets_ht", "jets_ht", 1000, 0, 1000);
@@ -227,6 +254,7 @@ struct ControlPlots
     h2_z_pt  = subdir.make<TH1D>("z_pt", "z_pt", 1000, 0, 1000);
     h2_z_eta = subdir.make<TH1D>("z_eta", "z_eta", 100, -maxeta, maxeta);
     h2_z_phi = subdir.make<TH1D>("z_phi", "z_phi", 100, -pi, pi);
+    h2_z_m_noveto = subdir.make<TH1D>("z_m_noveto", "z_m_noveto", 1000, 0, 1000);
 
     h2_jets_n = subdir.make<TH1D>("jets_n", "jets_n", 10, 0, 10);
     h2_jets_ht = subdir.make<TH1D>("jets_ht", "jets_ht", 1000, 0, 1000);
@@ -268,6 +296,7 @@ struct ControlPlots
     h3_z_pt  = subdir.make<TH1D>("z_pt", "z_pt", 1000, 0, 1000);
     h3_z_eta = subdir.make<TH1D>("z_eta", "z_eta", 100, -maxeta, maxeta);
     h3_z_phi = subdir.make<TH1D>("z_phi", "z_phi", 100, -pi, pi);
+    h3_z_m_noveto = subdir.make<TH1D>("z_m_noveto", "z_m_noveto", 1000, 0, 1000);
 
     h3_jets_n = subdir.make<TH1D>("jets_n", "jets_n", 10, 0, 10);
     h3_jets_ht = subdir.make<TH1D>("jets_ht", "jets_ht", 1000, 0, 1000);
@@ -309,6 +338,7 @@ struct ControlPlots
     h4_z_pt  = subdir.make<TH1D>("z_pt", "z_pt", 1000, 0, 1000);
     h4_z_eta = subdir.make<TH1D>("z_eta", "z_eta", 100, -maxeta, maxeta);
     h4_z_phi = subdir.make<TH1D>("z_phi", "z_phi", 100, -pi, pi);
+    h4_z_m_noveto = subdir.make<TH1D>("z_m_noveto", "z_m_noveto", 1000, 0, 1000);
 
     h4_jets_n = subdir.make<TH1D>("jets_n", "jets_n", 10, 0, 10);
     h4_jets_ht = subdir.make<TH1D>("jets_ht", "jets_ht", 1000, 0, 1000);
@@ -350,6 +380,7 @@ struct ControlPlots
     h5_z_pt  = subdir.make<TH1D>("z_pt", "z_pt", 1000, 0, 1000);
     h5_z_eta = subdir.make<TH1D>("z_eta", "z_eta", 100, -maxeta, maxeta);
     h5_z_phi = subdir.make<TH1D>("z_phi", "z_phi", 100, -pi, pi);
+    h5_z_m_noveto = subdir.make<TH1D>("z_m_noveto", "z_m_noveto", 1000, 0, 1000);
 
     h5_jets_n = subdir.make<TH1D>("jets_n", "jets_n", 10, 0, 10);
     h5_jets_ht = subdir.make<TH1D>("jets_ht", "jets_ht", 1000, 0, 1000);
@@ -384,6 +415,7 @@ struct ControlPlots
 
   };
 };
+const int ControlPlots::nMaxCutstep = 8; // 5+3
 
 class TTLLEventSelector : public edm::one::EDFilter<edm::one::SharedResources>
 {
@@ -490,7 +522,7 @@ private:
   vdouble electronEffEtabins_, electronEffPtbins_, electronEffSFValues_;
 
   bool isMC_;
-  const int filterCutStepBefore_;
+  const int applyFilterAt_;
 
   // ID variables
   std::string bTagName_;
@@ -504,7 +536,7 @@ using namespace cat;
 
 TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   isMC_(pset.getParameter<bool>("isMC")),
-  filterCutStepBefore_(pset.getParameter<int>("filterCutStepBefore"))
+  applyFilterAt_(pset.getParameter<int>("applyFilterAt"))
 {
   const auto muonSet = pset.getParameter<edm::ParameterSet>("muon");
   muonToken_ = consumes<cat::MuonCollection>(muonSet.getParameter<edm::InputTag>("src"));
@@ -714,8 +746,8 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       const double w1 = getSF(lepton1->pt(), lepton1->eta(),
                               muonEffPtbins_, muonEffEtabins_, muonEffSFValues_);
       const double w2 = getSF(lepton2->pt(), lepton2->eta(),
-                                muonEffPtbins_, muonEffEtabins_, muonEffSFValues_);
-        weight *= w1*w2;
+                              muonEffPtbins_, muonEffEtabins_, muonEffSFValues_);
+      weight *= w1*w2;
     }
     else if ( channel == CH_MUEL )
     {
@@ -725,7 +757,9 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
                               muonEffPtbins_, muonEffEtabins_, muonEffSFValues_);
       weight *= w1*w2;
     }
+    else edm::LogError("TTLLEventSelector") << "Strange event with nLepton >=2 but not falling info ee,mumu,emu category";
   }
+  const double z_m = leptons_n < 2 ? -1 : (lepton1->p4()+lepton2->p4()).mass();
 
   // Select good jets
   int bjets_n = 0;
@@ -856,833 +890,911 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     }
   }
 
-  int cutstep = 1;
-  if ( leptons_n < 2 or lepton1.isNull() or lepton2.isNull() or
-       (lepton1->p4()+lepton2->p4()).mass() < 20 or
-       lepton1->charge()+lepton2->charge() != 0 )
+  // Check each cut steps
+  int cutstep = -1;
+  // bitset for the cut steps, fill the results only for events that pass step0a,0b,0c
+  std::bitset<ControlPlots::nMaxCutstep-2> cutstepBits(0);
+  //for ( auto x : cutstepBits ) x = false;
+  if ( (channel == CH_ELEL and cutstep_ee == 0) or
+       (channel == CH_MUMU and cutstep_mm == 0) or
+       (channel == CH_MUEL and cutstep_em == 0) )
   {
-    channel = CH_NONE;
-    cutstep = std::max(cutstep_ee, std::max(cutstep_mm, cutstep_em)); // reset the cut step
+    // Step1 Dilepton
+    if ( leptons_n >= 2 and z_m >= 20 and lepton1->charge()+lepton2->charge() == 0 )
+    {
+      cutstepBits[0] = true;
+      // Step2 Z mass veto : Step1 have to be required by construction
+      if ( channel == CH_MUEL or !(76 <= z_m and z_m <= 106) ) cutstepBits[1] = true;
+    }
+    // Step3 Minimal jet multiplicity
+    if ( jets_n >= 2 ) cutstepBits[2] = true;
+    // Step4 Missing transverse momentum
+    if ( channel == CH_MUEL or met_pt >= 40 ) cutstepBits[3] = true;
+    // Step5 one b jet
+    if ( bjets_n >= 1 ) cutstepBits[4] = true;
+
+    // Set the cut step of this event
+    const int nstep = cutstepBits.size();
+    for ( cutstep=0; cutstep<nstep; ++cutstep )
+    {
+      if ( !cutstepBits[cutstep] ) break;
+    }
+
   }
   else
   {
+    cutstep = std::max(cutstep_ee, std::max(cutstep_mm, cutstep_em)); // reset the cut step
+  }
+
+  // Cut step is ready. Now proceed to fill histograms
+  switch (1) default: {
+    int icutstep = 0;
+
+    if ( cutstep <= 0 ) break;
+    ++icutstep; // =1
+
     const auto zP4 = lepton1->p4()+lepton2->p4();
-    const auto z_m = zP4.mass();
-    if ( channel == CH_ELEL and cutstep_ee == 0 )
+
+    if ( channel == CH_ELEL )
     {
-      ////////////////////////////////////////
-      // First scan cut flow for ee channel //
-      ////////////////////////////////////////
-      switch (0) default: {
-        cutstep = cutstep_ee+1;
+      h_ee.hCutstep->Fill(icutstep, weight);
+      h_ee.hCutstepNoweight->Fill(icutstep);
+      h_ee.h1_vertex_n->Fill(nVertex, weight);
+      h_ee.h1_met_pt->Fill(met_pt, weight);
+      h_ee.h1_met_phi->Fill(met_phi, weight);
+      h_ee.h1_leptons_n->Fill(leptons_n, weight);
+      h_ee.h1_lepton1_pt->Fill(lepton1->pt(), weight);
+      h_ee.h1_lepton1_eta->Fill(lepton1->eta(), weight);
+      h_ee.h1_lepton1_phi->Fill(lepton1->phi(), weight);
+      h_ee.h1_lepton1_q->Fill(lepton1->charge(), weight);
+      h_ee.h1_lepton2_pt->Fill(lepton2->pt(), weight);
+      h_ee.h1_lepton2_eta->Fill(lepton2->eta(), weight);
+      h_ee.h1_lepton2_phi->Fill(lepton2->phi(), weight);
+      h_ee.h1_lepton2_q->Fill(lepton2->charge(), weight);
+      h_ee.h1_z_m->Fill(z_m, weight);
+      h_ee.h1_z_pt->Fill(zP4.pt(), weight);
+      h_ee.h1_z_eta->Fill(zP4.eta(), weight);
+      h_ee.h1_z_phi->Fill(zP4.phi(), weight);
+      h_ee.h1_jets_n->Fill(jets_n, weight);
+      h_ee.h1_jets_ht->Fill(jets_ht, weight);
+      if ( jets_n >= 1 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(0));
+        h_ee.h1_jet1_m->Fill(jet.mass(), weight);
+        h_ee.h1_jet1_pt->Fill(jet.pt(), weight);
+        h_ee.h1_jet1_eta->Fill(jet.eta(), weight);
+        h_ee.h1_jet1_phi->Fill(jet.phi(), weight);
+        h_ee.h1_jet1_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      if ( jets_n >= 2 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(1));
+        h_ee.h1_jet2_m->Fill(jet.mass(), weight);
+        h_ee.h1_jet2_pt->Fill(jet.pt(), weight);
+        h_ee.h1_jet2_eta->Fill(jet.eta(), weight);
+        h_ee.h1_jet2_phi->Fill(jet.phi(), weight);
+        h_ee.h1_jet2_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      if ( jets_n >= 3 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
+        h_ee.h1_jet3_m->Fill(jet.mass(), weight);
+        h_ee.h1_jet3_pt->Fill(jet.pt(), weight);
+        h_ee.h1_jet3_eta->Fill(jet.eta(), weight);
+        h_ee.h1_jet3_phi->Fill(jet.phi(), weight);
+        h_ee.h1_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      if ( jets_n >= 4 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
+        h_ee.h1_jet4_m->Fill(jet.mass(), weight);
+        h_ee.h1_jet4_pt->Fill(jet.pt(), weight);
+        h_ee.h1_jet4_eta->Fill(jet.eta(), weight);
+        h_ee.h1_jet4_phi->Fill(jet.phi(), weight);
+        h_ee.h1_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      h_ee.h1_bjets_n->Fill(bjets_n, weight);
 
-        h_ee.hCutstep->Fill(cutstep, weight);
-        h_ee.hCutstepNoweight->Fill(cutstep);
-        h_ee.h1_vertex_n->Fill(nVertex, weight);
-        h_ee.h1_met_pt->Fill(met_pt, weight);
-        h_ee.h1_met_phi->Fill(met_phi, weight);
-        h_ee.h1_leptons_n->Fill(leptons_n, weight);
-        h_ee.h1_lepton1_pt->Fill(lepton1->pt(), weight);
-        h_ee.h1_lepton1_eta->Fill(lepton1->eta(), weight);
-        h_ee.h1_lepton1_phi->Fill(lepton1->phi(), weight);
-        h_ee.h1_lepton1_q->Fill(lepton1->charge(), weight);
-        h_ee.h1_lepton2_pt->Fill(lepton2->pt(), weight);
-        h_ee.h1_lepton2_eta->Fill(lepton2->eta(), weight);
-        h_ee.h1_lepton2_phi->Fill(lepton2->phi(), weight);
-        h_ee.h1_lepton2_q->Fill(lepton2->charge(), weight);
-        h_ee.h1_z_m->Fill(z_m, weight);
-        h_ee.h1_z_pt->Fill(zP4.pt(), weight);
-        h_ee.h1_z_eta->Fill(zP4.eta(), weight);
-        h_ee.h1_z_phi->Fill(zP4.phi(), weight);
-        h_ee.h1_jets_n->Fill(jets_n, weight);
-        h_ee.h1_jets_ht->Fill(jets_ht, weight);
-        if ( jets_n >= 1 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(0));
-          h_ee.h1_jet1_m->Fill(jet.mass(), weight);
-          h_ee.h1_jet1_pt->Fill(jet.pt(), weight);
-          h_ee.h1_jet1_eta->Fill(jet.eta(), weight);
-          h_ee.h1_jet1_phi->Fill(jet.phi(), weight);
-          h_ee.h1_jet1_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        if ( jets_n >= 2 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(1));
-          h_ee.h1_jet2_m->Fill(jet.mass(), weight);
-          h_ee.h1_jet2_pt->Fill(jet.pt(), weight);
-          h_ee.h1_jet2_eta->Fill(jet.eta(), weight);
-          h_ee.h1_jet2_phi->Fill(jet.phi(), weight);
-          h_ee.h1_jet2_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        if ( jets_n >= 3 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
-          h_ee.h1_jet3_m->Fill(jet.mass(), weight);
-          h_ee.h1_jet3_pt->Fill(jet.pt(), weight);
-          h_ee.h1_jet3_eta->Fill(jet.eta(), weight);
-          h_ee.h1_jet3_phi->Fill(jet.phi(), weight);
-          h_ee.h1_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        if ( jets_n >= 4 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
-          h_ee.h1_jet4_m->Fill(jet.mass(), weight);
-          h_ee.h1_jet4_pt->Fill(jet.pt(), weight);
-          h_ee.h1_jet4_eta->Fill(jet.eta(), weight);
-          h_ee.h1_jet4_phi->Fill(jet.phi(), weight);
-          h_ee.h1_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        h_ee.h1_bjets_n->Fill(bjets_n, weight);
+      h_ee.h1_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
+    }
+    else if ( channel == CH_MUMU )
+    {
+      h_mm.hCutstep->Fill(icutstep, weight);
+      h_mm.hCutstepNoweight->Fill(icutstep);
+      h_mm.h1_vertex_n->Fill(nVertex, weight);
+      h_mm.h1_met_pt->Fill(met_pt, weight);
+      h_mm.h1_met_phi->Fill(met_phi, weight);
+      h_mm.h1_leptons_n->Fill(leptons_n, weight);
+      h_mm.h1_lepton1_pt->Fill(lepton1->pt(), weight);
+      h_mm.h1_lepton1_eta->Fill(lepton1->eta(), weight);
+      h_mm.h1_lepton1_phi->Fill(lepton1->phi(), weight);
+      h_mm.h1_lepton1_q->Fill(lepton1->charge(), weight);
+      h_mm.h1_lepton2_pt->Fill(lepton2->pt(), weight);
+      h_mm.h1_lepton2_eta->Fill(lepton2->eta(), weight);
+      h_mm.h1_lepton2_phi->Fill(lepton2->phi(), weight);
+      h_mm.h1_lepton2_q->Fill(lepton2->charge(), weight);
+      h_mm.h1_z_m->Fill(z_m, weight);
+      h_mm.h1_z_pt->Fill(zP4.pt(), weight);
+      h_mm.h1_z_eta->Fill(zP4.eta(), weight);
+      h_mm.h1_z_phi->Fill(zP4.phi(), weight);
+      h_mm.h1_jets_n->Fill(jets_n, weight);
+      h_mm.h1_jets_ht->Fill(jets_ht, weight);
+      if ( jets_n >= 1 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(0));
+        h_mm.h1_jet1_m->Fill(jet.mass(), weight);
+        h_mm.h1_jet1_pt->Fill(jet.pt(), weight);
+        h_mm.h1_jet1_eta->Fill(jet.eta(), weight);
+        h_mm.h1_jet1_phi->Fill(jet.phi(), weight);
+        h_mm.h1_jet1_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      if ( jets_n >= 2 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(1));
+        h_mm.h1_jet2_m->Fill(jet.mass(), weight);
+        h_mm.h1_jet2_pt->Fill(jet.pt(), weight);
+        h_mm.h1_jet2_eta->Fill(jet.eta(), weight);
+        h_mm.h1_jet2_phi->Fill(jet.phi(), weight);
+        h_mm.h1_jet2_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      if ( jets_n >= 3 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
+        h_mm.h1_jet3_m->Fill(jet.mass(), weight);
+        h_mm.h1_jet3_pt->Fill(jet.pt(), weight);
+        h_mm.h1_jet3_eta->Fill(jet.eta(), weight);
+        h_mm.h1_jet3_phi->Fill(jet.phi(), weight);
+        h_mm.h1_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      if ( jets_n >= 4 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
+        h_mm.h1_jet4_m->Fill(jet.mass(), weight);
+        h_mm.h1_jet4_pt->Fill(jet.pt(), weight);
+        h_mm.h1_jet4_eta->Fill(jet.eta(), weight);
+        h_mm.h1_jet4_phi->Fill(jet.phi(), weight);
+        h_mm.h1_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      h_mm.h1_bjets_n->Fill(bjets_n, weight);
 
-        h_ee.h1_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
+      h_mm.h1_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
+    }
+    else if ( channel == CH_MUEL )
+    {
+      h_em.hCutstep->Fill(icutstep, weight);
+      h_em.hCutstepNoweight->Fill(icutstep);
+      h_em.h1_vertex_n->Fill(nVertex, weight);
+      h_em.h1_met_pt->Fill(met_pt, weight);
+      h_em.h1_met_phi->Fill(met_phi, weight);
+      h_em.h1_leptons_n->Fill(leptons_n, weight);
+      h_em.h1_lepton1_pt->Fill(lepton1->pt(), weight);
+      h_em.h1_lepton1_eta->Fill(lepton1->eta(), weight);
+      h_em.h1_lepton1_phi->Fill(lepton1->phi(), weight);
+      h_em.h1_lepton1_q->Fill(lepton1->charge(), weight);
+      h_em.h1_lepton2_pt->Fill(lepton2->pt(), weight);
+      h_em.h1_lepton2_eta->Fill(lepton2->eta(), weight);
+      h_em.h1_lepton2_phi->Fill(lepton2->phi(), weight);
+      h_em.h1_lepton2_q->Fill(lepton2->charge(), weight);
+      h_em.h1_z_m->Fill(z_m, weight);
+      h_em.h1_z_pt->Fill(zP4.pt(), weight);
+      h_em.h1_z_eta->Fill(zP4.eta(), weight);
+      h_em.h1_z_phi->Fill(zP4.phi(), weight);
+      h_em.h1_jets_n->Fill(jets_n, weight);
+      h_em.h1_jets_ht->Fill(jets_ht, weight);
+      if ( jets_n >= 1 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(0));
+        h_em.h1_jet1_m->Fill(jet.mass(), weight);
+        h_em.h1_jet1_pt->Fill(jet.pt(), weight);
+        h_em.h1_jet1_eta->Fill(jet.eta(), weight);
+        h_em.h1_jet1_phi->Fill(jet.phi(), weight);
+        h_em.h1_jet1_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      if ( jets_n >= 2 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(1));
+        h_em.h1_jet2_m->Fill(jet.mass(), weight);
+        h_em.h1_jet2_pt->Fill(jet.pt(), weight);
+        h_em.h1_jet2_eta->Fill(jet.eta(), weight);
+        h_em.h1_jet2_phi->Fill(jet.phi(), weight);
+        h_em.h1_jet2_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      if ( jets_n >= 3 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
+        h_em.h1_jet3_m->Fill(jet.mass(), weight);
+        h_em.h1_jet3_pt->Fill(jet.pt(), weight);
+        h_em.h1_jet3_eta->Fill(jet.eta(), weight);
+        h_em.h1_jet3_phi->Fill(jet.phi(), weight);
+        h_em.h1_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      if ( jets_n >= 4 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
+        h_em.h1_jet4_m->Fill(jet.mass(), weight);
+        h_em.h1_jet4_pt->Fill(jet.pt(), weight);
+        h_em.h1_jet4_eta->Fill(jet.eta(), weight);
+        h_em.h1_jet4_phi->Fill(jet.phi(), weight);
+        h_em.h1_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      h_em.h1_bjets_n->Fill(bjets_n, weight);
 
-        // Step2 Z mass veto
-        if ( 76 <= z_m and z_m <= 106 ) break;
-        ++cutstep;
-        h_ee.hCutstep->Fill(cutstep, weight);
-        h_ee.hCutstepNoweight->Fill(cutstep);
-        h_ee.h2_vertex_n->Fill(nVertex, weight);
-        h_ee.h2_met_pt->Fill(met_pt, weight);
-        h_ee.h2_met_phi->Fill(met_phi, weight);
-        h_ee.h2_leptons_n->Fill(leptons_n, weight);
-        h_ee.h2_lepton1_pt->Fill(lepton1->pt(), weight);
-        h_ee.h2_lepton1_eta->Fill(lepton1->eta(), weight);
-        h_ee.h2_lepton1_phi->Fill(lepton1->phi(), weight);
-        h_ee.h2_lepton1_q->Fill(lepton1->charge(), weight);
-        h_ee.h2_lepton2_pt->Fill(lepton2->pt(), weight);
-        h_ee.h2_lepton2_eta->Fill(lepton2->eta(), weight);
-        h_ee.h2_lepton2_phi->Fill(lepton2->phi(), weight);
-        h_ee.h2_lepton2_q->Fill(lepton2->charge(), weight);
-        h_ee.h2_z_m->Fill(zP4.mass(), weight);
-        h_ee.h2_z_pt->Fill(zP4.pt(), weight);
-        h_ee.h2_z_eta->Fill(zP4.eta(), weight);
-        h_ee.h2_z_phi->Fill(zP4.phi(), weight);
-        h_ee.h2_jets_n->Fill(jets_n, weight);
-        h_ee.h2_jets_ht->Fill(jets_ht, weight);
-        if ( jets_n >= 1 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(0));
-          h_ee.h2_jet1_m->Fill(jet.mass(), weight);
-          h_ee.h2_jet1_pt->Fill(jet.pt(), weight);
-          h_ee.h2_jet1_eta->Fill(jet.eta(), weight);
-          h_ee.h2_jet1_phi->Fill(jet.phi(), weight);
-          h_ee.h2_jet1_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        if ( jets_n >= 2 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(1));
-          h_ee.h2_jet2_m->Fill(jet.mass(), weight);
-          h_ee.h2_jet2_pt->Fill(jet.pt(), weight);
-          h_ee.h2_jet2_eta->Fill(jet.eta(), weight);
-          h_ee.h2_jet2_phi->Fill(jet.phi(), weight);
-          h_ee.h2_jet2_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        if ( jets_n >= 3 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
-          h_ee.h2_jet3_m->Fill(jet.mass(), weight);
-          h_ee.h2_jet3_pt->Fill(jet.pt(), weight);
-          h_ee.h2_jet3_eta->Fill(jet.eta(), weight);
-          h_ee.h2_jet3_phi->Fill(jet.phi(), weight);
-          h_ee.h2_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        if ( jets_n >= 4 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
-          h_ee.h2_jet4_m->Fill(jet.mass(), weight);
-          h_ee.h2_jet4_pt->Fill(jet.pt(), weight);
-          h_ee.h2_jet4_eta->Fill(jet.eta(), weight);
-          h_ee.h2_jet4_phi->Fill(jet.phi(), weight);
-          h_ee.h2_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        h_ee.h2_bjets_n->Fill(bjets_n, weight);
+      h_em.h1_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
 
-        h_ee.h2_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
+    }
 
-        // Step3 Minimal jet multiplicity
-        if ( jets_n < 2 ) break;
-        ++cutstep;
-        h_ee.hCutstep->Fill(cutstep, weight);
-        h_ee.hCutstepNoweight->Fill(cutstep);
-        h_ee.h3_vertex_n->Fill(nVertex, weight);
-        h_ee.h3_met_pt->Fill(met_pt, weight);
-        h_ee.h3_met_phi->Fill(met_phi, weight);
-        h_ee.h3_z_m->Fill(zP4.mass(), weight);
-        h_ee.h3_z_pt->Fill(zP4.pt(), weight);
-        h_ee.h3_z_eta->Fill(zP4.eta(), weight);
-        h_ee.h3_z_phi->Fill(zP4.phi(), weight);
-        h_ee.h3_jets_n->Fill(jets_n, weight);
-        h_ee.h3_jets_ht->Fill(jets_ht, weight);
-        const auto& jet1 = dynamic_cast<const cat::Jet&>(*selectedJets.at(0));
-        h_ee.h3_jet1_m->Fill(jet1.mass(), weight);
-        h_ee.h3_jet1_pt->Fill(jet1.pt(), weight);
-        h_ee.h3_jet1_eta->Fill(jet1.eta(), weight);
-        h_ee.h3_jet1_phi->Fill(jet1.phi(), weight);
-        h_ee.h3_jet1_btag->Fill(jet1.bDiscriminator(bTagName_), weight);
-        const auto& jet2 = dynamic_cast<const cat::Jet&>(*selectedJets.at(1));
-        h_ee.h3_jet2_m->Fill(jet2.mass(), weight);
-        h_ee.h3_jet2_pt->Fill(jet2.pt(), weight);
-        h_ee.h3_jet2_eta->Fill(jet2.eta(), weight);
-        h_ee.h3_jet2_phi->Fill(jet2.phi(), weight);
-        h_ee.h3_jet2_btag->Fill(jet2.bDiscriminator(bTagName_), weight);
-        if ( jets_n >= 3 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
-          h_ee.h3_jet3_m->Fill(jet.mass(), weight);
-          h_ee.h3_jet3_pt->Fill(jet.pt(), weight);
-          h_ee.h3_jet3_eta->Fill(jet.eta(), weight);
-          h_ee.h3_jet3_phi->Fill(jet.phi(), weight);
-          h_ee.h3_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        if ( jets_n >= 4 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
-          h_ee.h3_jet4_m->Fill(jet.mass(), weight);
-          h_ee.h3_jet4_pt->Fill(jet.pt(), weight);
-          h_ee.h3_jet4_eta->Fill(jet.eta(), weight);
-          h_ee.h3_jet4_phi->Fill(jet.phi(), weight);
-          h_ee.h3_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        h_ee.h3_bjets_n->Fill(bjets_n, weight);
+    // Finalize cut step 1 and start cut step2
+    if ( cutstep <= 1 ) break;
+    ++icutstep; // =2
 
-        h_ee.h3_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
+    if ( channel == CH_ELEL )
+    {
+      h_ee.hCutstep->Fill(icutstep, weight);
+      h_ee.hCutstepNoweight->Fill(icutstep);
+      h_ee.h2_vertex_n->Fill(nVertex, weight);
+      h_ee.h2_met_pt->Fill(met_pt, weight);
+      h_ee.h2_met_phi->Fill(met_phi, weight);
+      h_ee.h2_leptons_n->Fill(leptons_n, weight);
+      h_ee.h2_lepton1_pt->Fill(lepton1->pt(), weight);
+      h_ee.h2_lepton1_eta->Fill(lepton1->eta(), weight);
+      h_ee.h2_lepton1_phi->Fill(lepton1->phi(), weight);
+      h_ee.h2_lepton1_q->Fill(lepton1->charge(), weight);
+      h_ee.h2_lepton2_pt->Fill(lepton2->pt(), weight);
+      h_ee.h2_lepton2_eta->Fill(lepton2->eta(), weight);
+      h_ee.h2_lepton2_phi->Fill(lepton2->phi(), weight);
+      h_ee.h2_lepton2_q->Fill(lepton2->charge(), weight);
+      h_ee.h2_z_m->Fill(zP4.mass(), weight);
+      h_ee.h2_z_pt->Fill(zP4.pt(), weight);
+      h_ee.h2_z_eta->Fill(zP4.eta(), weight);
+      h_ee.h2_z_phi->Fill(zP4.phi(), weight);
+      h_ee.h2_jets_n->Fill(jets_n, weight);
+      h_ee.h2_jets_ht->Fill(jets_ht, weight);
+      if ( jets_n >= 1 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(0));
+        h_ee.h2_jet1_m->Fill(jet.mass(), weight);
+        h_ee.h2_jet1_pt->Fill(jet.pt(), weight);
+        h_ee.h2_jet1_eta->Fill(jet.eta(), weight);
+        h_ee.h2_jet1_phi->Fill(jet.phi(), weight);
+        h_ee.h2_jet1_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      if ( jets_n >= 2 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(1));
+        h_ee.h2_jet2_m->Fill(jet.mass(), weight);
+        h_ee.h2_jet2_pt->Fill(jet.pt(), weight);
+        h_ee.h2_jet2_eta->Fill(jet.eta(), weight);
+        h_ee.h2_jet2_phi->Fill(jet.phi(), weight);
+        h_ee.h2_jet2_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      if ( jets_n >= 3 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
+        h_ee.h2_jet3_m->Fill(jet.mass(), weight);
+        h_ee.h2_jet3_pt->Fill(jet.pt(), weight);
+        h_ee.h2_jet3_eta->Fill(jet.eta(), weight);
+        h_ee.h2_jet3_phi->Fill(jet.phi(), weight);
+        h_ee.h2_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      if ( jets_n >= 4 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
+        h_ee.h2_jet4_m->Fill(jet.mass(), weight);
+        h_ee.h2_jet4_pt->Fill(jet.pt(), weight);
+        h_ee.h2_jet4_eta->Fill(jet.eta(), weight);
+        h_ee.h2_jet4_phi->Fill(jet.phi(), weight);
+        h_ee.h2_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      h_ee.h2_bjets_n->Fill(bjets_n, weight);
 
-        // Step4 Missing transverse momentum
-        if ( met_pt < 40 ) break;
-        ++cutstep;
-        h_ee.hCutstep->Fill(cutstep, weight);
-        h_ee.hCutstepNoweight->Fill(cutstep);
-        h_ee.h4_vertex_n->Fill(nVertex, weight);
-        h_ee.h4_met_pt->Fill(met_pt, weight);
-        h_ee.h4_met_phi->Fill(met_phi, weight);
-        h_ee.h4_z_m->Fill(zP4.mass(), weight);
-        h_ee.h4_z_pt->Fill(zP4.pt(), weight);
-        h_ee.h4_z_eta->Fill(zP4.eta(), weight);
-        h_ee.h4_z_phi->Fill(zP4.phi(), weight);
-        h_ee.h4_jets_n->Fill(jets_n, weight);
-        h_ee.h4_jets_ht->Fill(jets_ht, weight);
-        h_ee.h4_jet1_m->Fill(jet1.mass(), weight);
-        h_ee.h4_jet1_pt->Fill(jet1.pt(), weight);
-        h_ee.h4_jet1_eta->Fill(jet1.eta(), weight);
-        h_ee.h4_jet1_phi->Fill(jet1.phi(), weight);
-        h_ee.h4_jet1_btag->Fill(jet1.bDiscriminator(bTagName_), weight);
-        h_ee.h4_jet2_m->Fill(jet2.mass(), weight);
-        h_ee.h4_jet2_pt->Fill(jet2.pt(), weight);
-        h_ee.h4_jet2_eta->Fill(jet2.eta(), weight);
-        h_ee.h4_jet2_phi->Fill(jet2.phi(), weight);
-        h_ee.h4_jet2_btag->Fill(jet2.bDiscriminator(bTagName_), weight);
-        if ( jets_n >= 3 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
-          h_ee.h4_jet3_m->Fill(jet.mass(), weight);
-          h_ee.h4_jet3_pt->Fill(jet.pt(), weight);
-          h_ee.h4_jet3_eta->Fill(jet.eta(), weight);
-          h_ee.h4_jet3_phi->Fill(jet.phi(), weight);
-          h_ee.h4_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        if ( jets_n >= 4 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
-          h_ee.h4_jet4_m->Fill(jet.mass(), weight);
-          h_ee.h4_jet4_pt->Fill(jet.pt(), weight);
-          h_ee.h4_jet4_eta->Fill(jet.eta(), weight);
-          h_ee.h4_jet4_phi->Fill(jet.phi(), weight);
-          h_ee.h4_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        h_ee.h4_bjets_n->Fill(bjets_n, weight);
+      h_ee.h2_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
+    }
+    else if ( channel == CH_MUMU )
+    {
+      h_mm.hCutstep->Fill(icutstep, weight);
+      h_mm.hCutstepNoweight->Fill(icutstep);
+      h_mm.h2_vertex_n->Fill(nVertex, weight);
+      h_mm.h2_met_pt->Fill(met_pt, weight);
+      h_mm.h2_met_phi->Fill(met_phi, weight);
+      h_mm.h2_leptons_n->Fill(leptons_n, weight);
+      h_mm.h2_lepton1_pt->Fill(lepton1->pt(), weight);
+      h_mm.h2_lepton1_eta->Fill(lepton1->eta(), weight);
+      h_mm.h2_lepton1_phi->Fill(lepton1->phi(), weight);
+      h_mm.h2_lepton1_q->Fill(lepton1->charge(), weight);
+      h_mm.h2_lepton2_pt->Fill(lepton2->pt(), weight);
+      h_mm.h2_lepton2_eta->Fill(lepton2->eta(), weight);
+      h_mm.h2_lepton2_phi->Fill(lepton2->phi(), weight);
+      h_mm.h2_lepton2_q->Fill(lepton2->charge(), weight);
+      h_mm.h2_z_m->Fill(zP4.mass(), weight);
+      h_mm.h2_z_pt->Fill(zP4.pt(), weight);
+      h_mm.h2_z_eta->Fill(zP4.eta(), weight);
+      h_mm.h2_z_phi->Fill(zP4.phi(), weight);
+      h_mm.h2_jets_n->Fill(jets_n, weight);
+      h_mm.h2_jets_ht->Fill(jets_ht, weight);
+      if ( jets_n >= 1 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(0));
+        h_mm.h2_jet1_m->Fill(jet.mass(), weight);
+        h_mm.h2_jet1_pt->Fill(jet.pt(), weight);
+        h_mm.h2_jet1_eta->Fill(jet.eta(), weight);
+        h_mm.h2_jet1_phi->Fill(jet.phi(), weight);
+        h_mm.h2_jet1_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      if ( jets_n >= 2 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(1));
+        h_mm.h2_jet2_m->Fill(jet.mass(), weight);
+        h_mm.h2_jet2_pt->Fill(jet.pt(), weight);
+        h_mm.h2_jet2_eta->Fill(jet.eta(), weight);
+        h_mm.h2_jet2_phi->Fill(jet.phi(), weight);
+        h_mm.h2_jet2_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      if ( jets_n >= 3 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
+        h_mm.h2_jet3_m->Fill(jet.mass(), weight);
+        h_mm.h2_jet3_pt->Fill(jet.pt(), weight);
+        h_mm.h2_jet3_eta->Fill(jet.eta(), weight);
+        h_mm.h2_jet3_phi->Fill(jet.phi(), weight);
+        h_mm.h2_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      if ( jets_n >= 4 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
+        h_mm.h2_jet4_m->Fill(jet.mass(), weight);
+        h_mm.h2_jet4_pt->Fill(jet.pt(), weight);
+        h_mm.h2_jet4_eta->Fill(jet.eta(), weight);
+        h_mm.h2_jet4_phi->Fill(jet.phi(), weight);
+        h_mm.h2_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      h_mm.h2_bjets_n->Fill(bjets_n, weight);
 
-        h_ee.h4_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
+      h_mm.h2_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
+    }
+    else if ( channel == CH_MUEL )
+    {
+      h_em.hCutstep->Fill(icutstep, weight);
+      h_em.hCutstepNoweight->Fill(icutstep);
+      h_em.h2_vertex_n->Fill(nVertex, weight);
+      h_em.h2_met_pt->Fill(met_pt, weight);
+      h_em.h2_met_phi->Fill(met_phi, weight);
+      h_em.h2_leptons_n->Fill(leptons_n, weight);
+      h_em.h2_lepton1_pt->Fill(lepton1->pt(), weight);
+      h_em.h2_lepton1_eta->Fill(lepton1->eta(), weight);
+      h_em.h2_lepton1_phi->Fill(lepton1->phi(), weight);
+      h_em.h2_lepton1_q->Fill(lepton1->charge(), weight);
+      h_em.h2_lepton2_pt->Fill(lepton2->pt(), weight);
+      h_em.h2_lepton2_eta->Fill(lepton2->eta(), weight);
+      h_em.h2_lepton2_phi->Fill(lepton2->phi(), weight);
+      h_em.h2_lepton2_q->Fill(lepton2->charge(), weight);
+      h_em.h2_z_m->Fill(zP4.mass(), weight);
+      h_em.h2_z_pt->Fill(zP4.pt(), weight);
+      h_em.h2_z_eta->Fill(zP4.eta(), weight);
+      h_em.h2_z_phi->Fill(zP4.phi(), weight);
+      h_em.h2_jets_n->Fill(jets_n, weight);
+      h_em.h2_jets_ht->Fill(jets_ht, weight);
+      if ( jets_n >= 1 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(0));
+        h_em.h2_jet1_m->Fill(jet.mass(), weight);
+        h_em.h2_jet1_pt->Fill(jet.pt(), weight);
+        h_em.h2_jet1_eta->Fill(jet.eta(), weight);
+        h_em.h2_jet1_phi->Fill(jet.phi(), weight);
+        h_em.h2_jet1_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      if ( jets_n >= 2 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(1));
+        h_em.h2_jet2_m->Fill(jet.mass(), weight);
+        h_em.h2_jet2_pt->Fill(jet.pt(), weight);
+        h_em.h2_jet2_eta->Fill(jet.eta(), weight);
+        h_em.h2_jet2_phi->Fill(jet.phi(), weight);
+        h_em.h2_jet2_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      if ( jets_n >= 3 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
+        h_em.h2_jet3_m->Fill(jet.mass(), weight);
+        h_em.h2_jet3_pt->Fill(jet.pt(), weight);
+        h_em.h2_jet3_eta->Fill(jet.eta(), weight);
+        h_em.h2_jet3_phi->Fill(jet.phi(), weight);
+        h_em.h2_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      if ( jets_n >= 4 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
+        h_em.h2_jet4_m->Fill(jet.mass(), weight);
+        h_em.h2_jet4_pt->Fill(jet.pt(), weight);
+        h_em.h2_jet4_eta->Fill(jet.eta(), weight);
+        h_em.h2_jet4_phi->Fill(jet.phi(), weight);
+        h_em.h2_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      h_em.h2_bjets_n->Fill(bjets_n, weight);
 
-        // Step5 one b jet
-        if ( bjets_n < 1 ) break;
-        ++cutstep;
-        h_ee.hCutstep->Fill(cutstep, weight);
-        h_ee.hCutstepNoweight->Fill(cutstep);
-        h_ee.h5_vertex_n->Fill(nVertex, weight);
-        h_ee.h5_met_pt->Fill(met_pt, weight);
-        h_ee.h5_met_phi->Fill(met_phi, weight);
-        h_ee.h5_z_m->Fill(zP4.mass(), weight);
-        h_ee.h5_z_pt->Fill(zP4.pt(), weight);
-        h_ee.h5_z_eta->Fill(zP4.eta(), weight);
-        h_ee.h5_z_phi->Fill(zP4.phi(), weight);
-        h_ee.h5_jets_n->Fill(jets_n, weight);
-        h_ee.h5_jets_ht->Fill(jets_ht, weight);
-        h_ee.h5_jet1_m->Fill(jet1.mass(), weight);
-        h_ee.h5_jet1_pt->Fill(jet1.pt(), weight);
-        h_ee.h5_jet1_eta->Fill(jet1.eta(), weight);
-        h_ee.h5_jet1_phi->Fill(jet1.phi(), weight);
-        h_ee.h5_jet1_btag->Fill(jet1.bDiscriminator(bTagName_), weight);
-        h_ee.h5_jet2_m->Fill(jet2.mass(), weight);
-        h_ee.h5_jet2_pt->Fill(jet2.pt(), weight);
-        h_ee.h5_jet2_eta->Fill(jet2.eta(), weight);
-        h_ee.h5_jet2_phi->Fill(jet2.phi(), weight);
-        h_ee.h5_jet2_btag->Fill(jet2.bDiscriminator(bTagName_), weight);
-        if ( jets_n >= 3 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
-          h_ee.h5_jet3_m->Fill(jet.mass(), weight);
-          h_ee.h5_jet3_pt->Fill(jet.pt(), weight);
-          h_ee.h5_jet3_eta->Fill(jet.eta(), weight);
-          h_ee.h5_jet3_phi->Fill(jet.phi(), weight);
-          h_ee.h5_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        if ( jets_n >= 4 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
-          h_ee.h5_jet4_m->Fill(jet.mass(), weight);
-          h_ee.h5_jet4_pt->Fill(jet.pt(), weight);
-          h_ee.h5_jet4_eta->Fill(jet.eta(), weight);
-          h_ee.h5_jet4_phi->Fill(jet.phi(), weight);
-          h_ee.h5_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        h_ee.h5_bjets_n->Fill(bjets_n, weight);
+      h_em.h2_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
 
-        h_ee.h5_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
+    }
+
+    // Finalize cut step 2 and start cut step3
+    if ( cutstep <= 2 ) break;
+    ++icutstep; // =3
+
+    const auto& jet1 = dynamic_cast<const cat::Jet&>(*selectedJets.at(0));
+    const auto& jet2 = dynamic_cast<const cat::Jet&>(*selectedJets.at(1));
+
+    if ( channel == CH_ELEL )
+    {
+      h_ee.hCutstep->Fill(icutstep, weight);
+      h_ee.hCutstepNoweight->Fill(icutstep);
+      h_ee.h3_vertex_n->Fill(nVertex, weight);
+      h_ee.h3_met_pt->Fill(met_pt, weight);
+      h_ee.h3_met_phi->Fill(met_phi, weight);
+      h_ee.h3_z_m->Fill(zP4.mass(), weight);
+      h_ee.h3_z_pt->Fill(zP4.pt(), weight);
+      h_ee.h3_z_eta->Fill(zP4.eta(), weight);
+      h_ee.h3_z_phi->Fill(zP4.phi(), weight);
+      h_ee.h3_jets_n->Fill(jets_n, weight);
+      h_ee.h3_jets_ht->Fill(jets_ht, weight);
+      h_ee.h3_jet1_m->Fill(jet1.mass(), weight);
+      h_ee.h3_jet1_pt->Fill(jet1.pt(), weight);
+      h_ee.h3_jet1_eta->Fill(jet1.eta(), weight);
+      h_ee.h3_jet1_phi->Fill(jet1.phi(), weight);
+      h_ee.h3_jet1_btag->Fill(jet1.bDiscriminator(bTagName_), weight);
+      h_ee.h3_jet2_m->Fill(jet2.mass(), weight);
+      h_ee.h3_jet2_pt->Fill(jet2.pt(), weight);
+      h_ee.h3_jet2_eta->Fill(jet2.eta(), weight);
+      h_ee.h3_jet2_phi->Fill(jet2.phi(), weight);
+      h_ee.h3_jet2_btag->Fill(jet2.bDiscriminator(bTagName_), weight);
+      if ( jets_n >= 3 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
+        h_ee.h3_jet3_m->Fill(jet.mass(), weight);
+        h_ee.h3_jet3_pt->Fill(jet.pt(), weight);
+        h_ee.h3_jet3_eta->Fill(jet.eta(), weight);
+        h_ee.h3_jet3_phi->Fill(jet.phi(), weight);
+        h_ee.h3_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      if ( jets_n >= 4 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
+        h_ee.h3_jet4_m->Fill(jet.mass(), weight);
+        h_ee.h3_jet4_pt->Fill(jet.pt(), weight);
+        h_ee.h3_jet4_eta->Fill(jet.eta(), weight);
+        h_ee.h3_jet4_phi->Fill(jet.phi(), weight);
+        h_ee.h3_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      h_ee.h3_bjets_n->Fill(bjets_n, weight);
+
+      h_ee.h3_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
+    }
+    else if ( channel == CH_MUMU )
+    {
+      h_mm.hCutstep->Fill(icutstep, weight);
+      h_mm.hCutstepNoweight->Fill(icutstep);
+      h_mm.h3_vertex_n->Fill(nVertex, weight);
+      h_mm.h3_met_pt->Fill(met_pt, weight);
+      h_mm.h3_met_phi->Fill(met_phi, weight);
+      h_mm.h3_z_m->Fill(zP4.mass(), weight);
+      h_mm.h3_z_pt->Fill(zP4.pt(), weight);
+      h_mm.h3_z_eta->Fill(zP4.eta(), weight);
+      h_mm.h3_z_phi->Fill(zP4.phi(), weight);
+      h_mm.h3_jets_n->Fill(jets_n, weight);
+      h_mm.h3_jets_ht->Fill(jets_ht, weight);
+      h_mm.h3_jet1_m->Fill(jet1.mass(), weight);
+      h_mm.h3_jet1_pt->Fill(jet1.pt(), weight);
+      h_mm.h3_jet1_eta->Fill(jet1.eta(), weight);
+      h_mm.h3_jet1_phi->Fill(jet1.phi(), weight);
+      h_mm.h3_jet1_btag->Fill(jet1.bDiscriminator(bTagName_), weight);
+      h_mm.h3_jet2_m->Fill(jet2.mass(), weight);
+      h_mm.h3_jet2_pt->Fill(jet2.pt(), weight);
+      h_mm.h3_jet2_eta->Fill(jet2.eta(), weight);
+      h_mm.h3_jet2_phi->Fill(jet2.phi(), weight);
+      h_mm.h3_jet2_btag->Fill(jet2.bDiscriminator(bTagName_), weight);
+      if ( jets_n >= 3 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
+        h_mm.h3_jet3_m->Fill(jet.mass(), weight);
+        h_mm.h3_jet3_pt->Fill(jet.pt(), weight);
+        h_mm.h3_jet3_eta->Fill(jet.eta(), weight);
+        h_mm.h3_jet3_phi->Fill(jet.phi(), weight);
+        h_mm.h3_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      if ( jets_n >= 4 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
+        h_mm.h3_jet4_m->Fill(jet.mass(), weight);
+        h_mm.h3_jet4_pt->Fill(jet.pt(), weight);
+        h_mm.h3_jet4_eta->Fill(jet.eta(), weight);
+        h_mm.h3_jet4_phi->Fill(jet.phi(), weight);
+        h_mm.h3_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      h_mm.h3_bjets_n->Fill(bjets_n, weight);
+
+      h_mm.h3_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
+
+    }
+    else if ( channel == CH_MUEL )
+    {
+      h_em.hCutstep->Fill(icutstep, weight);
+      h_em.hCutstepNoweight->Fill(icutstep);
+      h_em.h3_vertex_n->Fill(nVertex, weight);
+      h_em.h3_met_pt->Fill(met_pt, weight);
+      h_em.h3_met_phi->Fill(met_phi, weight);
+      h_em.h3_z_m->Fill(zP4.mass(), weight);
+      h_em.h3_z_pt->Fill(zP4.pt(), weight);
+      h_em.h3_z_eta->Fill(zP4.eta(), weight);
+      h_em.h3_z_phi->Fill(zP4.phi(), weight);
+      h_em.h3_jets_n->Fill(jets_n, weight);
+      h_em.h3_jets_ht->Fill(jets_ht, weight);
+      h_em.h3_jet1_m->Fill(jet1.mass(), weight);
+      h_em.h3_jet1_pt->Fill(jet1.pt(), weight);
+      h_em.h3_jet1_eta->Fill(jet1.eta(), weight);
+      h_em.h3_jet1_phi->Fill(jet1.phi(), weight);
+      h_em.h3_jet1_btag->Fill(jet1.bDiscriminator(bTagName_), weight);
+      h_em.h3_jet2_m->Fill(jet2.mass(), weight);
+      h_em.h3_jet2_pt->Fill(jet2.pt(), weight);
+      h_em.h3_jet2_eta->Fill(jet2.eta(), weight);
+      h_em.h3_jet2_phi->Fill(jet2.phi(), weight);
+      h_em.h3_jet2_btag->Fill(jet2.bDiscriminator(bTagName_), weight);
+      if ( jets_n >= 3 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
+        h_em.h3_jet3_m->Fill(jet.mass(), weight);
+        h_em.h3_jet3_pt->Fill(jet.pt(), weight);
+        h_em.h3_jet3_eta->Fill(jet.eta(), weight);
+        h_em.h3_jet3_phi->Fill(jet.phi(), weight);
+        h_em.h3_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      if ( jets_n >= 4 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
+        h_em.h3_jet4_m->Fill(jet.mass(), weight);
+        h_em.h3_jet4_pt->Fill(jet.pt(), weight);
+        h_em.h3_jet4_eta->Fill(jet.eta(), weight);
+        h_em.h3_jet4_phi->Fill(jet.phi(), weight);
+        h_em.h3_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      h_em.h3_bjets_n->Fill(bjets_n, weight);
+
+      h_em.h3_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
+
+    }
+
+    // Finalize cut step 3 and start cut step 4
+    if ( cutstep <= 3 ) break;
+    ++icutstep; // =4
+
+    if ( channel == CH_ELEL )
+    {
+      h_ee.hCutstep->Fill(icutstep, weight);
+      h_ee.hCutstepNoweight->Fill(icutstep);
+      h_ee.h4_vertex_n->Fill(nVertex, weight);
+      h_ee.h4_met_pt->Fill(met_pt, weight);
+      h_ee.h4_met_phi->Fill(met_phi, weight);
+      h_ee.h4_z_m->Fill(zP4.mass(), weight);
+      h_ee.h4_z_pt->Fill(zP4.pt(), weight);
+      h_ee.h4_z_eta->Fill(zP4.eta(), weight);
+      h_ee.h4_z_phi->Fill(zP4.phi(), weight);
+      h_ee.h4_jets_n->Fill(jets_n, weight);
+      h_ee.h4_jets_ht->Fill(jets_ht, weight);
+      h_ee.h4_jet1_m->Fill(jet1.mass(), weight);
+      h_ee.h4_jet1_pt->Fill(jet1.pt(), weight);
+      h_ee.h4_jet1_eta->Fill(jet1.eta(), weight);
+      h_ee.h4_jet1_phi->Fill(jet1.phi(), weight);
+      h_ee.h4_jet1_btag->Fill(jet1.bDiscriminator(bTagName_), weight);
+      h_ee.h4_jet2_m->Fill(jet2.mass(), weight);
+      h_ee.h4_jet2_pt->Fill(jet2.pt(), weight);
+      h_ee.h4_jet2_eta->Fill(jet2.eta(), weight);
+      h_ee.h4_jet2_phi->Fill(jet2.phi(), weight);
+      h_ee.h4_jet2_btag->Fill(jet2.bDiscriminator(bTagName_), weight);
+      if ( jets_n >= 3 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
+        h_ee.h4_jet3_m->Fill(jet.mass(), weight);
+        h_ee.h4_jet3_pt->Fill(jet.pt(), weight);
+        h_ee.h4_jet3_eta->Fill(jet.eta(), weight);
+        h_ee.h4_jet3_phi->Fill(jet.phi(), weight);
+        h_ee.h4_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      if ( jets_n >= 4 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
+        h_ee.h4_jet4_m->Fill(jet.mass(), weight);
+        h_ee.h4_jet4_pt->Fill(jet.pt(), weight);
+        h_ee.h4_jet4_eta->Fill(jet.eta(), weight);
+        h_ee.h4_jet4_phi->Fill(jet.phi(), weight);
+        h_ee.h4_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      h_ee.h4_bjets_n->Fill(bjets_n, weight);
+
+      h_ee.h4_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
+    }
+    else if ( channel == CH_MUMU )
+    {
+      h_mm.hCutstep->Fill(icutstep, weight);
+      h_mm.hCutstepNoweight->Fill(icutstep);
+      h_mm.h4_vertex_n->Fill(nVertex, weight);
+      h_mm.h4_met_pt->Fill(met_pt, weight);
+      h_mm.h4_met_phi->Fill(met_phi, weight);
+      h_mm.h4_z_m->Fill(zP4.mass(), weight);
+      h_mm.h4_z_pt->Fill(zP4.pt(), weight);
+      h_mm.h4_z_eta->Fill(zP4.eta(), weight);
+      h_mm.h4_z_phi->Fill(zP4.phi(), weight);
+      h_mm.h4_jets_n->Fill(jets_n, weight);
+      h_mm.h4_jets_ht->Fill(jets_ht, weight);
+      h_mm.h4_jet1_m->Fill(jet1.mass(), weight);
+      h_mm.h4_jet1_pt->Fill(jet1.pt(), weight);
+      h_mm.h4_jet1_eta->Fill(jet1.eta(), weight);
+      h_mm.h4_jet1_phi->Fill(jet1.phi(), weight);
+      h_mm.h4_jet1_btag->Fill(jet1.bDiscriminator(bTagName_), weight);
+      h_mm.h4_jet2_m->Fill(jet2.mass(), weight);
+      h_mm.h4_jet2_pt->Fill(jet2.pt(), weight);
+      h_mm.h4_jet2_eta->Fill(jet2.eta(), weight);
+      h_mm.h4_jet2_phi->Fill(jet2.phi(), weight);
+      h_mm.h4_jet2_btag->Fill(jet2.bDiscriminator(bTagName_), weight);
+      if ( jets_n >= 3 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
+        h_mm.h4_jet3_m->Fill(jet.mass(), weight);
+        h_mm.h4_jet3_pt->Fill(jet.pt(), weight);
+        h_mm.h4_jet3_eta->Fill(jet.eta(), weight);
+        h_mm.h4_jet3_phi->Fill(jet.phi(), weight);
+        h_mm.h4_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      if ( jets_n >= 4 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
+        h_mm.h4_jet4_m->Fill(jet.mass(), weight);
+        h_mm.h4_jet4_pt->Fill(jet.pt(), weight);
+        h_mm.h4_jet4_eta->Fill(jet.eta(), weight);
+        h_mm.h4_jet4_phi->Fill(jet.phi(), weight);
+        h_mm.h4_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      h_mm.h4_bjets_n->Fill(bjets_n, weight);
+
+      h_mm.h4_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
+
+    }
+    else if ( channel == CH_MUEL )
+    {
+      h_em.hCutstep->Fill(icutstep, weight);
+      h_em.hCutstepNoweight->Fill(icutstep);
+      h_em.h4_vertex_n->Fill(nVertex, weight);
+      h_em.h4_met_pt->Fill(met_pt, weight);
+      h_em.h4_met_phi->Fill(met_phi, weight);
+      h_em.h4_z_m->Fill(zP4.mass(), weight);
+      h_em.h4_z_pt->Fill(zP4.pt(), weight);
+      h_em.h4_z_eta->Fill(zP4.eta(), weight);
+      h_em.h4_z_phi->Fill(zP4.phi(), weight);
+      h_em.h4_jets_n->Fill(jets_n, weight);
+      h_em.h4_jets_ht->Fill(jets_ht, weight);
+      h_em.h4_jet1_m->Fill(jet1.mass(), weight);
+      h_em.h4_jet1_pt->Fill(jet1.pt(), weight);
+      h_em.h4_jet1_eta->Fill(jet1.eta(), weight);
+      h_em.h4_jet1_phi->Fill(jet1.phi(), weight);
+      h_em.h4_jet1_btag->Fill(jet1.bDiscriminator(bTagName_), weight);
+      h_em.h4_jet2_m->Fill(jet2.mass(), weight);
+      h_em.h4_jet2_pt->Fill(jet2.pt(), weight);
+      h_em.h4_jet2_eta->Fill(jet2.eta(), weight);
+      h_em.h4_jet2_phi->Fill(jet2.phi(), weight);
+      h_em.h4_jet2_btag->Fill(jet2.bDiscriminator(bTagName_), weight);
+      if ( jets_n >= 3 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
+        h_em.h4_jet3_m->Fill(jet.mass(), weight);
+        h_em.h4_jet3_pt->Fill(jet.pt(), weight);
+        h_em.h4_jet3_eta->Fill(jet.eta(), weight);
+        h_em.h4_jet3_phi->Fill(jet.phi(), weight);
+        h_em.h4_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      if ( jets_n >= 4 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
+        h_em.h4_jet4_m->Fill(jet.mass(), weight);
+        h_em.h4_jet4_pt->Fill(jet.pt(), weight);
+        h_em.h4_jet4_eta->Fill(jet.eta(), weight);
+        h_em.h4_jet4_phi->Fill(jet.phi(), weight);
+        h_em.h4_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      h_em.h4_bjets_n->Fill(bjets_n, weight);
+
+      h_em.h4_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
+
+    }
+
+    // Finalize cut step 4 and start cut step 5
+    if ( cutstep <= 4 ) break;
+    ++icutstep; // =5
+
+    if ( channel == CH_ELEL )
+    {
+      h_ee.hCutstep->Fill(icutstep, weight);
+      h_ee.hCutstepNoweight->Fill(icutstep);
+      h_ee.h5_vertex_n->Fill(nVertex, weight);
+      h_ee.h5_met_pt->Fill(met_pt, weight);
+      h_ee.h5_met_phi->Fill(met_phi, weight);
+      h_ee.h5_z_m->Fill(zP4.mass(), weight);
+      h_ee.h5_z_pt->Fill(zP4.pt(), weight);
+      h_ee.h5_z_eta->Fill(zP4.eta(), weight);
+      h_ee.h5_z_phi->Fill(zP4.phi(), weight);
+      h_ee.h5_jets_n->Fill(jets_n, weight);
+      h_ee.h5_jets_ht->Fill(jets_ht, weight);
+      h_ee.h5_jet1_m->Fill(jet1.mass(), weight);
+      h_ee.h5_jet1_pt->Fill(jet1.pt(), weight);
+      h_ee.h5_jet1_eta->Fill(jet1.eta(), weight);
+      h_ee.h5_jet1_phi->Fill(jet1.phi(), weight);
+      h_ee.h5_jet1_btag->Fill(jet1.bDiscriminator(bTagName_), weight);
+      h_ee.h5_jet2_m->Fill(jet2.mass(), weight);
+      h_ee.h5_jet2_pt->Fill(jet2.pt(), weight);
+      h_ee.h5_jet2_eta->Fill(jet2.eta(), weight);
+      h_ee.h5_jet2_phi->Fill(jet2.phi(), weight);
+      h_ee.h5_jet2_btag->Fill(jet2.bDiscriminator(bTagName_), weight);
+      if ( jets_n >= 3 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
+        h_ee.h5_jet3_m->Fill(jet.mass(), weight);
+        h_ee.h5_jet3_pt->Fill(jet.pt(), weight);
+        h_ee.h5_jet3_eta->Fill(jet.eta(), weight);
+        h_ee.h5_jet3_phi->Fill(jet.phi(), weight);
+        h_ee.h5_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      if ( jets_n >= 4 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
+        h_ee.h5_jet4_m->Fill(jet.mass(), weight);
+        h_ee.h5_jet4_pt->Fill(jet.pt(), weight);
+        h_ee.h5_jet4_eta->Fill(jet.eta(), weight);
+        h_ee.h5_jet4_phi->Fill(jet.phi(), weight);
+        h_ee.h5_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      h_ee.h5_bjets_n->Fill(bjets_n, weight);
+
+      h_ee.h5_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
+    }
+    else if ( channel == CH_MUMU )
+    {
+      h_mm.hCutstep->Fill(icutstep, weight);
+      h_mm.hCutstepNoweight->Fill(icutstep);
+      h_mm.h5_vertex_n->Fill(nVertex, weight);
+      h_mm.h5_met_pt->Fill(met_pt, weight);
+      h_mm.h5_met_phi->Fill(met_phi, weight);
+      h_mm.h5_z_m->Fill(zP4.mass(), weight);
+      h_mm.h5_z_pt->Fill(zP4.pt(), weight);
+      h_mm.h5_z_eta->Fill(zP4.eta(), weight);
+      h_mm.h5_z_phi->Fill(zP4.phi(), weight);
+      h_mm.h5_jets_n->Fill(jets_n, weight);
+      h_mm.h5_jets_ht->Fill(jets_ht, weight);
+      h_mm.h5_jet1_m->Fill(jet1.mass(), weight);
+      h_mm.h5_jet1_pt->Fill(jet1.pt(), weight);
+      h_mm.h5_jet1_eta->Fill(jet1.eta(), weight);
+      h_mm.h5_jet1_phi->Fill(jet1.phi(), weight);
+      h_mm.h5_jet1_btag->Fill(jet1.bDiscriminator(bTagName_), weight);
+      h_mm.h5_jet2_m->Fill(jet2.mass(), weight);
+      h_mm.h5_jet2_pt->Fill(jet2.pt(), weight);
+      h_mm.h5_jet2_eta->Fill(jet2.eta(), weight);
+      h_mm.h5_jet2_phi->Fill(jet2.phi(), weight);
+      h_mm.h5_jet2_btag->Fill(jet2.bDiscriminator(bTagName_), weight);
+      if ( jets_n >= 3 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
+        h_mm.h5_jet3_m->Fill(jet.mass(), weight);
+        h_mm.h5_jet3_pt->Fill(jet.pt(), weight);
+        h_mm.h5_jet3_eta->Fill(jet.eta(), weight);
+        h_mm.h5_jet3_phi->Fill(jet.phi(), weight);
+        h_mm.h5_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      if ( jets_n >= 4 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
+        h_mm.h5_jet4_m->Fill(jet.mass(), weight);
+        h_mm.h5_jet4_pt->Fill(jet.pt(), weight);
+        h_mm.h5_jet4_eta->Fill(jet.eta(), weight);
+        h_mm.h5_jet4_phi->Fill(jet.phi(), weight);
+        h_mm.h5_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      h_mm.h5_bjets_n->Fill(bjets_n, weight);
+
+      h_mm.h5_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
+
+    }
+    else if ( channel == CH_MUEL )
+    {
+      h_em.hCutstep->Fill(icutstep, weight);
+      h_em.hCutstepNoweight->Fill(icutstep);
+      h_em.h5_vertex_n->Fill(nVertex, weight);
+      h_em.h5_met_pt->Fill(met_pt, weight);
+      h_em.h5_met_phi->Fill(met_phi, weight);
+      h_em.h5_z_m->Fill(zP4.mass(), weight);
+      h_em.h5_z_pt->Fill(zP4.pt(), weight);
+      h_em.h5_z_eta->Fill(zP4.eta(), weight);
+      h_em.h5_z_phi->Fill(zP4.phi(), weight);
+      h_em.h5_jets_n->Fill(jets_n, weight);
+      h_em.h5_jets_ht->Fill(jets_ht, weight);
+      h_em.h5_jet1_m->Fill(jet1.mass(), weight);
+      h_em.h5_jet1_pt->Fill(jet1.pt(), weight);
+      h_em.h5_jet1_eta->Fill(jet1.eta(), weight);
+      h_em.h5_jet1_phi->Fill(jet1.phi(), weight);
+      h_em.h5_jet1_btag->Fill(jet1.bDiscriminator(bTagName_), weight);
+      h_em.h5_jet2_m->Fill(jet2.mass(), weight);
+      h_em.h5_jet2_pt->Fill(jet2.pt(), weight);
+      h_em.h5_jet2_eta->Fill(jet2.eta(), weight);
+      h_em.h5_jet2_phi->Fill(jet2.phi(), weight);
+      h_em.h5_jet2_btag->Fill(jet2.bDiscriminator(bTagName_), weight);
+      if ( jets_n >= 3 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
+        h_em.h5_jet3_m->Fill(jet.mass(), weight);
+        h_em.h5_jet3_pt->Fill(jet.pt(), weight);
+        h_em.h5_jet3_eta->Fill(jet.eta(), weight);
+        h_em.h5_jet3_phi->Fill(jet.phi(), weight);
+        h_em.h5_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      if ( jets_n >= 4 )
+      {
+        const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
+        h_em.h5_jet4_m->Fill(jet.mass(), weight);
+        h_em.h5_jet4_pt->Fill(jet.pt(), weight);
+        h_em.h5_jet4_eta->Fill(jet.eta(), weight);
+        h_em.h5_jet4_phi->Fill(jet.phi(), weight);
+        h_em.h5_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      h_em.h5_bjets_n->Fill(bjets_n, weight);
+
+      h_em.h5_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
+    }
+  } // switch(1)
+
+  // Cutsomized cutflow without z-veto cut to be used in DY estimation and other studies
+  for ( int istep=1, nstep=cutstepBits.size(); istep<=nstep; ++istep )
+  {
+    if ( istep != 2 and !cutstepBits[istep-1] ) break;
+
+    if ( channel == CH_ELEL )
+    {
+      switch ( istep )
+      {
+        case 5: h_ee.h5_z_m_noveto->Fill(z_m, weight);
+        case 4: h_ee.h4_z_m_noveto->Fill(z_m, weight);
+        case 3: h_ee.h3_z_m_noveto->Fill(z_m, weight);
+        case 2: h_ee.h2_z_m_noveto->Fill(z_m, weight);
+        case 1: h_ee.h1_z_m_noveto->Fill(z_m, weight);
       }
     }
-    else if ( channel == CH_MUMU and cutstep_mm == 0 ) {
-      /////////////////////////////////////////
-      // Next scan cut flow for mumu channel //
-      /////////////////////////////////////////
-      switch (0) default: {
-        cutstep = cutstep_mm+1;
-
-        h_mm.hCutstep->Fill(cutstep, weight);
-        h_mm.hCutstepNoweight->Fill(cutstep);
-        h_mm.h1_vertex_n->Fill(nVertex, weight);
-        h_mm.h1_met_pt->Fill(met_pt, weight);
-        h_mm.h1_met_phi->Fill(met_phi, weight);
-        h_mm.h1_leptons_n->Fill(leptons_n, weight);
-        h_mm.h1_lepton1_pt->Fill(lepton1->pt(), weight);
-        h_mm.h1_lepton1_eta->Fill(lepton1->eta(), weight);
-        h_mm.h1_lepton1_phi->Fill(lepton1->phi(), weight);
-        h_mm.h1_lepton1_q->Fill(lepton1->charge(), weight);
-        h_mm.h1_lepton2_pt->Fill(lepton2->pt(), weight);
-        h_mm.h1_lepton2_eta->Fill(lepton2->eta(), weight);
-        h_mm.h1_lepton2_phi->Fill(lepton2->phi(), weight);
-        h_mm.h1_lepton2_q->Fill(lepton2->charge(), weight);
-        h_mm.h1_z_m->Fill(z_m, weight);
-        h_mm.h1_z_pt->Fill(zP4.pt(), weight);
-        h_mm.h1_z_eta->Fill(zP4.eta(), weight);
-        h_mm.h1_z_phi->Fill(zP4.phi(), weight);
-        h_mm.h1_jets_n->Fill(jets_n, weight);
-        h_mm.h1_jets_ht->Fill(jets_ht, weight);
-        if ( jets_n >= 1 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(0));
-          h_mm.h1_jet1_m->Fill(jet.mass(), weight);
-          h_mm.h1_jet1_pt->Fill(jet.pt(), weight);
-          h_mm.h1_jet1_eta->Fill(jet.eta(), weight);
-          h_mm.h1_jet1_phi->Fill(jet.phi(), weight);
-          h_mm.h1_jet1_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        if ( jets_n >= 2 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(1));
-          h_mm.h1_jet2_m->Fill(jet.mass(), weight);
-          h_mm.h1_jet2_pt->Fill(jet.pt(), weight);
-          h_mm.h1_jet2_eta->Fill(jet.eta(), weight);
-          h_mm.h1_jet2_phi->Fill(jet.phi(), weight);
-          h_mm.h1_jet2_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        if ( jets_n >= 3 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
-          h_mm.h1_jet3_m->Fill(jet.mass(), weight);
-          h_mm.h1_jet3_pt->Fill(jet.pt(), weight);
-          h_mm.h1_jet3_eta->Fill(jet.eta(), weight);
-          h_mm.h1_jet3_phi->Fill(jet.phi(), weight);
-          h_mm.h1_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        if ( jets_n >= 4 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
-          h_mm.h1_jet4_m->Fill(jet.mass(), weight);
-          h_mm.h1_jet4_pt->Fill(jet.pt(), weight);
-          h_mm.h1_jet4_eta->Fill(jet.eta(), weight);
-          h_mm.h1_jet4_phi->Fill(jet.phi(), weight);
-          h_mm.h1_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        h_mm.h1_bjets_n->Fill(bjets_n, weight);
-
-        h_mm.h1_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
-
-        // Step2 Z mass veto
-        if ( 76 <= z_m and z_m <= 106 ) break;
-        ++cutstep;
-        h_mm.hCutstep->Fill(cutstep, weight);
-        h_mm.hCutstepNoweight->Fill(cutstep);
-        h_mm.h2_vertex_n->Fill(nVertex, weight);
-        h_mm.h2_met_pt->Fill(met_pt, weight);
-        h_mm.h2_met_phi->Fill(met_phi, weight);
-        h_mm.h2_leptons_n->Fill(leptons_n, weight);
-        h_mm.h2_lepton1_pt->Fill(lepton1->pt(), weight);
-        h_mm.h2_lepton1_eta->Fill(lepton1->eta(), weight);
-        h_mm.h2_lepton1_phi->Fill(lepton1->phi(), weight);
-        h_mm.h2_lepton1_q->Fill(lepton1->charge(), weight);
-        h_mm.h2_lepton2_pt->Fill(lepton2->pt(), weight);
-        h_mm.h2_lepton2_eta->Fill(lepton2->eta(), weight);
-        h_mm.h2_lepton2_phi->Fill(lepton2->phi(), weight);
-        h_mm.h2_lepton2_q->Fill(lepton2->charge(), weight);
-        h_mm.h2_z_m->Fill(zP4.mass(), weight);
-        h_mm.h2_z_pt->Fill(zP4.pt(), weight);
-        h_mm.h2_z_eta->Fill(zP4.eta(), weight);
-        h_mm.h2_z_phi->Fill(zP4.phi(), weight);
-        h_mm.h2_jets_n->Fill(jets_n, weight);
-        h_mm.h2_jets_ht->Fill(jets_ht, weight);
-        if ( jets_n >= 1 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(0));
-          h_mm.h2_jet1_m->Fill(jet.mass(), weight);
-          h_mm.h2_jet1_pt->Fill(jet.pt(), weight);
-          h_mm.h2_jet1_eta->Fill(jet.eta(), weight);
-          h_mm.h2_jet1_phi->Fill(jet.phi(), weight);
-          h_mm.h2_jet1_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        if ( jets_n >= 2 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(1));
-          h_mm.h2_jet2_m->Fill(jet.mass(), weight);
-          h_mm.h2_jet2_pt->Fill(jet.pt(), weight);
-          h_mm.h2_jet2_eta->Fill(jet.eta(), weight);
-          h_mm.h2_jet2_phi->Fill(jet.phi(), weight);
-          h_mm.h2_jet2_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        if ( jets_n >= 3 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
-          h_mm.h2_jet3_m->Fill(jet.mass(), weight);
-          h_mm.h2_jet3_pt->Fill(jet.pt(), weight);
-          h_mm.h2_jet3_eta->Fill(jet.eta(), weight);
-          h_mm.h2_jet3_phi->Fill(jet.phi(), weight);
-          h_mm.h2_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        if ( jets_n >= 4 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
-          h_mm.h2_jet4_m->Fill(jet.mass(), weight);
-          h_mm.h2_jet4_pt->Fill(jet.pt(), weight);
-          h_mm.h2_jet4_eta->Fill(jet.eta(), weight);
-          h_mm.h2_jet4_phi->Fill(jet.phi(), weight);
-          h_mm.h2_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        h_mm.h2_bjets_n->Fill(bjets_n, weight);
-
-        h_mm.h2_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
-
-        // Step3 Minimal jet multiplicity
-        if ( jets_n < 2 ) break;
-        ++cutstep;
-        h_mm.hCutstep->Fill(cutstep, weight);
-        h_mm.hCutstepNoweight->Fill(cutstep);
-        h_mm.h3_vertex_n->Fill(nVertex, weight);
-        h_mm.h3_met_pt->Fill(met_pt, weight);
-        h_mm.h3_met_phi->Fill(met_phi, weight);
-        h_mm.h3_z_m->Fill(zP4.mass(), weight);
-        h_mm.h3_z_pt->Fill(zP4.pt(), weight);
-        h_mm.h3_z_eta->Fill(zP4.eta(), weight);
-        h_mm.h3_z_phi->Fill(zP4.phi(), weight);
-        h_mm.h3_jets_n->Fill(jets_n, weight);
-        h_mm.h3_jets_ht->Fill(jets_ht, weight);
-        const auto& jet1 = dynamic_cast<const cat::Jet&>(*selectedJets.at(0));
-        h_mm.h3_jet1_m->Fill(jet1.mass(), weight);
-        h_mm.h3_jet1_pt->Fill(jet1.pt(), weight);
-        h_mm.h3_jet1_eta->Fill(jet1.eta(), weight);
-        h_mm.h3_jet1_phi->Fill(jet1.phi(), weight);
-        h_mm.h3_jet1_btag->Fill(jet1.bDiscriminator(bTagName_), weight);
-        const auto& jet2 = dynamic_cast<const cat::Jet&>(*selectedJets.at(1));
-        h_mm.h3_jet2_m->Fill(jet2.mass(), weight);
-        h_mm.h3_jet2_pt->Fill(jet2.pt(), weight);
-        h_mm.h3_jet2_eta->Fill(jet2.eta(), weight);
-        h_mm.h3_jet2_phi->Fill(jet2.phi(), weight);
-        h_mm.h3_jet2_btag->Fill(jet2.bDiscriminator(bTagName_), weight);
-        if ( jets_n >= 3 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
-          h_mm.h3_jet3_m->Fill(jet.mass(), weight);
-          h_mm.h3_jet3_pt->Fill(jet.pt(), weight);
-          h_mm.h3_jet3_eta->Fill(jet.eta(), weight);
-          h_mm.h3_jet3_phi->Fill(jet.phi(), weight);
-          h_mm.h3_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        if ( jets_n >= 4 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
-          h_mm.h3_jet4_m->Fill(jet.mass(), weight);
-          h_mm.h3_jet4_pt->Fill(jet.pt(), weight);
-          h_mm.h3_jet4_eta->Fill(jet.eta(), weight);
-          h_mm.h3_jet4_phi->Fill(jet.phi(), weight);
-          h_mm.h3_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        h_mm.h3_bjets_n->Fill(bjets_n, weight);
-
-        h_mm.h3_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
-
-        // Step4 Missing transverse momentum
-        if ( met_pt < 40 ) break;
-        ++cutstep;
-        h_mm.hCutstep->Fill(cutstep, weight);
-        h_mm.hCutstepNoweight->Fill(cutstep);
-        h_mm.h4_vertex_n->Fill(nVertex, weight);
-        h_mm.h4_met_pt->Fill(met_pt, weight);
-        h_mm.h4_met_phi->Fill(met_phi, weight);
-        h_mm.h4_z_m->Fill(zP4.mass(), weight);
-        h_mm.h4_z_pt->Fill(zP4.pt(), weight);
-        h_mm.h4_z_eta->Fill(zP4.eta(), weight);
-        h_mm.h4_z_phi->Fill(zP4.phi(), weight);
-        h_mm.h4_jets_n->Fill(jets_n, weight);
-        h_mm.h4_jets_ht->Fill(jets_ht, weight);
-        h_mm.h4_jet1_m->Fill(jet1.mass(), weight);
-        h_mm.h4_jet1_pt->Fill(jet1.pt(), weight);
-        h_mm.h4_jet1_eta->Fill(jet1.eta(), weight);
-        h_mm.h4_jet1_phi->Fill(jet1.phi(), weight);
-        h_mm.h4_jet1_btag->Fill(jet1.bDiscriminator(bTagName_), weight);
-        h_mm.h4_jet2_m->Fill(jet2.mass(), weight);
-        h_mm.h4_jet2_pt->Fill(jet2.pt(), weight);
-        h_mm.h4_jet2_eta->Fill(jet2.eta(), weight);
-        h_mm.h4_jet2_phi->Fill(jet2.phi(), weight);
-        h_mm.h4_jet2_btag->Fill(jet2.bDiscriminator(bTagName_), weight);
-        if ( jets_n >= 3 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
-          h_mm.h4_jet3_m->Fill(jet.mass(), weight);
-          h_mm.h4_jet3_pt->Fill(jet.pt(), weight);
-          h_mm.h4_jet3_eta->Fill(jet.eta(), weight);
-          h_mm.h4_jet3_phi->Fill(jet.phi(), weight);
-          h_mm.h4_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        if ( jets_n >= 4 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
-          h_mm.h4_jet4_m->Fill(jet.mass(), weight);
-          h_mm.h4_jet4_pt->Fill(jet.pt(), weight);
-          h_mm.h4_jet4_eta->Fill(jet.eta(), weight);
-          h_mm.h4_jet4_phi->Fill(jet.phi(), weight);
-          h_mm.h4_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        h_mm.h4_bjets_n->Fill(bjets_n, weight);
-
-        h_mm.h4_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
-
-        // Step5 one b jet
-        if ( bjets_n < 1 ) break;
-        ++cutstep;
-        h_mm.hCutstep->Fill(cutstep, weight);
-        h_mm.hCutstepNoweight->Fill(cutstep);
-        h_mm.h5_vertex_n->Fill(nVertex, weight);
-        h_mm.h5_met_pt->Fill(met_pt, weight);
-        h_mm.h5_met_phi->Fill(met_phi, weight);
-        h_mm.h5_z_m->Fill(zP4.mass(), weight);
-        h_mm.h5_z_pt->Fill(zP4.pt(), weight);
-        h_mm.h5_z_eta->Fill(zP4.eta(), weight);
-        h_mm.h5_z_phi->Fill(zP4.phi(), weight);
-        h_mm.h5_jets_n->Fill(jets_n, weight);
-        h_mm.h5_jets_ht->Fill(jets_ht, weight);
-        h_mm.h5_jet1_m->Fill(jet1.mass(), weight);
-        h_mm.h5_jet1_pt->Fill(jet1.pt(), weight);
-        h_mm.h5_jet1_eta->Fill(jet1.eta(), weight);
-        h_mm.h5_jet1_phi->Fill(jet1.phi(), weight);
-        h_mm.h5_jet1_btag->Fill(jet1.bDiscriminator(bTagName_), weight);
-        h_mm.h5_jet2_m->Fill(jet2.mass(), weight);
-        h_mm.h5_jet2_pt->Fill(jet2.pt(), weight);
-        h_mm.h5_jet2_eta->Fill(jet2.eta(), weight);
-        h_mm.h5_jet2_phi->Fill(jet2.phi(), weight);
-        h_mm.h5_jet2_btag->Fill(jet2.bDiscriminator(bTagName_), weight);
-        if ( jets_n >= 3 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
-          h_mm.h5_jet3_m->Fill(jet.mass(), weight);
-          h_mm.h5_jet3_pt->Fill(jet.pt(), weight);
-          h_mm.h5_jet3_eta->Fill(jet.eta(), weight);
-          h_mm.h5_jet3_phi->Fill(jet.phi(), weight);
-          h_mm.h5_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        if ( jets_n >= 4 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
-          h_mm.h5_jet4_m->Fill(jet.mass(), weight);
-          h_mm.h5_jet4_pt->Fill(jet.pt(), weight);
-          h_mm.h5_jet4_eta->Fill(jet.eta(), weight);
-          h_mm.h5_jet4_phi->Fill(jet.phi(), weight);
-          h_mm.h5_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        h_mm.h5_bjets_n->Fill(bjets_n, weight);
-
-        h_mm.h5_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
+    else if ( channel == CH_MUMU )
+    {
+      switch ( istep )
+      {
+        case 5: h_mm.h5_z_m_noveto->Fill(z_m, weight);
+        case 4: h_mm.h4_z_m_noveto->Fill(z_m, weight);
+        case 3: h_mm.h3_z_m_noveto->Fill(z_m, weight);
+        case 2: h_mm.h2_z_m_noveto->Fill(z_m, weight);
+        case 1: h_mm.h1_z_m_noveto->Fill(z_m, weight);
       }
     }
-    else if ( channel == CH_MUEL and cutstep_em == 0 )
+    else if ( channel == CH_MUEL )
     {
-      ///////////////////////////////////////////
-      // Finally scan cut flow for emu channel //
-      ///////////////////////////////////////////
-      switch (0) default: {
-        cutstep = cutstep_em+1;
-
-        h_em.hCutstep->Fill(cutstep, weight);
-        h_em.hCutstepNoweight->Fill(cutstep);
-        h_em.h1_vertex_n->Fill(nVertex, weight);
-        h_em.h1_met_pt->Fill(met_pt, weight);
-        h_em.h1_met_phi->Fill(met_phi, weight);
-        h_em.h1_leptons_n->Fill(leptons_n, weight);
-        h_em.h1_lepton1_pt->Fill(lepton1->pt(), weight);
-        h_em.h1_lepton1_eta->Fill(lepton1->eta(), weight);
-        h_em.h1_lepton1_phi->Fill(lepton1->phi(), weight);
-        h_em.h1_lepton1_q->Fill(lepton1->charge(), weight);
-        h_em.h1_lepton2_pt->Fill(lepton2->pt(), weight);
-        h_em.h1_lepton2_eta->Fill(lepton2->eta(), weight);
-        h_em.h1_lepton2_phi->Fill(lepton2->phi(), weight);
-        h_em.h1_lepton2_q->Fill(lepton2->charge(), weight);
-        h_em.h1_z_m->Fill(z_m, weight);
-        h_em.h1_z_pt->Fill(zP4.pt(), weight);
-        h_em.h1_z_eta->Fill(zP4.eta(), weight);
-        h_em.h1_z_phi->Fill(zP4.phi(), weight);
-        h_em.h1_jets_n->Fill(jets_n, weight);
-        h_em.h1_jets_ht->Fill(jets_ht, weight);
-        if ( jets_n >= 1 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(0));
-          h_em.h1_jet1_m->Fill(jet.mass(), weight);
-          h_em.h1_jet1_pt->Fill(jet.pt(), weight);
-          h_em.h1_jet1_eta->Fill(jet.eta(), weight);
-          h_em.h1_jet1_phi->Fill(jet.phi(), weight);
-          h_em.h1_jet1_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        if ( jets_n >= 2 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(1));
-          h_em.h1_jet2_m->Fill(jet.mass(), weight);
-          h_em.h1_jet2_pt->Fill(jet.pt(), weight);
-          h_em.h1_jet2_eta->Fill(jet.eta(), weight);
-          h_em.h1_jet2_phi->Fill(jet.phi(), weight);
-          h_em.h1_jet2_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        if ( jets_n >= 3 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
-          h_em.h1_jet3_m->Fill(jet.mass(), weight);
-          h_em.h1_jet3_pt->Fill(jet.pt(), weight);
-          h_em.h1_jet3_eta->Fill(jet.eta(), weight);
-          h_em.h1_jet3_phi->Fill(jet.phi(), weight);
-          h_em.h1_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        if ( jets_n >= 4 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
-          h_em.h1_jet4_m->Fill(jet.mass(), weight);
-          h_em.h1_jet4_pt->Fill(jet.pt(), weight);
-          h_em.h1_jet4_eta->Fill(jet.eta(), weight);
-          h_em.h1_jet4_phi->Fill(jet.phi(), weight);
-          h_em.h1_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        h_em.h1_bjets_n->Fill(bjets_n, weight);
-
-        h_em.h1_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
-
-        // Step2 Z mass veto - not applied for emu channel
-        //if ( false and 76 <= z_m and z_m <= 106 ) break;
-        ++cutstep;
-        h_em.hCutstep->Fill(cutstep, weight);
-        h_em.hCutstepNoweight->Fill(cutstep);
-        h_em.h2_vertex_n->Fill(nVertex, weight);
-        h_em.h2_met_pt->Fill(met_pt, weight);
-        h_em.h2_met_phi->Fill(met_phi, weight);
-        h_em.h2_leptons_n->Fill(leptons_n, weight);
-        h_em.h2_lepton1_pt->Fill(lepton1->pt(), weight);
-        h_em.h2_lepton1_eta->Fill(lepton1->eta(), weight);
-        h_em.h2_lepton1_phi->Fill(lepton1->phi(), weight);
-        h_em.h2_lepton1_q->Fill(lepton1->charge(), weight);
-        h_em.h2_lepton2_pt->Fill(lepton2->pt(), weight);
-        h_em.h2_lepton2_eta->Fill(lepton2->eta(), weight);
-        h_em.h2_lepton2_phi->Fill(lepton2->phi(), weight);
-        h_em.h2_lepton2_q->Fill(lepton2->charge(), weight);
-        h_em.h2_z_m->Fill(zP4.mass(), weight);
-        h_em.h2_z_pt->Fill(zP4.pt(), weight);
-        h_em.h2_z_eta->Fill(zP4.eta(), weight);
-        h_em.h2_z_phi->Fill(zP4.phi(), weight);
-        h_em.h2_jets_n->Fill(jets_n, weight);
-        h_em.h2_jets_ht->Fill(jets_ht, weight);
-        if ( jets_n >= 1 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(0));
-          h_em.h2_jet1_m->Fill(jet.mass(), weight);
-          h_em.h2_jet1_pt->Fill(jet.pt(), weight);
-          h_em.h2_jet1_eta->Fill(jet.eta(), weight);
-          h_em.h2_jet1_phi->Fill(jet.phi(), weight);
-          h_em.h2_jet1_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        if ( jets_n >= 2 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(1));
-          h_em.h2_jet2_m->Fill(jet.mass(), weight);
-          h_em.h2_jet2_pt->Fill(jet.pt(), weight);
-          h_em.h2_jet2_eta->Fill(jet.eta(), weight);
-          h_em.h2_jet2_phi->Fill(jet.phi(), weight);
-          h_em.h2_jet2_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        if ( jets_n >= 3 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
-          h_em.h2_jet3_m->Fill(jet.mass(), weight);
-          h_em.h2_jet3_pt->Fill(jet.pt(), weight);
-          h_em.h2_jet3_eta->Fill(jet.eta(), weight);
-          h_em.h2_jet3_phi->Fill(jet.phi(), weight);
-          h_em.h2_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        if ( jets_n >= 4 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
-          h_em.h2_jet4_m->Fill(jet.mass(), weight);
-          h_em.h2_jet4_pt->Fill(jet.pt(), weight);
-          h_em.h2_jet4_eta->Fill(jet.eta(), weight);
-          h_em.h2_jet4_phi->Fill(jet.phi(), weight);
-          h_em.h2_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        h_em.h2_bjets_n->Fill(bjets_n, weight);
-
-        h_em.h2_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
-
-        // Step3 Minimal jet multiplicity
-        if ( jets_n < 2 ) break;
-        ++cutstep;
-        h_em.hCutstep->Fill(cutstep, weight);
-        h_em.hCutstepNoweight->Fill(cutstep);
-        h_em.h3_vertex_n->Fill(nVertex, weight);
-        h_em.h3_met_pt->Fill(met_pt, weight);
-        h_em.h3_met_phi->Fill(met_phi, weight);
-        h_em.h3_z_m->Fill(zP4.mass(), weight);
-        h_em.h3_z_pt->Fill(zP4.pt(), weight);
-        h_em.h3_z_eta->Fill(zP4.eta(), weight);
-        h_em.h3_z_phi->Fill(zP4.phi(), weight);
-        h_em.h3_jets_n->Fill(jets_n, weight);
-        h_em.h3_jets_ht->Fill(jets_ht, weight);
-        const auto& jet1 = dynamic_cast<const cat::Jet&>(*selectedJets.at(0));
-        h_em.h3_jet1_m->Fill(jet1.mass(), weight);
-        h_em.h3_jet1_pt->Fill(jet1.pt(), weight);
-        h_em.h3_jet1_eta->Fill(jet1.eta(), weight);
-        h_em.h3_jet1_phi->Fill(jet1.phi(), weight);
-        h_em.h3_jet1_btag->Fill(jet1.bDiscriminator(bTagName_), weight);
-        const auto& jet2 = dynamic_cast<const cat::Jet&>(*selectedJets.at(1));
-        h_em.h3_jet2_m->Fill(jet2.mass(), weight);
-        h_em.h3_jet2_pt->Fill(jet2.pt(), weight);
-        h_em.h3_jet2_eta->Fill(jet2.eta(), weight);
-        h_em.h3_jet2_phi->Fill(jet2.phi(), weight);
-        h_em.h3_jet2_btag->Fill(jet2.bDiscriminator(bTagName_), weight);
-        if ( jets_n >= 3 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
-          h_em.h3_jet3_m->Fill(jet.mass(), weight);
-          h_em.h3_jet3_pt->Fill(jet.pt(), weight);
-          h_em.h3_jet3_eta->Fill(jet.eta(), weight);
-          h_em.h3_jet3_phi->Fill(jet.phi(), weight);
-          h_em.h3_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        if ( jets_n >= 4 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
-          h_em.h3_jet4_m->Fill(jet.mass(), weight);
-          h_em.h3_jet4_pt->Fill(jet.pt(), weight);
-          h_em.h3_jet4_eta->Fill(jet.eta(), weight);
-          h_em.h3_jet4_phi->Fill(jet.phi(), weight);
-          h_em.h3_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        h_em.h3_bjets_n->Fill(bjets_n, weight);
-
-        h_em.h3_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
-
-        // Step4 Missing transverse momentum
-        // Not applied for emu channel
-        //if ( false and met_pt < 40 ) break;
-        ++cutstep;
-        h_em.hCutstep->Fill(cutstep, weight);
-        h_em.hCutstepNoweight->Fill(cutstep);
-        h_em.h4_vertex_n->Fill(nVertex, weight);
-        h_em.h4_met_pt->Fill(met_pt, weight);
-        h_em.h4_met_phi->Fill(met_phi, weight);
-        h_em.h4_z_m->Fill(zP4.mass(), weight);
-        h_em.h4_z_pt->Fill(zP4.pt(), weight);
-        h_em.h4_z_eta->Fill(zP4.eta(), weight);
-        h_em.h4_z_phi->Fill(zP4.phi(), weight);
-        h_em.h4_jets_n->Fill(jets_n, weight);
-        h_em.h4_jets_ht->Fill(jets_ht, weight);
-        h_em.h4_jet1_m->Fill(jet1.mass(), weight);
-        h_em.h4_jet1_pt->Fill(jet1.pt(), weight);
-        h_em.h4_jet1_eta->Fill(jet1.eta(), weight);
-        h_em.h4_jet1_phi->Fill(jet1.phi(), weight);
-        h_em.h4_jet1_btag->Fill(jet1.bDiscriminator(bTagName_), weight);
-        h_em.h4_jet2_m->Fill(jet2.mass(), weight);
-        h_em.h4_jet2_pt->Fill(jet2.pt(), weight);
-        h_em.h4_jet2_eta->Fill(jet2.eta(), weight);
-        h_em.h4_jet2_phi->Fill(jet2.phi(), weight);
-        h_em.h4_jet2_btag->Fill(jet2.bDiscriminator(bTagName_), weight);
-        if ( jets_n >= 3 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
-          h_em.h4_jet3_m->Fill(jet.mass(), weight);
-          h_em.h4_jet3_pt->Fill(jet.pt(), weight);
-          h_em.h4_jet3_eta->Fill(jet.eta(), weight);
-          h_em.h4_jet3_phi->Fill(jet.phi(), weight);
-          h_em.h4_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        if ( jets_n >= 4 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
-          h_em.h4_jet4_m->Fill(jet.mass(), weight);
-          h_em.h4_jet4_pt->Fill(jet.pt(), weight);
-          h_em.h4_jet4_eta->Fill(jet.eta(), weight);
-          h_em.h4_jet4_phi->Fill(jet.phi(), weight);
-          h_em.h4_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        h_em.h4_bjets_n->Fill(bjets_n, weight);
-
-        h_em.h4_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
-
-        // Step5 one b jet
-        if ( bjets_n < 1 ) break;
-        ++cutstep;
-        h_em.hCutstep->Fill(cutstep, weight);
-        h_em.hCutstepNoweight->Fill(cutstep);
-        h_em.h5_vertex_n->Fill(nVertex, weight);
-        h_em.h5_met_pt->Fill(met_pt, weight);
-        h_em.h5_met_phi->Fill(met_phi, weight);
-        h_em.h5_z_m->Fill(zP4.mass(), weight);
-        h_em.h5_z_pt->Fill(zP4.pt(), weight);
-        h_em.h5_z_eta->Fill(zP4.eta(), weight);
-        h_em.h5_z_phi->Fill(zP4.phi(), weight);
-        h_em.h5_jets_n->Fill(jets_n, weight);
-        h_em.h5_jets_ht->Fill(jets_ht, weight);
-        h_em.h5_jet1_m->Fill(jet1.mass(), weight);
-        h_em.h5_jet1_pt->Fill(jet1.pt(), weight);
-        h_em.h5_jet1_eta->Fill(jet1.eta(), weight);
-        h_em.h5_jet1_phi->Fill(jet1.phi(), weight);
-        h_em.h5_jet1_btag->Fill(jet1.bDiscriminator(bTagName_), weight);
-        h_em.h5_jet2_m->Fill(jet2.mass(), weight);
-        h_em.h5_jet2_pt->Fill(jet2.pt(), weight);
-        h_em.h5_jet2_eta->Fill(jet2.eta(), weight);
-        h_em.h5_jet2_phi->Fill(jet2.phi(), weight);
-        h_em.h5_jet2_btag->Fill(jet2.bDiscriminator(bTagName_), weight);
-        if ( jets_n >= 3 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(2));
-          h_em.h5_jet3_m->Fill(jet.mass(), weight);
-          h_em.h5_jet3_pt->Fill(jet.pt(), weight);
-          h_em.h5_jet3_eta->Fill(jet.eta(), weight);
-          h_em.h5_jet3_phi->Fill(jet.phi(), weight);
-          h_em.h5_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        if ( jets_n >= 4 )
-        {
-          const auto& jet = dynamic_cast<const cat::Jet&>(*selectedJets.at(3));
-          h_em.h5_jet4_m->Fill(jet.mass(), weight);
-          h_em.h5_jet4_pt->Fill(jet.pt(), weight);
-          h_em.h5_jet4_eta->Fill(jet.eta(), weight);
-          h_em.h5_jet4_phi->Fill(jet.phi(), weight);
-          h_em.h5_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-        }
-        h_em.h5_bjets_n->Fill(bjets_n, weight);
-
-        h_em.h5_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
+      switch ( istep )
+      {
+        case 5: h_em.h5_z_m_noveto->Fill(z_m, weight);
+        case 4: h_em.h4_z_m_noveto->Fill(z_m, weight);
+        case 3: h_em.h3_z_m_noveto->Fill(z_m, weight);
+        case 2: h_em.h2_z_m_noveto->Fill(z_m, weight);
+        case 1: h_em.h1_z_m_noveto->Fill(z_m, weight);
       }
+    }
+  }
+
+  // Fill cut flow 2D plot
+  for ( int istep=1, nstep=cutstepBits.size(); istep<=nstep; ++istep )
+  {
+    const bool res1 = cutstepBits[istep-1];
+    for ( int jstep=1; jstep<=nstep; ++jstep )
+    {
+      const bool res2 = cutstepBits[jstep-1];
+      const int result = res1 && res2;
+      if      ( channel == CH_ELEL ) h_ee.h2Cutstep->Fill(istep, jstep, result*weight);
+      else if ( channel == CH_MUMU ) h_mm.h2Cutstep->Fill(istep, jstep, result*weight);
+      else if ( channel == CH_MUEL ) h_em.h2Cutstep->Fill(istep, jstep, result*weight);
     }
   }
 
@@ -1710,7 +1822,10 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   event.put(out_leptons, "leptons");
   event.put(out_jets, "jets");
 
-  return cutstep >= filterCutStepBefore_;
+  // Apply filter at the given step.
+  if ( cutstep >= applyFilterAt_ ) return true;
+
+  return false;
 }
 
 TTLLEventSelector::~TTLLEventSelector()

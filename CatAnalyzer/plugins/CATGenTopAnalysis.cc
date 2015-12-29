@@ -10,8 +10,8 @@
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
 #include "Math/GenVector/Boost.h"
-#include "TH1F.h"
-#include "TH2F.h"
+#include "TH1D.h"
+#include "TH2D.h"
 
 #include <iostream>
 
@@ -21,9 +21,14 @@ class CATGenTopAnalysis : public edm::one::EDAnalyzer<edm::one::SharedResources>
 {
 public:
   CATGenTopAnalysis(const edm::ParameterSet& pset);
-  void analyze(const edm::Event& event, const edm::EventSetup& eventSetup) override;
+  void analyze(const edm::Event& event, const edm::EventSetup&) override;
 
 private:
+  typedef std::vector<float> vfloat;
+  edm::EDGetTokenT<float> weightToken_;
+  edm::EDGetTokenT<vfloat> weightsToken_;
+  int weightIndex_;
+
   edm::EDGetTokenT<int> channelToken_;
   edm::EDGetTokenT<std::vector<int> > modesToken_;
   edm::EDGetTokenT<reco::GenParticleCollection> partonTopToken_;
@@ -48,10 +53,10 @@ private:
     return true;
   }
 
-  typedef TH1F* H1;
-  typedef TH2F* H2;
+  typedef TH1D* H1;
+  typedef TH2D* H2;
 
-  enum {
+  enum H {
     SL_topPt        , SL_topPtTtbarSys, SL_topY         ,
     SL_ttbarDelPhi  , SL_topPtLead    , SL_topPtSubLead ,
     SL_ttbarPt      , SL_ttbarY       , SL_ttbarMass    ,
@@ -64,6 +69,8 @@ private:
   };
 
   // 1D histograms
+  H1 hWeight_; // Weight distribution
+
   std::vector<H1> hFulParton_; // Full phase space parton level
   std::vector<H1> hFidParton_; // Fiducial phase space parton level
   std::vector<H1> hComParton_; // Parton particle common phase space parton level
@@ -96,53 +103,37 @@ CATGenTopAnalysis::CATGenTopAnalysis(const edm::ParameterSet& pset):
   channelToken_ = consumes<int>(pset.getParameter<edm::InputTag>("channel"));
   modesToken_ = consumes<std::vector<int> >(pset.getParameter<edm::InputTag>("modes"));
 
+  weightIndex_ = pset.getParameter<unsigned int>("weightIndex");
+  const auto weightTag = pset.getParameter<edm::InputTag>("weight");
+  if ( weightIndex_ == 0 )  weightToken_ = consumes<float>(weightTag);
+  else weightsToken_ = consumes<vfloat>(weightTag);
+
   usesResource("TFileService");
   edm::Service<TFileService> fs;
 
-  const std::vector<std::vector<float> > bins = {
-    {0, 60, 100, 150, 200, 260, 320, 400, 500}, // d15
-    {0, 60, 100, 150, 200, 260, 320, 400, 500}, // d16
-    {-2.5,-1.6,-1.2,-0.8,-0.4, 0.0, 0.4, 0.8, 1.2, 1.6, 2.5}, // d17
-    {0,2,2.75,3,3.15}, // d18
-    {0,60,100,150,200,260,320,400,500}, //d19
-    {0,60,100,150,200,260,320,400,500}, //d20
-    {0.0,20,45,75,120,190,255}, //d21
-    {-2.5,-1.3,-0.9,-0.6,-0.3,0,0.3,0.6,0.9,1.3,2.5}, //d22
-    {345,400,470,550,650,800,1100,1600}, //d23
-    {0,65,125,200,290,400}, //d24
-    {0,60,115,190,275,380,500}, //d25
-    {-2.5,-1.6,-1,-0.5,0,0.5,1,1.6,2.5}, //d26
-    {0,1.89,2.77,3.05,3.15}, //d27
-    {0,75,130,200,290,400}, //d28
-    {0,55,120,200,290,400}, //d29
-    {0,30,80,170,300},
-    {-2.5,-1.5,-1,-0.5,0,0.5,1,1.5,2.5},
-    {340,380,470,620,820,1100,1600},
-  };
+  typedef std::tuple<std::string, std::string, int, double, double> HDEF;
+  std::map<H, HDEF> hdefs;
+  hdefs[SL_topPt         ] = HDEF("SL_topPt", "top p_{T} (GeV)", 1000, 0, 1000);
+  hdefs[SL_topPtTtbarSys ] = HDEF("SL_topPtTtbarSys", "top p_{T} at CM frame (GeV)", 1000, 0, 1000);
+  hdefs[SL_topY          ] = HDEF("SL_topY", "top rapidity", 100, -5, 5);
+  hdefs[SL_ttbarDelPhi   ] = HDEF("SL_ttbarDelPhi", "#delta#phi(top1, top2)", 100, 0, 3.15);
+  hdefs[SL_topPtLead     ] = HDEF("SL_topPtLead", "Leading top p_{T} (GeV)", 1000, 0, 1000);
+  hdefs[SL_topPtSubLead  ] = HDEF("SL_topPtSubLead", "Subleading top p_{T} (GeV)", 1000, 0, 1000);
+  hdefs[SL_ttbarPt       ] = HDEF("SL_ttbarPt", "t#bar{t} p_{T} (GeV)", 1000, 0, 1000);
+  hdefs[SL_ttbarY        ] = HDEF("SL_ttbarY", "t#bar{t} rapidity (GeV)", 100, -5, 5);
+  hdefs[SL_ttbarMass     ] = HDEF("SL_ttbarMass", "t#bar{t} mass (GeV)", 5000, 0, 5000);
 
-  const std::vector<std::string> names = {
-    "SL_topPt", "SL_topPtTtbarSys", "SL_topY", "SL_ttbarDelPhi",
-    "SL_topPtLead", "SL_topPtSubLead",
-    "SL_ttbarPt", "SL_ttbarY", "SL_ttbarMass",
+  hdefs[DL_topPt         ] = HDEF("DL_topPt", "top p_{T} (GeV)", 1000, 0, 1000);
+  hdefs[DL_topPtTtbarSys ] = HDEF("DL_topPtTtbarSys", "top p_{T} at CM frame (GeV)", 1000, 0, 1000);
+  hdefs[DL_topY          ] = HDEF("DL_topY", "top rapidity", 100, -5, 5);
+  hdefs[DL_ttbarDelPhi   ] = HDEF("DL_ttbarDelPhi", "#delta#phi(top1, top2)", 100, 0, 3.15);
+  hdefs[DL_topPtLead     ] = HDEF("DL_topPtLead", "Leading top p_{T} (GeV)", 1000, 0, 1000);
+  hdefs[DL_topPtSubLead  ] = HDEF("DL_topPtSubLead", "Subleading top p_{T} (GeV)", 1000, 0, 1000);
+  hdefs[DL_ttbarPt       ] = HDEF("DL_ttbarPt", "t#bar{t} p_{T} (GeV)", 1000, 0, 1000);
+  hdefs[DL_ttbarY        ] = HDEF("DL_ttbarY", "t#bar{t} rapidity (GeV)", 100, -5, 5);
+  hdefs[DL_ttbarMass     ] = HDEF("DL_ttbarMass", "t#bar{t} mass (GeV)", 5000, 0, 5000);
 
-    "DL_topPt", "DL_topPtTtbarSys", "DL_topY", "DL_ttbarDelPhi",
-    "DL_topPtLead", "DL_topPtSubLead",
-    "DL_ttbarPt", "DL_ttbarY", "DL_ttbarMass",
-  };
-
-  const std::vector<std::string> titles = {
-    "top p_{T} (GeV)", "top p_{T} at CM frame (GeV)", "top rapidity", "#delta#phi(top1, top2)",
-    "Leading top p_{T} (GeV)", "Subleading top p_{T} (GeV)",
-    "t#bar{T} p_{T} (GeV)", "t#bar{t} rapidity (GeV)", "t#bar{t} mass (GeV)",
-
-    "top p_{T} (GeV)", "top p_{T} at CM frame (GeV)", "top rapidity", "#delta#phi(top1, top2)",
-    "Leading top p_{T} (GeV)", "Subleading top p_{T} (GeV)",
-    "t#bar{T} p_{T} (GeV)", "t#bar{t} rapidity (GeV)", "t#bar{t} mass (GeV)",
-  };
-
-  assert(bins.size() == END);
-  assert(names.size() == END);
-  assert(titles.size() == END);
+  assert(hdefs.size() == END);
 
   auto dirFulParton = fs->mkdir("FullParton");
   auto dirFidParton = fs->mkdir("FiducialParton");
@@ -151,23 +142,25 @@ CATGenTopAnalysis::CATGenTopAnalysis(const edm::ParameterSet& pset):
   auto dirPseudo = fs->mkdir("Particle");
   auto dirChPseudo = fs->mkdir("ChFilteredParticle");
 
-  for ( size_t i=0; i<END; ++i ) {
-    const int nbins = bins[i].size()-1;
-    const float* binPtr = &bins[i][0];
+  for ( auto x : hdefs ) {
+    const auto name = std::get<0>(x.second);
+    const auto title0 = std::get<1>(x.second);
+    const auto title = name+";"+title0;
+    const auto nbins = std::get<2>(x.second);
+    const auto xlo = std::get<3>(x.second);
+    const auto xhi = std::get<4>(x.second);
 
-    const string name = names[i];
-    const string title = string(name) + ";" + titles[i];
-    hFulParton_.push_back(dirFulParton.make<TH1F>(name.c_str(), title.c_str(), nbins, binPtr));
-    hFidParton_.push_back(dirFidParton.make<TH1F>(name.c_str(), title.c_str(), nbins, binPtr));
-    hComParton_.push_back(dirComParton.make<TH1F>(name.c_str(), title.c_str(), nbins, binPtr));
-    hComPseudo_.push_back(dirComPseudo.make<TH1F>(name.c_str(), title.c_str(), nbins, binPtr));
-    hPseudo_.push_back(dirPseudo.make<TH1F>(name.c_str(), title.c_str(), nbins, binPtr));
-    hChPseudo_.push_back(dirChPseudo.make<TH1F>(name.c_str(), title.c_str(), nbins, binPtr));
+    hFulParton_.push_back(dirFulParton.make<TH1D>(name.c_str(), title.c_str(), nbins, xlo, xhi));
+    hFidParton_.push_back(dirFidParton.make<TH1D>(name.c_str(), title.c_str(), nbins, xlo, xhi));
+    hComParton_.push_back(dirComParton.make<TH1D>(name.c_str(), title.c_str(), nbins, xlo, xhi));
+    hComPseudo_.push_back(dirComPseudo.make<TH1D>(name.c_str(), title.c_str(), nbins, xlo, xhi));
+    hPseudo_.push_back(dirPseudo.make<TH1D>(name.c_str(), title.c_str(), nbins, xlo, xhi));
+    hChPseudo_.push_back(dirChPseudo.make<TH1D>(name.c_str(), title.c_str(), nbins, xlo, xhi));
 
-    const string name2 = "resp_"+names[i];
-    const string title2 = names[i]+";Particle level "+titles[i]+";Parton level "+titles[i];
-    h2_.push_back(dirPseudo.make<TH2F>(name2.c_str(), title2.c_str(), nbins, binPtr, nbins, binPtr));
-    h2Com_.push_back(dirComPseudo.make<TH2F>(name2.c_str(), title2.c_str(), nbins, binPtr, nbins, binPtr));
+    const string name2 = "resp_"+name;
+    const string title2 = name+";Particle level "+title0+";Parton level "+title0;
+    h2_.push_back(dirPseudo.make<TH2D>(name2.c_str(), title2.c_str(), nbins, xlo, xhi, nbins, xlo, xhi));
+    h2Com_.push_back(dirComPseudo.make<TH2D>(name2.c_str(), title2.c_str(), nbins, xlo, xhi, nbins, xlo, xhi));
   }
 
   assert(hFulParton_.size() == END);
@@ -187,17 +180,17 @@ CATGenTopAnalysis::CATGenTopAnalysis(const edm::ParameterSet& pset):
     "#tau hadronic+jet", "#tau#rightarrow l+jet", "#tau dilepton"
   };
 
-  hFulParton_Channel_ = dirFulParton.make<TH1F>("channel", "channel", 9, 0, 9);
-  hFidParton_Channel_ = dirFidParton.make<TH1F>("channel", "channel", 9, 0, 9);
-  hComParton_Channel_ = dirComParton.make<TH1F>("channel", "channel", 9, 0, 9);
-  hComPseudo_Channel_ = dirComPseudo.make<TH1F>("channel", "channel", 9, 0, 9);
-  hPseudo_Channel_    = dirPseudo.make<TH1F>("channel", "channel", 9, 0, 9);
-  hChPseudo_Channel_  = dirChPseudo.make<TH1F>("channel", "channel", 9, 0, 9);
+  hFulParton_Channel_ = dirFulParton.make<TH1D>("channel", "channel", 9, 0, 9);
+  hFidParton_Channel_ = dirFidParton.make<TH1D>("channel", "channel", 9, 0, 9);
+  hComParton_Channel_ = dirComParton.make<TH1D>("channel", "channel", 9, 0, 9);
+  hComPseudo_Channel_ = dirComPseudo.make<TH1D>("channel", "channel", 9, 0, 9);
+  hPseudo_Channel_    = dirPseudo.make<TH1D>("channel", "channel", 9, 0, 9);
+  hChPseudo_Channel_  = dirChPseudo.make<TH1D>("channel", "channel", 9, 0, 9);
 
-  h2DebugChannel_  = fs->make<TH2F>("h2DebugChannel", "No filter debug;Parton;Pseudotop", 9, 0, 9, 9, 0, 9);
-  h2PseudoChannel_ = fs->make<TH2F>("h2PseudoChannel", "Pseudotop phase space;Parton;Pseudotop", 9, 0, 9, 9, 0, 9);
-  h2ComChannel_    = fs->make<TH2F>("h2ComChannel", "Common phase space;Parton;Pseudotop", 9, 0,9, 9, 0, 9);
-  h2ChChannel_     = fs->make<TH2F>("h2ChChannel", "Common phase space same channel;Parton;Pseudotop", 9, 0, 9, 9, 0, 9);
+  h2DebugChannel_  = fs->make<TH2D>("h2DebugChannel", "No filter debug;Parton;Pseudotop", 9, 0, 9, 9, 0, 9);
+  h2PseudoChannel_ = fs->make<TH2D>("h2PseudoChannel", "Pseudotop phase space;Parton;Pseudotop", 9, 0, 9, 9, 0, 9);
+  h2ComChannel_    = fs->make<TH2D>("h2ComChannel", "Common phase space;Parton;Pseudotop", 9, 0,9, 9, 0, 9);
+  h2ChChannel_     = fs->make<TH2D>("h2ChChannel", "Common phase space same channel;Parton;Pseudotop", 9, 0, 9, 9, 0, 9);
 
   std::vector<H2> hh = {h2DebugChannel_, h2PseudoChannel_, h2ComChannel_, h2ChChannel_};
   for ( int i=0, n=channelNames.size(); i<n; ++i ) {
@@ -219,10 +212,28 @@ CATGenTopAnalysis::CATGenTopAnalysis(const edm::ParameterSet& pset):
     h2ChChannel_    ->GetYaxis()->SetBinLabel(i+1, channelNames[i]);
   }
 
+  hWeight_ = fs->make<TH1D>("hWeight", "weights", 100, -5, 5);
+
 }
 
-void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& eventSetup)
+void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup&)
 {
+  float weight = 1.;
+  if ( weightIndex_ == 0 )
+  {
+    edm::Handle<float> fHandle;
+    event.getByToken(weightToken_, fHandle);
+    weight = *fHandle;
+  }
+  else
+  {
+    edm::Handle<vfloat> vfHandle;
+    event.getByToken(weightsToken_, vfHandle);
+    weight = vfHandle->at(weightIndex_-1);
+  }
+
+  hWeight_->Fill(weight);
+
   edm::Handle<int> channelHandle;
   event.getByToken(channelToken_, channelHandle);
   const int channel = *channelHandle;
@@ -284,66 +295,66 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& 
     else if ( mode1 == 2 and mode2 == 2 ) partonTopCh = 4; // mumu cnannel no tau
     else partonTopCh = 5; // emu channel no tau
   }
-  hFulParton_Channel_->Fill(partonTopCh);
+  hFulParton_Channel_->Fill(partonTopCh, weight);
 
   // Fill parton top plots
   if ( partonTopCh == 1 or partonTopCh == 2 ) {
-    hFulParton_[SL_topPt]->Fill(partonTop1->pt());
-    hFulParton_[SL_topPt]->Fill(partonTop2->pt());
-    hFulParton_[SL_topY]->Fill(partonTop1->p4().Rapidity());
-    hFulParton_[SL_topY]->Fill(partonTop2->p4().Rapidity());
-    hFulParton_[SL_ttbarDelPhi]->Fill(reco::deltaPhi(partonTop1->phi(), partonTop2->phi()));
-    hFulParton_[SL_topPtLead]->Fill(std::max(partonTop1->pt(), partonTop2->pt()));
-    hFulParton_[SL_topPtSubLead]->Fill(std::min(partonTop1->pt(), partonTop2->pt()));
-    hFulParton_[SL_ttbarPt]->Fill(partonTT.pt());
-    hFulParton_[SL_ttbarY]->Fill(partonTT.Rapidity());
-    hFulParton_[SL_ttbarMass]->Fill(partonTT.mass());
-    hFulParton_[SL_topPtTtbarSys]->Fill(partonTopPtAtCM);
+    hFulParton_[SL_topPt]->Fill(partonTop1->pt(), weight);
+    hFulParton_[SL_topPt]->Fill(partonTop2->pt(), weight);
+    hFulParton_[SL_topY]->Fill(partonTop1->p4().Rapidity(), weight);
+    hFulParton_[SL_topY]->Fill(partonTop2->p4().Rapidity(), weight);
+    hFulParton_[SL_ttbarDelPhi]->Fill(reco::deltaPhi(partonTop1->phi(), partonTop2->phi()), weight);
+    hFulParton_[SL_topPtLead]->Fill(std::max(partonTop1->pt(), partonTop2->pt()), weight);
+    hFulParton_[SL_topPtSubLead]->Fill(std::min(partonTop1->pt(), partonTop2->pt()), weight);
+    hFulParton_[SL_ttbarPt]->Fill(partonTT.pt(), weight);
+    hFulParton_[SL_ttbarY]->Fill(partonTT.Rapidity(), weight);
+    hFulParton_[SL_ttbarMass]->Fill(partonTT.mass(), weight);
+    hFulParton_[SL_topPtTtbarSys]->Fill(partonTopPtAtCM, weight);
 
     // Fill parton top plots in fiducial phase space
     if ( isAcceptedSemiLept(partonW11, partonW21, partonW22, partonB1, partonB2) ) {
-      hFidParton_Channel_->Fill(partonTopCh);
+      hFidParton_Channel_->Fill(partonTopCh, weight);
 
-      hFidParton_[SL_topPt]->Fill(partonTop1->pt());
-      hFidParton_[SL_topPt]->Fill(partonTop2->pt());
-      hFidParton_[SL_topY]->Fill(partonTop1->p4().Rapidity());
-      hFidParton_[SL_topY]->Fill(partonTop2->p4().Rapidity());
-      hFidParton_[SL_ttbarDelPhi]->Fill(reco::deltaPhi(partonTop1->phi(), partonTop2->phi()));
-      hFidParton_[SL_topPtLead]->Fill(std::max(partonTop1->pt(), partonTop2->pt()));
-      hFidParton_[SL_topPtSubLead]->Fill(std::min(partonTop1->pt(), partonTop2->pt()));
-      hFidParton_[SL_ttbarPt]->Fill(partonTT.pt());
-      hFidParton_[SL_ttbarY]->Fill(partonTT.Rapidity());
-      hFidParton_[SL_ttbarMass]->Fill(partonTT.mass());
-      hFidParton_[SL_topPtTtbarSys]->Fill(partonTopPtAtCM);
+      hFidParton_[SL_topPt]->Fill(partonTop1->pt(), weight);
+      hFidParton_[SL_topPt]->Fill(partonTop2->pt(), weight);
+      hFidParton_[SL_topY]->Fill(partonTop1->p4().Rapidity(), weight);
+      hFidParton_[SL_topY]->Fill(partonTop2->p4().Rapidity(), weight);
+      hFidParton_[SL_ttbarDelPhi]->Fill(reco::deltaPhi(partonTop1->phi(), partonTop2->phi()), weight);
+      hFidParton_[SL_topPtLead]->Fill(std::max(partonTop1->pt(), partonTop2->pt()), weight);
+      hFidParton_[SL_topPtSubLead]->Fill(std::min(partonTop1->pt(), partonTop2->pt()), weight);
+      hFidParton_[SL_ttbarPt]->Fill(partonTT.pt(), weight);
+      hFidParton_[SL_ttbarY]->Fill(partonTT.Rapidity(), weight);
+      hFidParton_[SL_ttbarMass]->Fill(partonTT.mass(), weight);
+      hFidParton_[SL_topPtTtbarSys]->Fill(partonTopPtAtCM, weight);
     }
   }
   else if ( partonTopCh == 3 or partonTopCh == 4 or partonTopCh == 5 ) {
-    hFulParton_[DL_topPt]->Fill(partonTop1->pt());
-    hFulParton_[DL_topPt]->Fill(partonTop2->pt());
-    hFulParton_[DL_topY]->Fill(partonTop1->p4().Rapidity());
-    hFulParton_[DL_topY]->Fill(partonTop2->p4().Rapidity());
-    hFulParton_[DL_ttbarDelPhi]->Fill(reco::deltaPhi(partonTop1->phi(), partonTop2->phi()));
-    hFulParton_[DL_topPtLead]->Fill(std::max(partonTop1->pt(), partonTop2->pt()));
-    hFulParton_[DL_topPtSubLead]->Fill(std::min(partonTop1->pt(), partonTop2->pt()));
-    hFulParton_[DL_ttbarPt]->Fill(partonTT.pt());
-    hFulParton_[DL_ttbarY]->Fill(partonTT.Rapidity());
-    hFulParton_[DL_ttbarMass]->Fill(partonTT.mass());
-    hFulParton_[DL_topPtTtbarSys]->Fill(partonTopPtAtCM);
+    hFulParton_[DL_topPt]->Fill(partonTop1->pt(), weight);
+    hFulParton_[DL_topPt]->Fill(partonTop2->pt(), weight);
+    hFulParton_[DL_topY]->Fill(partonTop1->p4().Rapidity(), weight);
+    hFulParton_[DL_topY]->Fill(partonTop2->p4().Rapidity(), weight);
+    hFulParton_[DL_ttbarDelPhi]->Fill(reco::deltaPhi(partonTop1->phi(), partonTop2->phi()), weight);
+    hFulParton_[DL_topPtLead]->Fill(std::max(partonTop1->pt(), partonTop2->pt()), weight);
+    hFulParton_[DL_topPtSubLead]->Fill(std::min(partonTop1->pt(), partonTop2->pt()), weight);
+    hFulParton_[DL_ttbarPt]->Fill(partonTT.pt(), weight);
+    hFulParton_[DL_ttbarY]->Fill(partonTT.Rapidity(), weight);
+    hFulParton_[DL_ttbarMass]->Fill(partonTT.mass(), weight);
+    hFulParton_[DL_topPtTtbarSys]->Fill(partonTopPtAtCM, weight);
 
     if ( isAcceptedFullLept(partonW11, partonW21, partonB1, partonB2) ) {
-      hFidParton_Channel_->Fill(partonTopCh);
+      hFidParton_Channel_->Fill(partonTopCh, weight);
 
-      hFidParton_[DL_topPt]->Fill(partonTop1->pt());
-      hFidParton_[DL_topPt]->Fill(partonTop2->pt());
-      hFidParton_[DL_topY]->Fill(partonTop1->p4().Rapidity());
-      hFidParton_[DL_topY]->Fill(partonTop2->p4().Rapidity());
-      hFidParton_[DL_ttbarDelPhi]->Fill(reco::deltaPhi(partonTop1->phi(), partonTop2->phi()));
-      hFidParton_[DL_topPtLead]->Fill(std::max(partonTop1->pt(), partonTop2->pt()));
-      hFidParton_[DL_topPtSubLead]->Fill(std::min(partonTop1->pt(), partonTop2->pt()));
-      hFidParton_[DL_ttbarPt]->Fill(partonTT.pt());
-      hFidParton_[DL_ttbarY]->Fill(partonTT.Rapidity());
-      hFidParton_[DL_ttbarMass]->Fill(partonTT.mass());
-      hFidParton_[DL_topPtTtbarSys]->Fill(partonTopPtAtCM);
+      hFidParton_[DL_topPt]->Fill(partonTop1->pt(), weight);
+      hFidParton_[DL_topPt]->Fill(partonTop2->pt(), weight);
+      hFidParton_[DL_topY]->Fill(partonTop1->p4().Rapidity(), weight);
+      hFidParton_[DL_topY]->Fill(partonTop2->p4().Rapidity(), weight);
+      hFidParton_[DL_ttbarDelPhi]->Fill(reco::deltaPhi(partonTop1->phi(), partonTop2->phi()), weight);
+      hFidParton_[DL_topPtLead]->Fill(std::max(partonTop1->pt(), partonTop2->pt()), weight);
+      hFidParton_[DL_topPtSubLead]->Fill(std::min(partonTop1->pt(), partonTop2->pt()), weight);
+      hFidParton_[DL_ttbarPt]->Fill(partonTT.pt(), weight);
+      hFidParton_[DL_ttbarY]->Fill(partonTT.Rapidity(), weight);
+      hFidParton_[DL_ttbarMass]->Fill(partonTT.mass(), weight);
+      hFidParton_[DL_topPtTtbarSys]->Fill(partonTopPtAtCM, weight);
     }
   }
 
@@ -392,198 +403,198 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup& 
     if ( pseudoW1DauId == 11 or pseudoW2DauId == 11 ) pseudoTopCh = 1; // e+jet
     else pseudoTopCh = 2; // mu+jet
   }
-  hPseudo_Channel_->Fill(pseudoTopCh);
-  h2DebugChannel_->Fill(partonTopCh, pseudoTopCh);
+  hPseudo_Channel_->Fill(pseudoTopCh, weight);
+  h2DebugChannel_->Fill(partonTopCh, pseudoTopCh, weight);
 
   const auto pseudoTT = pseudoTop1->p4()+pseudoTop2->p4();
   const double pseudoTopPtAtCM = ROOT::Math::Boost(pseudoTT.BoostToCM())(pseudoTop1->p4()).pt();
 
   // Fill pseudo top plots
   if ( pseudoTopCh == 0 ) { // Full hadronic in pseudoTop
-    h2PseudoChannel_->Fill(partonTopCh, pseudoTopCh);
-    //h2ComChannel_->Fill(partonTopCh, pseudoTopCh);
+    h2PseudoChannel_->Fill(partonTopCh, pseudoTopCh, weight);
+    //h2ComChannel_->Fill(partonTopCh, pseudoTopCh, weight);
     if ( channel == 0 ) {
-      hChPseudo_Channel_->Fill(pseudoTopCh);
-      h2ChChannel_->Fill(partonTopCh, pseudoTopCh);
+      hChPseudo_Channel_->Fill(pseudoTopCh, weight);
+      h2ChChannel_->Fill(partonTopCh, pseudoTopCh, weight);
     }
   }
   else if ( (pseudoTopCh == 1 or pseudoTopCh == 2) and
             isAcceptedSemiLept(pseudoW11, pseudoW21, pseudoW22, pseudoB1, pseudoB2) ) {
-    h2PseudoChannel_->Fill(partonTopCh, pseudoTopCh);
+    h2PseudoChannel_->Fill(partonTopCh, pseudoTopCh, weight);
 
     // Additional acceptance cut for L+J channel
-    hPseudo_[SL_topPt]->Fill(pseudoTop1->pt());
-    hPseudo_[SL_topPt]->Fill(pseudoTop2->pt());
-    hPseudo_[SL_topY]->Fill(pseudoTop1->p4().Rapidity());
-    hPseudo_[SL_topY]->Fill(pseudoTop2->p4().Rapidity());
-    hPseudo_[SL_ttbarDelPhi]->Fill(reco::deltaPhi(pseudoTop1->phi(), pseudoTop2->phi()));
-    hPseudo_[SL_topPtLead]->Fill(std::max(pseudoTop1->pt(), pseudoTop2->pt()));
-    hPseudo_[SL_topPtSubLead]->Fill(std::min(pseudoTop1->pt(), pseudoTop2->pt()));
-    hPseudo_[SL_ttbarPt]->Fill(pseudoTT.pt());
-    hPseudo_[SL_ttbarY]->Fill(pseudoTT.Rapidity());
-    hPseudo_[SL_ttbarMass]->Fill(pseudoTT.mass());
-    hPseudo_[SL_topPtTtbarSys]->Fill(pseudoTopPtAtCM);
+    hPseudo_[SL_topPt]->Fill(pseudoTop1->pt(), weight);
+    hPseudo_[SL_topPt]->Fill(pseudoTop2->pt(), weight);
+    hPseudo_[SL_topY]->Fill(pseudoTop1->p4().Rapidity(), weight);
+    hPseudo_[SL_topY]->Fill(pseudoTop2->p4().Rapidity(), weight);
+    hPseudo_[SL_ttbarDelPhi]->Fill(reco::deltaPhi(pseudoTop1->phi(), pseudoTop2->phi()), weight);
+    hPseudo_[SL_topPtLead]->Fill(std::max(pseudoTop1->pt(), pseudoTop2->pt()), weight);
+    hPseudo_[SL_topPtSubLead]->Fill(std::min(pseudoTop1->pt(), pseudoTop2->pt()), weight);
+    hPseudo_[SL_ttbarPt]->Fill(pseudoTT.pt(), weight);
+    hPseudo_[SL_ttbarY]->Fill(pseudoTT.Rapidity(), weight);
+    hPseudo_[SL_ttbarMass]->Fill(pseudoTT.mass(), weight);
+    hPseudo_[SL_topPtTtbarSys]->Fill(pseudoTopPtAtCM, weight);
 
     // Fill response matrix no matter what parton level object acceptance is
-    h2_[SL_topPt]->Fill(pseudoTop1->pt(), partonTop1->pt());
-    h2_[SL_topPt]->Fill(pseudoTop2->pt(), partonTop2->pt());
-    h2_[SL_topY]->Fill(pseudoTop1->p4().Rapidity(), partonTop1->p4().Rapidity());
-    h2_[SL_topY]->Fill(pseudoTop2->p4().Rapidity(), partonTop1->p4().Rapidity());
-    h2_[SL_ttbarDelPhi]->Fill(reco::deltaPhi(pseudoTop1->phi(), pseudoTop2->phi()), reco::deltaPhi(partonTop1->phi(), partonTop2->phi()));
-    h2_[SL_topPtLead]->Fill(std::max(pseudoTop1->pt(), pseudoTop2->pt()), std::max(partonTop1->pt(), partonTop2->pt()));
-    h2_[SL_topPtSubLead]->Fill(std::min(pseudoTop1->pt(), pseudoTop2->pt()), std::min(partonTop1->pt(), partonTop2->pt()));
-    h2_[SL_ttbarPt]->Fill(pseudoTT.pt(), partonTT.pt());
-    h2_[SL_ttbarY]->Fill(pseudoTT.Rapidity(), partonTT.Rapidity());
-    h2_[SL_ttbarMass]->Fill(pseudoTT.mass(), partonTT.mass());
-    h2_[SL_topPtTtbarSys]->Fill(pseudoTopPtAtCM, partonTopPtAtCM);
+    h2_[SL_topPt]->Fill(pseudoTop1->pt(), partonTop1->pt(), weight);
+    h2_[SL_topPt]->Fill(pseudoTop2->pt(), partonTop2->pt(), weight);
+    h2_[SL_topY]->Fill(pseudoTop1->p4().Rapidity(), partonTop1->p4().Rapidity(), weight);
+    h2_[SL_topY]->Fill(pseudoTop2->p4().Rapidity(), partonTop1->p4().Rapidity(), weight);
+    h2_[SL_ttbarDelPhi]->Fill(reco::deltaPhi(pseudoTop1->phi(), pseudoTop2->phi()), reco::deltaPhi(partonTop1->phi(), partonTop2->phi()), weight);
+    h2_[SL_topPtLead]->Fill(std::max(pseudoTop1->pt(), pseudoTop2->pt()), std::max(partonTop1->pt(), partonTop2->pt()), weight);
+    h2_[SL_topPtSubLead]->Fill(std::min(pseudoTop1->pt(), pseudoTop2->pt()), std::min(partonTop1->pt(), partonTop2->pt()), weight);
+    h2_[SL_ttbarPt]->Fill(pseudoTT.pt(), partonTT.pt(), weight);
+    h2_[SL_ttbarY]->Fill(pseudoTT.Rapidity(), partonTT.Rapidity(), weight);
+    h2_[SL_ttbarMass]->Fill(pseudoTT.mass(), partonTT.mass(), weight);
+    h2_[SL_topPtTtbarSys]->Fill(pseudoTopPtAtCM, partonTopPtAtCM, weight);
 
     // Fill pseudo top plots within parton level acceptance cut
     if ( channel == 1 ) {
-      hChPseudo_Channel_->Fill(pseudoTopCh);
-      h2ChChannel_->Fill(partonTopCh, pseudoTopCh);
+      hChPseudo_Channel_->Fill(pseudoTopCh, weight);
+      h2ChChannel_->Fill(partonTopCh, pseudoTopCh, weight);
 
-      hChPseudo_[SL_topPt]->Fill(pseudoTop1->pt());
-      hChPseudo_[SL_topPt]->Fill(pseudoTop2->pt());
-      hChPseudo_[SL_topY]->Fill(pseudoTop1->p4().Rapidity());
-      hChPseudo_[SL_topY]->Fill(pseudoTop2->p4().Rapidity());
-      hChPseudo_[SL_ttbarDelPhi]->Fill(reco::deltaPhi(pseudoTop1->phi(), pseudoTop2->phi()));
-      hChPseudo_[SL_topPtLead]->Fill(std::max(pseudoTop1->pt(), pseudoTop2->pt()));
-      hChPseudo_[SL_topPtSubLead]->Fill(std::min(pseudoTop1->pt(), pseudoTop2->pt()));
-      hChPseudo_[SL_ttbarPt]->Fill(pseudoTT.pt());
-      hChPseudo_[SL_ttbarY]->Fill(pseudoTT.Rapidity());
-      hChPseudo_[SL_ttbarMass]->Fill(pseudoTT.mass());
-      hChPseudo_[SL_topPtTtbarSys]->Fill(pseudoTopPtAtCM);
+      hChPseudo_[SL_topPt]->Fill(pseudoTop1->pt(), weight);
+      hChPseudo_[SL_topPt]->Fill(pseudoTop2->pt(), weight);
+      hChPseudo_[SL_topY]->Fill(pseudoTop1->p4().Rapidity(), weight);
+      hChPseudo_[SL_topY]->Fill(pseudoTop2->p4().Rapidity(), weight);
+      hChPseudo_[SL_ttbarDelPhi]->Fill(reco::deltaPhi(pseudoTop1->phi(), pseudoTop2->phi()), weight);
+      hChPseudo_[SL_topPtLead]->Fill(std::max(pseudoTop1->pt(), pseudoTop2->pt()), weight);
+      hChPseudo_[SL_topPtSubLead]->Fill(std::min(pseudoTop1->pt(), pseudoTop2->pt()), weight);
+      hChPseudo_[SL_ttbarPt]->Fill(pseudoTT.pt(), weight);
+      hChPseudo_[SL_ttbarY]->Fill(pseudoTT.Rapidity(), weight);
+      hChPseudo_[SL_ttbarMass]->Fill(pseudoTT.mass(), weight);
+      hChPseudo_[SL_topPtTtbarSys]->Fill(pseudoTopPtAtCM, weight);
 
       if ( isAcceptedSemiLept(partonW11, partonW21, partonW22, partonB1, partonB2) ) {
-        hComParton_Channel_->Fill(partonTopCh);
-        hComPseudo_Channel_->Fill(pseudoTopCh);
-        h2ComChannel_->Fill(partonTopCh, pseudoTopCh);
+        hComParton_Channel_->Fill(partonTopCh, weight);
+        hComPseudo_Channel_->Fill(pseudoTopCh, weight);
+        h2ComChannel_->Fill(partonTopCh, pseudoTopCh, weight);
 
-        hComParton_[SL_topPt]->Fill(partonTop1->pt());
-        hComParton_[SL_topPt]->Fill(partonTop2->pt());
-        hComParton_[SL_topY]->Fill(partonTop1->p4().Rapidity());
-        hComParton_[SL_topY]->Fill(partonTop2->p4().Rapidity());
-        hComParton_[SL_ttbarDelPhi]->Fill(reco::deltaPhi(partonTop1->phi(), partonTop2->phi()));
-        hComParton_[SL_topPtLead]->Fill(std::max(partonTop1->pt(), partonTop2->pt()));
-        hComParton_[SL_topPtSubLead]->Fill(std::min(partonTop1->pt(), partonTop2->pt()));
-        hComParton_[SL_ttbarPt]->Fill(partonTT.pt());
-        hComParton_[SL_ttbarY]->Fill(partonTT.Rapidity());
-        hComParton_[SL_ttbarMass]->Fill(partonTT.mass());
-        hComParton_[SL_topPtTtbarSys]->Fill(partonTopPtAtCM);
+        hComParton_[SL_topPt]->Fill(partonTop1->pt(), weight);
+        hComParton_[SL_topPt]->Fill(partonTop2->pt(), weight);
+        hComParton_[SL_topY]->Fill(partonTop1->p4().Rapidity(), weight);
+        hComParton_[SL_topY]->Fill(partonTop2->p4().Rapidity(), weight);
+        hComParton_[SL_ttbarDelPhi]->Fill(reco::deltaPhi(partonTop1->phi(), partonTop2->phi()), weight);
+        hComParton_[SL_topPtLead]->Fill(std::max(partonTop1->pt(), partonTop2->pt()), weight);
+        hComParton_[SL_topPtSubLead]->Fill(std::min(partonTop1->pt(), partonTop2->pt()), weight);
+        hComParton_[SL_ttbarPt]->Fill(partonTT.pt(), weight);
+        hComParton_[SL_ttbarY]->Fill(partonTT.Rapidity(), weight);
+        hComParton_[SL_ttbarMass]->Fill(partonTT.mass(), weight);
+        hComParton_[SL_topPtTtbarSys]->Fill(partonTopPtAtCM, weight);
 
-        hComPseudo_[SL_topPt]->Fill(pseudoTop1->pt());
-        hComPseudo_[SL_topPt]->Fill(pseudoTop2->pt());
-        hComPseudo_[SL_topY]->Fill(pseudoTop1->p4().Rapidity());
-        hComPseudo_[SL_topY]->Fill(pseudoTop2->p4().Rapidity());
-        hComPseudo_[SL_ttbarDelPhi]->Fill(reco::deltaPhi(pseudoTop1->phi(), pseudoTop2->phi()));
-        hComPseudo_[SL_topPtLead]->Fill(std::max(pseudoTop1->pt(), pseudoTop2->pt()));
-        hComPseudo_[SL_topPtSubLead]->Fill(std::min(pseudoTop1->pt(), pseudoTop2->pt()));
-        hComPseudo_[SL_ttbarPt]->Fill(pseudoTT.pt());
-        hComPseudo_[SL_ttbarY]->Fill(pseudoTT.Rapidity());
-        hComPseudo_[SL_ttbarMass]->Fill(pseudoTT.mass());
-        hComPseudo_[SL_topPtTtbarSys]->Fill(pseudoTopPtAtCM);
+        hComPseudo_[SL_topPt]->Fill(pseudoTop1->pt(), weight);
+        hComPseudo_[SL_topPt]->Fill(pseudoTop2->pt(), weight);
+        hComPseudo_[SL_topY]->Fill(pseudoTop1->p4().Rapidity(), weight);
+        hComPseudo_[SL_topY]->Fill(pseudoTop2->p4().Rapidity(), weight);
+        hComPseudo_[SL_ttbarDelPhi]->Fill(reco::deltaPhi(pseudoTop1->phi(), pseudoTop2->phi()), weight);
+        hComPseudo_[SL_topPtLead]->Fill(std::max(pseudoTop1->pt(), pseudoTop2->pt()), weight);
+        hComPseudo_[SL_topPtSubLead]->Fill(std::min(pseudoTop1->pt(), pseudoTop2->pt()), weight);
+        hComPseudo_[SL_ttbarPt]->Fill(pseudoTT.pt(), weight);
+        hComPseudo_[SL_ttbarY]->Fill(pseudoTT.Rapidity(), weight);
+        hComPseudo_[SL_ttbarMass]->Fill(pseudoTT.mass(), weight);
+        hComPseudo_[SL_topPtTtbarSys]->Fill(pseudoTopPtAtCM, weight);
 
         // Fill response matrix no matter what parton level object acceptance is
-        h2Com_[SL_topPt]->Fill(pseudoTop1->pt(), partonTop1->pt());
-        h2Com_[SL_topPt]->Fill(pseudoTop2->pt(), partonTop2->pt());
-        h2Com_[SL_topY]->Fill(pseudoTop1->p4().Rapidity(), partonTop1->p4().Rapidity());
-        h2Com_[SL_topY]->Fill(pseudoTop2->p4().Rapidity(), partonTop1->p4().Rapidity());
-        h2Com_[SL_ttbarDelPhi]->Fill(reco::deltaPhi(pseudoTop1->phi(), pseudoTop2->phi()), reco::deltaPhi(partonTop1->phi(), partonTop2->phi()));
-        h2Com_[SL_topPtLead]->Fill(std::max(pseudoTop1->pt(), pseudoTop2->pt()), std::max(partonTop1->pt(), partonTop2->pt()));
-        h2Com_[SL_topPtSubLead]->Fill(std::min(pseudoTop1->pt(), pseudoTop2->pt()), std::min(partonTop1->pt(), partonTop2->pt()));
-        h2Com_[SL_ttbarPt]->Fill(pseudoTT.pt(), partonTT.pt());
-        h2Com_[SL_ttbarY]->Fill(pseudoTT.Rapidity(), partonTT.Rapidity());
-        h2Com_[SL_ttbarMass]->Fill(pseudoTT.mass(), partonTT.mass());
-        h2Com_[SL_topPtTtbarSys]->Fill(pseudoTopPtAtCM, partonTopPtAtCM);
+        h2Com_[SL_topPt]->Fill(pseudoTop1->pt(), partonTop1->pt(), weight);
+        h2Com_[SL_topPt]->Fill(pseudoTop2->pt(), partonTop2->pt(), weight);
+        h2Com_[SL_topY]->Fill(pseudoTop1->p4().Rapidity(), partonTop1->p4().Rapidity(), weight);
+        h2Com_[SL_topY]->Fill(pseudoTop2->p4().Rapidity(), partonTop1->p4().Rapidity(), weight);
+        h2Com_[SL_ttbarDelPhi]->Fill(reco::deltaPhi(pseudoTop1->phi(), pseudoTop2->phi()), reco::deltaPhi(partonTop1->phi(), partonTop2->phi()), weight);
+        h2Com_[SL_topPtLead]->Fill(std::max(pseudoTop1->pt(), pseudoTop2->pt()), std::max(partonTop1->pt(), partonTop2->pt()), weight);
+        h2Com_[SL_topPtSubLead]->Fill(std::min(pseudoTop1->pt(), pseudoTop2->pt()), std::min(partonTop1->pt(), partonTop2->pt()), weight);
+        h2Com_[SL_ttbarPt]->Fill(pseudoTT.pt(), partonTT.pt(), weight);
+        h2Com_[SL_ttbarY]->Fill(pseudoTT.Rapidity(), partonTT.Rapidity(), weight);
+        h2Com_[SL_ttbarMass]->Fill(pseudoTT.mass(), partonTT.mass(), weight);
+        h2Com_[SL_topPtTtbarSys]->Fill(pseudoTopPtAtCM, partonTopPtAtCM, weight);
       }
     }
   }
   else if ( (pseudoTopCh == 3 or pseudoTopCh == 4 or pseudoTopCh == 5 ) and
             isAcceptedFullLept(pseudoW11, pseudoW21, pseudoB1, pseudoB2) ) {
-    h2PseudoChannel_->Fill(partonTopCh, pseudoTopCh);
+    h2PseudoChannel_->Fill(partonTopCh, pseudoTopCh, weight);
 
-    hPseudo_[DL_topPt]->Fill(pseudoTop1->pt());
-    hPseudo_[DL_topPt]->Fill(pseudoTop2->pt());
-    hPseudo_[DL_topY]->Fill(pseudoTop1->p4().Rapidity());
-    hPseudo_[DL_topY]->Fill(pseudoTop2->p4().Rapidity());
-    hPseudo_[DL_ttbarDelPhi]->Fill(reco::deltaPhi(pseudoTop1->phi(), pseudoTop2->phi()));
-    hPseudo_[DL_topPtLead]->Fill(std::max(pseudoTop1->pt(), pseudoTop2->pt()));
-    hPseudo_[DL_topPtSubLead]->Fill(std::min(pseudoTop1->pt(), pseudoTop2->pt()));
-    hPseudo_[DL_ttbarPt]->Fill(pseudoTT.pt());
-    hPseudo_[DL_ttbarY]->Fill(pseudoTT.Rapidity());
-    hPseudo_[DL_ttbarMass]->Fill(pseudoTT.mass());
-    hPseudo_[DL_topPtTtbarSys]->Fill(pseudoTopPtAtCM);
+    hPseudo_[DL_topPt]->Fill(pseudoTop1->pt(), weight);
+    hPseudo_[DL_topPt]->Fill(pseudoTop2->pt(), weight);
+    hPseudo_[DL_topY]->Fill(pseudoTop1->p4().Rapidity(), weight);
+    hPseudo_[DL_topY]->Fill(pseudoTop2->p4().Rapidity(), weight);
+    hPseudo_[DL_ttbarDelPhi]->Fill(reco::deltaPhi(pseudoTop1->phi(), pseudoTop2->phi()), weight);
+    hPseudo_[DL_topPtLead]->Fill(std::max(pseudoTop1->pt(), pseudoTop2->pt()), weight);
+    hPseudo_[DL_topPtSubLead]->Fill(std::min(pseudoTop1->pt(), pseudoTop2->pt()), weight);
+    hPseudo_[DL_ttbarPt]->Fill(pseudoTT.pt(), weight);
+    hPseudo_[DL_ttbarY]->Fill(pseudoTT.Rapidity(), weight);
+    hPseudo_[DL_ttbarMass]->Fill(pseudoTT.mass(), weight);
+    hPseudo_[DL_topPtTtbarSys]->Fill(pseudoTopPtAtCM, weight);
 
     // Fill response matrix no matter what parton level object acceptance is
-    h2_[DL_topPt]->Fill(pseudoTop1->pt(), partonTop1->pt());
-    h2_[DL_topPt]->Fill(pseudoTop2->pt(), partonTop2->pt());
-    h2_[DL_topY]->Fill(pseudoTop1->p4().Rapidity(), partonTop1->p4().Rapidity());
-    h2_[DL_topY]->Fill(pseudoTop2->p4().Rapidity(), partonTop1->p4().Rapidity());
-    h2_[DL_ttbarDelPhi]->Fill(reco::deltaPhi(pseudoTop1->phi(), pseudoTop2->phi()), reco::deltaPhi(partonTop1->phi(), partonTop2->phi()));
-    h2_[DL_topPtLead]->Fill(std::max(pseudoTop1->pt(), pseudoTop2->pt()), std::max(partonTop1->pt(), partonTop2->pt()));
-    h2_[DL_topPtSubLead]->Fill(std::min(pseudoTop1->pt(), pseudoTop2->pt()), std::min(partonTop1->pt(), partonTop2->pt()));
-    h2_[DL_ttbarPt]->Fill(pseudoTT.pt(), partonTT.pt());
-    h2_[DL_ttbarY]->Fill(pseudoTT.Rapidity(), partonTT.Rapidity());
-    h2_[DL_ttbarMass]->Fill(pseudoTT.mass(), partonTT.mass());
-    h2_[DL_topPtTtbarSys]->Fill(pseudoTopPtAtCM, partonTopPtAtCM);
+    h2_[DL_topPt]->Fill(pseudoTop1->pt(), partonTop1->pt(), weight);
+    h2_[DL_topPt]->Fill(pseudoTop2->pt(), partonTop2->pt(), weight);
+    h2_[DL_topY]->Fill(pseudoTop1->p4().Rapidity(), partonTop1->p4().Rapidity(), weight);
+    h2_[DL_topY]->Fill(pseudoTop2->p4().Rapidity(), partonTop1->p4().Rapidity(), weight);
+    h2_[DL_ttbarDelPhi]->Fill(reco::deltaPhi(pseudoTop1->phi(), pseudoTop2->phi()), reco::deltaPhi(partonTop1->phi(), partonTop2->phi()), weight);
+    h2_[DL_topPtLead]->Fill(std::max(pseudoTop1->pt(), pseudoTop2->pt()), std::max(partonTop1->pt(), partonTop2->pt()), weight);
+    h2_[DL_topPtSubLead]->Fill(std::min(pseudoTop1->pt(), pseudoTop2->pt()), std::min(partonTop1->pt(), partonTop2->pt()), weight);
+    h2_[DL_ttbarPt]->Fill(pseudoTT.pt(), partonTT.pt(), weight);
+    h2_[DL_ttbarY]->Fill(pseudoTT.Rapidity(), partonTT.Rapidity(), weight);
+    h2_[DL_ttbarMass]->Fill(pseudoTT.mass(), partonTT.mass(), weight);
+    h2_[DL_topPtTtbarSys]->Fill(pseudoTopPtAtCM, partonTopPtAtCM, weight);
 
     if ( channel == 2 ) {
-      hChPseudo_Channel_->Fill(pseudoTopCh);
-      h2ChChannel_->Fill(partonTopCh, pseudoTopCh);
+      hChPseudo_Channel_->Fill(pseudoTopCh, weight);
+      h2ChChannel_->Fill(partonTopCh, pseudoTopCh, weight);
 
-      hChPseudo_[DL_topPt]->Fill(pseudoTop1->pt());
-      hChPseudo_[DL_topPt]->Fill(pseudoTop2->pt());
-      hChPseudo_[DL_topY]->Fill(pseudoTop1->p4().Rapidity());
-      hChPseudo_[DL_topY]->Fill(pseudoTop2->p4().Rapidity());
-      hChPseudo_[DL_ttbarDelPhi]->Fill(reco::deltaPhi(pseudoTop1->phi(), pseudoTop2->phi()));
-      hChPseudo_[DL_topPtLead]->Fill(std::max(pseudoTop1->pt(), pseudoTop2->pt()));
-      hChPseudo_[DL_topPtSubLead]->Fill(std::min(pseudoTop1->pt(), pseudoTop2->pt()));
-      hChPseudo_[DL_ttbarPt]->Fill(pseudoTT.pt());
-      hChPseudo_[DL_ttbarY]->Fill(pseudoTT.Rapidity());
-      hChPseudo_[DL_ttbarMass]->Fill(pseudoTT.mass());
-      hChPseudo_[DL_topPtTtbarSys]->Fill(pseudoTopPtAtCM);
+      hChPseudo_[DL_topPt]->Fill(pseudoTop1->pt(), weight);
+      hChPseudo_[DL_topPt]->Fill(pseudoTop2->pt(), weight);
+      hChPseudo_[DL_topY]->Fill(pseudoTop1->p4().Rapidity(), weight);
+      hChPseudo_[DL_topY]->Fill(pseudoTop2->p4().Rapidity(), weight);
+      hChPseudo_[DL_ttbarDelPhi]->Fill(reco::deltaPhi(pseudoTop1->phi(), pseudoTop2->phi()), weight);
+      hChPseudo_[DL_topPtLead]->Fill(std::max(pseudoTop1->pt(), pseudoTop2->pt()), weight);
+      hChPseudo_[DL_topPtSubLead]->Fill(std::min(pseudoTop1->pt(), pseudoTop2->pt()), weight);
+      hChPseudo_[DL_ttbarPt]->Fill(pseudoTT.pt(), weight);
+      hChPseudo_[DL_ttbarY]->Fill(pseudoTT.Rapidity(), weight);
+      hChPseudo_[DL_ttbarMass]->Fill(pseudoTT.mass(), weight);
+      hChPseudo_[DL_topPtTtbarSys]->Fill(pseudoTopPtAtCM, weight);
 
       if ( isAcceptedFullLept(partonW11, partonW21, partonB1, partonB2) ) {
-        hComParton_Channel_->Fill(partonTopCh);
-        hComPseudo_Channel_->Fill(pseudoTopCh);
-        h2ComChannel_->Fill(partonTopCh, pseudoTopCh);
+        hComParton_Channel_->Fill(partonTopCh, weight);
+        hComPseudo_Channel_->Fill(pseudoTopCh, weight);
+        h2ComChannel_->Fill(partonTopCh, pseudoTopCh, weight);
 
-        hComParton_[DL_topPt]->Fill(partonTop1->pt());
-        hComParton_[DL_topPt]->Fill(partonTop2->pt());
-        hComParton_[DL_topY]->Fill(partonTop1->p4().Rapidity());
-        hComParton_[DL_topY]->Fill(partonTop2->p4().Rapidity());
-        hComParton_[DL_ttbarDelPhi]->Fill(reco::deltaPhi(partonTop1->phi(), partonTop2->phi()));
-        hComParton_[DL_topPtLead]->Fill(std::max(partonTop1->pt(), partonTop2->pt()));
-        hComParton_[DL_topPtSubLead]->Fill(std::min(partonTop1->pt(), partonTop2->pt()));
-        hComParton_[DL_ttbarPt]->Fill(partonTT.pt());
-        hComParton_[DL_ttbarY]->Fill(partonTT.Rapidity());
-        hComParton_[DL_ttbarMass]->Fill(partonTT.mass());
-        hComParton_[DL_topPtTtbarSys]->Fill(partonTopPtAtCM);
+        hComParton_[DL_topPt]->Fill(partonTop1->pt(), weight);
+        hComParton_[DL_topPt]->Fill(partonTop2->pt(), weight);
+        hComParton_[DL_topY]->Fill(partonTop1->p4().Rapidity(), weight);
+        hComParton_[DL_topY]->Fill(partonTop2->p4().Rapidity(), weight);
+        hComParton_[DL_ttbarDelPhi]->Fill(reco::deltaPhi(partonTop1->phi(), partonTop2->phi()), weight);
+        hComParton_[DL_topPtLead]->Fill(std::max(partonTop1->pt(), partonTop2->pt()), weight);
+        hComParton_[DL_topPtSubLead]->Fill(std::min(partonTop1->pt(), partonTop2->pt()), weight);
+        hComParton_[DL_ttbarPt]->Fill(partonTT.pt(), weight);
+        hComParton_[DL_ttbarY]->Fill(partonTT.Rapidity(), weight);
+        hComParton_[DL_ttbarMass]->Fill(partonTT.mass(), weight);
+        hComParton_[DL_topPtTtbarSys]->Fill(partonTopPtAtCM, weight);
 
-        hComPseudo_[DL_topPt]->Fill(pseudoTop1->pt());
-        hComPseudo_[DL_topPt]->Fill(pseudoTop2->pt());
-        hComPseudo_[DL_topY]->Fill(pseudoTop1->p4().Rapidity());
-        hComPseudo_[DL_topY]->Fill(pseudoTop2->p4().Rapidity());
-        hComPseudo_[DL_ttbarDelPhi]->Fill(reco::deltaPhi(pseudoTop1->phi(), pseudoTop2->phi()));
-        hComPseudo_[DL_topPtLead]->Fill(std::max(pseudoTop1->pt(), pseudoTop2->pt()));
-        hComPseudo_[DL_topPtSubLead]->Fill(std::min(pseudoTop1->pt(), pseudoTop2->pt()));
-        hComPseudo_[DL_ttbarPt]->Fill(pseudoTT.pt());
-        hComPseudo_[DL_ttbarY]->Fill(pseudoTT.Rapidity());
-        hComPseudo_[DL_ttbarMass]->Fill(pseudoTT.mass());
-        hComPseudo_[DL_topPtTtbarSys]->Fill(pseudoTopPtAtCM);
+        hComPseudo_[DL_topPt]->Fill(pseudoTop1->pt(), weight);
+        hComPseudo_[DL_topPt]->Fill(pseudoTop2->pt(), weight);
+        hComPseudo_[DL_topY]->Fill(pseudoTop1->p4().Rapidity(), weight);
+        hComPseudo_[DL_topY]->Fill(pseudoTop2->p4().Rapidity(), weight);
+        hComPseudo_[DL_ttbarDelPhi]->Fill(reco::deltaPhi(pseudoTop1->phi(), pseudoTop2->phi()), weight);
+        hComPseudo_[DL_topPtLead]->Fill(std::max(pseudoTop1->pt(), pseudoTop2->pt()), weight);
+        hComPseudo_[DL_topPtSubLead]->Fill(std::min(pseudoTop1->pt(), pseudoTop2->pt()), weight);
+        hComPseudo_[DL_ttbarPt]->Fill(pseudoTT.pt(), weight);
+        hComPseudo_[DL_ttbarY]->Fill(pseudoTT.Rapidity(), weight);
+        hComPseudo_[DL_ttbarMass]->Fill(pseudoTT.mass(), weight);
+        hComPseudo_[DL_topPtTtbarSys]->Fill(pseudoTopPtAtCM, weight);
 
         // Fill response matrix no matter what parton level object acceptance is
-        h2Com_[DL_topPt]->Fill(pseudoTop1->pt(), partonTop1->pt());
-        h2Com_[DL_topPt]->Fill(pseudoTop2->pt(), partonTop2->pt());
-        h2Com_[DL_topY]->Fill(pseudoTop1->p4().Rapidity(), partonTop1->p4().Rapidity());
-        h2Com_[DL_topY]->Fill(pseudoTop2->p4().Rapidity(), partonTop1->p4().Rapidity());
-        h2Com_[DL_ttbarDelPhi]->Fill(reco::deltaPhi(pseudoTop1->phi(), pseudoTop2->phi()), reco::deltaPhi(partonTop1->phi(), partonTop2->phi()));
-        h2Com_[DL_topPtLead]->Fill(std::max(pseudoTop1->pt(), pseudoTop2->pt()), std::max(partonTop1->pt(), partonTop2->pt()));
-        h2Com_[DL_topPtSubLead]->Fill(std::min(pseudoTop1->pt(), pseudoTop2->pt()), std::min(partonTop1->pt(), partonTop2->pt()));
-        h2Com_[DL_ttbarPt]->Fill(pseudoTT.pt(), partonTT.pt());
-        h2Com_[DL_ttbarY]->Fill(pseudoTT.Rapidity(), partonTT.Rapidity());
-        h2Com_[DL_ttbarMass]->Fill(pseudoTT.mass(), partonTT.mass());
-        h2Com_[DL_topPtTtbarSys]->Fill(pseudoTopPtAtCM, partonTopPtAtCM);
+        h2Com_[DL_topPt]->Fill(pseudoTop1->pt(), partonTop1->pt(), weight);
+        h2Com_[DL_topPt]->Fill(pseudoTop2->pt(), partonTop2->pt(), weight);
+        h2Com_[DL_topY]->Fill(pseudoTop1->p4().Rapidity(), partonTop1->p4().Rapidity(), weight);
+        h2Com_[DL_topY]->Fill(pseudoTop2->p4().Rapidity(), partonTop1->p4().Rapidity(), weight);
+        h2Com_[DL_ttbarDelPhi]->Fill(reco::deltaPhi(pseudoTop1->phi(), pseudoTop2->phi()), reco::deltaPhi(partonTop1->phi(), partonTop2->phi()), weight);
+        h2Com_[DL_topPtLead]->Fill(std::max(pseudoTop1->pt(), pseudoTop2->pt()), std::max(partonTop1->pt(), partonTop2->pt()), weight);
+        h2Com_[DL_topPtSubLead]->Fill(std::min(pseudoTop1->pt(), pseudoTop2->pt()), std::min(partonTop1->pt(), partonTop2->pt()), weight);
+        h2Com_[DL_ttbarPt]->Fill(pseudoTT.pt(), partonTT.pt(), weight);
+        h2Com_[DL_ttbarY]->Fill(pseudoTT.Rapidity(), partonTT.Rapidity(), weight);
+        h2Com_[DL_ttbarMass]->Fill(pseudoTT.mass(), partonTT.mass(), weight);
+        h2Com_[DL_topPtTtbarSys]->Fill(pseudoTopPtAtCM, partonTopPtAtCM, weight);
       }
     }
   }

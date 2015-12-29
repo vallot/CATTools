@@ -3,6 +3,7 @@
 import sys, os
 from os.path import isdir as isdir
 from os.path import join as pathjoin
+from multiprocessing import Pool
 
 def hadd(d):
     d = d.rstrip('/')
@@ -16,7 +17,7 @@ def hadd(d):
 
     rootFiles = []
     for x in os.listdir(d):
-        if not x.endswith('.root'): continue
+        if not x.endswith('.root') or not x.startswith("hist_"): continue
         x = pathjoin(d, x)
         if os.stat(x).st_size <= 200: continue
         rootFiles.append(x)
@@ -32,7 +33,10 @@ def hadd(d):
         print "*"*40
         print
         os.system(cmd)
-        os.system("rm -rf %s" % d)
+        os.system("rm -f %s/job.tgz" % d)
+        os.system("tar czf %s/log.tgz %s/*.log %s/*.err %s/*.txt" % (d, d, d, d))
+        os.system("rm -f %s/*.log %s/*.err %s/*.txt" % (d, d, d))
+        for x in rootFiles: os.system("rm -f %s" % (x))
     else:
         print
         print "+"*40
@@ -40,25 +44,29 @@ def hadd(d):
         print "+"*40
         print
 
-pass1Dir = "pass1"
-outFiles = []
-for sample in os.listdir(pass1Dir):
-    sample = pathjoin(pass1Dir, sample)
-    if not isdir(sample): continue
+if __name__ == '__main__':
+    pool = Pool(30)
+    pass1Dir = "pass1"
+    outFiles = []
+    for sample in os.listdir(pass1Dir):
+        sample = pathjoin(pass1Dir, sample)
+        if not isdir(sample): continue
 
-    hadd(pathjoin(sample,'central'))
-    outFiles.append(pathjoin(sample,'central.root'))
+        pool.apply_async(hadd, [pathjoin(sample,'central')])
+        outFiles.append(pathjoin(sample,'central.root'))
 
-    for category in os.listdir(sample):
-        if category == 'central': continue
-        category = pathjoin(sample, category)
-        if not isdir(category): continue
+        for category in os.listdir(sample):
+            if category == 'central': continue
+            category = pathjoin(sample, category)
+            if not isdir(category): continue
 
-        for direction in os.listdir(category):
-            direction = pathjoin(category, direction)
-            if not isdir(direction): continue
-            hadd(direction)
-            outFiles.append(direction+'.root')
+            for direction in os.listdir(category):
+                direction = pathjoin(category, direction)
+                if not isdir(direction): continue
+                pool.apply_async(hadd, [direction])
+                outFiles.append(direction+'.root')
 
-for l in outFiles:
-    print l
+    pool.close()
+    pool.join()
+    for l in outFiles:
+        print l
