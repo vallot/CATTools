@@ -56,10 +56,10 @@ private:
     auto etabin = std::lower_bound(etabins.begin(), etabins.end(), eta);
     if ( etabin == etabins.end() or etabin+1 == etabins.end() ) return 1;
 
-    const int column = ptbin-ptbins.begin();
-    const int row = etabin-etabins.begin();
+    const int column = etabin-etabins.begin();
+    const int row = ptbin-ptbins.begin();
 	
-    return values.at(row*(ptbins.size()-1)+column);
+    return values.at(row*(etabins.size()-1)+column);
   }
   float getSF(const cat::Particle& p, int sys) const
   {

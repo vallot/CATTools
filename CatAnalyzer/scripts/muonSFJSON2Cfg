@@ -61,16 +61,16 @@ print """cms.PSet(
        (", ".join(["%g" % x for x in abseta_bins_id])),
        (", ".join(["%g" % x for x in pt_bins_id])))
 print "    values = cms.vdouble("
-for abseta in abseta_bins_id[:-1]:
+for pt in pt_bins_id[:-1]:
     print "       ",
-    for pt in pt_bins_id[:-1]:
+    for abseta in abseta_bins_id[:-1]:
         print "%g," % values_id[(abseta, pt)],
     print ""
 print """    ),
     errors = cms.vdouble("""
-for abseta in abseta_bins_id[:-1]:
+for pt in pt_bins_id[:-1]:
     print "       ",
-    for pt in pt_bins_id[:-1]:
+    for abseta in abseta_bins_id[:-1]:
         print "%g," % (errors_id[(abseta, pt)]+1e-2), ## Additional 1% systematic error
     print ""
 print"""    ),
@@ -85,16 +85,16 @@ print """cms.PSet(
        (", ".join(["%g" % x for x in abseta_bins_iso])),
        (", ".join(["%g" % x for x in pt_bins_iso])))
 print "    values = cms.vdouble("
-for abseta in abseta_bins_iso[:-1]:
+for pt in pt_bins_iso[:-1]:
     print "       ",
-    for pt in pt_bins_iso[:-1]:
+    for abseta in abseta_bins_iso[:-1]:
         print "%g," % values_iso[(abseta, pt)],
     print ""
 print """    ),
     errors = cms.vdouble("""
-for abseta in abseta_bins_iso[:-1]:
+for pt in pt_bins_iso[:-1]:
     print "       ",
-    for pt in pt_bins_iso[:-1]:
+    for abseta in abseta_bins_iso[:-1]:
         print "%g," % (errors_iso[(abseta, pt)]+1e-2), ## Additional 1% systematic error
     print ""
 print"""    ),
@@ -111,16 +111,16 @@ else:
            (", ".join(["%g" % x for x in abseta_bins_iso])),
            (", ".join(["%g" % x for x in pt_bins_iso])))
     print "    values = cms.vdouble("
-    for abseta in abseta_bins_iso[:-1]:
+    for pt in pt_bins_iso[:-1]:
         print "       ",
-        for pt in pt_bins_iso[:-1]:
+        for abseta in abseta_bins_iso[:-1]:
             print "%g," % (values_id[(abseta, pt)]*values_iso[(abseta, pt)]),
         print ""
     print """    ),
     errors = cms.vdouble("""
-    for abseta in abseta_bins_iso[:-1]:
+    for pt in pt_bins_iso[:-1]:
         print "       ",
-        for pt in pt_bins_iso[:-1]:
+        for abseta in abseta_bins_iso[:-1]:
             print "%g," % hypot(errors_id[(abseta, pt)]+1e-2, errors_iso[(abseta, pt)]+1e-2), ## Additional 1% systematic error
         print ""
     print"""    ),
