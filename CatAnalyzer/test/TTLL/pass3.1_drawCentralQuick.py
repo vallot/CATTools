@@ -2,10 +2,13 @@
 
 import sys, os
 import json
+from array import array
 sys.argv.append("-b")
 from ROOT import *
 from CATTools.CatAnalyzer.tdrstyle import *
 setTDRStyle()
+gStyle.SetOptTitle(0)
+gStyle.SetOptStat(0)
 
 lumi = 2.11*1000
 
@@ -75,27 +78,35 @@ for plt in plts:
     hRD = fRD.Get(plt).Clone()
     hRD.SetOption("pe")
     hRD.SetMarkerSize(5)
+    stats = array('d', [0.]*7)
+    hRD.GetStats(stats)
+    hRD.AddBinContent(hRD.GetNbinsX(), hRD.GetBinContent(hRD.GetNbinsX()+1))
+    hRD.PutStats(stats)
 
     ## Add MC histograms
     hsMC = THStack("hsMC", "hsMC")
     for finName, color, f in srcMCs:
-        h = f.Get(plt)#.Clone()
+        h = f.Get(plt)
         h.Scale(lumi)
+        h.GetStats(stats)
+        h.AddBinContent(h.GetNbinsX(), h.GetBinContent(h.GetNbinsX()+1))
+        h.PutStats(stats)
         h.SetOption("hist")
         h.SetFillColor(color)
         h.SetLineColor(color)
         #h.SetLineStyle(0)
         hsMC.Add(h)
-        #del(h)
 
     ## Draw'em all
     hRD.Draw()
-    hsMC.Draw("same")
+    hsMC.Draw("samehist")
     hRD.Draw("samep")
-    #c.Modified()
-    #c.Update()
     fout.cd(dirName)
     c.Write()
+
+    if not os.path.exists("pass3/quickplt/%s" % dirName):
+        os.makedirs("pass3/quickplt/%s" % dirName)
+    c.Print("pass3/quickplt/%s/%s.png" % (dirName, c.GetName()))
 
     del(hRD)
     del(hsMC)
