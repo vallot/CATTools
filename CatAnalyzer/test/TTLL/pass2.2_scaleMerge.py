@@ -4,24 +4,18 @@ from ROOT import *
 import json
 import sys, os
 import string
+from multiprocessing import Pool
 
 srcbase, outbase = "pass1", "pass2"
 
-mergeList = json.loads(open(outbase+"/samples.json").read())
+def merge(outfileName, mergeInfo):
+    print "@@ Producing plots for the sample", outfileName
 
-## Start mergin
-for outfileName in mergeList:
-    ## Prepare output directory
-    outdir = os.path.dirname(outfileName)
-    mergeInfo = mergeList[outfileName]
     type = mergeInfo['type']
     samples = mergeInfo['samples']
-
-    if not os.path.exists(outdir): os.makedirs(outdir)
-
-    print "@@ Producing plots for the sample", outfileName
     fout = TFile(outfileName, "RECREATE")
     out_moddir = fout.mkdir("ttll")
+
     for i, x in enumerate(samples):
         fsrc = TFile(x['file'])
 
@@ -79,3 +73,20 @@ for outfileName in mergeList:
                         hout.Add(hsrc)
                         hout.Write("", TObject.kOverwrite)
 
+if __name__ == '__main__':
+    p = Pool(30)
+
+    mergeList = json.loads(open(outbase+"/samples.json").read())
+
+    ## Start mergin
+    for outfileName in mergeList:
+        ## Prepare output directory
+        outdir = os.path.dirname(outfileName)
+        mergeInfo = mergeList[outfileName]
+
+        if not os.path.exists(outdir): os.makedirs(outdir)
+
+        p.apply_async(merge, [outfileName, mergeInfo])
+
+    p.close()
+    p.join()
