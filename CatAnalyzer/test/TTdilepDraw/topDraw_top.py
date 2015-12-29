@@ -48,7 +48,7 @@ channel_name = ['Combined', 'MuEl', 'ElEl', 'MuMu']
 weight = '(weight/lepweight)'
 stepchcut = "step==6&&channel==%s"%channel
 
-phase_cut = '(gentop1_pt!=-9&&gentop2_pt!=-9)'
+phase_cut = '(gentop1_pt!=-9&&gentop2_pt!=-9&&pseudoTop_channel==%s)'%channel
 if channel == 1: ttother_cut = "(parton_channel==2 && ((parton_mode1==1 && parton_mode2==2) || (parton_mode1==2 && parton_mode2==1)))"
 elif channel == 2: ttother_cut = "(parton_channel==2 && (parton_mode1==2 && parton_mode2==2))"
 elif channel == 3: ttother_cut = "(parton_channel==2 && (parton_mode1==1 && parton_mode2==1))"
@@ -81,7 +81,7 @@ for var in vars:
 	h1_Parton.Add(hist_maker('hist', plotvar, tree, 'parton'+var, "(%s&&%s&&%s)*%s"%(stepchcut,ttother_cut,phase_cut,weight), binning))
 	h1_Reco.Add(hist_maker('hist', plotvar, tree, var, "(%s&&%s&&%s)*%s"%(stepchcut,ttother_cut,phase_cut,weight), binning))
 	h1_Reco_noPhaseCut.Add(hist_maker('hist', plotvar, tree, var, "(%s)*%s"%(stepchcut,weight), binning))
-	h2_GenReco.Add(hist_maker2D('hist', plotvar, tree, '%s:gen%s'%(var,var), "(%s&&%s&&%s&&pseudoTop_channel==%s)*%s"%(stepchcut,ttother_cut,phase_cut,channel,weight), binning))
+	h2_GenReco.Add(hist_maker2D('hist', plotvar, tree, '%s:gen%s'%(var,var), "(%s&&%s&&%s)*%s"%(stepchcut,ttother_cut,phase_cut,weight), binning))
 
 out_rt.Write()
 out_rt.Close()

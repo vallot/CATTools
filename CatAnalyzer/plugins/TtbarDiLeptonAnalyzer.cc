@@ -436,6 +436,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         for ( size_t i=0, n=pseudoTopLeptonHandle->size(); i<n; ++i ) {
           const auto& x = pseudoTopLeptonHandle->at(i);
           if ( x.pt() < 20 or std::abs(x.eta()) > 2.4 ) continue;
+          if ( abs(x.pdgId()) != 11 and abs(x.pdgId()) != 13 ) continue;
           leptonIdxs.push_back(i);
         }
         if ( leptonIdxs.size() < 2 ) break;
@@ -445,12 +446,11 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         const auto lepton2 = pseudoTopLeptonHandle->at(leptonIdxs[1]).p4();
         const int pseudoW1DauId = abs(pseudoTopLeptonHandle->at(leptonIdxs[0]).pdgId());
         const int pseudoW2DauId = abs(pseudoTopLeptonHandle->at(leptonIdxs[1]).pdgId());
-        if ( pseudoW1DauId > 10 and pseudoW2DauId > 10 ) {
-          switch ( pseudoW1DauId+pseudoW2DauId ) {
-            case 22: b_pseudoTopChannel = CH_ELEL; break;
-            case 26: b_pseudoTopChannel = CH_MUMU; break;
-            default: b_pseudoTopChannel = CH_MUEL;
-          }
+        switch ( pseudoW1DauId+pseudoW2DauId ) {
+          case 22: b_pseudoTopChannel = CH_ELEL; break;
+          case 26: b_pseudoTopChannel = CH_MUMU; break;
+          case 24: b_pseudoTopChannel = CH_MUEL; break;
+          default: b_pseudoTopChannel = CH_NONE;
         }
 
         //std::nth_element(neutrinoIdxs.begin(), neutrinoIdxs.begin()+2, neutrinoIdxs.end(),
