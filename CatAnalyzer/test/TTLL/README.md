@@ -32,6 +32,9 @@ To start the histogram production and control plots, start from the test directo
   * CATTools/CatAnalyzer/test/TTLL/pass2.2_scaleMerge.py
   * More to come...
 
+The pass3 includes steps to produce quick control plots for debugging.
+  * CATTools/CatAnalyzer/test/TTLL/pass3.1_drawCentralQuick.py
+
 **Extended study** The initial cfg file is configured to store events
 in the EDM format. By default, CAT-objects which are directly used
 in the reference event selection are kept in the event content.

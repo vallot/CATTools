@@ -98,6 +98,7 @@ for plt in plts:
         hsMC.Add(h)
 
     ## Draw'em all
+    hRD.SetMinimum(0)
     hRD.Draw()
     hsMC.Draw("samehist")
     hRD.Draw("samep")
@@ -107,6 +108,10 @@ for plt in plts:
     if not os.path.exists("pass3/quickplt/%s" % dirName):
         os.makedirs("pass3/quickplt/%s" % dirName)
     c.Print("pass3/quickplt/%s/%s.png" % (dirName, c.GetName()))
+
+    hRD.SetMinimum(0.05)
+    c.SetLogy()
+    c.Print("pass3/quickplt/%s/%s_log.png" % (dirName, c.GetName()))
 
     del(hRD)
     del(hsMC)
