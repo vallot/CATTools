@@ -93,8 +93,12 @@ out_dat = open("%s/submit_dat_unc.sh" % outDir, "w")
 
 ## Loop over common systematics
 systAny = {
-    'lep_pt/up':'ttll.muon.scaleDirection=1 ttll.electron.scaleDirection=1',
-    'lep_pt/dn':'ttll.muon.scaleDirection=-1 ttll.electron.scaleDirection=-1',
+    'mu_pt/up':'ttll.muon.scaleDirection=1',
+    'mu_pt/dn':'ttll.muon.scaleDirection=-1',
+    'el_pt/up':'ttll.electron.scaleDirection=1',
+    'el_pt/dn':'ttll.electron.scaleDirection=-1',
+    'lep_eff/up':'ttll.muon.efficiencySFDirection=1 ttll.electron.efficiencySFDirection=1',
+    'lep_eff/dn':'ttll.muon.efficiencySFDirection=-1 ttll.electron.efficiencySFDirection=-1',
     'jet_cor/up':'ttll.jet.scaleDirection=1',
     'jet_cor/dn':'ttll.jet.scaleDirection=-1',
 }
