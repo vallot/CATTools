@@ -64,6 +64,7 @@ process.filterTrigMUMU = process.filterTrigMUEL.clone(
 )
 
 process.load("CATTools.CatAnalyzer.ttll.ttbarDileptonKinSolutionAlgos_cff")
+from CATTools.CatAnalyzer.leptonSF_cff import *
 
 process.cattree = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     recoFilters = cms.InputTag("filterRECO"),
@@ -78,8 +79,14 @@ process.cattree = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     trigELEL = cms.InputTag("filterTrigELEL"),
 
     vertices = cms.InputTag("catVertex"),
-    muons = cms.InputTag("catMuons"),
-    electrons = cms.InputTag("catElectrons"),
+    muon = cms.PSet(
+        src = cms.InputTag("catMuons"),
+        effSF = muonSFTight,
+    ),
+    electron = cms.PSet(
+        src = cms.InputTag("catElectrons"),
+        effSF = electronSFWP90,
+    ),
     jets = cms.InputTag("catJets"),
     mets = cms.InputTag(catmet),
     mcLabel = cms.InputTag("prunedGenParticles"),

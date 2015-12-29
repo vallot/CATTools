@@ -33,7 +33,9 @@ public:
   enum {
     CH_NONE=0, CH_MUEL=1, CH_ELEL=2, CH_MUMU=3
   };
-  enum sys_e {sys_nom, sys_jes_u, sys_jes_d, sys_jer_u, sys_jer_d, sys_mu_u, sys_mu_d, sys_el_u, sys_el_d, nsys_e};
+  enum sys_e {sys_nom, sys_jes_u, sys_jes_d, sys_jer_u, sys_jer_d, sys_mu_u, sys_mu_d, sys_el_u, sys_el_d, sys_leff_u, sys_leff_d, nsys_e};
+
+  typedef std::vector<double> vdouble;
 
 private:
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
@@ -46,6 +48,34 @@ private:
   cat::JetCollection selectJets(const cat::JetCollection& jets, const ParticleCollection& recolep, sys_e sys);
   cat::JetCollection selectBJets(const cat::JetCollection& jets) const;
   const reco::Candidate* getLast(const reco::Candidate* p) const;
+
+  float getSF(const double pt, const double eta, const vdouble& ptbins, const vdouble& etabins, const vdouble& values) const
+  {
+    auto ptbin = std::lower_bound(ptbins.begin(), ptbins.end(), pt);
+    if ( ptbin == ptbins.end() or ptbin+1 == ptbins.end() ) return 1;
+    auto etabin = std::lower_bound(etabins.begin(), etabins.end(), eta);
+    if ( etabin == etabins.end() or etabin+1 == etabins.end() ) return 1;
+
+    const int column = ptbin-ptbins.begin();
+    const int row = etabin-etabins.begin();
+
+    return values.at(row*(ptbins.size()-1)+column);
+  }
+  float getSF(const cat::Particle& p, int sys) const
+  {
+    const int aid = abs(p.pdgId());
+    const double pt = p.pt(), eta = p.eta();
+    const auto& ptbins = (aid == 11 ? elecSFPtBins_ : muonSFPtBins_);
+    const auto& etabins = (aid == 11 ? elecSFEtaBins_ : muonSFEtaBins_);
+    const auto& values = (aid == 11 ? elecSFValues_ : muonSFValues_);
+    const auto& errors = (aid == 11 ? elecSFErrors_ : muonSFErrors_);
+
+    double sf = getSF(pt, eta, ptbins, etabins, values);
+    if ( sys == sys_leff_u ) sf += getSF(pt, eta, ptbins, etabins, errors);
+    else if ( sys == sys_leff_d ) sf -= getSF(pt, eta, ptbins, etabins, errors);
+
+    return sf;
+  }
 
   edm::EDGetTokenT<int> recoFiltersToken_, nGoodVertexToken_, lumiSelectionToken_;
   edm::EDGetTokenT<float> genweightToken_, puweightToken_, puweightToken_up_, puweightToken_dn_;
@@ -103,6 +133,9 @@ private:
   //enum TTbarMode { CH_NONE = 0, CH_FULLHADRON = 1, CH_SEMILEPTON, CH_FULLLEPTON };
   //enum DecayMode { CH_HADRON = 1, CH_MUON, CH_ELECTRON, CH_TAU_HADRON, CH_TAU_MUON, CH_TAU_ELECTRON };
 
+  vdouble muonSFEtaBins_, muonSFPtBins_, muonSFValues_, muonSFErrors_;
+  vdouble elecSFEtaBins_, elecSFPtBins_, elecSFValues_, elecSFErrors_;
+
   const static int NCutflow = 10;
   std::vector<std::vector<int> > cutflow_;
   bool runOnMC_;
@@ -123,11 +156,27 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   trigTokenMUMU_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigMUMU"));
   trigTokenELEL_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigELEL"));
 
-  muonToken_ = consumes<cat::MuonCollection>(iConfig.getParameter<edm::InputTag>("muons"));
-  elecToken_ = consumes<cat::ElectronCollection>(iConfig.getParameter<edm::InputTag>("electrons"));
   jetToken_  = consumes<cat::JetCollection>(iConfig.getParameter<edm::InputTag>("jets"));
   metToken_  = consumes<cat::METCollection>(iConfig.getParameter<edm::InputTag>("mets"));
   vtxToken_  = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertices"));
+
+  const auto muonSet = iConfig.getParameter<edm::ParameterSet>("muon");
+  muonToken_ = consumes<cat::MuonCollection>(muonSet.getParameter<edm::InputTag>("src"));
+  const auto muonSFSet = muonSet.getParameter<edm::ParameterSet>("effSF");
+  muonSFPtBins_ = muonSFSet.getParameter<vdouble>("ptbins");
+  muonSFEtaBins_ = muonSFSet.getParameter<vdouble>("etabins");
+  muonSFValues_ = muonSFSet.getParameter<vdouble>("values");
+  muonSFErrors_ = muonSFSet.getParameter<vdouble>("errors");
+  assert(muonSFValues_.size() == muonSFErrors_.size());
+
+  const auto elecSet = iConfig.getParameter<edm::ParameterSet>("electron");
+  elecToken_ = consumes<cat::ElectronCollection>(elecSet.getParameter<edm::InputTag>("src"));
+  const auto elecSFSet = elecSet.getParameter<edm::ParameterSet>("effSF");
+  elecSFPtBins_ = elecSFSet.getParameter<vdouble>("ptbins");
+  elecSFEtaBins_ = elecSFSet.getParameter<vdouble>("etabins");
+  elecSFValues_ = elecSFSet.getParameter<vdouble>("values");
+  elecSFErrors_ = elecSFSet.getParameter<vdouble>("errors");
+  assert(elecSFValues_.size() == elecSFErrors_.size());
 
   partonTop_channel_ = consumes<int>(iConfig.getParameter<edm::InputTag>("partonTop_channel"));
   partonTop_modes_   = consumes<vector<int> >(iConfig.getParameter<edm::InputTag>("partonTop_modes"));
@@ -154,7 +203,10 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
 
   usesResource("TFileService");
   edm::Service<TFileService> fs;
-  std::string sys_name[nsys_e] = {"nom", "jes_u", "jes_d", "jer_u", "jer_d", "mu_u", "mu_d", "el_u", "el_d"};
+  std::string sys_name[nsys_e] = {
+    "nom", "jes_u", "jes_d", "jer_u", "jer_d", 
+    "mu_u", "mu_d", "el_u", "el_d",
+    "leff_u", "leff_d",};
   for (int sys = 0; sys < nsys_e; ++sys){
     ttree_.push_back(fs->make<TTree>(sys_name[sys].c_str(), sys_name[sys].c_str()));
     auto tr = ttree_.back();
@@ -513,10 +565,9 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
     // Find leptons and sort by pT
     ParticleCollection recolep;
-    float mu_weight = selectMuons(*muons, recolep, (sys_e)sys);
-    float el_weight = selectElecs(*electrons, recolep, (sys_e)sys);
-    b_lepweight = mu_weight * el_weight;
-    b_weight *= b_lepweight;
+    selectMuons(*muons, recolep, (sys_e)sys);
+    selectElecs(*electrons, recolep, (sys_e)sys);
+    //b_lepweight = mu_weight * el_weight;
     if (recolep.size() < 2){
       ttree_[sys]->Fill();
       continue;
@@ -533,6 +584,9 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     if (pdgIdSum == 24) b_channel = CH_MUEL; // emu
     if (pdgIdSum == 22) b_channel = CH_ELEL; // ee
     if (pdgIdSum == 26) b_channel = CH_MUMU; // mumu
+
+    b_lepweight = getSF(recolep1, sys)*getSF(recolep2, sys);
+    b_weight *= b_lepweight;
 
     // Trigger results
     edm::Handle<int> trigHandle;

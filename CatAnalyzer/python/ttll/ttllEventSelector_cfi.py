@@ -14,6 +14,7 @@ ttll = cms.EDFilter("TTLLEventSelector",
         #scaleDirection = cms.int32(-1),
         #scaleDirection = cms.int32(+1),
         efficiencySF = muonSFTight,
+        efficiencySFDirection = cms.int32(0),
     ),
 
     electron = cms.PSet(
@@ -24,6 +25,7 @@ ttll = cms.EDFilter("TTLLEventSelector",
         #scaleDirection = cms.int32(-1),
         #scaleDirection = cms.int32(+1),
         efficiencySF = electronSFWP90,
+        efficiencySFDirection = cms.int32(0),
     ),
 
     jet = cms.PSet(
