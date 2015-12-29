@@ -2,6 +2,7 @@
 
 from ROOT import *
 from math import sqrt
+import json
 lumi = 2.11*1000
 
 rootfileDir = "pass2/central"
@@ -29,6 +30,11 @@ kEE = sqrt(nRD_ee_in/nRD_mm_in)/2.
 kMM = sqrt(nRD_mm_in/nRD_ee_in)/2.
 
 print "kMM = ", kMM, "kEE = ", kEE
+
+out = {
+    "file":"Z__gamma_rightarrow_ll.root",
+    "scale":{},
+}
 
 for step in range(1,6):
     hRD_ee = fEE.Get(hName % ("ee", step))
@@ -60,3 +66,10 @@ for step in range(1,6):
 
     print "DY estimation for step", step, "ee =",scale_ee, "mm =",scale_mm
 
+    out["scale"]["ttll/ee/step%d" % step] = scale_ee
+    out["scale"]["ttll/mm/step%d" % step] = scale_mm
+
+import json
+f = open("pass2/scaler_DY.json", "w")
+f.write(json.dumps(out, indent=4, sort_keys=True))
+f.close()
