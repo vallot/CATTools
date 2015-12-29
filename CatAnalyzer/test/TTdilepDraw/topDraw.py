@@ -6,14 +6,14 @@ ROOT.gROOT.SetBatch(True)
 topDraw.py -a 1 -s 1 -c 'tri==1&&filtered==1' -b [40,0,40] -p nvertex -x 'no. vertex' &
 topDraw.py -a 1 -s 1 -b [100,-3,3] -p lep1_eta,lep2_eta -x '#eta' &
 '''
-datalumi = 1.56
+datalumi = 2.11
 CMS_lumi.lumi_sqrtS = "%.2f fb^{-1}, #sqrt{s} = 13 TeV "%(datalumi)
 datalumi = datalumi*1000 # due to fb
 
 mcfilelist = ['TT_powheg', 'WJets', 'SingleTbar_tW', 'SingleTop_tW', 'ZZ', 'WW', 'WZ', 'DYJets', 'DYJets_10to50']
 rdfilelist = ['MuonEG_Run2015','DoubleEG_Run2015','DoubleMuon_Run2015']
-rootfileDir = "/cms/scratch/tt8888tt/cattools_v745/src/CATTools/CatAnalyzer/test/v745/"
-#rootfileDir = "/cms/scratch/jlee/v7-4-5/TtbarDiLeptonAnalyzer_"
+rootfileDir = "/cms/scratch/tt8888tt/cattools_v746/src/CATTools/CatAnalyzer/test/v7-4-6/"
+#rootfileDir = "/cms/scratch/jlee/v7-4-6/TtbarDiLeptonAnalyzer_"
 channel_name = ['MuEl', 'ElEl', 'MuMu']
 
 datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json" % os.environ['CMSSW_BASE']))
@@ -70,7 +70,8 @@ elif channel == 3: ttother_tcut = "!(parton_channel==2 && (parton_mode1==1 && pa
 
 stepch_tcut =  'step>=%i&&channel==%i'%(step,channel)
 tcut = '(%s&&%s)*%s'%(stepch_tcut,cut,weight)
-ttother_tcut = '(%s&&%s&&%s)*%s'%(stepch_tcut,cut,ttother_tcut,weight)
+#ttother_tcut = '(%s&&%s&&%s)*%s'%(stepch_tcut,cut,ttother_tcut,weight)
+ttother_tcut = '(%s&&%s&&(%s||(gentop1_pt==-9||gentop2_pt==-9)))*%s'%(stepch_tcut,cut,ttother_tcut,weight)
 print "TCut =",tcut
 x_name = channel_name[channel-1]+" "+x_name
 if len(binning) <= 3:
@@ -128,7 +129,7 @@ if channel !=1:
 
     dyest = drellYanEstimation(mc_ee_in.Integral(), mc_ee_out.Integral(), mc_mm_in.Integral(), mc_mm_out.Integral(),
                                rd_ee_in.Integral(), rd_mm_in.Integral(), rd_em_in.Integral())
-    print "DY estimation for", step, "ee =",dyest[0], "mm =",dyest[1]   
+    print "DY estimation for s", step, "ee =",dyest[0], "mm =",dyest[1]   
     dyratio[2][step] = dyest[0]
     dyratio[3][step] = dyest[1]
 
