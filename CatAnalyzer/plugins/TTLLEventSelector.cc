@@ -8,6 +8,8 @@
 #include "CATTools/DataFormats/interface/MET.h"
 #include "CATTools/DataFormats/interface/SecVertex.h"
 
+#include "CATTools/CommonTools/interface/ScaleFactorGetter.h"
+
 #include "DataFormats/Candidate/interface/LeafCandidate.h"
 //#include "DataFormats/Candidate/interface/CompositeCandidate.h"
 //#include "DataFormats/Candidate/interface/CompositeRefCandidate.h"
@@ -497,19 +499,6 @@ private:
     return false;
   }
 
-  float getSF(const double pt, const double eta, const vdouble& ptbins, const vdouble& etabins, const vdouble& values)
-  {
-    auto ptbin = std::lower_bound(ptbins.begin(), ptbins.end(), pt);
-    if ( ptbin == ptbins.end() or ptbin+1 == ptbins.end() ) return 1;
-    auto etabin = std::lower_bound(etabins.begin(), etabins.end(), eta);
-    if ( etabin == etabins.end() or etabin+1 == etabins.end() ) return 1;
-
-    const int column = etabin-etabins.begin();
-    const int row = ptbin-ptbins.begin();
-
-    return values.at(row*(etabins.size()-1)+column);
-  }
-
 private:
   typedef reco::Candidate::LorentzVector LV;
   enum Channel { CH_NONE=-1, CH_MUMU, CH_ELEL, CH_MUEL };
@@ -518,8 +507,8 @@ private:
   int muonScale_, electronScale_, jetScale_, jetResol_;
 
   // Efficiency SF
-  vdouble muonEffAbsEtabins_, muonEffPtbins_, muonEffSFValues_, muonEffSFErrors_;
-  vdouble electronEffEtabins_, electronEffPtbins_, electronEffSFValues_, electronEffSFErrors_;
+  ScaleFactorGetter muonSF_, electronSF_;
+  double muonSFShift_, electronSFShift_;
 
   bool isMC_;
   const int applyFilterAt_;
@@ -543,22 +532,13 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   muonScale_ = muonSet.getParameter<int>("scaleDirection");
   if ( isMC_ )
   {
-    const auto muonEffSFSet = muonSet.getParameter<edm::ParameterSet>("efficiencySF");
+    const auto muonSFSet = muonSet.getParameter<edm::ParameterSet>("efficiencySF");
     // FIXME : for muons, eta bins are folded - always double check this with cfg
-    muonEffAbsEtabins_ = muonEffSFSet.getParameter<vdouble>("abseta_bins");
-    muonEffPtbins_ = muonEffSFSet.getParameter<vdouble>("pt_bins");
-    // FIXME : check that these bins are monolothically increasing
-    muonEffSFValues_ = muonEffSFSet.getParameter<vdouble>("values");
-    const auto sfErrors = muonEffSFSet.getParameter<vdouble>("errors");
-    assert(muonEffSFValues_.size() == sfErrors.size());
-    const int sfErrDirection = muonSet.getParameter<int>("efficiencySFDirection");
-    if ( sfErrDirection != 0 )
-    {
-      for ( int i=0, n=muonEffSFValues_.size(); i<n; ++i )
-      {
-        muonEffSFValues_[i] += sfErrDirection*sfErrors[i];
-      }
-    }
+    muonSF_.set(muonSFSet.getParameter<vdouble>("abseta_bins"),
+                   muonSFSet.getParameter<vdouble>("pt_bins"),
+                   muonSFSet.getParameter<vdouble>("values"),
+                   muonSFSet.getParameter<vdouble>("errors"));
+    muonSFShift_ = muonSet.getParameter<int>("efficiencySFDirection");
   }
 
   const auto electronSet = pset.getParameter<edm::ParameterSet>("electron");
@@ -567,23 +547,13 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   electronScale_ = electronSet.getParameter<int>("scaleDirection");
   if ( isMC_ )
   {
-    const auto electronEffSFSet = electronSet.getParameter<edm::ParameterSet>("efficiencySF");
+    const auto electronSFSet = electronSet.getParameter<edm::ParameterSet>("efficiencySF");
     // FIXME : for electrons, eta bins are NOT folded - always double check this with cfg
-    electronEffEtabins_ = electronEffSFSet.getParameter<vdouble>("eta_bins");
-    electronEffPtbins_ = electronEffSFSet.getParameter<vdouble>("pt_bins");
-    // FIXME : check that these bins are monolothically increasing
-    electronEffSFValues_ = electronEffSFSet.getParameter<vdouble>("values");
-    electronEffSFErrors_ = electronEffSFSet.getParameter<vdouble>("errors");
-    const auto sfErrors = electronEffSFSet.getParameter<vdouble>("errors");
-    assert(electronEffSFValues_.size() == sfErrors.size());
-    const int sfErrDirection = electronSet.getParameter<int>("efficiencySFDirection");
-    if ( sfErrDirection != 0 )
-    {
-      for ( int i=0, n=electronEffSFValues_.size(); i<n; ++i )
-      {
-        electronEffSFValues_[i] += sfErrDirection*sfErrors[i];
-      }
-    }
+    electronSF_.set(electronSFSet.getParameter<vdouble>("eta_bins"),
+                       electronSFSet.getParameter<vdouble>("pt_bins"),
+                       electronSFSet.getParameter<vdouble>("values"),
+                       electronSFSet.getParameter<vdouble>("errors"));
+    electronSFShift_ = electronSet.getParameter<int>("efficiencySFDirection");
   }
 
   const auto jetSet = pset.getParameter<edm::ParameterSet>("jet");
@@ -758,26 +728,20 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     // Apply lepton SF
     if ( channel == CH_ELEL )
     {
-      const double w1 = getSF(lepton1->pt(), lepton1->eta(),
-                              electronEffPtbins_, electronEffEtabins_, electronEffSFValues_);
-      const double w2 = getSF(lepton2->pt(), lepton2->eta(),
-                              electronEffPtbins_, electronEffEtabins_, electronEffSFValues_);
+      const double w1 = electronSF_(lepton1->eta(), lepton1->pt(), electronSFShift_);
+      const double w2 = electronSF_(lepton2->eta(), lepton2->pt(), electronSFShift_);
       weight *= w1*w2;
     }
     else if ( channel == CH_MUMU )
     {
-      const double w1 = getSF(lepton1->pt(), std::abs(lepton1->eta()),
-                              muonEffPtbins_, muonEffAbsEtabins_, muonEffSFValues_);
-      const double w2 = getSF(lepton2->pt(), std::abs(lepton2->eta()),
-                              muonEffPtbins_, muonEffAbsEtabins_, muonEffSFValues_);
+      const double w1 = muonSF_(std::abs(lepton1->eta()), lepton1->pt(), muonSFShift_);
+      const double w2 = muonSF_(std::abs(lepton2->eta()), lepton2->pt(), muonSFShift_);
       weight *= w1*w2;
     }
     else if ( channel == CH_MUEL )
     {
-      const double w1 = getSF(lepton1->pt(), lepton1->eta(),
-                              electronEffPtbins_, electronEffEtabins_, electronEffSFValues_);
-      const double w2 = getSF(lepton2->pt(), std::abs(lepton2->eta()),
-                              muonEffPtbins_, muonEffAbsEtabins_, muonEffSFValues_);
+      const double w1 = electronSF_(lepton1->eta(), lepton1->pt(), electronSFShift_);
+      const double w2 = muonSF_(std::abs(lepton2->eta()), lepton2->pt(), muonSFShift_);
       weight *= w1*w2;
     }
     else edm::LogError("TTLLEventSelector") << "Strange event with nLepton >=2 but not falling info ee,mumu,emu category";
