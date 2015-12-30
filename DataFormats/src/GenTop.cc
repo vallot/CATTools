@@ -4,12 +4,36 @@ using namespace cat;
 
 /// default constructor
 GenTop::GenTop(){
+  tops_ = {null, null};
+  bquarks_ = {null, null, null, null};
+  leptons_ = {null, null};
+  nus_ = {null, null};
+  taunus_ = {null, null};
+  quarksfromW_ = {null, null};
+
+  cJets_ = {null, null};
+  bJets_ = {null, null, null, null};
+  addbJets_ = {null, null};
+  addbJetsHad_ = {null, null};
+  addJets_ = {null, null};
 }
 
 // GenTop::GenTop(const reco::GenParticle & aGenTop) : reco::LeafCandidate(aGenTop) {
 // }
 
 GenTop::GenTop(const reco::Candidate & aGenTop) : reco::LeafCandidate(aGenTop) {
+  tops_ = {null, null};
+  bquarks_ = {null, null, null, null};
+  leptons_ = {null, null};
+  nus_ = {null, null};
+  taunus_ = {null, null};
+  quarksfromW_ = {null, null};
+
+  cJets_ = {null, null};
+  bJets_ = {null, null, null, null};
+  addbJets_ = {null, null};
+  addbJetsHad_ = {null, null};
+  addJets_ = {null, null};
 }
 
 /// destructor
@@ -22,13 +46,6 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
                       Handle<std::vector<int> > genCHadFlavour, Handle<std::vector<int> > genCHadJetIndex){
 
   math::XYZTLorentzVector null(0,0,0,0);
-
-  tops_ = {null, null};
-  bquarks_ = {null, null, null, null};
-  leptons_ = {null, null};
-  nus_ = {null, null};
-  taunus_ = {null, null};
-  quarksfromW_ = {null, null};
 
   std::vector<bool> electronic = {false, false};
   std::vector<bool> muonic = {false, false};
@@ -317,15 +334,6 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
   NaddbQuarks40_ = naddbQuark40;
 
 //////
-  cJets_ = {null, null};
-  bJets_ = {null, null, null, null};
-
-  addbJets_ = {null, null};
-
-  addbJetsHad_ = {null, null};
-
-  addJets_ = {null, null};
-
   std::map<int, vector<const reco::Candidate*> > mapJetToBHadrons;
   std::map<int, int> mapJetToBMatched;
   std::map<const reco::Candidate*, vector<int> > mapBHadronToJets;
