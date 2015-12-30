@@ -33,7 +33,7 @@ public:
   enum {
     CH_NONE=0, CH_MUEL=1, CH_ELEL=2, CH_MUMU=3
   };
-  enum sys_e {sys_nom, sys_jes_u, sys_jes_d, sys_jer_u, sys_jer_d, sys_mu_u, sys_mu_d, sys_el_u, sys_el_d, sys_leff_u, sys_leff_d, nsys_e};
+  enum sys_e {sys_nom, sys_jes_u, sys_jes_d, sys_jer_u, sys_jer_d, sys_mu_u, sys_mu_d, sys_el_u, sys_el_d, sys_leff_u, sys_leff_d, sys_btag_u, sys_btag_d, nsys_e};
 
   typedef std::vector<double> vdouble;
 
@@ -107,6 +107,8 @@ private:
   int b_partonChannel, b_partonMode1, b_partonMode2;
   float b_partonlep1_pt, b_partonlep1_eta;
   float b_partonlep2_pt, b_partonlep2_eta;
+  float b_partonjet1_pt, b_partonjet1_eta;
+  float b_partonjet2_pt, b_partonjet2_eta;
   bool b_partonInPhase, b_partonInPhaseJet, b_partonInPhaseLep;
 
   float b_gentop1_pt, b_gentop1_eta, b_gentop1_phi, b_gentop1_rapi, b_gentop1_m;
@@ -264,6 +266,10 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
     tr->Branch("partonlep1_eta", &b_partonlep1_eta, "partonlep1_eta/F");
     tr->Branch("partonlep2_pt", &b_partonlep2_pt, "partonlep2_pt/F");
     tr->Branch("partonlep2_eta", &b_partonlep2_eta, "partonlep2_eta/F");
+    tr->Branch("partonjet1_pt", &b_partonjet1_pt, "partonjet1_pt/F");
+    tr->Branch("partonjet1_eta", &b_partonjet1_eta, "partonjet1_eta/F");
+    tr->Branch("partonjet2_pt", &b_partonjet2_pt, "partonjet2_pt/F");
+    tr->Branch("partonjet2_eta", &b_partonjet2_eta, "partonjet2_eta/F");
     tr->Branch("parton_mode2", &b_partonMode2, "parton_mode2/I");
     tr->Branch("partonInPhase", &b_partonInPhase, "partonInPhase/O");
     tr->Branch("partonInPhaseLep", &b_partonInPhaseLep, "partonInPhaseLep/O");
@@ -414,6 +420,11 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
             b_partonlep1_eta = partonW11->eta();
             b_partonlep2_pt = partonW21->pt();
             b_partonlep2_eta = partonW21->eta();
+            // Fill lepton informations
+            b_partonjet1_pt = partonB1->pt();
+            b_partonjet1_eta = partonB1->eta();
+            b_partonjet2_pt = partonB2->pt();
+            b_partonjet2_eta = partonB2->eta();
           }
         }
         if (b_partonInPhaseJet && b_partonInPhaseLep) b_partonInPhase = true;
@@ -828,10 +839,11 @@ cat::JetCollection TtbarDiLeptonAnalyzer::selectJets(const cat::JetCollection& j
     }
     if (hasOverLap) continue;
     // printf("jet with pt %4.1f\n", jet.pt());
-    b_btagweight *= jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE, 0);
-    b_btagweight *= jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE, 1);
-    b_btagweight *= jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE, -1);
-    seljets.push_back(jet);
+    if (sys == sys_btag_u) b_btagweight *= jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE, 1);
+    else if (sys == sys_btag_d) b_btagweight *= jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE, -1);
+    else b_btagweight *= jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE, 0);
+    
+	seljets.push_back(jet);
   }
   return seljets;
 }
@@ -866,6 +878,8 @@ void TtbarDiLeptonAnalyzer::resetBr()
   b_partonChannel = -1; b_partonMode1 = -1; b_partonMode2 = -1;
   b_partonlep1_pt = -9; b_partonlep1_eta = -9;
   b_partonlep2_pt = -9; b_partonlep2_eta = -9;
+  b_partonjet1_pt = -9; b_partonjet1_eta = -9;
+  b_partonjet2_pt = -9; b_partonjet2_eta = -9;
   b_partonInPhase = 0; b_partonInPhaseLep = false; b_partonInPhaseJet = false;
 
   b_gentop1_pt = -9; b_gentop1_eta = -9; b_gentop1_phi = -9; b_gentop1_rapi = -9; b_gentop1_m = -9;
