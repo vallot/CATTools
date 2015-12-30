@@ -1,0 +1,127 @@
+#!/usr/bin/env python
+
+import sys, os
+from math import hypot
+
+muonSFBase = "%s/src/CATTools/CatAnalyzer/data/scale" % os.environ["CMSSW_BASE"]
+if not os.path.exists("%s/MuonID_Z_RunCD_Reco74X_Dec1.json" % muonSFBase) or \
+   not os.path.exists("%s/MuonIso_Z_RunCD_Reco74X_Dec1.json" % muonSFBase):
+   #not os.path.exists("%s/SingleMuonTrigger_Z_RunCD_Reco74X_Dec1.json" % muonSFBase):
+    print "Cannot find SF json files under", muonSFBase
+    print "Please download them from the official muon twiki page,"
+    print "https://twiki.cern.ch/twiki/bin/viewauth/CMS/MuonReferenceEffsRun2"
+    print "and place under %s" % muonSFBase
+    sys.exit(1)
+
+import json
+
+muonJSId = json.loads(open("%s/MuonID_Z_RunCD_Reco74X_Dec1.json" % muonSFBase).read())
+muonJSIso = json.loads(open("%s/MuonIso_Z_RunCD_Reco74X_Dec1.json" % muonSFBase).read())
+#muonJSTrg = json.loads(open("%s/SingleMuonTrigger_Z_RunCD_Reco74X_Dec1.json" % muonSFBase).read())
+
+muonIdSFName = 'NUM_TightIDandIPCut_DEN_genTracks_PAR_pt_spliteta_bin1'
+muonIsoSFName = 'NUM_TightRelIso_DEN_TightID_PAR_pt_spliteta_bin1'
+
+if muonIdSFName not in muonJSId:
+    print "Cannot find interested ID variable"
+    print "Tried : ", muonIdSFName
+    print "Available keys:"
+    print sorted(muonJSId.keys())
+    sys.exit(1)
+if muonIsoSFName not in muonJSIso:
+    print "Cannot find interested Iso variable"
+    print "Tried : ", muonIsoSFName
+    print "Available keys:"
+    print sorted(muonJSIso.keys())
+    sys.exit(1)
+
+def extract(js):
+    xbins, ybins = [], []
+    values = {}
+    errors = {}
+    for xkey in js:
+        xlo, xhi = eval(xkey[xkey.index('[')+1:-1])
+        xbins.extend([xlo, xhi])
+        for ykey in js[xkey]:
+            ylo, yhi = eval(ykey[ykey.index('[')+1:-1])
+            ybins.extend([ylo, yhi])
+
+            v = js[xkey][ykey]
+            values[(xlo, ylo)] = v['value']
+            errors[(xlo, ylo)] = v['error']
+
+    return sorted(list(set(xbins))), sorted(list(set(ybins))), values, errors
+
+print "==== SF for ID ===="
+abseta_bins_id, pt_bins_id, values_id, errors_id = extract(muonJSId[muonIdSFName]['abseta_pt_ratio'])
+print """cms.PSet(
+    # Values of "%s"
+    abseta_bins = cms.vdouble(%s),
+    pt_bins = cms.vdouble(%s),""" % (muonIdSFName, 
+       (", ".join(["%g" % x for x in abseta_bins_id])),
+       (", ".join(["%g" % x for x in pt_bins_id])))
+print "    values = cms.vdouble("
+for pt in pt_bins_id[:-1]:
+    print "       ",
+    for abseta in abseta_bins_id[:-1]:
+        print "%g," % values_id[(abseta, pt)],
+    print ""
+print """    ),
+    errors = cms.vdouble("""
+for pt in pt_bins_id[:-1]:
+    print "       ",
+    for abseta in abseta_bins_id[:-1]:
+        print "%g," % (errors_id[(abseta, pt)]+1e-2), ## Additional 1% systematic error
+    print ""
+print"""    ),
+)"""
+
+print "==== SF for Iso ===="
+abseta_bins_iso, pt_bins_iso, values_iso, errors_iso = extract(muonJSIso[muonIsoSFName]['abseta_pt_ratio'])
+print """cms.PSet(
+    # Values of "%s"
+    abseta_bins = cms.vdouble(%s),
+    pt_bins = cms.vdouble(%s),""" % (muonIsoSFName, 
+       (", ".join(["%g" % x for x in abseta_bins_iso])),
+       (", ".join(["%g" % x for x in pt_bins_iso])))
+print "    values = cms.vdouble("
+for pt in pt_bins_iso[:-1]:
+    print "       ",
+    for abseta in abseta_bins_iso[:-1]:
+        print "%g," % values_iso[(abseta, pt)],
+    print ""
+print """    ),
+    errors = cms.vdouble("""
+for pt in pt_bins_iso[:-1]:
+    print "       ",
+    for abseta in abseta_bins_iso[:-1]:
+        print "%g," % (errors_iso[(abseta, pt)]+1e-2), ## Additional 1% systematic error
+    print ""
+print"""    ),
+)"""
+
+print "==== SF for ID + Iso ===="
+if abseta_bins_id != abseta_bins_iso or pt_bins_iso != pt_bins_id:
+    print "Two SF uses different binning. skip."
+else:
+    print """cms.PSet(
+    # Values of "%s + %s"
+    abseta_bins = cms.vdouble(%s),
+    pt_bins = cms.vdouble(%s),""" % (muonIdSFName, muonIsoSFName,
+           (", ".join(["%g" % x for x in abseta_bins_iso])),
+           (", ".join(["%g" % x for x in pt_bins_iso])))
+    print "    values = cms.vdouble("
+    for pt in pt_bins_iso[:-1]:
+        print "       ",
+        for abseta in abseta_bins_iso[:-1]:
+            print "%g," % (values_id[(abseta, pt)]*values_iso[(abseta, pt)]),
+        print ""
+    print """    ),
+    errors = cms.vdouble("""
+    for pt in pt_bins_iso[:-1]:
+        print "       ",
+        for abseta in abseta_bins_iso[:-1]:
+            print "%g," % hypot(errors_id[(abseta, pt)]+1e-2, errors_iso[(abseta, pt)]+1e-2), ## Additional 1% systematic error
+        print ""
+    print"""    ),
+)"""
