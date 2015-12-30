@@ -1,5 +1,14 @@
 import FWCore.ParameterSet.Config as cms
 
+filterLumi = cms.EDFilter("EventWeightThresholdFilter",
+    isLessThan = cms.bool(False),
+    threshold = cms.double(0.5), # Require >= 0.5 to select events with bit=1
+    type = cms.string("int"),
+    src = cms.InputTag("lumiMask"),
+)
+
+filterLumiSilver = filterLumi.clone(src = cms.InputTag("lumiMaskSilver"))
+
 filterRECO = cms.EDFilter("CATTriggerBitCombiner",
     triggerResults = cms.InputTag("TriggerResults::PAT"),
     secondaryTriggerResults = cms.InputTag("TriggerResults::RECO"),
