@@ -498,20 +498,6 @@ private:
     else if ( bTagWP_ == BTagWP::CSVT ) return bTag > 0.970;
     return false;
   }
-/*
-  float getSF(const double pt, const double eta, const vdouble& ptbins, const vdouble& etabins, const vdouble& values)
-  {
-    auto ptbin = std::lower_bound(ptbins.begin(), ptbins.end(), pt);
-    if ( ptbin == ptbins.end() or ptbin+1 == ptbins.end() ) return 1;
-    auto etabin = std::lower_bound(etabins.begin(), etabins.end(), eta);
-    if ( etabin == etabins.end() or etabin+1 == etabins.end() ) return 1;
-
-    const int column = etabin-etabins.begin();
-    const int row = ptbin-ptbins.begin();
-
-    return values.at(row*(etabins.size()-1)+column);
-  }
-*/
 
 private:
   typedef reco::Candidate::LorentzVector LV;
