@@ -14,12 +14,12 @@ the histograms after own binning study.
 For a details of the analyzer module see the source codes:
   * Analysis module : CATTools/CatAnalyzer/plugins/TTLLEventSelector.cc
   * Initial configuration : CATTools/CatAnalyzer/python/ttll/ttllEventSelector_cfi.py
-  * Working run configuration : "CATTools/CatAnalyzer/test/TTLL/analyze_\*_cfg.py"
+  * Working run configuration : "CATTools/CatAnalyzer/test/TTLL/analyze\_\*\_cfg.py"
 
 ### Starting the workflow ###
 You can find set of scripts to run step-by-step.
 
-Start from the pass1.1_eventSel.py to prepare job submission. The
+Start from the pass1.1\_eventSel.py to prepare job submission. The
 script will indicate what to do in the next step - submit jobs to KISTI
 cluster using the auto-generated submittor shell script. Follow pass1.2,
 pass2.1, etc after checking each steps are finished without serious problems.
@@ -30,8 +30,8 @@ including the systematic error calculation.
 #### The Histogram (and selected event data) production ####
 Start the histogram production and control plots.
 Go to the working directory, CATTools/CatAnalyzer/test/TTLL,
-and run pass1.1_eventSel.py script to prepare job submission.
-  * CATTools/CatAnalyzer/test/TTLL/pass1.1_eventSel.py
+and run pass1.1\_eventSel.py script to prepare job submission.
+  * CATTools/CatAnalyzer/test/TTLL/pass1.1\_eventSel.py
 
 Running this script will create a directory "pass1" which contains simple bash script
 to call create-batch tool for each samples times all available systematic uncertainty variations.
@@ -60,7 +60,7 @@ Histograms are merged into one and temporary files for job submission are cleane
 For analysis dependent parts, event data with CAT data formats are stored for the events
 which passes a cut step (Step 4 nJet in the current default), for the "central" samples.
 You can write your own analyzer and configuration files to run on these "reduced" CATTuples
-which can be browsed under the "pass1/\*/central" directory with the file name "out_\*.root".
+which can be browsed under the "pass1/\*/central" directory with the file name "out\_\*.root".
 ```bash
 find pass1 -name 'central/out\*.root'
 ```
@@ -84,7 +84,7 @@ The Drell-Yan scale factor can be extracted using the pass2.3 script,
 ```bash
 pass2.3_DYEstimation.py
 ```
-will print out the DY scale factors and store the results under the pass2/scaler_DY.json.
+will print out the DY scale factors and store the results under the pass2/scaler\_DY.json.
 
 **More to come...**
 
@@ -105,5 +105,5 @@ such as kinematic reconstruction, complicated rescailing, etc.
 
 For the kinematic reconstruction, see the producer module
   * Producer module : CATTools/CatAnalyzer/plugins/TTLLKinSolutionProducer.cc
-  * corresponding initial config : CATTools/CatAnalyzer/python/ttll/ttbarDileptonKinSolutionProducer_cfi.py
+  * corresponding initial config : CATTools/CatAnalyzer/python/ttll/ttbarDileptonKinSolutionProducer\_cfi.py
 
