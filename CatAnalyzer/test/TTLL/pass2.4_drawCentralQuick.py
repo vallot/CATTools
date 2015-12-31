@@ -49,12 +49,8 @@ for ch in [x.GetName() for x in moddir.GetListOfKeys()]:
                 if stepobj.Get(plt) == None: continue
                 plts.append({'name':"ttll/%s/%s/%s" % (ch, step, plt)})
 
-## Prepare output
-if not os.path.exists("pass3"): os.mkdir("pass3")
-
 ## Start loop
-if not os.path.exists("pass3/quickplt"): os.makedirs("pass3/quickplt")
-fout = TFile("pass3/quickplt/central.root", "recreate")
+fout = TFile("pass2/quickplt.root", "recreate")
 for iplt, pltInfo in enumerate(plts):
     plt = pltInfo['name']
     print "Plotting", plt
@@ -103,14 +99,6 @@ for iplt, pltInfo in enumerate(plts):
     fout.cd(dirName)
     c.Write()
 
-    if not os.path.exists("pass3/quickplt/%s" % dirName):
-        os.makedirs("pass3/quickplt/%s" % dirName)
-    c.Print("pass3/quickplt/%s/%s.png" % (dirName, c.GetName()))
-
-    hRD.SetMinimum(0.05)
-    c.SetLogy()
-    c.Print("pass3/quickplt/%s/%s_log.png" % (dirName, c.GetName()))
-
     yMax = max([hsMC.GetHistogram().GetBinContent(i) for i in range(1, nbinsX)])
     yMaxR = max([hsMC.GetHistogram().GetBinContent(i) for i in range(nbinsX/2, nbinsX)])
     yMax = max(yMax, max([hRD.GetBinContent(i) for i in range(1, nbinsX)]))
@@ -124,6 +112,6 @@ for iplt, pltInfo in enumerate(plts):
     del(c)
 
 ## Save plot list
-f = open("pass3/plots.json", "w")
+f = open("pass2/plots.json", "w")
 f.write(json.dumps({'plots':plts}, indent=4, sort_keys=True))
 f.close()
