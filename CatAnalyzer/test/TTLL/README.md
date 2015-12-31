@@ -14,7 +14,7 @@ the histograms after own binning study.
 For a details of the analyzer module see the source codes:
   * Analysis module : CATTools/CatAnalyzer/plugins/TTLLEventSelector.cc
   * Initial configuration : CATTools/CatAnalyzer/python/ttll/ttllEventSelector_cfi.py
-  * Working run configuration : "CATTools/CatAnalyzer/test/TTLL/analyze_*_cfg.py"
+  * Working run configuration : "CATTools/CatAnalyzer/test/TTLL/analyze_\*_cfg.py"
 
 ### Starting the workflow ###
 You can find set of scripts to run step-by-step.
@@ -60,9 +60,9 @@ Histograms are merged into one and temporary files for job submission are cleane
 For analysis dependent parts, event data with CAT data formats are stored for the events
 which passes a cut step (Step 4 nJet in the current default), for the "central" samples.
 You can write your own analyzer and configuration files to run on these "reduced" CATTuples
-which can be browsed under the "pass1/*/central" directory with the file name "out_*.root".
+which can be browsed under the "pass1/\*/central" directory with the file name "out_\*.root".
 ```bash
-find pass1 -name 'central/out*.root'
+find pass1 -name 'central/out\*.root'
 ```
 
 #### Normalization and combination of physics processes ####
