@@ -58,7 +58,8 @@ f.write(json.dumps({'plots':plts}, indent=4, sort_keys=True))
 f.close()
 
 ## Start loop
-fout = TFile("pass3/central.root", "recreate")
+if not os.path.exists("pass3/quickplt"): os.makedirs("pass3/quickplt")
+fout = TFile("pass3/quickplt/central.root", "recreate")
 for plt in plts:
     print "Plotting", plt
     dirName = os.path.dirname(plt)
