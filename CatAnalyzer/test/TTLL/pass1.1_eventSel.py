@@ -97,8 +97,6 @@ systAny = {
     'mu_pt/dn':'ttll.muon.scaleDirection=-1',
     'el_pt/up':'ttll.electron.scaleDirection=1',
     'el_pt/dn':'ttll.electron.scaleDirection=-1',
-    'lep_eff/up':'ttll.muon.efficiencySFDirection=1 ttll.electron.efficiencySFDirection=1',
-    'lep_eff/dn':'ttll.muon.efficiencySFDirection=-1 ttll.electron.efficiencySFDirection=-1',
     'jet_cor/up':'ttll.jet.scaleDirection=1',
     'jet_cor/dn':'ttll.jet.scaleDirection=-1',
 }
@@ -135,6 +133,10 @@ systMC = {
     'jet_res/dn':'ttll.jet.resolDirection=-1',
     'pileup/up':'ttll.vertex.pileupWeight="pileupWeight:up"',
     'pileup/dn':'ttll.vertex.pileupWeight="pileupWeight:dn"',
+    'mu_eff/up':'ttll.muon.efficiencySFDirection=1',
+    'mu_eff/dn':'ttll.muon.efficiencySFDirection=-1',
+    'el_eff/up':'ttll.electron.efficiencySFDirection=1',
+    'el_eff/dn':'ttll.electron.efficiencySFDirection=-1',
 }
 for systName in systMC:
     syst = systMC[systName]
