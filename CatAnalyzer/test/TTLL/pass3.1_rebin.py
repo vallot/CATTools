@@ -11,7 +11,7 @@ def arr(min, max, n = None):
     if n == None: n = max-min
     return array('d', list(linspace(min, max, n+1)))
 
-plotInfos = json.loads(open("pass3/plots.json").read())
+plotInfos = json.loads(open("pass2/plots.json").read())
 binInfos = {
     "vertex_n":arr(0, 50),
     "met_pt":arr(0,200,20),

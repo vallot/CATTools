@@ -50,7 +50,7 @@ for ch in [x.GetName() for x in moddir.GetListOfKeys()]:
                 plts.append({'name':"ttll/%s/%s/%s" % (ch, step, plt)})
 
 ## Start loop
-fout = TFile("pass2/quickplt.root", "recreate")
+fout = TFile("pass2/preview.root", "recreate")
 for iplt, pltInfo in enumerate(plts):
     plt = pltInfo['name']
     print "Plotting", plt
@@ -110,6 +110,10 @@ for iplt, pltInfo in enumerate(plts):
     del(hRD)
     del(hsMC)
     del(c)
+
+print "A preview root file for the central sample is produced"
+print "Run `root -l pass2/preview.root' and browse into each directories to open canvases"
+print "You can also use dumpRoot command from the hep-tools"
 
 ## Save plot list
 f = open("pass2/plots.json", "w")
