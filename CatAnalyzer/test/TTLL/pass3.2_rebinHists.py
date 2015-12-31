@@ -13,16 +13,24 @@ def arr(min, max, n = None):
 
 plotInfos = json.loads(open("pass3/plots.json").read())
 binInfos = {
-    "vertex_n":arr(0, 51),
-    #"met_pt":array('d', [0, ]),
-    #"met_phi":array('d', []),
-    "jets_n":arr(0,6),
+    "vertex_n":arr(0, 50),
+    "met_pt":arr(0,200,20),
+    "met_phi":arr(-3.15,3.15,20),
+    "jets_n":arr(0,10),
     "bjets_n":arr(0,6),
-    "lepton1_pt":arr(0,201),
-    "lepton2_pt":arr(0,201),
+    "lepton1_pt":arr(0,200),
+    "lepton2_pt":arr(0,200),
     "lepton1_eta":arr(-2.5, 2.5, 50),
     "lepton2_eta":arr(-2.5, 2.5, 50),
-    "z_m":(array('d', [0, 20, 30, 40, 50, 60]+list(linspace(91-15, 91+15, 5))+[120, 150, 200])),
+    "jet1_pt":arr(0,200,20),
+    "jet2_pt":arr(0,200,20),
+    "jet3_pt":arr(0,200,20),
+    "jet4_pt":arr(0,200,20),
+    "jet1_eta":arr(-2.5,2.5,20),
+    "jet2_eta":arr(-2.5,2.5,20),
+    "jet3_eta":arr(-2.5,2.5,20),
+    "jet4_eta":arr(-2.5,2.5,20),
+    "z_m":arr(20, 320, 50),
 }
 
 for fiPath, dirs, files in os.walk("pass2"):
