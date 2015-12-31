@@ -43,24 +43,20 @@ for ch in [x.GetName() for x in moddir.GetListOfKeys()]:
         if stepobj == None: continue
 
         if stepobj.IsA().GetName() in ("TH1D", "TH1F"):
-            plts.append("ttll/%s/%s" % (ch, step))
+            plts.append({'name':"ttll/%s/%s" % (ch, step)})
         elif stepobj.IsA().InheritsFrom("TDirectory"):
             for plt in [x.GetName() for x in stepobj.GetListOfKeys()]:
                 if stepobj.Get(plt) == None: continue
-                plts.append("ttll/%s/%s/%s" % (ch, step, plt))
+                plts.append({'name':"ttll/%s/%s/%s" % (ch, step, plt)})
 
 ## Prepare output
 if not os.path.exists("pass3"): os.mkdir("pass3")
 
-## Save plot list
-f = open("pass3/plots.json", "w")
-f.write(json.dumps({'plots':plts}, indent=4, sort_keys=True))
-f.close()
-
 ## Start loop
 if not os.path.exists("pass3/quickplt"): os.makedirs("pass3/quickplt")
 fout = TFile("pass3/quickplt/central.root", "recreate")
-for plt in plts:
+for iplt, pltInfo in enumerate(plts):
+    plt = pltInfo['name']
     print "Plotting", plt
     dirName = os.path.dirname(plt)
     pltName = os.path.basename(plt)
@@ -77,11 +73,12 @@ for plt in plts:
     else: print plt
 
     hRD = fRD.Get(plt).Clone()
+    nbinsX = hRD.GetNbinsX()
     hRD.SetOption("pe")
     hRD.SetMarkerSize(5)
     stats = array('d', [0.]*7)
     hRD.GetStats(stats)
-    hRD.AddBinContent(hRD.GetNbinsX(), hRD.GetBinContent(hRD.GetNbinsX()+1))
+    hRD.AddBinContent(nbinsX, hRD.GetBinContent(nbinsX+1))
     hRD.PutStats(stats)
 
     ## Add MC histograms
@@ -90,7 +87,7 @@ for plt in plts:
         h = f.Get(plt)
         h.Scale(lumi)
         h.GetStats(stats)
-        h.AddBinContent(h.GetNbinsX(), h.GetBinContent(h.GetNbinsX()+1))
+        h.AddBinContent(nbinsX, h.GetBinContent(nbinsX+1))
         h.PutStats(stats)
         h.SetOption("hist")
         h.SetFillColor(color)
@@ -114,7 +111,19 @@ for plt in plts:
     c.SetLogy()
     c.Print("pass3/quickplt/%s/%s_log.png" % (dirName, c.GetName()))
 
+    yMax = max([hsMC.GetHistogram().GetBinContent(i) for i in range(1, nbinsX)])
+    yMaxR = max([hsMC.GetHistogram().GetBinContent(i) for i in range(nbinsX/2, nbinsX)])
+    yMax = max(yMax, max([hRD.GetBinContent(i) for i in range(1, nbinsX)]))
+    yMaxR = max(yMaxR, max([hRD.GetBinContent(i) for i in range(nbinsX/2, nbinsX)]))
+
+    plts[iplt]['yMax'] = yMax
+    plts[iplt]['yMaxR'] = yMaxR
+
     del(hRD)
     del(hsMC)
     del(c)
 
+## Save plot list
+f = open("pass3/plots.json", "w")
+f.write(json.dumps({'plots':plts}, indent=4, sort_keys=True))
+f.close()
