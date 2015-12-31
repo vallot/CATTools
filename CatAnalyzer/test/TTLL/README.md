@@ -37,7 +37,12 @@ Running this script will create a directory "pass1" which contains simple bash s
 to call create-batch tool for each samples times all available systematic uncertainty variations.
 ```bash
 cd pass1
-cat submit*.sh | sed -e 's;create-batch;;g' | xargs -L1 -P20 create-batch
+cat submit*.sh | sed -e 's;create-batch;-n ;g' | xargs -L1 -P20 create-batch
+for i in */central; do pushd $i; ./submit.sh; popd; done
+for i in */*/up; do pushd $i; ./submit.sh; popd; done
+for i in */*/dn; do pushd $i; ./submit.sh; popd; done
+for i in */gen_scale/*; do pushd $i; ./submit.sh; popd; done
+for i in */gen_PDF/*;do pushd $i; ./submit.sh; popd; done
 #./submit_sig_central.sh &
 #./submit_bkg_central.sh &
 #./submit_data_central.sh &
