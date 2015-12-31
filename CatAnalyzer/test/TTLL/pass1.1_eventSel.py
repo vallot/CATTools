@@ -19,7 +19,7 @@ js = json.loads(open("%s/dataset.json" % dataDir).read())
 def isBlacklisted(name):
     for x in [
         "GluGluToZZ", "HToMuMu", "WpWp", "WW_dps",
-        "WWTo2L2Nu_powheg", "WZTo", "ZZto",
+        "WWTo2L2Nu_powheg", "WZTo", "ZZTo", "ZZto",
         "SingleElectron_Run2015", "SingleMuon_Run2015", ]:
         if x in name: return True
     return False
