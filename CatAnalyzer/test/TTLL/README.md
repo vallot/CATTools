@@ -14,7 +14,7 @@ the histograms after own binning study.
 For a details of the analyzer module see the source codes:
   * Analysis module : CATTools/CatAnalyzer/plugins/TTLLEventSelector.cc
   * Initial configuration : CATTools/CatAnalyzer/python/ttll/ttllEventSelector_cfi.py
-  * Working run configuration : CATTools/CatAnalyzer/test/TTLL/analyze_*_cfg.py
+  * Working run configuration : "CATTools/CatAnalyzer/test/TTLL/analyze_*_cfg.py"
 
 ### Starting the workflow ###
 You can find set of scripts to run step-by-step.
