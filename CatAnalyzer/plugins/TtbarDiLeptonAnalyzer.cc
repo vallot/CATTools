@@ -13,6 +13,7 @@
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/MET.h"
 
+#include "CATTools/CommonTools/interface/ScaleFactorGetter.h"
 //#include "TopQuarkAnalysis/TopKinFitter/interface/TtFullLepKinSolver.h"
 #include "CATTools/CatAnalyzer/interface/KinematicSolvers.h"
 
@@ -33,9 +34,13 @@ public:
   enum {
     CH_NONE=0, CH_MUEL=1, CH_ELEL=2, CH_MUMU=3
   };
-  enum sys_e {sys_nom, sys_jes_u, sys_jes_d, sys_jer_u, sys_jer_d, sys_mu_u, sys_mu_d, sys_el_u, sys_el_d, sys_leff_u, sys_leff_d, sys_btag_u, sys_btag_d, nsys_e};
-
-  typedef std::vector<double> vdouble;
+  enum sys_e {sys_nom, 
+    sys_jes_u, sys_jes_d, sys_jer_u, sys_jer_d,
+    sys_mu_u, sys_mu_d, sys_el_u, sys_el_d,
+    sys_mueff_u, sys_mueff_d, sys_eleff_u, sys_eleff_d,
+    sys_btag_u, sys_btag_d,
+    nsys_e
+  };
 
 private:
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
@@ -49,32 +54,23 @@ private:
   cat::JetCollection selectBJets(const cat::JetCollection& jets) const;
   const reco::Candidate* getLast(const reco::Candidate* p) const;
 
-  float getSF(const double pt, const double eta, const vdouble& ptbins, const vdouble& etabins, const vdouble& values) const
-  {
-    auto ptbin = std::lower_bound(ptbins.begin(), ptbins.end(), pt);
-    if ( ptbin == ptbins.end() or ptbin+1 == ptbins.end() ) return 1;
-    auto etabin = std::lower_bound(etabins.begin(), etabins.end(), eta);
-    if ( etabin == etabins.end() or etabin+1 == etabins.end() ) return 1;
-
-    const int column = etabin-etabins.begin();
-    const int row = ptbin-ptbins.begin();
-	
-    return values.at(row*(etabins.size()-1)+column);
-  }
+  ScaleFactorGetter muonSF_, elecSF_;
   float getSF(const cat::Particle& p, int sys) const
   {
     const int aid = abs(p.pdgId());
-    const double pt = p.pt(), eta = (aid == 11 ? p.eta() : std::abs(p.eta()));
-    const auto& ptbins = (aid == 11 ? elecSFPtBins_ : muonSFPtBins_);
-    const auto& etabins = (aid == 11 ? elecSFEtaBins_ : muonSFAbsEtaBins_);
-    const auto& values = (aid == 11 ? elecSFValues_ : muonSFValues_);
-    const auto& errors = (aid == 11 ? elecSFErrors_ : muonSFErrors_);
-
-    double sf = getSF(pt, eta, ptbins, etabins, values);
-    if ( sys == sys_leff_u ) sf += getSF(pt, eta, ptbins, etabins, errors);
-    else if ( sys == sys_leff_d ) sf -= getSF(pt, eta, ptbins, etabins, errors);
-
-    return sf;
+    if ( aid == 13 ) {
+      const double pt = p.pt(), eta = std::abs(p.eta());
+      if      ( sys == sys_mueff_u ) return muonSF_(eta, pt,  1);
+      else if ( sys == sys_mueff_d ) return muonSF_(eta, pt, -1);
+      else return muonSF_(eta, pt, 0);
+    }
+    else {
+      const double pt = p.pt(), eta = p.eta();
+      if      ( sys == sys_eleff_u ) return elecSF_(eta, pt,  1);
+      else if ( sys == sys_eleff_d ) return elecSF_(eta, pt, -1);
+      else return elecSF_(eta, pt, 0);
+    }
+    return 1;
   }
 
   edm::EDGetTokenT<int> recoFiltersToken_, nGoodVertexToken_, lumiSelectionToken_;
@@ -135,9 +131,6 @@ private:
   //enum TTbarMode { CH_NONE = 0, CH_FULLHADRON = 1, CH_SEMILEPTON, CH_FULLLEPTON };
   //enum DecayMode { CH_HADRON = 1, CH_MUON, CH_ELECTRON, CH_TAU_HADRON, CH_TAU_MUON, CH_TAU_ELECTRON };
 
-  vdouble muonSFAbsEtaBins_, muonSFPtBins_, muonSFValues_, muonSFErrors_;
-  vdouble elecSFEtaBins_, elecSFPtBins_, elecSFValues_, elecSFErrors_;
-
   const static int NCutflow = 10;
   std::vector<std::vector<int> > cutflow_;
 };
@@ -161,23 +154,23 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   metToken_  = consumes<cat::METCollection>(iConfig.getParameter<edm::InputTag>("mets"));
   vtxToken_  = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertices"));
 
+  typedef std::vector<double> vdouble;
+
   const auto muonSet = iConfig.getParameter<edm::ParameterSet>("muon");
   muonToken_ = consumes<cat::MuonCollection>(muonSet.getParameter<edm::InputTag>("src"));
   const auto muonSFSet = muonSet.getParameter<edm::ParameterSet>("effSF");
-  muonSFPtBins_ = muonSFSet.getParameter<vdouble>("pt_bins");
-  muonSFAbsEtaBins_ = muonSFSet.getParameter<vdouble>("abseta_bins");
-  muonSFValues_ = muonSFSet.getParameter<vdouble>("values");
-  muonSFErrors_ = muonSFSet.getParameter<vdouble>("errors");
-  assert(muonSFValues_.size() == muonSFErrors_.size());
+  muonSF_.set(muonSFSet.getParameter<vdouble>("abseta_bins"),
+              muonSFSet.getParameter<vdouble>("pt_bins"),
+              muonSFSet.getParameter<vdouble>("values"),
+              muonSFSet.getParameter<vdouble>("errors"));
 
   const auto elecSet = iConfig.getParameter<edm::ParameterSet>("electron");
   elecToken_ = consumes<cat::ElectronCollection>(elecSet.getParameter<edm::InputTag>("src"));
   const auto elecSFSet = elecSet.getParameter<edm::ParameterSet>("effSF");
-  elecSFPtBins_ = elecSFSet.getParameter<vdouble>("pt_bins");
-  elecSFEtaBins_ = elecSFSet.getParameter<vdouble>("eta_bins");
-  elecSFValues_ = elecSFSet.getParameter<vdouble>("values");
-  elecSFErrors_ = elecSFSet.getParameter<vdouble>("errors");
-  assert(elecSFValues_.size() == elecSFErrors_.size());
+  elecSF_.set(elecSFSet.getParameter<vdouble>("pt_bins"),
+              elecSFSet.getParameter<vdouble>("eta_bins"),
+              elecSFSet.getParameter<vdouble>("values"),
+              elecSFSet.getParameter<vdouble>("errors"));
 
   partonTop_channel_ = consumes<int>(iConfig.getParameter<edm::InputTag>("partonTop_channel"));
   partonTop_modes_   = consumes<vector<int> >(iConfig.getParameter<edm::InputTag>("partonTop_modes"));
@@ -204,10 +197,13 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
 
   usesResource("TFileService");
   edm::Service<TFileService> fs;
-  std::string sys_name[nsys_e] = {
-    "nom", "jes_u", "jes_d", "jer_u", "jer_d",
+  const std::string sys_name[nsys_e] = {
+    "nom",
+    "jes_u", "jes_d", "jer_u", "jer_d",
     "mu_u", "mu_d", "el_u", "el_d",
-    "leff_u", "leff_d",};
+    "mueff_u", "mueff_d", "eleff_u", "eleff_d",
+    "btag_u", "btag_d"
+  };
   for (int sys = 0; sys < nsys_e; ++sys){
     ttree_.push_back(fs->make<TTree>(sys_name[sys].c_str(), sys_name[sys].c_str()));
     auto tr = ttree_.back();
