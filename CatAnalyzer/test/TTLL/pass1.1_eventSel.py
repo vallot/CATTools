@@ -240,4 +240,7 @@ print "> ./submit_dat_unc.sh"
 print "> ./submit_sig_unc.sh"
 print "> ./submit_bkg_unc.sh"
 print ""
+print "or, use the xargs magic to submit them all"
+print "> cat submit*.sh | sed -e 's;create-batch;;g' | xargs -L1 -P20 create-batch"
+print ""
 
