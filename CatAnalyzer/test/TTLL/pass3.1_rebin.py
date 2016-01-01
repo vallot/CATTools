@@ -55,6 +55,7 @@ for fiPath, dirs, files in os.walk("pass2"):
             d.cd()
 
             hi = fi.Get(hPath+"/"+hName)
+            if hi == None: continue
             ho = hi.Clone()
             if hName in binInfos: 
                 bins = binInfos[hName]
