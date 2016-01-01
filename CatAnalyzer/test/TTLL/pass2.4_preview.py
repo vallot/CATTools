@@ -23,9 +23,11 @@ srcMCs = [
 ]
 for s in srcMCs: s.append(TFile("pass2/central/%s.root" % s[0]))
 
-srcRD_ee = "DoubleEG"
-srcRD_mm = "DoubleMuon"
-srcRD_em = "MuonEG"
+fRDs = {
+    "ee":TFile("pass2/central/DoubleEG.root"),
+    "mm":TFile("pass2/central/DoubleMuon.root"),
+    "em":TFile("pass2/central/MuonEG.root"),
+}
 
 ## Load input templates for central result
 #sjs = json.loads(open("pass2/samples.json").read())
@@ -62,11 +64,7 @@ for iplt, pltInfo in enumerate(plts):
     c = TCanvas("c_%s" % pltName, pltName, 500, 500)
 
     ## Add real data histograms
-    fRD = None
-    if   plt.startswith("ttll/ee/"): fRD = TFile("pass2/central/%s.root" % srcRD_ee)
-    elif plt.startswith("ttll/mm/"): fRD = TFile("pass2/central/%s.root" % srcRD_mm)
-    elif plt.startswith("ttll/em/"): fRD = TFile("pass2/central/%s.root" % srcRD_em)
-    else: print plt
+    fRD = fRDs[plt[5:7]]
 
     hRD = fRD.Get(plt).Clone()
     nbinsX = hRD.GetNbinsX()
@@ -110,6 +108,52 @@ for iplt, pltInfo in enumerate(plts):
     del(hRD)
     del(hsMC)
     del(c)
+
+## Start to print cut flow
+cutflow = {"ee":{}, "mm":{}, "em":{}}
+nstep = 0
+fws = [0,]
+fws[0] = max([len(x[0]) for x in srcMCs]+[4,])
+for mode in cutflow.keys():
+    h = fRDs[mode].Get("ttll/%s/cutstep" % mode)
+    nstep = h.GetNbinsX()
+    cutflow[mode]["Data"] = [h.GetBinContent(i) for i in range(1, nstep+1)]
+    if len(fws) == 1: fws.extend([len(h.GetXaxis().GetBinLabel(i)) for i in range(1, nstep+1)])
+
+    for finName, color, f in srcMCs:
+        h = f.Get("ttll/%s/cutstep" % mode)
+        cutflow[mode][finName] = [h.GetBinContent(i) for i in range(1, nstep+1)]
+fwtot = sum(fws)+12+len(fws)
+for mode in cutflow.keys():
+    print "="*((fwtot-12)/2), "Cutflow for", mode, "="*((fwtot-12)/2)
+    print " "*fws[0], "|",
+    print " | ".join([h.GetXaxis().GetBinLabel(i+1) for i in range(nstep)])
+    tfmt = "%"+str(fws[0])+"s |"
+    cutflow_bkg = [0.]*nstep
+    for x in cutflow[mode]:
+        if x == "Data" or 't_bar_t' in x: continue
+        print tfmt % x,
+        print " | ".join([("%"+str(fws[i+1])+".2f") % cutflow[mode][x][i] for i in range(nstep)])
+        for i in range(nstep): cutflow_bkg[i] += cutflow[mode][x][i]
+    print "-"*fwtot
+    cutflow_sig = [0.]*nstep
+    for x in cutflow[mode]:
+        if 't_bar_t' not in x: continue
+        print tfmt % x,
+        print " | ".join([("%"+str(fws[i+1])+".2f") % cutflow[mode][x][i] for i in range(nstep)])
+        for i in range(nstep): cutflow_sig[i] += cutflow[mode][x][i]
+    print "-"*fwtot
+    print tfmt % "All Signal",
+    print " | ".join([("%"+str(fws[i+1])+".2f") % cutflow_sig[i] for i in range(nstep)])
+    print tfmt % "All Bkg",
+    print " | ".join([("%"+str(fws[i+1])+".2f") % cutflow_bkg[i] for i in range(nstep)])
+    print tfmt % "All MC",
+    print " | ".join([("%"+str(fws[i+1])+".2f") % (cutflow_sig[i] + cutflow_bkg[i]) for i in range(nstep)])
+    print "-"*fwtot
+    print tfmt % "Data",
+    print " | ".join([("%"+str(fws[i+1]-3)+"d   ") % cutflow[mode]["Data"][i] for i in range(nstep)])
+    print "="*fwtot
+    print
 
 print "A preview root file for the central sample is produced"
 print "Run `root -l pass2/preview.root' and browse into each directories to open canvases"
