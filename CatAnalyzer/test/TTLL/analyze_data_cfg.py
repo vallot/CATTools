@@ -17,7 +17,8 @@ process.load("CATTools.CatAnalyzer.filters_cff")
 process.load("CATTools.CatAnalyzer.ttll.ttllEventSelector_cfi")
 process.load("CATTools.CatAnalyzer.ttll.ntuple_cff")
 process.ttll.isMC = False
-delattr(process.ntuple.float, "weight")
+if hasattr(process.ntuple.float, "weight"):
+    delattr(process.ntuple.float, "weight")
 
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string("hist.root"),
