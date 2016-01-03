@@ -33,7 +33,7 @@ def hadd(d):
         print "*"*40
         print
         os.system(cmd)
-        os.system("rm -f %s/job.tgz" % d)
+        os.system("rm -f %s/job.tar.gz" % d)
         os.system("tar czf %s/log.tgz %s/*.log %s/*.err %s/*.txt" % (d, d, d, d))
         os.system("rm -f %s/*.log %s/*.err %s/*.txt" % (d, d, d))
         for x in rootFiles: os.system("rm -f %s" % (x))
