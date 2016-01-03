@@ -29,7 +29,7 @@ def hadd(d):
 
         print
         print "*"*40
-        print "*", d, "is complete. Merging and clean up"
+        print "*", d, "is complete. Merge and clean up"
         print "*"*40
         print
         os.system(cmd)

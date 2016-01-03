@@ -92,14 +92,14 @@ for iplt, pltInfo in enumerate(plts):
         hMC.Add(h)
     grpRatio = TGraphErrors()
     grpRatio.SetTitle("ratio;%s;Data/MC" % hRD.GetXaxis().GetTitle())
-    rMax = 2
+    rMax = 3
     for b in range(1, nbinsX+1):
         yRD, yMC = hRD.GetBinContent(b), hMC.GetBinContent(b)
         eRD, eMC = hRD.GetBinError(b), hMC.GetBinError(b)
         r, e = 1e9, 1e9
         if yMC > 0:
             r = yRD/yMC
-            rMax = max(r, rMax)
+        #    rMax = max(r, rMax)
         if yMC > 0 and yRD > 0: e = r*hypot(eRD/yRD, eMC/yMC)
 
         x = hRD.GetXaxis().GetBinCenter(b)
@@ -194,7 +194,7 @@ for mode in cutflow.keys():
 
 print "A preview root file for the central sample is produced"
 print "Run `root -l pass2/preview.root' and browse into each directories to open canvases"
-print "You can also use dumpRoot command from the hep-tools"
+print "You can also use dumpRoot command from the hep-tools, dumpRoot pass2/preview.root"
 
 ## Save plot list
 f = open("pass2/plots.json", "w")
