@@ -4,6 +4,7 @@ import sys, os
 import json
 from array import array
 sys.argv.append("-b")
+from math import hypot
 from ROOT import *
 from CATTools.CatAnalyzer.tdrstyle import *
 setTDRStyle()
@@ -61,8 +62,6 @@ for iplt, pltInfo in enumerate(plts):
     if fout.GetDirectory(dirName) == None: fout.mkdir(dirName)
     fout.cd(dirName)
 
-    c = TCanvas("c_%s" % pltName, pltName, 500, 500)
-
     ## Add real data histograms
     fRD = fRDs[plt[5:7]]
 
@@ -77,6 +76,8 @@ for iplt, pltInfo in enumerate(plts):
 
     ## Add MC histograms
     hsMC = THStack("hsMC", "hsMC")
+    hMC = hRD.Clone()
+    hMC.Reset()
     for finName, color, f in srcMCs:
         h = f.Get(plt)
         h.Scale(lumi)
@@ -88,12 +89,48 @@ for iplt, pltInfo in enumerate(plts):
         h.SetLineColor(color)
         #h.SetLineStyle(0)
         hsMC.Add(h)
+        hMC.Add(h)
+    grpRatio = TGraphErrors()
+    grpRatio.SetTitle("ratio;%s;Data/MC" % hRD.GetXaxis().GetTitle())
+    rMax = 2
+    for b in range(1, nbinsX+1):
+        yRD, yMC = hRD.GetBinContent(b), hMC.GetBinContent(b)
+        eRD, eMC = hRD.GetBinError(b), hMC.GetBinError(b)
+        r, e = 1e9, 1e9
+        if yMC > 0:
+            r = yRD/yMC
+            rMax = max(r, rMax)
+        if yMC > 0 and yRD > 0: e = r*hypot(eRD/yRD, eMC/yMC)
+
+        x = hRD.GetXaxis().GetBinCenter(b)
+        w = hRD.GetXaxis().GetBinWidth(b)
+        grpRatio.SetPoint(b, x, r)
+        grpRatio.SetPointError(b, w/2, e)
+    grpRatio.SetMinimum(0)
+    grpRatio.SetMaximum(rMax)
 
     ## Draw'em all
+    c = TCanvas("c_%s" % pltName, pltName, 500, 700)
+    c.Divide(1,2)
+
+    pad2 = c.cd(2)
+    pad2.SetPad(0, 0, 1, 2./7)
+    pad2.SetTopMargin(0)
+    grpRatio.GetYaxis().SetLabelSize(grpRatio.GetYaxis().GetLabelSize()*5./2)
+    grpRatio.GetYaxis().SetTitleSize(grpRatio.GetYaxis().GetTitleSize()*5./2)
+    grpRatio.GetXaxis().SetLabelSize(grpRatio.GetXaxis().GetLabelSize()*5./2)
+    grpRatio.GetXaxis().SetTitleSize(grpRatio.GetXaxis().GetTitleSize()*5./2)
+    grpRatio.Draw("AP")
+
+    pad1 = c.cd(1)
+    pad1.SetPad(0, 2./7, 1, 1)
+    pad1.SetBottomMargin(0)
+
     hRD.SetMinimum(0)
     hRD.Draw()
     hsMC.Draw("samehist")
     hRD.Draw("samep")
+
     fout.cd(dirName)
     c.Write()
 
