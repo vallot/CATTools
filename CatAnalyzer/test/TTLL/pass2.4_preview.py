@@ -73,9 +73,10 @@ for iplt, pltInfo in enumerate(plts):
     hRD.GetStats(stats)
     hRD.AddBinContent(nbinsX, hRD.GetBinContent(nbinsX+1))
     hRD.PutStats(stats)
+    hRD.SetTitle("")
 
     ## Add MC histograms
-    hsMC = THStack("hsMC", "hsMC")
+    hsMC = THStack("hsMC", "")
     hMC = hRD.Clone()
     hMC.Reset()
     for finName, color, f in srcMCs:
@@ -91,45 +92,64 @@ for iplt, pltInfo in enumerate(plts):
         hsMC.Add(h)
         hMC.Add(h)
     grpRatio = TGraphErrors()
-    grpRatio.SetTitle("ratio;%s;Data/MC" % hRD.GetXaxis().GetTitle())
-    rMax = 3
+    grpRatio.SetTitle(";%s;Data/MC" % hRD.GetXaxis().GetTitle())
+    rMax = 2
     for b in range(1, nbinsX+1):
         yRD, yMC = hRD.GetBinContent(b), hMC.GetBinContent(b)
         eRD, eMC = hRD.GetBinError(b), hMC.GetBinError(b)
         r, e = 1e9, 1e9
         if yMC > 0:
             r = yRD/yMC
-        #    rMax = max(r, rMax)
+            rMax = max(r, rMax)
         if yMC > 0 and yRD > 0: e = r*hypot(eRD/yRD, eMC/yMC)
 
         x = hRD.GetXaxis().GetBinCenter(b)
         w = hRD.GetXaxis().GetBinWidth(b)
         grpRatio.SetPoint(b, x, r)
         grpRatio.SetPointError(b, w/2, e)
+    if rMax > 2: rMax = 3
     grpRatio.SetMinimum(0)
     grpRatio.SetMaximum(rMax)
 
     ## Draw'em all
-    c = TCanvas("c_%s" % pltName, pltName, 500, 700)
+    plotDim = (400, 300, 100) # width, main height, ratio height
+    margin = (2*40, 20, 60, 60) # left, right, bottom, top
+    padH = (plotDim[1] + margin[3], plotDim[2] + margin[2])
+    canH = padH[0] + padH[1]
+    canW = plotDim[0] + margin[0] + margin[1]
+
+    grpRatio.GetXaxis().SetTitleSize(0.1)
+    grpRatio.GetXaxis().SetTitleOffset(0.75)
+    grpRatio.GetXaxis().SetLabelSize(0.08)
+
+    grpRatio.GetYaxis().SetTitleSize(0.1)
+    grpRatio.GetYaxis().SetTitleOffset(0.75)
+    grpRatio.GetYaxis().SetLabelSize(0.1)
+    grpRatio.GetYaxis().SetNdivisions(510)
+
+    hRD.SetStats(False)
+    hRD.GetXaxis().SetTitle("")
+
+    hRD.GetYaxis().SetTitleSize(0.045)
+    hRD.GetYaxis().SetTitleOffset(1.55)
+    hRD.GetYaxis().SetLabelSize(0.045)
+
+    c = TCanvas("c_%s" % pltName, pltName, canH, canW)
     c.Divide(1,2)
 
     pad2 = c.cd(2)
-    pad2.SetPad(0, 0, 1, 2./7)
-    pad2.SetTopMargin(0)
-    grpRatio.GetYaxis().SetLabelSize(grpRatio.GetYaxis().GetLabelSize()*5./2)
-    grpRatio.GetYaxis().SetTitleSize(grpRatio.GetYaxis().GetTitleSize()*5./2)
-    grpRatio.GetXaxis().SetLabelSize(grpRatio.GetXaxis().GetLabelSize()*5./2)
-    grpRatio.GetXaxis().SetTitleSize(grpRatio.GetXaxis().GetTitleSize()*5./2)
+    pad2.SetPad(0, 0, 1, 1.0*padH[1]/canH)
+    pad2.SetMargin(1.*margin[0]/canW, 1.*margin[1]/canW, 1.*margin[2]/padH[1], 0)
     grpRatio.Draw("AP")
 
     pad1 = c.cd(1)
-    pad1.SetPad(0, 2./7, 1, 1)
-    pad1.SetBottomMargin(0)
+    pad1.SetPad(0, 1.0*padH[1]/canH, 1, 1)
+    pad1.SetMargin(1.*margin[0]/canW, 1.*margin[1]/canW, 0, 1.*margin[3]/padH[0])
 
     hRD.SetMinimum(0)
-    hRD.Draw()
+    hRD.Draw("")
     hsMC.Draw("samehist")
-    hRD.Draw("samep")
+    pad1.RedrawAxis()
 
     fout.cd(dirName)
     c.Write()
