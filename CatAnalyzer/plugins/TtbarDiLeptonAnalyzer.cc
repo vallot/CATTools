@@ -391,6 +391,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         b_partonttbar_eta = partonttbar.Eta();
         b_partonttbar_m = partonttbar.M();
         b_partonttbar_rapi = partonttbar.Rapidity();
+        b_partonttbar_dphi = deltaPhi((parton1->p4()).Phi(), (parton2->p4()).Phi());
 
         // Get W and b quarks
         if ( parton1 and parton2 ) {
