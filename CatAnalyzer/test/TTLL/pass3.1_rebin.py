@@ -4,6 +4,7 @@ import sys, os
 import json
 from array import array
 from numpy import linspace
+from multiprocessing import Pool
 sys.argv.append("-b")
 from ROOT import *
 
@@ -33,31 +34,38 @@ binInfos = {
     "z_m":arr(20, 320, 50),
 }
 
-for fiPath, dirs, files in os.walk("pass2"):
-    rootFiles = [x for x in files if x.endswith('.root')]
-    if len(rootFiles) == 0: continue
+def process(fiPath, foPath, fName):
+    print "Processing", foPath+"/"+fName
+    fi = TFile(fiPath+"/"+fName)
+    fo = TFile(foPath+"/"+fName, "RECREATE")
+    for plotInfo in plotInfos["plots"]:
+        hPath = plotInfo["name"]
+        hName = os.path.basename(hPath)
+        hPath = os.path.dirname(hPath)
 
-    foPath = fiPath.replace("pass2", "pass3/hists")
-    if not os.path.exists(foPath): os.makedirs(foPath)
+        d = fo.GetDirectory(hPath)
+        if d == None: fo.mkdir(hPath)
+        d = fo.GetDirectory(hPath)
+        d.cd()
 
-    for fName in rootFiles:
-        print "Processing", foPath+"/"+fName
-        fi = TFile(fiPath+"/"+fName)
-        fo = TFile(foPath+"/"+fName, "RECREATE")
-        for plotInfo in plotInfos["plots"]:
-            hPath = plotInfo["name"]
-            hName = os.path.basename(hPath)
-            hPath = os.path.dirname(hPath)
+        hi = fi.Get(hPath+"/"+hName)
+        if hi == None: continue
+        ho = hi.Clone()
+        if hName in binInfos:
+            bins = binInfos[hName]
+            ho = ho.Rebin(len(bins)-1, "", bins)
+        ho.Write()
 
-            d = fo.GetDirectory(hPath)
-            if d == None: fo.mkdir(hPath)
-            d = fo.GetDirectory(hPath)
-            d.cd()
+if __name__ == '__main__':
+    p = Pool(20)
+    for fiPath, dirs, files in os.walk("pass2"):
+        rootFiles = [x for x in files if x.endswith('.root')]
+        if len(rootFiles) == 0: continue
 
-            hi = fi.Get(hPath+"/"+hName)
-            if hi == None: continue
-            ho = hi.Clone()
-            if hName in binInfos: 
-                bins = binInfos[hName]
-                ho = ho.Rebin(len(bins)-1, "", bins)
-            ho.Write()
+        foPath = fiPath.replace("pass2", "pass3/hists")
+        if not os.path.exists(foPath): os.makedirs(foPath)
+
+        for fName in rootFiles:
+            p.apply_async(process, [fiPath ,foPath, fName])
+    p.close()
+    p.join()
