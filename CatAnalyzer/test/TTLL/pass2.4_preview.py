@@ -30,8 +30,8 @@ fRDs = {
     "em":TFile("pass2/central/MuonEG.root"),
 }
 
-## Load input templates for central result
-#sjs = json.loads(open("pass2/samples.json").read())
+## Data driven corrections
+scaleDY = json.loads(open("pass2/scaler_DY.json").read())
 
 ## Pick the first root file to get full list of plots
 plts = []
@@ -82,6 +82,8 @@ for iplt, pltInfo in enumerate(plts):
     for finName, color, f in srcMCs:
         h = f.Get(plt)
         h.Scale(lumi)
+        if finName == "Z__gamma_rightarrow_ll" and dirName in scaleDY["scale"]:
+            h.Scale(scaleDY["scale"][dirName])
         h.GetStats(stats)
         h.AddBinContent(nbinsX, h.GetBinContent(nbinsX+1))
         h.PutStats(stats)
