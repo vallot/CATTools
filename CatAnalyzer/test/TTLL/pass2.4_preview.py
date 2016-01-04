@@ -91,25 +91,28 @@ for iplt, pltInfo in enumerate(plts):
         #h.SetLineStyle(0)
         hsMC.Add(h)
         hMC.Add(h)
+    hRatio = hRD.Clone()
+    hRatio.Reset()
+    hRatio.SetTitle(";%s;MC/Data" % hRD.GetXaxis().GetTitle())
     grpRatio = TGraphErrors()
-    grpRatio.SetTitle(";%s;MC/Data" % hRD.GetXaxis().GetTitle())
     rMax = 2
-    for b in range(1, nbinsX+1):
-        yRD, yMC = hRD.GetBinContent(b), hMC.GetBinContent(b)
-        eRD, eMC = hRD.GetBinError(b), hMC.GetBinError(b)
+    for b in range(nbinsX):
+        yRD, yMC = hRD.GetBinContent(b+1), hMC.GetBinContent(b+1)
+        eRD, eMC = hRD.GetBinError(b+1), hMC.GetBinError(b+1)
         r, e = 1e9, 1e9
         if yRD > 0:
             r = yMC/yRD
             rMax = max(r, rMax)
         if yMC > 0 and yRD > 0: e = r*hypot(eRD/yRD, eMC/yMC)
 
-        x = hRD.GetXaxis().GetBinCenter(b)
-        w = hRD.GetXaxis().GetBinWidth(b)
+        x = hRD.GetXaxis().GetBinCenter(b+1)
+        w = hRD.GetXaxis().GetBinWidth(b+1)
         grpRatio.SetPoint(b, x, r)
         grpRatio.SetPointError(b, w/2, e)
     if rMax > 2: rMax = 3
-    grpRatio.SetMinimum(0)
-    grpRatio.SetMaximum(rMax)
+    hRatio.SetStats(False)
+    hRatio.SetMinimum(0)
+    hRatio.SetMaximum(rMax)
 
     ## Draw'em all
     plotDim = (400, 300, 100) # width, main height, ratio height
@@ -118,14 +121,14 @@ for iplt, pltInfo in enumerate(plts):
     canH = padH[0] + padH[1]
     canW = plotDim[0] + margin[0] + margin[1]
 
-    grpRatio.GetXaxis().SetTitleSize(0.1)
-    grpRatio.GetXaxis().SetTitleOffset(0.75)
-    grpRatio.GetXaxis().SetLabelSize(0.08)
+    hRatio.GetXaxis().SetTitleSize(0.1)
+    hRatio.GetXaxis().SetTitleOffset(0.75)
+    hRatio.GetXaxis().SetLabelSize(0.08)
 
-    grpRatio.GetYaxis().SetTitleSize(0.1)
-    grpRatio.GetYaxis().SetTitleOffset(0.75)
-    grpRatio.GetYaxis().SetLabelSize(0.1)
-    grpRatio.GetYaxis().SetNdivisions(505)
+    hRatio.GetYaxis().SetTitleSize(0.1)
+    hRatio.GetYaxis().SetTitleOffset(0.75)
+    hRatio.GetYaxis().SetLabelSize(0.1)
+    hRatio.GetYaxis().SetNdivisions(505)
 
     hRD.SetStats(False)
     hRD.GetXaxis().SetTitle("")
@@ -140,7 +143,9 @@ for iplt, pltInfo in enumerate(plts):
     pad2 = c.cd(2)
     pad2.SetPad(0, 0, 1, 1.0*padH[1]/canH)
     pad2.SetMargin(1.*margin[0]/canW, 1.*margin[1]/canW, 1.*margin[2]/padH[1], 0)
-    grpRatio.Draw("AP")
+    hRatio.Draw()
+    grpRatio.Draw("P")
+    pad2.RedrawAxis()
 
     pad1 = c.cd(1)
     pad1.SetPad(0, 1.0*padH[1]/canH, 1, 1)
@@ -162,10 +167,7 @@ for iplt, pltInfo in enumerate(plts):
     plts[iplt]['yMax'] = yMax
     plts[iplt]['yMaxR'] = yMaxR
 
-    del(hRD)
-    del(hMC)
-    del(hsMC)
-    del(c)
+    for h in (hRD, hMC, hsMC, hRatio, grpRatio, c): del(h)
 
 ## Start to print cut flow
 cutflow = {"ee":{}, "mm":{}, "em":{}}
