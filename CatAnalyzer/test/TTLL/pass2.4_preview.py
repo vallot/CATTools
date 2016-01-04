@@ -125,7 +125,7 @@ for iplt, pltInfo in enumerate(plts):
     grpRatio.GetYaxis().SetTitleSize(0.1)
     grpRatio.GetYaxis().SetTitleOffset(0.75)
     grpRatio.GetYaxis().SetLabelSize(0.1)
-    grpRatio.GetYaxis().SetNdivisions(510)
+    grpRatio.GetYaxis().SetNdivisions(201)
 
     hRD.SetStats(False)
     hRD.GetXaxis().SetTitle("")
@@ -163,6 +163,7 @@ for iplt, pltInfo in enumerate(plts):
     plts[iplt]['yMaxR'] = yMaxR
 
     del(hRD)
+    del(hMC)
     del(hsMC)
     del(c)
 
