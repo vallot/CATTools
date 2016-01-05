@@ -56,14 +56,17 @@ void combine(const char* fNameCen, const char* fNameUp, const char* fNameDn,
     }
 
     auto rdir = gSystem->DirName(pName.c_str());
+
     TDirectory* dup = fup->GetDirectory(rdir);
-    if ( !dup ) dup = fup->mkdir(rdir);
+    if ( !dup ) { fup->mkdir(rdir); dup = fup->GetDirectory(rdir); }
     dup->cd();
     TH1* hup = (TH1*)hcen->Clone();
-    TDirectory* ddn = fup->GetDirectory(rdir);
-    if ( !ddn ) ddn = fdn->mkdir(rdir);
+
+    TDirectory* ddn = fdn->GetDirectory(rdir);
+    if ( !ddn ) { fdn->mkdir(rdir); ddn = fdn->GetDirectory(rdir); }
     ddn->cd();
     TH1* hdn = (TH1*)hcen->Clone();
+
     if ( combineBy == COMBINE::HESSE ) {
       for ( int b = 0; b <= nbins+1; ++b ) {
         // Combination for the Hessian set http://arxiv.org/pdf/1510.03865v1.pdf p.49, eqn.20
@@ -99,9 +102,10 @@ void combine(const char* fNameCen, const char* fNameUp, const char* fNameDn,
     }
 
     dup->cd();
-    hup->Write();
+    hup->Write("", TObject::kOverwrite);
+
     ddn->cd();
-    hdn->Write();
+    hdn->Write("", TObject::kOverwrite);
   }
 
   cout << "@@ Clean up opened files" << endl;
