@@ -88,18 +88,44 @@ Some data-driven background estimations can be done after the pass2.2 step.
 
 The Drell-Yan scale factor can be extracted using the pass2.3 script,
 ```bash
-pass2.3_DYEstimation.py
+./pass2.3_DYEstimation.py
 ```
 will print out the DY scale factors and store the results under the pass2/scaler\_DY.json.
 
-**More to come...**
-
-#### Common control plot production ####
-The pass3 includes steps to produce quick control plots for debugging.
+Run the preview step to debug the plots and check the very first cut flow table.
 ```bash
-./pass3.1_drawCentralQuick.py
+./pass2.4_preview.py
 ```
-This script produces all Data-MC comparison plots under the pass3 directory.
+
+This script produces all Data-MC comparison plots into the pass2/preview.root file
+in TCanvas formats. You can dump the plots to image files using the dumpRoot script
+which is shipped in the hep-tools package.
+
+#### Common control plot production and basic measurements ####
+The production-level plots are produced within the pass3. In this step, historam ranges
+and binnings are adjusted to fit to user analyses. All systematic uncertainty variations
+are also configured to be ready for the measurement.
+
+Start from the rebining. Edit the pass3.1_rebin.py to be consistent with your analysis.
+Run the script when ready.
+```bash
+./pass3.1_rebin.py
+```
+
+There are some systematic uncertainty variations which are left to be combined after the
+binning.
+```bash
+./pass3.2_reduceUnc.py
+```
+
+Currently, gen_PDF and gen_scale categories are known to the author and they
+are combined by "hessian" and "envelope" method. The results are stored under "up" and
+"dn" directory with the same file structure. From this step, all samples for the study
+are placed under "central", "up" or "dn".
+
+Now everything is ready. We can proceed to run the RooFit/RooStats to extract
+measurements with systematic uncertainty calculation - the output root files
+must have HistFactory familiar format.
 
 #### Extended study ####
 The initial cfg file is configured to store events in the EDM format.
