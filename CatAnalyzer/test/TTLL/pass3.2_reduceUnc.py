@@ -6,7 +6,7 @@ import sys, os
 from math import sqrt
 from multiprocessing import Pool
 
-gROOT.ProcessLine(".L macros/combine.C+")
+gROOT.ProcessLine(".L submacros/combine.C+")
 
 def combineCaller(fNameCen, fNameUp, fNameDn, fNames, plotNames, combineBy):
     combine(fNameCen, fNameUp, fNameDn,
