@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from ROOT import *
 from math import sqrt
@@ -70,7 +70,6 @@ for step in range(1,6):
     out["scale"]["ttll/ee/step%d" % step] = scale_ee
     out["scale"]["ttll/mm/step%d" % step] = scale_mm
 
-import json
 f = open("pass2/scaler_DY.json", "w")
 f.write(json.dumps(out, indent=4, sort_keys=True))
 f.close()
