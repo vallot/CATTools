@@ -11,12 +11,23 @@ using namespace std;
 
 void combine(const char* fNameCen, const char* fNameUp, const char* fNameDn,
              const std::vector<std::string> fNames,
-             const std::vector<std::string> plotNames)
+             const std::vector<std::string> plotNames,
+             const char* combineByCStr)
 {
+  enum class COMBINE { HESSE, ENVELOPE, GAUSS, } combineBy;
+  const string combineByStr(combineByCStr);
+  if      ( combineByStr == "hessian"  ) combineBy = COMBINE::HESSE;
+  else if ( combineByStr == "envelope" ) combineBy = COMBINE::ENVELOPE;
+  else if ( combineByStr == "gaussian" ) combineBy = COMBINE::GAUSS;
+  else {
+    cerr << "CombineBy parameter is invalid, was " << combineByStr << endl;
+    return;
+  }
+
   TFile* fcen = TFile::Open(fNameCen);
   if ( !fcen or fcen->IsZombie() ) return;
   fcen->SetBit(TFile::kDevNull);
-  
+
   cout << "@@ Processing " << fNameCen << endl;
 
   TFile* fup = TFile::Open(fNameUp, "recreate");
@@ -53,12 +64,38 @@ void combine(const char* fNameCen, const char* fNameUp, const char* fNameDn,
     if ( !ddn ) ddn = fdn->mkdir(rdir);
     ddn->cd();
     TH1* hdn = (TH1*)hcen->Clone();
-    for ( int b = 0; b <= nbins+1; ++b ) {
-      // Combination for the Hessian set http://arxiv.org/pdf/1510.03865v1.pdf p.49, eqn.20
-      double dysqr = 0;
-      for ( auto dyi : diffs ) { dysqr += dyi[b]*dyi[b]; }
-      hup->AddBinContent(b,  sqrt(dysqr));
-      hdn->AddBinContent(b, -sqrt(dysqr));
+    if ( combineBy == COMBINE::HESSE ) {
+      for ( int b = 0; b <= nbins+1; ++b ) {
+        // Combination for the Hessian set http://arxiv.org/pdf/1510.03865v1.pdf p.49, eqn.20
+        double dysqr = 0;
+        for ( auto dyi : diffs ) { dysqr += dyi[b]*dyi[b]; }
+        hup->AddBinContent(b,  sqrt(dysqr));
+        hdn->AddBinContent(b, -sqrt(dysqr));
+      }
+    }
+    else if ( combineBy == COMBINE::ENVELOPE ) {
+      for ( int b = 0; b <= nbins+1; ++b ) {
+        // Combination by envelope, take the maximum/minimum
+        double dymax = 0, dymin = 0;
+        for ( auto dyi : diffs ) {
+          dymax = max(dyi[b], dymax);
+          dymin = min(dyi[b], dymin);
+        }
+        hup->AddBinContent(b, dymax);
+        hdn->AddBinContent(b, dymin);
+      }
+    }
+    else if ( combineBy == COMBINE::GAUSS ) {
+      cout << "!!!! COMBINE BY GAUSSIAN may be incorrect !!!!" << endl;
+      for ( int b = 0; b <= nbins+1; ++b ) {
+        // Combination by Gaussian
+        // FIME : To be verified!!!!!
+        const int n = diffs.size();
+        double dysqr = 0;
+        for ( auto dyi : diffs ) { dysqr += dyi[b]*dyi[b]; }
+        hup->AddBinContent(b,  sqrt(dysqr)/n);
+        hdn->AddBinContent(b, -sqrt(dysqr)/n);
+      }
     }
 
     dup->cd();
@@ -72,7 +109,7 @@ void combine(const char* fNameCen, const char* fNameUp, const char* fNameDn,
     // Close input files. Traditional Close() is very slow due to the large number of histograms.
     // Use the trick by Phillipe : https://root.cern.ch/phpBB3/viewtopic.php?t=14450
     // This is OK for this read-only files.
-    gROOT->GetListOfFiles()->Remove(f); 
+    gROOT->GetListOfFiles()->Remove(f);
   }
   fcen->Close();
   fup->Close();

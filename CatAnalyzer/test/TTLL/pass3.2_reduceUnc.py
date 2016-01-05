@@ -8,6 +8,10 @@ from multiprocessing import Pool
 
 gROOT.ProcessLine(".L macros/combine.C+")
 
+def combineCaller(fNameCen, fNameUp, fNameDn, fNames, plotNames, combineBy):
+    combine(fNameCen, fNameUp, fNameDn,
+            vstring(fNames), vstring(plotNames), combineBy)
+
 def vstring(l):
     out = std.vector("string")()
     for x in l: out.push_back(std.string(x))
@@ -17,7 +21,7 @@ if __name__ == '__main__':
     ## Build sample list to combine uncertainty
     ## Sort by file category/fileName and results will be reduce to up and dn
     plotsJS = json.loads(open("pass2/plots.json").read())
-    plotNames = vstring([p["name"] for p in plotsJS["plots"]])
+    plotNames = [p["name"] for p in plotsJS["plots"]]
     uncToReduce = {}
     samplesJS = json.loads(open("pass2/samples.json").read())
     for fPath in samplesJS:
@@ -44,10 +48,16 @@ if __name__ == '__main__':
         fNameUp = "pass3/hists/%s/up/%s" % (cat, fName)
         fNameDn = "pass3/hists/%s/dn/%s" % (cat, fName)
 
-        pool.apply_async(combineP,
-                         [fNameCen, fNameUp, fNameDn,
-                          vstring(uncToReduce[(cat, fName)]), plotNames])
+        if   cat == 'gen_PDF'  : combineBy = "hessian"
+        elif cat == 'gen_scale': combineBy = "envelope"
+        else:
+            print "!!!! Combine method was not defined for this category,", cat
+            print "!!!! Skip this one..."
+            continue
 
+        pool.apply_async(combineCaller,
+                         [fNameCen, fNameUp, fNameDn,
+                          uncToReduce[(cat, fName)], plotNames, combineBy])
     pool.close()
     pool.join()
 
