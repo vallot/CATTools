@@ -6,8 +6,7 @@ def customise(process):
             'keep *_*_*_CATeX',
             'keep *_partonTop_*_*',
             'keep *_pseudoTop_*_*',
-            'keep *_*_genTtbarId_*',
-            'keep *_genWeight_*_*'),
+            'keep *_*_genTtbarId_*'),
         fileName = cms.untracked.string("out.root"),
         SelectEvents = cms.untracked.PSet(
             SelectEvents = cms.vstring('p'),

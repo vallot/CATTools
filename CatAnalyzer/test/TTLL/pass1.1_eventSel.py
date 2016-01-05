@@ -19,7 +19,7 @@ js = json.loads(open("%s/dataset.json" % dataDir).read())
 def isBlacklisted(name):
     for x in [
         "GluGluToZZ", "HToMuMu", "WpWp", "WW_dps",
-        "WWTo2L2Nu_powheg", "WZTo", "ZZTo",
+        "WWTo2L2Nu_powheg", "WZTo", "ZZTo", "ZZto",
         "SingleElectron_Run2015", "SingleMuon_Run2015", ]:
         if x in name: return True
     return False
@@ -93,8 +93,10 @@ out_dat = open("%s/submit_dat_unc.sh" % outDir, "w")
 
 ## Loop over common systematics
 systAny = {
-    'lep_pt/up':'ttll.muon.scaleDirection=1 ttll.electron.scaleDirection=1',
-    'lep_pt/dn':'ttll.muon.scaleDirection=-1 ttll.electron.scaleDirection=-1',
+    'mu_pt/up':'ttll.muon.scaleDirection=1',
+    'mu_pt/dn':'ttll.muon.scaleDirection=-1',
+    'el_pt/up':'ttll.electron.scaleDirection=1',
+    'el_pt/dn':'ttll.electron.scaleDirection=-1',
     'jet_cor/up':'ttll.jet.scaleDirection=1',
     'jet_cor/dn':'ttll.jet.scaleDirection=-1',
 }
@@ -116,8 +118,8 @@ for systName in systAny:
         print>>out_bkg, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, syst)))
 
     for d in sigList:
-        if '_scaleup' in name or '_scaledown' in name: continue ## Skip this variations for scale up/down samples
         name = d['name']
+        if '_scaleup' in name or '_scaledown' in name: continue ## Skip this variations for scale up/down samples
         if isBlacklisted(name): continue
         submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 100"
         submitCmd += " --fileList %s/dataset/dataset_%s.txt" % (dataDir, name)
@@ -131,6 +133,10 @@ systMC = {
     'jet_res/dn':'ttll.jet.resolDirection=-1',
     'pileup/up':'ttll.vertex.pileupWeight="pileupWeight:up"',
     'pileup/dn':'ttll.vertex.pileupWeight="pileupWeight:dn"',
+    'mu_eff/up':'ttll.muon.efficiencySFDirection=1',
+    'mu_eff/dn':'ttll.muon.efficiencySFDirection=-1',
+    'el_eff/up':'ttll.electron.efficiencySFDirection=1',
+    'el_eff/dn':'ttll.electron.efficiencySFDirection=-1',
 }
 for systName in systMC:
     syst = systMC[systName]
@@ -143,8 +149,8 @@ for systName in systMC:
         print>>out_bkg, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, syst)))
 
     for d in sigList:
-        if '_scaleup' in name or '_scaledown' in name: continue ## Skip this variations for scale up/down samples
         name = d['name']
+        if '_scaleup' in name or '_scaledown' in name: continue ## Skip this variations for scale up/down samples
         if isBlacklisted(name): continue
         submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 100"
         submitCmd += " --fileList %s/dataset/dataset_%s.txt" % (dataDir, name)
@@ -169,7 +175,6 @@ for i in range(1,9): # total 8 scale variations, 3 muF x 3 muR and one for centr
     syst += ' agen.weight="genWeight:pdfWeights" agen.weightIndex=%d' % i
     for d in sigList:
         name = d['name']
-        if '_scaleup' not in name and '_scaledown' not in name: continue ## Apply this for scale up/down samples # FIXME : this can be changed
         if isBlacklisted(name): continue
         submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 100"
         submitCmd += " --fileList %s/dataset/dataset_%s.txt" % (dataDir, name)
@@ -233,5 +238,8 @@ print ">"
 print "> ./submit_dat_unc.sh"
 print "> ./submit_sig_unc.sh"
 print "> ./submit_bkg_unc.sh"
+print ""
+print "or, use the xargs magic to submit them all"
+print "> cat submit*.sh | sed -e 's;create-batch;;g' | xargs -L1 -P20 create-batch"
 print ""
 

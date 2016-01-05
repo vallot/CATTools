@@ -33,6 +33,7 @@ print "kMM = ", kMM, "kEE = ", kEE
 
 out = {
     "file":"Z__gamma_rightarrow_ll.root",
+    "kMM":kMM, "kEE":kEE,
     "scale":{},
 }
 
