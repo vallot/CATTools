@@ -4,6 +4,8 @@ using namespace cat;
 
 /// default constructor
 GenTop::GenTop(){
+  math::XYZTLorentzVector null(0,0,0,0);
+
   tops_ = {null, null};
   bquarks_ = {null, null, null, null};
   leptons_ = {null, null};
@@ -22,6 +24,8 @@ GenTop::GenTop(){
 // }
 
 GenTop::GenTop(const reco::Candidate & aGenTop) : reco::LeafCandidate(aGenTop) {
+  math::XYZTLorentzVector null(0,0,0,0);
+
   tops_ = {null, null};
   bquarks_ = {null, null, null, null};
   leptons_ = {null, null};
