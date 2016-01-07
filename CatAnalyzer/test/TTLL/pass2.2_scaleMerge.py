@@ -4,7 +4,7 @@ from ROOT import *
 import json
 import sys, os
 import string
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
 
 srcbase, outbase = "pass1", "pass2"
 
@@ -74,7 +74,7 @@ def merge(outfileName, mergeInfo):
                         hout.Write("", TObject.kOverwrite)
 
 if __name__ == '__main__':
-    p = Pool(30)
+    p = Pool(cpu_count())
 
     mergeList = json.loads(open(outbase+"/samples.json").read())
 

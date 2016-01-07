@@ -2,7 +2,7 @@
 
 import json
 import os
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
 
 try:
     res = gSystem.CompileMacro("submacros/combine.C", "k")
@@ -36,14 +36,12 @@ if __name__ == '__main__':
         cat, id, fName = fPath.split('/')[1:]
         if id in ('up', 'dn'): continue
 
-        #fName = fName.replace("pass2", "pass3/hists")
-        #uncToReduce[cat]["files"].append(fName)
         key = (cat, fName)
         if key not in uncToReduce: uncToReduce[key] = []
         uncToReduce[key].append(fPath.replace("pass2", "pass3/hists"))
 
     ## Start to loop over all of them and do the reduction.
-    pool = Pool(20)
+    pool = Pool(cpu_count())
     for cat, fName in uncToReduce:
         ## Prepare output
         if not os.path.exists("pass3/hists/%s/up" % cat): os.makedirs("pass3/hists/%s/up" % cat)
