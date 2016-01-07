@@ -218,11 +218,17 @@ for mode in cutflow.keys():
     print "="*fwtot
     print
 
-print "A preview root file for the central sample is produced"
-print "Run `root -l pass2/preview.root' and browse into each directories to open canvases"
-print "You can also use dumpRoot command from the hep-tools, dumpRoot pass2/preview.root"
+## Save cut flow
+f = open("pass2/cutflow.json", "w")
+f.write(json.dumps(cutflow, indent=4, sort_keys=True))
+f.close()
 
 ## Save plot list
 f = open("pass2/plots.json", "w")
 f.write(json.dumps({'plots':plts}, indent=4, sort_keys=True))
 f.close()
+
+print "A preview root file for the central sample is produced"
+print "Run `root -l pass2/preview.root' and browse into each directories to open canvases"
+print "You can also use dumpRoot command from the hep-tools, dumpRoot pass2/preview.root"
+print "Cutflow table is saved in JSON format, pass2/cutflow.json"
