@@ -6,8 +6,9 @@ from array import array
 sys.argv.append("-b")
 from math import hypot
 from ROOT import *
-from CATTools.CatAnalyzer.tdrstyle import *
-setTDRStyle()
+import imp
+st = imp.load_source("st", "../../python/tdrstyle.py")
+st.setTDRStyle()
 gStyle.SetOptTitle(0)
 gStyle.SetOptStat(0)
 
