@@ -8,7 +8,7 @@ from math import hypot
 from ROOT import *
 import imp
 printCutflow = imp.load_source("printCutflow", "submacros/printCutflow.py").printCutflow
-st = imp.load_source("st", "../../python/tdrstyle.py")
+st = imp.load_source("st", "submacros/tdrstyle.py")
 st.setTDRStyle()
 gStyle.SetOptTitle(0)
 gStyle.SetOptStat(0)
