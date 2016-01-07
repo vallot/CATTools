@@ -6,6 +6,8 @@ import sys, os
 import string
 from multiprocessing import Pool, cpu_count
 
+dataFileMatch = {"ee":"DoubleEG", "mm":"DoubleMuon", "em":"MuonEG"}
+
 srcbase, outbase = "pass1", "pass2"
 
 def merge(outfileName, mergeInfo):
@@ -37,6 +39,9 @@ def merge(outfileName, mergeInfo):
         src_moddir = fsrc.Get("ttll")
         for chName in [x.GetName() for x in src_moddir.GetListOfKeys()]:
             if chName == "overall": continue
+
+            ## Special care for the real data
+            if type == "data" and dataFileMatch[chName] not in x['file']: continue
 
             if i == 0: out_moddir.mkdir(chName)
             src_chdir = src_moddir.Get(chName)
@@ -90,3 +95,13 @@ if __name__ == '__main__':
 
     p.close()
     p.join()
+
+    ## Merge real data
+    mergeRDs = {}
+    for outfileName in mergeList:
+        if mergeList[outfileName]['type'] != 'data': continue
+        outdir = os.path.dirname(outfileName)
+        if outdir not in mergeRDs: mergeRDs[outdir] = []
+        mergeRDs[outdir].append(outfileName)
+    for fName in mergeRDs:
+        os.system("hadd -f %s/Data.root %s" % (fName, " ".join(mergeRDs[fName])))
