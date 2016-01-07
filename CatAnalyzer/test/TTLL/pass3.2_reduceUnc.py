@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 
-from ROOT import *
 import json
-import sys, os
-from math import sqrt
+import os
 from multiprocessing import Pool
 
-#gROOT.ProcessLine(".L submacros/combine.C+")
 try:
     res = gSystem.CompileMacro("submacros/combine.C", "k")
     if res != 1:
