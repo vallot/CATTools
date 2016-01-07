@@ -7,6 +7,7 @@ sys.argv.append("-b")
 from math import hypot
 from ROOT import *
 import imp
+printCutflow = imp.load_source("printCutflow", "submacros/printCutflow.py").printCutflow
 st = imp.load_source("st", "../../python/tdrstyle.py")
 st.setTDRStyle()
 gStyle.SetOptTitle(0)
@@ -173,50 +174,24 @@ for iplt, pltInfo in enumerate(plts):
     for h in (hRD, hMC, hsMC, hRatio, grpRatio, c): del(h)
 
 ## Start to print cut flow
-cutflow = {"ee":{}, "mm":{}, "em":{}}
+cutflow = {
+    "count":{"ee":{}, "mm":{}, "em":{}},
+    "nstep":0,
+    "step":None,
+}
 nstep = 0
-fws = [0,]
-fws[0] = max([len(x[0]) for x in srcMCs]+[4,])
-for mode in cutflow.keys():
+for mode in cutflow["count"].keys():
     h = fRDs[mode].Get("ttll/%s/cutstep" % mode)
     nstep = h.GetNbinsX()
-    cutflow[mode]["Data"] = [h.GetBinContent(i) for i in range(1, nstep+1)]
-    if len(fws) == 1: fws.extend([len(h.GetXaxis().GetBinLabel(i)) for i in range(1, nstep+1)])
+    cutflow["count"][mode]["Data"] = [h.GetBinContent(i) for i in range(1, nstep+1)]
+    if cutflow["step"] == None:
+        cutflow["step"] = [h.GetXaxis().GetBinLabel(i) for i in range(1, nstep+1)]
 
     for finName, color, f in srcMCs:
         h = f.Get("ttll/%s/cutstep" % mode)
-        cutflow[mode][finName] = [h.GetBinContent(i) for i in range(1, nstep+1)]
-fwtot = sum(fws)+12+len(fws)
-for mode in cutflow.keys():
-    print "="*((fwtot-12)/2), "Cutflow for", mode, "="*((fwtot-12)/2)
-    print " "*fws[0], "|",
-    print " | ".join([h.GetXaxis().GetBinLabel(i+1) for i in range(nstep)])
-    tfmt = "%"+str(fws[0])+"s |"
-    cutflow_bkg = [0.]*nstep
-    for x in cutflow[mode]:
-        if x == "Data" or 't_bar_t' in x: continue
-        print tfmt % x,
-        print " | ".join([("%"+str(fws[i+1])+".2f") % cutflow[mode][x][i] for i in range(nstep)])
-        for i in range(nstep): cutflow_bkg[i] += cutflow[mode][x][i]
-    print "-"*fwtot
-    cutflow_sig = [0.]*nstep
-    for x in cutflow[mode]:
-        if 't_bar_t' not in x: continue
-        print tfmt % x,
-        print " | ".join([("%"+str(fws[i+1])+".2f") % cutflow[mode][x][i] for i in range(nstep)])
-        for i in range(nstep): cutflow_sig[i] += cutflow[mode][x][i]
-    print "-"*fwtot
-    print tfmt % "All Signal",
-    print " | ".join([("%"+str(fws[i+1])+".2f") % cutflow_sig[i] for i in range(nstep)])
-    print tfmt % "All Bkg",
-    print " | ".join([("%"+str(fws[i+1])+".2f") % cutflow_bkg[i] for i in range(nstep)])
-    print tfmt % "All MC",
-    print " | ".join([("%"+str(fws[i+1])+".2f") % (cutflow_sig[i] + cutflow_bkg[i]) for i in range(nstep)])
-    print "-"*fwtot
-    print tfmt % "Data",
-    print " | ".join([("%"+str(fws[i+1]-3)+"d   ") % cutflow[mode]["Data"][i] for i in range(nstep)])
-    print "="*fwtot
-    print
+        cutflow["count"][mode][finName] = [h.GetBinContent(i) for i in range(1, nstep+1)]
+cutflow["nstep"] = nstep
+printCutflow(cutflow)
 
 ## Save cut flow
 f = open("pass2/cutflow.json", "w")
