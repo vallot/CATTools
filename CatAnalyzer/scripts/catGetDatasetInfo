@@ -67,7 +67,7 @@ for l in csv[1:]:
                })
 
 outDir = os.environ["CMSSW_BASE"]+"/src/CATTools/CatAnalyzer/data"
-if not os.path.exists(outDir): os.makedirs(outDir+"/dataset")
+if not os.path.exists(outDir+"/dataset"): os.makedirs(outDir+"/dataset")
 
 import json
 f = open("%s/dataset.json" % outDir, "w")

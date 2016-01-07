@@ -37,16 +37,21 @@ def hist_maker2D(name, title, tr, br, cut, bin):
 
 
 
+#signalfile = 'TTJets_aMC'
+#signalfile = 'TTJets_MG5'
+#signalfile = 'TT_powheg_scaleup'
 signalfile = 'TT_powheg'
 bkgfilelist = ['WJets', 'SingleTbar_tW', 'SingleTop_tW', 'ZZ', 'WW', 'WZ', 'DYJets', 'DYJets_10to50']
 rdfilelist = ['MuonEG_Run2015','DoubleEG_Run2015','DoubleMuon_Run2015']
 
-rootfileDir = "/cms/scratch/tt8888tt/cattools_v746/src/CATTools/CatAnalyzer/test/v7-4-6/"
+rootfileDir = "/cms/home/tt8888tt/v7-4-6/"
+#rootfileDir = "/cms/scratch/tt8888tt/cattools_v746/src/CATTools/CatAnalyzer/test/v7-4-6/"
 channel_name = ['Combined', 'MuEl', 'ElEl', 'MuMu']
 
 #weight
 #weight = '1.'
-weight = 'puweight'
+bkweight = '(genweight*puweight)'
+weight = '(weight*btagweight)'
 
 #cuts
 stepchcut = 'step==6&&channel==%s'%channel
@@ -71,11 +76,9 @@ for mcname in bkgfilelist:
 	tree = tt.cattree.Get("nom")
 	tmp_bk = ROOT.TH1F('tmp_s6_'+name, 'Reco_noPhaseCut', len(binning)-1, array.array('f',binning))
 	for var in vars:
-		tmp_bk.Add(hist_maker('hist', plotvar, tree, var, "(%s&&%s)*weight"%(stepchcut,filtercut), binning))
-	print type(tmp_bk)
+		tmp_bk.Add(hist_maker('hist', plotvar, tree, var, "(%s&&%s)*%s"%(stepchcut,filtercut,weight), binning))
 	bkg_s6.append(copy.deepcopy(tmp_bk))
 
-print type(bkg_s6[0])
 #Signal
 rootfilename = rootfileDir+signalfile+".root"
 tt = ROOT.TFile(rootfilename)
@@ -92,11 +95,11 @@ h2_GenReco = ROOT.TH2F('h2_'+name, 'GenReco', len(binning)-1, array.array('f',bi
 h1_Signal_rate = ROOT.TH1F('h_'+name+'_rate', 'Signal_rate', len(binning)-1, array.array('f',binning))
 
 for var in vars:
-	h1_Gen.Add(hist_maker('hist', plotvar, tree, 'gen'+var, "(%s&&%s)*puweight"%(ttother_cut,phase_cut), binning))
-	h1_Parton.Add(hist_maker('hist', plotvar, tree, 'parton'+var, "(%s)*puweight"%(ttother_cut), binning))
-	h1_Reco.Add(hist_maker('hist', plotvar, tree, var, "(%s&&%s&&%s&&%s)*weight"%(stepchcut,filtercut,ttother_cut,phase_cut), binning))
-	h1_Reco_noPhaseCut.Add(hist_maker('hist', plotvar, tree, var, "(%s&&%s)*weight"%(stepchcut,filtercut), binning))
-	h2_GenReco.Add(hist_maker2D('hist', plotvar, tree, 'gen%s:%s'%(var,var), "(%s&&%s&&%s&&%s)*weight"%(stepchcut,filtercut,ttother_cut,phase_cut), binning))
+	h1_Gen.Add(hist_maker('hist', plotvar, tree, 'gen'+var, "(%s&&%s)*%s"%(ttother_cut,phase_cut,bkweight), binning))
+	h1_Parton.Add(hist_maker('hist', plotvar, tree, 'parton'+var, "(%s)*%s"%(ttother_cut,bkweight), binning))
+	h1_Reco.Add(hist_maker('hist', plotvar, tree, var, "(%s&&%s&&%s&&%s)*%s"%(stepchcut,filtercut,ttother_cut,phase_cut,weight), binning))
+	h1_Reco_noPhaseCut.Add(hist_maker('hist', plotvar, tree, var, "(%s&&%s)*%s"%(stepchcut,filtercut,weight), binning))
+	h2_GenReco.Add(hist_maker2D('hist', plotvar, tree, 'gen%s:%s'%(var,var), "(%s&&%s&&%s&&%s)*%s"%(stepchcut,filtercut,ttother_cut,phase_cut,weight), binning))
 
 for h in bkg_s6:
 	h1_Reco_noPhaseCut.Add(h)
@@ -118,9 +121,8 @@ cnv = ROOT.TCanvas()
 
 h1_Reco_noPhaseCut = ROOT.TH1F('s6_'+name, 'Reco_noPhaseCut', len(binning)-1, array.array('f',binning))
 for var in vars:
-	h1_Reco_noPhaseCut.Add(hist_maker('hist', plotvar, tree, var, "(%s&&%s)*weight"%(stepchcut,filtercut), binning))
+	h1_Reco_noPhaseCut.Add(hist_maker('hist', plotvar, tree, var, "(%s&&%s)*%s"%(stepchcut,filtercut,weight), binning))
 
 out_rt.Write()
 out_rt.Close()
-
 
