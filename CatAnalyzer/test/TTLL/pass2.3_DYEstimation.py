@@ -9,14 +9,12 @@ rootfileDir = "pass2/central"
 
 hName = "ttll/%s/step%d/z_m_noveto"
 fDY = TFile.Open(rootfileDir+"/Z__gamma_rightarrow_ll.root")
-fEM = TFile.Open(rootfileDir+"/MuonEG.root")
-fMM = TFile.Open(rootfileDir+"/DoubleMuon.root")
-fEE = TFile.Open(rootfileDir+"/DoubleEG.root")
+fRD = TFile(rootfileDir+"/Data.root")
 
 ## Calculate efficiency factor kMM and kEE using the step1
-hRD_ee = fEE.Get(hName % ("ee", 1))
-hRD_mm = fMM.Get(hName % ("mm", 1))
-hRD_em = fEM.Get(hName % ("em", 1))
+hRD_ee = fRD.Get(hName % ("ee", 1))
+hRD_mm = fRD.Get(hName % ("mm", 1))
+hRD_em = fRD.Get(hName % ("em", 1))
 hDY_ee = fDY.Get(hName % ("ee", 1))
 hDY_mm = fDY.Get(hName % ("mm", 1))
 
@@ -38,9 +36,9 @@ out = {
 }
 
 for step in range(1,6):
-    hRD_ee = fEE.Get(hName % ("ee", step))
-    hRD_mm = fMM.Get(hName % ("mm", step))
-    hRD_em = fEM.Get(hName % ("em", step))
+    hRD_ee = fRD.Get(hName % ("ee", step))
+    hRD_mm = fRD.Get(hName % ("mm", step))
+    hRD_em = fRD.Get(hName % ("em", step))
     hDY_ee = fDY.Get(hName % ("ee", step))
     hDY_mm = fDY.Get(hName % ("mm", step))
 

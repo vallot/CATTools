@@ -26,11 +26,7 @@ srcMCs = [
 ]
 for s in srcMCs: s.append(TFile("pass2/central/%s.root" % s[0]))
 
-fRDs = {
-    "ee":TFile("pass2/central/DoubleEG.root"),
-    "mm":TFile("pass2/central/DoubleMuon.root"),
-    "em":TFile("pass2/central/MuonEG.root"),
-}
+fRD = TFile("pass2/central/Data.root")
 
 ## Data driven corrections
 scaleDY = json.loads(open("pass2/scaler_DY.json").read())
@@ -65,8 +61,6 @@ for iplt, pltInfo in enumerate(plts):
     fout.cd(dirName)
 
     ## Add real data histograms
-    fRD = fRDs[plt[5:7]]
-
     hRD = fRD.Get(plt).Clone()
     nbinsX = hRD.GetNbinsX()
     hRD.SetOption("pe")
@@ -181,7 +175,7 @@ cutflow = {
 }
 nstep = 0
 for mode in cutflow["count"].keys():
-    h = fRDs[mode].Get("ttll/%s/cutstep" % mode)
+    h = fRD.Get("ttll/%s/cutstep" % mode)
     nstep = h.GetNbinsX()
     cutflow["count"][mode]["Data"] = [h.GetBinContent(i) for i in range(1, nstep+1)]
     if cutflow["step"] == None:
