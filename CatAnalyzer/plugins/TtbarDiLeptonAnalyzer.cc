@@ -36,8 +36,9 @@ public:
   };
   enum sys_e {sys_nom, 
     sys_jes_u, sys_jes_d, sys_jer_u, sys_jer_d,
-    sys_mu_u, sys_mu_d, sys_el_u, sys_el_d,
-    sys_mueff_u, sys_mueff_d, sys_eleff_u, sys_eleff_d,
+    sys_lep_u, sys_lep_d, sys_lepeff_u, sys_lepeff_d,
+    //sys_mu_u, sys_mu_d, sys_el_u, sys_el_d,
+    //sys_mueff_u, sys_mueff_d, sys_eleff_u, sys_eleff_d,
     sys_btag_u, sys_btag_d,
     nsys_e
   };
@@ -60,14 +61,14 @@ private:
     const int aid = abs(p.pdgId());
     if ( aid == 13 ) {
       const double pt = p.pt(), eta = std::abs(p.eta());
-      if      ( sys == sys_mueff_u ) return muonSF_(eta, pt,  1);
-      else if ( sys == sys_mueff_d ) return muonSF_(eta, pt, -1);
+      if      ( sys == sys_lepeff_u ) return muonSF_(eta, pt,  1);
+      else if ( sys == sys_lepeff_d ) return muonSF_(eta, pt, -1);
       else return muonSF_(eta, pt, 0);
     }
     else {
       const double pt = p.pt(), eta = p.eta();
-      if      ( sys == sys_eleff_u ) return elecSF_(eta, pt,  1);
-      else if ( sys == sys_eleff_d ) return elecSF_(eta, pt, -1);
+      if      ( sys == sys_lepeff_u ) return elecSF_(eta, pt,  1);
+      else if ( sys == sys_lepeff_d ) return elecSF_(eta, pt, -1);
       else return elecSF_(eta, pt, 0);
     }
     return 1;
@@ -200,8 +201,9 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   const std::string sys_name[nsys_e] = {
     "nom",
     "jes_u", "jes_d", "jer_u", "jer_d",
-    "mu_u", "mu_d", "el_u", "el_d",
-    "mueff_u", "mueff_d", "eleff_u", "eleff_d",
+    "lep_u", "lep_d", "lepeff_u", "lepeff_d",
+    //"mu_u", "mu_d", "el_u", "el_d",
+    //"mueff_u", "mueff_d", "eleff_u", "eleff_d",
     "btag_u", "btag_d"
   };
   for (int sys = 0; sys < nsys_e; ++sys){
@@ -527,6 +529,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         b_genlep2_pt = lepton2.pt();
         b_genlep2_eta = lepton2.eta();
 
+        if (bjet1.Pt() < bjet2.Pt()) { swap(bjet1, bjet2); }
         b_genjet1_pt = bjet1.pt();
         b_genjet1_eta = bjet1.eta();
         b_genjet2_pt = bjet2.pt();
@@ -727,7 +730,6 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     b_jet1_eta = bjet1.Eta();
     b_jet2_pt = bjet2.Pt();
     b_jet2_eta = bjet2.Eta();
-    cout << "jet: " << b_jet1_pt << "   " << b_jet2_pt << endl;
 
     if (top1.Pt() < top2.Pt()) { swap(top1, top2); }
     b_top1_pt = top1.Pt();
@@ -740,7 +742,6 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     b_top2_phi = top2.Phi();
     b_top2_rapi = top2.Rapidity();
     b_top2_m = top2.M();
-    cout << "top: " << b_top1_pt << "   " << b_top2_pt << endl;
 
     auto ttbar = top1+top2;
     b_ttbar_pt = ttbar.Pt();
@@ -779,8 +780,8 @@ float TtbarDiLeptonAnalyzer::selectMuons(const cat::MuonCollection& muons, Parti
   float weight = 1.;
   for (auto& m : muons) {
     cat::Muon mu(m);
-    if (sys == sys_mu_u) mu.setP4(m.p4() * m.shiftedEnUp());
-    if (sys == sys_mu_d) mu.setP4(m.p4() * m.shiftedEnDown());
+    if (sys == sys_lep_u) mu.setP4(m.p4() * m.shiftedEnUp());
+    if (sys == sys_lep_d) mu.setP4(m.p4() * m.shiftedEnDown());
 
     if (mu.pt() < 20.) continue;
     if (std::abs(mu.eta()) > 2.4) continue;
@@ -799,8 +800,8 @@ float TtbarDiLeptonAnalyzer::selectElecs(const cat::ElectronCollection& elecs, P
   float weight = 1.;
   for (auto& e : elecs) {
     cat::Electron el(e);
-    if (sys == sys_el_u) el.setP4(e.p4() * e.shiftedEnUp());
-    if (sys == sys_el_d) el.setP4(e.p4() * e.shiftedEnDown());
+    if (sys == sys_lep_u) el.setP4(e.p4() * e.shiftedEnUp());
+    if (sys == sys_lep_d) el.setP4(e.p4() * e.shiftedEnDown());
 
     if (el.pt() < 20.) continue;
     if ((std::abs(el.scEta()) > 1.4442) && (std::abs(el.scEta()) < 1.566)) continue;
