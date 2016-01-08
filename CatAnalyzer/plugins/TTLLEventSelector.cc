@@ -630,8 +630,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   edm::Handle<cat::METCollection> metHandle;
   event.getByToken(metToken_, metHandle);
   const auto& metP4 = metHandle->at(0).p4();
-  const double met_pt = metP4.pt();
-  const double met_phi = metP4.phi();
+  double metDpx = 0, metDpy = 0;
 
   edm::Handle<int> nVertexHandle;
   event.getByToken(nVertexToken_, nVertexHandle);
@@ -689,7 +688,10 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     reco::CandidatePtr muonPtr = reco::CandidatePtr(muonHandle, i);
     if ( isGoodMuon(p) ) selectedLeptons.push_back(muonPtr);
 
-    leptons_st += shiftedMuonPt(p);
+    const double pt = shiftedMuonPt(p);
+    leptons_st += pt;
+    metDpx += (pt/p.pt()-1)*p.px(); //lep.px()-x->px()
+    metDpy += (pt/p.pt()-1)*p.py();
   }
   for ( int i=0, n=electronHandle->size(); i<n; ++i )
   {
@@ -698,7 +700,10 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     reco::CandidatePtr electronPtr = reco::CandidatePtr(electronHandle, i);
     if ( isGoodElectron(p) ) selectedLeptons.push_back(electronPtr);
 
-    leptons_st += shiftedElectronPt(p);
+    const double pt = shiftedElectronPt(p);
+    leptons_st += pt;
+    metDpx += (pt/p.pt()-1)*p.px(); //lep.px()-x->px()
+    metDpy += (pt/p.pt()-1)*p.py();
   }
   const int leptons_n = selectedLeptons.size();
   reco::CandidatePtr lepton1, lepton2;
@@ -758,6 +763,8 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     if ( !jet.LooseId() ) continue;
 
     const double pt = shiftedJetPt(jet);
+    metDpx += (pt/jet.pt()-1)*jet.px(); //jet.px()-x->px()
+    metDpy += (pt/jet.pt()-1)*jet.py();
     if ( pt < 30 ) continue;
     if ( leptons_n >= 1 and deltaR(jet.p4(), selectedLeptons.at(0)->p4()) < 0.4 ) continue;
     if ( leptons_n >= 2 and deltaR(jet.p4(), selectedLeptons.at(1)->p4()) < 0.4 ) continue;
@@ -770,6 +777,10 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   std::sort(selectedJets.begin(), selectedJets.end(),
             [&](reco::CandidatePtr a, reco::CandidatePtr b){
               return shiftedJetPt(*a) > shiftedJetPt(*b);});
+
+  // Update & calculate met
+  const double met_pt = hypot(metP4.px()-metDpx, metP4.py()-metDpy);
+  const double met_phi = atan2(metP4.px()-metDpx, metP4.py()-metDpy);
 
   // Check cut steps and fill histograms
   h_weight->Fill(weight);
