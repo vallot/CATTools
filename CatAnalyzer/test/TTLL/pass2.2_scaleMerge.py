@@ -37,7 +37,7 @@ def merge(outfileName, mergeInfo):
 
         ## Visit all cut flows and do the normalization
         src_moddir = fsrc.Get("ttll")
-        for chName in [x.GetName() for x in src_moddir.GetListOfKeys()]:
+        for chName in [k.GetName() for k in src_moddir.GetListOfKeys()]:
             if chName == "overall": continue
 
             ## Special care for the real data
@@ -47,7 +47,7 @@ def merge(outfileName, mergeInfo):
             src_chdir = src_moddir.Get(chName)
             out_chdir = out_moddir.Get(chName)
 
-            for stepName in [x.GetName() for x in src_chdir.GetListOfKeys()]:
+            for stepName in [k.GetName() for k in src_chdir.GetListOfKeys()]:
                 src_stepdir = src_chdir.Get(stepName)
                 ## Cut flow table
                 if src_stepdir.IsA().InheritsFrom("TH1"):
@@ -66,7 +66,7 @@ def merge(outfileName, mergeInfo):
                     if i == 0: out_chdir.mkdir(stepName)
                     out_stepdir = out_chdir.Get(stepName)
                 
-                    for histName in [x.GetName() for x in src_stepdir.GetListOfKeys()]:
+                    for histName in [k.GetName() for k in src_stepdir.GetListOfKeys()]:
                         hsrc = src_stepdir.Get(histName)
                         hsrc.Scale(scale)
 
