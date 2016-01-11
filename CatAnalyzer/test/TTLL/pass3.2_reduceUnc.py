@@ -4,6 +4,8 @@ import json
 import os
 from multiprocessing import Pool, cpu_count
 
+outbase = "pass3/hists"
+
 try:
     res = gSystem.CompileMacro("submacros/combine.C", "k")
     if res != 1:
@@ -38,18 +40,18 @@ if __name__ == '__main__':
 
         key = (cat, fName)
         if key not in uncToReduce: uncToReduce[key] = []
-        uncToReduce[key].append(fPath.replace("pass2", "pass3/hists"))
+        uncToReduce[key].append(fPath.replace("pass2", outbase))
 
     ## Start to loop over all of them and do the reduction.
     pool = Pool(cpu_count())
     for cat, fName in uncToReduce:
         ## Prepare output
-        if not os.path.exists("pass3/hists/%s/up" % cat): os.makedirs("pass3/hists/%s/up" % cat)
-        if not os.path.exists("pass3/hists/%s/dn" % cat): os.makedirs("pass3/hists/%s/dn" % cat)
+        if not os.path.exists("%s/%s/up" % (outbase, cat)): os.makedirs("%s/%s/up" % (outbase, cat))
+        if not os.path.exists("%s/%s/dn" % (outbase, cat)): os.makedirs("%s/%s/dn" % (outbase, cat))
 
-        fNameCen = "pass3/hists/central/"+fName
-        fNameUp = "pass3/hists/%s/up/%s" % (cat, fName)
-        fNameDn = "pass3/hists/%s/dn/%s" % (cat, fName)
+        fNameCen = "%s/central/%s" % (outbase, fName)
+        fNameUp = "%s/%s/up/%s" % (outbase, cat, fName)
+        fNameDn = "%s/%s/dn/%s" % (outbase, cat, fName)
 
         if   cat == 'gen_PDF'  : combineBy = "hessian"
         elif cat == 'gen_scale': combineBy = "envelope"

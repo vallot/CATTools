@@ -30,44 +30,44 @@ def combine(fNameCen, fNameUp, fNameDn, fNames, plotNames, combineBy):
             for b in range(nbins+2):
                 diffs[b].append(h.GetBinContent(b)-hcen.GetBinContent(b))
 
-    rdir = os.path.dirame(pName)
-    dup = fup.GetDirectory(rdir)
-    if dup == None:
-        fup.mkdir(rdir)
+        rdir = os.path.dirname(pName)
         dup = fup.GetDirectory(rdir)
-    dup.cd()
-    hup = hcen.Clone()
+        if dup == None:
+            fup.mkdir(rdir)
+            dup = fup.GetDirectory(rdir)
+        dup.cd()
+        hup = hcen.Clone()
 
-    ddn = fdn.GetDirectory(rdir)
-    if ddn == None:
-        fdn.mkdir(rdir)
         ddn = fdn.GetDirectory(rdir)
-    ddn.cd()
-    hdn = hcen.Clone()
+        if ddn == None:
+            fdn.mkdir(rdir)
+            ddn = fdn.GetDirectory(rdir)
+        ddn.cd()
+        hdn = hcen.Clone()
 
-    if combineBy == "hessian":
-        for b in range(nbins+2):
-            dqsqr = sum([dyi[b]**2 for dyi in diffs])
-            hup.AddBinContent(b, sqrt(dysqr))
-            hdn.AddBinContent(b, -sqrt(dysqr))
-    elif combineBy == "envelope":
-        for b in range(nbins+2):
-            dymax = max([dyi[b] for dyi in diffs])
-            dymin = min([dyi[b] for dyi in diffs])
-            hup.AddBinContent(b, dymax)
-            hdn.AddBinContent(b, dymin)
-    elif combineBy == "gauss":
-        for b in range(nbins+2):
-            n = len(diffs)
-            dqsqr = sum([dyi[b]**2 for dyi in diffs])
-            hup.AddBinContent(b, sqrt(dysqr)/n)
-            hdn.AddBinContent(b, -sqrt(dysqr)/n)
+        if combineBy == "hessian":
+            for b in range(nbins+2):
+                dqsqr = sum([dyi[b]**2 for dyi in diffs])
+                hup.AddBinContent(b, sqrt(dysqr))
+                hdn.AddBinContent(b, -sqrt(dysqr))
+        elif combineBy == "envelope":
+            for b in range(nbins+2):
+                dymax = max([dyi[b] for dyi in diffs])
+                dymin = min([dyi[b] for dyi in diffs])
+                hup.AddBinContent(b, dymax)
+                hdn.AddBinContent(b, dymin)
+        elif combineBy == "gauss":
+            for b in range(nbins+2):
+                n = len(diffs)
+                dqsqr = sum([dyi[b]**2 for dyi in diffs])
+                hup.AddBinContent(b, sqrt(dysqr)/n)
+                hdn.AddBinContent(b, -sqrt(dysqr)/n)
 
-    dup.cd()
-    hup.Write("", TObject.kOverwrite)
+        dup.cd()
+        hup.Write("", TObject.kOverwrite)
 
-    ddn.cd()
-    hdn.Write("", TObject.kOverwrite)
+        ddn.cd()
+        hdn.Write("", TObject.kOverwrite)
 
     print "@@ Clean up opened files"
     for f in files:
