@@ -5,8 +5,8 @@ import os
 from multiprocessing import Pool, cpu_count
 
 outbase = "pass3/hists"
-
 try:
+    from ROOT import *
     res = gSystem.CompileMacro("submacros/combine.C", "k")
     if res != 1:
         raise "Cannot compile"

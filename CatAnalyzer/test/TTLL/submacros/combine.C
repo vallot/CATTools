@@ -28,7 +28,7 @@ void combine(const char* fNameCen, const char* fNameUp, const char* fNameDn,
   if ( !fcen or fcen->IsZombie() ) return;
   fcen->SetBit(TFile::kDevNull);
 
-  cout << "@@ Processing " << fNameCen << endl;
+  cout << "@@ Processing with C " << fNameCen << endl;
 
   TFile* fup = TFile::Open(fNameUp, "recreate");
   TFile* fdn = TFile::Open(fNameDn, "recreate");
