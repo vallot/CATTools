@@ -12,8 +12,7 @@ datalumi = datalumi*1000 # due to fb
 
 mcfilelist = ['TT_powheg', 'WJets', 'SingleTbar_tW', 'SingleTop_tW', 'ZZ', 'WW', 'WZ', 'DYJets', 'DYJets_10to50']
 rdfilelist = ['MuonEG_Run2015','DoubleEG_Run2015','DoubleMuon_Run2015']
-rootfileDir = "/cms/scratch/tt8888tt/cattools_v746/src/CATTools/CatAnalyzer/test/v7-4-6/"
-#rootfileDir = "/cms/scratch/jlee/v7-4-6/TtbarDiLeptonAnalyzer_"
+rootfileDir = "/xrootd/store/user/tt8888tt/v7-4-6/"
 channel_name = ['MuEl', 'ElEl', 'MuMu']
 
 datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json" % os.environ['CMSSW_BASE']))
@@ -23,7 +22,7 @@ step = 1
 channel = 1
 
 cut = 'tri==1&&filtered==1'
-weight = 'weight'
+weight = 'genweight*puweight*lepweight*btagweight'
 binning = [60, 20, 320]
 plotvar = 'll_m'
 x_name = 'mass [GeV]'
@@ -58,20 +57,15 @@ for opt, arg in opts:
     elif opt in ("-d", "--dolog"):
         dolog = True
 
-if plotvar == 'ttbar_deltaphi':
-	plotvar = 'acos(cos(top1_phi-top2_phi))'
-
 tname = "cattree/nom"
-mchistList = []
 
 if channel == 1: ttother_tcut = "!(parton_channel==2 && ((parton_mode1==1 && parton_mode2==2) || (parton_mode1==2 && parton_mode2==1)))"
 elif channel == 2: ttother_tcut = "!(parton_channel==2 && (parton_mode1==2 && parton_mode2==2))"
 elif channel == 3: ttother_tcut = "!(parton_channel==2 && (parton_mode1==1 && parton_mode2==1))"
 
 stepch_tcut =  'step>=%i&&channel==%i'%(step,channel)
-tcut = '(%s&&%s)*%s'%(stepch_tcut,cut,weight)
-#ttother_tcut = '(%s&&%s&&%s)*%s'%(stepch_tcut,cut,ttother_tcut,weight)
-ttother_tcut = '(%s&&%s&&(%s||(gentop1_pt==-9||gentop2_pt==-9)))*%s'%(stepch_tcut,cut,ttother_tcut,weight)
+tcut = '(%s&&%s)*(%s)'%(stepch_tcut,cut,weight)
+ttother_tcut = '(%s&&%s&&%s)*(%s)'%(stepch_tcut,cut,ttother_tcut,weight)
 print "TCut =",tcut
 x_name = channel_name[channel-1]+" "+x_name
 if len(binning) <= 3:
@@ -81,8 +75,6 @@ if len(binning) <= 3:
             unit = "["+x_name.split('[')[1]
         else: unit = ""
         y_name = y_name + "/%g%s"%(num,unit)
-
-print plotvar
 
 #DY estimation
 dyratio = [[0 for x in range(7)] for x in range(4)]
@@ -111,6 +103,7 @@ if channel !=1:
     rfname = rootfileDir + 'DYJets_10to50' +".root"
     data = findDataSet('DYJets_10to50', datasets)
     scale = datalumi*data["xsec"]
+    scale = scale/1.15851991276#xsec before tunning
 
     wentries = getWeightedEntries(rfname, tname, "tri", weight)
     scale = scale/wentries
@@ -141,6 +134,8 @@ for i, mcname in enumerate(mcfilelist):
 	title = data["title"]
 	if 'DYJets' in mcname:
 		scale = scale*dyratio[channel][step]
+	if '10to50' in mcname:
+		scale = scale/1.15851991276#xsec before tunning
 
 	rfname = rootfileDir + mcname +".root"
 
@@ -158,8 +153,9 @@ for i, mcname in enumerate(mcfilelist):
 		mchistList.append(ttothers)
 		mchist.Add(ttothers, -1)
 
+rdtcut = '%s&&%s'%(stepch_tcut,cut)
 rfname = rootfileDir + rdfilelist[channel-1] +".root"
-rdhist = makeTH1(rfname, tname, 'data', binning, plotvar, tcut)
+rdhist = makeTH1(rfname, tname, 'data', binning, plotvar, rdtcut)
 rdhist.SetLineColor(1)
 
 var = plotvar.split(',')[0]
