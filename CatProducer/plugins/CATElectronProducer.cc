@@ -196,9 +196,10 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
 
     // Fill the validity flag of triggered MVA
     bool isTrigMVAValid = false;
+    const double pt = aElectron.pt();
     if ( pt > 15 ) {
-      const double abseta = std::abs(aElectron.eta());
-      const double full5x5_sigIetaIeta = aPatElectron.full5x5_sigmaIetaIeta();
+      const double abseta = std::abs(aPatElectron.superCluster()->eta());
+      const double full5x5_sigmaIetaIeta = aPatElectron.full5x5_sigmaIetaIeta();
       const double hcalOverEcal =  aPatElectron.hcalOverEcal();
       const double ecalPFClusterIso = aPatElectron.ecalPFClusterIso();
       const double hcalPFClusterIso = aPatElectron.hcalPFClusterIso();
