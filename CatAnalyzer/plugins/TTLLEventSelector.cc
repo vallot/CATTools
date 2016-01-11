@@ -480,8 +480,12 @@ private:
   }
   bool isGoodElectron(const cat::Electron& el)
   {
-    if ( std::abs(el.eta()) > 2.4 ) return false;
-    if ( shiftedElectronPt(el) < 20 ) return false;
+    const double aeta = std::abs(el.eta());
+    if ( aeta > 2.4 ) return false;
+    const double pt = shiftedElectronPt(el);
+    if ( pt < 20 ) return false;
+
+    if ( !el.isTrigMVAValid() ) return false;
 
     //if ( el.relIso(0.3) >= 0.11 ) return false;
     if ( !el.electronID(elIdName_) ) return false;
