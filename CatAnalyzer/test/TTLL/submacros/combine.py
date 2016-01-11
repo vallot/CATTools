@@ -70,11 +70,11 @@ def combine(fNameCen, fNameUp, fNameDn, fNames, plotNames, combineBy):
         hdn.Write("", TObject.kOverwrite)
 
     print "@@ Clean up opened files"
-    for f in files:
-        gROOT.GetListOfFiles().Remove(f)
     fcen.Close()
     fup.Close()
     fdn.CLose()
+    for f in files:
+        gROOT.GetListOfFiles().Remove(f)
 
     print "@@ Finished", fNameCen
 
