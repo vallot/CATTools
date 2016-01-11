@@ -170,6 +170,7 @@ for iplt, pltInfo in enumerate(plts):
 ## Start to print cut flow
 cutflow = {
     "count":{"ee":{}, "mm":{}, "em":{}},
+    "error":{"ee":{}, "mm":{}, "em":{}},
     "nstep":0,
     "step":None,
 }
@@ -178,12 +179,14 @@ for mode in cutflow["count"].keys():
     h = fRD.Get("ttll/%s/cutstep" % mode)
     nstep = h.GetNbinsX()
     cutflow["count"][mode]["Data"] = [h.GetBinContent(i) for i in range(1, nstep+1)]
+    cutflow["error"][mode]["Data"] = [h.GetBinError(i) for i in range(1, nstep+1)]
     if cutflow["step"] == None:
         cutflow["step"] = [h.GetXaxis().GetBinLabel(i) for i in range(1, nstep+1)]
 
     for finName, color, f in srcMCs:
         h = f.Get("ttll/%s/cutstep" % mode)
         cutflow["count"][mode][finName] = [h.GetBinContent(i) for i in range(1, nstep+1)]
+        cutflow["error"][mode][finName] = [h.GetBinError(i) for i in range(1, nstep+1)]
 cutflow["nstep"] = nstep
 printCutflow(cutflow)
 
