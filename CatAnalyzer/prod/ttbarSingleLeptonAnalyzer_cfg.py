@@ -2,10 +2,10 @@
 #------------------------------------------------------------------
 # Data or MC Sample
 runOnMC      = False
-# runOnTTbarMC == 0, No ttbar
-# runOnTTbarMC == 1, ttbar Signal
-# runOnTTbarMC == 2, ttbar Background
-runOnTTbarMC = 0
+# runOnTTbarMC = 0 # No ttbar
+runOnTTbarMC = 1 # ttbar Signal
+# runOnTTbarMC = 2 # ttbar Background
+#runOnTTbarMC = 0
 #------------------------------------------------------------------
 #------------------------------------------------------------------
 
@@ -32,7 +32,12 @@ process.source = cms.Source("PoolSource",
         #'root://cms-xrdr.sdfarm.kr///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-3-6_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v4/150820_215807/0000/catTuple_108.root'    # -- XROOT test
 #        'file:/cms/home/brochero/CATTuples_August/Central-v7-3-6/cat74/src/CATTools/CatAnalyzer/prod/catTuple_108.root' # -- MC
         #'file:/cms/home/brochero/CATTuples_July/cat74/src/CATTools/CatAnalyzer/catTuple_83.root' # -- Data
-'file:catTuple.root'
+       '/store/user/tjkim/pf/TT_TuneCUETP8M1_13TeV-powheg-pythia8/PAT2CT/151222_144802/0000/catTuple_20.root',
+       '/store/user/tjkim/pf/TT_TuneCUETP8M1_13TeV-powheg-pythia8/PAT2CT/151222_144802/0000/catTuple_21.root',
+       '/store/user/tjkim/pf/TT_TuneCUETP8M1_13TeV-powheg-pythia8/PAT2CT/151222_144802/0000/catTuple_22.root',
+       '/store/user/tjkim/pf/TT_TuneCUETP8M1_13TeV-powheg-pythia8/PAT2CT/151222_144802/0000/catTuple_23.root',
+       '/store/user/tjkim/pf/TT_TuneCUETP8M1_13TeV-powheg-pythia8/PAT2CT/151222_144802/0000/catTuple_24.root',
+       #'file:catTuple.root'
     )
 )
 
@@ -40,15 +45,15 @@ process.source = cms.Source("PoolSource",
 #import FWCore.PythonUtilities.LumiList as LumiList
 #process.source.lumisToProcess = LumiList.LumiList(filename = 'Cert_246908-251883_13TeV_PromptReco_Collisions15_JSON_v2.txt').getVLuminosityBlockRange()
 
-process.ttbarSingleLepton = cms.EDAnalyzer('TtbarSingleLeptonAnalyzer',
+process.TLPJ = cms.EDAnalyzer('TtbarSingleLeptonAnalyzer',
                                            sampleLabel       = cms.untracked.bool(runOnMC),
                                            TTbarSampleLabel  = cms.untracked.int32(runOnTTbarMC),
+                                           genTopLabel   = cms.InputTag("catGenTops"),
                                            genLabel      = cms.InputTag("prunedGenParticles"),
                                            muonLabel     = cms.InputTag("catMuons"),
                                            electronLabel = cms.InputTag("catElectrons"),
                                            jetLabel      = cms.InputTag("catJets"),
-                                           #metLabel      = cms.InputTag("catMETs"),
-                                           metLabel      = cms.InputTag("catMETsNoHF"),
+                                           metLabel      = cms.InputTag("catMETs"),
                                            pvLabel       = cms.InputTag("catVertex:nGoodPV"),
                                            puWeight      = cms.InputTag("pileupWeight"),
                                            triggerBits = cms.InputTag("TriggerResults::HLT"), # Not working yet
@@ -63,4 +68,4 @@ process.TFileService = cms.Service("TFileService",
 #process.Tracer = cms.Service("Tracer")
 #process.dump=cms.EDAnalyzer('EventContentAnalyzer')
 #process.p = cms.Path(process.demo*process.dump)
-process.p = cms.Path(process.ttbarSingleLepton)
+process.p = cms.Path(process.TLPJ)
