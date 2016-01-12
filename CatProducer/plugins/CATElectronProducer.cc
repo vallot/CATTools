@@ -194,6 +194,37 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
 
     aElectron.setSNUID(snu_id);
 
+    // Fill the validity flag of triggered MVA
+    bool isTrigMVAValid = false;
+    const double pt = aElectron.pt();
+    if ( pt > 15 ) {
+      const double abseta = std::abs(aPatElectron.superCluster()->eta());
+      const double full5x5_sigmaIetaIeta = aPatElectron.full5x5_sigmaIetaIeta();
+      const double hcalOverEcal =  aPatElectron.hcalOverEcal();
+      const double ecalPFClusterIso = aPatElectron.ecalPFClusterIso();
+      const double hcalPFClusterIso = aPatElectron.hcalPFClusterIso();
+      const double dr03TkSumPt = aPatElectron.dr03TkSumPt();
+      if ( abseta < 1.479 ) { // Barrel
+        const double deltaEtaSuperClusterTrackAtVtx = aPatElectron.deltaEtaSuperClusterTrackAtVtx();
+        const double deltaPhiSuperClusterTrackAtVtx = aPatElectron.deltaPhiSuperClusterTrackAtVtx();
+        if ( full5x5_sigmaIetaIeta < 0.012 and
+             hcalOverEcal < 0.09 and
+             ecalPFClusterIso < 0.37*pt and
+             hcalPFClusterIso < 0.25*pt and
+             dr03TkSumPt < 0.18*pt and
+             std::abs(deltaEtaSuperClusterTrackAtVtx) < 0.0095 and
+             std::abs(deltaPhiSuperClusterTrackAtVtx) < 0.065 ) isTrigMVAValid = true;
+      }
+      else { // Endcap
+        if ( full5x5_sigmaIetaIeta < 0.033 and
+             hcalOverEcal < 0.09 and
+             ecalPFClusterIso < 0.45*pt and
+             hcalPFClusterIso < 0.28*pt and
+             dr03TkSumPt < 0.18*pt ) isTrigMVAValid = true;
+      }
+    }
+    aElectron.setTrigMVAValid(isTrigMVAValid);
+
     out->push_back(aElectron);
 
     ++j;

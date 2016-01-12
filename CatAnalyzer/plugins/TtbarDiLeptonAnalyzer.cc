@@ -527,6 +527,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         b_genlep2_pt = lepton2.pt();
         b_genlep2_eta = lepton2.eta();
 
+        if (bjet1.Pt() < bjet2.Pt()) { swap(bjet1, bjet2); }
         b_genjet1_pt = bjet1.pt();
         b_genjet1_eta = bjet1.eta();
         b_genjet2_pt = bjet2.pt();
@@ -727,7 +728,6 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     b_jet1_eta = bjet1.Eta();
     b_jet2_pt = bjet2.Pt();
     b_jet2_eta = bjet2.Eta();
-    cout << "jet: " << b_jet1_pt << "   " << b_jet2_pt << endl;
 
     if (top1.Pt() < top2.Pt()) { swap(top1, top2); }
     b_top1_pt = top1.Pt();
@@ -740,7 +740,6 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     b_top2_phi = top2.Phi();
     b_top2_rapi = top2.Rapidity();
     b_top2_m = top2.M();
-    cout << "top: " << b_top1_pt << "   " << b_top2_pt << endl;
 
     auto ttbar = top1+top2;
     b_ttbar_pt = ttbar.Pt();
@@ -806,7 +805,7 @@ float TtbarDiLeptonAnalyzer::selectElecs(const cat::ElectronCollection& elecs, P
     if ((std::abs(el.scEta()) > 1.4442) && (std::abs(el.scEta()) < 1.566)) continue;
     if (std::abs(el.eta()) > 2.4) continue;
     //if ( !el.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-medium") ) continue;
-    if ( !el.electronID("mvaEleID-Spring15-25ns-Trig-V1-wp90") ) continue;
+    if ( !el.isTrigMVAValid() or !el.electronID("mvaEleID-Spring15-25ns-Trig-V1-wp90") ) continue;
     if (el.relIso(0.3) > 0.12) continue;
 
     weight *= el.scaleFactor("mvaEleID-Spring15-25ns-Trig-V1-wp90");

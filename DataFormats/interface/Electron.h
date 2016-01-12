@@ -44,6 +44,7 @@ namespace cat {
     float shiftedEnUp() const {return  1+shiftedEn();}
     
     int snuID() const {return snuID_;}
+    bool isTrigMVAValid() const { return isTrigMVAValid_; }
     
     void setElectronIDs(const std::vector<pat::Electron::IdPair> & ids) { electronIDs_ = ids; }
     void setElectronID(pat::Electron::IdPair ids) { electronIDs_.push_back(ids); }
@@ -60,6 +61,7 @@ namespace cat {
     void setIsEB(bool d) { isEB_ = d ; }
 
     void setSNUID(int id) {snuID_ = id;}
+    void setTrigMVAValid(bool val) { isTrigMVAValid_ = val; }
 
     float scaleFactor(const std::string& name, int sign = 0) const;
     
@@ -76,6 +78,7 @@ namespace cat {
     bool isEB_;
     
     int snuID_;
+    bool isTrigMVAValid_;
   };
 }
 
