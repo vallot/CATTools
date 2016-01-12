@@ -13,7 +13,7 @@ catEventContent.extend([
     'keep *_catMuons_*_*',
     'keep *_catElectrons_*_*',
     # turning off since no one uses photon and taus
-    #'keep *_catPhotons_*_*',
+    'keep *_catPhotons_*_*',
     #'keep *_catTaus_*_*', 
     'keep *_catJets*_*_*',
     'keep *_catMETs*_*_*',
