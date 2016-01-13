@@ -35,9 +35,9 @@ infoMCs = {
 chan = {}
 samples = {}
 for mode in ("ee", "mm", "em"):
-    #hFullPath = "ttll/%s/step5/event_st" % mode
-    hFullPath = "ttll/%s/step4/jet1_btag" % mode
-    #hFullPath = "ttll/%s/step4/z_m_noveto" % mode
+    #hFullPath = "eventsTTLL/%s/step5/event_st" % mode
+    hFullPath = "eventsTTLL/%s/step4/jet1_btag" % mode
+    #hFullPath = "eventsTTLL/%s/step4/z_m_noveto" % mode
 
     chan[mode] = RooStats.HistFactory.Channel(mode)
     hName = os.path.basename(hFullPath)

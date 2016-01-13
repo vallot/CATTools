@@ -62,12 +62,12 @@ class TTBBLLAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>
 
 TTBBLLAnalyzer::TTBBLLAnalyzer(const edm::ParameterSet& pset)
 {
-  channelToken_ = consumes<int>(edm::InputTag("ttll", "channel"));
-  weightToken_ = consumes<float>(edm::InputTag("ttll", "weight"));
-  leptonsToken_ = consumes<cat::LeptonCollection>(edm::InputTag("ttll", "leptons"));
-  jetsToken_ = consumes<cat::JetCollection>(edm::InputTag("ttll", "jets"));
-  metToken_ = consumes<float>(edm::InputTag("ttll", "met"));
-  metphiToken_ = consumes<float>(edm::InputTag("ttll", "metphi"));
+  channelToken_ = consumes<int>(edm::InputTag("eventsTTLL", "channel"));
+  weightToken_ = consumes<float>(edm::InputTag("eventsTTLL", "weight"));
+  leptonsToken_ = consumes<cat::LeptonCollection>(edm::InputTag("eventsTTLL", "leptons"));
+  jetsToken_ = consumes<cat::JetCollection>(edm::InputTag("eventsTTLL", "jets"));
+  metToken_ = consumes<float>(edm::InputTag("eventsTTLL", "met"));
+  metphiToken_ = consumes<float>(edm::InputTag("eventsTTLL", "metphi"));
 
   edm::Service<TFileService> fs;
   auto diree = fs->mkdir("ee");

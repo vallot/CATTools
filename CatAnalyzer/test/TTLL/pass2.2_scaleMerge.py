@@ -16,7 +16,7 @@ def merge(outfileName, mergeInfo):
     type = mergeInfo['type']
     samples = mergeInfo['samples']
     fout = TFile(outfileName, "RECREATE")
-    out_moddir = fout.mkdir("ttll")
+    out_moddir = fout.mkdir("eventsTTLL")
 
     for i, x in enumerate(samples):
         fsrc = TFile(x['file'])
@@ -28,7 +28,7 @@ def merge(outfileName, mergeInfo):
                 hWeight = fsrc.Get("agen/hWeight")
                 ## Get weight distribution before gen filter - only if exists
             else:
-                hWeight = fsrc.Get("ttll/overall/weight")
+                hWeight = fsrc.Get("eventsTTLL/overall/weight")
             if hWeight != None:
                 sumW = hWeight.Integral()*hWeight.GetMean()
                 if sumW != 0.0: scale = x['xsec']/sumW
@@ -36,7 +36,7 @@ def merge(outfileName, mergeInfo):
                 print "Cannot find weight histogram!!! Skipping cross section normalization."
 
         ## Visit all cut flows and do the normalization
-        src_moddir = fsrc.Get("ttll")
+        src_moddir = fsrc.Get("eventsTTLL")
         for chName in [k.GetName() for k in src_moddir.GetListOfKeys()]:
             if chName == "overall": continue
 

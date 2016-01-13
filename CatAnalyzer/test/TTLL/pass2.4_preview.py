@@ -34,7 +34,7 @@ scaleDY = json.loads(open("pass2/scaler_DY.json").read())
 ## Pick the first root file to get full list of plots
 plts = []
 f = TFile("pass2/central/%s.root" % srcMCs[0][0])
-moddir = f.Get("ttll")
+moddir = f.Get("eventsTTLL")
 for ch in [x.GetName() for x in moddir.GetListOfKeys()]:
     chdir = moddir.GetDirectory(ch)
     if chdir == None: continue
@@ -44,11 +44,11 @@ for ch in [x.GetName() for x in moddir.GetListOfKeys()]:
         if stepobj == None: continue
 
         if stepobj.IsA().GetName() in ("TH1D", "TH1F"):
-            plts.append({'name':"ttll/%s/%s" % (ch, step)})
+            plts.append({'name':"eventsTTLL/%s/%s" % (ch, step)})
         elif stepobj.IsA().InheritsFrom("TDirectory"):
             for plt in [x.GetName() for x in stepobj.GetListOfKeys()]:
                 if stepobj.Get(plt) == None: continue
-                plts.append({'name':"ttll/%s/%s/%s" % (ch, step, plt)})
+                plts.append({'name':"eventsTTLL/%s/%s/%s" % (ch, step, plt)})
 
 ## Start loop
 fout = TFile("pass2/preview.root", "recreate")
@@ -176,7 +176,7 @@ cutflow = {
 }
 nstep = 0
 for mode in cutflow["count"].keys():
-    h = fRD.Get("ttll/%s/cutstep" % mode)
+    h = fRD.Get("eventsTTLL/%s/cutstep" % mode)
     nstep = h.GetNbinsX()
     cutflow["count"][mode]["Data"] = [h.GetBinContent(i) for i in range(1, nstep+1)]
     cutflow["error"][mode]["Data"] = [h.GetBinError(i) for i in range(1, nstep+1)]
@@ -184,7 +184,7 @@ for mode in cutflow["count"].keys():
         cutflow["step"] = [h.GetXaxis().GetBinLabel(i) for i in range(1, nstep+1)]
 
     for finName, color, f in srcMCs:
-        h = f.Get("ttll/%s/cutstep" % mode)
+        h = f.Get("eventsTTLL/%s/cutstep" % mode)
         cutflow["count"][mode][finName] = [h.GetBinContent(i) for i in range(1, nstep+1)]
         cutflow["error"][mode][finName] = [h.GetBinError(i) for i in range(1, nstep+1)]
 cutflow["nstep"] = nstep

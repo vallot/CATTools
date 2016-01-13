@@ -7,7 +7,7 @@ lumi = 2.11*1000
 
 rootfileDir = "pass2/central"
 
-hName = "ttll/%s/step%d/z_m_noveto"
+hName = "eventsTTLL/%s/step%d/z_m_noveto"
 fDY = TFile.Open(rootfileDir+"/Z__gamma_rightarrow_ll.root")
 fRD = TFile(rootfileDir+"/Data.root")
 
@@ -65,8 +65,8 @@ for step in range(1,6):
 
     print "DY estimation for step", step, "ee =",scale_ee, "mm =",scale_mm
 
-    out["scale"]["ttll/ee/step%d" % step] = scale_ee
-    out["scale"]["ttll/mm/step%d" % step] = scale_mm
+    out["scale"]["eventsTTLL/ee/step%d" % step] = scale_ee
+    out["scale"]["eventsTTLL/mm/step%d" % step] = scale_mm
 
 f = open("pass2/scaler_DY.json", "w")
 f.write(json.dumps(out, indent=4, sort_keys=True))
