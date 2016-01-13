@@ -10,31 +10,54 @@
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/MET.h"
 
+#include "TH1D.h"
+#include "TH2D.h"
+
 using namespace std;
 using namespace cat;
 
+struct Histos
+{
+  typedef TH1D* H1;
+  typedef TH2D* H2;
+
+  H1 bjetsT_n, bjetsM_n, bjetsL_n;
+  H1 jet1_btag, jet2_btag, jet3_btag, jet4_btag;
+
+  H2 jet3_btag__jet4_btag;
+
+  void book(TFileDirectory dir)
+  {
+    bjetsT_n = dir.make<TH1D>("bjetsT_n", "Tight b jet multiplicity;B jet multiplicity", 10, 0, 10);
+    bjetsM_n = dir.make<TH1D>("bjetsM_n", "Medium b jet multiplicity;B jet multiplicity", 10, 0, 10);
+    bjetsL_n = dir.make<TH1D>("bjetsL_n", "Loose b jet multiplicity;B jet multiplicity", 10, 0, 10);
+
+    jet1_btag = dir.make<TH1D>("jet1_btag", "1st b discriminator;B discriminator", 100, 0, 1);
+    jet2_btag = dir.make<TH1D>("jet1_btag", "2nd b discriminator;B discriminator", 100, 0, 1);
+    jet3_btag = dir.make<TH1D>("jet1_btag", "3rd b discriminator;B discriminator", 100, 0, 1);
+    jet4_btag = dir.make<TH1D>("jet1_btag", "4th b discriminator;B discriminator", 100, 0, 1);
+
+    jet3_btag__jet4_btag = dir.make<TH2D>("jet3_btag__jet4_btag", "3rd vs 4th b discriminator;3rd b discrinimator;4th b discriminator", 100, 0, 1, 100, 0, 1);
+  }
+};
+
 class TTBBLLAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>
 {
-public:
-  TTBBLLAnalyzer(const edm::ParameterSet& pset);
-  void analyze(const edm::Event&, const edm::EventSetup&) override;
+  public:
+    TTBBLLAnalyzer(const edm::ParameterSet& pset);
+    void analyze(const edm::Event&, const edm::EventSetup&) override;
 
-private:
-  edm::EDGetTokenT<int> channelToken_;
-  edm::EDGetTokenT<float> weightToken_;
-  edm::EDGetTokenT<cat::LeptonCollection> leptonsToken_;
-  edm::EDGetTokenT<cat::JetCollection> jetsToken_;
-  edm::EDGetTokenT<float> metToken_, metphiToken_;
+  private:
+    edm::EDGetTokenT<int> channelToken_;
+    edm::EDGetTokenT<float> weightToken_;
+    edm::EDGetTokenT<cat::LeptonCollection> leptonsToken_;
+    edm::EDGetTokenT<cat::JetCollection> jetsToken_;
+    edm::EDGetTokenT<float> metToken_, metphiToken_;
 
-  typedef TH1D* H1;
-  H1 hee_bjetsT_n_, hee_bjetsM_n_, hee_bjetsL_n_;
-  H1 hee_bsortedjet1_btag_, hee_bsortedjet2_btag_, hee_bsortedjet3_btag_, hee_bsortedjet4_btag_;
+    Histos heeS0_, heeS1_, heeS2_;
+    Histos hmmS0_, hmmS1_, hmmS2_;
+    Histos hemS0_, hemS1_, hemS2_;
 
-  H1 hmm_bjetsT_n_, hmm_bjetsM_n_, hmm_bjetsL_n_;
-  H1 hmm_bsortedjet1_btag_, hmm_bsortedjet2_btag_, hmm_bsortedjet3_btag_, hmm_bsortedjet4_btag_;
-
-  H1 hem_bjetsT_n_, hem_bjetsM_n_, hem_bjetsL_n_;
-  H1 hem_bsortedjet1_btag_, hem_bsortedjet2_btag_, hem_bsortedjet3_btag_, hem_bsortedjet4_btag_;
 };
 
 TTBBLLAnalyzer::TTBBLLAnalyzer(const edm::ParameterSet& pset)
@@ -48,32 +71,19 @@ TTBBLLAnalyzer::TTBBLLAnalyzer(const edm::ParameterSet& pset)
 
   edm::Service<TFileService> fs;
   auto diree = fs->mkdir("ee");
-  hee_bjetsT_n_ = diree.make<TH1D>("bjetsT_n", "Tight b jet multiplicity;B jet multiplicity", 10, 0, 10);
-  hee_bjetsM_n_ = diree.make<TH1D>("bjetsM_n", "Medium b jet multiplicity;B jet multiplicity", 10, 0, 10);
-  hee_bjetsL_n_ = diree.make<TH1D>("bjetsL_n", "Loose b jet multiplicity;B jet multiplicity", 10, 0, 10);
-  hee_bsortedjet1_btag_ = diree.make<TH1D>("bsortedJet1_btag", "1st b discriminator;B discriminator", 100, 0, 1);
-  hee_bsortedjet2_btag_ = diree.make<TH1D>("bsortedJet1_btag", "2nd b discriminator;B discriminator", 100, 0, 1);
-  hee_bsortedjet3_btag_ = diree.make<TH1D>("bsortedJet1_btag", "3rd b discriminator;B discriminator", 100, 0, 1);
-  hee_bsortedjet4_btag_ = diree.make<TH1D>("bsortedJet1_btag", "4th b discriminator;B discriminator", 100, 0, 1);
+  heeS0_.book(diree.mkdir("S0")); // Njet4
+  heeS1_.book(diree.mkdir("S1")); // Medium B tag for leading two
+  heeS2_.book(diree.mkdir("S2")); // Tight B tag for leading two
 
   auto dirmm = fs->mkdir("mm");
-  hmm_bjetsT_n_ = dirmm.make<TH1D>("bjetsT_n", "Tight b jet multiplicity;B jet multiplicity", 10, 0, 10);
-  hmm_bjetsM_n_ = dirmm.make<TH1D>("bjetsM_n", "Medium b jet multiplicity;B jet multiplicity", 10, 0, 10);
-  hmm_bjetsL_n_ = dirmm.make<TH1D>("bjetsL_n", "Loose b jet multiplicity;B jet multiplicity", 10, 0, 10);
-  hmm_bsortedjet1_btag_ = dirmm.make<TH1D>("bsortedJet1_btag", "1st b discriminator;B discriminator", 100, 0, 1);
-  hmm_bsortedjet2_btag_ = dirmm.make<TH1D>("bsortedJet1_btag", "2nd b discriminator;B discriminator", 100, 0, 1);
-  hmm_bsortedjet3_btag_ = dirmm.make<TH1D>("bsortedJet1_btag", "3rd b discriminator;B discriminator", 100, 0, 1);
-  hmm_bsortedjet4_btag_ = dirmm.make<TH1D>("bsortedJet1_btag", "4th b discriminator;B discriminator", 100, 0, 1);
+  hmmS0_.book(dirmm.mkdir("S0")); // Njet4
+  hmmS1_.book(dirmm.mkdir("S1")); // Medium B tag for leading two
+  hmmS2_.book(dirmm.mkdir("S2")); // Tight B tag for leading two
 
   auto direm = fs->mkdir("em");
-  hem_bjetsT_n_ = direm.make<TH1D>("bjetsT_n", "Tight b jet multiplicity;B jet multiplicity", 10, 0, 10);
-  hem_bjetsM_n_ = direm.make<TH1D>("bjetsM_n", "Medium b jet multiplicity;B jet multiplicity", 10, 0, 10);
-  hem_bjetsL_n_ = direm.make<TH1D>("bjetsL_n", "Loose b jet multiplicity;B jet multiplicity", 10, 0, 10);
-  hem_bsortedjet1_btag_ = direm.make<TH1D>("bsortedJet1_btag", "1st b discriminator;B discriminator", 100, 0, 1);
-  hem_bsortedjet2_btag_ = direm.make<TH1D>("bsortedJet1_btag", "2nd b discriminator;B discriminator", 100, 0, 1);
-  hem_bsortedjet3_btag_ = direm.make<TH1D>("bsortedJet1_btag", "3rd b discriminator;B discriminator", 100, 0, 1);
-  hem_bsortedjet4_btag_ = direm.make<TH1D>("bsortedJet1_btag", "4th b discriminator;B discriminator", 100, 0, 1);
-  
+  hemS0_.book(direm.mkdir("S0")); // Njet4
+  hemS1_.book(direm.mkdir("S1")); // Medium B tag for leading two
+  hemS2_.book(direm.mkdir("S2")); // Tight B tag for leading two
 }
 
 void TTBBLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
@@ -110,34 +120,118 @@ void TTBBLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
   std::sort(bTags.begin(), bTags.end(), [](const double a, const double b){return a > b;});
 
   if ( channel == 0 ) { // CH_MUMU
-    hmm_bjetsT_n_->Fill(nBjetsT, weight);
-    hmm_bjetsM_n_->Fill(nBjetsM, weight);
-    hmm_bjetsL_n_->Fill(nBjetsL, weight);
+    hmmS0_.bjetsT_n->Fill(nBjetsT, weight);
+    hmmS0_.bjetsM_n->Fill(nBjetsM, weight);
+    hmmS0_.bjetsL_n->Fill(nBjetsL, weight);
 
-    hmm_bsortedjet1_btag_->Fill(bTags[0], weight);
-    hmm_bsortedjet2_btag_->Fill(bTags[1], weight);
-    hmm_bsortedjet3_btag_->Fill(bTags[2], weight);
-    hmm_bsortedjet4_btag_->Fill(bTags[3], weight);
+    hmmS0_.jet1_btag->Fill(bTags[0], weight);
+    hmmS0_.jet2_btag->Fill(bTags[1], weight);
+    hmmS0_.jet3_btag->Fill(bTags[2], weight);
+    hmmS0_.jet4_btag->Fill(bTags[3], weight);
+
+    hmmS0_.jet3_btag__jet4_btag->Fill(bTags[2], bTags[3], weight);
+
+    if ( nBjetsM >= 2 ) {
+      hmmS1_.bjetsT_n->Fill(nBjetsT, weight);
+      hmmS1_.bjetsM_n->Fill(nBjetsM, weight);
+      hmmS1_.bjetsL_n->Fill(nBjetsL, weight);
+
+      hmmS1_.jet1_btag->Fill(bTags[0], weight);
+      hmmS1_.jet2_btag->Fill(bTags[1], weight);
+      hmmS1_.jet3_btag->Fill(bTags[2], weight);
+      hmmS1_.jet4_btag->Fill(bTags[3], weight);
+
+      hmmS1_.jet3_btag__jet4_btag->Fill(bTags[2], bTags[3], weight);
+    }
+
+    if ( nBjetsT >= 2 ) {
+      hmmS2_.bjetsT_n->Fill(nBjetsT, weight);
+      hmmS2_.bjetsM_n->Fill(nBjetsM, weight);
+      hmmS2_.bjetsL_n->Fill(nBjetsL, weight);
+
+      hmmS2_.jet1_btag->Fill(bTags[0], weight);
+      hmmS2_.jet2_btag->Fill(bTags[1], weight);
+      hmmS2_.jet3_btag->Fill(bTags[2], weight);
+      hmmS2_.jet4_btag->Fill(bTags[3], weight);
+
+      hmmS2_.jet3_btag__jet4_btag->Fill(bTags[2], bTags[3], weight);
+    }
   }
   else if ( channel == 1 ) { // CH_ELEL
-    hee_bjetsT_n_->Fill(nBjetsT, weight);
-    hee_bjetsM_n_->Fill(nBjetsM, weight);
-    hee_bjetsL_n_->Fill(nBjetsL, weight);
+    heeS0_.bjetsT_n->Fill(nBjetsT, weight);
+    heeS0_.bjetsM_n->Fill(nBjetsM, weight);
+    heeS0_.bjetsL_n->Fill(nBjetsL, weight);
 
-    hee_bsortedjet1_btag_->Fill(bTags[0], weight);
-    hee_bsortedjet2_btag_->Fill(bTags[1], weight);
-    hee_bsortedjet3_btag_->Fill(bTags[2], weight);
-    hee_bsortedjet4_btag_->Fill(bTags[3], weight);
+    heeS0_.jet1_btag->Fill(bTags[0], weight);
+    heeS0_.jet2_btag->Fill(bTags[1], weight);
+    heeS0_.jet3_btag->Fill(bTags[2], weight);
+    heeS0_.jet4_btag->Fill(bTags[3], weight);
+
+    heeS0_.jet3_btag__jet4_btag->Fill(bTags[2], bTags[3], weight);
+
+    if ( nBjetsM >= 2 ) {
+      heeS1_.bjetsT_n->Fill(nBjetsT, weight);
+      heeS1_.bjetsM_n->Fill(nBjetsM, weight);
+      heeS1_.bjetsL_n->Fill(nBjetsL, weight);
+
+      heeS1_.jet1_btag->Fill(bTags[0], weight);
+      heeS1_.jet2_btag->Fill(bTags[1], weight);
+      heeS1_.jet3_btag->Fill(bTags[2], weight);
+      heeS1_.jet4_btag->Fill(bTags[3], weight);
+
+      heeS1_.jet3_btag__jet4_btag->Fill(bTags[2], bTags[3], weight);
+    }
+
+    if ( nBjetsT >= 2 ) {
+      heeS2_.bjetsT_n->Fill(nBjetsT, weight);
+      heeS2_.bjetsM_n->Fill(nBjetsM, weight);
+      heeS2_.bjetsL_n->Fill(nBjetsL, weight);
+
+      heeS2_.jet1_btag->Fill(bTags[0], weight);
+      heeS2_.jet2_btag->Fill(bTags[1], weight);
+      heeS2_.jet3_btag->Fill(bTags[2], weight);
+      heeS2_.jet4_btag->Fill(bTags[3], weight);
+
+      heeS2_.jet3_btag__jet4_btag->Fill(bTags[2], bTags[3], weight);
+    }
   }
   else if ( channel == 2 ) { // CH_MUEL
-    hem_bjetsT_n_->Fill(nBjetsT, weight);
-    hem_bjetsM_n_->Fill(nBjetsM, weight);
-    hem_bjetsL_n_->Fill(nBjetsL, weight);
+    hemS0_.bjetsT_n->Fill(nBjetsT, weight);
+    hemS0_.bjetsM_n->Fill(nBjetsM, weight);
+    hemS0_.bjetsL_n->Fill(nBjetsL, weight);
 
-    hem_bsortedjet1_btag_->Fill(bTags[0], weight);
-    hem_bsortedjet2_btag_->Fill(bTags[1], weight);
-    hem_bsortedjet3_btag_->Fill(bTags[2], weight);
-    hem_bsortedjet4_btag_->Fill(bTags[3], weight);
+    hemS0_.jet1_btag->Fill(bTags[0], weight);
+    hemS0_.jet2_btag->Fill(bTags[1], weight);
+    hemS0_.jet3_btag->Fill(bTags[2], weight);
+    hemS0_.jet4_btag->Fill(bTags[3], weight);
+
+    hemS0_.jet3_btag__jet4_btag->Fill(bTags[2], bTags[3], weight);
+
+    if ( nBjetsM >= 2 ) {
+      hemS1_.bjetsT_n->Fill(nBjetsT, weight);
+      hemS1_.bjetsM_n->Fill(nBjetsM, weight);
+      hemS1_.bjetsL_n->Fill(nBjetsL, weight);
+
+      hemS1_.jet1_btag->Fill(bTags[0], weight);
+      hemS1_.jet2_btag->Fill(bTags[1], weight);
+      hemS1_.jet3_btag->Fill(bTags[2], weight);
+      hemS1_.jet4_btag->Fill(bTags[3], weight);
+
+      hemS1_.jet3_btag__jet4_btag->Fill(bTags[2], bTags[3], weight);
+    }
+
+    if ( nBjetsT >= 2 ) {
+      hemS2_.bjetsT_n->Fill(nBjetsT, weight);
+      hemS2_.bjetsM_n->Fill(nBjetsM, weight);
+      hemS2_.bjetsL_n->Fill(nBjetsL, weight);
+
+      hemS2_.jet1_btag->Fill(bTags[0], weight);
+      hemS2_.jet2_btag->Fill(bTags[1], weight);
+      hemS2_.jet3_btag->Fill(bTags[2], weight);
+      hemS2_.jet4_btag->Fill(bTags[3], weight);
+
+      hemS2_.jet3_btag__jet4_btag->Fill(bTags[2], bTags[3], weight);
+    }
   }
 }
 
