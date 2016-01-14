@@ -36,6 +36,7 @@ private:
   typedef reco::Particle::LorentzVector LorentzVector;
 
   const double jetMinPt_, jetMaxEta_;
+  const std::vector<double> ptWeightSlopes_;
   typedef fastjet::JetDefinition JetDef;
   std::shared_ptr<JetDef> fjDef_;
   const reco::Particle::Point genVertex_;
@@ -58,6 +59,7 @@ PartonTopProducer::PartonTopProducer(const edm::ParameterSet& pset):
   produces<std::vector<int> >("modes");
 
   produces<reco::GenJetCollection>("qcdJets");
+  produces<float>("ptWeight");
 }
 
 void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventSetup)
@@ -272,10 +274,24 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
     qcdJets->push_back(qcdJet);
   }
 
+  // Calculate pt-weights
+  double ptWeight = 1;
+  if ( tQuarks.size() == 2 ) {
+    const double pt1 = tQuarks.at(0)->pt();
+    const double pt2 = tQuarks.at(1)->pt();
+
+    double a = 0.156, b = -0.00137;
+    if      ( *channel == CH_FULLLEPTON ) { a = 0.148; b = -0.00129; }
+    else if ( *channel == CH_SEMILEPTON ) { a = 0.159; b = -0.00141; }
+
+    ptWeight = sqrt(exp(a+b*pt1)*exp(a+b*pt2));
+  }
+
   event.put(partons);
   event.put(channel, "channel");
   event.put(modes, "modes");
   event.put(qcdJets, "qcdJets");
+  event.put(std::auto_ptr<float>(new float(ptWeight)), "ptWeight");
 }
 
 const reco::Candidate* PartonTopProducer::getLast(const reco::Candidate* p) const
