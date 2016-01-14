@@ -36,7 +36,6 @@ private:
   typedef reco::Particle::LorentzVector LorentzVector;
 
   const double jetMinPt_, jetMaxEta_;
-  const std::vector<double> ptWeightSlopes_;
   typedef fastjet::JetDefinition JetDef;
   std::shared_ptr<JetDef> fjDef_;
   const reco::Particle::Point genVertex_;
