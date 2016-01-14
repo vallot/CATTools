@@ -1,18 +1,19 @@
 #!/usr/bin/env python
 import ROOT, CATTools.CatAnalyzer.CMS_lumi, json, os, getopt, sys
 from CATTools.CatAnalyzer.histoHelper import *
+import DYestimation
 ROOT.gROOT.SetBatch(True)
 '''
 topDraw.py -a 1 -s 1 -c 'tri==1&&filtered==1' -b [40,0,40] -p nvertex -x 'no. vertex' &
 topDraw.py -a 1 -s 1 -b [100,-3,3] -p lep1_eta,lep2_eta -x '#eta' &
 '''
 datalumi = 2.11
-CMS_lumi.lumi_sqrtS = "%.2f fb^{-1}, #sqrt{s} = 13 TeV "%(datalumi)
+CMS_lumi.lumi_sqrtS = "%.2f fb^{-1}, #sqrt{s} = 13 TeV"%(datalumi)
 datalumi = datalumi*1000 # due to fb
 
 mcfilelist = ['TT_powheg', 'WJets', 'SingleTbar_tW', 'SingleTop_tW', 'ZZ', 'WW', 'WZ', 'DYJets', 'DYJets_10to50']
 rdfilelist = ['MuonEG_Run2015','DoubleEG_Run2015','DoubleMuon_Run2015']
-rootfileDir = "/xrootd/store/user/tt8888tt/v7-4-6/"
+rootfileDir = "file:/xrootd/store/user/tt8888tt/v7-4-6/"
 channel_name = ['MuEl', 'ElEl', 'MuMu']
 
 datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json" % os.environ['CMSSW_BASE']))
@@ -20,15 +21,15 @@ datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json" % os.e
 #defalts
 step = 1
 channel = 1
-
 cut = 'tri==1&&filtered==1'
-weight = 'genweight*puweight*lepweight*btagweight'
+weight = 'genweight*puweight*lepweight'
 binning = [60, 20, 320]
 plotvar = 'll_m'
 x_name = 'mass [GeV]'
 y_name = 'Events'
 dolog = False
 
+#get input
 try:
     opts, args = getopt.getopt(sys.argv[1:],"hdc:w:b:p:x:y:a:s:",["cut","weight","binning","plotvar","x_name","y_name","dolog","channel","step"])
 except getopt.GetoptError:          
@@ -59,14 +60,17 @@ for opt, arg in opts:
 
 tname = "cattree/nom"
 
+#cut define
 if channel == 1: ttother_tcut = "!(parton_channel==2 && ((parton_mode1==1 && parton_mode2==2) || (parton_mode1==2 && parton_mode2==1)))"
 elif channel == 2: ttother_tcut = "!(parton_channel==2 && (parton_mode1==2 && parton_mode2==2))"
 elif channel == 3: ttother_tcut = "!(parton_channel==2 && (parton_mode1==1 && parton_mode2==1))"
-
 stepch_tcut =  'step>=%i&&channel==%i'%(step,channel)
+
 tcut = '(%s&&%s)*(%s)'%(stepch_tcut,cut,weight)
 ttother_tcut = '(%s&&%s&&%s)*(%s)'%(stepch_tcut,cut,ttother_tcut,weight)
 print "TCut =",tcut
+
+#namming
 x_name = channel_name[channel-1]+" "+x_name
 if len(binning) <= 3:
     num = (binning[2]-binning[1])/float(binning[0])
@@ -76,56 +80,12 @@ if len(binning) <= 3:
         else: unit = ""
         y_name = y_name + "/%g%s"%(num,unit)
 
-#DY estimation
-dyratio = [[0 for x in range(7)] for x in range(4)]
-dyratio[1][step] = 1.
-if channel !=1:
-    scale = 1.
-    dycut = ""
-    if step == 1: dycut = "(step1==1)*"
-    if step == 2: dycut = "(step1==1)*"
-    if step == 3: dycut = "(step1==1)*(step3==1)*"
-    if step == 4: dycut = "(step1==1)*(step3==1)*(step4==1)*"
-    if step >= 5: dycut = "(step1==1)*(step3==1)*(step4==1)*(step5==1)*"
+#DYestimation
+if not os.path.exists('./DYFactor.json'):
+	DYestimation.printDYFactor(rootfileDir, tname, datasets, datalumi, cut, weight, rdfilelist)# <------ This will create 'DYFactor.json' on same dir.
+dyratio=json.load(open('./DYFactor.json'))
 
-    rfname = rootfileDir + 'DYJets' +".root"
-    data = findDataSet('DYJets', datasets)
-    scale = datalumi*data["xsec"]
-
-    wentries = getWeightedEntries(rfname, tname, "tri", weight)
-    scale = scale/wentries
-
-    mc_ee_in = makeTH1(rfname,tname,"mc_ee_in", binning, plotvar, dycut+'(%s && channel==2 && step2==0)*(%s)'%(cut,weight), scale)
-    mc_mm_in = makeTH1(rfname,tname,"mc_mm_in", binning, plotvar, dycut+'(%s && channel==3 && step2==0)*(%s)'%(cut,weight), scale)
-    mc_ee_out = makeTH1(rfname,tname,"mc_ee_in", binning, plotvar, dycut+'(%s && channel==2 && step2==1)*(%s)'%(cut,weight), scale)
-    mc_mm_out = makeTH1(rfname,tname,"mc_mm_in", binning, plotvar, dycut+'(%s && channel==3 && step2==1)*(%s)'%(cut,weight), scale)
-
-    rfname = rootfileDir + 'DYJets_10to50' +".root"
-    data = findDataSet('DYJets_10to50', datasets)
-    scale = datalumi*data["xsec"]
-    scale = scale/1.15851991276#xsec before tunning
-
-    wentries = getWeightedEntries(rfname, tname, "tri", weight)
-    scale = scale/wentries
-
-    mc_ee_in.Add(makeTH1(rfname,tname,"mc_ee_in", binning, plotvar, dycut+'(%s && channel==2 && step2==0)*(%s)'%(cut,weight), scale))
-    mc_mm_in.Add(makeTH1(rfname,tname,"mc_mm_in", binning, plotvar, dycut+'(%s && channel==3 && step2==0)*(%s)'%(cut,weight), scale))
-    mc_ee_out.Add(makeTH1(rfname,tname,"mc_ee_in", binning, plotvar, dycut+'(%s && channel==2 && step2==1)*(%s)'%(cut,weight), scale))
-    mc_mm_out.Add(makeTH1(rfname,tname,"mc_mm_in", binning, plotvar, dycut+'(%s && channel==3 && step2==1)*(%s)'%(cut,weight), scale))
-    
-    rfname = rootfileDir+rdfilelist[1-1]+".root"
-    rd_em_in = makeTH1(rfname, tname,'rd_em_in', binning, plotvar, dycut+'(%s && channel==1 && ((ll_m > 76) && (ll_m < 106)))'%(cut))
-    rfname = rootfileDir + rdfilelist[2-1] +".root"
-    rd_ee_in = makeTH1(rfname, tname,'rd_ee_in', binning, plotvar, dycut+'(%s && channel==2 && step2 ==0)'%(cut))
-    rfname = rootfileDir + rdfilelist[3-1] +".root"
-    rd_mm_in = makeTH1(rfname, tname,'rd_mm_in', binning, plotvar, dycut+'(%s && channel==3 && step2 ==0)'%(cut))
-
-    dyest = drellYanEstimation(mc_ee_in.Integral(), mc_ee_out.Integral(), mc_mm_in.Integral(), mc_mm_out.Integral(),
-                               rd_ee_in.Integral(), rd_mm_in.Integral(), rd_em_in.Integral())
-    print "DY estimation for s", step, "ee =",dyest[0], "mm =",dyest[1]   
-    dyratio[2][step] = dyest[0]
-    dyratio[3][step] = dyest[1]
-
+#saving histos
 mchistList = []
 for i, mcname in enumerate(mcfilelist):
 	data = findDataSet(mcname, datasets)
@@ -134,8 +94,6 @@ for i, mcname in enumerate(mcfilelist):
 	title = data["title"]
 	if 'DYJets' in mcname:
 		scale = scale*dyratio[channel][step]
-	if '10to50' in mcname:
-		scale = scale/1.15851991276#xsec before tunning
 
 	rfname = rootfileDir + mcname +".root"
 
@@ -158,6 +116,16 @@ rfname = rootfileDir + rdfilelist[channel-1] +".root"
 rdhist = makeTH1(rfname, tname, 'data', binning, plotvar, rdtcut)
 rdhist.SetLineColor(1)
 
+#bin normalize
+for hist in mchistList:
+	for i in range(len(binning)):
+		hist.SetBinContent(i, hist.GetBinContent(i)/hist.GetBinWidth(i))
+		hist.SetBinError(i, hist.GetBinError(i)/hist.GetBinWidth(i))
+for i in range(len(binning)):
+	rdhist.SetBinContent(i, rdhist.GetBinContent(i)/rdhist.GetBinWidth(i))
+	rdhist.SetBinError(i, rdhist.GetBinError(i)/rdhist.GetBinWidth(i))
+
+#Drawing plots on canvas
 var = plotvar.split(',')[0]
 var = ''.join(i for i in var if not i.isdigit())
 outfile = "%s_s%d_%s.png"%(channel_name[channel-1],step,var)
