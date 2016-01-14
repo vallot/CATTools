@@ -32,12 +32,12 @@ struct Histos
     bjetsM_n = dir.make<TH1D>("bjetsM_n", "Medium b jet multiplicity;B jet multiplicity", 10, 0, 10);
     bjetsL_n = dir.make<TH1D>("bjetsL_n", "Loose b jet multiplicity;B jet multiplicity", 10, 0, 10);
 
-    jet1_btag = dir.make<TH1D>("jet1_btag", "1st b discriminator;B discriminator", 100, 0, 1);
-    jet2_btag = dir.make<TH1D>("jet1_btag", "2nd b discriminator;B discriminator", 100, 0, 1);
-    jet3_btag = dir.make<TH1D>("jet1_btag", "3rd b discriminator;B discriminator", 100, 0, 1);
-    jet4_btag = dir.make<TH1D>("jet1_btag", "4th b discriminator;B discriminator", 100, 0, 1);
+    jet1_btag = dir.make<TH1D>("jet1_btag", "1st b discriminator;B discriminator", 10, 0, 1);
+    jet2_btag = dir.make<TH1D>("jet2_btag", "2nd b discriminator;B discriminator", 10, 0, 1);
+    jet3_btag = dir.make<TH1D>("jet3_btag", "3rd b discriminator;B discriminator", 10, 0, 1);
+    jet4_btag = dir.make<TH1D>("jet4_btag", "4th b discriminator;B discriminator", 10, 0, 1);
 
-    jet3_btag__jet4_btag = dir.make<TH2D>("jet3_btag__jet4_btag", "3rd vs 4th b discriminator;3rd b discrinimator;4th b discriminator", 100, 0, 1, 100, 0, 1);
+    jet3_btag__jet4_btag = dir.make<TH2D>("jet3_btag__jet4_btag", "3rd vs 4th b discriminator;3rd b discrinimator;4th b discriminator", 10, 0, 1, 10, 0, 1);
   }
 };
 
@@ -62,12 +62,15 @@ class TTBBLLAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>
 
 TTBBLLAnalyzer::TTBBLLAnalyzer(const edm::ParameterSet& pset)
 {
-  channelToken_ = consumes<int>(edm::InputTag("eventsTTLL", "channel"));
-  weightToken_ = consumes<float>(edm::InputTag("eventsTTLL", "weight"));
-  leptonsToken_ = consumes<cat::LeptonCollection>(edm::InputTag("eventsTTLL", "leptons"));
-  jetsToken_ = consumes<cat::JetCollection>(edm::InputTag("eventsTTLL", "jets"));
-  metToken_ = consumes<float>(edm::InputTag("eventsTTLL", "met"));
-  metphiToken_ = consumes<float>(edm::InputTag("eventsTTLL", "metphi"));
+  const auto srcLabel = pset.getParameter<edm::InputTag>("src");
+  const auto srcLabelName = srcLabel.label();
+
+  channelToken_ = consumes<int>(edm::InputTag(srcLabelName, "channel"));
+  weightToken_ = consumes<float>(edm::InputTag(srcLabelName, "weight"));
+  leptonsToken_ = consumes<cat::LeptonCollection>(edm::InputTag(srcLabelName, "leptons"));
+  jetsToken_ = consumes<cat::JetCollection>(edm::InputTag(srcLabelName, "jets"));
+  metToken_ = consumes<float>(edm::InputTag(srcLabelName, "met"));
+  metphiToken_ = consumes<float>(edm::InputTag(srcLabelName, "metphi"));
 
   edm::Service<TFileService> fs;
   auto diree = fs->mkdir("ee");
