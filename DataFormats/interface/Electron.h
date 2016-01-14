@@ -48,7 +48,7 @@ namespace cat {
     
     void setElectronIDs(const std::vector<pat::Electron::IdPair> & ids) { electronIDs_ = ids; }
     void setElectronID(pat::Electron::IdPair ids) { electronIDs_.push_back(ids); }
-    
+
     void setrelIso(double dR, double chIso, double nhIso, double phIso, double AEff, double rhoIso, double ecalpt)
     {
       float relIso = ( chIso + std::max(0.0, nhIso + phIso - rhoIso*AEff) )/ ecalpt;
