@@ -95,15 +95,15 @@ for iplt, pltInfo in enumerate(plts):
         hMC.Add(h)
     hRatio = hRD.Clone()
     hRatio.Reset()
-    hRatio.SetTitle(";%s;MC/Data" % hRD.GetXaxis().GetTitle())
+    hRatio.SetTitle(";%s;Data/MC" % hRD.GetXaxis().GetTitle())
     grpRatio = TGraphErrors()
     rMax = 2
     for b in range(nbinsX):
         yRD, yMC = hRD.GetBinContent(b+1), hMC.GetBinContent(b+1)
         eRD, eMC = hRD.GetBinError(b+1), hMC.GetBinError(b+1)
         r, e = 1e9, 1e9
-        if yRD > 0:
-            r = yMC/yRD
+        if yMC > 0:
+            r = yRD/yMC
             rMax = max(r, rMax)
         if yMC > 0 and yRD > 0: e = r*hypot(eRD/yRD, eMC/yMC)
 
