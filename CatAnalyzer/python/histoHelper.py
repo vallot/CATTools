@@ -7,6 +7,7 @@ def getTH1(title, binning, tree, plotvar, cut, scale = 0.):
         hist = ROOT.TH1D("name", title, binning[0], binning[1], binning[2])
     else:
         hist = ROOT.TH1D("name", title, len(binning)-1, array.array('f', binning))
+    #tree.Project("name", 'min(%s,%s-0.001)'%(plotvar,binning[2]), cut)
     tree.Project("name", plotvar, cut)
     if hist.GetSumw2N() == 0:
         hist.Sumw2()
@@ -110,8 +111,8 @@ def setDefTH1Style(th1, x_name, y_name):
     return th1
     
 def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=True, ratioRange=0.45):
-    leg = ROOT.TLegend(0.58,0.78,0.8,0.9)
-    #leg = ROOT.TLegend(0.71,0.68,0.88,0.91)
+    #leg = ROOT.TLegend(0.58,0.78,0.8,0.9)
+    leg = ROOT.TLegend(0.71,0.68,0.88,0.91)
     leg.SetBorderSize(0)
     #leg.SetNColumns(2)
     leg.SetTextSize(0.029)
@@ -143,7 +144,7 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
     data.SetMaximum(data.GetMaximum()*1.8)
     if doLog:
         #data.SetMaximum(10**7)
-        data.SetMaximum(data.GetMaximum()*10)
+        data.SetMaximum(data.GetMaximum()*100)
         
     ratio_fraction = 0
     if doRatio:
@@ -193,15 +194,16 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
     canv.Modified()
     canv.Update()
     canv.SaveAs(name)
-    canv.SaveAs(name.split('.')[0]+'.C')
 
 def drellYanEstimation(mc_ee_in, mc_ee_out, mc_mm_in, mc_mm_out,
-                       rd_ee_in, rd_mm_in, rd_em_in):    
-    kMM = math.sqrt(rd_mm_in/rd_ee_in)/2.
-    kEE = math.sqrt(rd_ee_in/rd_mm_in)/2.
+                       rd_ee_in, rd_mm_in, rd_em_in, kMM, kEE):    
+    #kMM = math.sqrt(rd_mm_in/rd_ee_in)/2.
+    #kEE = math.sqrt(rd_ee_in/rd_mm_in)/2.
 
     rMC_mm = mc_mm_out/mc_mm_in
     rMC_ee = mc_ee_out/mc_ee_in
+    print "rMC_mm  ", rMC_mm
+    print "rMC_ee  ", rMC_ee
     
     nOutEst_mm = rMC_mm*(rd_mm_in - rd_em_in*kMM)
     nOutEst_ee = rMC_ee*(rd_ee_in - rd_em_in*kEE)
