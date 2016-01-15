@@ -15,5 +15,5 @@ catElectrons = cms.EDProducer("CATElectronProducer",
         "heepElectronID-HEEPV60",
         "mvaEleID-Spring15-25ns-nonTrig-V1-wp80",
         "mvaEleID-Spring15-25ns-nonTrig-V1-wp90"
-        )    
+        )
 )

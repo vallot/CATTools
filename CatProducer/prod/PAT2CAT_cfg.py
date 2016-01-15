@@ -38,17 +38,17 @@ process.catOut.outputCommands = catEventContent
 
 if runOnMC:
     process.load("CATTools.CatProducer.pileupWeight_cff")
-    process.load("CATTools.CatProducer.genWeight_cff")
+    #process.load("CATTools.CatProducer.genWeight_cff")
     process.catOut.outputCommands.extend(catEventContentMC)
 else: 
     process.catOut.outputCommands.extend(catEventContentRD)
     
-if runGenTop:
+#if runGenTop:
     #from CATTools.CatProducer.catGenHFHadronMatching_cff import *
-    from CATTools.CatProducer.Tools.tools import *
-    genHFTool(process, useMiniAOD)
-    process.load("CATTools.CatProducer.mcTruthTop.mcTruthTop_cff")
-    process.catOut.outputCommands.extend(catEventContentTOPMC)
+    #from CATTools.CatProducer.Tools.tools import *
+    #genHFTool(process, useMiniAOD)
+    #process.load("CATTools.CatProducer.mcTruthTop.mcTruthTop_cff")
+    #process.catOut.outputCommands.extend(catEventContentTOPMC)
     #if useMiniAOD:
     #    process.catOut.outputCommands.extend(['keep *_catGenTops_*_*',])
             
