@@ -40,8 +40,6 @@ private:
   const bool enforceUnitGenWeight_;
   const bool doLOPDFReweight_;
   bool reweightToNewPDF_;
-  const std::string pdfName_;
-  std::string generatedPdfName_;
   const edm::InputTag lheLabel_;
   const edm::EDGetTokenT<LHEEventProduct> lheToken_;
   const edm::EDGetTokenT<GenEventInfoProduct> genInfoToken_;
@@ -52,15 +50,16 @@ private:
 GenWeightsProducer::GenWeightsProducer(const edm::ParameterSet& pset):
   enforceUnitGenWeight_(pset.getParameter<bool>("enforceUnitGenWeight")),
   doLOPDFReweight_(pset.getParameter<bool>("doLOPDFReweight")),
-  pdfName_(pset.getParameter<std::string>("pdfName")),
   lheLabel_(pset.getParameter<edm::InputTag>("lheEvent")),
   lheToken_(consumes<LHEEventProduct>(pset.getParameter<edm::InputTag>("lheEvent"))),
   genInfoToken_(consumes<GenEventInfoProduct>(pset.getParameter<edm::InputTag>("genEventInfo")))
 {
+  std::string pdfName, generatedPdfName;
   if ( doLOPDFReweight_ and pset.existsAs<std::string>("generatedPdfName") )
   {
-    generatedPdfName_ = pset.getParameter<std::string>("generatedPdfName");
-    if ( generatedPdfName_ != pdfName_ ) reweightToNewPDF_ = true;
+    generatedPdfName = pset.getParameter<std::string>("generatedPdfName");
+    pdfName = pset.getParameter<std::string>("pdfName");
+    if ( generatedPdfName != pdfName ) reweightToNewPDF_ = true;
   }
 
   produces<vstring, edm::InRun>("weightTypes");
@@ -78,8 +77,8 @@ GenWeightsProducer::GenWeightsProducer(const edm::ParameterSet& pset):
 
   if ( doLOPDFReweight_ )
   {
-    LHAPDF::initPDFSet(1, pdfName_.c_str());
-    if ( reweightToNewPDF_ ) LHAPDF::initPDFSet(2, generatedPdfName_.c_str());
+    LHAPDF::initPDFSet(1, pdfName.c_str());
+    if ( reweightToNewPDF_ ) LHAPDF::initPDFSet(2, generatedPdfName.c_str());
 
     usesResource(); // FIXME What is the resource name of LHAPDF?
   }
