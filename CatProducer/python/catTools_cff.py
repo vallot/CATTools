@@ -1,62 +1,47 @@
 import FWCore.ParameterSet.Config as cms
+import catDefinitions_cfi as cat
 
 def catTool(process, runOnMC=True, useMiniAOD=True):
-    bunchCrossing=25
-    globaltag_run2_50ns = ["MCRUN2_74_V9A", "74X_mcRun2_startup_v2", "74X_mcRun2_asymptotic50ns_v0", "74X_dataRun2_v2"]
-    for i in globaltag_run2_50ns:
-        if i == process.GlobalTag.globaltag:
-            bunchCrossing=50
-
-    if runOnMC and bunchCrossing == 50:
-        from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
-        process.pileupWeight.pileupMC = pileupWeightMap["Startup2015_50ns"]
-        process.pileupWeight.pileupRD = pileupWeightMap["Run2015_50ns"]
-        process.pileupWeight.pileupUp = pileupWeightMap["Run2015_50nsUp"]
-        process.pileupWeight.pileupDn = pileupWeightMap["Run2015_50nsDn"]
-
-    lumiJSON = 'Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON'
     if runOnMC:
         from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
-        process.pileupWeight.pileupMC = pileupWeightMap["Startup2015_25ns"]
-        process.pileupWeight.pileupRD = pileupWeightMap["%s"%lumiJSON]
-        process.pileupWeight.pileupUp = pileupWeightMap["%s_Up"%lumiJSON]
-        process.pileupWeight.pileupDn = pileupWeightMap["%s_Dn"%lumiJSON]
+        process.pileupWeight.pileupMC = pileupWeightMap[cat.pileupMCmap]
+        process.pileupWeight.pileupRD = pileupWeightMap["%s"%cat.lumiJSON]
+        process.pileupWeight.pileupUp = pileupWeightMap["%s_Up"%cat.lumiJSON]
+        process.pileupWeight.pileupDn = pileupWeightMap["%s_Dn"%cat.lumiJSON]
         process.pileupWeightSilver = process.pileupWeight.clone()
-        process.pileupWeightSilver.pileupRD = pileupWeightMap["%s_Silver"%lumiJSON]
-        process.pileupWeightSilver.pileupUp = pileupWeightMap["%s_Silver_Up"%lumiJSON]
-        process.pileupWeightSilver.pileupDn = pileupWeightMap["%s_Silver_Dn"%lumiJSON]
+        process.pileupWeightSilver.pileupRD = pileupWeightMap["%s_Silver"%cat.lumiJSON]
+        process.pileupWeightSilver.pileupUp = pileupWeightMap["%s_Silver_Up"%cat.lumiJSON]
+        process.pileupWeightSilver.pileupDn = pileupWeightMap["%s_Silver_Dn"%cat.lumiJSON]
     else:
         from FWCore.PythonUtilities.LumiList import LumiList
         process.lumiMask = cms.EDProducer("LumiMaskProducer",
-            LumiSections = LumiList('../data/LumiMask/%s.txt'%lumiJSON).getVLuminosityBlockRange())
+            LumiSections = LumiList('../data/LumiMask/%s.txt'%cat.lumiJSON).getVLuminosityBlockRange())
         process.lumiMaskSilver = cms.EDProducer("LumiMaskProducer",
-            LumiSections = LumiList('../data/LumiMask/%s_Silver.txt'%lumiJSON).getVLuminosityBlockRange())
+            LumiSections = LumiList('../data/LumiMask/%s_Silver.txt'%cat.lumiJSON).getVLuminosityBlockRange())
     
     useJECfile = True
-    era = "Summer15_{}nsV6".format(bunchCrossing)
-    
-    jecUncertaintyFile = "CATTools/CatProducer/data/JEC/%s_DATA_UncertaintySources_AK4PFchs.txt"%era
+    jecFile = cat.JetEnergyCorrection
     if runOnMC:
-        era = era+"_MC"
+        jecFile = jecFile+"_MC"
     else:
-        era = era+"_DATA"
+        jecFile = jecFile+"_DATA"
     
     if useJECfile:
         from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
         process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
-            connect = cms.string('sqlite_fip:CATTools/CatProducer/data/JEC/%s.db'%era),
+            connect = cms.string('sqlite_fip:CATTools/CatProducer/data/JEC/%s.db'%jecFile),
             toGet = cms.VPSet(
                 cms.PSet(
                     record = cms.string("JetCorrectionsRecord"),
-                    tag = cms.string("JetCorrectorParametersCollection_%s_AK4PF"%era),
+                    tag = cms.string("JetCorrectorParametersCollection_%s_AK4PF"%jecFile),
                     label= cms.untracked.string("AK4PF")),
                 cms.PSet(
                     record = cms.string("JetCorrectionsRecord"),
-                    tag = cms.string("JetCorrectorParametersCollection_%s_AK4PFchs"%era),
+                    tag = cms.string("JetCorrectorParametersCollection_%s_AK4PFchs"%jecFile),
                     label= cms.untracked.string("AK4PFchs")),
                 cms.PSet(
                     record = cms.string("JetCorrectionsRecord"),
-                    tag = cms.string("JetCorrectorParametersCollection_%s_AK4PFPuppi"%era),
+                    tag = cms.string("JetCorrectorParametersCollection_%s_AK4PFPuppi"%jecFile),
                     label= cms.untracked.string("AK4PFPuppi")),
             )
         )
@@ -70,10 +55,6 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         process.HBHENoiseFilterResultProducer.minZeros = cms.int32(99999)
         process.HBHENoiseFilterResultProducer.IgnoreTS4TS5ifJetInLowBVRegion=cms.bool(False) 
         process.HBHENoiseFilterResultProducer.defaultDecision = cms.string("HBHENoiseFilterResultRun2Loose")
-
-        if bunchCrossing == 50:
-            process.HBHENoiseFilterResultProducer.IgnoreTS4TS5ifJetInLowBVRegion=cms.bool(True) 
-            process.HBHENoiseFilterResultProducer.defaultDecision = cms.string("HBHENoiseFilterResultRun1")
 
         process.ApplyBaselineHBHENoiseFilter = cms.EDFilter('BooleanFlagFilter',
             inputLabel = cms.InputTag('HBHENoiseFilterResultProducer','HBHENoiseFilterResult'),
@@ -115,7 +96,7 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         #######################################################################
         # MET corrections from https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
         from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
-        runMetCorAndUncFromMiniAOD( process, isData= not runOnMC, jecUncFile=jecUncertaintyFile, jetColl= process.catJets.src)
+        runMetCorAndUncFromMiniAOD( process, isData= not runOnMC, jecUncFile=cat.JECUncertaintyFile, jetColl= process.catJets.src)
         process.catMETs.src = cms.InputTag("slimmedMETs","","CAT")
         del process.slimmedMETs.caloMET
 
@@ -123,7 +104,7 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         process.noHFCands = cms.EDFilter("CandPtrSelector",src=cms.InputTag("packedPFCandidates"),
                                          cut=cms.string("abs(pdgId)!=1 && abs(pdgId)!=2 && abs(eta)<3.0"))
         runMetCorAndUncFromMiniAOD(process,isData=not runOnMC,pfCandColl=cms.InputTag("noHFCands"),postfix="NoHF",
-                                   jecUncFile=jecUncertaintyFile, jetColl= process.catJets.src)
+                                   jecUncFile=cat.JECUncertaintyFile, jetColl= process.catJets.src)
 
         process.catMETsNoHF = process.catMETs.clone(src = cms.InputTag("slimmedMETsNoHF","","CAT"))
         del process.slimmedMETsNoHF.caloMET
@@ -169,10 +150,10 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
     process.puJetIdForPFMVAMEt.rho = cms.InputTag("fixedGridRhoFastjetAll")
 
     process.pfMVAMEt.inputFileNames = cms.PSet(
-        U     = cms.FileInPath('RecoMET/METPUSubtraction/data/gbru_7_4_X_miniAOD_{}NS_July2015.root'.format(bunchCrossing)),
-        DPhi  = cms.FileInPath('RecoMET/METPUSubtraction/data/gbrphi_7_4_X_miniAOD_{}NS_July2015.root'.format(bunchCrossing)),
-        CovU1 = cms.FileInPath('RecoMET/METPUSubtraction/data/gbru1cov_7_4_X_miniAOD_{}NS_July2015.root'.format(bunchCrossing)),
-        CovU2 = cms.FileInPath('RecoMET/METPUSubtraction/data/gbru2cov_7_4_X_miniAOD_{}NS_July2015.root'.format(bunchCrossing))
+        U     = cms.FileInPath('RecoMET/METPUSubtraction/data/gbru_7_4_X_miniAOD_25NS_July2015.root'),
+        DPhi  = cms.FileInPath('RecoMET/METPUSubtraction/data/gbrphi_7_4_X_miniAOD_25NS_July2015.root'),
+        CovU1 = cms.FileInPath('RecoMET/METPUSubtraction/data/gbru1cov_7_4_X_miniAOD_25NS_July2015.root'),
+        CovU2 = cms.FileInPath('RecoMET/METPUSubtraction/data/gbru2cov_7_4_X_miniAOD_25NS_July2015.root')
     )
         
     process.load("PhysicsTools.PatAlgos.producersLayer1.metProducer_cfi")
