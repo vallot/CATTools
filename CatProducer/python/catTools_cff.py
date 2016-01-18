@@ -19,7 +19,7 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         process.lumiMaskSilver = cms.EDProducer("LumiMaskProducer",
             LumiSections = LumiList('../data/LumiMask/%s_Silver.txt'%cat.lumiJSON).getVLuminosityBlockRange())
     
-    useJECfile = False
+    useJECfile = True
     jecFile = cat.JetEnergyCorrection
     if runOnMC:
         jecFile = jecFile+"_MC"
@@ -28,7 +28,7 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
     if useJECfile:
         from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
         process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
-            connect = cms.string('sqlite_fip:CATTools/CatProducer/data/JEC/%s.db'%jecFile),
+            connect = cms.string('sqlite_fip:CATTools/CatProducer/data/JEC/%s.db'%jecFile),            
             toGet = cms.VPSet(
                 cms.PSet(
                     record = cms.string("JetCorrectionsRecord"),

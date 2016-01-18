@@ -158,7 +158,7 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
 	aElectron.setElectronID(ids[i]);
       }
     }
-    else if (electronIDs_.size() == 0){// for selected IDs in miniAOD
+    else if (electronIDs_.size()){// for selected IDs in miniAOD
       for(unsigned int i = 0; i < electronIDs_.size(); i++){
 	pat::Electron::IdPair pid(electronIDs_.at(i), aPatElectron.electronID(electronIDs_.at(i)));
 	aElectron.setElectronID(pid);
