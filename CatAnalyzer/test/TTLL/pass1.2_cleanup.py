@@ -3,7 +3,7 @@
 import sys, os
 from os.path import isdir as isdir
 from os.path import join as pathjoin
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
 
 def hadd(d):
     d = d.rstrip('/')
@@ -45,7 +45,7 @@ def hadd(d):
         print
 
 if __name__ == '__main__':
-    pool = Pool(30)
+    pool = Pool(cpu_count())
     pass1Dir = "pass1"
     outFiles = []
     for sample in os.listdir(pass1Dir):

@@ -93,12 +93,12 @@ out_dat = open("%s/submit_dat_unc.sh" % outDir, "w")
 
 ## Loop over common systematics
 systAny = {
-    'mu_pt/up':'ttll.muon.scaleDirection=1',
-    'mu_pt/dn':'ttll.muon.scaleDirection=-1',
-    'el_pt/up':'ttll.electron.scaleDirection=1',
-    'el_pt/dn':'ttll.electron.scaleDirection=-1',
-    'jet_cor/up':'ttll.jet.scaleDirection=1',
-    'jet_cor/dn':'ttll.jet.scaleDirection=-1',
+    'mu_pt/up':'eventsTTLL.muon.scaleDirection=1',
+    'mu_pt/dn':'eventsTTLL.muon.scaleDirection=-1',
+    'el_pt/up':'eventsTTLL.electron.scaleDirection=1',
+    'el_pt/dn':'eventsTTLL.electron.scaleDirection=-1',
+    'jet_cor/up':'eventsTTLL.jet.scaleDirection=1',
+    'jet_cor/dn':'eventsTTLL.jet.scaleDirection=-1',
 }
 for systName in systAny:
     syst = systAny[systName]
@@ -129,14 +129,14 @@ for systName in systAny:
 
 ## Then loop over MC specific systematics
 systMC = {
-    'jet_res/up':'ttll.jet.resolDirection=1',
-    'jet_res/dn':'ttll.jet.resolDirection=-1',
-    'pileup/up':'ttll.vertex.pileupWeight="pileupWeight:up"',
-    'pileup/dn':'ttll.vertex.pileupWeight="pileupWeight:dn"',
-    'mu_eff/up':'ttll.muon.efficiencySFDirection=1',
-    'mu_eff/dn':'ttll.muon.efficiencySFDirection=-1',
-    'el_eff/up':'ttll.electron.efficiencySFDirection=1',
-    'el_eff/dn':'ttll.electron.efficiencySFDirection=-1',
+    'jet_res/up':'eventsTTLL.jet.resolDirection=1',
+    'jet_res/dn':'eventsTTLL.jet.resolDirection=-1',
+    'pileup/up':'eventsTTLL.vertex.pileupWeight="pileupWeight:up"',
+    'pileup/dn':'eventsTTLL.vertex.pileupWeight="pileupWeight:dn"',
+    'mu_eff/up':'eventsTTLL.muon.efficiencySFDirection=1',
+    'mu_eff/dn':'eventsTTLL.muon.efficiencySFDirection=-1',
+    'el_eff/up':'eventsTTLL.electron.efficiencySFDirection=1',
+    'el_eff/dn':'eventsTTLL.electron.efficiencySFDirection=-1',
 }
 for systName in systMC:
     syst = systMC[systName]
@@ -163,7 +163,7 @@ for systName in systMC:
 ## Let us assume index1-10 are for the scale variations (muF & muR)
 for i in range(1,9): # total 8 scale variations, 3 muF x 3 muR and one for central weight
     systName = "gen_scale/%d" % i
-    syst = 'ttll.genWeight.src="genWeight:pdfWeights" ttll.genWeight.index=%d' % i
+    syst = 'eventsTTLL.genWeight.src="genWeight:pdfWeights" eventsTTLL.genWeight.index=%d' % i
     for d in bkgList:
         name = d['name']
         if isBlacklisted(name): continue
@@ -197,7 +197,7 @@ for d in bkgList:
     submitCmd += " --fileList %s/dataset/dataset_%s.txt" % (dataDir, name)
 
     for i in range(9, weightSize+1):
-        arg = 'ttll.genWeight.src="genWeight:pdfWeights" ttll.genWeight.index=%d' % i
+        arg = 'eventsTTLL.genWeight.src="genWeight:pdfWeights" eventsTTLL.genWeight.index=%d' % i
         print>>out_bkg, (submitCmd + (" --jobName %s/gen_PDF/%d --args '%s'" % (name, i, arg)))
 
 for d in sigList:
@@ -212,7 +212,7 @@ for d in sigList:
     submitCmd += " --fileList %s/dataset/dataset_%s.txt" % (dataDir, name)
 
     for i in range(9, weightSize+1):
-        arg  = 'ttll.genWeight.src="genWeight:pdfWeights" ttll.genWeight.index=%d' % i
+        arg  = 'eventsTTLL.genWeight.src="genWeight:pdfWeights" eventsTTLL.genWeight.index=%d' % i
         arg += ' agen.weight="genWeight:pdfWeights" agen.weightIndex=%d' % i
         print>>out_sig, (submitCmd + (" --jobName %s_LL/gen_PDF/%d --args '%s'" % (name, i, arg)))
         print>>out_bkg, (submitCmd + (" --jobName %s_Others/gen_PDF/%d --args '%s filterPartonTTLL.invert=True'" % (name, i, arg)))

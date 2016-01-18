@@ -15,13 +15,14 @@ process.source.fileNames = [
 
 process.load("CATTools.CatAnalyzer.filters_cff")
 process.load("CATTools.CatAnalyzer.ttll.ttllEventSelector_cfi")
+process.load("CATTools.CatAnalyzer.ttll.ttllAnalyzers_cff")
 process.load("CATTools.CatAnalyzer.ttll.ntuple_cff")
 
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string("hist.root"),
 )
 
-process.p = cms.Path(process.ttll)#*process.ntuple)
+process.p = cms.Path(process.eventsTTLL*process.ttbbll)#*process.ntuple)
 
 ## Customise with cmd arguments
 import sys

@@ -15,8 +15,9 @@ process.source.fileNames = [
 
 process.load("CATTools.CatAnalyzer.filters_cff")
 process.load("CATTools.CatAnalyzer.ttll.ttllEventSelector_cfi")
+process.load("CATTools.CatAnalyzer.ttll.ttllAnalyzers_cff")
 process.load("CATTools.CatAnalyzer.ttll.ntuple_cff")
-process.ttll.isMC = False
+process.eventsTTLL.isMC = False
 if hasattr(process.ntuple.float, "weight"):
     delattr(process.ntuple.float, "weight")
 
@@ -24,7 +25,7 @@ process.TFileService = cms.Service("TFileService",
     fileName = cms.string("hist.root"),
 )
 
-process.p = cms.Path(process.filterLumi*process.ttll)#*process.ntuple)
+process.p = cms.Path(process.filterLumi*process.eventsTTLL*process.ttbbll)#*process.ntuple)
 
 ## Customise with cmd arguments
 import sys

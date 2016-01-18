@@ -4,7 +4,9 @@ from ROOT import *
 import json
 import sys, os
 import string
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
+
+dataFileMatch = {"ee":"DoubleEG", "mm":"DoubleMuon", "em":"MuonEG"}
 
 srcbase, outbase = "pass1", "pass2"
 
@@ -14,7 +16,7 @@ def merge(outfileName, mergeInfo):
     type = mergeInfo['type']
     samples = mergeInfo['samples']
     fout = TFile(outfileName, "RECREATE")
-    out_moddir = fout.mkdir("ttll")
+    out_moddir = fout.mkdir("eventsTTLL")
 
     for i, x in enumerate(samples):
         fsrc = TFile(x['file'])
@@ -26,7 +28,7 @@ def merge(outfileName, mergeInfo):
                 hWeight = fsrc.Get("agen/hWeight")
                 ## Get weight distribution before gen filter - only if exists
             else:
-                hWeight = fsrc.Get("ttll/overall/weight")
+                hWeight = fsrc.Get("eventsTTLL/overall/weight")
             if hWeight != None:
                 sumW = hWeight.Integral()*hWeight.GetMean()
                 if sumW != 0.0: scale = x['xsec']/sumW
@@ -34,15 +36,18 @@ def merge(outfileName, mergeInfo):
                 print "Cannot find weight histogram!!! Skipping cross section normalization."
 
         ## Visit all cut flows and do the normalization
-        src_moddir = fsrc.Get("ttll")
-        for chName in [x.GetName() for x in src_moddir.GetListOfKeys()]:
+        src_moddir = fsrc.Get("eventsTTLL")
+        for chName in [k.GetName() for k in src_moddir.GetListOfKeys()]:
             if chName == "overall": continue
+
+            ## Special care for the real data
+            if type == "data" and dataFileMatch[chName] not in x['file']: continue
 
             if i == 0: out_moddir.mkdir(chName)
             src_chdir = src_moddir.Get(chName)
             out_chdir = out_moddir.Get(chName)
 
-            for stepName in [x.GetName() for x in src_chdir.GetListOfKeys()]:
+            for stepName in [k.GetName() for k in src_chdir.GetListOfKeys()]:
                 src_stepdir = src_chdir.Get(stepName)
                 ## Cut flow table
                 if src_stepdir.IsA().InheritsFrom("TH1"):
@@ -61,7 +66,7 @@ def merge(outfileName, mergeInfo):
                     if i == 0: out_chdir.mkdir(stepName)
                     out_stepdir = out_chdir.Get(stepName)
                 
-                    for histName in [x.GetName() for x in src_stepdir.GetListOfKeys()]:
+                    for histName in [k.GetName() for k in src_stepdir.GetListOfKeys()]:
                         hsrc = src_stepdir.Get(histName)
                         hsrc.Scale(scale)
 
@@ -74,7 +79,7 @@ def merge(outfileName, mergeInfo):
                         hout.Write("", TObject.kOverwrite)
 
 if __name__ == '__main__':
-    p = Pool(30)
+    p = Pool(cpu_count())
 
     mergeList = json.loads(open(outbase+"/samples.json").read())
 
@@ -90,3 +95,13 @@ if __name__ == '__main__':
 
     p.close()
     p.join()
+
+    ## Merge real data
+    mergeRDs = {}
+    for outfileName in mergeList:
+        if mergeList[outfileName]['type'] != 'data': continue
+        outdir = os.path.dirname(outfileName)
+        if outdir not in mergeRDs: mergeRDs[outdir] = []
+        mergeRDs[outdir].append(outfileName)
+    for fName in mergeRDs:
+        os.system("hadd -f %s/Data.root %s" % (fName, " ".join(mergeRDs[fName])))
