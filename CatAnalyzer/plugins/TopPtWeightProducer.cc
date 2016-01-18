@@ -36,16 +36,16 @@ void TopPtWeightProducer::produce(edm::Event& event, const edm::EventSetup& even
   edm::Handle<reco::GenParticleCollection> srcHandle;
   event.getByToken(srcToken_, srcHandle);
 
+  double ptWeight = 1;
+
   std::vector<const reco::GenParticle*> tQuarks;
   for ( auto& p : *srcHandle ) {
     if ( abs(p.pdgId()) == 6 ) tQuarks.push_back(&p);
   }
-
-  edm::Handle<vint> modes;
-  event.getByToken(modesToken_, modes);
-
-  double ptWeight = 1;
   if ( tQuarks.size() == 2 and modes->size() == 2 ) {
+    edm::Handle<vint> modes;
+    event.getByToken(modesToken_, modes);
+
     const double pt1 = tQuarks.at(0)->pt();
     const double pt2 = tQuarks.at(1)->pt();
 
