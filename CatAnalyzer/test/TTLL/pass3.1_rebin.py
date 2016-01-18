@@ -4,13 +4,13 @@ import sys, os
 import json
 from array import array
 from numpy import linspace
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
 sys.argv.append("-b")
 from ROOT import *
 
-def arr(min, max, n = None):
-    if n == None: n = max-min
-    return array('d', list(linspace(min, max, n+1)))
+def arr(xmin, xmax, n = None):
+    if n == None: n = xmax-xmin
+    return array('d', list(linspace(xmin, xmax, n+1)))
 
 plotInfos = json.loads(open("pass2/plots.json").read())
 binInfos = {
@@ -57,7 +57,7 @@ def process(fiPath, foPath, fName):
         ho.Write()
 
 if __name__ == '__main__':
-    p = Pool(20)
+    p = Pool(cpu_count())
     for fiPath, dirs, files in os.walk("pass2"):
         rootFiles = [x for x in files if x.endswith('.root')]
         if len(rootFiles) == 0: continue

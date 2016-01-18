@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from ROOT import *
 from math import sqrt
@@ -7,16 +7,14 @@ lumi = 2.11*1000
 
 rootfileDir = "pass2/central"
 
-hName = "ttll/%s/step%d/z_m_noveto"
+hName = "eventsTTLL/%s/step%d/z_m_noveto"
 fDY = TFile.Open(rootfileDir+"/Z__gamma_rightarrow_ll.root")
-fEM = TFile.Open(rootfileDir+"/MuonEG.root")
-fMM = TFile.Open(rootfileDir+"/DoubleMuon.root")
-fEE = TFile.Open(rootfileDir+"/DoubleEG.root")
+fRD = TFile(rootfileDir+"/Data.root")
 
 ## Calculate efficiency factor kMM and kEE using the step1
-hRD_ee = fEE.Get(hName % ("ee", 1))
-hRD_mm = fMM.Get(hName % ("mm", 1))
-hRD_em = fEM.Get(hName % ("em", 1))
+hRD_ee = fRD.Get(hName % ("ee", 1))
+hRD_mm = fRD.Get(hName % ("mm", 1))
+hRD_em = fRD.Get(hName % ("em", 1))
 hDY_ee = fDY.Get(hName % ("ee", 1))
 hDY_mm = fDY.Get(hName % ("mm", 1))
 
@@ -38,9 +36,9 @@ out = {
 }
 
 for step in range(1,6):
-    hRD_ee = fEE.Get(hName % ("ee", step))
-    hRD_mm = fMM.Get(hName % ("mm", step))
-    hRD_em = fEM.Get(hName % ("em", step))
+    hRD_ee = fRD.Get(hName % ("ee", step))
+    hRD_mm = fRD.Get(hName % ("mm", step))
+    hRD_em = fRD.Get(hName % ("em", step))
     hDY_ee = fDY.Get(hName % ("ee", step))
     hDY_mm = fDY.Get(hName % ("mm", step))
 
@@ -67,10 +65,9 @@ for step in range(1,6):
 
     print "DY estimation for step", step, "ee =",scale_ee, "mm =",scale_mm
 
-    out["scale"]["ttll/ee/step%d" % step] = scale_ee
-    out["scale"]["ttll/mm/step%d" % step] = scale_mm
+    out["scale"]["eventsTTLL/ee/step%d" % step] = scale_ee
+    out["scale"]["eventsTTLL/mm/step%d" % step] = scale_mm
 
-import json
 f = open("pass2/scaler_DY.json", "w")
 f.write(json.dumps(out, indent=4, sort_keys=True))
 f.close()

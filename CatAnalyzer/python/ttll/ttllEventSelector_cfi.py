@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 from CATTools.CatAnalyzer.leptonSF_cff import *
 
-ttll = cms.EDFilter("TTLLEventSelector",
+eventsTTLL = cms.EDFilter("TTLLEventSelector",
     isMC = cms.bool(True),
     ## alwaysAcceptAfter : Accept event even though selection may fail _AFTER_ this step
     ## Use case: store ntuple only for events that passes step4
