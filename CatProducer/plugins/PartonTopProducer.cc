@@ -8,18 +8,10 @@
 #include "fastjet/ClusterSequence.hh"
 #include "RecoJets/JetProducers/interface/JetSpecific.h"
 
-#include "CommonTools/Utils/interface/PtComparator.h"
-
-#include "FWCore/ServiceRegistry/interface/Service.h"
-#include "CommonTools/UtilAlgos/interface/TFileService.h"
-#include "TH1F.h"
-#include "TH2F.h"
-
 #include "CATTools/CommonTools/interface/TTbarModeDefs.h"
 
 using namespace std;
-using namespace edm;
-using namespace reco;
+using namespace cat;
 
 class PartonTopProducer : public edm::stream::EDProducer<>
 {
@@ -68,7 +60,7 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
   std::auto_ptr<reco::GenParticleCollection> partons(new reco::GenParticleCollection);
   auto partonRefHandle = event.getRefBeforePut<reco::GenParticleCollection>();
 
-  std::auto_ptr<int> channel(new int(cat::CH_NONE));
+  std::auto_ptr<int> channel(new int(CH_NONE));
   std::auto_ptr<std::vector<int> > modes(new std::vector<int>());
 
   std::auto_ptr<reco::GenJetCollection> qcdJets(new reco::GenJetCollection);
@@ -212,10 +204,10 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
     int mode = 0;
     switch ( abs(wDau1->pdgId()) )
     {
-      case 11: ++nElectron; mode = cat::CH_ELECTRON; break;
-      case 13: ++nMuon; mode = cat::CH_MUON; break;
+      case 11: ++nElectron; mode = CH_ELECTRON; break;
+      case 13: ++nMuon; mode = CH_MUON; break;
       case 15:
-        ++nTau; mode = cat::CH_TAU_HADRON;
+        ++nTau; mode = CH_TAU_HADRON;
         if ( lepFromTau )
         {
           ++nTauToLepton;
@@ -236,9 +228,9 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
   if ( modes->size() == 2 )
   {
     const int nLepton = nElectron + nMuon;
-    if      ( nLepton == 0 ) *channel = cat::CH_FULLHADRON;
-    else if ( nLepton == 1 ) *channel = cat::CH_SEMILEPTON;
-    else if ( nLepton == 2 ) *channel = cat::CH_FULLLEPTON;
+    if      ( nLepton == 0 ) *channel = CH_FULLHADRON;
+    else if ( nLepton == 1 ) *channel = CH_SEMILEPTON;
+    else if ( nLepton == 2 ) *channel = CH_FULLLEPTON;
   }
 
   // Make genJets using particles after PS, but before hadronization
