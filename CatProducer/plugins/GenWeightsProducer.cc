@@ -41,6 +41,7 @@ private:
   const bool doLOPDFReweight_;
   bool reweightToNewPDF_;
   const edm::InputTag lheLabel_;
+  const edm::EDGetTokenT<LHERunInfoProduct> lheRunToken_;
   const edm::EDGetTokenT<LHEEventProduct> lheToken_;
   const edm::EDGetTokenT<GenEventInfoProduct> genInfoToken_;
 
@@ -51,6 +52,7 @@ GenWeightsProducer::GenWeightsProducer(const edm::ParameterSet& pset):
   enforceUnitGenWeight_(pset.getParameter<bool>("enforceUnitGenWeight")),
   doLOPDFReweight_(pset.getParameter<bool>("doLOPDFReweight")),
   lheLabel_(pset.getParameter<edm::InputTag>("lheEvent")),
+  lheRunToken_(consumes<LHERunInfoProduct, edm::InRun>(pset.getParameter<edm::InputTag>("lheEvent"))),
   lheToken_(consumes<LHEEventProduct>(pset.getParameter<edm::InputTag>("lheEvent"))),
   genInfoToken_(consumes<GenEventInfoProduct>(pset.getParameter<edm::InputTag>("genEventInfo")))
 {
@@ -95,7 +97,9 @@ void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
   std::auto_ptr<string> combinePDFBy(new string);
 
   do {
+    // Workaround found in HN, physicstools #3437
     edm::Handle<LHERunInfoProduct> lheHandle;
+    //run.getByToken(lheRunToken_, lheHandle);
     run.getByLabel(lheLabel_, lheHandle);
     if ( !lheHandle.isValid() ) break;
 
