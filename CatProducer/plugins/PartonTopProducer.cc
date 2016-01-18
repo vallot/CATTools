@@ -49,7 +49,6 @@ PartonTopProducer::PartonTopProducer(const edm::ParameterSet& pset):
   produces<std::vector<int> >("modes");
 
   produces<reco::GenJetCollection>("qcdJets");
-  produces<float>("ptWeight");
 }
 
 void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventSetup)
@@ -264,28 +263,10 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
     qcdJets->push_back(qcdJet);
   }
 
-  // Calculate pt-weights
-  double ptWeight = 1;
-  if ( tQuarks.size() == 2 and modes->size() == 2 ) {
-    const double pt1 = tQuarks.at(0)->pt();
-    const double pt2 = tQuarks.at(1)->pt();
-
-    const int mode1 = modes->at(0), mode2 = modes->at(1);
-    const bool isLep1 = (mode1 == CH_MUON or mode2 == CH_ELECTRON);
-    const bool isLep2 = (mode2 == CH_MUON or mode2 == CH_ELECTRON);
-
-    double a = 0.156, b = -0.00137;
-    if ( isLep1 and isLep2 ) { a = 0.148; b = -0.00129; }
-    else if ( isLep1 or isLep2 ) { a = 0.159; b = -0.00141; }
-
-    ptWeight = sqrt(exp(a+b*pt1)*exp(a+b*pt2));
-  }
-
   event.put(partons);
   event.put(channel, "channel");
   event.put(modes, "modes");
   event.put(qcdJets, "qcdJets");
-  event.put(std::auto_ptr<float>(new float(ptWeight)), "ptWeight");
 }
 
 const reco::Candidate* PartonTopProducer::getLast(const reco::Candidate* p) const
