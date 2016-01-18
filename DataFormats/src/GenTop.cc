@@ -512,7 +512,8 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
 
     if(bJetIds.count(idx) > 0){
       bJetsBHad.push_back( gJet.p4() );
-      if(bJetFromTopIds.count(idx) < 1) addbJetsBHad.push_back( gJet.p4() ); 
+      //if(bJetFromTopIds.count(idx) < 1) addbJetsBHad.push_back( gJet.p4() ); 
+      if( bJetAdditionalIds.count(idx) > 0 ) addbJetsBHad.push_back( gJet.p4() ); 
     }
     
     if(cJetIds.count(idx) > 0){
