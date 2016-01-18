@@ -46,6 +46,7 @@ void TopPtWeightProducer::produce(edm::Event& event, const edm::EventSetup& even
 
   double ptWeight = 1;
   if ( tQuarks.size() == 2 and modes->size() == 2 ) {
+
     const double pt1 = tQuarks.at(0)->pt();
     const double pt2 = tQuarks.at(1)->pt();
 
