@@ -17,6 +17,7 @@ GenTop::GenTop(){
   bJets_ = {null, null, null, null};
   addbJets_ = {null, null};
   addbJetsHad_ = {null, null};
+  addcJetsHad_ = {null, null};
   addJets_ = {null, null};
 }
 
@@ -37,6 +38,7 @@ GenTop::GenTop(const reco::Candidate & aGenTop) : reco::LeafCandidate(aGenTop) {
   bJets_ = {null, null, null, null};
   addbJets_ = {null, null};
   addbJetsHad_ = {null, null};
+  addcJetsHad_ = {null, null};
   addJets_ = {null, null};
 }
 
@@ -352,6 +354,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
   std::vector<math::XYZTLorentzVector> addbJets;
   std::vector<math::XYZTLorentzVector> cJets;
   std::vector<math::XYZTLorentzVector> cJetsCHad;
+  std::vector<math::XYZTLorentzVector> addcJetsCHad;
   std::vector<math::XYZTLorentzVector> addJets;
 
   NJets_ = 0;
@@ -518,6 +521,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     
     if(cJetIds.count(idx) > 0){
       cJetsCHad.push_back( gJet.p4() );
+      if( cJetAdditionalIds.count(idx) > 0 ) addcJetsCHad.push_back( gJet.p4() ); 
     }
 
     //Looking at Jet constituents
@@ -621,6 +625,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
 
   std::sort(bJetsBHad.begin(), bJetsBHad.end(), GreaterByPt<reco::Candidate::LorentzVector>());
   std::sort(addbJetsBHad.begin(), addbJetsBHad.end(), GreaterByPt<reco::Candidate::LorentzVector>());
+  std::sort(addcJetsCHad.begin(), addcJetsCHad.end(), GreaterByPt<reco::Candidate::LorentzVector>());
 
   NbJetsBHad_ = 0;
   NbJets10BHad_ = 0;
@@ -651,6 +656,19 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     if( addbJetsBHad[i].pt() > 20 && std::abs(addbJetsBHad[i].eta()) < 2.5) NaddbJets20BHad_++;
     if( addbJetsBHad[i].pt() > 40 && std::abs(addbJetsBHad[i].eta()) < 2.5) NaddbJets40BHad_++;
   }
+
+  NaddcJetsCHad_ = 0;
+  NaddcJets20CHad_ = 0;
+  NaddcJets40CHad_ = 0;
+  for( unsigned int i = 0 ; i < addcJetsCHad.size() ; i++){
+    if( i < 2 ){
+      addcJetsHad_[i] = addcJetsCHad[i];
+    }
+    NaddcJetsCHad_++;
+    if( addcJetsCHad[i].pt() > 20 && std::abs(addcJetsCHad[i].eta()) < 2.5) NaddbJets20BHad_++;
+    if( addcJetsCHad[i].pt() > 40 && std::abs(addcJetsCHad[i].eta()) < 2.5) NaddbJets40BHad_++;
+  }
+
 
   /*
   for( std::map<int, vector<const reco::Candidate*> >::iterator it = mapJetToCHadrons.begin() ; it != mapJetToCHadrons.end(); it++){
@@ -736,11 +754,13 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
   dRaddJets_ = 0;
   dRaddbJets_ = 0;
   dRaddbJetsHad_ = 0;
+  dRaddcJetsHad_ = 0;
   dRcJets_ = 0;
   dRcJetsHad_ = 0;
 
   if( addJets.size() >= 2) dRaddJets_ = reco::deltaR(addJets[0], addJets[1]);
   if( addbJetsBHad.size() >= 2) dRaddbJetsHad_ = reco::deltaR(addbJetsBHad[0], addbJetsBHad[1]);
+  if( addcJetsCHad.size() >= 2) dRaddcJetsHad_ = reco::deltaR(addcJetsCHad[0], addcJetsCHad[1]);
   if( cJetsCHad.size() >= 2) dRcJetsHad_ = reco::deltaR(cJetsCHad[0], cJetsCHad[1]);
   if( addbJets.size() >= 2) dRaddbJets_ = reco::deltaR(addbJets[0], addbJets[1]);
   if( cJets.size() >= 2) dRcJets_ = reco::deltaR(cJets[0], cJets[1]);

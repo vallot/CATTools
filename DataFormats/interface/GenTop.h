@@ -177,6 +177,26 @@ namespace cat {
       else return NbJets40NoTop_;
     }
 
+    //int NaddcJets(int i=0) const {
+    int NaddcJets() const {
+      //if( i == 0 )
+      return NaddcJetsCHad_;
+      //else return NcJetsNoTop_;
+    }
+    //int NaddcJets20(int i=0) const {
+    int NaddcJets20() const {
+      //if( i == 0 )
+      return NaddcJets20CHad_;
+      //else return NcJets20NoTop_;
+    }
+    //int NaddcJets40(int i=0) const {
+    int NaddcJets40() const {
+      //if( i == 0 )
+      return NaddcJets40CHad_;
+      //else return NcJets40NoTop_;
+    }
+
+
     int NcJets(int i=0) const {
       if( i == 0 ) return NcJetsCHad_;
       else return NcJets_ ;
@@ -252,6 +272,7 @@ namespace cat {
     LorentzVectors bJets_;
     LorentzVectors addbJets_;
     LorentzVectors addbJetsHad_;
+    LorentzVectors addcJetsHad_;
     LorentzVectors addJets_;
     LorentzVectors quarksfromW_;
 
@@ -295,6 +316,10 @@ namespace cat {
     int NaddbJets20BHad_;
     int NaddbJets40BHad_;
 
+    int NaddcJetsCHad_;
+    int NaddcJets20CHad_;
+    int NaddcJets40CHad_;
+
     int NbJetsNoTop_;
     int NbJets10NoTop_;
     int NbJets15NoTop_;
@@ -302,6 +327,14 @@ namespace cat {
     int NbJets25NoTop_;
     int NbJets30NoTop_;
     int NbJets40NoTop_;
+
+    int NcJetsNoTop_;
+    int NcJets10NoTop_;
+    int NcJets15NoTop_;
+    int NcJets20NoTop_;
+    int NcJets25NoTop_;
+    int NcJets30NoTop_;
+    int NcJets40NoTop_;
 
     int NcJets_;
     int NcJets10_;
@@ -344,6 +377,7 @@ namespace cat {
     float dRaddJets_;
 
     float dRaddbJets_;
+    float dRaddcJets_;
     float dRcJets_;
 
     float dRaddbJetsHad_;
