@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os,json,sys,shutil,time,getopt
+import CATTools.CatProducer.catDefinitions_cfi as cat
 
 def submitjob(requestName, dataset, globalTag, lumiMask, submit):
     print "creating job"
@@ -9,7 +10,14 @@ def submitjob(requestName, dataset, globalTag, lumiMask, submit):
     datatype = dataset.strip().split("/")[-1]
     if datatype == "MINIAOD" or datatype == "MINIAODSIM" :
         isMiniAOD="True"
-
+        if globalTag == None:
+            globalTag = cat.globalTag_mc
+            
+    if globalTag == None:
+        globalTag = cat.globalTag_rd
+    if lumiMask == None:
+        lumiMask = '../data/LumiMask/%s.txt'%cat.lumiJSONSilver
+        
     isMC = True
     dataSplitting   = " Data.splitting='FileBased' "
     dataUnitsPerJob = " Data.unitsPerJob=1 "
@@ -104,7 +112,7 @@ if inputFile is None:
             continue
         if submitBlock == '2' and 'QCD' not in dataset:
             continue
-        submitjob(requestName, dataset, d['GlobalTag'], '../data/LumiMask/'+d['LumiMask'], submit)
+        submitjob(requestName, dataset, None,None, submit)
 
 else:
     for dataset in datasets:
