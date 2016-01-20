@@ -177,20 +177,23 @@ namespace cat {
       else return NbJets40NoTop_;
     }
 
-    int NaddcJets(int i=0) const {
-    //int NaddcJets() const {
-      if( i == 0 ) return NaddcJetsCHad_;
-      else return NcJetsNoTop_;
+    //int NaddcJets(int i=0) const {
+    int NaddcJets() const {
+      //if( i == 0 )
+      return NaddcJetsCHad_;
+      //else return NcJetsNoTop_;
     }
-    int NaddcJets20(int i=0) const {
-    //int NaddcJets20() const {
-      if( i == 0 ) return NaddcJets20CHad_;
-      else return NcJets20NoTop_;
+    //int NaddcJets20(int i=0) const {
+    int NaddcJets20() const {
+      //if( i == 0 )
+      return NaddcJets20CHad_;
+      //else return NcJets20NoTop_;
     }
-    int NaddcJets40(int i=0) const {
-    //int NaddcJets40() const {
-      if( i == 0 ) return NaddcJets40CHad_;
-      else return NcJets40NoTop_;
+    //int NaddcJets40(int i=0) const {
+    int NaddcJets40() const {
+      //if( i == 0 )
+      return NaddcJets40CHad_;
+      //else return NcJets40NoTop_;
     }
 
 
@@ -327,13 +330,6 @@ namespace cat {
     int NbJets30NoTop_;
     int NbJets40NoTop_;
 
-    int NcJetsNoTop_;
-    int NcJets10NoTop_;
-    int NcJets15NoTop_;
-    int NcJets20NoTop_;
-    int NcJets25NoTop_;
-    int NcJets30NoTop_;
-    int NcJets40NoTop_;
 
     int NcJets_;
     int NcJets10_;
