@@ -60,11 +60,17 @@ class TTBBLLAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>
     edm::EDGetTokenT<cat::JetCollection> jetsToken_;
     edm::EDGetTokenT<float> metToken_, metphiToken_;
 
+    //edm::EDGetTokenT<reco::GenParticleCollection> partonToken_;
+    edm::EDGetTokenT<int> partonChannelToken_;
+    edm::EDGetTokenT<vint> partonModesToken_;
+    edm::EDGetTokenT<reco::GenJetCollection> partonJetToken_;
+
     Histos heeS0_, heeS1_, heeS2_;
     Histos hmmS0_, hmmS1_, hmmS2_;
     Histos hemS0_, hemS1_, hemS2_;
 
     TTree* tree_;
+
     int b_channel_, b_mode1_, b_mode2_;
     float b_weight_;
     float b_met_pt_, b_met_phi_;
@@ -77,7 +83,11 @@ class TTBBLLAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>
     int b_jet1_hflav_, b_jet2_hflav_, b_jet3_hflav_, b_jet4_hflav_;
     int b_jet1_qflav_, b_jet2_qflav_, b_jet3_qflav_, b_jet4_qflav_;
 
-    int b_nbjetsT_, b_nbjetsM_, b_nbjetsL_;
+    int b_bjetsT_n, b_bjetsM_n, b_bjetsL_n;
+
+    int b_parton_channel_, b_parton_mode1_, b_parton_mode2_;
+    int b_parton_jets20_n_, b_parton_jets30_n_;
+    int b_parton_bjets20_n_, b_parton_bjets30_n_;
 };
 
 TTBBLLAnalyzer::TTBBLLAnalyzer(const edm::ParameterSet& pset)
@@ -92,6 +102,14 @@ TTBBLLAnalyzer::TTBBLLAnalyzer(const edm::ParameterSet& pset)
   jetsToken_ = consumes<cat::JetCollection>(edm::InputTag(srcLabelName, "jets"));
   metToken_ = consumes<float>(edm::InputTag(srcLabelName, "met"));
   metphiToken_ = consumes<float>(edm::InputTag(srcLabelName, "metphi"));
+
+  const auto partonLabel = pset.getParameter<edm::InputTag>("partonTop");
+  const auto partonLabelName = partonLabel.label();
+
+  //partonToken_ = consumes<reco::GenParticleCollection>(partonLabel);
+  partonChannelToken_ = consumes<int>(edm::InputTag(partonLabelName, "channel"));
+  partonModesToken_ = consumes<vint>(edm::InputTag(partonLabelName, "modes"));
+  partonJetToken_ = consumes<reco::GenJetCollection>(edm::InputTag(partonLabelName, "qcdJets"));
 
   edm::Service<TFileService> fs;
   tree_ = fs->make<TTree>("ttbb", "ttbb");
@@ -134,9 +152,17 @@ TTBBLLAnalyzer::TTBBLLAnalyzer(const edm::ParameterSet& pset)
   tree_->Branch("jet3_qflav", &b_jet3_qflav_, "jet3_qflav/I");
   tree_->Branch("jet4_qflav", &b_jet4_qflav_, "jet4_qflav/I");
 
-  tree_->Branch("nbjetsT", &b_nbjetsT_, "nbjetsT/I");
-  tree_->Branch("nbjetsM", &b_nbjetsM_, "nbjetsM/I");
-  tree_->Branch("nbjetsL", &b_nbjetsL_, "nbjetsL/I");
+  tree_->Branch("nbjetsT", &b_bjetsT_n, "nbjetsT/I");
+  tree_->Branch("nbjetsM", &b_bjetsM_n, "nbjetsM/I");
+  tree_->Branch("nbjetsL", &b_bjetsL_n, "nbjetsL/I");
+
+  tree_->Branch("parton_channel", &b_parton_channel_, "parton_channel/I");
+  tree_->Branch("parton_mode1", &b_parton_mode1_, "parton_mode1/I");
+  tree_->Branch("parton_mode2", &b_parton_mode2_, "parton_mode2/I");
+  tree_->Branch("parton_jets20_n", &b_parton_jets20_n_, "parton_jets20_n/I");
+  tree_->Branch("parton_jets30_n", &b_parton_jets30_n_, "parton_jets30_n/I");
+  tree_->Branch("parton_bjets20_n", &b_parton_bjets20_n_, "parton_bjets20_n/I");
+  tree_->Branch("parton_bjets30_n", &b_parton_bjets30_n_, "parton_bjets30_n/I");
 
   auto diree = fs->mkdir("ee");
   heeS0_.book(diree.mkdir("S0")); // Njet4
@@ -156,6 +182,22 @@ TTBBLLAnalyzer::TTBBLLAnalyzer(const edm::ParameterSet& pset)
 
 void TTBBLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
 {
+  // Initialize variables
+  b_lep1_pt_ =  b_lep2_pt_ = b_z_m_ = b_z_pt_ = -999;
+
+  b_jet1_pt_ = b_jet2_pt_ = b_jet3_pt_ = b_jet4_pt_ = -999;
+  b_jet1_eta_ = b_jet2_eta_ = b_jet3_eta_ = b_jet4_eta_ = -999;
+  b_jet1_btag_ = b_jet2_btag_ = b_jet3_btag_ = b_jet4_btag_ = -999;
+  b_jet1_hflav_ = b_jet2_hflav_ = b_jet3_hflav_ = b_jet4_hflav_ = -999;
+  b_jet1_qflav_ = b_jet2_qflav_ = b_jet3_qflav_ = b_jet4_qflav_ = -999;
+
+  b_bjetsT_n = b_bjetsM_n = b_bjetsL_n= -999;
+
+  b_parton_channel_ = b_parton_mode1_ = b_parton_mode2_= -999;
+  b_parton_jets20_n_ = b_parton_jets30_n_= -999;
+  b_parton_bjets20_n_ = b_parton_bjets30_n_= -999;
+
+  // Start to read reco objects
   edm::Handle<int> iHandle;
   event.getByToken(channelToken_, iHandle);
   b_channel_ = *iHandle;
@@ -189,13 +231,13 @@ void TTBBLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
 
   typedef std::pair<edm::Ref<cat::JetCollection>, double> JetRefQPair;
   std::vector<JetRefQPair> jetRefs;
-  b_nbjetsT_ = 0, b_nbjetsM_ = 0, b_nbjetsL_ = 0;
+  b_bjetsT_n = 0, b_bjetsM_n = 0, b_bjetsL_n = 0;
   for ( size_t i=0, n=jetsHandle->size(); i<n; ++i ) {
     const auto& jet = jetsHandle->at(i);
     const double bTag = jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
-    if ( bTag > 0.605 ) ++b_nbjetsL_;
-    if ( bTag > 0.890 ) ++b_nbjetsM_;
-    if ( bTag > 0.970 ) ++b_nbjetsT_;
+    if ( bTag > 0.605 ) ++b_bjetsL_n;
+    if ( bTag > 0.890 ) ++b_bjetsM_n;
+    if ( bTag > 0.970 ) ++b_bjetsT_n;
     jetRefs.push_back(JetRefQPair(edm::Ref<cat::JetCollection>(jetsHandle, i), bTag));
   }
   std::sort(jetRefs.begin(), jetRefs.end(), [](const JetRefQPair& a, const JetRefQPair& b){return a.second > b.second;});
@@ -224,10 +266,44 @@ void TTBBLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
   b_jet3_qflav_ = jetRefs.at(2).first->partonFlavour();
   b_jet4_qflav_ = jetRefs.at(3).first->partonFlavour();
 
+  // Move to the partons
+  //edm::Handle<reco::GenParticleCollection> partonHandle;
+  //event.getByToken(partonToken_, partonHandle);
+  event.getByToken(partonChannelToken_, iHandle);
+  b_parton_channel_ = *iHandle;
+  event.getByToken(partonModesToken_, viHandle);
+  if ( viHandle->size() >= 1 ) b_parton_mode1_ = viHandle->at(0);
+  if ( viHandle->size() >= 2 ) b_parton_mode2_ = viHandle->at(1);
+
+  edm::Handle<reco::GenJetCollection> partonJetHandle;
+  event.getByToken(partonJetToken_, partonJetHandle);
+  for ( auto& jet : *partonJetHandle ) {
+    const double aeta = std::abs(jet.eta());
+    if ( aeta > 2.5 ) continue;
+
+    bool isBjet = false;
+    for ( auto& con : jet.getGenConstituents() ) {
+      if ( std::abs(con->pdgId()) == 5 ) {
+        isBjet = true;
+        break;
+      }
+    }
+
+    const double pt = jet.pt();
+    if ( pt > 20 ) {
+      ++b_parton_jets20_n_;
+      if ( isBjet ) ++b_parton_bjets20_n_;
+    }
+    if ( pt > 30 ) {
+      ++b_parton_jets30_n_;
+      if ( isBjet ) ++b_parton_bjets30_n_;
+    }
+  }
+
   if ( b_channel_ == 0 ) { // CH_MUMU
-    hmmS0_.bjetsT_n->Fill(b_nbjetsT_, b_weight_);
-    hmmS0_.bjetsM_n->Fill(b_nbjetsM_, b_weight_);
-    hmmS0_.bjetsL_n->Fill(b_nbjetsL_, b_weight_);
+    hmmS0_.bjetsT_n->Fill(b_bjetsT_n, b_weight_);
+    hmmS0_.bjetsM_n->Fill(b_bjetsM_n, b_weight_);
+    hmmS0_.bjetsL_n->Fill(b_bjetsL_n, b_weight_);
 
     hmmS0_.jet1_btag->Fill(b_jet1_btag_, b_weight_);
     hmmS0_.jet2_btag->Fill(b_jet2_btag_, b_weight_);
@@ -236,10 +312,10 @@ void TTBBLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
 
     hmmS0_.jet3_btag__jet4_btag->Fill(b_jet3_btag_, b_jet4_btag_, b_weight_);
 
-    if ( b_nbjetsM_ >= 2 ) {
-      hmmS1_.bjetsT_n->Fill(b_nbjetsT_, b_weight_);
-      hmmS1_.bjetsM_n->Fill(b_nbjetsM_, b_weight_);
-      hmmS1_.bjetsL_n->Fill(b_nbjetsL_, b_weight_);
+    if ( b_bjetsM_n >= 2 ) {
+      hmmS1_.bjetsT_n->Fill(b_bjetsT_n, b_weight_);
+      hmmS1_.bjetsM_n->Fill(b_bjetsM_n, b_weight_);
+      hmmS1_.bjetsL_n->Fill(b_bjetsL_n, b_weight_);
 
       hmmS1_.jet1_btag->Fill(b_jet1_btag_, b_weight_);
       hmmS1_.jet2_btag->Fill(b_jet2_btag_, b_weight_);
@@ -249,10 +325,10 @@ void TTBBLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
       hmmS1_.jet3_btag__jet4_btag->Fill(b_jet3_btag_, b_jet4_btag_, b_weight_);
     }
 
-    if ( b_nbjetsT_ >= 2 ) {
-      hmmS2_.bjetsT_n->Fill(b_nbjetsT_, b_weight_);
-      hmmS2_.bjetsM_n->Fill(b_nbjetsM_, b_weight_);
-      hmmS2_.bjetsL_n->Fill(b_nbjetsL_, b_weight_);
+    if ( b_bjetsT_n >= 2 ) {
+      hmmS2_.bjetsT_n->Fill(b_bjetsT_n, b_weight_);
+      hmmS2_.bjetsM_n->Fill(b_bjetsM_n, b_weight_);
+      hmmS2_.bjetsL_n->Fill(b_bjetsL_n, b_weight_);
 
       hmmS2_.jet1_btag->Fill(b_jet1_btag_, b_weight_);
       hmmS2_.jet2_btag->Fill(b_jet2_btag_, b_weight_);
@@ -263,9 +339,9 @@ void TTBBLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
     }
   }
   else if ( b_channel_ == 1 ) { // CH_ELEL
-    heeS0_.bjetsT_n->Fill(b_nbjetsT_, b_weight_);
-    heeS0_.bjetsM_n->Fill(b_nbjetsM_, b_weight_);
-    heeS0_.bjetsL_n->Fill(b_nbjetsL_, b_weight_);
+    heeS0_.bjetsT_n->Fill(b_bjetsT_n, b_weight_);
+    heeS0_.bjetsM_n->Fill(b_bjetsM_n, b_weight_);
+    heeS0_.bjetsL_n->Fill(b_bjetsL_n, b_weight_);
 
     heeS0_.jet1_btag->Fill(b_jet1_btag_, b_weight_);
     heeS0_.jet2_btag->Fill(b_jet2_btag_, b_weight_);
@@ -274,10 +350,10 @@ void TTBBLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
 
     heeS0_.jet3_btag__jet4_btag->Fill(b_jet3_btag_, b_jet4_btag_, b_weight_);
 
-    if ( b_nbjetsM_ >= 2 ) {
-      heeS1_.bjetsT_n->Fill(b_nbjetsT_, b_weight_);
-      heeS1_.bjetsM_n->Fill(b_nbjetsM_, b_weight_);
-      heeS1_.bjetsL_n->Fill(b_nbjetsL_, b_weight_);
+    if ( b_bjetsM_n >= 2 ) {
+      heeS1_.bjetsT_n->Fill(b_bjetsT_n, b_weight_);
+      heeS1_.bjetsM_n->Fill(b_bjetsM_n, b_weight_);
+      heeS1_.bjetsL_n->Fill(b_bjetsL_n, b_weight_);
 
       heeS1_.jet1_btag->Fill(b_jet1_btag_, b_weight_);
       heeS1_.jet2_btag->Fill(b_jet2_btag_, b_weight_);
@@ -287,10 +363,10 @@ void TTBBLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
       heeS1_.jet3_btag__jet4_btag->Fill(b_jet3_btag_, b_jet4_btag_, b_weight_);
     }
 
-    if ( b_nbjetsT_ >= 2 ) {
-      heeS2_.bjetsT_n->Fill(b_nbjetsT_, b_weight_);
-      heeS2_.bjetsM_n->Fill(b_nbjetsM_, b_weight_);
-      heeS2_.bjetsL_n->Fill(b_nbjetsL_, b_weight_);
+    if ( b_bjetsT_n >= 2 ) {
+      heeS2_.bjetsT_n->Fill(b_bjetsT_n, b_weight_);
+      heeS2_.bjetsM_n->Fill(b_bjetsM_n, b_weight_);
+      heeS2_.bjetsL_n->Fill(b_bjetsL_n, b_weight_);
 
       heeS2_.jet1_btag->Fill(b_jet1_btag_, b_weight_);
       heeS2_.jet2_btag->Fill(b_jet2_btag_, b_weight_);
@@ -301,9 +377,9 @@ void TTBBLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
     }
   }
   else if ( b_channel_ == 2 ) { // CH_MUEL
-    hemS0_.bjetsT_n->Fill(b_nbjetsT_, b_weight_);
-    hemS0_.bjetsM_n->Fill(b_nbjetsM_, b_weight_);
-    hemS0_.bjetsL_n->Fill(b_nbjetsL_, b_weight_);
+    hemS0_.bjetsT_n->Fill(b_bjetsT_n, b_weight_);
+    hemS0_.bjetsM_n->Fill(b_bjetsM_n, b_weight_);
+    hemS0_.bjetsL_n->Fill(b_bjetsL_n, b_weight_);
 
     hemS0_.jet1_btag->Fill(b_jet1_btag_, b_weight_);
     hemS0_.jet2_btag->Fill(b_jet2_btag_, b_weight_);
@@ -312,10 +388,10 @@ void TTBBLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
 
     hemS0_.jet3_btag__jet4_btag->Fill(b_jet3_btag_, b_jet4_btag_, b_weight_);
 
-    if ( b_nbjetsM_ >= 2 ) {
-      hemS1_.bjetsT_n->Fill(b_nbjetsT_, b_weight_);
-      hemS1_.bjetsM_n->Fill(b_nbjetsM_, b_weight_);
-      hemS1_.bjetsL_n->Fill(b_nbjetsL_, b_weight_);
+    if ( b_bjetsM_n >= 2 ) {
+      hemS1_.bjetsT_n->Fill(b_bjetsT_n, b_weight_);
+      hemS1_.bjetsM_n->Fill(b_bjetsM_n, b_weight_);
+      hemS1_.bjetsL_n->Fill(b_bjetsL_n, b_weight_);
 
       hemS1_.jet1_btag->Fill(b_jet1_btag_, b_weight_);
       hemS1_.jet2_btag->Fill(b_jet2_btag_, b_weight_);
@@ -325,10 +401,10 @@ void TTBBLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
       hemS1_.jet3_btag__jet4_btag->Fill(b_jet3_btag_, b_jet4_btag_, b_weight_);
     }
 
-    if ( b_nbjetsT_ >= 2 ) {
-      hemS2_.bjetsT_n->Fill(b_nbjetsT_, b_weight_);
-      hemS2_.bjetsM_n->Fill(b_nbjetsM_, b_weight_);
-      hemS2_.bjetsL_n->Fill(b_nbjetsL_, b_weight_);
+    if ( b_bjetsT_n >= 2 ) {
+      hemS2_.bjetsT_n->Fill(b_bjetsT_n, b_weight_);
+      hemS2_.bjetsM_n->Fill(b_bjetsM_n, b_weight_);
+      hemS2_.bjetsL_n->Fill(b_bjetsL_n, b_weight_);
 
       hemS2_.jet1_btag->Fill(b_jet1_btag_, b_weight_);
       hemS2_.jet2_btag->Fill(b_jet2_btag_, b_weight_);
