@@ -72,6 +72,7 @@ class TTBBLLAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>
     float b_lep1_pt_, b_lep2_pt_, b_z_m_, b_z_pt_;
 
     float b_jet1_pt_, b_jet2_pt_, b_jet3_pt_, b_jet4_pt_;
+    float b_jet1_eta_, b_jet2_eta_, b_jet3_eta_, b_jet4_eta_;
     float b_jet1_btag_, b_jet2_btag_, b_jet3_btag_, b_jet4_btag_;
     int b_jet1_hflav_, b_jet2_hflav_, b_jet3_hflav_, b_jet4_hflav_;
     int b_jet1_qflav_, b_jet2_qflav_, b_jet3_qflav_, b_jet4_qflav_;
@@ -112,6 +113,11 @@ TTBBLLAnalyzer::TTBBLLAnalyzer(const edm::ParameterSet& pset)
   tree_->Branch("jet2_pt", &b_jet2_pt_, "jet2_pt/F");
   tree_->Branch("jet3_pt", &b_jet3_pt_, "jet3_pt/F");
   tree_->Branch("jet4_pt", &b_jet4_pt_, "jet4_pt/F");
+
+  tree_->Branch("jet1_eta", &b_jet1_eta_, "jet1_eta/F");
+  tree_->Branch("jet2_eta", &b_jet2_eta_, "jet2_eta/F");
+  tree_->Branch("jet3_eta", &b_jet3_eta_, "jet3_eta/F");
+  tree_->Branch("jet4_eta", &b_jet4_eta_, "jet4_eta/F");
 
   tree_->Branch("jet1_btag", &b_jet1_btag_, "jet1_btag/F");
   tree_->Branch("jet2_btag", &b_jet2_btag_, "jet2_btag/F");
@@ -197,6 +203,11 @@ void TTBBLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
   b_jet2_pt_ = jetRefs.at(1).first->pt();
   b_jet3_pt_ = jetRefs.at(2).first->pt();
   b_jet4_pt_ = jetRefs.at(3).first->pt();
+
+  b_jet1_eta_ = jetRefs.at(0).first->eta();
+  b_jet2_eta_ = jetRefs.at(1).first->eta();
+  b_jet3_eta_ = jetRefs.at(2).first->eta();
+  b_jet4_eta_ = jetRefs.at(3).first->eta();
 
   b_jet1_btag_ = jetRefs.at(0).second;
   b_jet2_btag_ = jetRefs.at(1).second;
