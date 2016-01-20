@@ -454,6 +454,8 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
   for(std::map<int, int>::iterator it = cJetAdditionalIds.begin(); it != cJetAdditionalIds.end(); ) {
     // Cannot be a c jet from W->c decay
     if(cJetFromWIds.count(it->first) > 0) cJetAdditionalIds.erase(it++);
+    // Cannot be a c jet from t->b -> c decay (if it is)
+    else if(bJetFromTopIds.count(it->first) > 0) cJetAdditionalIds.erase(it++);
     else ++it;
   }
 
