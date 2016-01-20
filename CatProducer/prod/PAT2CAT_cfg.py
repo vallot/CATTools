@@ -43,14 +43,13 @@ if runOnMC:
 else: 
     process.catOut.outputCommands.extend(catEventContentRD)
     
-#if runGenTop:
-    #from CATTools.CatProducer.catGenHFHadronMatching_cff import *
-    #from CATTools.CatProducer.Tools.tools import *
-    #genHFTool(process, useMiniAOD)
-    #process.load("CATTools.CatProducer.mcTruthTop.mcTruthTop_cff")
-    #process.catOut.outputCommands.extend(catEventContentTOPMC)
-    #if useMiniAOD:
-    #    process.catOut.outputCommands.extend(['keep *_catGenTops_*_*',])
+if runGenTop:
+    process.load("CATTools.CatProducer.mcTruthTop.mcTruthTop_cff")
+    process.catOut.outputCommands.extend(catEventContentTOPMC)
+    # for GenTtbarCategories
+    from CATTools.CatProducer.Tools.tools import *
+    genHFTool(process, useMiniAOD)
+    process.catOut.outputCommands.extend(['keep *_catGenTops_*_*',])
             
 if doSecVertex:
     process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")

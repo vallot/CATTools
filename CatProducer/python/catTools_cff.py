@@ -9,17 +9,17 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         process.pileupWeight.pileupUp = pileupWeightMap["%s_Up"%cat.lumiJSON]
         process.pileupWeight.pileupDn = pileupWeightMap["%s_Dn"%cat.lumiJSON]
         process.pileupWeightSilver = process.pileupWeight.clone()
-        process.pileupWeightSilver.pileupRD = pileupWeightMap["%s_Silver"%cat.lumiJSON]
-        process.pileupWeightSilver.pileupUp = pileupWeightMap["%s_Silver_Up"%cat.lumiJSON]
-        process.pileupWeightSilver.pileupDn = pileupWeightMap["%s_Silver_Dn"%cat.lumiJSON]
+        process.pileupWeightSilver.pileupRD = pileupWeightMap["%s"%cat.lumiJSONSilver]
+        process.pileupWeightSilver.pileupUp = pileupWeightMap["%s_Up"%cat.lumiJSONSilver]
+        process.pileupWeightSilver.pileupDn = pileupWeightMap["%s_Dn"%cat.lumiJSONSilver]
     else:
         from FWCore.PythonUtilities.LumiList import LumiList
         process.lumiMask = cms.EDProducer("LumiMaskProducer",
             LumiSections = LumiList('../data/LumiMask/%s.txt'%cat.lumiJSON).getVLuminosityBlockRange())
         process.lumiMaskSilver = cms.EDProducer("LumiMaskProducer",
-            LumiSections = LumiList('../data/LumiMask/%s_Silver.txt'%cat.lumiJSON).getVLuminosityBlockRange())
+            LumiSections = LumiList('../data/LumiMask/%s.txt'%cat.lumiJSONSilver).getVLuminosityBlockRange())
     
-    useJECfile = False
+    useJECfile = True
     jecFile = cat.JetEnergyCorrection
     if runOnMC:
         jecFile = jecFile+"_MC"
@@ -28,7 +28,7 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
     if useJECfile:
         from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
         process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
-            connect = cms.string('sqlite_fip:CATTools/CatProducer/data/JEC/%s.db'%jecFile),
+            connect = cms.string('sqlite_fip:CATTools/CatProducer/data/JEC/%s.db'%jecFile),            
             toGet = cms.VPSet(
                 cms.PSet(
                     record = cms.string("JetCorrectionsRecord"),
@@ -92,21 +92,19 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         
         process.catJetsPuppi.src = cms.InputTag("patJetsPuppiUpdated")
         process.catJetsPuppi.setGenParticle = cms.bool(False)
-        #######################################################################
-        # MET corrections from https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
-        ## from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
-        ## runMetCorAndUncFromMiniAOD( process, isData= not runOnMC, jecUncFile=cat.JECUncertaintyFile, jetColl= process.catJets.src)
-        ## process.catMETs.src = cms.InputTag("slimmedMETs","","CAT")
-        ## del process.slimmedMETs.caloMET
-
-        ## ## redoing noHF met due to new correction
-        ## process.noHFCands = cms.EDFilter("CandPtrSelector",src=cms.InputTag("packedPFCandidates"),
-        ##                                  cut=cms.string("abs(pdgId)!=1 && abs(pdgId)!=2 && abs(eta)<3.0"))
-        ## runMetCorAndUncFromMiniAOD(process,isData=not runOnMC,pfCandColl=cms.InputTag("noHFCands"),postfix="NoHF",
-        ##                            jecUncFile=cat.JECUncertaintyFile, jetColl= process.catJets.src)
-
-        ## process.catMETsNoHF = process.catMETs.clone(src = cms.InputTag("slimmedMETsNoHF","","CAT"))
-        ## del process.slimmedMETsNoHF.caloMET
+        ## #######################################################################
+        ## # MET corrections from https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
+        #from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
+        #runMetCorAndUncFromMiniAOD( process, isData= not runOnMC, jecUncFile=cat.JECUncertaintyFile, jetColl= process.catJets.src)
+        #process.catMETs.src = cms.InputTag("slimmedMETs","","CAT")
+        #del process.slimmedMETs.caloMET
+        ## redoing noHF met due to new correction
+        #process.noHFCands = cms.EDFilter("CandPtrSelector",src=cms.InputTag("packedPFCandidates"),
+        #                                 cut=cms.string("abs(pdgId)!=1 && abs(pdgId)!=2 && abs(eta)<3.0"))
+        #runMetCorAndUncFromMiniAOD(process,isData=not runOnMC,pfCandColl=cms.InputTag("noHFCands"),postfix="NoHF",
+        #                           jecUncFile=cat.JECUncertaintyFile, jetColl= process.catJets.src)
+        #process.catMETsNoHF = process.catMETs.clone(src = cms.InputTag("slimmedMETsNoHF","","CAT"))
+        #del process.slimmedMETsNoHF.caloMET        
         #######################################################################
         ## for egamma pid https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2#Recipe_for_regular_users_for_74X
         ## from PhysicsTools.SelectorUtils.tools.vid_id_tools import DataFormat,switchOnVIDElectronIdProducer,setupAllVIDIdsInModule,setupVIDElectronSelection
