@@ -7,21 +7,24 @@ def submitjob(requestName, dataset, globalTag, lumiMask, submit):
     print dataset
 
     isMiniAOD="False"
+    isMC = True
     datatype = dataset.strip().split("/")[-1]
     if datatype == "MINIAOD" or datatype == "MINIAODSIM" :
         isMiniAOD="True"
+
+    if datatype == "AOD" or datatype == "MINIAOD" :
+        isMC = False        
         if globalTag == None:
-            globalTag = cat.globalTag_mc
-            
+            globalTag = cat.globalTag_rd
+
     if globalTag == None:
-        globalTag = cat.globalTag_rd
+        globalTag = cat.globalTag_mc
     if lumiMask == None:
         lumiMask = '../data/LumiMask/%s.txt'%cat.lumiJSONSilver
         
-    isMC = True
     dataSplitting   = " Data.splitting='FileBased' "
     dataUnitsPerJob = " Data.unitsPerJob=1 "
-    dataLumiMask    = ''
+    dataLumiMask    = ''    
     ## Special option for TTbar signal samples
     doGenTop = False
     if (dataset.startswith('/TT') or dataset.startswith('/tt')):
@@ -29,8 +32,7 @@ def submitjob(requestName, dataset, globalTag, lumiMask, submit):
     ### dirty way for now since crab3 doesnt allow lists to be passed by cmd line
     pyCfgParams     = "config.JobType.pyCfgParams = ['runOnMC=True','useMiniAOD=%s','globalTag=%s','runGenTop=%s']"%(isMiniAOD,globalTag,doGenTop)
     ### MC or Data?
-    if datatype == "AOD" or datatype == "MINIAOD" :
-        isMC = False
+    if isMC == False:
         dataSplitting   = " Data.splitting='LumiBased' "
         dataUnitsPerJob = " Data.unitsPerJob=40 "
         dataLumiMask    = " Data.lumiMask='%s'"%(lumiMask)
