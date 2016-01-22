@@ -8,7 +8,7 @@
 #include "CATTools/DataFormats/interface/MET.h"
 #include "CATTools/DataFormats/interface/SecVertex.h"
 
-#include "CATTools/CommonTools/interface/ScaleFactorGetter.h"
+#include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
 
 #include "DataFormats/Candidate/interface/LeafCandidate.h"
 //#include "DataFormats/Candidate/interface/CompositeCandidate.h"
@@ -523,7 +523,7 @@ private:
   int muonScale_, electronScale_, jetScale_, jetResol_;
 
   // Efficiency SF
-  ScaleFactorGetter muonSF_, electronSF_;
+  ScaleFactorEvaluator muonSF_, electronSF_;
   double muonSFShift_, electronSFShift_;
 
   bool isMC_;
