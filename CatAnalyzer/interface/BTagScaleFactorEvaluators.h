@@ -1,6 +1,9 @@
 #ifndef BTagScaleFactorEvaluaor_H
 #define BTagScaleFactorEvaluaor_H
 
+#include "CATTools/CatAnalyzer/interface/BTagCalibrationStandalone.h"
+#include "CATTools/DataFormats/interface/Jet.h"
+
 #include <vector>
 #include <utility>
 #include <algorithm>
@@ -18,13 +21,13 @@ public:
     JES_UP, JES_DN,
     LF_UP, LF_DN,
     HF_UP, HF_DN,
-    HFSTATS1_UP, HFSTATS1_DN, HFSTATS2_UP, HFSTATS2_DN, 
-    LFSTATS1_UP, LFSTATS1_DN, LFSTATS2_UP, LFSTATS2_DN, 
-    CFERR1_UP, CFERR1_DN, CFERR2_UP, CFERR2_DN;
+    HFSTAT1_UP, HFSTAT1_DN, HFSTAT2_UP, HFSTAT2_DN,
+    LFSTAT1_UP, LFSTAT1_DN, LFSTAT2_UP, LFSTAT2_DN,
+    CFERR1_UP, CFERR1_DN, CFERR2_UP, CFERR2_DN
   };
-  
+
 private:
-  std::vector<int, BTagCalibrationReader> readers_;
+  std::map<int, BTagCalibrationReader> readers_;
 };
 
 }

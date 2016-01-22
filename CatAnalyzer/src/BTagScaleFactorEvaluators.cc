@@ -1,4 +1,4 @@
-#include "CATTools/CommonTools/interface/BTagScaleFactorEvaluators.h"
+#include "CATTools/CatAnalyzer/interface/BTagScaleFactorEvaluators.h"
 #include "FWCore/ParameterSet/interface/FileInPath.h"
 
 using namespace cat;
@@ -20,17 +20,17 @@ CSVWeightEvaluator::CSVWeightEvaluator()
   readers_[HF_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_hf"); // systematics type
   readers_[HF_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_hf"); // systematics type
 
-  readers_[HFSTATS1_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_hfstats1"); // systematics type
-  readers_[HFSTATS1_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_hfstats1"); // systematics type
+  readers_[HFSTAT1_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_hfstats1"); // systematics type
+  readers_[HFSTAT1_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_hfstats1"); // systematics type
 
-  readers_[HFSTATS2_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_hfstats2"); // systematics type
-  readers_[HFSTATS2_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_hfstats2"); // systematics type
+  readers_[HFSTAT2_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_hfstats2"); // systematics type
+  readers_[HFSTAT2_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_hfstats2"); // systematics type
 
-  readers_[LFSTATS1_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_lfstats1"); // systematics type
-  readers_[LFSTATS1_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_lfstats1"); // systematics type
+  readers_[LFSTAT1_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_lfstats1"); // systematics type
+  readers_[LFSTAT1_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_lfstats1"); // systematics type
 
-  readers_[LFSTATS2_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_lfstats2"); // systematics type
-  readers_[LFSTATS2_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_lfstats2"); // systematics type
+  readers_[LFSTAT2_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_lfstats2"); // systematics type
+  readers_[LFSTAT2_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_lfstats2"); // systematics type
 
   readers_[CFERR1_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_cferr1"); // systematics type
   readers_[CFERR1_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_cferr1"); // systematics type
@@ -41,18 +41,19 @@ CSVWeightEvaluator::CSVWeightEvaluator()
 
 double CSVWeightEvaluator::operator()(const cat::Jet& jet, const int unc) const
 {
-  const double pt = std::min(jet.pt(), 999);
+  const double pt = std::min(jet.pt(), 999.);
+  const double eta = jet.eta();
   if ( pt > 20 or std::abs(eta) < 2.4 ) return 1;
 
   double csv = jet.bDiscriminator("CSVv2");
   if ( csv < 0.0 ) csv = -0.05;
   else if ( csv > 1.0 ) csv = 1.0;
 
+  const int flav = std::abs(jet.hadronFlavour());
   BTagEntry::JetFlavor jf = BTagEntry::FLAV_UDSG;
   if ( flav == 5 ) jf = BTagEntry::FLAV_B;
   else if ( flav == 4 ) jf = BTagEntry::FLAV_C;
 
-  const int flav = std::abs(jet.hadronFlavour());
   int uncKey = unc;
   // Special care for the flavour dependent SFs
   if ( flav == 5 ) {
@@ -69,8 +70,9 @@ double CSVWeightEvaluator::operator()(const cat::Jet& jet, const int unc) const
          unc != LFSTAT1_UP and unc != HFSTAT1_DN and
          unc != HFSTAT2_UP and unc != HFSTAT2_DN ) uncKey = CENTRAL;
   }
-  auto& reader = readers_[uncKey];
-  return reader.eval(jf, eta, pt, csv);
+  const auto reader = readers_.find(uncKey);
+  if ( reader == readers_.end() ) return 1;
+  return reader->second.eval(jf, eta, pt, csv);
 
 }
 
