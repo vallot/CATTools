@@ -1,12 +1,12 @@
-#include "CATTools/CommonTools/interface/ScaleFactorGetter.h"
+#include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
 #include <cassert>
 
 using namespace cat;
 
-void ScaleFactorGetter::set(const std::vector<double>& xbins,
-                            const std::vector<double>& ybins,
-                            const std::vector<double>& values,
-                            const std::vector<double>& errors)
+void ScaleFactorEvaluator::set(const std::vector<double>& xbins,
+                               const std::vector<double>& ybins,
+                               const std::vector<double>& values,
+                               const std::vector<double>& errors)
 {
   xbins_ = xbins;
   ybins_ = ybins;
@@ -22,7 +22,7 @@ void ScaleFactorGetter::set(const std::vector<double>& xbins,
   width_ = xbins_.size()-1;
 }
 
-double ScaleFactorGetter::operator()(const double x, const double y, const double shift) const
+double ScaleFactorEvaluator::operator()(const double x, const double y, const double shift) const
 {
   auto xbin = std::lower_bound(xbins_.begin(), xbins_.end(), x);
   if ( xbin == xbins_.end() or xbin+1 == xbins_.end() ) return 1;
