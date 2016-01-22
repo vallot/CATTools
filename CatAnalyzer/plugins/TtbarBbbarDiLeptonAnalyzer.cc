@@ -17,8 +17,8 @@
 
 //#include "TopQuarkAnalysis/TopKinFitter/interface/TtFullLepKinSolver.h"
 //#include "CATTools/CatAnalyzer/interface/KinematicSolvers.h"
-//#include "CATHelpers/CSVHelper/interface/CSVHelper.h"
 //#include "CATTools/CatAnalyzer/interface/LeptonWeight.h"
+#include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
 #include "CATTools/CatAnalyzer/interface/BTagScaleFactorEvaluators.h"
 
 #include "CATTools/CommonTools/interface/AnalysisHelper.h"
@@ -69,12 +69,13 @@ private:
   const reco::Candidate* getLast(const reco::Candidate* p) const;
   const bool isLastP( const reco::GenParticle& p) const;
   float MuonSF(float pt, float eta);
-  float ElectronSF(float pt, float eta); // WP90
   void book(TTree* tree);
 
   void resetBr();
   void resetBrGEN();
   void resetBrJets();
+
+  ScaleFactorEvaluator muonSF_, elecSF_;
 
   edm::EDGetTokenT<int> recoFiltersToken_, nGoodVertexToken_, lumiSelectionToken_;
   edm::EDGetTokenT<float> genweightToken_, puweightToken_, puweightUpToken_, puweightDownToken_, genweightQToken_;
@@ -291,12 +292,17 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
   metToken_  = consumes<cat::METCollection>(iConfig.getParameter<edm::InputTag>("mets"));
   vtxToken_  = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertices"));
 
+  const auto elecSFSet = iConfig.getParameter<edm::ParameterSet>("elecSF");
+  elecSF_.set(elecSFSet.getParameter<std::vector<double>>("pt_bins"),
+              elecSFSet.getParameter<std::vector<double>>("eta_bins"),
+              elecSFSet.getParameter<std::vector<double>>("values"),
+              elecSFSet.getParameter<std::vector<double>>("errors"));
+
   partonTop_channel_ = consumes<int>(iConfig.getParameter<edm::InputTag>("partonTop_channel"));
   partonTop_modes_   = consumes<vector<int> >(iConfig.getParameter<edm::InputTag>("partonTop_modes"));
   partonTop_genParticles_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("partonTop_genParticles"));
   pseudoTop_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("pseudoTop"));
 
-  //csvWeight = new CSVHelper();
 /*
   auto solverPSet = iConfig.getParameter<edm::ParameterSet>("solver");
   auto algoName = solverPSet.getParameter<std::string>("algo");
@@ -886,18 +892,21 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
   double sf2 = 1.0;
   if (pdgIdSum == 24) {
     b_lep1_RelIso = recolep1.relIso();     b_lep2_RelIso = recolep2.relIso(0.4);
-    sf1 =  ElectronSF(b_lep1_pt, b_lep1_eta);
+    sf1 =  elecSF_(b_lep1_pt, b_lep1_eta);
     sf2 =  MuonSF(b_lep2_pt, b_lep2_eta);
+    //sf2 =  MuonSF_(std::abs(b_lep2_eta), b_lep2_pt);
   } // emu
   if (pdgIdSum == 22) {
     b_lep1_RelIso = recolep1.relIso();     b_lep2_RelIso = recolep2.relIso();
-    sf1 = ElectronSF(b_lep1_pt, b_lep1_eta);
-    sf2 = ElectronSF(b_lep2_pt, b_lep2_eta);
+    sf1 = elecSF_(b_lep1_pt, b_lep1_eta);
+    sf2 = elecSF_(b_lep2_pt, b_lep2_eta);
   } // ee
   if (pdgIdSum == 26) {
     b_lep1_RelIso = recolep1.relIso(0.4);  b_lep2_RelIso = recolep2.relIso(0.4);
     sf1 =  MuonSF(b_lep1_pt, b_lep1_eta);
     sf2 =  MuonSF(b_lep2_pt, b_lep2_eta);
+    //sf1 =  MuonSF_(std::abs(b_lep1_eta), b_lep1_pt);
+    //sf2 =  MuonSF_(std::abs(b_lep2_eta), b_lep2_pt);
   } // mumu
 
   if(runOnMC_) b_lepweight = sf1 * sf2;
@@ -1493,58 +1502,6 @@ float TtbarBbbarDiLeptonAnalyzer::MuonSF(float pt, float eta)
   else return (float) 1.;
 
 };
-
-float TtbarBbbarDiLeptonAnalyzer::ElectronSF(float pt, float eta) // WP90
-{
-  if (pt>15. && pt <= 25.){
-    if      ( eta>-2.5 && eta <= -1.5) return (float) 0.96;
-    else if ( eta>-1.5 && eta <= -1.0) return (float) 0.95;
-    else if ( eta>-1.0 && eta <= 0 ) return (float) 0.98;
-    else if ( eta>0 && eta <= 1.0) return (float) 0.99;
-    else if ( eta>1.0 && eta <= 1.5) return (float) 0.99;
-    else if ( eta>1.5 && eta <= 2.5) return (float) 0.97;
-    else return (float) 1.;
-  }
-  else if (pt>25. && pt <= 35.){
-    if      ( eta>-2.5 && eta <= -1.5) return (float) 0.98;
-    else if ( eta>-1.5 && eta <= -1.0) return (float) 0.97;
-    else if ( eta>-1.0 && eta <= 0 ) return (float) 0.97;
-    else if ( eta>0 && eta <= 1.0) return (float) 0.99;
-    else if ( eta>1.0 && eta <= 1.5) return (float) 0.99;
-    else if ( eta>1.5 && eta <= 2.5) return (float) 0.98;
-    else return (float) 1.;
-  }
-  else if (pt>35. && pt <= 45.){
-    if      ( eta>-2.5 && eta <= -1.5) return (float) 0.98;
-    else if ( eta>-1.5 && eta <= -1.0) return (float) 0.99;
-    else if ( eta>-1.0 && eta <= 0 ) return (float) 0.99;
-    else if ( eta>0 && eta <= 1.0) return (float) 0.99;
-    else if ( eta>1.0 && eta <= 1.5) return (float) 0.99;
-    else if ( eta>1.5 && eta <= 2.5) return (float) 0.98;
-    else return (float) 1.;
-  }
-  else if (pt>45. && pt <= 55.){
-    if      ( eta>-2.5 && eta <= -1.5) return (float) 0.98;
-    else if ( eta>-1.5 && eta <= -1.0) return (float) 0.99;
-    else if ( eta>-1.0 && eta <= 0 ) return (float) 0.99;
-    else if ( eta>0. && eta <= 1.0) return (float) 0.99;
-    else if ( eta>1.0 && eta <= 1.5) return (float) 0.99;
-    else if ( eta>1.5 && eta <= 2.5) return (float) 0.99;
-    else return (float) 1.;
-  }
-  else if (pt>55.){
-    if      ( eta>-2.5 && eta <= -1.5) return (float) 0.99;
-    else if ( eta>-1.5 && eta <= -1.0) return (float) 0.99;
-    else if ( eta>-1.0 && eta <= 0 ) return (float) 0.99;
-    else if ( eta>0 && eta <= 1.0) return (float) 1.00;
-    else if ( eta>1.0 && eta <= 1.5) return (float) 0.99;
-    else if ( eta>1.5 && eta <= 2.5) return (float) 0.99;
-    else return (float) 1.;
-  }
-  else return (float) 1.00;
-
-};
-
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(TtbarBbbarDiLeptonAnalyzer);
