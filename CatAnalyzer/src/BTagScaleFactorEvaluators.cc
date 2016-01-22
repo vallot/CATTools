@@ -45,7 +45,7 @@ double CSVWeightEvaluator::operator()(const cat::Jet& jet, const int unc) const
   const double eta = jet.eta();
   if ( pt > 20 or std::abs(eta) < 2.4 ) return 1;
 
-  double csv = jet.bDiscriminator("CSVv2");
+  double csv = jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
   if ( csv < 0.0 ) csv = -0.05;
   else if ( csv > 1.0 ) csv = 1.0;
 
