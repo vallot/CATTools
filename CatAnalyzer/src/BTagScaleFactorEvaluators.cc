@@ -3,11 +3,12 @@
 
 using namespace cat;
 
+using namespace std;
 CSVWeightEvaluator::CSVWeightEvaluator()
 {
   const char* method = "iterativefit";
   // setup calibration readers (once)
-  const auto csvFile = edm::FileInPath("CATTools/CatAnalyzer/data/BTagSF/ttH_BTV_CSVv2_13TeV_2015D_20151122.csv").fullPath();
+  const auto csvFile = edm::FileInPath("CATTools/CatAnalyzer/data/btagSF/ttH_BTV_CSVv2_13TeV_2015D_20151120.csv").fullPath();
   BTagCalibration calib_csvv2("csvv2", csvFile);
   readers_[CENTRAL] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "central");
 
@@ -43,7 +44,7 @@ double CSVWeightEvaluator::operator()(const cat::Jet& jet, const int unc) const
 {
   const double pt = std::min(jet.pt(), 999.);
   const double aeta = std::abs(jet.eta());
-  if ( pt < 20 or aeta > 2.4 ) return 1;
+  if ( pt <= 20 or aeta >= 2.4 ) return 1;
 
   double csv = jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
   if ( csv < 0.0 ) csv = -0.05;
@@ -67,8 +68,8 @@ double CSVWeightEvaluator::operator()(const cat::Jet& jet, const int unc) const
   }
   else {
     if ( unc != HF_UP and unc != HF_DN and
-         unc != LFSTAT1_UP and unc != HFSTAT1_DN and
-         unc != HFSTAT2_UP and unc != HFSTAT2_DN ) uncKey = CENTRAL;
+         unc != LFSTAT1_UP and unc != LFSTAT1_DN and
+         unc != LFSTAT2_UP and unc != LFSTAT2_DN ) uncKey = CENTRAL;
   }
   const auto reader = readers_.find(uncKey);
   if ( reader == readers_.end() ) return 1;
