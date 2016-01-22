@@ -5,7 +5,7 @@ using namespace cat;
 
 CSVWeightEvaluator::CSVWeightEvaluator()
 {
-  const char* method = "terativefit";
+  const char* method = "iterativefit";
   // setup calibration readers (once)
   const auto csvFile = edm::FileInPath("CATTools/CatAnalyzer/data/BTagSF/ttH_BTV_CSVv2_13TeV_2015D_20151122.csv").fullPath();
   BTagCalibration calib_csvv2("csvv2", csvFile);
@@ -42,8 +42,8 @@ CSVWeightEvaluator::CSVWeightEvaluator()
 double CSVWeightEvaluator::operator()(const cat::Jet& jet, const int unc) const
 {
   const double pt = std::min(jet.pt(), 999.);
-  const double eta = jet.eta();
-  if ( pt > 20 or std::abs(eta) < 2.4 ) return 1;
+  const double aeta = std::abs(jet.eta());
+  if ( pt < 20 or aeta > 2.4 ) return 1;
 
   double csv = jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
   if ( csv < 0.0 ) csv = -0.05;
@@ -72,7 +72,7 @@ double CSVWeightEvaluator::operator()(const cat::Jet& jet, const int unc) const
   }
   const auto reader = readers_.find(uncKey);
   if ( reader == readers_.end() ) return 1;
-  return reader->second.eval(jf, eta, pt, csv);
 
+  return reader->second.eval(jf, aeta, pt, csv);
 }
 
