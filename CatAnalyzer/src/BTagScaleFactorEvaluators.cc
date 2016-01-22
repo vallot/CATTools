@@ -11,32 +11,32 @@ CSVWeightEvaluator::CSVWeightEvaluator()
   BTagCalibration calib_csvv2("csvv2", csvFile);
   readers_[CENTRAL] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "central");
 
-  readers_[JES_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_jes"); // systematics type
-  readers_[JES_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_jes"); // systematics type
+  readers_[JES_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_jes");
+  readers_[JES_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_jes");
 
-  readers_[LF_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_lf"); // systematics type
-  readers_[LF_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_lf"); // systematics type
+  readers_[LF_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_lf");
+  readers_[LF_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_lf");
 
-  readers_[HF_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_hf"); // systematics type
-  readers_[HF_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_hf"); // systematics type
+  readers_[HF_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_hf");
+  readers_[HF_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_hf");
 
-  readers_[HFSTAT1_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_hfstats1"); // systematics type
-  readers_[HFSTAT1_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_hfstats1"); // systematics type
+  readers_[HFSTAT1_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_hfstats1");
+  readers_[HFSTAT1_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_hfstats1");
 
-  readers_[HFSTAT2_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_hfstats2"); // systematics type
-  readers_[HFSTAT2_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_hfstats2"); // systematics type
+  readers_[HFSTAT2_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_hfstats2");
+  readers_[HFSTAT2_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_hfstats2");
 
-  readers_[LFSTAT1_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_lfstats1"); // systematics type
-  readers_[LFSTAT1_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_lfstats1"); // systematics type
+  readers_[LFSTAT1_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_lfstats1");
+  readers_[LFSTAT1_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_lfstats1");
 
-  readers_[LFSTAT2_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_lfstats2"); // systematics type
-  readers_[LFSTAT2_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_lfstats2"); // systematics type
+  readers_[LFSTAT2_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_lfstats2");
+  readers_[LFSTAT2_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_lfstats2");
 
-  readers_[CFERR1_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_cferr1"); // systematics type
-  readers_[CFERR1_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_cferr1"); // systematics type
+  readers_[CFERR1_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_cferr1");
+  readers_[CFERR1_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_cferr1");
 
-  readers_[CFERR2_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_cferr2"); // systematics type
-  readers_[CFERR2_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_cferr2"); // systematics type
+  readers_[CFERR2_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_cferr2");
+  readers_[CFERR2_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_cferr2");
 }
 
 double CSVWeightEvaluator::operator()(const cat::Jet& jet, const int unc) const
