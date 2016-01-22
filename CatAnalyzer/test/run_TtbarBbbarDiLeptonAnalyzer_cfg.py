@@ -8,7 +8,8 @@ process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
 process.options.allowUnscheduled = cms.untracked.bool(True)
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
-process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-4-6_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/151127_200613/0000/catTuple_1.root')
+process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-6_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v3/151222_133640/0000/catTuple_1.root')
+#process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-4-6_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/151127_200613/0000/catTuple_1.root')
 #process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094//xrd//store/group/CAT/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-6_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/151130_231748/0000/catTuple_1.root')
 #process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094//xrd//store/group/CAT/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-6_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/151127_200111/0000/catTuple_1.root')
 #process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-6_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/151130_231748/0000/catTuple_1.root')
@@ -18,7 +19,7 @@ process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094//xrd/store/group
 #import os
 #useGold = True
 #isRunData = False
-catmet = 'catMETsNoHF'
+catmet = 'catMETs' #NoHF'
 lumiMask = 'lumiMask'
 #if useGold:
 #    catmet = 'catMETs'
@@ -63,8 +64,9 @@ process.filterTrigMUEL = cms.EDFilter("CATTriggerBitCombiner",
 
 process.filterTrigELEL = process.filterTrigMUEL.clone(
     triggersToMatch = cms.vstring(
-        "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v",
-        "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
+#        "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v",
+#        "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
+"HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v"
     ),
 )
 
@@ -72,9 +74,11 @@ process.filterTrigMUMU = process.filterTrigMUEL.clone(
     triggersToMatch = cms.vstring(
 #      "HLT_Mu17_Mu8_DZ_v",
 #      "HLT_Mu17_TkMu8_DZ_v",
-      "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",
-      "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v",
-      "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v",
+#      "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",
+#      "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v",
+#      "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v",
+"HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",
+"HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v"
     ),
 )
 
@@ -114,6 +118,7 @@ process.cattree = cms.EDAnalyzer("TtbarBbbarDiLeptonAnalyzer",
 
     GenJets = cms.InputTag("slimmedGenJets"),
     GenParticles = cms.InputTag("prunedGenParticles"),
+    GenTop = cms.InputTag("catGenTops"),
     #solver = process.ttbarDileptonKinAlgoPSetCMSKin,
     #solver = process.ttbarDileptonKinAlgoPSetDESYSmeared,
     #solver = process.ttbarDileptonKinAlgoPSetDESYMassLoop,
