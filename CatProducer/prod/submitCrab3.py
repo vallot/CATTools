@@ -110,11 +110,14 @@ if inputFile is None:
     datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json"%os.environ['CMSSW_BASE']))
     for d in datasets:
         dataset = d['DataSetName']
-        if submitBlock == '1' and 'QCD' in dataset:
-            continue
-        if submitBlock == '2' and 'QCD' not in dataset:
-            continue
-        submitjob(requestName, dataset, None,None, submit)
+        if len( d['path']) == 0:
+            #print d['path'], len( d['path'])
+            submitjob(requestName, dataset, None,None, submit)
+        
+        #if submitBlock == '1' and 'QCD' in dataset:
+        #    continue
+        #if submitBlock == '2' and 'QCD' not in dataset:
+        #    continue
 
 else:
     for dataset in datasets:
