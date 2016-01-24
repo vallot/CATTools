@@ -13,6 +13,7 @@
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/MET.h"
 
+#include "CATTools/CommonTools/interface/TTbarModeDefs.h"
 #include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
 //#include "TopQuarkAnalysis/TopKinFitter/interface/TtFullLepKinSolver.h"
 #include "CATTools/CatAnalyzer/interface/KinematicSolvers.h"
@@ -31,9 +32,6 @@ public:
   explicit TtbarDiLeptonAnalyzer(const edm::ParameterSet&);
   ~TtbarDiLeptonAnalyzer();
 
-  enum {
-    CH_NONE=0, CH_MUEL=1, CH_ELEL=2, CH_MUMU=3
-  };
   enum sys_e {sys_nom, 
     sys_jes_u, sys_jes_d, sys_jer_u, sys_jer_d,
     sys_mu_u, sys_mu_d, sys_el_u, sys_el_d,
@@ -130,8 +128,6 @@ private:
 
   //std::unique_ptr<TtFullLepKinSolver> solver;
   std::unique_ptr<KinematicSolver> solver_;
-  //enum TTbarMode { CH_NONE = 0, CH_FULLHADRON = 1, CH_SEMILEPTON, CH_FULLLEPTON };
-  //enum DecayMode { CH_HADRON = 1, CH_MUON, CH_ELECTRON, CH_TAU_HADRON, CH_TAU_MUON, CH_TAU_ELECTRON };
 
   const static int NCutflow = 10;
   std::vector<std::vector<int> > cutflow_;
@@ -440,7 +436,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       }
 
       // Start to build pseudo top
-      b_pseudoTopChannel = CH_NONE;
+      b_pseudoTopChannel = CH_NOLL;
       edm::Handle<edm::View<reco::Candidate> > pseudoTopLeptonHandle;
       edm::Handle<edm::View<reco::Candidate> > pseudoTopNeutrinoHandle;
       edm::Handle<edm::View<reco::Candidate> > pseudoTopJetHandle;
@@ -470,7 +466,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
           case 22: b_pseudoTopChannel = CH_ELEL; break;
           case 26: b_pseudoTopChannel = CH_MUMU; break;
           case 24: b_pseudoTopChannel = CH_MUEL; break;
-          default: b_pseudoTopChannel = CH_NONE;
+          default: b_pseudoTopChannel = CH_NOLL;
         }
 
         //std::nth_element(neutrinoIdxs.begin(), neutrinoIdxs.begin()+2, neutrinoIdxs.end(),

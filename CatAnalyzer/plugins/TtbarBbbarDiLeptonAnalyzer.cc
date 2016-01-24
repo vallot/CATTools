@@ -15,6 +15,7 @@
 #include "CATTools/DataFormats/interface/MET.h"
 #include "CATTools/DataFormats/interface/GenTop.h"
 
+#include "CATTools/CommonTools/interface/TTbarModeDefs.h"
 #include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
 #include "CATTools/CatAnalyzer/interface/BTagScaleFactorEvaluators.h"
 
@@ -41,9 +42,6 @@ public:
   explicit TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet&);
   ~TtbarBbbarDiLeptonAnalyzer();
 
-  enum {
-    CH_NONE=0, CH_MUEL=1, CH_ELEL=2, CH_MUMU=3
-  };
   enum sys_e {sys_nom,  sys_jes_u, sys_jes_d, sys_jer_u, sys_jer_d,
 //    sys_mu_u, sys_mu_d, sys_el_u, sys_el_d,
 //    sys_mueff_u, sys_mueff_d, sys_eleff_u, sys_eleff_d,

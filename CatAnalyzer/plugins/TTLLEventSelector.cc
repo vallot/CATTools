@@ -8,6 +8,7 @@
 #include "CATTools/DataFormats/interface/MET.h"
 #include "CATTools/DataFormats/interface/SecVertex.h"
 
+#include "CATTools/CommonTools/interface/TTbarModeDefs.h"
 #include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
 
 #include "DataFormats/Candidate/interface/LeafCandidate.h"
@@ -517,7 +518,6 @@ private:
 
 private:
   typedef reco::Candidate::LorentzVector LV;
-  enum Channel { CH_NONE=-1, CH_MUMU, CH_ELEL, CH_MUEL };
 
   // Energy scales
   int muonScale_, electronScale_, jetScale_, jetResol_;
@@ -729,7 +729,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   }
   const int leptons_n = out_leptons->size();
   const cat::Lepton* lepton1 = 0, * lepton2 = 0;
-  Channel channel = CH_NONE;
+  int channel = CH_NOLL;
   if ( leptons_n >= 2 ) {
     // Partial sort to select leading 2 leptons
     std::nth_element(out_leptons->begin(), out_leptons->begin()+2, out_leptons->end(),
@@ -1908,7 +1908,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     }
   }
 
-  event.put(std::auto_ptr<int>(new int(channel)), "channel");
+  event.put(std::auto_ptr<int>(new int((int)channel)), "channel");
   event.put(std::auto_ptr<float>(new float(weight)), "weight");
   event.put(std::auto_ptr<float>(new float(metP4.pt())), "met");
   event.put(std::auto_ptr<float>(new float(metP4.phi())), "metphi");
