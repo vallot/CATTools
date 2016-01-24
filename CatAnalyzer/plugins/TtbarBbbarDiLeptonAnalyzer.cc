@@ -92,7 +92,7 @@ private:
   edm::EDGetTokenT<int> genTtbarIdToken30_;
   edm::EDGetTokenT<int> genTtbarIdToken40_;
 
-  edm::EDGetTokenT<reco::GenParticleCollection> partonTop_genParticles_, pseudoTop_;
+  edm::EDGetTokenT<reco::GenParticleCollection> partonTop_genParticles_;
 
   TTree * ttree_, * ttree2_;
   TTree * ttree3_, * ttree4_,* ttree5_,* ttree6_;
@@ -121,10 +121,6 @@ private:
   float b_partonlep1_pt, b_partonlep1_eta;
   float b_partonlep2_pt, b_partonlep2_eta;
   bool b_partonInPhase, b_partonInPhaseJet, b_partonInPhaseLep;
-  int b_pseudoTopChannel;
-  float b_pseudoToplep1_pt, b_pseudoToplep1_eta;
-  float b_pseudoToplep2_pt, b_pseudoToplep2_eta;
-  bool b_pseudoInPhase;
 
   int b_genTtbarId, b_genTtbarId30, b_genTtbarId40;
   int b_NgenJet, b_NgenJet30, b_NgenJet40;
@@ -280,7 +276,6 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
   partonTop_channel_ = consumes<int>(iConfig.getParameter<edm::InputTag>("partonTop_channel"));
   partonTop_modes_   = consumes<vector<int> >(iConfig.getParameter<edm::InputTag>("partonTop_modes"));
   partonTop_genParticles_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("partonTop_genParticles"));
-  pseudoTop_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("pseudoTop"));
 
   usesResource("TFileService");
   edm::Service<TFileService> fs;
@@ -364,13 +359,6 @@ void TtbarBbbarDiLeptonAnalyzer::book(TTree* tree){
   tree->Branch("partonInPhase", &b_partonInPhase, "partonInPhase/O");
   tree->Branch("partonInPhaseLep", &b_partonInPhaseLep, "partonInPhaseLep/O");
   tree->Branch("partonInPhaseJet", &b_partonInPhaseJet, "partonInPhaseJet/O");
-
-  tree->Branch("pseudoTop_channel", &b_pseudoTopChannel, "pseudoTop_channel/I");
-  tree->Branch("pseudoToplep1_pt", &b_pseudoToplep1_pt, "pseudoToplep1_pt/F");
-  tree->Branch("pseudoToplep1_eta", &b_pseudoToplep1_eta, "pseudoToplep1_eta/F");
-  tree->Branch("pseudoToplep2_pt", &b_pseudoToplep2_pt, "pseudoToplep2_pt/F");
-  tree->Branch("pseudoToplep2_eta", &b_pseudoToplep2_eta, "pseudoToplep2_eta/F");
-  tree->Branch("pseudoInPhase", &b_pseudoInPhase, "pseudoInPhase/O");
 
   tree->Branch("jets_pt","std::vector<float>",&b_jets_pt);
   tree->Branch("jets_eta","std::vector<float>",&b_jets_eta);
@@ -627,46 +615,6 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
         }
       }
       if (b_partonInPhaseJet && b_partonInPhaseLep) b_partonInPhase = true;
-    }
-
-    edm::Handle<reco::GenParticleCollection> pseudoTopHandle;
-    iEvent.getByToken(pseudoTop_          , pseudoTopHandle);
-    if ( !(pseudoTopHandle->empty()) ){
-      b_pseudoTopChannel = CH_NONE;
-
-      // Get Top quark pairs
-      const auto pseudoTop1 = &pseudoTopHandle->at(0);
-      const auto pseudoTop2 = &pseudoTopHandle->at(1);
-
-      // Get W and b quarks
-      if ( pseudoTop1 and pseudoTop2 ) {
-        const auto pseudoW1 = pseudoTop1->daughter(0);
-        const auto pseudoB1 = pseudoTop1->daughter(1);
-        const auto pseudoW2 = pseudoTop2->daughter(0);
-        const auto pseudoB2 = pseudoTop2->daughter(1);
-
-        // Get W daughters
-        if ( pseudoW1 and pseudoW2 and pseudoB1 and pseudoB2 ) {
-          const auto pseudoW11 = pseudoW1->daughter(0);
-          const auto pseudoW21 = pseudoW2->daughter(0);
-
-          // Fill leps informations
-          const int pseudoW1DauId = abs(pseudoW11->pdgId());
-          const int pseudoW2DauId = abs(pseudoW21->pdgId());
-          b_pseudoToplep1_pt = pseudoW11->pt();
-          b_pseudoToplep1_eta = pseudoW11->eta();
-          b_pseudoToplep2_pt = pseudoW21->pt();
-          b_pseudoToplep2_eta = pseudoW21->eta();
-          if ( pseudoW1DauId > 10 and pseudoW2DauId > 10 ) {
-            switch ( pseudoW1DauId+pseudoW2DauId ) {
-              case 22: b_pseudoTopChannel = CH_ELEL; break;
-              case 26: b_pseudoTopChannel = CH_MUMU; break;
-              default: b_pseudoTopChannel = CH_MUEL;
-            }
-          }
-          b_partonInPhase = true;
-        }
-      }
     }
   }
   else if(iEvent.getByToken(GenParticlesToken_, genParticles)){
@@ -1178,11 +1126,6 @@ void TtbarBbbarDiLeptonAnalyzer::resetBrGEN()
   b_partonlep1_pt = -9; b_partonlep1_eta = -9;
   b_partonlep2_pt = -9; b_partonlep2_eta = -9;
   b_partonInPhase = 0; b_partonInPhaseLep = false; b_partonInPhaseJet = false;
-  b_pseudoTopChannel = -1;
-  b_pseudoToplep1_pt = -9; b_pseudoToplep1_eta = -9;
-  b_pseudoToplep2_pt = -9; b_pseudoToplep2_eta = -9;
-  b_pseudoInPhase = false;
-
 
   lepton1_pt  =0.0      ;//  cms.string("lepton1().Pt()"),
   lepton1_eta =-9.0     ;//  cms.string("lepton1().Eta()"),
