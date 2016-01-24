@@ -46,77 +46,78 @@ struct Histos
 
 class TTBBLLAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>
 {
-  public:
-    TTBBLLAnalyzer(const edm::ParameterSet& pset);
-    void analyze(const edm::Event&, const edm::EventSetup&) override;
+public:
+  TTBBLLAnalyzer(const edm::ParameterSet& pset);
+  void analyze(const edm::Event&, const edm::EventSetup&) override;
 
-  private:
-    typedef std::vector<int> vint;
+private:
+  typedef std::vector<int> vint;
 
-    edm::EDGetTokenT<int> channelToken_;
-    edm::EDGetTokenT<vint> modesToken_;
-    edm::EDGetTokenT<float> weightToken_;
-    edm::EDGetTokenT<cat::LeptonCollection> leptonsToken_;
-    edm::EDGetTokenT<cat::JetCollection> jetsToken_;
-    edm::EDGetTokenT<float> metToken_, metphiToken_;
+  edm::EDGetTokenT<int> channelToken_;
+  edm::EDGetTokenT<float> weightToken_;
+  edm::EDGetTokenT<cat::LeptonCollection> leptonsToken_;
+  edm::EDGetTokenT<cat::JetCollection> jetsToken_;
+  edm::EDGetTokenT<float> metToken_, metphiToken_;
 
-    //edm::EDGetTokenT<reco::GenParticleCollection> partonToken_;
-    edm::EDGetTokenT<int> partonChannelToken_;
-    edm::EDGetTokenT<vint> partonModesToken_;
-    edm::EDGetTokenT<reco::GenJetCollection> partonJetToken_;
+  //edm::EDGetTokenT<reco::GenParticleCollection> partonToken_;
+  edm::EDGetTokenT<int> partonChannelToken_;
+  edm::EDGetTokenT<vint> partonModesToken_;
+  edm::EDGetTokenT<reco::GenJetCollection> partonJetToken_;
 
-    Histos heeS0_, heeS1_, heeS2_;
-    Histos hmmS0_, hmmS1_, hmmS2_;
-    Histos hemS0_, hemS1_, hemS2_;
+  Histos heeS0_, heeS1_, heeS2_;
+  Histos hmmS0_, hmmS1_, hmmS2_;
+  Histos hemS0_, hemS1_, hemS2_;
 
-    TTree* tree_;
+  TTree* tree_;
 
-    int b_channel_, b_mode1_, b_mode2_;
-    float b_weight_;
-    float b_met_pt_, b_met_phi_;
+  int b_channel_;
+  float b_weight_;
+  float b_met_pt_, b_met_phi_;
 
-    float b_lep1_pt_, b_lep2_pt_, b_z_m_, b_z_pt_;
+  float b_lep1_pt_, b_lep2_pt_, b_z_m_, b_z_pt_;
 
-    float b_jet1_pt_, b_jet2_pt_, b_jet3_pt_, b_jet4_pt_;
-    float b_jet1_eta_, b_jet2_eta_, b_jet3_eta_, b_jet4_eta_;
-    float b_jet1_btag_, b_jet2_btag_, b_jet3_btag_, b_jet4_btag_;
-    int b_jet1_hflav_, b_jet2_hflav_, b_jet3_hflav_, b_jet4_hflav_;
-    int b_jet1_qflav_, b_jet2_qflav_, b_jet3_qflav_, b_jet4_qflav_;
+  float b_jet1_pt_, b_jet2_pt_, b_jet3_pt_, b_jet4_pt_;
+  float b_jet1_eta_, b_jet2_eta_, b_jet3_eta_, b_jet4_eta_;
+  float b_jet1_btag_, b_jet2_btag_, b_jet3_btag_, b_jet4_btag_;
+  int b_jet1_hflav_, b_jet2_hflav_, b_jet3_hflav_, b_jet4_hflav_;
+  int b_jet1_qflav_, b_jet2_qflav_, b_jet3_qflav_, b_jet4_qflav_;
 
-    int b_bjetsT_n, b_bjetsM_n, b_bjetsL_n;
+  int b_bjetsT_n, b_bjetsM_n, b_bjetsL_n;
 
-    int b_parton_channel_, b_parton_mode1_, b_parton_mode2_;
-    int b_parton_jets20_n_, b_parton_jets30_n_;
-    int b_parton_bjets20_n_, b_parton_bjets30_n_;
+  int b_parton_channel_, b_parton_mode1_, b_parton_mode2_;
+  int b_parton_jets20_n_, b_parton_jets30_n_;
+  int b_parton_bjets20_n_, b_parton_bjets30_n_;
+
+  const bool isTopMC_;
 };
 
-TTBBLLAnalyzer::TTBBLLAnalyzer(const edm::ParameterSet& pset)
+TTBBLLAnalyzer::TTBBLLAnalyzer(const edm::ParameterSet& pset):
+  isTopMC_(pset.getParameter<bool>("isTopMC"))
 {
   const auto srcLabel = pset.getParameter<edm::InputTag>("src");
   const auto srcLabelName = srcLabel.label();
 
   channelToken_ = consumes<int>(edm::InputTag(srcLabelName, "channel"));
-  modesToken_ = consumes<vint>(edm::InputTag(srcLabelName, "modes"));
   weightToken_ = consumes<float>(edm::InputTag(srcLabelName, "weight"));
   leptonsToken_ = consumes<cat::LeptonCollection>(edm::InputTag(srcLabelName, "leptons"));
   jetsToken_ = consumes<cat::JetCollection>(edm::InputTag(srcLabelName, "jets"));
   metToken_ = consumes<float>(edm::InputTag(srcLabelName, "met"));
   metphiToken_ = consumes<float>(edm::InputTag(srcLabelName, "metphi"));
 
-  const auto partonLabel = pset.getParameter<edm::InputTag>("partonTop");
-  const auto partonLabelName = partonLabel.label();
+  if ( isTopMC_ ) {
+    const auto partonLabel = pset.getParameter<edm::InputTag>("partonTop");
+    const auto partonLabelName = partonLabel.label();
 
-  //partonToken_ = consumes<reco::GenParticleCollection>(partonLabel);
-  partonChannelToken_ = consumes<int>(edm::InputTag(partonLabelName, "channel"));
-  partonModesToken_ = consumes<vint>(edm::InputTag(partonLabelName, "modes"));
-  partonJetToken_ = consumes<reco::GenJetCollection>(edm::InputTag(partonLabelName, "qcdJets"));
+    //partonToken_ = consumes<reco::GenParticleCollection>(partonLabel);
+    partonChannelToken_ = consumes<int>(edm::InputTag(partonLabelName, "channel"));
+    partonModesToken_ = consumes<vint>(edm::InputTag(partonLabelName, "modes"));
+    partonJetToken_ = consumes<reco::GenJetCollection>(edm::InputTag(partonLabelName, "qcdJets"));
+  }
 
   edm::Service<TFileService> fs;
   tree_ = fs->make<TTree>("ttbb", "ttbb");
 
   tree_->Branch("channel", &b_channel_, "channel/I");
-  tree_->Branch("mode1", &b_mode1_, "mode1/I");
-  tree_->Branch("mode2", &b_mode2_, "mode2/I");
   tree_->Branch("weight", &b_weight_, "weight/F");
 
   tree_->Branch("met_pt", &b_met_pt_, "met_pt/F");
@@ -156,13 +157,15 @@ TTBBLLAnalyzer::TTBBLLAnalyzer(const edm::ParameterSet& pset)
   tree_->Branch("nbjetsM", &b_bjetsM_n, "nbjetsM/I");
   tree_->Branch("nbjetsL", &b_bjetsL_n, "nbjetsL/I");
 
-  tree_->Branch("parton_channel", &b_parton_channel_, "parton_channel/I");
-  tree_->Branch("parton_mode1", &b_parton_mode1_, "parton_mode1/I");
-  tree_->Branch("parton_mode2", &b_parton_mode2_, "parton_mode2/I");
-  tree_->Branch("parton_jets20_n", &b_parton_jets20_n_, "parton_jets20_n/I");
-  tree_->Branch("parton_jets30_n", &b_parton_jets30_n_, "parton_jets30_n/I");
-  tree_->Branch("parton_bjets20_n", &b_parton_bjets20_n_, "parton_bjets20_n/I");
-  tree_->Branch("parton_bjets30_n", &b_parton_bjets30_n_, "parton_bjets30_n/I");
+  if ( isTopMC_ ) {
+    tree_->Branch("parton_channel", &b_parton_channel_, "parton_channel/I");
+    tree_->Branch("parton_mode1", &b_parton_mode1_, "parton_mode1/I");
+    tree_->Branch("parton_mode2", &b_parton_mode2_, "parton_mode2/I");
+    tree_->Branch("parton_jets20_n", &b_parton_jets20_n_, "parton_jets20_n/I");
+    tree_->Branch("parton_jets30_n", &b_parton_jets30_n_, "parton_jets30_n/I");
+    tree_->Branch("parton_bjets20_n", &b_parton_bjets20_n_, "parton_bjets20_n/I");
+    tree_->Branch("parton_bjets30_n", &b_parton_bjets30_n_, "parton_bjets30_n/I");
+  }
 
   auto diree = fs->mkdir("ee");
   heeS0_.book(diree.mkdir("S0")); // Njet4
@@ -193,19 +196,16 @@ void TTBBLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
 
   b_bjetsT_n = b_bjetsM_n = b_bjetsL_n= -999;
 
-  b_parton_channel_ = b_parton_mode1_ = b_parton_mode2_= -999;
-  b_parton_jets20_n_ = b_parton_jets30_n_= -999;
-  b_parton_bjets20_n_ = b_parton_bjets30_n_= -999;
+  if ( isTopMC_ ) {
+    b_parton_channel_ = b_parton_mode1_ = b_parton_mode2_= -999;
+    b_parton_jets20_n_ = b_parton_jets30_n_= -999;
+    b_parton_bjets20_n_ = b_parton_bjets30_n_= -999;
+  }
 
   // Start to read reco objects
   edm::Handle<int> iHandle;
   event.getByToken(channelToken_, iHandle);
   b_channel_ = *iHandle;
-  edm::Handle<vint> viHandle;
-  event.getByToken(modesToken_, viHandle);
-  b_mode1_ = b_mode2_ = -1;
-  if ( viHandle->size() >= 1 ) b_mode1_ = viHandle->at(0);
-  if ( viHandle->size() >= 2 ) b_mode2_ = viHandle->at(1);
 
   edm::Handle<float> fHandle;
   event.getByToken(weightToken_, fHandle);
@@ -266,41 +266,44 @@ void TTBBLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
   b_jet3_qflav_ = jetRefs.at(2).first->partonFlavour();
   b_jet4_qflav_ = jetRefs.at(3).first->partonFlavour();
 
-  // Move to the partons
-  //edm::Handle<reco::GenParticleCollection> partonHandle;
-  //event.getByToken(partonToken_, partonHandle);
-  event.getByToken(partonChannelToken_, iHandle);
-  b_parton_channel_ = *iHandle;
-  event.getByToken(partonModesToken_, viHandle);
-  if ( viHandle->size() >= 1 ) b_parton_mode1_ = viHandle->at(0);
-  if ( viHandle->size() >= 2 ) b_parton_mode2_ = viHandle->at(1);
+  if ( isTopMC_ ) {
+    // Move to the partons
+    //edm::Handle<reco::GenParticleCollection> partonHandle;
+    //event.getByToken(partonToken_, partonHandle);
+    event.getByToken(partonChannelToken_, iHandle);
+    b_parton_channel_ = *iHandle;
+    edm::Handle<vint> viHandle;
+    event.getByToken(partonModesToken_, viHandle);
+    if ( viHandle->size() >= 1 ) b_parton_mode1_ = viHandle->at(0);
+    if ( viHandle->size() >= 2 ) b_parton_mode2_ = viHandle->at(1);
 
-  edm::Handle<reco::GenJetCollection> partonJetHandle;
-  event.getByToken(partonJetToken_, partonJetHandle);
-  for ( auto& jet : *partonJetHandle ) {
-    const double aeta = std::abs(jet.eta());
-    if ( aeta > 2.5 ) continue;
+    edm::Handle<reco::GenJetCollection> partonJetHandle;
+    event.getByToken(partonJetToken_, partonJetHandle);
+    for ( auto& jet : *partonJetHandle ) {
+      const double aeta = std::abs(jet.eta());
+      if ( aeta > 2.5 ) continue;
 
-    bool isBjet = false;
-    for ( auto& con : jet.getGenConstituents() ) {
-      if ( std::abs(con->pdgId()) == 5 ) {
-        isBjet = true;
-        break;
+      bool isBjet = false;
+      for ( auto& con : jet.getGenConstituents() ) {
+        if ( std::abs(con->pdgId()) == 5 ) {
+          isBjet = true;
+          break;
+        }
       }
-    }
 
-    const double pt = jet.pt();
-    if ( pt > 20 ) {
-      ++b_parton_jets20_n_;
-      if ( isBjet ) ++b_parton_bjets20_n_;
-    }
-    if ( pt > 30 ) {
-      ++b_parton_jets30_n_;
-      if ( isBjet ) ++b_parton_bjets30_n_;
+      const double pt = jet.pt();
+      if ( pt > 20 ) {
+        ++b_parton_jets20_n_;
+        if ( isBjet ) ++b_parton_bjets20_n_;
+      }
+      if ( pt > 30 ) {
+        ++b_parton_jets30_n_;
+        if ( isBjet ) ++b_parton_bjets30_n_;
+      }
     }
   }
 
-  if ( b_channel_ == 0 ) { // CH_MUMU
+  if ( b_channel_ == CH_MUMU ) { // CH_MUMU
     hmmS0_.bjetsT_n->Fill(b_bjetsT_n, b_weight_);
     hmmS0_.bjetsM_n->Fill(b_bjetsM_n, b_weight_);
     hmmS0_.bjetsL_n->Fill(b_bjetsL_n, b_weight_);
@@ -338,7 +341,7 @@ void TTBBLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
       hmmS2_.jet3_btag__jet4_btag->Fill(b_jet3_btag_, b_jet4_btag_, b_weight_);
     }
   }
-  else if ( b_channel_ == 1 ) { // CH_ELEL
+  else if ( b_channel_ == CH_ELEL ) { // CH_ELEL
     heeS0_.bjetsT_n->Fill(b_bjetsT_n, b_weight_);
     heeS0_.bjetsM_n->Fill(b_bjetsM_n, b_weight_);
     heeS0_.bjetsL_n->Fill(b_bjetsL_n, b_weight_);
@@ -376,7 +379,7 @@ void TTBBLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
       heeS2_.jet3_btag__jet4_btag->Fill(b_jet3_btag_, b_jet4_btag_, b_weight_);
     }
   }
-  else if ( b_channel_ == 2 ) { // CH_MUEL
+  else if ( b_channel_ == CH_MUEL ) { // CH_MUEL
     hemS0_.bjetsT_n->Fill(b_bjetsT_n, b_weight_);
     hemS0_.bjetsM_n->Fill(b_bjetsM_n, b_weight_);
     hemS0_.bjetsL_n->Fill(b_bjetsL_n, b_weight_);

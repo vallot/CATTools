@@ -19,6 +19,7 @@ process.load("CATTools.CatAnalyzer.ttll.ttllGenFilters_cff")
 process.load("CATTools.CatAnalyzer.ttll.ttllAnalyzers_cff")
 process.load("CATTools.CatAnalyzer.ttll.ntuple_cff")
 process.ttll.isTopMC = True
+process.ttbbll.isTopMC = True
 
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string("hist.root"),

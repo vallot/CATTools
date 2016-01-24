@@ -91,7 +91,7 @@ TTLLAnalyzer::TTLLAnalyzer(const edm::ParameterSet& pset):
   isTopMC_(pset.getParameter<bool>("isTopMC")),
   bTagName_(pset.getParameter<std::string>("bTagName"))
 {
-  const auto recoLabel = pset.getParameter<edm::InputTag>("recoObject").label();
+  const auto recoLabel = pset.getParameter<edm::InputTag>("recoObjects").label();
   channelToken_ = consumes<int>(edm::InputTag(recoLabel, "channel"));
   weightToken_ = consumes<float>(edm::InputTag(recoLabel, "weight"));
   leptonsToken_ = consumes<cat::LeptonCollection>(edm::InputTag(recoLabel, "leptons"));
@@ -184,11 +184,6 @@ void TTLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
   b_channel_ = *iHandle;
   if ( b_channel_ != CH_FULLLEPTON ) return; // Just for a confirmation
 
-  event.getByToken(partonTopChToken_, iHandle);
-  b_partonTopChannel_ = *iHandle;
-  event.getByToken(pseudoTopChToken_, iHandle);
-  b_pseudoTopChannel_ = *iHandle;
-
   edm::Handle<float> fHandle;
   event.getByToken(weightToken_, fHandle);
   b_weight_ = *fHandle;
@@ -231,9 +226,13 @@ void TTLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
   if ( isTopMC_ ) {
     edm::Handle<reco::GenParticleCollection> partonTopHandle;
     event.getByToken(partonTopToken_, partonTopHandle);
+    event.getByToken(partonTopChToken_, iHandle);
+    b_partonTopChannel_ = *iHandle;
 
     edm::Handle<reco::GenParticleCollection> pseudoTopHandle;
     event.getByToken(pseudoTopToken_, pseudoTopHandle);
+    event.getByToken(pseudoTopChToken_, iHandle);
+    b_pseudoTopChannel_ = *iHandle;
 
     auto gtByPtPtr = [](const reco::GenParticle* a, const reco::GenParticle* b) { return a->pt() > b->pt(); };
 
