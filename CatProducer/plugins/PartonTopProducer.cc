@@ -59,7 +59,7 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
   std::auto_ptr<reco::GenParticleCollection> partons(new reco::GenParticleCollection);
   auto partonRefHandle = event.getRefBeforePut<reco::GenParticleCollection>();
 
-  std::auto_ptr<int> channel(new int(CH_NONE));
+  std::auto_ptr<int> channel(new int((int)TTChannel::CH_NONE));
   std::auto_ptr<std::vector<int> > modes(new std::vector<int>());
 
   std::auto_ptr<reco::GenJetCollection> qcdJets(new reco::GenJetCollection);
@@ -203,10 +203,10 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
     int mode = 0;
     switch ( abs(wDau1->pdgId()) )
     {
-      case 11: ++nElectron; mode = CH_ELECTRON; break;
-      case 13: ++nMuon; mode = CH_MUON; break;
+      case 11: ++nElectron; mode = (int)WMode::CH_ELECTRON; break;
+      case 13: ++nMuon; mode = (int)WMode::CH_MUON; break;
       case 15:
-        ++nTau; mode = CH_TAU_HADRON;
+        ++nTau; mode = (int)WMode::CH_TAU_HADRON;
         if ( lepFromTau )
         {
           ++nTauToLepton;
@@ -227,9 +227,9 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
   if ( modes->size() == 2 )
   {
     const int nLepton = nElectron + nMuon;
-    if      ( nLepton == 0 ) *channel = CH_FULLHADRON;
-    else if ( nLepton == 1 ) *channel = CH_SEMILEPTON;
-    else if ( nLepton == 2 ) *channel = CH_FULLLEPTON;
+    if      ( nLepton == 0 ) *channel = (int)TTChannel::CH_FULLHADRON;
+    else if ( nLepton == 1 ) *channel = (int)TTChannel::CH_SEMILEPTON;
+    else if ( nLepton == 2 ) *channel = (int)TTChannel::CH_FULLLEPTON;
   }
 
   // Make genJets using particles after PS, but before hadronization
