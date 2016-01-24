@@ -15,16 +15,12 @@
 #include "CATTools/DataFormats/interface/MET.h"
 #include "CATTools/DataFormats/interface/GenTop.h"
 
-//#include "TopQuarkAnalysis/TopKinFitter/interface/TtFullLepKinSolver.h"
-//#include "CATTools/CatAnalyzer/interface/KinematicSolvers.h"
-//#include "CATTools/CatAnalyzer/interface/LeptonWeight.h"
 #include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
 #include "CATTools/CatAnalyzer/interface/BTagScaleFactorEvaluators.h"
 
 #include "CATTools/CommonTools/interface/AnalysisHelper.h"
 #include "DataFormats/Math/interface/deltaR.h"
 #include "TTree.h"
-//#include "TLorentzVector.h"
 
 using namespace std;
 using namespace cat;
@@ -40,7 +36,7 @@ struct bigger_second
 };
 typedef std::pair<int,float> data_t;
 
-class TtbarBbbarDiLeptonAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources,edm::one::WatchLuminosityBlocks> {
+class TtbarBbbarDiLeptonAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
   explicit TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet&);
   ~TtbarBbbarDiLeptonAnalyzer();
@@ -58,8 +54,6 @@ public:
 
 private:
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
-  void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&) override;
-  void endLuminosityBlock(const edm::LuminosityBlock&, const edm::EventSetup&) override {};
 
   void selectMuons(const cat::MuonCollection& muons, LeptonCollection& selmuons) const;
   void selectElecs(const cat::ElectronCollection& elecs, LeptonCollection& selelecs) const;
@@ -235,24 +229,13 @@ private:
 
   ////////
 
-  /*
   //float b_jet1_pt, b_jet1_eta, b_jet1_CSVInclV2;
   //float b_jet2_pt, b_jet2_eta, b_jet2_CSVInclV2;
-  float b_top1_pt, b_top1_eta, b_top1_phi, b_top1_rapi;
-  float b_top2_pt, b_top2_eta, b_top2_phi, b_top2_rapi;
-  float b_ttbar_pt, b_ttbar_eta, b_ttbar_phi, b_ttbar_m, b_ttbar_rapi;
-  float b_maxweight;*/
   int b_is3lep;
-
-  //std::unique_ptr<TtFullLepKinSolver> solver;
-  //std::unique_ptr<KinematicSolver> solver_;
-  //enum TTbarMode { CH_NONE = 0, CH_FULLHADRON = 1, CH_SEMILEPTON, CH_FULLLEPTON };
-  //enum DecayMode { CH_HADRON = 1, CH_MUON, CH_ELECTRON, CH_TAU_HADRON, CH_TAU_MUON, CH_TAU_ELECTRON };
 
   const static int NCutflow = 10;
   std::vector<std::vector<int> > cutflow_;
   bool runOnMC_;
-  //CSVHelper *csvWeight;
   CSVWeightEvaluator csvWeight;
 };
 //
@@ -302,24 +285,6 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
   partonTop_modes_   = consumes<vector<int> >(iConfig.getParameter<edm::InputTag>("partonTop_modes"));
   partonTop_genParticles_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("partonTop_genParticles"));
   pseudoTop_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("pseudoTop"));
-
-/*
-  auto solverPSet = iConfig.getParameter<edm::ParameterSet>("solver");
-  auto algoName = solverPSet.getParameter<std::string>("algo");
-  std::transform(algoName.begin(), algoName.end(), algoName.begin(), ::toupper);
-  if      ( algoName == "CMSKIN" ) solver_.reset(new CMSKinSolver(solverPSet));
-  else if ( algoName == "DESYMASSLOOP" ) solver_.reset(new DESYMassLoopSolver(solverPSet));
-  else if ( algoName == "DESYSMEARED" ) solver_.reset(new DESYSmearedSolver(solverPSet));
-  else if ( algoName == "MT2"    ) solver_.reset(new MT2Solver(solverPSet));
-  else if ( algoName == "MAOS"   ) solver_.reset(new MAOSSolver(solverPSet));
-  else if ( algoName == "NUWGT"  ) solver_.reset(new NuWeightSolver(solverPSet));
-  else if ( algoName == "DEFAULT" ) solver_.reset(new TTDileptonSolver(solverPSet));
-  else {
-    cerr << "The solver name \"" << solverPSet.getParameter<std::string>("algo") << "\" is not known please check spellings.\n";
-    cerr << "Fall back to the default dummy solver\n";
-    solver_.reset(new TTDileptonSolver(solverPSet)); // A dummy solver
-  }
-*/
 
   usesResource("TFileService");
   edm::Service<TFileService> fs;
@@ -449,12 +414,12 @@ void TtbarBbbarDiLeptonAnalyzer::book(TTree* tree){
   tree->Branch("csvt_sfup", &b_csvt_sfup, "csvt_sfup/F");
   tree->Branch("csvt_sfdw", &b_csvt_sfdw, "csvt_sfdw/F");
 /////////////////////////////
-   tree->Branch("lepton1_pt",    &lepton1_pt   , "lepton1_pt/F");
-   tree->Branch("lepton1_eta",   &lepton1_eta  , "lepton1_eta/F");
-   tree->Branch("lepton1_phi",   &lepton1_phi  , "lepton1_phi/F");
-   tree->Branch("lepton2_pt",    &lepton2_pt   , "lepton2_pt/F");
-   tree->Branch("lepton2_eta",   &lepton2_eta  , "lepton2_eta/F");
-   tree->Branch("lepton2_phi",   &lepton2_phi  , "lepton2_phi/F");
+  tree->Branch("lepton1_pt",    &lepton1_pt   , "lepton1_pt/F");
+  tree->Branch("lepton1_eta",   &lepton1_eta  , "lepton1_eta/F");
+  tree->Branch("lepton1_phi",   &lepton1_phi  , "lepton1_phi/F");
+  tree->Branch("lepton2_pt",    &lepton2_pt   , "lepton2_pt/F");
+  tree->Branch("lepton2_eta",   &lepton2_eta  , "lepton2_eta/F");
+  tree->Branch("lepton2_phi",   &lepton2_phi  , "lepton2_phi/F");
 
   tree->Branch("allHadronic",      &allHadronic        , "allHadronic/O");
   tree->Branch("semiLeptonicM1",     &semiLeptonicM1       , "semiLeptonicM1/O");
@@ -526,20 +491,6 @@ void TtbarBbbarDiLeptonAnalyzer::book(TTree* tree){
   tree->Branch("jet2_eta", &b_jet2_eta, "jet2_eta/F");
   tree->Branch("jet1_CSVInclV2", &b_jet1_CSVInclV2, "jet1_CSVInclV2/F");
   tree->Branch("jet2_CSVInclV2", &b_jet2_CSVInclV2, "jet2_CSVInclV2/F");
-
-  tree->Branch("top1_pt", &b_top1_pt, "top1_pt/F");
-  tree->Branch("top1_eta", &b_top1_eta, "top1_eta/F");
-  tree->Branch("top1_phi", &b_top1_phi, "top1_phi/F");
-  tree->Branch("top1_rapi", &b_top1_rapi, "top1_rapi/F");
-  tree->Branch("top2_pt", &b_top2_pt, "top2_pt/F");
-  tree->Branch("top2_eta", &b_top2_eta, "top2_eta/F");
-  tree->Branch("top2_phi", &b_top2_phi, "top2_phi/F");
-  tree->Branch("top2_rapi", &b_top2_rapi, "top2_rapi/F");
-  tree->Branch("ttbar_pt", &b_ttbar_pt, "ttbar_pt/F");
-  tree->Branch("ttbar_eta", &b_ttbar_eta, "ttbar_eta/F");
-  tree->Branch("ttbar_phi", &b_ttbar_phi, "ttbar_phi/F");
-  tree->Branch("ttbar_rapi", &b_ttbar_rapi, "ttbar_rapi/F");
-  tree->Branch("ttbar_m", &b_ttbar_m, "ttbar_m/F");
 */
   tree->Branch("is3lep", &b_is3lep, "is3lep/I");
 
@@ -552,15 +503,6 @@ TtbarBbbarDiLeptonAnalyzer::~TtbarBbbarDiLeptonAnalyzer()
   for ( int i=0; i<NCutflow; ++i ) {
     cout <<"step "<< i << " "<< cutflow_[i][0] <<  " "<< cutflow_[i][1] << " " << cutflow_[i][2] << " " << cutflow_[i][3]<< endl;
   }
-}
-
-void TtbarBbbarDiLeptonAnalyzer::beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&)
-{
-  /*if ( dynamic_cast<DESYSmearedSolver*>(solver_.get()) != 0 ) {
-    edm::Service<edm::RandomNumberGenerator> rng;
-    CLHEP::HepRandomEngine& engine = rng->getEngine(lumi.index());
-    dynamic_cast<DESYSmearedSolver*>(solver_.get())->setRandom(&engine);
-  }*/
 }
 
 void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -649,7 +591,6 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     NaddbQuarks20    =genTop->at(0).NaddbQuarks20();
     NaddbQuarks40    =genTop->at(0).NaddbQuarks40();
     NcQuarks         =genTop->at(0).NcQuarks();
-    //    }
   }
   ////////////
   if ( iEvent.getByToken(partonTop_channel_, partonTop_channel)){
@@ -1043,85 +984,6 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
       }
     }
 
-
-    /*  ////////////////////////////////////////////////////////  KIN  /////////////////////////////////////
-    //int kin=0;
-    math::XYZTLorentzVector top1, top2, nu1, nu2;
-    double maxweight=0;
-    //const cat::Jet* kinj1, * kinj2;
-
-    const auto recolepLV1= recolep1.p4();
-    const auto recolepLV2= recolep2.p4();
-    math::XYZTLorentzVector inputLV[5] = {met, recolepLV1, recolepLV2};
-
-    for (auto jet1 = selectedJets.begin(), end = selectedJets.end(); jet1 != end; ++jet1){
-    const auto recojet1= jet1->p4();
-    for (auto jet2 = next(jet1); jet2 != end; ++jet2){
-
-    const auto recojet2= jet2->p4();
-
-    b_jet1_pt = recojet1.Pt();
-    b_jet1_eta = recojet1.Eta();
-    b_jet2_pt = recojet2.Pt();
-    b_jet2_eta = recojet2.Eta();
-
-    inputLV[3] = recojet1;
-    inputLV[4] = recojet2;
-    solver_->solve(inputLV);
-    const double weight1 = solver_->quality();
-    inputLV[3] = recojet2;
-    inputLV[4] = recojet1;
-    solver_->solve(inputLV);
-    const double weight2 = solver_->quality();
-
-    if ( weight2 > maxweight and weight2 >= weight1 ) {
-    nu1 = solver_->nu1();
-    nu2 = solver_->nu2();
-    maxweight = weight2;
-    }
-    else if ( weight1 > maxweight and weight1 >= weight2 ) {
-    // Re-solve with previous jet combinations
-    // Weights are re-calculated since there can be very little difference due to random number effect in smearing algorithm
-    inputLV[3] = recojet1;
-    inputLV[4] = recojet2;
-    solver_->solve(inputLV);
-    nu1 = solver_->nu1();
-    nu2 = solver_->nu2();
-    maxweight = solver_->quality();
-    }
-    else continue;
-
-    top1 = recolepLV1+recojet1+nu1;
-    top2 = recolepLV2+recojet2+nu2;
-    }
-    }
-
-    b_top1_pt = top1.Pt();
-    b_top1_eta = top1.Eta();
-    b_top1_phi = top1.Phi();
-    b_top1_rapi = top1.Rapidity();
-    b_top2_pt = top2.Pt();
-    b_top2_eta = top2.Eta();
-    b_top2_phi = top2.Phi();
-    b_top2_rapi = top2.Rapidity();
-
-    auto ttbar = top1+top2;
-    b_ttbar_pt = ttbar.Pt();
-    b_ttbar_eta = ttbar.Eta();
-    b_ttbar_phi = ttbar.Phi();
-    b_ttbar_m = ttbar.M();
-    b_ttbar_rapi = ttbar.Rapidity();
-
-    b_maxweight = maxweight;
-    if (maxweight){
-    b_step6 = true;
-    if (b_step == 5){
-      ++b_step;
-    }
-  }
-  */
-    //  printf("maxweight %f, top1.M() %f, top2.M() %f \n",maxweight, top1.M(), top2.M() );
-    // printf("%2d, %2d, %2d, %2d, %6.2f, %6.2f, %6.2f\n", b_njet, b_nbjet, b_step, b_channel, b_met, b_ll_mass, b_maxweight);
     if(sys==0){
       ttree_->Fill();
       ttree2_->Fill();
@@ -1320,12 +1182,6 @@ void TtbarBbbarDiLeptonAnalyzer::resetBrJets()
   b_csvl_sf = 1;  b_csvl_sfup = 1;  b_csvl_sfdw = 1;
   b_csvm_sf = 1;  b_csvm_sfup = 1;  b_csvm_sfdw = 1;
   b_csvt_sf = 1;  b_csvt_sfup = 1;  b_csvt_sfdw = 1;
-  //////////////////////
-  //////////////////////
-  //////////////////////
-  //////////////////////
-  //////////////////////
-  //////////////////////
 }
 void TtbarBbbarDiLeptonAnalyzer::resetBrGEN()
 {
@@ -1417,9 +1273,6 @@ void TtbarBbbarDiLeptonAnalyzer::resetBrGEN()
   /*
      b_jet1_pt = -9; b_jet1_eta = -9; b_jet1_CSVInclV2 = -9;
      b_jet2_pt = -9; b_jet2_eta = -9; b_jet2_CSVInclV2 = -9;
-     b_top1_pt = -9; b_top1_eta = -9; b_top1_phi = -9; b_top1_rapi = -9;
-     b_top2_pt = -9; b_top2_eta = -9; b_top2_phi = -9; b_top2_rapi = -9;
-     b_ttbar_pt = -9; b_ttbar_eta = -9; b_ttbar_phi = -9; b_ttbar_m = -9; b_ttbar_rapi = -9;
      */
   b_is3lep = -9;
 
