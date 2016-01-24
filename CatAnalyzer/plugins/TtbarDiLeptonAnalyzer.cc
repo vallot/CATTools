@@ -13,7 +13,7 @@
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/MET.h"
 
-#include "CATTools/CommonTools/interface/ScaleFactorGetter.h"
+#include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
 //#include "TopQuarkAnalysis/TopKinFitter/interface/TtFullLepKinSolver.h"
 #include "CATTools/CatAnalyzer/interface/KinematicSolvers.h"
 
@@ -54,7 +54,7 @@ private:
   cat::JetCollection selectBJets(const cat::JetCollection& jets) const;
   const reco::Candidate* getLast(const reco::Candidate* p) const;
 
-  ScaleFactorGetter muonSF_, elecSF_;
+  ScaleFactorEvaluator muonSF_, elecSF_;
   float getSF(const cat::Particle& p, int sys) const
   {
     const int aid = abs(p.pdgId());
