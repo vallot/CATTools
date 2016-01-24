@@ -3,7 +3,7 @@
 import sys, os
 from math import hypot
 
-muonSFBase = "%s/src/CATTools/CatAnalyzer/data/scale" % os.environ["CMSSW_BASE"]
+muonSFBase = "%s/src/CATTools/CatAnalyzer/data/scaleFactors" % os.environ["CMSSW_BASE"]
 if not os.path.exists("%s/MuonID_Z_RunCD_Reco74X_Dec1.json" % muonSFBase) or \
    not os.path.exists("%s/MuonIso_Z_RunCD_Reco74X_Dec1.json" % muonSFBase):
    #not os.path.exists("%s/SingleMuonTrigger_Z_RunCD_Reco74X_Dec1.json" % muonSFBase):
