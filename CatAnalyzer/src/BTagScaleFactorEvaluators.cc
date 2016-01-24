@@ -8,7 +8,7 @@ CSVWeightEvaluator::CSVWeightEvaluator()
 {
   const char* method = "iterativefit";
   // setup calibration readers (once)
-  const auto csvFile = edm::FileInPath("CATTools/CatAnalyzer/data/btagSF/ttH_BTV_CSVv2_13TeV_2015D_20151120.csv").fullPath();
+  const auto csvFile = edm::FileInPath("CATTools/CatAnalyzer/data/scaleFactors/ttH_BTV_CSVv2_13TeV_2015D_20151120.csv").fullPath();
   BTagCalibration calib_csvv2("csvv2", csvFile);
   readers_[CENTRAL] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "central");
 
