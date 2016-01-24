@@ -18,6 +18,7 @@ process.load("CATTools.CatAnalyzer.ttll.ttllEventSelector_cfi")
 process.load("CATTools.CatAnalyzer.ttll.ttllGenFilters_cff")
 process.load("CATTools.CatAnalyzer.ttll.ttllAnalyzers_cff")
 process.load("CATTools.CatAnalyzer.ttll.ntuple_cff")
+process.ttll.isTopMC = True
 
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string("hist.root"),
@@ -34,9 +35,8 @@ process.agen = cms.EDAnalyzer("CATGenTopAnalysis",
 )
 
 process.p = cms.Path(
-    process.agen
-  + process.filterPartonTTLL * process.eventsTTLL * process.ttbbll
-#  * process.ntuple
+    process.agen + process.filterPartonTTLL
+  * process.eventsTTLL * process.ttll + process.ttbbll
 )
 
 ## Customise with cmd arguments

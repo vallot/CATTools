@@ -22,7 +22,9 @@ process.TFileService = cms.Service("TFileService",
     fileName = cms.string("hist.root"),
 )
 
-process.p = cms.Path(process.eventsTTLL*process.ttbbll)#*process.ntuple)
+process.p = cms.Path(
+    process.eventsTTLL * process.ttll + process.ttbbll
+)
 
 ## Customise with cmd arguments
 import sys
