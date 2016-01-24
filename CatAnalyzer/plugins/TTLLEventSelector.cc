@@ -729,7 +729,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   }
   const int leptons_n = out_leptons->size();
   const cat::Lepton* lepton1 = 0, * lepton2 = 0;
-  TTLLChannel channel = TTLLChannel::CH_NONE;
+  int channel = CH_NOLL;
   if ( leptons_n >= 2 ) {
     // Partial sort to select leading 2 leptons
     std::nth_element(out_leptons->begin(), out_leptons->begin()+2, out_leptons->end(),
@@ -744,28 +744,28 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     // Determine channel
     switch ( pdgId1+pdgId2 )
     {
-      case 11+11: { channel = TTLLChannel::CH_ELEL; break; }
-      case 13+13: { channel = TTLLChannel::CH_MUMU; break; }
+      case 11+11: { channel = CH_ELEL; break; }
+      case 13+13: { channel = CH_MUMU; break; }
       case 11+13: {
-        channel = TTLLChannel::CH_MUEL;
+        channel = CH_MUEL;
         // Put electron front for emu channel
         if ( pdgId1 == 13 and pdgId2 == 11 ) std::swap(lepton1, lepton2);
       }
     }
     // Apply lepton SF
-    if ( channel == TTLLChannel::CH_ELEL )
+    if ( channel == CH_ELEL )
     {
       const double w1 = electronSF_(lepton1->pt(), lepton1->eta(), electronSFShift_);
       const double w2 = electronSF_(lepton2->pt(), lepton2->eta(), electronSFShift_);
       weight *= w1*w2;
     }
-    else if ( channel == TTLLChannel::CH_MUMU )
+    else if ( channel == CH_MUMU )
     {
       const double w1 = muonSF_(lepton1->pt(), std::abs(lepton1->eta()), muonSFShift_);
       const double w2 = muonSF_(lepton2->pt(), std::abs(lepton2->eta()), muonSFShift_);
       weight *= w1*w2;
     }
-    else if ( channel == TTLLChannel::CH_MUEL )
+    else if ( channel == CH_MUEL )
     {
       const double w1 = electronSF_(lepton1->pt(), lepton1->eta(), electronSFShift_);
       const double w2 = muonSF_(lepton2->pt(), std::abs(lepton2->eta()), muonSFShift_);
@@ -943,21 +943,21 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   // bitset for the cut steps, fill the results only for events that pass step0a,0b,0c
   std::bitset<ControlPlots::nMaxCutstep-2> cutstepBits(0);
   //for ( auto x : cutstepBits ) x = false;
-  if ( (channel == TTLLChannel::CH_ELEL and cutstep_ee == 0) or
-       (channel == TTLLChannel::CH_MUMU and cutstep_mm == 0) or
-       (channel == TTLLChannel::CH_MUEL and cutstep_em == 0) )
+  if ( (channel == CH_ELEL and cutstep_ee == 0) or
+       (channel == CH_MUMU and cutstep_mm == 0) or
+       (channel == CH_MUEL and cutstep_em == 0) )
   {
     // Step1 Dilepton
     if ( leptons_n >= 2 and z_m >= 20 and lepton1->charge()+lepton2->charge() == 0 )
     {
       cutstepBits[0] = true;
       // Step2 Z mass veto : Step1 have to be required by construction
-      if ( channel == TTLLChannel::CH_MUEL or !(76 <= z_m and z_m <= 106) ) cutstepBits[1] = true;
+      if ( channel == CH_MUEL or !(76 <= z_m and z_m <= 106) ) cutstepBits[1] = true;
     }
     // Step3 Minimal jet multiplicity
     if ( jets_n >= 2 ) cutstepBits[2] = true;
     // Step4 Missing transverse momentum
-    if ( channel == TTLLChannel::CH_MUEL or met_pt >= 40 ) cutstepBits[3] = true;
+    if ( channel == CH_MUEL or met_pt >= 40 ) cutstepBits[3] = true;
     // Step5 one b jet
     if ( bjets_n >= 1 ) cutstepBits[4] = true;
 
@@ -985,7 +985,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     const auto lepton2P4 = shiftedLepPt(*lepton2)/lepton2->pt()*lepton2->p4();
     const auto zP4 = lepton1P4+lepton2P4;
 
-    if ( channel == TTLLChannel::CH_ELEL )
+    if ( channel == CH_ELEL )
     {
       h_ee.hCutstep->Fill(icutstep, weight);
       h_ee.hCutstepNoweight->Fill(icutstep);
@@ -1051,7 +1051,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
       h_ee.h1_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
     }
-    else if ( channel == TTLLChannel::CH_MUMU )
+    else if ( channel == CH_MUMU )
     {
       h_mm.hCutstep->Fill(icutstep, weight);
       h_mm.hCutstepNoweight->Fill(icutstep);
@@ -1117,7 +1117,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
       h_mm.h1_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
     }
-    else if ( channel == TTLLChannel::CH_MUEL )
+    else if ( channel == CH_MUEL )
     {
       h_em.hCutstep->Fill(icutstep, weight);
       h_em.hCutstepNoweight->Fill(icutstep);
@@ -1189,7 +1189,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     if ( cutstep <= 1 ) break;
     ++icutstep; // =2
 
-    if ( channel == TTLLChannel::CH_ELEL )
+    if ( channel == CH_ELEL )
     {
       h_ee.hCutstep->Fill(icutstep, weight);
       h_ee.hCutstepNoweight->Fill(icutstep);
@@ -1255,7 +1255,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
       h_ee.h2_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
     }
-    else if ( channel == TTLLChannel::CH_MUMU )
+    else if ( channel == CH_MUMU )
     {
       h_mm.hCutstep->Fill(icutstep, weight);
       h_mm.hCutstepNoweight->Fill(icutstep);
@@ -1321,7 +1321,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
       h_mm.h2_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
     }
-    else if ( channel == TTLLChannel::CH_MUEL )
+    else if ( channel == CH_MUEL )
     {
       h_em.hCutstep->Fill(icutstep, weight);
       h_em.hCutstepNoweight->Fill(icutstep);
@@ -1396,7 +1396,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     const auto& jet1 = out_jets->at(0);
     const auto& jet2 = out_jets->at(1);
 
-    if ( channel == TTLLChannel::CH_ELEL )
+    if ( channel == CH_ELEL )
     {
       h_ee.hCutstep->Fill(icutstep, weight);
       h_ee.hCutstepNoweight->Fill(icutstep);
@@ -1445,7 +1445,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
       h_ee.h3_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
     }
-    else if ( channel == TTLLChannel::CH_MUMU )
+    else if ( channel == CH_MUMU )
     {
       h_mm.hCutstep->Fill(icutstep, weight);
       h_mm.hCutstepNoweight->Fill(icutstep);
@@ -1495,7 +1495,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       h_mm.h3_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
 
     }
-    else if ( channel == TTLLChannel::CH_MUEL )
+    else if ( channel == CH_MUEL )
     {
       h_em.hCutstep->Fill(icutstep, weight);
       h_em.hCutstepNoweight->Fill(icutstep);
@@ -1550,7 +1550,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     if ( cutstep <= 3 ) break;
     ++icutstep; // =4
 
-    if ( channel == TTLLChannel::CH_ELEL )
+    if ( channel == CH_ELEL )
     {
       h_ee.hCutstep->Fill(icutstep, weight);
       h_ee.hCutstepNoweight->Fill(icutstep);
@@ -1599,7 +1599,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
       h_ee.h4_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
     }
-    else if ( channel == TTLLChannel::CH_MUMU )
+    else if ( channel == CH_MUMU )
     {
       h_mm.hCutstep->Fill(icutstep, weight);
       h_mm.hCutstepNoweight->Fill(icutstep);
@@ -1649,7 +1649,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       h_mm.h4_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
 
     }
-    else if ( channel == TTLLChannel::CH_MUEL )
+    else if ( channel == CH_MUEL )
     {
       h_em.hCutstep->Fill(icutstep, weight);
       h_em.hCutstepNoweight->Fill(icutstep);
@@ -1704,7 +1704,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     if ( cutstep <= 4 ) break;
     ++icutstep; // =5
 
-    if ( channel == TTLLChannel::CH_ELEL )
+    if ( channel == CH_ELEL )
     {
       h_ee.hCutstep->Fill(icutstep, weight);
       h_ee.hCutstepNoweight->Fill(icutstep);
@@ -1753,7 +1753,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
       h_ee.h5_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
     }
-    else if ( channel == TTLLChannel::CH_MUMU )
+    else if ( channel == CH_MUMU )
     {
       h_mm.hCutstep->Fill(icutstep, weight);
       h_mm.hCutstepNoweight->Fill(icutstep);
@@ -1803,7 +1803,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       h_mm.h5_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
 
     }
-    else if ( channel == TTLLChannel::CH_MUEL )
+    else if ( channel == CH_MUEL )
     {
       h_em.hCutstep->Fill(icutstep, weight);
       h_em.hCutstepNoweight->Fill(icutstep);
@@ -1859,7 +1859,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   {
     if ( istep != 2 and !cutstepBits[istep-1] ) break;
 
-    if ( channel == TTLLChannel::CH_ELEL )
+    if ( channel == CH_ELEL )
     {
       switch ( istep )
       {
@@ -1870,7 +1870,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         case 1: h_ee.h1_z_m_noveto->Fill(z_m, weight);
       }
     }
-    else if ( channel == TTLLChannel::CH_MUMU )
+    else if ( channel == CH_MUMU )
     {
       switch ( istep )
       {
@@ -1881,7 +1881,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         case 1: h_mm.h1_z_m_noveto->Fill(z_m, weight);
       }
     }
-    else if ( channel == TTLLChannel::CH_MUEL )
+    else if ( channel == CH_MUEL )
     {
       switch ( istep )
       {
@@ -1902,9 +1902,9 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     {
       const bool res2 = cutstepBits[jstep-1];
       const int result = res1 && res2;
-      if      ( channel == TTLLChannel::CH_ELEL ) h_ee.h2Cutstep->Fill(istep, jstep, result*weight);
-      else if ( channel == TTLLChannel::CH_MUMU ) h_mm.h2Cutstep->Fill(istep, jstep, result*weight);
-      else if ( channel == TTLLChannel::CH_MUEL ) h_em.h2Cutstep->Fill(istep, jstep, result*weight);
+      if      ( channel == CH_ELEL ) h_ee.h2Cutstep->Fill(istep, jstep, result*weight);
+      else if ( channel == CH_MUMU ) h_mm.h2Cutstep->Fill(istep, jstep, result*weight);
+      else if ( channel == CH_MUEL ) h_em.h2Cutstep->Fill(istep, jstep, result*weight);
     }
   }
 
