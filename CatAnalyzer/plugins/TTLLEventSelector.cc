@@ -550,10 +550,10 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   {
     const auto muonSFSet = muonSet.getParameter<edm::ParameterSet>("efficiencySF");
     // FIXME : for muons, eta bins are folded - always double check this with cfg
-    muonSF_.set(muonSFSet.getParameter<vdouble>("abseta_bins"),
-                   muonSFSet.getParameter<vdouble>("pt_bins"),
-                   muonSFSet.getParameter<vdouble>("values"),
-                   muonSFSet.getParameter<vdouble>("errors"));
+    muonSF_.set(muonSFSet.getParameter<vdouble>("pt_bins"),
+                muonSFSet.getParameter<vdouble>("abseta_bins"),
+                muonSFSet.getParameter<vdouble>("values"),
+                muonSFSet.getParameter<vdouble>("errors"));
     muonSFShift_ = muonSet.getParameter<int>("efficiencySFDirection");
   }
 
@@ -565,10 +565,10 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   {
     const auto electronSFSet = electronSet.getParameter<edm::ParameterSet>("efficiencySF");
     // FIXME : for electrons, eta bins are NOT folded - always double check this with cfg
-    electronSF_.set(electronSFSet.getParameter<vdouble>("eta_bins"),
-                       electronSFSet.getParameter<vdouble>("pt_bins"),
-                       electronSFSet.getParameter<vdouble>("values"),
-                       electronSFSet.getParameter<vdouble>("errors"));
+    electronSF_.set(electronSFSet.getParameter<vdouble>("pt_bins"),
+                    electronSFSet.getParameter<vdouble>("eta_bins"),
+                    electronSFSet.getParameter<vdouble>("values"),
+                    electronSFSet.getParameter<vdouble>("errors"));
     electronSFShift_ = electronSet.getParameter<int>("efficiencySFDirection");
   }
 
@@ -755,20 +755,20 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     // Apply lepton SF
     if ( channel == CH_ELEL )
     {
-      const double w1 = electronSF_(lepton1->eta(), lepton1->pt(), electronSFShift_);
-      const double w2 = electronSF_(lepton2->eta(), lepton2->pt(), electronSFShift_);
+      const double w1 = electronSF_(lepton1->pt(), lepton1->eta(), electronSFShift_);
+      const double w2 = electronSF_(lepton2->pt(), lepton2->eta(), electronSFShift_);
       weight *= w1*w2;
     }
     else if ( channel == CH_MUMU )
     {
-      const double w1 = muonSF_(std::abs(lepton1->eta()), lepton1->pt(), muonSFShift_);
-      const double w2 = muonSF_(std::abs(lepton2->eta()), lepton2->pt(), muonSFShift_);
+      const double w1 = muonSF_(lepton1->pt(), std::abs(lepton1->eta()), muonSFShift_);
+      const double w2 = muonSF_(lepton2->pt(), std::abs(lepton2->eta()), muonSFShift_);
       weight *= w1*w2;
     }
     else if ( channel == CH_MUEL )
     {
-      const double w1 = electronSF_(lepton1->eta(), lepton1->pt(), electronSFShift_);
-      const double w2 = muonSF_(std::abs(lepton2->eta()), lepton2->pt(), muonSFShift_);
+      const double w1 = electronSF_(lepton1->pt(), lepton1->eta(), electronSFShift_);
+      const double w2 = muonSF_(lepton2->pt(), std::abs(lepton2->eta()), muonSFShift_);
       weight *= w1*w2;
     }
     else edm::LogError("TTLLEventSelector") << "Strange event with nLepton >=2 but not falling info ee,mumu,emu category";
