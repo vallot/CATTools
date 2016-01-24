@@ -18,6 +18,7 @@
 //#include "TopQuarkAnalysis/TopKinFitter/interface/TtFullLepKinSolver.h"
 //#include "CATTools/CatAnalyzer/interface/KinematicSolvers.h"
 //#include "CATTools/CatAnalyzer/interface/LeptonWeight.h"
+#include "CATTools/CommonTools/interface/TTbarModeDefs.h"
 #include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
 #include "CATTools/CatAnalyzer/interface/BTagScaleFactorEvaluators.h"
 
@@ -45,9 +46,6 @@ public:
   explicit TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet&);
   ~TtbarBbbarDiLeptonAnalyzer();
 
-  enum {
-    CH_NONE=0, CH_MUEL=1, CH_ELEL=2, CH_MUMU=3
-  };
   enum sys_e {sys_nom,  sys_jes_u, sys_jes_d, sys_jer_u, sys_jer_d,
 //    sys_mu_u, sys_mu_d, sys_el_u, sys_el_d,
 //    sys_mueff_u, sys_mueff_d, sys_eleff_u, sys_eleff_d,
@@ -246,8 +244,6 @@ private:
 
   //std::unique_ptr<TtFullLepKinSolver> solver;
   //std::unique_ptr<KinematicSolver> solver_;
-  //enum TTbarMode { CH_NONE = 0, CH_FULLHADRON = 1, CH_SEMILEPTON, CH_FULLLEPTON };
-  //enum DecayMode { CH_HADRON = 1, CH_MUON, CH_ELECTRON, CH_TAU_HADRON, CH_TAU_MUON, CH_TAU_ELECTRON };
 
   const static int NCutflow = 10;
   std::vector<std::vector<int> > cutflow_;
@@ -705,7 +701,7 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     edm::Handle<reco::GenParticleCollection> pseudoTopHandle;
     iEvent.getByToken(pseudoTop_          , pseudoTopHandle);
     if ( !(pseudoTopHandle->empty()) ){
-      b_pseudoTopChannel = CH_NONE;
+      b_pseudoTopChannel = (int)TTLLChannel::CH_NONE;
 
       // Get Top quark pairs
       const auto pseudoTop1 = &pseudoTopHandle->at(0);
@@ -732,9 +728,9 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
           b_pseudoToplep2_eta = pseudoW21->eta();
           if ( pseudoW1DauId > 10 and pseudoW2DauId > 10 ) {
             switch ( pseudoW1DauId+pseudoW2DauId ) {
-              case 22: b_pseudoTopChannel = CH_ELEL; break;
-              case 26: b_pseudoTopChannel = CH_MUMU; break;
-              default: b_pseudoTopChannel = CH_MUEL;
+              case 22: b_pseudoTopChannel = (int)TTLLChannel::CH_ELEL; break;
+              case 26: b_pseudoTopChannel = (int)TTLLChannel::CH_MUMU; break;
+              default: b_pseudoTopChannel = (int)TTLLChannel::CH_MUEL;
             }
           }
           b_partonInPhase = true;
@@ -873,15 +869,15 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
 
   // Determine channel
   const int pdgIdSum = std::abs(recolep1.pdgId()) + std::abs(recolep2.pdgId());
-  if (pdgIdSum == 24) b_channel = CH_MUEL; // emu
-  if (pdgIdSum == 22) b_channel = CH_ELEL; // ee
-  if (pdgIdSum == 26) b_channel = CH_MUMU; // mumu
+  if (pdgIdSum == 24) b_channel = (int)TTLLChannel::CH_MUEL; // emu
+  if (pdgIdSum == 22) b_channel = (int)TTLLChannel::CH_ELEL; // ee
+  if (pdgIdSum == 26) b_channel = (int)TTLLChannel::CH_MUMU; // mumu
 
   // Trigger results
   edm::Handle<int> trigHandle;
-  if      ( b_channel == CH_ELEL ) iEvent.getByToken(trigTokenELEL_, trigHandle);
-  else if ( b_channel == CH_MUMU ) iEvent.getByToken(trigTokenMUMU_, trigHandle);
-  else if ( b_channel == CH_MUEL ) iEvent.getByToken(trigTokenMUEL_, trigHandle);
+  if      ( b_channel == (int)TTLLChannel::CH_ELEL ) iEvent.getByToken(trigTokenELEL_, trigHandle);
+  else if ( b_channel == (int)TTLLChannel::CH_MUMU ) iEvent.getByToken(trigTokenMUMU_, trigHandle);
+  else if ( b_channel == (int)TTLLChannel::CH_MUEL ) iEvent.getByToken(trigTokenMUEL_, trigHandle);
   b_tri = *trigHandle;
 
   b_lep1_pt = recolep1.pt(); b_lep1_eta = recolep1.eta(); b_lep1_phi = recolep1.phi(); b_lep1_q = recolep1.charge();
@@ -923,7 +919,7 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
   b_step = 1;
   cutflow_[4][b_channel]++;
 
-  if ( (b_channel == CH_MUEL) || ((b_ll_m < 76) || (b_ll_m > 106)) ){
+  if ( (b_channel == (int)TTLLChannel::CH_MUEL) || ((b_ll_m < 76) || (b_ll_m > 106)) ){
     b_step2 = true;
     b_step = 2;
     cutflow_[5][b_channel]++;
@@ -1010,7 +1006,7 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     b_nbjetM30 = selectedBJetsM.size();
     b_nbjetT30 = selectedBJetsT.size();
 
-    if ((b_channel == CH_MUEL) || (b_met > 40.)){
+    if ((b_channel == (int)TTLLChannel::CH_MUEL) || (b_met > 40.)){
       b_step3 = true;
       if (b_step == 2){
         ++b_step;

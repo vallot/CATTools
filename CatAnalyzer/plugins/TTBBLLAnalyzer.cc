@@ -10,6 +10,8 @@
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/MET.h"
 
+#include "CATTools/CommonTools/interface/TTbarModeDefs.h"
+
 #include "TH1D.h"
 #include "TH2D.h"
 
@@ -122,7 +124,7 @@ void TTBBLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
   }
   std::sort(bTags.begin(), bTags.end(), [](const double a, const double b){return a > b;});
 
-  if ( channel == 0 ) { // CH_MUMU
+  if ( channel == (int)TTLLChannel::CH_MUMU ) { // CH_MUMU
     hmmS0_.bjetsT_n->Fill(nBjetsT, weight);
     hmmS0_.bjetsM_n->Fill(nBjetsM, weight);
     hmmS0_.bjetsL_n->Fill(nBjetsL, weight);
@@ -160,7 +162,7 @@ void TTBBLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
       hmmS2_.jet3_btag__jet4_btag->Fill(bTags[2], bTags[3], weight);
     }
   }
-  else if ( channel == 1 ) { // CH_ELEL
+  else if ( channel == (int)TTLLChannel::CH_ELEL ) { // CH_ELEL
     heeS0_.bjetsT_n->Fill(nBjetsT, weight);
     heeS0_.bjetsM_n->Fill(nBjetsM, weight);
     heeS0_.bjetsL_n->Fill(nBjetsL, weight);
@@ -198,7 +200,7 @@ void TTBBLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
       heeS2_.jet3_btag__jet4_btag->Fill(bTags[2], bTags[3], weight);
     }
   }
-  else if ( channel == 2 ) { // CH_MUEL
+  else if ( channel == (int)TTLLChannel::CH_MUEL ) { // CH_MUEL
     hemS0_.bjetsT_n->Fill(nBjetsT, weight);
     hemS0_.bjetsM_n->Fill(nBjetsM, weight);
     hemS0_.bjetsL_n->Fill(nBjetsL, weight);
