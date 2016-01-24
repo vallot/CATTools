@@ -227,10 +227,6 @@ private:
   int    NaddbQuarks40    ;//  cms.string("NaddbQuarks40"),
   int    NcQuarks         ;//  cms.string("NcQuarks"),
 
-  ////////
-
-  //float b_jet1_pt, b_jet1_eta, b_jet1_CSVInclV2;
-  //float b_jet2_pt, b_jet2_eta, b_jet2_CSVInclV2;
   int b_is3lep;
 
   const static int NCutflow = 10;
@@ -484,17 +480,7 @@ void TtbarBbbarDiLeptonAnalyzer::book(TTree* tree){
   tree->Branch("NaddbQuarks40",   &NaddbQuarks40  , "NaddbQuarks40/I");
   tree->Branch("NcQuarks",        &NcQuarks       , "NcQuarks/I");
 
-/*
-  tree->Branch("jet1_pt", &b_jet1_pt, "jet1_pt/F");
-  tree->Branch("jet2_pt", &b_jet2_pt, "jet2_pt/F");
-  tree->Branch("jet1_eta", &b_jet1_eta, "jet1_eta/F");
-  tree->Branch("jet2_eta", &b_jet2_eta, "jet2_eta/F");
-  tree->Branch("jet1_CSVInclV2", &b_jet1_CSVInclV2, "jet1_CSVInclV2/F");
-  tree->Branch("jet2_CSVInclV2", &b_jet2_CSVInclV2, "jet2_CSVInclV2/F");
-*/
   tree->Branch("is3lep", &b_is3lep, "is3lep/I");
-
-
 }
 
 TtbarBbbarDiLeptonAnalyzer::~TtbarBbbarDiLeptonAnalyzer()
@@ -1269,14 +1255,7 @@ void TtbarBbbarDiLeptonAnalyzer::resetBrGEN()
   NaddbQuarks40    =0;//  cms.string("NaddbQuarks40"),
   NcQuarks         =0;//  cms.string("NcQuarks"),
 
-
-  /*
-     b_jet1_pt = -9; b_jet1_eta = -9; b_jet1_CSVInclV2 = -9;
-     b_jet2_pt = -9; b_jet2_eta = -9; b_jet2_CSVInclV2 = -9;
-     */
   b_is3lep = -9;
-
-
 }
 float TtbarBbbarDiLeptonAnalyzer::MuonSF(float pt, float eta)
 {
