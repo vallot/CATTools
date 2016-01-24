@@ -66,9 +66,9 @@ private:
     }
     else {
       const double pt = p.pt(), eta = p.eta();
-      if      ( sys == sys_eleff_u ) return elecSF_(eta, pt,  1);
-      else if ( sys == sys_eleff_d ) return elecSF_(eta, pt, -1);
-      else return elecSF_(eta, pt, 0);
+      if      ( sys == sys_eleff_u ) return elecSF_(pt, eta,  1);
+      else if ( sys == sys_eleff_d ) return elecSF_(pt, eta, -1);
+      else return elecSF_(pt, eta, 0);
     }
     return 1;
   }
