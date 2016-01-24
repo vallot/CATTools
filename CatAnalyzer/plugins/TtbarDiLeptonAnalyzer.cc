@@ -59,10 +59,10 @@ private:
   {
     const int aid = abs(p.pdgId());
     if ( aid == 13 ) {
-      const double pt = p.pt(), eta = std::abs(p.eta());
-      if      ( sys == sys_mueff_u ) return muonSF_(eta, pt,  1);
-      else if ( sys == sys_mueff_d ) return muonSF_(eta, pt, -1);
-      else return muonSF_(eta, pt, 0);
+      const double pt = p.pt(), aeta = std::abs(p.eta());
+      if      ( sys == sys_mueff_u ) return muonSF_(pt, aeta,  1);
+      else if ( sys == sys_mueff_d ) return muonSF_(pt, aeta, -1);
+      else return muonSF_(pt, aeta, pt);
     }
     else {
       const double pt = p.pt(), eta = p.eta();
@@ -162,8 +162,8 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   const auto muonSet = iConfig.getParameter<edm::ParameterSet>("muon");
   muonToken_ = consumes<cat::MuonCollection>(muonSet.getParameter<edm::InputTag>("src"));
   const auto muonSFSet = muonSet.getParameter<edm::ParameterSet>("effSF");
-  muonSF_.set(muonSFSet.getParameter<vdouble>("abseta_bins"),
-              muonSFSet.getParameter<vdouble>("pt_bins"),
+  muonSF_.set(muonSFSet.getParameter<vdouble>("pt_bins"),
+              muonSFSet.getParameter<vdouble>("abseta_bins"),
               muonSFSet.getParameter<vdouble>("values"),
               muonSFSet.getParameter<vdouble>("errors"));
 
