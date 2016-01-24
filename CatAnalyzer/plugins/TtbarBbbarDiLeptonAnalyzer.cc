@@ -872,10 +872,9 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
       }
     }
     //csvd order
-    std::vector< std::pair<int,float> > vecJetBDisc(mapJetBDiscriminator.begin(), mapJetBDiscriminator.end());
+    std::vector<data_t> vecJetBDisc(mapJetBDiscriminator.begin(), mapJetBDiscriminator.end());
     std::sort(vecJetBDisc.begin(), vecJetBDisc.end(), bigger_second<data_t>());
-    for(std::vector< std::pair<int,float> >::iterator it = vecJetBDisc.begin() ; it != vecJetBDisc.end(); ++it)
-      b_csvd_jetid.push_back((*it).first);
+    for ( const auto& x : vecJetBDisc ) b_csvd_jetid.push_back(x.first);
 
     const auto met = mets->front().p4();
     b_met = met.pt();
