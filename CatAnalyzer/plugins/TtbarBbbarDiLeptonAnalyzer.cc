@@ -182,6 +182,11 @@ private:
   int    NaddbJets1        ;//  cms.string("NaddbJets(1)"),
   int    NaddbJets201      ;//  cms.string("NaddbJets20(1)"),
   int    NaddbJets401      ;//  cms.string("NaddbJets40(1)"),
+
+  int    NaddcJets1        ;//  cms.string("NaddcJets(1)"),
+  int    NaddcJets201      ;//  cms.string("NaddcJets20(1)"),
+  int    NaddcJets401      ;//  cms.string("NaddcJets40(1)"),
+
   int    NcJets1           ;//  cms.string("NcJets(1)"),
   int    NcJets101         ;//  cms.string("NcJets10(1)"),
   int    NcJets151         ;//  cms.string("NcJets15(1)"),
@@ -197,6 +202,11 @@ private:
   int    NaddbJets        ;//  cms.string("NaddbJets(0)"),
   int    NaddbJets20      ;//  cms.string("NaddbJets20(0)"),
   int    NaddbJets40      ;//  cms.string("NaddbJets40(0)"),
+
+  int    NaddcJets        ;//  cms.string("NaddcJets(0)"),
+  int    NaddcJets20      ;//  cms.string("NaddcJets20(0)"),
+  int    NaddcJets40      ;//  cms.string("NaddcJets40(0)"),
+
   int    NcJets           ;//  cms.string("NcJets(0)"),
   int    NcJets10         ;//  cms.string("NcJets10(0)"),
   int    NcJets15         ;//  cms.string("NcJets15(0)"),
@@ -427,6 +437,11 @@ void TtbarBbbarDiLeptonAnalyzer::book(TTree* tree){
   tree->Branch("NaddbJets1",      &NaddbJets1     , "NaddbJets1/I");
   tree->Branch("NaddbJets201",    &NaddbJets201   , "NaddbJets201/I");
   tree->Branch("NaddbJets401",    &NaddbJets401   , "NaddbJets401/I");
+
+  tree->Branch("NaddcJets1",      &NaddcJets1     , "NaddcJets1/I");
+  tree->Branch("NaddcJets201",    &NaddcJets201   , "NaddcJets201/I");
+  tree->Branch("NaddcJets401",    &NaddcJets401   , "NaddcJets401/I");
+
   tree->Branch("NcJets1",         &NcJets1        , "NcJets1/I");
   tree->Branch("NcJets101",       &NcJets101      , "NcJets101/I");
   tree->Branch("NcJets151",       &NcJets151      , "NcJets151/I");
@@ -439,9 +454,15 @@ void TtbarBbbarDiLeptonAnalyzer::book(TTree* tree){
   tree->Branch("NbJets25",        &NbJets25       , "NbJets25/I");
   tree->Branch("NbJets30",        &NbJets30       , "NbJets30/I");
   tree->Branch("NbJets40",        &NbJets40       , "NbJets40/I");
+
   tree->Branch("NaddbJets",       &NaddbJets      , "NaddbJets/I");
   tree->Branch("NaddbJets20",     &NaddbJets20    , "NaddbJets20/I");
   tree->Branch("NaddbJets40",     &NaddbJets40    , "NaddbJets40/I");
+
+  tree->Branch("NaddcJets",       &NaddcJets      , "NaddcJets/I");
+  tree->Branch("NaddcJets20",     &NaddcJets20    , "NaddcJets20/I");
+  tree->Branch("NaddcJets40",     &NaddcJets40    , "NaddcJets40/I");
+
   tree->Branch("NcJets",          &NcJets         , "NcJets/I");
   tree->Branch("NcJets10",        &NcJets10       , "NcJets10/I");
   tree->Branch("NcJets15",        &NcJets15       , "NcJets15/I");
@@ -522,9 +543,15 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     NbJets251         =genTop->at(0).NbJets25(1);
     NbJets301         =genTop->at(0).NbJets30(1);
     NbJets401         =genTop->at(0).NbJets40(1);
+
     NaddbJets1        =genTop->at(0).NaddbJets(1);
     NaddbJets201      =genTop->at(0).NaddbJets20(1);
     NaddbJets401      =genTop->at(0).NaddbJets40(1);
+
+    NaddcJets1        =genTop->at(0).NaddcJets(1);
+    NaddcJets201      =genTop->at(0).NaddcJets20(1);
+    NaddcJets401      =genTop->at(0).NaddcJets40(1);
+
     NcJets1           =genTop->at(0).NcJets(1);
     NcJets101         =genTop->at(0).NcJets10(1);
     NcJets151         =genTop->at(0).NcJets15(1);
@@ -537,9 +564,15 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     NbJets25         =genTop->at(0).NbJets25(0);
     NbJets30         =genTop->at(0).NbJets30(0);
     NbJets40         =genTop->at(0).NbJets40(0);
+
     NaddbJets        =genTop->at(0).NaddbJets(0);
     NaddbJets20      =genTop->at(0).NaddbJets20(0);
     NaddbJets40      =genTop->at(0).NaddbJets40(0);
+
+    NaddcJets        =genTop->at(0).NaddcJets(0);
+    NaddcJets20      =genTop->at(0).NaddcJets20(0);
+    NaddcJets40      =genTop->at(0).NaddcJets40(0);
+
     NcJets           =genTop->at(0).NcJets(0);
     NcJets10         =genTop->at(0).NcJets10(0);
     NcJets15         =genTop->at(0).NcJets15(0);
@@ -1153,9 +1186,15 @@ void TtbarBbbarDiLeptonAnalyzer::resetBrGEN()
   NbJets251         =0;//  cms.string("NbJets25(1)"),
   NbJets301         =0;//  cms.string("NbJets30(1)"),
   NbJets401         =0;//  cms.string("NbJets40(1)"),
+
   NaddbJets1        =0;//  cms.string("NaddbJets(1)"),
   NaddbJets201      =0;//  cms.string("NaddbJets20(1)"),
   NaddbJets401      =0;//  cms.string("NaddbJets40(1)"),
+
+  NaddcJets1        =0;//  cms.string("NaddcJets(1)"),
+  NaddcJets201      =0;//  cms.string("NaddcJets20(1)"),
+  NaddcJets401      =0;//  cms.string("NaddcJets40(1)"),
+
   NcJets1           =0;//  cms.string("NcJets(1)"),
   NcJets101         =0;//  cms.string("NcJets10(1)"),
   NcJets151         =0;//  cms.string("NcJets15(1)"),
@@ -1168,9 +1207,14 @@ void TtbarBbbarDiLeptonAnalyzer::resetBrGEN()
   NbJets25         =0;//  cms.string("NbJets25(0)"),
   NbJets30         =0;//  cms.string("NbJets30(0)"),
   NbJets40         =0;//  cms.string("NbJets40(0)"),
+
   NaddbJets        =0;//  cms.string("NaddbJets(0)"),
   NaddbJets20      =0;//  cms.string("NaddbJets20(0)"),
   NaddbJets40      =0;//  cms.string("NaddbJets40(0)"),
+  NaddcJets        =0;//  cms.string("NaddcJets(0)"),
+  NaddcJets20      =0;//  cms.string("NaddcJets20(0)"),
+  NaddcJets40      =0;//  cms.string("NaddcJets40(0)"),
+
   NcJets           =0;//  cms.string("NcJets(0)"),
   NcJets10         =0;//  cms.string("NcJets10(0)"),
   NcJets15         =0;//  cms.string("NcJets15(0)"),
