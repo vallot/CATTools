@@ -13,6 +13,7 @@
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/MET.h"
 
+#include "CATTools/CommonTools/interface/TTbarModeDefs.h"
 #include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
 //#include "TopQuarkAnalysis/TopKinFitter/interface/TtFullLepKinSolver.h"
 #include "CATTools/CatAnalyzer/interface/KinematicSolvers.h"
@@ -31,9 +32,6 @@ public:
   explicit TtbarDiLeptonAnalyzer(const edm::ParameterSet&);
   ~TtbarDiLeptonAnalyzer();
 
-  enum {
-    CH_NONE=0, CH_MUEL=1, CH_ELEL=2, CH_MUMU=3
-  };
   enum sys_e {sys_nom, 
     sys_jes_u, sys_jes_d, sys_jer_u, sys_jer_d,
     sys_mu_u, sys_mu_d, sys_el_u, sys_el_d,
@@ -59,10 +57,10 @@ private:
   {
     const int aid = abs(p.pdgId());
     if ( aid == 13 ) {
-      const double pt = p.pt(), eta = std::abs(p.eta());
-      if      ( sys == sys_mueff_u ) return muonSF_(eta, pt,  1);
-      else if ( sys == sys_mueff_d ) return muonSF_(eta, pt, -1);
-      else return muonSF_(eta, pt, 0);
+      const double pt = p.pt(), aeta = std::abs(p.eta());
+      if      ( sys == sys_mueff_u ) return muonSF_(pt, aeta,  1);
+      else if ( sys == sys_mueff_d ) return muonSF_(pt, aeta, -1);
+      else return muonSF_(pt, aeta, pt);
     }
     else {
       const double pt = p.pt(), eta = p.eta();
@@ -130,8 +128,6 @@ private:
 
   //std::unique_ptr<TtFullLepKinSolver> solver;
   std::unique_ptr<KinematicSolver> solver_;
-  //enum TTbarMode { CH_NONE = 0, CH_FULLHADRON = 1, CH_SEMILEPTON, CH_FULLLEPTON };
-  //enum DecayMode { CH_HADRON = 1, CH_MUON, CH_ELECTRON, CH_TAU_HADRON, CH_TAU_MUON, CH_TAU_ELECTRON };
 
   const static int NCutflow = 10;
   std::vector<std::vector<int> > cutflow_;
@@ -162,8 +158,8 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   const auto muonSet = iConfig.getParameter<edm::ParameterSet>("muon");
   muonToken_ = consumes<cat::MuonCollection>(muonSet.getParameter<edm::InputTag>("src"));
   const auto muonSFSet = muonSet.getParameter<edm::ParameterSet>("effSF");
-  muonSF_.set(muonSFSet.getParameter<vdouble>("abseta_bins"),
-              muonSFSet.getParameter<vdouble>("pt_bins"),
+  muonSF_.set(muonSFSet.getParameter<vdouble>("pt_bins"),
+              muonSFSet.getParameter<vdouble>("abseta_bins"),
               muonSFSet.getParameter<vdouble>("values"),
               muonSFSet.getParameter<vdouble>("errors"));
 
@@ -440,7 +436,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       }
 
       // Start to build pseudo top
-      b_pseudoTopChannel = CH_NONE;
+      b_pseudoTopChannel = CH_NOLL;
       edm::Handle<edm::View<reco::Candidate> > pseudoTopLeptonHandle;
       edm::Handle<edm::View<reco::Candidate> > pseudoTopNeutrinoHandle;
       edm::Handle<edm::View<reco::Candidate> > pseudoTopJetHandle;
@@ -470,7 +466,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
           case 22: b_pseudoTopChannel = CH_ELEL; break;
           case 26: b_pseudoTopChannel = CH_MUMU; break;
           case 24: b_pseudoTopChannel = CH_MUEL; break;
-          default: b_pseudoTopChannel = CH_NONE;
+          default: b_pseudoTopChannel = CH_NOLL;
         }
 
         //std::nth_element(neutrinoIdxs.begin(), neutrinoIdxs.begin()+2, neutrinoIdxs.end(),
