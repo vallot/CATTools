@@ -88,10 +88,12 @@ private:
   int b_parton_jets20_n_, b_parton_jets30_n_;
   int b_parton_bjets20_n_, b_parton_bjets30_n_;
 
+  const bool doTree_;
   const bool isTopMC_;
 };
 
 TTBBLLAnalyzer::TTBBLLAnalyzer(const edm::ParameterSet& pset):
+  doTree_(pset.getParameter<bool>("doTree")),
   isTopMC_(pset.getParameter<bool>("isTopMC"))
 {
   const auto srcLabel = pset.getParameter<edm::InputTag>("src");
@@ -115,56 +117,58 @@ TTBBLLAnalyzer::TTBBLLAnalyzer(const edm::ParameterSet& pset):
   }
 
   edm::Service<TFileService> fs;
-  tree_ = fs->make<TTree>("ttbb", "ttbb");
+  if ( doTree_ ) {
+    tree_ = fs->make<TTree>("ttbb", "ttbb");
 
-  tree_->Branch("channel", &b_channel_, "channel/I");
-  tree_->Branch("weight", &b_weight_, "weight/F");
+    tree_->Branch("channel", &b_channel_, "channel/I");
+    tree_->Branch("weight", &b_weight_, "weight/F");
 
-  tree_->Branch("met_pt", &b_met_pt_, "met_pt/F");
-  tree_->Branch("met_phi", &b_met_phi_, "met_phi/F");
+    tree_->Branch("met_pt", &b_met_pt_, "met_pt/F");
+    tree_->Branch("met_phi", &b_met_phi_, "met_phi/F");
 
-  tree_->Branch("lep1_pt", &b_lep1_pt_, "lep1_pt/F");
-  tree_->Branch("lep2_pt", &b_lep2_pt_, "lep2_pt/F");
-  tree_->Branch("z_m", &b_z_m_, "z_m/F");
-  tree_->Branch("z_pt", &b_z_pt_, "z_pt/F");
+    tree_->Branch("lep1_pt", &b_lep1_pt_, "lep1_pt/F");
+    tree_->Branch("lep2_pt", &b_lep2_pt_, "lep2_pt/F");
+    tree_->Branch("z_m", &b_z_m_, "z_m/F");
+    tree_->Branch("z_pt", &b_z_pt_, "z_pt/F");
 
-  tree_->Branch("jet1_pt", &b_jet1_pt_, "jet1_pt/F");
-  tree_->Branch("jet2_pt", &b_jet2_pt_, "jet2_pt/F");
-  tree_->Branch("jet3_pt", &b_jet3_pt_, "jet3_pt/F");
-  tree_->Branch("jet4_pt", &b_jet4_pt_, "jet4_pt/F");
+    tree_->Branch("jet1_pt", &b_jet1_pt_, "jet1_pt/F");
+    tree_->Branch("jet2_pt", &b_jet2_pt_, "jet2_pt/F");
+    tree_->Branch("jet3_pt", &b_jet3_pt_, "jet3_pt/F");
+    tree_->Branch("jet4_pt", &b_jet4_pt_, "jet4_pt/F");
 
-  tree_->Branch("jet1_eta", &b_jet1_eta_, "jet1_eta/F");
-  tree_->Branch("jet2_eta", &b_jet2_eta_, "jet2_eta/F");
-  tree_->Branch("jet3_eta", &b_jet3_eta_, "jet3_eta/F");
-  tree_->Branch("jet4_eta", &b_jet4_eta_, "jet4_eta/F");
+    tree_->Branch("jet1_eta", &b_jet1_eta_, "jet1_eta/F");
+    tree_->Branch("jet2_eta", &b_jet2_eta_, "jet2_eta/F");
+    tree_->Branch("jet3_eta", &b_jet3_eta_, "jet3_eta/F");
+    tree_->Branch("jet4_eta", &b_jet4_eta_, "jet4_eta/F");
 
-  tree_->Branch("jet1_btag", &b_jet1_btag_, "jet1_btag/F");
-  tree_->Branch("jet2_btag", &b_jet2_btag_, "jet2_btag/F");
-  tree_->Branch("jet3_btag", &b_jet3_btag_, "jet3_btag/F");
-  tree_->Branch("jet4_btag", &b_jet4_btag_, "jet4_btag/F");
+    tree_->Branch("jet1_btag", &b_jet1_btag_, "jet1_btag/F");
+    tree_->Branch("jet2_btag", &b_jet2_btag_, "jet2_btag/F");
+    tree_->Branch("jet3_btag", &b_jet3_btag_, "jet3_btag/F");
+    tree_->Branch("jet4_btag", &b_jet4_btag_, "jet4_btag/F");
 
-  tree_->Branch("jet1_hflav", &b_jet1_hflav_, "jet1_hflav/I");
-  tree_->Branch("jet2_hflav", &b_jet2_hflav_, "jet2_hflav/I");
-  tree_->Branch("jet3_hflav", &b_jet3_hflav_, "jet3_hflav/I");
-  tree_->Branch("jet4_hflav", &b_jet4_hflav_, "jet4_hflav/I");
+    tree_->Branch("jet1_hflav", &b_jet1_hflav_, "jet1_hflav/I");
+    tree_->Branch("jet2_hflav", &b_jet2_hflav_, "jet2_hflav/I");
+    tree_->Branch("jet3_hflav", &b_jet3_hflav_, "jet3_hflav/I");
+    tree_->Branch("jet4_hflav", &b_jet4_hflav_, "jet4_hflav/I");
 
-  tree_->Branch("jet1_qflav", &b_jet1_qflav_, "jet1_qflav/I");
-  tree_->Branch("jet2_qflav", &b_jet2_qflav_, "jet2_qflav/I");
-  tree_->Branch("jet3_qflav", &b_jet3_qflav_, "jet3_qflav/I");
-  tree_->Branch("jet4_qflav", &b_jet4_qflav_, "jet4_qflav/I");
+    tree_->Branch("jet1_qflav", &b_jet1_qflav_, "jet1_qflav/I");
+    tree_->Branch("jet2_qflav", &b_jet2_qflav_, "jet2_qflav/I");
+    tree_->Branch("jet3_qflav", &b_jet3_qflav_, "jet3_qflav/I");
+    tree_->Branch("jet4_qflav", &b_jet4_qflav_, "jet4_qflav/I");
 
-  tree_->Branch("nbjetsT", &b_bjetsT_n, "nbjetsT/I");
-  tree_->Branch("nbjetsM", &b_bjetsM_n, "nbjetsM/I");
-  tree_->Branch("nbjetsL", &b_bjetsL_n, "nbjetsL/I");
+    tree_->Branch("nbjetsT", &b_bjetsT_n, "nbjetsT/I");
+    tree_->Branch("nbjetsM", &b_bjetsM_n, "nbjetsM/I");
+    tree_->Branch("nbjetsL", &b_bjetsL_n, "nbjetsL/I");
 
-  if ( isTopMC_ ) {
-    tree_->Branch("parton_channel", &b_parton_channel_, "parton_channel/I");
-    tree_->Branch("parton_mode1", &b_parton_mode1_, "parton_mode1/I");
-    tree_->Branch("parton_mode2", &b_parton_mode2_, "parton_mode2/I");
-    tree_->Branch("parton_jets20_n", &b_parton_jets20_n_, "parton_jets20_n/I");
-    tree_->Branch("parton_jets30_n", &b_parton_jets30_n_, "parton_jets30_n/I");
-    tree_->Branch("parton_bjets20_n", &b_parton_bjets20_n_, "parton_bjets20_n/I");
-    tree_->Branch("parton_bjets30_n", &b_parton_bjets30_n_, "parton_bjets30_n/I");
+    if ( isTopMC_ ) {
+      tree_->Branch("parton_channel", &b_parton_channel_, "parton_channel/I");
+      tree_->Branch("parton_mode1", &b_parton_mode1_, "parton_mode1/I");
+      tree_->Branch("parton_mode2", &b_parton_mode2_, "parton_mode2/I");
+      tree_->Branch("parton_jets20_n", &b_parton_jets20_n_, "parton_jets20_n/I");
+      tree_->Branch("parton_jets30_n", &b_parton_jets30_n_, "parton_jets30_n/I");
+      tree_->Branch("parton_bjets20_n", &b_parton_bjets20_n_, "parton_bjets20_n/I");
+      tree_->Branch("parton_bjets30_n", &b_parton_bjets30_n_, "parton_bjets30_n/I");
+    }
   }
 
   auto diree = fs->mkdir("ee");
@@ -419,7 +423,7 @@ void TTBBLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
     }
   }
 
-  tree_->Fill();
+  if ( doTree_ ) tree_->Fill();
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"

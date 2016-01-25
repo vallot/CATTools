@@ -81,11 +81,13 @@ private:
   float b_pseudoTT_pt_, b_pseudoTT_y_, b_pseudoTT_m_;
   float b_pseudoTT_dphi_;
 
+  const bool doTree_;
   const bool isTopMC_;
   const std::string bTagName_;
 };
 
 TTLLAnalyzer::TTLLAnalyzer(const edm::ParameterSet& pset):
+  doTree_(pset.getParameter<bool>("doTree")),
   isTopMC_(pset.getParameter<bool>("isTopMC")),
   bTagName_(pset.getParameter<std::string>("bTagName"))
 {
@@ -110,69 +112,71 @@ TTLLAnalyzer::TTLLAnalyzer(const edm::ParameterSet& pset):
   }
 
   edm::Service<TFileService> fs;
-  tree_ = fs->make<TTree>("event", "event");
-  tree_->Branch("weight", &b_weight_, "weight/F");
-  tree_->Branch("channel", &b_channel_, "channel/I");
-  tree_->Branch("met_pt", &b_met_pt_, "met_pt/F");
+  if ( doTree_ ) {
+    tree_ = fs->make<TTree>("event", "event");
+    tree_->Branch("weight", &b_weight_, "weight/F");
+    tree_->Branch("channel", &b_channel_, "channel/I");
+    tree_->Branch("met_pt", &b_met_pt_, "met_pt/F");
 
-  tree_->Branch("j1_pt", &b_j1_pt_, "j1_pt/F");
-  tree_->Branch("j2_pt", &b_j2_pt_, "j2_pt/F");
-  tree_->Branch("j3_pt", &b_j3_pt_, "j3_pt/F");
-  tree_->Branch("j4_pt", &b_j4_pt_, "j4_pt/F");
+    tree_->Branch("j1_pt", &b_j1_pt_, "j1_pt/F");
+    tree_->Branch("j2_pt", &b_j2_pt_, "j2_pt/F");
+    tree_->Branch("j3_pt", &b_j3_pt_, "j3_pt/F");
+    tree_->Branch("j4_pt", &b_j4_pt_, "j4_pt/F");
 
-  tree_->Branch("j1_btag", &b_j1_btag_, "j1_btag/F");
-  tree_->Branch("j2_btag", &b_j2_btag_, "j2_btag/F");
-  tree_->Branch("j3_btag", &b_j3_btag_, "j3_btag/F");
-  tree_->Branch("j4_btag", &b_j4_btag_, "j4_btag/F");
+    tree_->Branch("j1_btag", &b_j1_btag_, "j1_btag/F");
+    tree_->Branch("j2_btag", &b_j2_btag_, "j2_btag/F");
+    tree_->Branch("j3_btag", &b_j3_btag_, "j3_btag/F");
+    tree_->Branch("j4_btag", &b_j4_btag_, "j4_btag/F");
 
-  tree_->Branch("kinfit_quality", &b_kinfit_quality_, "kinfit_quality/F");
-  tree_->Branch("l1_pt", &b_l1_pt_, "l1_pt/F");
-  tree_->Branch("l2_pt", &b_l2_pt_, "l2_pt/F");
-  tree_->Branch("b1_pt", &b_b1_pt_, "b1_pt/F");
-  tree_->Branch("b2_pt", &b_b2_pt_, "b2_pt/F");
-  tree_->Branch("t1_pt", &b_t1_pt_, "t1_pt/F");
-  tree_->Branch("t2_pt", &b_t2_pt_, "t2_pt/F");
-  tree_->Branch("t1_y", &b_t1_y_, "t1_y/F");
-  tree_->Branch("t2_y", &b_t2_y_, "t2_y/F");
-  tree_->Branch("t1_m", &b_t1_m_, "t1_m/F");
-  tree_->Branch("t2_m", &b_t2_m_, "t2_m/F");
-  tree_->Branch("tt_pt", &b_tt_pt_, "tt_pt/F");
-  tree_->Branch("tt_y", &b_tt_y_, "tt_y/F");
-  tree_->Branch("tt_m", &b_tt_m_, "tt_m/F");
-  tree_->Branch("tt_dphi", &b_tt_dphi_, "tt_dphi/F");
+    tree_->Branch("kinfit_quality", &b_kinfit_quality_, "kinfit_quality/F");
+    tree_->Branch("l1_pt", &b_l1_pt_, "l1_pt/F");
+    tree_->Branch("l2_pt", &b_l2_pt_, "l2_pt/F");
+    tree_->Branch("b1_pt", &b_b1_pt_, "b1_pt/F");
+    tree_->Branch("b2_pt", &b_b2_pt_, "b2_pt/F");
+    tree_->Branch("t1_pt", &b_t1_pt_, "t1_pt/F");
+    tree_->Branch("t2_pt", &b_t2_pt_, "t2_pt/F");
+    tree_->Branch("t1_y", &b_t1_y_, "t1_y/F");
+    tree_->Branch("t2_y", &b_t2_y_, "t2_y/F");
+    tree_->Branch("t1_m", &b_t1_m_, "t1_m/F");
+    tree_->Branch("t2_m", &b_t2_m_, "t2_m/F");
+    tree_->Branch("tt_pt", &b_tt_pt_, "tt_pt/F");
+    tree_->Branch("tt_y", &b_tt_y_, "tt_y/F");
+    tree_->Branch("tt_m", &b_tt_m_, "tt_m/F");
+    tree_->Branch("tt_dphi", &b_tt_dphi_, "tt_dphi/F");
 
-  if ( isTopMC_ ) {
-    tree_->Branch("partonTopChannel", &b_partonTopChannel_, "partonTopChannel/I");
-    tree_->Branch("partonL1_pt"  , &b_partonL1_pt_  , "partonL1_pt/F"  );
-    tree_->Branch("partonL2_pt"  , &b_partonL2_pt_  , "partonL2_pt/F"  );
-    tree_->Branch("partonB1_pt"  , &b_partonB1_pt_  , "partonB1_pt/F"  );
-    tree_->Branch("partonB2_pt"  , &b_partonB2_pt_  , "partonB2_pt/F"  );
-    tree_->Branch("partonT1_pt"  , &b_partonT1_pt_  , "partonT1_pt/F"  );
-    tree_->Branch("partonT2_pt"  , &b_partonT2_pt_  , "partonT2_pt/F"  );
-    tree_->Branch("partonT1_y"   , &b_partonT1_y_   , "partonT1_y/F"   );
-    tree_->Branch("partonT2_y"   , &b_partonT2_y_   , "partonT2_y/F"   );
-    tree_->Branch("partonT1_m"   , &b_partonT1_m_   , "partonT1_m/F"   );
-    tree_->Branch("partonT2_m"   , &b_partonT2_m_   , "partonT2_m/F"   );
-    tree_->Branch("partonTT_pt"  , &b_partonTT_pt_  , "partonTT_pt/F"  );
-    tree_->Branch("partonTT_y"   , &b_partonTT_y_   , "partonTT_y/F"   );
-    tree_->Branch("partonTT_m"   , &b_partonTT_m_   , "partonTT_m/F"   );
-    tree_->Branch("partonTT_dphi", &b_partonTT_dphi_, "partonTT_dphi/F");
+    if ( isTopMC_ ) {
+      tree_->Branch("partonTopChannel", &b_partonTopChannel_, "partonTopChannel/I");
+      tree_->Branch("partonL1_pt"  , &b_partonL1_pt_  , "partonL1_pt/F"  );
+      tree_->Branch("partonL2_pt"  , &b_partonL2_pt_  , "partonL2_pt/F"  );
+      tree_->Branch("partonB1_pt"  , &b_partonB1_pt_  , "partonB1_pt/F"  );
+      tree_->Branch("partonB2_pt"  , &b_partonB2_pt_  , "partonB2_pt/F"  );
+      tree_->Branch("partonT1_pt"  , &b_partonT1_pt_  , "partonT1_pt/F"  );
+      tree_->Branch("partonT2_pt"  , &b_partonT2_pt_  , "partonT2_pt/F"  );
+      tree_->Branch("partonT1_y"   , &b_partonT1_y_   , "partonT1_y/F"   );
+      tree_->Branch("partonT2_y"   , &b_partonT2_y_   , "partonT2_y/F"   );
+      tree_->Branch("partonT1_m"   , &b_partonT1_m_   , "partonT1_m/F"   );
+      tree_->Branch("partonT2_m"   , &b_partonT2_m_   , "partonT2_m/F"   );
+      tree_->Branch("partonTT_pt"  , &b_partonTT_pt_  , "partonTT_pt/F"  );
+      tree_->Branch("partonTT_y"   , &b_partonTT_y_   , "partonTT_y/F"   );
+      tree_->Branch("partonTT_m"   , &b_partonTT_m_   , "partonTT_m/F"   );
+      tree_->Branch("partonTT_dphi", &b_partonTT_dphi_, "partonTT_dphi/F");
 
-    tree_->Branch("pseudoTopChannel", &b_pseudoTopChannel_, "pseudoTopChannel/I");
-    tree_->Branch("pseudoL1_pt"  , &b_pseudoL1_pt_  , "pseudoL1_pt/F"  );
-    tree_->Branch("pseudoL2_pt"  , &b_pseudoL2_pt_  , "pseudoL2_pt/F"  );
-    tree_->Branch("pseudoB1_pt"  , &b_pseudoB1_pt_  , "pseudoB1_pt/F"  );
-    tree_->Branch("pseudoB2_pt"  , &b_pseudoB2_pt_  , "pseudoB2_pt/F"  );
-    tree_->Branch("pseudoT1_pt"  , &b_pseudoT1_pt_  , "pseudoT1_pt/F"  );
-    tree_->Branch("pseudoT2_pt"  , &b_pseudoT2_pt_  , "pseudoT2_pt/F"  );
-    tree_->Branch("pseudoT1_y"   , &b_pseudoT1_y_   , "pseudoT1_y/F"   );
-    tree_->Branch("pseudoT2_y"   , &b_pseudoT2_y_   , "pseudoT2_y/F"   );
-    tree_->Branch("pseudoT1_m"   , &b_pseudoT1_m_   , "pseudoT1_m/F"   );
-    tree_->Branch("pseudoT2_m"   , &b_pseudoT2_m_   , "pseudoT2_m/F"   );
-    tree_->Branch("pseudoTT_pt"  , &b_pseudoTT_pt_  , "pseudoTT_pt/F"  );
-    tree_->Branch("pseudoTT_y"   , &b_pseudoTT_y_   , "pseudoTT_y/F"   );
-    tree_->Branch("pseudoTT_m"   , &b_pseudoTT_m_   , "pseudoTT_m/F"   );
-    tree_->Branch("pseudoTT_dphi", &b_pseudoTT_dphi_, "pseudoTT_dphi/F");
+      tree_->Branch("pseudoTopChannel", &b_pseudoTopChannel_, "pseudoTopChannel/I");
+      tree_->Branch("pseudoL1_pt"  , &b_pseudoL1_pt_  , "pseudoL1_pt/F"  );
+      tree_->Branch("pseudoL2_pt"  , &b_pseudoL2_pt_  , "pseudoL2_pt/F"  );
+      tree_->Branch("pseudoB1_pt"  , &b_pseudoB1_pt_  , "pseudoB1_pt/F"  );
+      tree_->Branch("pseudoB2_pt"  , &b_pseudoB2_pt_  , "pseudoB2_pt/F"  );
+      tree_->Branch("pseudoT1_pt"  , &b_pseudoT1_pt_  , "pseudoT1_pt/F"  );
+      tree_->Branch("pseudoT2_pt"  , &b_pseudoT2_pt_  , "pseudoT2_pt/F"  );
+      tree_->Branch("pseudoT1_y"   , &b_pseudoT1_y_   , "pseudoT1_y/F"   );
+      tree_->Branch("pseudoT2_y"   , &b_pseudoT2_y_   , "pseudoT2_y/F"   );
+      tree_->Branch("pseudoT1_m"   , &b_pseudoT1_m_   , "pseudoT1_m/F"   );
+      tree_->Branch("pseudoT2_m"   , &b_pseudoT2_m_   , "pseudoT2_m/F"   );
+      tree_->Branch("pseudoTT_pt"  , &b_pseudoTT_pt_  , "pseudoTT_pt/F"  );
+      tree_->Branch("pseudoTT_y"   , &b_pseudoTT_y_   , "pseudoTT_y/F"   );
+      tree_->Branch("pseudoTT_m"   , &b_pseudoTT_m_   , "pseudoTT_m/F"   );
+      tree_->Branch("pseudoTT_dphi", &b_pseudoTT_dphi_, "pseudoTT_dphi/F");
+    }
   }
 }
 
@@ -391,7 +395,7 @@ void TTLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
     } while ( false );
   }
 
-  tree_->Fill();
+  if ( doTree_ ) tree_->Fill();
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"
