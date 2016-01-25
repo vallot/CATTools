@@ -186,20 +186,21 @@ TTBBLLAnalyzer::TTBBLLAnalyzer(const edm::ParameterSet& pset):
 void TTBBLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
 {
   // Initialize variables
-  b_lep1_pt_ =  b_lep2_pt_ = b_z_m_ = b_z_pt_ = -999;
+  b_lep1_pt_ =  b_lep2_pt_ = b_z_m_ = b_z_pt_ = 0;
 
-  b_jet1_pt_ = b_jet2_pt_ = b_jet3_pt_ = b_jet4_pt_ = -999;
+  b_jet1_pt_ = b_jet2_pt_ = b_jet3_pt_ = b_jet4_pt_ = 0;
   b_jet1_eta_ = b_jet2_eta_ = b_jet3_eta_ = b_jet4_eta_ = -999;
   b_jet1_btag_ = b_jet2_btag_ = b_jet3_btag_ = b_jet4_btag_ = -999;
   b_jet1_hflav_ = b_jet2_hflav_ = b_jet3_hflav_ = b_jet4_hflav_ = -999;
   b_jet1_qflav_ = b_jet2_qflav_ = b_jet3_qflav_ = b_jet4_qflav_ = -999;
 
-  b_bjetsT_n = b_bjetsM_n = b_bjetsL_n= -999;
+  b_bjetsT_n = b_bjetsM_n = b_bjetsL_n = 0;
 
   if ( isTopMC_ ) {
-    b_parton_channel_ = b_parton_mode1_ = b_parton_mode2_= -999;
-    b_parton_jets20_n_ = b_parton_jets30_n_= -999;
-    b_parton_bjets20_n_ = b_parton_bjets30_n_= -999;
+    b_parton_channel_ = CH_NOTT;
+    b_parton_mode1_ = b_parton_mode2_= CH_HADRON;
+    b_parton_jets20_n_ = b_parton_jets30_n_= 0;
+    b_parton_bjets20_n_ = b_parton_bjets30_n_= 0;
   }
 
   // Start to read reco objects
@@ -417,6 +418,8 @@ void TTBBLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
       hemS2_.jet3_btag__jet4_btag->Fill(b_jet3_btag_, b_jet4_btag_, b_weight_);
     }
   }
+
+  tree_->Fill();
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"

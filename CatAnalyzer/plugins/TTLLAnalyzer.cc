@@ -35,8 +35,7 @@ private:
 
   // Objects from the TTLLKinSolutionProducer
   typedef std::vector<float> vfloat;
-  typedef std::vector<reco::LeafCandidate> CandColl;
-  edm::EDGetTokenT<CandColl> candsToken_;
+  edm::EDGetTokenT<edm::View<reco::Candidate> > candsToken_;
   edm::EDGetTokenT<vfloat> auxToken_;
 
   // Objects from the Parton level
@@ -45,7 +44,6 @@ private:
 
   // Objects from the pseudo top
   edm::EDGetTokenT<reco::GenParticleCollection> pseudoTopToken_;
-  edm::EDGetTokenT<int> pseudoTopChToken_;
 
   typedef TH1D* H1;
   typedef TH2D* H2;
@@ -99,7 +97,7 @@ TTLLAnalyzer::TTLLAnalyzer(const edm::ParameterSet& pset):
   metToken_ = consumes<float>(edm::InputTag(recoLabel, "met"));
 
   const auto kinLabel = pset.getParameter<edm::InputTag>("kinfit");
-  candsToken_ = consumes<CandColl>(kinLabel);
+  candsToken_ = consumes<edm::View<reco::Candidate> >(kinLabel);
   auxToken_ = consumes<vfloat>(edm::InputTag(kinLabel.label(), "aux"));
 
   if ( isTopMC_ ) {
@@ -109,7 +107,6 @@ TTLLAnalyzer::TTLLAnalyzer(const edm::ParameterSet& pset):
 
     const auto pseudoTopLabel = pset.getParameter<edm::InputTag>("pseudoTop");
     pseudoTopToken_ = consumes<reco::GenParticleCollection>(pseudoTopLabel);
-    pseudoTopChToken_ = consumes<int>(edm::InputTag(pseudoTopLabel.label(), "channel"));
   }
 
   edm::Service<TFileService> fs;
@@ -146,6 +143,20 @@ TTLLAnalyzer::TTLLAnalyzer(const edm::ParameterSet& pset):
 
   if ( isTopMC_ ) {
     tree_->Branch("partonTopChannel", &b_partonTopChannel_, "partonTopChannel/I");
+    tree_->Branch("partonL1_pt"  , &b_partonL1_pt_  , "partonL1_pt/F"  );
+    tree_->Branch("partonL2_pt"  , &b_partonL2_pt_  , "partonL2_pt/F"  );
+    tree_->Branch("partonB1_pt"  , &b_partonB1_pt_  , "partonB1_pt/F"  );
+    tree_->Branch("partonB2_pt"  , &b_partonB2_pt_  , "partonB2_pt/F"  );
+    tree_->Branch("partonT1_pt"  , &b_partonT1_pt_  , "partonT1_pt/F"  );
+    tree_->Branch("partonT2_pt"  , &b_partonT2_pt_  , "partonT2_pt/F"  );
+    tree_->Branch("partonT1_y"   , &b_partonT1_y_   , "partonT1_y/F"   );
+    tree_->Branch("partonT2_y"   , &b_partonT2_y_   , "partonT2_y/F"   );
+    tree_->Branch("partonT1_m"   , &b_partonT1_m_   , "partonT1_m/F"   );
+    tree_->Branch("partonT2_m"   , &b_partonT2_m_   , "partonT2_m/F"   );
+    tree_->Branch("partonTT_pt"  , &b_partonTT_pt_  , "partonTT_pt/F"  );
+    tree_->Branch("partonTT_y"   , &b_partonTT_y_   , "partonTT_y/F"   );
+    tree_->Branch("partonTT_m"   , &b_partonTT_m_   , "partonTT_m/F"   );
+    tree_->Branch("partonTT_dphi", &b_partonTT_dphi_, "partonTT_dphi/F");
 
     tree_->Branch("pseudoTopChannel", &b_pseudoTopChannel_, "pseudoTopChannel/I");
     tree_->Branch("pseudoL1_pt"  , &b_pseudoL1_pt_  , "pseudoL1_pt/F"  );
@@ -168,16 +179,31 @@ TTLLAnalyzer::TTLLAnalyzer(const edm::ParameterSet& pset):
 void TTLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
 {
   // Initialize variables
-  b_j1_pt_ = b_j2_pt_ = b_j3_pt_ = b_j4_pt_ = -999;
+  b_j1_pt_ = b_j2_pt_ = b_j3_pt_ = b_j4_pt_ = 0;
   b_j1_btag_ = b_j2_btag_ = b_j3_btag_ = b_j4_btag_ = -999;
 
-  b_partonTopChannel_ = -999;
-  b_partonL1_pt_ = b_partonL2_pt_ = -999;
-  b_partonB1_pt_ = b_partonB2_pt_ = -999;
-  b_partonT1_pt_ = b_partonT1_y_ = b_partonT1_m_ = -999;
-  b_partonT2_pt_ = b_partonT2_y_ = b_partonT2_m_ = -999;
-  b_partonTT_pt_ = b_partonTT_y_ = b_partonTT_m_ = -999;
+  b_kinfit_quality_ = -1;
+  b_l1_pt_ = b_l2_pt_ = b_b1_pt_ = b_b2_pt_ = 0;
+  b_t1_pt_ = 0; b_t1_y_ = -999; b_t1_m_ = 0;
+  b_t2_pt_ = 0; b_t2_y_ = -999; b_t2_m_ = 0;
+  b_tt_pt_ = 0; b_tt_y_ = -999; b_tt_m_ = 0;
+  b_tt_dphi_ = -999;
+
+  b_partonTopChannel_ = CH_NOTT;
+  b_partonL1_pt_ = b_partonL2_pt_ = 0;
+  b_partonB1_pt_ = b_partonB2_pt_ = 0;
+  b_partonT1_pt_ = 0; b_partonT1_y_ = -999; b_partonT1_m_ = 0;
+  b_partonT2_pt_ = 0; b_partonT2_y_ = -999; b_partonT2_m_ = 0;
+  b_partonTT_pt_ = 0; b_partonTT_y_ = -999; b_partonTT_m_ = 0;
   b_partonTT_dphi_ = -999;
+
+  b_pseudoTopChannel_ = CH_NOTT;
+  b_pseudoL1_pt_ = b_pseudoL2_pt_ = 0;
+  b_pseudoB1_pt_ = b_pseudoB2_pt_ = 0;
+  b_pseudoT1_pt_ = 0; b_pseudoT1_y_ = -999; b_pseudoT1_m_ = 0;
+  b_pseudoT2_pt_ = 0; b_pseudoT2_y_ = -999; b_pseudoT2_m_ = 0;
+  b_pseudoTT_pt_ = 0; b_pseudoTT_y_ = -999; b_pseudoTT_m_ = 0;
+  b_pseudoTT_dphi_ = -999;
 
   edm::Handle<int> iHandle;
   event.getByToken(channelToken_, iHandle);
@@ -206,21 +232,47 @@ void TTLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
 
   edm::Handle<cat::JetCollection> jetsHandle;
   event.getByToken(jetsToken_, jetsHandle);
-  if ( jetsHandle->size() > 0 ) {
+  const int nJet = jetsHandle->size();
+  if ( nJet > 0 ) {
     b_j1_pt_ = jetsHandle->at(0).pt();
     b_j1_btag_ = jetsHandle->at(0).bDiscriminator(bTagName_);
   }
-  else if ( jetsHandle->size() > 1 ) {
+  if ( nJet > 1 ) {
     b_j2_pt_ = jetsHandle->at(1).pt();
     b_j2_btag_ = jetsHandle->at(1).bDiscriminator(bTagName_);
   }
-  else if ( jetsHandle->size() > 2 ) {
+  if ( nJet > 2 ) {
     b_j3_pt_ = jetsHandle->at(2).pt();
     b_j3_btag_ = jetsHandle->at(2).bDiscriminator(bTagName_);
   }
-  else if ( jetsHandle->size() > 3 ) {
+  if ( nJet > 3 ) {
     b_j4_pt_ = jetsHandle->at(3).pt();
     b_j4_btag_ = jetsHandle->at(3).bDiscriminator(bTagName_);
+  }
+
+  edm::Handle<edm::View<reco::Candidate> > candsHandle;
+  event.getByToken(candsToken_, candsHandle);
+  if ( candsHandle->size() >= 7 ) {
+    edm::Handle<vfloat> vfHandle;
+    event.getByToken(auxToken_, vfHandle);
+    b_kinfit_quality_ = vfHandle->at(0);
+
+    const auto& tt = candsHandle->at(0);
+    const auto& t1 = candsHandle->at(1);
+    const auto& t2 = candsHandle->at(2);
+    const auto& w1 = candsHandle->at(3);
+    const auto& w2 = candsHandle->at(4);
+    //const auto& n1 = candsHandle->at(5);
+    //const auto& n2 = cnadsHandle->at(6);
+
+    const auto b1 = t1.p4()-w1.p4();
+    const auto b2 = t2.p4()-w2.p4();
+    b_b1_pt_ = b1.pt();
+    b_b2_pt_ = b2.pt();
+    b_t1_pt_ = t1.pt(); b_t1_y_ = t1.p4().Rapidity(); b_t1_m_ = t1.mass();
+    b_t2_pt_ = t2.pt(); b_t2_y_ = t2.p4().Rapidity(); b_t2_m_ = t2.mass();
+    b_tt_pt_ = tt.pt(); b_tt_y_ = tt.p4().Rapidity(); b_tt_m_ = tt.mass();
+    b_tt_dphi_ = deltaPhi(t1.phi(), t2.phi());
   }
 
   if ( isTopMC_ ) {
@@ -231,8 +283,7 @@ void TTLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
 
     edm::Handle<reco::GenParticleCollection> pseudoTopHandle;
     event.getByToken(pseudoTopToken_, pseudoTopHandle);
-    event.getByToken(pseudoTopChToken_, iHandle);
-    b_pseudoTopChannel_ = *iHandle;
+    b_pseudoTopChannel_ = CH_NOTT;
 
     auto gtByPtPtr = [](const reco::GenParticle* a, const reco::GenParticle* b) { return a->pt() > b->pt(); };
 
@@ -262,8 +313,12 @@ void TTLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
       if ( !l1 or !l2 ) break;
       if ( l1->numberOfDaughters() > 1 ) l1 = l1->daughter(0);
       if ( l2->numberOfDaughters() > 1 ) l2 = l2->daughter(0);
+
       const int sumId = std::abs(l1->pdgId()) + std::abs(l2->pdgId());
-      if ( sumId != 11+11 or sumId != 11+12 or sumId != 12+12 ) break;
+      if      ( sumId < 11 ) b_partonTopChannel_ = CH_FULLHADRON;
+      else if ( sumId < 15 ) b_partonTopChannel_ = CH_SEMILEPTON;
+
+      if ( sumId != 11+11 and sumId != 11+12 and sumId != 12+12 ) break;
 
       b_partonT1_pt_ = t1->pt();
       b_partonT2_pt_ = t2->pt();
@@ -310,8 +365,13 @@ void TTLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
       if ( !l1 or !l2 ) break;
       if ( l1->numberOfDaughters() > 1 ) l1 = l1->daughter(0);
       if ( l2->numberOfDaughters() > 1 ) l2 = l2->daughter(0);
+
       const int sumId = std::abs(l1->pdgId()) + std::abs(l2->pdgId());
-      if ( sumId != 11+11 or sumId != 11+12 or sumId != 12+12 ) break;
+      if      ( sumId < 11 ) b_pseudoTopChannel_ = CH_FULLHADRON;
+      else if ( sumId < 15 ) b_pseudoTopChannel_ = CH_SEMILEPTON;
+
+      if ( sumId != 11+11 and sumId != 11+12 and sumId != 12+12 ) break;
+      b_pseudoTopChannel_ = CH_FULLLEPTON;
 
       b_pseudoT1_pt_ = t1->pt();
       b_pseudoT2_pt_ = t2->pt();
