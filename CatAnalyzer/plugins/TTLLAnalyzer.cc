@@ -272,7 +272,7 @@ void TTLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
     b_t1_pt_ = t1.pt(); b_t1_y_ = t1.p4().Rapidity(); b_t1_m_ = t1.mass();
     b_t2_pt_ = t2.pt(); b_t2_y_ = t2.p4().Rapidity(); b_t2_m_ = t2.mass();
     b_tt_pt_ = tt.pt(); b_tt_y_ = tt.p4().Rapidity(); b_tt_m_ = tt.mass();
-    b_tt_dphi_ = deltaPhi(t1.phi(), t2.phi());
+    b_tt_dphi_ = std::abs(deltaPhi(t1.phi(), t2.phi()));
   }
 
   if ( isTopMC_ ) {
@@ -318,7 +318,7 @@ void TTLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
       if      ( sumId < 11 ) b_partonTopChannel_ = CH_FULLHADRON;
       else if ( sumId < 15 ) b_partonTopChannel_ = CH_SEMILEPTON;
 
-      if ( sumId != 11+11 and sumId != 11+12 and sumId != 12+12 ) break;
+      if ( sumId != 11+11 and sumId != 11+13 and sumId != 13+13 ) break;
 
       b_partonT1_pt_ = t1->pt();
       b_partonT2_pt_ = t2->pt();
@@ -331,7 +331,7 @@ void TTLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
       b_partonTT_pt_ = ttP4.pt();
       b_partonTT_y_ = ttP4.Rapidity();
       b_partonTT_m_ = ttP4.mass();
-      b_partonTT_dphi_ = deltaPhi(t1->phi(), t2->phi());
+      b_partonTT_dphi_ = std::abs(deltaPhi(t1->phi(), t2->phi()));
 
       b_partonL1_pt_ = l1->pt();
       b_partonL2_pt_ = l2->pt();
@@ -353,24 +353,22 @@ void TTLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
       if ( t1->numberOfDaughters() < 2 or t2->numberOfDaughters() < 2 ) break;
 
       const auto w1 = t1->daughter(0);
-      const auto w2 = t2->daughter(1);
+      const auto w2 = t2->daughter(0);
       if ( !w1 or !w2 ) break;
 
       const auto b1 = t1->daughter(1);
       const auto b2 = t2->daughter(1);
       if ( !b1 or !b2 ) break;
 
-      auto l1 = w1->daughter(0);
-      auto l2 = w2->daughter(0);
+      const auto l1 = w1->daughter(0);
+      const auto l2 = w2->daughter(0);
       if ( !l1 or !l2 ) break;
-      if ( l1->numberOfDaughters() > 1 ) l1 = l1->daughter(0);
-      if ( l2->numberOfDaughters() > 1 ) l2 = l2->daughter(0);
 
       const int sumId = std::abs(l1->pdgId()) + std::abs(l2->pdgId());
       if      ( sumId < 11 ) b_pseudoTopChannel_ = CH_FULLHADRON;
       else if ( sumId < 15 ) b_pseudoTopChannel_ = CH_SEMILEPTON;
 
-      if ( sumId != 11+11 and sumId != 11+12 and sumId != 12+12 ) break;
+      if ( sumId != 11+11 and sumId != 11+13 and sumId != 13+13 ) break;
       b_pseudoTopChannel_ = CH_FULLLEPTON;
 
       b_pseudoT1_pt_ = t1->pt();
@@ -384,7 +382,7 @@ void TTLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
       b_pseudoTT_pt_ = ttP4.pt();
       b_pseudoTT_y_ = ttP4.Rapidity();
       b_pseudoTT_m_ = ttP4.mass();
-      b_pseudoTT_dphi_ = deltaPhi(t1->phi(), t2->phi());
+      b_pseudoTT_dphi_ = std::abs(deltaPhi(t1->phi(), t2->phi()));
 
       b_pseudoL1_pt_ = l1->pt();
       b_pseudoL2_pt_ = l2->pt();
