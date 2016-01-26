@@ -129,14 +129,14 @@ for systName in systAny:
 
 ## Then loop over MC specific systematics
 systMC = {
-    'jet_res/up':'eventsTTLL.jet.resolDirection=1',
-    'jet_res/dn':'eventsTTLL.jet.resolDirection=-1',
-    'pileup/up':'eventsTTLL.vertex.pileupWeight="pileupWeight:up"',
-    'pileup/dn':'eventsTTLL.vertex.pileupWeight="pileupWeight:dn"',
-    'mu_eff/up':'eventsTTLL.muon.efficiencySFDirection=1',
-    'mu_eff/dn':'eventsTTLL.muon.efficiencySFDirection=-1',
-    'el_eff/up':'eventsTTLL.electron.efficiencySFDirection=1',
-    'el_eff/dn':'eventsTTLL.electron.efficiencySFDirection=-1',
+    'jet_res/up':'eventsTTLL.jet.resolDirection=1 ttll.doTree=False ttbbll.doTree=False',
+    'jet_res/dn':'eventsTTLL.jet.resolDirection=-1 ttll.doTree=False ttbbll.doTree=False',
+    'pileup/up':'eventsTTLL.vertex.pileupWeight="pileupWeight:up" ttll.doTree=False ttbbll.doTree=False',
+    'pileup/dn':'eventsTTLL.vertex.pileupWeight="pileupWeight:dn" ttll.doTree=False ttbbll.doTree=False',
+    'mu_eff/up':'eventsTTLL.muon.efficiencySFDirection=1 ttll.doTree=False ttbbll.doTree=False',
+    'mu_eff/dn':'eventsTTLL.muon.efficiencySFDirection=-1 ttll.doTree=False ttbbll.doTree=False',
+    'el_eff/up':'eventsTTLL.electron.efficiencySFDirection=1 ttll.doTree=False ttbbll.doTree=False',
+    'el_eff/dn':'eventsTTLL.electron.efficiencySFDirection=-1 ttll.doTree=False ttbbll.doTree=False',
 }
 for systName in systMC:
     syst = systMC[systName]
@@ -163,7 +163,7 @@ for systName in systMC:
 ## Let us assume index1-10 are for the scale variations (muF & muR)
 for i in range(1,9): # total 8 scale variations, 3 muF x 3 muR and one for central weight
     systName = "gen_scale/%d" % i
-    syst = 'eventsTTLL.genWeight.src="genWeight:pdfWeights" eventsTTLL.genWeight.index=%d' % i
+    syst = 'eventsTTLL.genWeight.src="genWeight:pdfWeights" eventsTTLL.genWeight.index=%d ttll.doTree=False ttbbll.doTree=False' % i
     for d in bkgList:
         name = d['name']
         if isBlacklisted(name): continue
