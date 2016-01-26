@@ -31,6 +31,8 @@
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/MET.h"
 
+#include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
+#include "CATTools/CatAnalyzer/interface/BTagScaleFactorEvaluators.h"
 #include "CATTools/CommonTools/interface/AnalysisHelper.h"
 
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
@@ -101,6 +103,8 @@ private:
   float b_PUWeight;
   int b_nGoodPV;
 
+  float b_leptonWeight, b_csvWeight;
+
   // Channel and Categorization
   int b_Channel;
   int b_GenCatID;
@@ -154,6 +158,10 @@ private:
   // Number of events
   TH1F *EventInfo;
 
+  // Scale factor evaluators
+  CSVWeightEvaluator csvWeight_;
+  ScaleFactorEvaluator muonSF_, elecSF_;
+
 };
 
 //
@@ -171,6 +179,18 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   isMC_    (iConfig.getUntrackedParameter<bool>("sampleLabel",  true)),
   TTbarMC_ (iConfig.getUntrackedParameter<int>("TTbarSampleLabel", 0))
 {
+  const auto elecSFSet = iConfig.getParameter<edm::ParameterSet>("elecSF");
+  elecSF_.set(elecSFSet.getParameter<std::vector<double>>("pt_bins"),
+              elecSFSet.getParameter<std::vector<double>>("eta_bins"),
+              elecSFSet.getParameter<std::vector<double>>("values"),
+              elecSFSet.getParameter<std::vector<double>>("errors"));
+
+  const auto muonSFSet = iConfig.getParameter<edm::ParameterSet>("muonSF");
+  muonSF_.set(muonSFSet.getParameter<std::vector<double>>("pt_bins"),
+              muonSFSet.getParameter<std::vector<double>>("abseta_bins"),
+              muonSFSet.getParameter<std::vector<double>>("values"),
+              muonSFSet.getParameter<std::vector<double>>("errors"));
+
   //now do what ever initialization is needed
   genWeightToken_       = consumes<float>                        (iConfig.getParameter<edm::InputTag>("genWeightLabel"));
   genToken_             = consumes<reco::GenParticleCollection>  (iConfig.getParameter<edm::InputTag>("genLabel"));
@@ -222,6 +242,9 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
 
   tree->Branch("PUWeight", &b_PUWeight, "PUWeight/F");
   tree->Branch("GoodPV",   &b_nGoodPV,  "nGoodPV/I");
+
+  tree->Branch("leptonWeight", &b_leptonWeight, "leptonWeight/F");
+  tree->Branch("csvWeight", &b_csvWeight, "csvWeight/F");
 
   tree->Branch("channel",  &b_Channel,  "Channel/I");
 
@@ -727,6 +750,11 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     b_Lepton_E  = lepton.E();
     b_Lepton_pT = lepton.Pt();
 
+    // Lepton scale factor
+    b_leptonWeight = 1.0;
+    if ( ch_tag == 0 ) b_leptonWeight = muonSF_(lepton.Pt(), std::abs(lepton.Eta()));
+    else if ( ch_tag == 1 ) b_leptonWeight = elecSF_(lepton.Pt(), lepton.Eta()); // FIXME : should be scEta
+
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     // Jets
@@ -755,6 +783,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       }
     }
 
+    b_csvWeight = 1.0;
     int N_GoodJets = 0;
     for (unsigned int i = 0; i < JetIndex.size() ; i++) {
       
@@ -796,6 +825,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         float jet_btagDis_CSV = jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
         b_Jet_CSV ->push_back(jet_btagDis_CSV);
 
+        b_csvWeight *= csvWeight_(jet, CSVWeightEvaluator::CENTRAL); // FIXME: 2nd argument should be given by systematics variations
       }
     }
 

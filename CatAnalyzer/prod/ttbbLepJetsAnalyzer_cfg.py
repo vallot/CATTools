@@ -25,9 +25,7 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-        #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-6_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/151127_200111/0000/catTuple_102.root'
-        'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-4-6_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/151222_133941/0000/catTuple_1.root'
-        #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/SingleMuon/v7-4-5_Run2015D-05Oct2015-v1/151109_230333/0000/catTuple_1.root'
+        '/store/user/jhgoh/CATTools/sync/v7-6-1/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',
     )
 )
 
@@ -43,6 +41,8 @@ process.source = cms.Source("PoolSource",
 # import FWCore.PythonUtilities.LumiList as LumiList
 # process.source.lumisToProcess = LumiList.LumiList(filename = 'Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON.txt').getVLuminosityBlockRange()
 
+from CATTools.CatAnalyzer.leptonSF_cff import *
+
 process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      sampleLabel       = cms.untracked.bool(runOnMC),
                                      TTbarSampleLabel  = cms.untracked.int32(runOnTTbarMC),
@@ -52,7 +52,9 @@ process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      genttbarCatLabel  = cms.InputTag("GenTtbarCategories:genTtbarId"),
                                      genttbarConeCatLabel  = cms.InputTag("catGenTops"),
                                      muonLabel         = cms.InputTag("catMuons"),
+                                     muonSF = muonSFTight,
                                      electronLabel     = cms.InputTag("catElectrons"),
+                                     elecSF = electronSFWP90,
                                      jetLabel          = cms.InputTag("catJets"),
                                      metLabel         = cms.InputTag("catMETs"),
                                      #metLabel          = cms.InputTag("catMETsNoHF"),
@@ -72,4 +74,4 @@ process.TFileService = cms.Service("TFileService",
 #process.p = cms.Path(process.demo*process.dump)
 # process.p = cms.Path(process.pileupWeight*
 #                      process.ttbarSingleLepton)
-process.p = cms.Path(process.ttbarSingleLepton)
+process.p = cms.Path(process.ttbbLepJets)
