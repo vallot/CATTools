@@ -1137,7 +1137,7 @@ void TtbarBbbarDiLeptonAnalyzer::resetBrReco()
 
   b_step = -1; b_channel = 0;
   b_njet30 = 0; b_nbjetL30=0, b_nbjetM30 = 0; b_nbjetT30 = 0;
-  b_step1 = 0;b_step2 = 0;    b_step3 = 0;b_step4 = 0;b_step5 = 0;b_step6 = 0;b_tri = 0;b_filtered = 0;
+  b_step1 = 0;b_step2 = 0;    b_step3 = 0;b_step4 = 0;b_step5 = 0;b_step6 = 0;b_tri = 0;
   b_met = -9; b_metphi = -9;
 
   b_lepweight = 1;
@@ -1194,6 +1194,7 @@ void TtbarBbbarDiLeptonAnalyzer::resetBrGEN()
   b_weight = 1; b_weightQ = 1;
   b_puweight = 1; b_puweightUp = 1; b_puweightDown =1;
   b_nvertex = 0;
+  b_filtered = 0;
 
   b_partonChannel = -1; b_partonMode1 = -1; b_partonMode2 = -1;
   b_partonlep1_pt = -9; b_partonlep1_eta = -9;
