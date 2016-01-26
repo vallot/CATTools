@@ -10,80 +10,11 @@ process.options.allowUnscheduled = cms.untracked.bool(True)
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-6-1_RunIIFall15MiniAODv1-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext3-v1/160123_212836/0000/catTuple_1.root')
 #process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-6_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v3/151222_133640/0000/catTuple_1.root')
-#process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-4-6_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/151127_200613/0000/catTuple_1.root')
-#process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094//xrd//store/group/CAT/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-6_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/151130_231748/0000/catTuple_1.root')
-#process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094//xrd//store/group/CAT/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-6_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/151127_200111/0000/catTuple_1.root')
-#process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-6_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/151130_231748/0000/catTuple_1.root')
-#process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/DoubleMuon/v7-4-6_Run2015D-PromptReco-v4/151127_194953/0000/catTuple_1.root')
-#process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094//xrd/store/group/CAT/DoubleMuon/v7-4-4_Run2015C_25ns-05Oct2015-v1/151023_165157/0000/catTuple_10.root')
 
-#import os
-#useGold = True
-#isRunData = False
 catmet = 'catMETs' #NoHF'
 lumiMask = 'lumiMask'
-#if useGold:
-#    catmet = 'catMETs'
-#    if isRunData:
-#        #lumiFile = 'Cert_246908-259891_13TeV_PromptReco_Collisions15_25ns_JSON.txt'
-#        lumiFile = 'Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON.txt'
-#        from FWCore.PythonUtilities.LumiList import LumiList
-#        lumiList = LumiList(os.environ["CMSSW_BASE"]+'/src/CATTools/CatProducer/prod/LumiMask/'+lumiFile)
-#        process.source.lumisToProcess = lumiList.getVLuminosityBlockRange()
-    
-#    process.load("CATTools.CatProducer.pileupWeight_cff")
-#    from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
-#    process.pileupWeight.weightingMethod = "RedoWeight"
-#    process.pileupWeight.pileupRD = pileupWeightMap["Run2015_25nsV1"]
-#    process.pileupWeight.pileupUp = pileupWeightMap["Run2015Up_25nsV1"]
-#    process.pileupWeight.pileupDn = pileupWeightMap["Run2015Dn_25nsV1"]
-process.filterRECO = cms.EDFilter("CATTriggerBitCombiner",
-    triggerResults = cms.InputTag("TriggerResults::PAT"),
-    secondaryTriggerResults = cms.InputTag("TriggerResults::RECO"),
-    triggerPrescales = cms.InputTag("patTrigger"),
-    combineBy = cms.string("and"),
-    triggersToMatch = cms.vstring(
-        "CSCTightHaloFilter",
-#        "EcalDeadCellTriggerPrimitiveFilter",
-#        "HBHENoiseFilter",
-        "eeBadScFilter",
-        "goodVertices",
-    ),
-    doFilter = cms.bool(False),
-)
 
-process.filterTrigMUEL = cms.EDFilter("CATTriggerBitCombiner",
-    triggerResults = cms.InputTag("TriggerResults::HLT"),
-    triggerPrescales = cms.InputTag("patTrigger"),
-    combineBy = cms.string("or"),
-    triggersToMatch = cms.vstring(
-        "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",
-        "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v",
-    ),
-    doFilter = cms.bool(False),
-)
-
-process.filterTrigELEL = process.filterTrigMUEL.clone(
-    triggersToMatch = cms.vstring(
-#        "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v",
-#        "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
-"HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v"
-    ),
-)
-
-process.filterTrigMUMU = process.filterTrigMUEL.clone(
-    triggersToMatch = cms.vstring(
-#      "HLT_Mu17_Mu8_DZ_v",
-#      "HLT_Mu17_TkMu8_DZ_v",
-#      "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",
-#      "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v",
-#      "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v",
-"HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",
-"HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v"
-    ),
-)
-
-#process.load("CATTools.CatAnalyzer.ttll.ttbarDileptonKinSolutionAlgos_cff")
+process.load("CATTools.CatAnalyzer.filters_cff")
 from CATTools.CatAnalyzer.leptonSF_cff import *
 
 process.cattree = cms.EDAnalyzer("TtbarBbbarDiLeptonAnalyzer",
@@ -109,6 +40,7 @@ process.cattree = cms.EDAnalyzer("TtbarBbbarDiLeptonAnalyzer",
     mcLabel = cms.InputTag("prunedGenParticles"),
 
     elecSF = electronSFWP90,
+    muonSF = muonSFTight,
     
     partonTop_channel = cms.InputTag("partonTop","channel"),
     partonTop_modes = cms.InputTag("partonTop", "modes"),
