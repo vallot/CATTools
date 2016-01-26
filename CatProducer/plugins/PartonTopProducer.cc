@@ -200,13 +200,13 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
         partons->at(wDauRef1.key()).addDaughter(lepRef);
       }
     }
-    int mode = (int)WMode::CH_HADRON;
+    int mode = CH_HADRON;
     switch ( abs(wDau1->pdgId()) )
     {
-      case 11: ++nElectron; mode = (int)WMode::CH_ELECTRON; break;
-      case 13: ++nMuon; mode = (int)WMode::CH_MUON; break;
+      case 11: ++nElectron; mode = CH_ELECTRON; break;
+      case 13: ++nMuon; mode = CH_MUON; break;
       case 15:
-        ++nTau; mode = (int)WMode::CH_TAU_HADRON;
+        ++nTau; mode = CH_TAU_HADRON;
         if ( lepFromTau )
         {
           ++nTauToLepton;
