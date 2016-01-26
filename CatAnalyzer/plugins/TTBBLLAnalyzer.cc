@@ -95,6 +95,7 @@ private:
   float b_parton_topbjet1_eta_, b_parton_topbjet2_eta_;
   int b_parton_addjets20_n_, b_parton_addjets30_n_, b_parton_addjets40_n_;
   int b_parton_addbjets20_n_, b_parton_addbjets30_n_, b_parton_addbjets40_n_;
+  int b_parton_addcjets20_n_, b_parton_addcjets30_n_, b_parton_addcjets40_n_;
 
   const bool doTree_;
   const bool isTopMC_;
@@ -194,6 +195,10 @@ TTBBLLAnalyzer::TTBBLLAnalyzer(const edm::ParameterSet& pset):
       tree_->Branch("parton_addbjets20_n", &b_parton_addbjets20_n_, "parton_addbjets20_n/I");
       tree_->Branch("parton_addbjets30_n", &b_parton_addbjets30_n_, "parton_addbjets30_n/I");
       tree_->Branch("parton_addbjets40_n", &b_parton_addbjets40_n_, "parton_addbjets40_n/I");
+
+      tree_->Branch("parton_addcjets20_n", &b_parton_addcjets20_n_, "parton_addcjets20_n/I");
+      tree_->Branch("parton_addcjets30_n", &b_parton_addcjets30_n_, "parton_addcjets30_n/I");
+      tree_->Branch("parton_addcjets40_n", &b_parton_addcjets40_n_, "parton_addcjets40_n/I");
     }
   }
 
@@ -240,6 +245,7 @@ void TTBBLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
 
     b_parton_addjets20_n_ = b_parton_addjets30_n_ = b_parton_addjets40_n_ = 0;
     b_parton_addbjets20_n_ = b_parton_addbjets30_n_ = b_parton_addbjets40_n_ = 0;
+    b_parton_addcjets20_n_ = b_parton_addcjets30_n_ = b_parton_addcjets40_n_ = 0;
   }
 
   // Start to read reco objects
@@ -319,14 +325,16 @@ void TTBBLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
 
     edm::Handle<reco::GenJetCollection> partonJetHandle;
     event.getByToken(partonJetToken_, partonJetHandle);
-    std::vector<const reco::GenJet*> topbjets, addjets, addbjets;
+    std::vector<const reco::GenJet*> topbjets, addjets, addbjets, addcjets;
     for ( auto& jet : *partonJetHandle ) {
       if ( jet.pt() < 20 ) continue;
       if ( std::abs(jet.eta()) > 2.5 ) continue;
 
-      bool isBjet = false, isFromTop = false;
+      bool isBjet = false, isCjet = false;
+      bool isFromTop = false;
       for ( auto& con : jet.getGenConstituents() ) {
         if ( !isBjet and std::abs(con->pdgId()) == 5 ) isBjet = true;
+        if ( !isCjet and std::abs(con->pdgId()) == 4 ) isCjet = true;
         if ( !isFromTop and findTopMother(con) ) isFromTop = true;
       }
 
@@ -334,6 +342,7 @@ void TTBBLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
       else if ( !isFromTop ) {
         addjets.push_back(&jet);
         if ( isBjet ) addbjets.push_back(&jet);
+        if ( !isBjet and isCjet ) addcjets.push_back(&jet);
       }
     }
 
@@ -359,6 +368,13 @@ void TTBBLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
       if ( pt > 20 ) ++b_parton_addbjets20_n_;
       if ( pt > 30 ) ++b_parton_addbjets30_n_;
       if ( pt > 40 ) ++b_parton_addbjets40_n_;
+    }
+
+    for ( const auto& x : addcjets ) {
+      const double pt = x->pt();
+      if ( pt > 20 ) ++b_parton_addcjets20_n_;
+      if ( pt > 30 ) ++b_parton_addcjets30_n_;
+      if ( pt > 40 ) ++b_parton_addcjets40_n_;
     }
   }
 
