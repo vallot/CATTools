@@ -89,8 +89,8 @@ bool TTLLGenCategoryFilter::filter(edm::Event& event, const edm::EventSetup&)
       // Veto tau channel if set
       if ( vetoTau_ )
       {
-        if ( mode1 >= (int)WMode::CH_TAU_HADRON ) break;
-        if ( mode2 >= (int)WMode::CH_TAU_HADRON ) break;
+        if ( mode1 >= CH_TAU_HADRON ) break;
+        if ( mode2 >= CH_TAU_HADRON ) break;
       }
       accept = true;
     } break;
