@@ -27,14 +27,14 @@ muonSFTight = cms.PSet(
 
 electronSFWP90 = cms.PSet(
     ## SF from https://indico.cern.ch/event/369259/contribution/3/attachments/1204731/1755463/update_SFs_triggering_MVA_ID_systematics.pdf
-    pt_bins = cms.vdouble(15, 25, 35, 45, 55, 1e9),
     eta_bins = cms.vdouble(-2.5, -1.5, -1.0, 0, 1.0, 1.5, 2.5),
+    pt_bins = cms.vdouble(15, 25, 35, 45, 55, 1e9),
     values = cms.vdouble(
         0.96, 0.95, 0.98, 0.99, 0.99, 0.97,
         0.98, 0.97, 0.97, 0.99, 0.99, 0.98,
         0.98, 0.99, 0.99, 0.99, 0.99, 0.98,
         0.98, 0.99, 0.99, 0.99, 0.99, 0.99,
-        0.99, 0.99, 0.99, 1.00, 0.99, 0.99,
+        0.99, 0.99, 1.00, 1.00, 0.99, 0.99,
     ),
     errors = cms.vdouble(
         0.02, 0.06, 0.01, 0.01, 0.02, 0.01,

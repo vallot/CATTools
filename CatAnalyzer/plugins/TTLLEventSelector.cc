@@ -8,6 +8,7 @@
 #include "CATTools/DataFormats/interface/MET.h"
 #include "CATTools/DataFormats/interface/SecVertex.h"
 
+#include "CATTools/CommonTools/interface/TTbarModeDefs.h"
 #include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
 
 #include "DataFormats/Candidate/interface/LeafCandidate.h"
@@ -517,7 +518,6 @@ private:
 
 private:
   typedef reco::Candidate::LorentzVector LV;
-  enum Channel { CH_NONE=-1, CH_MUMU, CH_ELEL, CH_MUEL };
 
   // Energy scales
   int muonScale_, electronScale_, jetScale_, jetResol_;
@@ -550,11 +550,10 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   {
     const auto muonSFSet = muonSet.getParameter<edm::ParameterSet>("efficiencySF");
     // FIXME : for muons, eta bins are folded - always double check this with cfg
-    // FIXME : AWARE on x,y orders. for muons, pt in row, abseta in column
-    muonSF_.set(muonSFSet.getParameter<vdouble>("abseta_bins"),
-                   muonSFSet.getParameter<vdouble>("pt_bins"),
-                   muonSFSet.getParameter<vdouble>("values"),
-                   muonSFSet.getParameter<vdouble>("errors"));
+    muonSF_.set(muonSFSet.getParameter<vdouble>("pt_bins"),
+                muonSFSet.getParameter<vdouble>("abseta_bins"),
+                muonSFSet.getParameter<vdouble>("values"),
+                muonSFSet.getParameter<vdouble>("errors"));
     muonSFShift_ = muonSet.getParameter<int>("efficiencySFDirection");
   }
 
@@ -566,11 +565,10 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   {
     const auto electronSFSet = electronSet.getParameter<edm::ParameterSet>("efficiencySF");
     // FIXME : for electrons, eta bins are NOT folded - always double check this with cfg
-    // FIXME : AWARE on x,y orders. for electrons, pt in column, eta in row
     electronSF_.set(electronSFSet.getParameter<vdouble>("pt_bins"),
-                       electronSFSet.getParameter<vdouble>("eta_bins"),
-                       electronSFSet.getParameter<vdouble>("values"),
-                       electronSFSet.getParameter<vdouble>("errors"));
+                    electronSFSet.getParameter<vdouble>("eta_bins"),
+                    electronSFSet.getParameter<vdouble>("values"),
+                    electronSFSet.getParameter<vdouble>("errors"));
     electronSFShift_ = electronSet.getParameter<int>("efficiencySFDirection");
   }
 
@@ -731,7 +729,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   }
   const int leptons_n = out_leptons->size();
   const cat::Lepton* lepton1 = 0, * lepton2 = 0;
-  Channel channel = CH_NONE;
+  int channel = CH_NOLL;
   if ( leptons_n >= 2 ) {
     // Partial sort to select leading 2 leptons
     std::nth_element(out_leptons->begin(), out_leptons->begin()+2, out_leptons->end(),
@@ -763,14 +761,14 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     }
     else if ( channel == CH_MUMU )
     {
-      const double w1 = muonSF_(std::abs(lepton1->eta()), lepton1->pt(), muonSFShift_);
-      const double w2 = muonSF_(std::abs(lepton2->eta()), lepton2->pt(), muonSFShift_);
+      const double w1 = muonSF_(lepton1->pt(), std::abs(lepton1->eta()), muonSFShift_);
+      const double w2 = muonSF_(lepton2->pt(), std::abs(lepton2->eta()), muonSFShift_);
       weight *= w1*w2;
     }
     else if ( channel == CH_MUEL )
     {
       const double w1 = electronSF_(lepton1->pt(), lepton1->eta(), electronSFShift_);
-      const double w2 = muonSF_(std::abs(lepton2->eta()), lepton2->pt(), muonSFShift_);
+      const double w2 = muonSF_(lepton2->pt(), std::abs(lepton2->eta()), muonSFShift_);
       weight *= w1*w2;
     }
     else edm::LogError("TTLLEventSelector") << "Strange event with nLepton >=2 but not falling info ee,mumu,emu category";
@@ -1910,7 +1908,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     }
   }
 
-  event.put(std::auto_ptr<int>(new int(channel)), "channel");
+  event.put(std::auto_ptr<int>(new int((int)channel)), "channel");
   event.put(std::auto_ptr<float>(new float(weight)), "weight");
   event.put(std::auto_ptr<float>(new float(metP4.pt())), "met");
   event.put(std::auto_ptr<float>(new float(metP4.phi())), "metphi");
