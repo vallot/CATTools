@@ -665,7 +665,9 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   //---------------------------------------------------------------------------
 
   TLorentzVector lepton;
-  std::vector<float> *lepton_SF=0;
+  std::vector<float> *lepton_SF;
+  lepton_SF = new std::vector<float>; 
+
   float lepton_LES = 0.0;
   int ch_tag  = 999;
 
@@ -676,12 +678,14 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     lepton.SetPxPyPzE(selectedMuons[0].px(), selectedMuons[0].py(), selectedMuons[0].pz(), selectedMuons[0].energy());
     ch_tag = 0; //muon + jets
 
-    // Lepton SF (ID/ISO)
-    lepton_SF->push_back( SF_muon_( selectedMuons[0].pt(), std::abs(selectedMuons[0].eta()) ) );       // [0]-> SF
-    lepton_SF->push_back( SF_muon_( selectedMuons[0].pt(), std::abs(selectedMuons[0].eta()),  1.0 ) ); // [1]-> SF+Error
-    lepton_SF->push_back( SF_muon_( selectedMuons[0].pt(), std::abs(selectedMuons[0].eta()), -1.0 ) ); // [2]-> SF-Error
-    //LES
-    lepton_LES = selectedMuons[0].shiftedEn();
+      if(isMC_) {
+	// Lepton SF (ID/ISO)
+	lepton_SF->push_back( SF_muon_( selectedMuons[0].pt(), std::abs(selectedMuons[0].eta()) ) );       // [0]-> SF
+	lepton_SF->push_back( SF_muon_( selectedMuons[0].pt(), std::abs(selectedMuons[0].eta()),  1.0 ) ); // [1]-> SF+Error
+	lepton_SF->push_back( SF_muon_( selectedMuons[0].pt(), std::abs(selectedMuons[0].eta()), -1.0 ) ); // [2]-> SF-Error
+	//LES
+	lepton_LES = selectedMuons[0].shiftedEn();
+      }
   }
 
   if(selectedMuons.size()     == 0 &&
@@ -691,12 +695,14 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     ch_tag = 1; //electron + jets
     lepton.SetPxPyPzE(selectedElectrons[0].px(), selectedElectrons[0].py(), selectedElectrons[0].pz(), selectedElectrons[0].energy());
 
-    // Lepton SF (ID/ISO)
-    lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), selectedElectrons[0].scEta() ) );       // [0]-> SF       
-    lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(),  1.0 ) ); // [1]-> SF+Error 
-    lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(), -1.0 ) ); // [2]-> SF-Error 
-    //LES
-    lepton_LES = selectedElectrons[0].shiftedEn();
+     if(isMC_) {
+       // Lepton SF (ID/ISO)
+       lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), selectedElectrons[0].scEta() ) );       // [0]-> SF       
+       lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(),  1.0 ) ); // [1]-> SF+Error 
+       lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(), -1.0 ) ); // [2]-> SF-Error 
+       //LES
+       lepton_LES = selectedElectrons[0].shiftedEn();
+     }
   }
 
   //---------------------------------------------------------------------------
@@ -809,29 +815,31 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         b_Jet_partonFlavour->push_back(jet.partonFlavour());
         b_Jet_hadronFlavour->push_back(jet.hadronFlavour());
 
-        // JES
-	b_Jet_JES->push_back(jet.shiftedEnUp());
-	b_Jet_JES->push_back(jet.shiftedEnDown());
-
-	// JER
-	// Ref: https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution
-	b_Jet_JES->push_back(jet.smearedResUp());   // [0] Up
-	b_Jet_JES->push_back(jet.smearedResDown()); // [1] Down
-	b_Jet_JES->push_back(jet.smearedRes());     // [2] Nom
-
-        // b-tag discriminant
-        float jet_btagDis_CSV = jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
-        b_Jet_CSV ->push_back(jet_btagDis_CSV);
-
-	// Not clear yet...........
-        // b_Jet_SF_CSV *= SF_CSV_(jet, CSVWeightEvaluator::CENTRAL); // FIXME: 2nd argument should be given by systematics variations
-	// Ref: https://twiki.cern.ch/twiki/bin/view/CMS/BTagShapeCalibration
-	// Saving the central SF and the 18 syst. unc.
-	for (unsigned int iu=0; iu<19; iu++) Jet_SF_CSV[iu] *= SF_CSV_(jet, iu);
-
+	// b-tag discriminant
+	float jet_btagDis_CSV = jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
+	b_Jet_CSV ->push_back(jet_btagDis_CSV);
+	
+	if(isMC_) {
+	  // JES
+	  b_Jet_JES->push_back(jet.shiftedEnUp());
+	  b_Jet_JES->push_back(jet.shiftedEnDown());
+	  
+	  // JER
+	  // Ref: https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution
+	  b_Jet_JER->push_back(jet.smearedResUp());   // [0] Up
+	  b_Jet_JER->push_back(jet.smearedResDown()); // [1] Down
+	  b_Jet_JER->push_back(jet.smearedRes());     // [2] Nom
+	 	
+	  // Not clear yet...........
+	  // b_Jet_SF_CSV *= SF_CSV_(jet, CSVWeightEvaluator::CENTRAL); // FIXME: 2nd argument should be given by systematics variations
+	  // Ref: https://twiki.cern.ch/twiki/bin/view/CMS/BTagShapeCalibration
+	  // Saving the central SF and the 18 syst. unc.
+	  for (unsigned int iu=0; iu<19; iu++) Jet_SF_CSV[iu] *= SF_CSV_(jet, iu);
+	} // if(isMC_)
+	
       }
     }
-
+    
     b_Jet_Number = N_GoodJets;
     for (unsigned int iu=0; iu<19; iu++) b_Jet_SF_CSV->push_back(Jet_SF_CSV[iu]);
 
