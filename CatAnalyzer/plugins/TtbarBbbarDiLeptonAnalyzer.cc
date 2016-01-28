@@ -76,7 +76,7 @@ private:
       const double pt = p.pt(), aeta = std::abs(p.eta());
       if      ( sys == sys_mueff_u ) return muonSF_(pt, aeta,  1);
       else if ( sys == sys_mueff_d ) return muonSF_(pt, aeta, -1);
-      else return muonSF_(pt, aeta, pt);
+      else return muonSF_(pt, aeta, 0);
     }
     else {
       const double pt = p.pt(), eta = p.eta();
