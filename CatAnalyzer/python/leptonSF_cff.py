@@ -45,3 +45,15 @@ electronSFWP90 = cms.PSet(
     ),
 )
 
+electronSFCutBasedID_MediumWP = cms.PSet(
+    ## /afs/cern.ch/work/a/arun/public/forEGM/CutBased_textFiles_withSyst/CutBasedID_MediumWP_fromTemplates_withSyst_v1.txt
+    ## https://twiki.cern.ch/twiki/bin/viewauth/CMS/HWW2015TriggerResults
+    ## to be added
+    eta_bins = cms.vdouble(-2.5, -1.5, -1.0, 0, 1.0, 1.5, 2.5),
+    pt_bins = cms.vdouble(15, 25, 35, 45, 55, 1e9),
+    values = cms.vdouble(
+    ),
+    errors = cms.vdouble(
+    ),
+)
+
