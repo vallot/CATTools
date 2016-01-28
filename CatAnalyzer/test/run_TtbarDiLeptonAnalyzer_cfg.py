@@ -47,7 +47,7 @@ process.cattree = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     ),
     electron = cms.PSet(
         src = cms.InputTag("catElectrons"),
-        effSF = electronSFWP90,
+        effSF = electronSFCutBasedIDMediumWP,#electronSFWP90,
     ),
     jets = cms.InputTag("catJets"),
     mets = cms.InputTag(catmet),
