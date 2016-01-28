@@ -44,7 +44,7 @@ public:
 
   enum sys_e {sys_nom,  sys_jes_u, sys_jes_d, sys_jer_u, sys_jer_d,
      sys_mu_u, sys_mu_d, sys_el_u, sys_el_d,
-//     sys_mueff_u, sys_mueff_d, sys_eleff_u, sys_eleff_d,
+     sys_mueff_u, sys_mueff_d, sys_eleff_u, sys_eleff_d,
 //    sys_btag_u, sys_btag_d,
     nsys_e
   };
@@ -60,7 +60,7 @@ private:
   cat::JetCollection selectBJets(const cat::JetCollection& jets, double workingpoint) const;
   const reco::Candidate* getLast(const reco::Candidate* p) const;
   const bool isLastP( const reco::GenParticle& p) const;
-  float MuonSF(float pt, float eta);
+  //float MuonSF(float pt, float eta);
   void book(TTree* tree);
 
   void resetBr();
@@ -69,6 +69,23 @@ private:
   void resetBrJets();
 
   ScaleFactorEvaluator muonSF_, elecSF_;
+  float getSF(const cat::Lepton& p, int sys) const
+  {
+    const int aid = abs(p.pdgId());
+    if ( aid == 13 ) {
+      const double pt = p.pt(), aeta = std::abs(p.eta());
+      if      ( sys == sys_mueff_u ) return muonSF_(pt, aeta,  1);
+      else if ( sys == sys_mueff_d ) return muonSF_(pt, aeta, -1);
+      else return muonSF_(pt, aeta, pt);
+    }
+    else {
+      const double pt = p.pt(), eta = p.eta();
+      if      ( sys == sys_eleff_u ) return elecSF_(pt, eta,  1);
+      else if ( sys == sys_eleff_d ) return elecSF_(pt, eta, -1);
+      else return elecSF_(pt, eta, 0);
+    }
+    return 1;
+  }
 
   edm::EDGetTokenT<int> recoFiltersToken_, nGoodVertexToken_, lumiSelectionToken_;
   edm::EDGetTokenT<float> genweightToken_, puweightToken_, puweightUpToken_, puweightDownToken_, genweightQToken_;
@@ -97,7 +114,7 @@ private:
   TTree * ttree3_, * ttree4_,* ttree5_,* ttree6_;
 
   TTree * ttree7_, * ttree8_,* ttree9_,* ttree10_;
-  //TTree * ttree11_, * ttree12_,* ttree13_,* ttree14_;
+  TTree * ttree11_, * ttree12_,* ttree13_,* ttree14_;
   
   int b_nvertex, b_step, b_channel;
   bool b_step1, b_step2, b_step3, b_step4, b_step5, b_step6, b_tri, b_filtered;
@@ -286,6 +303,12 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
               elecSFSet.getParameter<std::vector<double>>("values"),
               elecSFSet.getParameter<std::vector<double>>("errors"));
 
+  const auto muonSFSet = iConfig.getParameter<edm::ParameterSet>("muonSF");
+  muonSF_.set(muonSFSet.getParameter<std::vector<double>>("pt_bins"),
+              muonSFSet.getParameter<std::vector<double>>("abseta_bins"),
+              muonSFSet.getParameter<std::vector<double>>("values"),
+              muonSFSet.getParameter<std::vector<double>>("errors"));
+
   partonTop_channel_ = consumes<int>(iConfig.getParameter<edm::InputTag>("partonTop_channel"));
   partonTop_modes_   = consumes<vector<int> >(iConfig.getParameter<edm::InputTag>("partonTop_modes"));
   partonTop_genParticles_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("partonTop_genParticles"));
@@ -304,12 +327,12 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
   ttree8_ = fs->make<TTree>("nomMu_dw", "nom2");
   ttree9_ = fs->make<TTree>("nomEl_up", "nom2");
   ttree10_ = fs->make<TTree>("nomEl_dw", "nom2");
-/*
+
   ttree11_ = fs->make<TTree>("nomMueff_up", "nom2");
   ttree12_ = fs->make<TTree>("nomMueff_dw", "nom2");
   ttree13_ = fs->make<TTree>("nomEleff_up", "nom2");
   ttree14_ = fs->make<TTree>("nomEleff_dw", "nom2");
-*/
+
   book(ttree_);
   book(ttree2_);
   book(ttree3_);
@@ -321,12 +344,12 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
   book(ttree8_);
   book(ttree9_);
   book(ttree10_);
-/*
+
   book(ttree11_);
   book(ttree12_);
   book(ttree13_);
   book(ttree14_);
-*/
+
   for (int i = 0; i < NCutflow; i++) cutflow_.push_back({0,0,0,0});
 }
 
@@ -830,28 +853,19 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     b_lep2_pt = recolep2.pt(); b_lep2_eta = recolep2.eta(); b_lep2_phi = recolep2.phi(); b_lep2_q = recolep2.charge();
     
     //LeptonWeight LepWeight;
-    double sf1 = 1.0;
-    double sf2 = 1.0;
+    //double sf1 = 1.0;
+    //double sf2 = 1.0;
     if (pdgIdSum == 24) {
       b_lep1_RelIso = recolep1.relIso();     b_lep2_RelIso = recolep2.relIso(0.4);
-      sf1 =  elecSF_(b_lep1_pt, b_lep1_eta);
-      sf2 =  MuonSF(b_lep2_pt, b_lep2_eta);
-      //sf2 =  MuonSF_(std::abs(b_lep2_eta), b_lep2_pt);
     } // emu
     if (pdgIdSum == 22) {
       b_lep1_RelIso = recolep1.relIso();     b_lep2_RelIso = recolep2.relIso();
-      sf1 = elecSF_(b_lep1_pt, b_lep1_eta);
-      sf2 = elecSF_(b_lep2_pt, b_lep2_eta);
     } // ee
     if (pdgIdSum == 26) {
       b_lep1_RelIso = recolep1.relIso(0.4);  b_lep2_RelIso = recolep2.relIso(0.4);
-      sf1 =  MuonSF(b_lep1_pt, b_lep1_eta);
-      sf2 =  MuonSF(b_lep2_pt, b_lep2_eta);
-      //sf1 =  MuonSF_(std::abs(b_lep1_eta), b_lep1_pt);
-      //sf2 =  MuonSF_(std::abs(b_lep2_eta), b_lep2_pt);
     } // mumu
-    
-    if(runOnMC_) b_lepweight = sf1 * sf2;
+    if(runOnMC_) b_lepweight = getSF(recolep1, sys)*getSF(recolep2, sys);
+ 
     
     const auto tlv_ll = recolep1.p4()+recolep2.p4();
     b_ll_pt = tlv_ll.Pt(); b_ll_eta = tlv_ll.Eta(); b_ll_phi = tlv_ll.Phi(); b_ll_m = tlv_ll.M();
@@ -994,12 +1008,12 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     else if (sys==6) ttree8_->Fill();
     else if (sys==7) ttree9_->Fill();
     else if (sys==8) ttree10_->Fill();
-/*
+
     else if (sys==9) ttree11_->Fill();
     else if (sys==10) ttree12_->Fill();
     else if (sys==11) ttree13_->Fill();
     else if (sys==12) ttree14_->Fill();
-*/
+
   }
 }
 const bool TtbarBbbarDiLeptonAnalyzer::isLastP( const reco::GenParticle& p) const
@@ -1285,83 +1299,5 @@ void TtbarBbbarDiLeptonAnalyzer::resetBrGEN()
 
   b_is3lep = -9;
 }
-float TtbarBbbarDiLeptonAnalyzer::MuonSF(float pt, float eta)
-{
-  if (eta >=-2.4 && eta <-2.1){
-    if     (pt > 20.0 && pt <=25.0 )  return (float) 0.96652;
-    else if(pt > 25.0 && pt <=30.0 )  return (float) 0.97249;
-    else if(pt > 30.0 && pt <=40.0 )  return (float) 0.98056;
-    else if(pt > 40.0 && pt <=50.0 )  return (float) 0.98035;
-    else if(pt > 50.0 && pt <=60.0 )  return (float) 0.98217;
-    else if(pt > 60.0 )  return (float) 0.93115;
-    else return (float) 1.0;
-  }
-  else if (eta >=-2.1 && eta <-1.2){
-    if(pt > 20.0 && pt <=25.0 )  return (float) 0.99707;
-    else if(pt > 25.0 && pt <=30.0 )  return (float) 0.9941;
-    else if(pt > 30.0 && pt <=40.0 )  return (float) 0.9938;
-    else if(pt > 40.0 && pt <=50.0 )  return (float) 0.9935;
-    else if(pt > 50.0 && pt <=60.0 )  return (float) 0.9876;
-    else if(pt > 60.0 )  return (float) 0.98751;
-    else return (float) 1.0;
-  }
-  else if (eta >=-1.2 && eta <-0.9){
-    if(pt > 20.0 && pt <=25.0 )  return (float) 0.9680;
-    else if(pt > 25.0 && pt <=30.0 )  return (float) 0.9795;
-    else if(pt > 30.0 && pt <=40.0 )  return (float) 0.9802;
-    else if(pt > 40.0 && pt <=50.0 )  return (float) 0.9835;
-    else if(pt > 50.0 && pt <=60.0 )  return (float) 0.9806;
-    else if(pt > 60.0 )  return (float) 0.98020;
-    else return (float) 1.0;
-  }
-  else if (eta >=-0.9 && eta <-0.0){
-    if(pt > 20.0 && pt <=25.0 )  return (float) 0.97835;
-    else if(pt > 25.0 && pt <=30.0 )  return (float) 0.9804;
-    else if(pt > 30.0 && pt <=40.0 )  return (float) 0.9875;
-    else if(pt > 40.0 && pt <=50.0 )  return (float) 0.9877;
-    else if(pt > 50.0 && pt <=60.0 )  return (float) 0.9808;
-    else if(pt > 60.0)  return (float) 0.98220;
-    else return (float) 1.0;
-  }
-  else if (eta >=0.0 && eta <0.9){
-    if(pt > 20.0 && pt <=25.0 )  return (float) 0.9783;
-    else if(pt > 25.0 && pt <=30.0 )  return (float) 0.9804;
-    else if(pt > 30.0 && pt <=40.0 )  return (float) 0.9875;
-    else if(pt > 40.0 && pt <=50.0 )  return (float) 0.9877;
-    else if(pt > 50.0 && pt <=60.0 )  return (float) 0.9808;
-    else if(pt > 60.0 )  return (float) 0.98220;
-    else return (float) 1.0;
-  }
-  else if (eta >=0.9 && eta <1.2){
-    if(pt > 20.0 && pt <=25.0 )  return (float) 0.9680;
-    else if(pt > 25.0 && pt <=30.0 )  return (float) 0.9795;
-    else if(pt > 30.0 && pt <=40.0 )  return (float) 0.9802;
-    else if(pt > 40.0 && pt <=50.0 )  return (float) 0.9835;
-    else if(pt > 50.0 && pt <=60.0 )  return (float) 0.9806;
-    else if(pt > 60.0 )  return (float) 0.98020;
-    else return (float) 1.0;
-  }
-  else if (eta >=1.2 && eta <2.1){
-    if     (pt > 20.0 && pt <=25.0 )  return (float) 0.99707;
-    else if(pt > 25.0 && pt <=30.0 )  return (float) 0.99410;
-    else if(pt > 30.0 && pt <=40.0 )  return (float) 0.99382;
-    else if(pt > 40.0 && pt <=50.0 )  return (float) 0.99353;
-    else if(pt > 50.0 && pt <=60.0 )  return (float) 0.98761;
-    else if(pt > 60.0)  return (float) 0.98751;
-    else return (float) 1.0;
-  }
-  else if (eta >=2.1 && eta <=2.4){
-    if     (pt > 20.0 && pt <=25.0 )  return (float) 0.96652;
-    else if(pt > 25.0 && pt <=30.0 )  return (float) 0.9725;
-    else if(pt > 30.0 && pt <=40.0 )  return (float) 0.98057;
-    else if(pt > 40.0 && pt <=50.0 )  return (float) 0.98035;
-    else if(pt > 50.0 && pt <=60.0 )  return (float) 0.98217;
-    else if(pt > 60.0 )  return (float) 0.9311;
-    else return (float) 1.;
-  }
-  else return (float) 1.;
-
-};
-
 //define this as a plug-in
 DEFINE_FWK_MODULE(TtbarBbbarDiLeptonAnalyzer);

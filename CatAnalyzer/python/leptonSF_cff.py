@@ -48,6 +48,7 @@ electronSFWP90 = cms.PSet(
 electronSFCutMedium = cms.PSet(
     ## SF from https://indico.cern.ch/event/369259/contribution/1/attachments/1204682/1754936/EGM_14Dec.pdf
     ## Actual numbers are taken from /afs/cern.ch/work/a/arun/public/forEGM/CutBased_textFiles_withSyst/CutBasedID_MediumWP_fromTemplates_withSyst_v1.txt
+    ## Documentations are available in https://twiki.cern.ch/twiki/bin/viewauth/CMS/HWW2015TriggerResults
     ## FIXME : NUMBERS SEEM TO BE PRELIMINARY, SCALE FACTORS ARE GREATER THAN 1
     ## FIXME : I'M SETTING UNCERTAINTY TO ZERO!!! NOT EASY TO GUESS FROM THE UNDOCUMENTED TABLE
     pt_bins = cms.vdouble(10.000, 20.000, 30.000, 40.000, 50.000, 200.000),
