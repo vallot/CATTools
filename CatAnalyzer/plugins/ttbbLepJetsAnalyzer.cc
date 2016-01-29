@@ -841,9 +841,13 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     }
     
     b_Jet_Number = N_GoodJets;
-    for (unsigned int iu=0; iu<19; iu++) b_Jet_SF_CSV->push_back(Jet_SF_CSV[iu]);
 
-
+    for (unsigned int iu=0; iu<19; iu++) b_Jet_SF_CSV->push_back(1.0);
+    (*b_Jet_SF_CSV)[0] = Jet_SF_CSV[0]; //Central
+    // To save only the error
+    for (unsigned int iu=1; iu<19; iu+=2) (*b_Jet_SF_CSV)[iu] = Jet_SF_CSV[iu] - Jet_SF_CSV[0] ; // Syst. Unc. Up
+    for (unsigned int iu=2; iu<19; iu+=2) (*b_Jet_SF_CSV)[iu] = Jet_SF_CSV[0]  - Jet_SF_CSV[iu]; // Syst. Unc. Down
+   
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     // Fill Tree with event at 1 lepton cut level
