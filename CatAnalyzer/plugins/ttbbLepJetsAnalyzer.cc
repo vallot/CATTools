@@ -134,8 +134,11 @@ private:
   std::vector<int> *b_Jet_partonFlavour;
   std::vector<int> *b_Jet_hadronFlavour;
   // JES and JER
-  std::vector<float> *b_Jet_JES; 
-  std::vector<float> *b_Jet_JER; 
+  std::vector<float> *b_Jet_JES_Up; 
+  std::vector<float> *b_Jet_JES_Down; 
+  std::vector<float> *b_Jet_JER_Up; 
+  std::vector<float> *b_Jet_JER_Nom; 
+  std::vector<float> *b_Jet_JER_Down; 
   // b-Jet discriminant
   std::vector<float> *b_Jet_CSV;
   std::vector<float> *b_Jet_SF_CSV;
@@ -215,8 +218,12 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   b_Jet_partonFlavour = new std::vector<int>;
   b_Jet_hadronFlavour = new std::vector<int>;
 
-  b_Jet_JES     = new std::vector<float>;
-  b_Jet_JER     = new std::vector<float>;
+  b_Jet_JES_Up   = new std::vector<float>;
+  b_Jet_JES_Down = new std::vector<float>;
+  b_Jet_JER_Up   = new std::vector<float>;
+  b_Jet_JER_Nom  = new std::vector<float>;
+  b_Jet_JER_Down = new std::vector<float>;
+
   b_Jet_SF_CSV  = new std::vector<float>;
 
   usesResource("TFileService");
@@ -259,9 +266,11 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("jet_partonFlavour", "std::vector<int>", &b_Jet_partonFlavour);
   tree->Branch("jet_hadronFlavour", "std::vector<int>", &b_Jet_hadronFlavour);
 
-  tree->Branch("jet_JES", "std::vector<float>", &b_Jet_JES );
-  tree->Branch("jet_JER", "std::vector<float>", &b_Jet_JER );
-
+  tree->Branch("jet_JES_Up",   "std::vector<float>", &b_Jet_JES_Up );
+  tree->Branch("jet_JES_Down", "std::vector<float>", &b_Jet_JES_Down );
+  tree->Branch("jet_JER_Up",   "std::vector<float>", &b_Jet_JER_Up );
+  tree->Branch("jet_JER_Nom",  "std::vector<float>", &b_Jet_JER_Nom );
+  tree->Branch("jet_JER_Down", "std::vector<float>", &b_Jet_JER_Down );
 
 
   // GEN Tree (only ttbarSignal)
@@ -311,9 +320,13 @@ ttbbLepJetsAnalyzer::~ttbbLepJetsAnalyzer()
   delete b_Jet_partonFlavour;
   delete b_Jet_hadronFlavour;
 
+  delete b_Jet_JES_Up;
+  delete b_Jet_JES_Down;
+  delete b_Jet_JER_Up;
+  delete b_Jet_JER_Nom;
+  delete b_Jet_JER_Down;
+
   delete b_Jet_SF_CSV;
-  delete b_Jet_JES;
-  delete b_Jet_JER;
 
   delete b_Jet_CSV;
 
@@ -343,8 +356,11 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   b_Jet_partonFlavour->clear();
   b_Jet_hadronFlavour->clear();
 
-  b_Jet_JES->clear();
-  b_Jet_JER->clear();
+  b_Jet_JES_Up->clear();
+  b_Jet_JES_Down->clear();
+  b_Jet_JER_Up->clear();
+  b_Jet_JER_Nom->clear();
+  b_Jet_JER_Down->clear();
 
   b_Jet_CSV->clear();
   b_Jet_SF_CSV->clear();
@@ -821,14 +837,14 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 	
 	if(isMC_) {
 	  // JES
-	  b_Jet_JES->push_back(jet.shiftedEnUp());
-	  b_Jet_JES->push_back(jet.shiftedEnDown());
+	  b_Jet_JES_Up  ->push_back(jet.shiftedEnUp());
+	  b_Jet_JES_Down->push_back(jet.shiftedEnDown());
 	  
 	  // JER
 	  // Ref: https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution
-	  b_Jet_JER->push_back(jet.smearedResUp());   // [0] Up
-	  b_Jet_JER->push_back(jet.smearedResDown()); // [1] Down
-	  b_Jet_JER->push_back(jet.smearedRes());     // [2] Nom
+	  b_Jet_JER_Up   ->push_back(jet.smearedResUp()); 
+	  b_Jet_JER_Nom  ->push_back(jet.smearedRes());    
+	  b_Jet_JER_Down ->push_back(jet.smearedResDown());
 	 	
 	  // Not clear yet...........
 	  // b_Jet_SF_CSV *= SF_CSV_(jet, CSVWeightEvaluator::CENTRAL); // FIXME: 2nd argument should be given by systematics variations
