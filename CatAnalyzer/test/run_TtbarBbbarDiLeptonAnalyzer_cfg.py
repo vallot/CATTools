@@ -63,7 +63,8 @@ process.cattree = cms.EDAnalyzer("TtbarBbbarDiLeptonAnalyzer",
     mets = cms.InputTag(catmet),
     mcLabel = cms.InputTag("prunedGenParticles"),
 
-    elecSF = electronSFWP90,
+    #elecSF = electronSFWP90,
+    elecSF = electronSFCutBasedIDMediumWP,
     muonSF = muonSFTight,
     
     partonTop_channel = cms.InputTag("partonTop","channel"),
