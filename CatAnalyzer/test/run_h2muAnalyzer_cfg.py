@@ -15,7 +15,7 @@ process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-1/DYJetsToLL_M
 #process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-1/MuonEG_Run2015D-16Dec2015-v1.root',]
 #process.source.fileNames = ['file:%s/src/CATTools/CatProducer/prod/catTuple.root'%os.environ["CMSSW_BASE"]]
 
-useSilver = True
+useSilver = False
 catmet = 'catMETs'
 lumiMask = 'lumiMask'
 pileupWeight = 'pileupWeight'
