@@ -61,7 +61,7 @@ private:
       const double pt = p.pt(), aeta = std::abs(p.eta());
       if      ( sys == sys_mueff_u ) return muonSF_(pt, aeta,  1);
       else if ( sys == sys_mueff_d ) return muonSF_(pt, aeta, -1);
-      else return muonSF_(pt, aeta, pt);
+      else return muonSF_(pt, aeta, 0);
     }
     else {
       const double pt = p.pt(), eta = p.eta();
@@ -74,8 +74,8 @@ private:
   CSVWeightEvaluator csvWeight;
 
   edm::EDGetTokenT<int> recoFiltersToken_, nGoodVertexToken_, lumiSelectionToken_;
-  edm::EDGetTokenT<float> genweightToken_, puweightToken_, puweightToken_up_, puweightToken_dn_;
-  edm::EDGetTokenT<vector<float>> pdfweightToken_;
+  edm::EDGetTokenT<float> genweightToken_, puweightToken_, puweightToken_up_, puweightToken_dn_, topPtWeight_;
+  edm::EDGetTokenT<vector<float>> pdfweightToken_, scaleweightToken_;
   edm::EDGetTokenT<int> trigTokenMUEL_, trigTokenMUMU_, trigTokenELEL_;
 
   edm::EDGetTokenT<cat::MuonCollection>     muonToken_;
@@ -92,8 +92,8 @@ private:
   int b_nvertex, b_step, b_channel, b_njet, b_nbjet;
   bool b_step1, b_step2, b_step3, b_step4, b_step5, b_step6, b_tri, b_filtered;
   float b_met, b_weight, b_puweight, b_puweight_up, b_puweight_dn, b_genweight, b_lepweight, b_btagweight, b_btagweight_up, b_btagweight_dn;
-  float b_csvweight;
-  std::vector<float> b_pdfWeights;
+  float b_csvweight, b_topPtWeight;
+  std::vector<float> b_pdfWeights, b_scaleWeights;
 
   float b_lep1_pt, b_lep1_eta, b_lep1_phi;
   float b_lep2_pt, b_lep2_eta, b_lep2_phi;
@@ -145,6 +145,8 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   lumiSelectionToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("lumiSelection"));
   genweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("genweight"));
   pdfweightToken_ = consumes<vector<float>>(iConfig.getParameter<edm::InputTag>("pdfweight"));
+  scaleweightToken_ = consumes<vector<float>>(iConfig.getParameter<edm::InputTag>("scaleweight"));
+  topPtWeight_ = consumes<float>(iConfig.getParameter<edm::InputTag>("topPtWeight"));
   puweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("puweight"));
   puweightToken_up_ = consumes<float>(iConfig.getParameter<edm::InputTag>("puweight_up"));
   puweightToken_dn_ = consumes<float>(iConfig.getParameter<edm::InputTag>("puweight_dn"));
@@ -224,7 +226,9 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
     tr->Branch("filtered", &b_filtered, "filtered/O");
     tr->Branch("met", &b_met, "met/F");
     tr->Branch("weight", &b_weight, "weight/F");
-    tr->Branch("pdfWeihgts","std::vector<float>",&b_pdfWeights);
+    tr->Branch("pdfWeights","std::vector<float>",&b_pdfWeights);
+    tr->Branch("scaleWeights","std::vector<float>",&b_scaleWeights);
+    tr->Branch("topPtWeight", &b_topPtWeight, "topPtWeight/F");
     tr->Branch("puweight", &b_puweight, "puweight/F");
     tr->Branch("puweight_up", &b_puweight_up, "puweight_up/F");
     tr->Branch("puweight_dn", &b_puweight_dn, "puweight_dn/F");
@@ -358,12 +362,21 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
     edm::Handle<int> partonTop_channel;
     if ( iEvent.getByToken(partonTop_channel_, partonTop_channel)){
-      
+
+      edm::Handle<float> topPtWeightHandle;
+      iEvent.getByToken(topPtWeight_, topPtWeightHandle);
+      b_topPtWeight = *topPtWeightHandle;
+
       if (sys == sys_nom){
 	edm::Handle<vector<float>> pdfweightHandle;
 	iEvent.getByToken(pdfweightToken_, pdfweightHandle);
 	for (const float & aPdfWeight : *pdfweightHandle){
 	  b_pdfWeights.push_back(aPdfWeight);  
+	}
+	edm::Handle<vector<float>> scaleweightHandle;
+	iEvent.getByToken(scaleweightToken_, scaleweightHandle);
+	for (const float & aScaleWeight : *scaleweightHandle){
+	  b_scaleWeights.push_back(aScaleWeight);  
 	}
       }
       
@@ -876,8 +889,9 @@ void TtbarDiLeptonAnalyzer::resetBr()
   b_met = -9;
   b_weight = 1; b_puweight = 1; b_puweight_up = 1; b_puweight_dn = 1; b_genweight = 1; b_lepweight = 1;
   b_btagweight = 1;b_btagweight_up = 1;b_btagweight_dn = 1;
-  b_csvweight = 1;
+  b_csvweight = 1.; b_topPtWeight = 1.;
   b_pdfWeights.clear();
+  b_scaleWeights.clear();
 
   b_lep1_pt = -9;b_lep1_eta = -9;b_lep1_phi = -9;
   b_lep2_pt = -9;b_lep2_eta = -9;b_lep2_phi = -9;
