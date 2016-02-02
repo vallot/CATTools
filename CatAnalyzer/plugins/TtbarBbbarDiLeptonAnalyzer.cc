@@ -76,7 +76,7 @@ private:
       const double pt = p.pt(), aeta = std::abs(p.eta());
       if      ( sys == sys_mueff_u ) return muonSF_(pt, aeta,  1);
       else if ( sys == sys_mueff_d ) return muonSF_(pt, aeta, -1);
-      else return muonSF_(pt, aeta, pt);
+      else return muonSF_(pt, aeta, 0);
     }
     else {
       const double pt = p.pt(), eta = p.eta();
@@ -889,9 +889,9 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     
     //JetCollection&& selectedJets = selectJets(*jets, recolep);
     JetCollection&& selectedJets = selectJets(*jets, recolep, (sys_e)sys);
-    JetCollection&& selectedBJetsL = selectBJets(selectedJets,0.605);
-    JetCollection&& selectedBJetsM = selectBJets(selectedJets,0.890);
-    JetCollection&& selectedBJetsT = selectBJets(selectedJets,0.970);
+    JetCollection&& selectedBJetsL = selectBJets(selectedJets,0.460);//0.605);
+    JetCollection&& selectedBJetsM = selectBJets(selectedJets,0.800);//0.890);
+    JetCollection&& selectedBJetsT = selectBJets(selectedJets,0.935);//0.970);
     
     int idx=0;
     std::map<int,float> mapJetBDiscriminator;
@@ -1074,11 +1074,11 @@ void TtbarBbbarDiLeptonAnalyzer::selectElecs(const cat::ElectronCollection& elec
     //if (!el.electronID("cutBasedElectronID-Spring15-50ns-V1-standalone-medium")) continue;
     //if (el.electronID("cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-medium") == 0) continue;
     //if (!el.electronID("mvaEleID-Spring15-25ns-Trig-V1-wp90")) continue;
-    //if ( !el.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-medium") ) continue;
+    if ( !el.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-medium") ) continue;
     //if (!el.passConversionVeto()) continue;
     //if (!el.isPF()) continue;
-    if ( !el.isTrigMVAValid() or !el.electronID("mvaEleID-Spring15-25ns-Trig-V1-wp90") ) continue;
-    if (el.relIso(0.3) > 0.12) continue;
+    //if ( !el.isTrigMVAValid() or !el.electronID("mvaEleID-Spring15-25ns-Trig-V1-wp90") ) continue;
+    //if (el.relIso(0.3) > 0.12) continue;
 
 
     //printf("electron with pt %4.1f\n", el.pt());
