@@ -39,6 +39,7 @@ lumiMask = 'lumiMask'
 
 #process.load("CATTools.CatAnalyzer.ttll.ttbarDileptonKinSolutionAlgos_cff")
 process.load("CATTools.CatAnalyzer.filters_cff")
+process.load("CATTools.CatAnalyzer.topPtWeightProducer_cfi")
 from CATTools.CatAnalyzer.leptonSF_cff import *
 
 process.cattree = cms.EDAnalyzer("TtbarBbbarDiLeptonAnalyzer",
@@ -46,7 +47,10 @@ process.cattree = cms.EDAnalyzer("TtbarBbbarDiLeptonAnalyzer",
     nGoodVertex = cms.InputTag("catVertex","nGoodPV"),
     genweight = cms.InputTag("genWeight","genWeight"),
     genweightQ = cms.InputTag("genWeight","Q"),
-    genweightPDF = cms.InputTag("genWeight","pdfWeights"),
+    #genweightPDF = cms.InputTag("genWeight","pdfWeights"),
+    genweightPDF = cms.InputTag("genWeight","otherWeights"),
+    scaleweight = cms.InputTag("genWeight","scaleWeights"),
+    topPtWeight = cms.InputTag("topPtWeight"),
 
     lumiSelection = cms.InputTag(lumiMask),
     puweight = cms.InputTag("pileupWeight"),
