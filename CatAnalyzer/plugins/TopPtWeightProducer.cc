@@ -61,5 +61,7 @@ void TopPtWeightProducer::produce(edm::Event& event, const edm::EventSetup& even
     ptWeight = sqrt(exp(a+b*pt1)*exp(a+b*pt2));
   }
 
-  event.put(std::auto_ptr<float>(new float(ptWeight)), "ptWeight");
+  event.put(std::auto_ptr<float>(new float(ptWeight)));
 }
+#include "FWCore/Framework/interface/MakerMacros.h"
+DEFINE_FWK_MODULE(TopPtWeightProducer);

@@ -25,6 +25,7 @@ if useSilver:
 
 process.load("CATTools.CatAnalyzer.ttll.ttbarDileptonKinSolutionAlgos_cff")
 process.load("CATTools.CatAnalyzer.filters_cff")
+process.load("CATTools.CatAnalyzer.topPtWeightProducer_cfi")
 from CATTools.CatAnalyzer.leptonSF_cff import *
 
 process.cattree = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
@@ -33,6 +34,8 @@ process.cattree = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     lumiSelection = cms.InputTag(lumiMask),
     genweight = cms.InputTag("genWeight","genWeight"),
     pdfweight = cms.InputTag("genWeight","pdfWeights"),
+    scaleweight = cms.InputTag("genWeight","scaleWeights"),
+    topPtWeight = cms.InputTag("topPtWeight"),
     puweight = cms.InputTag(pileupWeight),
     puweight_up = cms.InputTag(pileupWeight,"up"),
     puweight_dn = cms.InputTag(pileupWeight,"dn"),
