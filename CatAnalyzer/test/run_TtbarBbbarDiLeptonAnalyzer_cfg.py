@@ -2,6 +2,7 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("TtbarDiLeptonAnalyzer")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
+#process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
 
@@ -38,6 +39,10 @@ lumiMask = 'lumiMask'
 #    process.pileupWeight.pileupDn = pileupWeightMap["Run2015Dn_25nsV1"]
 
 #process.load("CATTools.CatAnalyzer.ttll.ttbarDileptonKinSolutionAlgos_cff")
+process.load("CATTools.CatProducer.genTopProducer_cfi")
+from CATTools.CatProducer.Tools.tools import genHFTool
+genHFTool(process,True)
+
 process.load("CATTools.CatAnalyzer.filters_cff")
 process.load("CATTools.CatAnalyzer.topPtWeightProducer_cfi")
 from CATTools.CatAnalyzer.leptonSF_cff import *
@@ -83,7 +88,7 @@ process.cattree = cms.EDAnalyzer("TtbarBbbarDiLeptonAnalyzer",
 
     GenJets = cms.InputTag("slimmedGenJets"),
     GenParticles = cms.InputTag("prunedGenParticles"),
-    GenTop = cms.InputTag("catGenTops"),
+    GenTop = cms.InputTag("catGenTops","","TtbarDiLeptonAnalyzer"),
 )
 
 process.TFileService = cms.Service("TFileService",
