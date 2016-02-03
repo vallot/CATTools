@@ -24,9 +24,10 @@ ttbarDileptonKinAlgoPSetMAOS = cms.PSet(
 
 ttbarDileptonKinAlgoPSetDESYSmeared = cms.PSet(
     algo = cms.string("DESYSmeared"),
-    inputTemplatePath = cms.string("CATTools/CatAnalyzer/data/desyKinRecoInput.root"),
+    #inputTemplatePath = cms.string("CATTools/CatAnalyzer/data/desyKinRecoInput.root"),
+    inputTemplatePath = cms.string("CATTools/CatAnalyzer/data/KoreaDesyKinRecoInput.root"),
     nTrial = cms.int32(100),
-    maxLBMass = cms.double(180),
+    maxLBMass = cms.double(360),
     mTopInput = cms.double(172.5),
 )
 

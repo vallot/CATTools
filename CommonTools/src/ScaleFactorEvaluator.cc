@@ -36,6 +36,6 @@ double ScaleFactorEvaluator::operator()(const double x, const double y, const do
   const double value = values_.at(bin);
   const double error = errors_.at(bin);
 
-  return value+shift*error;
+  return std::max(0.0, value+shift*error);
 }
 

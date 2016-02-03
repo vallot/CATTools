@@ -25,6 +25,7 @@ if useSilver:
 
 process.load("CATTools.CatAnalyzer.ttll.ttbarDileptonKinSolutionAlgos_cff")
 process.load("CATTools.CatAnalyzer.filters_cff")
+process.load("CATTools.CatAnalyzer.topPtWeightProducer_cfi")
 from CATTools.CatAnalyzer.leptonSF_cff import *
 
 process.cattree = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
@@ -32,7 +33,10 @@ process.cattree = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     nGoodVertex = cms.InputTag("catVertex","nGoodPV"),
     lumiSelection = cms.InputTag(lumiMask),
     genweight = cms.InputTag("genWeight","genWeight"),
-    pdfweight = cms.InputTag("genWeight","pdfWeights"),
+    #pdfweight = cms.InputTag("genWeight","pdfWeights"),
+    pdfweight = cms.InputTag("genWeight","otherWeights"),
+    scaleweight = cms.InputTag("genWeight","scaleWeights"),
+    topPtWeight = cms.InputTag("topPtWeight"),
     puweight = cms.InputTag(pileupWeight),
     puweight_up = cms.InputTag(pileupWeight,"up"),
     puweight_dn = cms.InputTag(pileupWeight,"dn"),
@@ -47,7 +51,7 @@ process.cattree = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     ),
     electron = cms.PSet(
         src = cms.InputTag("catElectrons"),
-        effSF = electronSFWP90,
+        effSF = electronSFCutBasedIDMediumWP,#electronSFWP90,
     ),
     jets = cms.InputTag("catJets"),
     mets = cms.InputTag(catmet),
@@ -59,8 +63,8 @@ process.cattree = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
 
     pseudoTop = cms.InputTag("pseudoTop"),
     
-    solver = process.ttbarDileptonKinAlgoPSetCMSKin,
-    #solver = process.ttbarDileptonKinAlgoPSetDESYSmeared,
+    #solver = process.ttbarDileptonKinAlgoPSetCMSKin,
+    solver = process.ttbarDileptonKinAlgoPSetDESYSmeared,
     #solver = process.ttbarDileptonKinAlgoPSetDESYMassLoop,
 )
 #process.cattree.solver.tMassStep = 1
