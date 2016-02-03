@@ -24,9 +24,14 @@ process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring(
-        '/store/user/jhgoh/CATTools/sync/v7-6-1/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',
-    )
+     fileNames = cms.untracked.vstring(
+        'file:ttbar_PowhegPythia.root',
+        #'file:catTuple_1.root',
+        #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-6-1_RunIIFall15MiniAODv1-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext3-v1/160123_212836/0000/catTuple_1.root',
+        #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-6-1_RunIIFall15MiniAODv1-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext3-v1/160123_212836/0000/catTuple_10.root',
+        #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-6-1_RunIIFall15MiniAODv1-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext3-v1/160123_212836/0000/catTuple_100.root',
+        #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-6-1_RunIIFall15MiniAODv1-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext3-v1/160123_212836/0000/catTuple_101.root',
+   )
 )
 
 # PUReWeight
@@ -39,8 +44,14 @@ process.source = cms.Source("PoolSource",
 
 # json file (Only Data)
 # import FWCore.PythonUtilities.LumiList as LumiList
-# process.source.lumisToProcess = LumiList.LumiList(filename = 'Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON.txt').getVLuminosityBlockRange()
+# process.source.lumisToProcess = LumiList.LumiList(filename = 'Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON_v2.txt').getVLuminosityBlockRange()
 
+# GenTop
+process.load("CATTools.CatProducer.genTopProducer_cfi")
+from CATTools.CatProducer.Tools.tools import genHFTool
+genHFTool(process,True)
+
+# Lepton SF
 from CATTools.CatAnalyzer.leptonSF_cff import *
 
 process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
@@ -50,7 +61,8 @@ process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      genLabel          = cms.InputTag("prunedGenParticles"),
                                      genJetLabel       = cms.InputTag("slimmedGenJets"),
                                      genttbarCatLabel  = cms.InputTag("GenTtbarCategories:genTtbarId"),
-                                     genttbarConeCatLabel  = cms.InputTag("catGenTops"),
+                                     #genttbarConeCatLabel  = cms.InputTag("catGenTops"),
+                                     genttbarConeCatLabel  = cms.InputTag("catGenTops","","ttbbLepJets"),
                                      muonLabel         = cms.InputTag("catMuons"),
                                      muonSF = muonSFTight,
                                      electronLabel     = cms.InputTag("catElectrons"),
