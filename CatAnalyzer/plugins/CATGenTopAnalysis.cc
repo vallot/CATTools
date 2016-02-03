@@ -9,6 +9,8 @@
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
+#include "CATTools/CommonTools/interface/TTbarModeDefs.h"
+
 #include "Math/GenVector/Boost.h"
 #include "TH1D.h"
 #include "TH2D.h"
@@ -16,6 +18,7 @@
 #include <iostream>
 
 using namespace std;
+using namespace cat;
 
 class CATGenTopAnalysis : public edm::one::EDAnalyzer<edm::one::SharedResources>
 {
@@ -237,13 +240,13 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup&)
   edm::Handle<int> channelHandle;
   event.getByToken(channelToken_, channelHandle);
   const int channel = *channelHandle;
-  if ( channel == -1 ) return;
+  if ( channel == CH_NOTT ) return;
 
   edm::Handle<std::vector<int> > modesHandle;
   event.getByToken(modesToken_, modesHandle);
   if ( modesHandle->size() != 2 ) return; // this should not happen if parton top module was not crashed
   const int mode1 = modesHandle->at(0), mode2 = modesHandle->at(1);
-  if ( filterTaus_ and (mode1 >= 3 or mode2 >= 3) ) return;
+  if ( filterTaus_ and (mode1 >= CH_TAU_HADRON or mode2 >= CH_TAU_HADRON) ) return;
 
   edm::Handle<reco::GenParticleCollection> partonTopHandle;
   event.getByToken(partonTopToken_, partonTopHandle);
@@ -280,19 +283,19 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup&)
 
   // Determine channel informations
   int partonTopCh = -1;
-  if ( channel == 0 ) { // Full hadronic including taus
-    if ( mode1 == 3 or mode2 == 3 ) partonTopCh = 6; // hadronic with tau
+  if ( channel == CH_FULLHADRON ) { // Full hadronic including taus
+    if ( mode1 == CH_TAU_HADRON or mode2 == CH_TAU_HADRON ) partonTopCh = 6; // hadronic with tau
     else partonTopCh = 0;
   }
-  else if ( channel == 1 ) { // semilepton channels
-    if ( mode1 == 2 or mode2 == 2 ) partonTopCh = 1; // e+jets no tau
-    else if ( mode1 == 1 or mode2 == 1 ) partonTopCh = 2; // mu+jets no tau
+  else if ( channel == CH_SEMILEPTON ) { // semilepton channels
+    if ( mode1 == CH_ELECTRON or mode2 == CH_ELECTRON ) partonTopCh = 1; // e+jets no tau
+    else if ( mode1 == CH_MUON or mode2 == CH_MUON ) partonTopCh = 2; // mu+jets no tau
     else partonTopCh = 7; // any leptons from tau decay
   }
   else { // full leptonic channels
-    if ( mode1 >= 4 or mode2 >= 4 ) partonTopCh = 8; // dilepton anything includes tau decay
-    else if ( mode1 == 3 and mode2 == 3 ) partonTopCh = 3; // ee channel no tau
-    else if ( mode1 == 2 and mode2 == 2 ) partonTopCh = 4; // mumu cnannel no tau
+    if ( mode1 > CH_TAU_HADRON or mode2 > CH_TAU_HADRON ) partonTopCh = 8; // dilepton anything includes tau decay
+    else if ( mode1 == CH_ELECTRON and mode2 == CH_ELECTRON ) partonTopCh = 3; // ee channel no tau
+    else if ( mode1 == CH_MUON and mode2 == CH_MUON ) partonTopCh = 4; // mumu cnannel no tau
     else partonTopCh = 5; // emu channel no tau
   }
   hFulParton_Channel_->Fill(partonTopCh, weight);
@@ -449,7 +452,7 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup&)
     h2_[SL_topPtTtbarSys]->Fill(pseudoTopPtAtCM, partonTopPtAtCM, weight);
 
     // Fill pseudo top plots within parton level acceptance cut
-    if ( channel == 1 ) {
+    if ( channel == CH_SEMILEPTON ) {
       hChPseudo_Channel_->Fill(pseudoTopCh, weight);
       h2ChChannel_->Fill(partonTopCh, pseudoTopCh, weight);
 
@@ -538,7 +541,7 @@ void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup&)
     h2_[DL_ttbarMass]->Fill(pseudoTT.mass(), partonTT.mass(), weight);
     h2_[DL_topPtTtbarSys]->Fill(pseudoTopPtAtCM, partonTopPtAtCM, weight);
 
-    if ( channel == 2 ) {
+    if ( channel == CH_FULLLEPTON ) {
       hChPseudo_Channel_->Fill(pseudoTopCh, weight);
       h2ChChannel_->Fill(partonTopCh, pseudoTopCh, weight);
 

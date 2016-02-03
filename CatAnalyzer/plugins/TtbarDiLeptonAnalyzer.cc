@@ -15,6 +15,7 @@
 
 #include "CATTools/CommonTools/interface/TTbarModeDefs.h"
 #include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
+#include "CATTools/CatAnalyzer/interface/BTagScaleFactorEvaluators.h"
 //#include "TopQuarkAnalysis/TopKinFitter/interface/TtFullLepKinSolver.h"
 #include "CATTools/CatAnalyzer/interface/KinematicSolvers.h"
 
@@ -60,7 +61,7 @@ private:
       const double pt = p.pt(), aeta = std::abs(p.eta());
       if      ( sys == sys_mueff_u ) return muonSF_(pt, aeta,  1);
       else if ( sys == sys_mueff_d ) return muonSF_(pt, aeta, -1);
-      else return muonSF_(pt, aeta, pt);
+      else return muonSF_(pt, aeta, 0);
     }
     else {
       const double pt = p.pt(), eta = p.eta();
@@ -70,10 +71,11 @@ private:
     }
     return 1;
   }
+  CSVWeightEvaluator csvWeight;
 
   edm::EDGetTokenT<int> recoFiltersToken_, nGoodVertexToken_, lumiSelectionToken_;
-  edm::EDGetTokenT<float> genweightToken_, puweightToken_, puweightToken_up_, puweightToken_dn_;
-  edm::EDGetTokenT<vector<float>> pdfweightToken_;
+  edm::EDGetTokenT<float> genweightToken_, puweightToken_, puweightToken_up_, puweightToken_dn_, topPtWeight_;
+  edm::EDGetTokenT<vector<float>> pdfweightToken_, scaleweightToken_;
   edm::EDGetTokenT<int> trigTokenMUEL_, trigTokenMUMU_, trigTokenELEL_;
 
   edm::EDGetTokenT<cat::MuonCollection>     muonToken_;
@@ -90,7 +92,8 @@ private:
   int b_nvertex, b_step, b_channel, b_njet, b_nbjet;
   bool b_step1, b_step2, b_step3, b_step4, b_step5, b_step6, b_tri, b_filtered;
   float b_met, b_weight, b_puweight, b_puweight_up, b_puweight_dn, b_genweight, b_lepweight, b_btagweight, b_btagweight_up, b_btagweight_dn;
-  std::vector<float> b_pdfWeights;
+  float b_csvweight, b_topPtWeight;
+  std::vector<float> b_pdfWeights, b_scaleWeights;
 
   float b_lep1_pt, b_lep1_eta, b_lep1_phi;
   float b_lep2_pt, b_lep2_eta, b_lep2_phi;
@@ -142,6 +145,8 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   lumiSelectionToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("lumiSelection"));
   genweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("genweight"));
   pdfweightToken_ = consumes<vector<float>>(iConfig.getParameter<edm::InputTag>("pdfweight"));
+  scaleweightToken_ = consumes<vector<float>>(iConfig.getParameter<edm::InputTag>("scaleweight"));
+  topPtWeight_ = consumes<float>(iConfig.getParameter<edm::InputTag>("topPtWeight"));
   puweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("puweight"));
   puweightToken_up_ = consumes<float>(iConfig.getParameter<edm::InputTag>("puweight_up"));
   puweightToken_dn_ = consumes<float>(iConfig.getParameter<edm::InputTag>("puweight_dn"));
@@ -221,7 +226,9 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
     tr->Branch("filtered", &b_filtered, "filtered/O");
     tr->Branch("met", &b_met, "met/F");
     tr->Branch("weight", &b_weight, "weight/F");
-    tr->Branch("pdfWeihgts","std::vector<float>",&b_pdfWeights);
+    tr->Branch("pdfWeights","std::vector<float>",&b_pdfWeights);
+    tr->Branch("scaleWeights","std::vector<float>",&b_scaleWeights);
+    tr->Branch("topPtWeight", &b_topPtWeight, "topPtWeight/F");
     tr->Branch("puweight", &b_puweight, "puweight/F");
     tr->Branch("puweight_up", &b_puweight_up, "puweight_up/F");
     tr->Branch("puweight_dn", &b_puweight_dn, "puweight_dn/F");
@@ -230,6 +237,7 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
     tr->Branch("btagweight", &b_btagweight, "btagweight/F");
     tr->Branch("btagweight_up", &b_btagweight_up, "btagweight_up/F");
     tr->Branch("btagweight_dn", &b_btagweight_dn, "btagweight_dn/F");
+    tr->Branch("csvweight", &b_csvweight, "csvweight/F");
 
     tr->Branch("lep1_pt", &b_lep1_pt, "lep1_pt/F");
     tr->Branch("lep1_eta", &b_lep1_eta, "lep1_eta/F");
@@ -354,12 +362,21 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
     edm::Handle<int> partonTop_channel;
     if ( iEvent.getByToken(partonTop_channel_, partonTop_channel)){
-      
+
+      edm::Handle<float> topPtWeightHandle;
+      iEvent.getByToken(topPtWeight_, topPtWeightHandle);
+      b_topPtWeight = *topPtWeightHandle;
+
       if (sys == sys_nom){
 	edm::Handle<vector<float>> pdfweightHandle;
 	iEvent.getByToken(pdfweightToken_, pdfweightHandle);
 	for (const float & aPdfWeight : *pdfweightHandle){
 	  b_pdfWeights.push_back(aPdfWeight);  
+	}
+	edm::Handle<vector<float>> scaleweightHandle;
+	iEvent.getByToken(scaleweightToken_, scaleweightHandle);
+	for (const float & aScaleWeight : *scaleweightHandle){
+	  b_scaleWeights.push_back(aScaleWeight);  
 	}
       }
       
@@ -619,7 +636,6 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     if (pdgIdSum == 26) b_channel = CH_MUMU; // mumu
 
     b_lepweight = getSF(recolep1, sys)*getSF(recolep2, sys);
-    b_weight *= b_lepweight;
 
     // Trigger results
     edm::Handle<int> trigHandle;
@@ -794,8 +810,8 @@ float TtbarDiLeptonAnalyzer::selectMuons(const cat::MuonCollection& muons, Parti
     if (!mu.isTightMuon()) continue;
     if (mu.relIso(0.4) > 0.15) continue;
     //printf("muon with pt %4.1f, POG loose id %d, tight id %d\n", mu.pt(), mu.isLooseMuon(), mu.isTightMuon());
-    weight *= mu.scaleFactor("NUM_TightIDandIPCut_DEN_genTracks_PAR_pt_spliteta_bin1");
-    weight *= mu.scaleFactor("NUM_TightRelIso_DEN_TightID_PAR_pt_spliteta_bin1");
+    //weight *= mu.scaleFactor("NUM_TightIDandIPCut_DEN_genTracks_PAR_pt_spliteta_bin1");
+    //weight *= mu.scaleFactor("NUM_TightRelIso_DEN_TightID_PAR_pt_spliteta_bin1");
     selmuons.push_back(mu);
   }
   return weight;
@@ -812,11 +828,12 @@ float TtbarDiLeptonAnalyzer::selectElecs(const cat::ElectronCollection& elecs, P
     if (el.pt() < 20.) continue;
     if ((std::abs(el.scEta()) > 1.4442) && (std::abs(el.scEta()) < 1.566)) continue;
     if (std::abs(el.eta()) > 2.4) continue;
-    //if ( !el.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-medium") ) continue;
-    if ( !el.isTrigMVAValid() or !el.electronID("mvaEleID-Spring15-25ns-Trig-V1-wp90") ) continue;
+    if ( !el.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-medium") ) continue;
+    //if ( !el.isTrigMVAValid() or !el.electronID("mvaEleID-Spring15-25ns-Trig-V1-wp90") ) continue;
     if (el.relIso(0.3) > 0.12) continue;
 
-    weight *= el.scaleFactor("mvaEleID-Spring15-25ns-Trig-V1-wp90");
+    //weight *= el.scaleFactor("mvaEleID-Spring15-25ns-Trig-V1-wp90");
+    //weight *= el.scaleFactor("cutBasedElectronID-Spring15-25ns-V1-standalone-medium");
     //printf("electron with pt %4.1f\n", el.pt());
     selelecs.push_back(el);
   }
@@ -847,7 +864,8 @@ cat::JetCollection TtbarDiLeptonAnalyzer::selectJets(const cat::JetCollection& j
     else if (sys == sys_btag_d) b_btagweight *= jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE, -1);
     else b_btagweight *= jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE, 0);
     
-	seljets.push_back(jet);
+    b_csvweight *= csvWeight(jet, CSVWeightEvaluator::CENTRAL);
+    seljets.push_back(jet);
   }
   return seljets;
 }
@@ -856,7 +874,8 @@ cat::JetCollection TtbarDiLeptonAnalyzer::selectBJets(const JetCollection& jets)
 {
   cat::JetCollection selBjets;
   for (auto& jet : jets) {
-    if (jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") < 0.605) continue;
+    if (jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") < 0.460) continue;//76x version
+    //if (jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") < 0.605) continue; //74x version
     //if (jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") < 0.89) continue;//forsync
     //printf("b jet with pt %4.1f\n", jet.pt());
     selBjets.push_back(jet);
@@ -870,7 +889,9 @@ void TtbarDiLeptonAnalyzer::resetBr()
   b_met = -9;
   b_weight = 1; b_puweight = 1; b_puweight_up = 1; b_puweight_dn = 1; b_genweight = 1; b_lepweight = 1;
   b_btagweight = 1;b_btagweight_up = 1;b_btagweight_dn = 1;
+  b_csvweight = 1.; b_topPtWeight = 1.;
   b_pdfWeights.clear();
+  b_scaleWeights.clear();
 
   b_lep1_pt = -9;b_lep1_eta = -9;b_lep1_phi = -9;
   b_lep2_pt = -9;b_lep2_eta = -9;b_lep2_phi = -9;

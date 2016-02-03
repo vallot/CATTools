@@ -4,8 +4,8 @@ import sys, os
 
 if len(sys.argv) < 2:
     print sys.argv[0], "PROD_VERSION"
-    print "Default PROD_VERISON = v7-4-6"
-    sys.argv.append('v7-4-6')
+    print "Default PROD_VERISON = v7-6-1"
+    sys.argv.append('v7-6-1')
 
 gidMap = {
     'v7-3-4':'857222646',
@@ -19,17 +19,7 @@ gidMap = {
 }
 gid = gidMap[sys.argv[1]]
 
-from CATTools.CatAnalyzer.libxrd import *
-cmd, xrdbase = guessxrd()
-
 from ROOT import *
-
-## A hack to add prefix for the sites
-prefix = ""
-hostname = os.environ["HOSTNAME"]
-if "sdfarm" in hostname:
-    prefix = "root://cms-xrdr.sdfarm.kr:1094//"+xrdbase
-##
 
 from urllib import urlopen
 import csv
@@ -43,7 +33,7 @@ nameIdx = csv[0].index("Name")
 titleIdx = csv[0].index("Title")
 xsecIdx = csv[0].index("Cross section (pb)")
 nevtIdx = csv[0].index("NEvent")
-lumiIdx = csv[0].index("luminosity (pb-1)")
+lumiIdx = csv[0].index("luminosity (fb-1)")
 colourIdx = csv[0].index("colour")
 pathIdx = csv[0].index("Path")
 DataSetNameIdx = csv[0].index("DataSetName")
@@ -73,8 +63,19 @@ if not os.path.exists(outDir+"/dataset"): os.makedirs(outDir+"/dataset")
 import json
 f = open("%s/dataset.json" % outDir, "w")
 print "Saving dataset info to %s/dataset.json" % outDir
-print>>f, json.dumps(ds)
+print>>f, json.dumps(ds, indent=4, sort_keys=True)
 f.close()
+
+print "Trying to verify file list..."
+from CATTools.CatAnalyzer.libxrd import *
+cmd, xrdbase = guessxrd()
+
+## A hack to add prefix for the sites
+prefix = ""
+hostname = os.environ["HOSTNAME"]
+if "sdfarm" in hostname:
+    prefix = "root://cms-xrdr.sdfarm.kr:1094//"+xrdbase
+##
 
 # since all files are at kisti
 if not "sdfarm" in hostname:    

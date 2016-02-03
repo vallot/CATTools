@@ -51,8 +51,8 @@ void TopPtWeightProducer::produce(edm::Event& event, const edm::EventSetup& even
     const double pt2 = tQuarks.at(1)->pt();
 
     const int mode1 = modes->at(0), mode2 = modes->at(1);
-    const bool isLep1 = (mode1 == (int)WMode::CH_MUON or mode2 == (int)WMode::CH_ELECTRON);
-    const bool isLep2 = (mode2 == (int)WMode::CH_MUON or mode2 == (int)WMode::CH_ELECTRON);
+    const bool isLep1 = (mode1 == CH_MUON or mode2 == CH_ELECTRON);
+    const bool isLep2 = (mode2 == CH_MUON or mode2 == CH_ELECTRON);
 
     double a = 0.156, b = -0.00137;
     if ( isLep1 and isLep2 ) { a = 0.148; b = -0.00129; }
@@ -61,5 +61,7 @@ void TopPtWeightProducer::produce(edm::Event& event, const edm::EventSetup& even
     ptWeight = sqrt(exp(a+b*pt1)*exp(a+b*pt2));
   }
 
-  event.put(std::auto_ptr<float>(new float(ptWeight)), "ptWeight");
+  event.put(std::auto_ptr<float>(new float(ptWeight)));
 }
+#include "FWCore/Framework/interface/MakerMacros.h"
+DEFINE_FWK_MODULE(TopPtWeightProducer);
