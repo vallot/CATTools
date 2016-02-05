@@ -123,8 +123,10 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
             const reco::Candidate* pion2Cand = jetsDaughters[i][extra_pion_idx];
             if ( pion2Cand->pdgId() != 211) continue;
             pion2.SetPtEtaPhiM( pion2Cand->pt(), pion2Cand->eta(), pion2Cand->phi(), gPionMass);
+            Dstar = pion+kaon+pion2;
+            const math::XYZTLorentzVector lv2( Dstar.Px(), Dstar.Py(), Dstar.Pz(), Dstar.E());
 
-            VertexCompositeCandidate* DstarCand = new VertexCompositeCandidate(pion2Cand->charge(), lv, Point(0,0,0), 421211) ;  // + pdgId,
+            VertexCompositeCandidate* DstarCand = new VertexCompositeCandidate(pion2Cand->charge(), lv2, Point(0,0,0), 421211) ;  // + pdgId,
             DstarCand->addDaughter( *pionCand );
             DstarCand->addDaughter( *kaonCand );
             DstarCand->addDaughter( *pion2Cand );
