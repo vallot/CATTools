@@ -42,7 +42,7 @@ public:
   explicit TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet&);
   ~TtbarBbbarDiLeptonAnalyzer();
 
-  enum sys_e {sys_nom,  sys_jes_u, sys_jes_d, sys_jer_u, sys_jer_d,
+  enum sys_e {sys_nom,  sys_jes_u, sys_jes_d, sys_jer_n,sys_jer_u, sys_jer_d,
      sys_mu_u, sys_mu_d, sys_el_u, sys_el_d,
      sys_mueff_u, sys_mueff_d, sys_eleff_u, sys_eleff_d,
 //    sys_btag_u, sys_btag_d,
@@ -116,6 +116,7 @@ private:
 
   TTree * ttree7_, * ttree8_,* ttree9_,* ttree10_;
   TTree * ttree11_, * ttree12_,* ttree13_,* ttree14_;
+  TTree * ttree15_;
   
   int b_nvertex, b_step, b_channel;
   bool b_step1, b_step2, b_step3, b_step4, b_step5, b_step6, b_tri, b_filtered;
@@ -326,18 +327,19 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
 
   ttree3_ = fs->make<TTree>("nomJES_up", "nom2");
   ttree4_ = fs->make<TTree>("nomJES_dw", "nom2");
-  ttree5_ = fs->make<TTree>("nomJER_up", "nom2");
-  ttree6_ = fs->make<TTree>("nomJER_dw", "nom2");
+  ttree5_ = fs->make<TTree>("nomJER_n", "nom2");
+  ttree6_ = fs->make<TTree>("nomJER_up", "nom2");
+  ttree7_ = fs->make<TTree>("nomJER_dw", "nom2");
 
-  ttree7_ = fs->make<TTree>("nomMu_up", "nom2");
-  ttree8_ = fs->make<TTree>("nomMu_dw", "nom2");
-  ttree9_ = fs->make<TTree>("nomEl_up", "nom2");
-  ttree10_ = fs->make<TTree>("nomEl_dw", "nom2");
+  ttree8_ = fs->make<TTree>("nomMu_up", "nom2");
+  ttree9_ = fs->make<TTree>("nomMu_dw", "nom2");
+  ttree10_ = fs->make<TTree>("nomEl_up", "nom2");
+  ttree11_ = fs->make<TTree>("nomEl_dw", "nom2");
 
-  ttree11_ = fs->make<TTree>("nomMueff_up", "nom2");
-  ttree12_ = fs->make<TTree>("nomMueff_dw", "nom2");
-  ttree13_ = fs->make<TTree>("nomEleff_up", "nom2");
-  ttree14_ = fs->make<TTree>("nomEleff_dw", "nom2");
+  ttree12_ = fs->make<TTree>("nomMueff_up", "nom2");
+  ttree13_ = fs->make<TTree>("nomMueff_dw", "nom2");
+  ttree14_ = fs->make<TTree>("nomEleff_up", "nom2");
+  ttree15_ = fs->make<TTree>("nomEleff_dw", "nom2");
 
   book(ttree_);
   book(ttree2_);
@@ -355,6 +357,7 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
   book(ttree12_);
   book(ttree13_);
   book(ttree14_);
+  book(ttree15_);
 
   for (int i = 0; i < NCutflow; i++) cutflow_.push_back({0,0,0,0});
 }
@@ -933,7 +936,6 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
       mapJetBDiscriminator[idx] = bDisCSV;
       mapJetBDiscriminatorMVA[idx] = bDisMVA;
       idx++;
-      //b_jets_pt.push_back(jet1->p4().pt()*jet1->smearedRes());
       b_jets_pt.push_back(jet1->p4().pt());
       b_jets_eta.push_back(jet1->p4().eta());
       b_jets_phi.push_back(jet1->p4().phi());
@@ -1040,6 +1042,7 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     else if (sys==10) ttree12_->Fill();
     else if (sys==11) ttree13_->Fill();
     else if (sys==12) ttree14_->Fill();
+    else if (sys==13) ttree15_->Fill();
 
   }
 }
@@ -1121,6 +1124,7 @@ cat::JetCollection TtbarBbbarDiLeptonAnalyzer::selectJets(const cat::JetCollecti
     cat::Jet jet(j);
     if (sys == sys_jes_u) jet.setP4(j.p4() * j.shiftedEnUp());
     if (sys == sys_jes_d) jet.setP4(j.p4() * j.shiftedEnDown());
+    if (sys == sys_jer_n) jet.setP4(j.p4() * j.smearedRes());
     if (sys == sys_jer_u) jet.setP4(j.p4() * j.smearedResUp());
     if (sys == sys_jer_d) jet.setP4(j.p4() * j.smearedResDown());
 
