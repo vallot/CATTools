@@ -57,7 +57,6 @@ if doSecVertex:
     process.catOut.outputCommands.extend(catEventContentSecVertexs)
 
 if doDstar :
-    process.load("")
     process.catOut.outputCommands.extend(['keep *_catDstars_*_*',])
 
 
