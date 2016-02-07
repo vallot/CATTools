@@ -547,6 +547,7 @@ private:
   double muonSFShift_, electronSFShift_;
 
   bool isMC_;
+  bool isIgnoreTrig_; // Accept event even if it does not pass HLT. Needed for synchronization
   const int applyFilterAt_;
 
   // ID variables
@@ -619,6 +620,7 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   trigElElToken_ = consumes<int>(filterSet.getParameter<edm::InputTag>("trigELEL"));
   trigMuMuToken_ = consumes<int>(filterSet.getParameter<edm::InputTag>("trigMUMU"));
   trigMuElToken_ = consumes<int>(filterSet.getParameter<edm::InputTag>("trigMUEL"));
+  isIgnoreTrig_ = filterSet.getParameter<bool>("ignoreTrig");
 
   if ( isMC_ )
   {
