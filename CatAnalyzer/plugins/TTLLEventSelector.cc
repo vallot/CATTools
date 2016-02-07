@@ -33,7 +33,7 @@ struct ControlPlots
   typedef TH2D* H2;
 
   H1 hCutstep, hCutstepNoweight;
-  H2 h2Cutstep;
+  H2 h2Cutstep, h2CutstepNoweight;
 
   H1 h0a_vertex_n;
 
@@ -517,7 +517,7 @@ private:
     if ( std::abs(el.eta()) > 2.4 ) return false;
     if ( shiftedElectronPt(el) < 20 ) return false;
 
-    if ( !el.isTrigMVAValid() ) return false;
+    if ( isMVAElectronSel_ and !el.isTrigMVAValid() ) return false;
 
     //if ( el.relIso(0.3) >= 0.11 ) return false;
     if ( !el.electronID(elIdName_) ) return false;
@@ -549,6 +549,7 @@ private:
   const int applyFilterAt_;
 
   // ID variables
+  bool isMVAElectronSel_;
   std::string bTagName_;
   std::string elIdName_;
   enum class BTagWP { CSVL, CSVM, CSVT } bTagWP_;
@@ -590,6 +591,8 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
                     electronSFSet.getParameter<vdouble>("errors"));
     electronSFShift_ = electronSet.getParameter<int>("efficiencySFDirection");
   }
+  isMVAElectronSel_ = false;
+  if ( elIdName_.substr(0,3) == "mva" ) isMVAElectronSel_ = true;
 
   const auto jetSet = pset.getParameter<edm::ParameterSet>("jet");
   jetToken_ = consumes<cat::JetCollection>(jetSet.getParameter<edm::InputTag>("src"));
