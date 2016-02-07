@@ -16,7 +16,6 @@
 #include "CATTools/DataFormats/interface/GenTop.h"
 
 #include "CATTools/CommonTools/interface/TTbarModeDefs.h"
-#include "CATTools/CommonTools/interface/WorkingPointDefs.h"
 #include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
 #include "CATTools/CatAnalyzer/interface/BTagScaleFactorEvaluators.h"
 

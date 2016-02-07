@@ -31,7 +31,6 @@
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/MET.h"
 
-#include "CATTools/CommonTools/interface/WorkingPointDefs.h"
 #include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
 #include "CATTools/CatAnalyzer/interface/BTagScaleFactorEvaluators.h"
 #include "CATTools/CommonTools/interface/AnalysisHelper.h"

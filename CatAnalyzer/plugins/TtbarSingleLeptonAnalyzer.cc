@@ -31,7 +31,6 @@
 #include "CATTools/DataFormats/interface/MET.h"
 
 #include "CATTools/CommonTools/interface/AnalysisHelper.h"
-#include "CATTools/CommonTools/interface/WorkingPointDefs.h"
 
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 

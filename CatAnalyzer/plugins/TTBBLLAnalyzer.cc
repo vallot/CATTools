@@ -11,7 +11,6 @@
 #include "CATTools/DataFormats/interface/MET.h"
 
 #include "CATTools/CommonTools/interface/TTbarModeDefs.h"
-#include "CATTools/CommonTools/interface/WorkingPointDefs.h"
 #include "CATTools/CatAnalyzer/interface/BTagScaleFactorEvaluators.h"
 
 #include "TH1D.h"

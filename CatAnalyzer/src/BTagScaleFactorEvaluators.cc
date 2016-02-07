@@ -1,8 +1,6 @@
 #include "CATTools/CatAnalyzer/interface/BTagScaleFactorEvaluators.h"
 #include "FWCore/ParameterSet/interface/FileInPath.h"
 
-#include "CATTools/CommonTools/interface/WorkingPointDefs.h"
-
 using namespace cat;
 
 using namespace std;
