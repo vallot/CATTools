@@ -498,7 +498,7 @@ private:
     if      ( jetScale_ == +1 ) pt *= jet.shiftedEnUp();
     else if ( jetScale_ == -1 ) pt *= jet.shiftedEnDown();
 
-    if ( isMC_ ) pt *= jet.smearedRes(jetResol_);
+    if ( isMC_ and !isSkipJER_ ) pt *= jet.smearedRes(jetResol_);
 
     return pt;
   }
@@ -540,6 +540,7 @@ private:
 
   // Energy scales
   int muonScale_, electronScale_, jetScale_, jetResol_;
+  bool isSkipJER_; // Do not apply JER, needed to remove randomness during the Synchronization
 
   // Efficiency SF
   ScaleFactorEvaluator muonSF_, electronSF_;
@@ -604,6 +605,8 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   else if ( bTagWPStr == "CSVM" ) bTagWP_ = BTagWP::CSVM;
   else if ( bTagWPStr == "CSVT" ) bTagWP_ = BTagWP::CSVT;
   else edm::LogError("TTLLEventSelector") << "Wrong bTagWP parameter " << bTagWPStr;
+  isSkipJER_ = false;
+  if ( jetSet.existsAs<bool>("skipJER") ) isSkipJER_ = jetSet.getParameter<bool>("skipJER");
 
   const auto metSet = pset.getParameter<edm::ParameterSet>("met");
   metToken_ = consumes<cat::METCollection>(metSet.getParameter<edm::InputTag>("src"));
