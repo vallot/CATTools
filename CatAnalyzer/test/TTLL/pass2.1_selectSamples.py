@@ -41,6 +41,7 @@ for path, dirs, files in os.walk(srcbase):
     if len(rootFiles) == 0: continue
 
     pp = path.split('/')[1:]
+    if len(pp) == 0: continue
     if pp[0] not in srcList: srcList[pp[0]] = {}
     if len(pp) == 1: srcList[pp[0]]['central'] = files
     elif len(pp) > 1: srcList[pp[0]][pp[1]] = files
