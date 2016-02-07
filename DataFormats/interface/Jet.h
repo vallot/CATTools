@@ -7,6 +7,8 @@
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/PatCandidates/interface/JetCorrFactors.h"
 
+#include "CATTools/CommonTools/interface/WorkingPointDefs.h"
+
 #include <string>
 #include <boost/array.hpp>
 
@@ -45,9 +47,9 @@ namespace cat {
     float bDiscriminator(const std::string &theLabel) const;
     const std::vector<std::pair<std::string, float> > & getPairDiscri() const {return pairDiscriVector_; }
 
-    bool CSVv2L(){ return (bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") > 0.605);}
-    bool CSVv2M(){ return (bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") > 0.890);}
-    bool CSVv2T(){ return (bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") > 0.970);}
+    bool CSVv2L(){ return (bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") > WP_BTAG_CSVv2L);}
+    bool CSVv2M(){ return (bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") > WP_BTAG_CSVv2M);}
+    bool CSVv2T(){ return (bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") > WP_BTAG_CSVv2T);}
 
     enum BTAGCSV_CUT { BTAGCSV_LOOSE=0, BTAGCSV_MEDIUM, BTAGCSV_TIGHT };
     float scaleFactorCSVv2(BTAGCSV_CUT op, int systDir) const;

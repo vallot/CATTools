@@ -16,6 +16,7 @@
 #include "CATTools/DataFormats/interface/GenTop.h"
 
 #include "CATTools/CommonTools/interface/TTbarModeDefs.h"
+#include "CATTools/CommonTools/interface/WorkingPointDefs.h"
 #include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
 #include "CATTools/CatAnalyzer/interface/BTagScaleFactorEvaluators.h"
 
@@ -80,7 +81,8 @@ private:
       else return muonSF_(pt, aeta, 0);
     }
     else {
-      const double pt = p.pt(), eta = p.eta();
+      const auto& el = dynamic_cast<const cat::Electron&>(p);
+      const double pt = p.pt(), eta = el.scEta();
       if      ( sys == sys_eleff_u ) return elecSF_(pt, eta,  1);
       else if ( sys == sys_eleff_d ) return elecSF_(pt, eta, -1);
       else return elecSF_(pt, eta, 0);
@@ -917,13 +919,13 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     
     //JetCollection&& selectedJets = selectJets(*jets, recolep);
     JetCollection&& selectedJets = selectJets(*jets, recolep, (sys_e)sys);
-    JetCollection&& selectedBJetsL = selectBJets(selectedJets,0.460);//0.605);
-    JetCollection&& selectedBJetsM = selectBJets(selectedJets,0.800);//0.890);
-    JetCollection&& selectedBJetsT = selectBJets(selectedJets,0.935);//0.970);
+    JetCollection&& selectedBJetsL = selectBJets(selectedJets,WP_BTAG_CSVv2L);
+    JetCollection&& selectedBJetsM = selectBJets(selectedJets,WP_BTAG_CSVv2M);
+    JetCollection&& selectedBJetsT = selectBJets(selectedJets,WP_BTAG_CSVv2T);
 
-    JetCollection&& selectedBJetsLMVA = selectBJetsMVA(selectedJets,-0.715);//0.605);
-    JetCollection&& selectedBJetsMMVA = selectBJetsMVA(selectedJets,0.185);//0.890);
-    JetCollection&& selectedBJetsTMVA = selectBJetsMVA(selectedJets,0.875);//0.970);
+    JetCollection&& selectedBJetsLMVA = selectBJetsMVA(selectedJets,WP_BTAG_cMVAv2L);
+    JetCollection&& selectedBJetsMMVA = selectBJetsMVA(selectedJets,WP_BTAG_cMVAv2M);
+    JetCollection&& selectedBJetsTMVA = selectBJetsMVA(selectedJets,WP_BTAG_cMVAv2T);
     
     int idx=0;
     std::map<int,float> mapJetBDiscriminator;

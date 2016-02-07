@@ -31,6 +31,7 @@
 #include "CATTools/DataFormats/interface/MET.h"
 
 #include "CATTools/CommonTools/interface/AnalysisHelper.h"
+#include "CATTools/CommonTools/interface/WorkingPointDefs.h"
 
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
@@ -125,7 +126,7 @@ private:
   std::vector<float> *b_Jet_pz;
   std::vector<float> *b_Jet_E;
   std::vector<float> *b_Jet_pt;
-  
+
   // Flavour
   std::vector<int> *b_Jet_partonFlavour;
   std::vector<int> *b_Jet_hadronFlavour;
@@ -138,8 +139,8 @@ private:
   // b-Jet discriminant
   std::vector<double> *b_Jet_CSV;
 
-  std::vector<int> * csvid;  
-  
+  std::vector<int> * csvid;
+
   //multiplicity
   int nJets30;
   int nbJets30;
@@ -200,7 +201,7 @@ TtbarSingleLeptonAnalyzer::TtbarSingleLeptonAnalyzer(const edm::ParameterSet& iC
   b_Jet_shiftedEnUp    = new std::vector<float>;
   b_Jet_shiftedEnDown  = new std::vector<float>;
 
-  b_Jet_CSV = new std::vector<double>; 
+  b_Jet_CSV = new std::vector<double>;
   csvid = new std::vector<int>;
 
   usesResource("TFileService");
@@ -342,7 +343,7 @@ void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Eve
   visible_ttjj = 0;
   visible_ttbb = 0;
   ttjj = 0;
-  ttbb = 0;   
+  ttbb = 0;
   ttbj = 0 ;
   ttcc = 0;
   ttLF = 0;
@@ -596,8 +597,8 @@ void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Eve
     nbJets30 = 0;
     int index = 0;
     //int NJets = 0;
-    //int NbJets = 0; 
- 
+    //int NbJets = 0;
+
     for (unsigned int i = 0; i < jets->size() ; i++) {
 
       const cat::Jet & jet = jets->at(i);
@@ -636,7 +637,7 @@ void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Eve
         double bDiscriminator = jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
         mapJetBDiscriminator[index] = bDiscriminator;
         b_Jet_CSV->push_back(bDiscriminator);
-        if( bDiscriminator > 0.890) nbJets30++; 
+        if( bDiscriminator > WP_BTAG_CSVv2M) nbJets30++;
         // BTagSFUtil *fBTagSF;   //The BTag SF utility
         // fBTagSF = new BTagSFUtil("CSVv2", "Medium", 0);
 

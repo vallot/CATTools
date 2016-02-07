@@ -11,6 +11,7 @@
 #include "CATTools/DataFormats/interface/MET.h"
 
 #include "CATTools/CommonTools/interface/TTbarModeDefs.h"
+#include "CATTools/CommonTools/interface/WorkingPointDefs.h"
 #include "CATTools/CatAnalyzer/interface/BTagScaleFactorEvaluators.h"
 
 #include "TH1D.h"
@@ -287,9 +288,9 @@ void TTBBLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
   for ( size_t i=0, n=jetsHandle->size(); i<n; ++i ) {
     const auto& jet = jetsHandle->at(i);
     const double bTag = jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
-    if ( bTag > 0.605 ) ++b_bjetsL_n;
-    if ( bTag > 0.890 ) ++b_bjetsM_n;
-    if ( bTag > 0.970 ) ++b_bjetsT_n;
+    if ( bTag > WP_BTAG_CSVv2L ) ++b_bjetsL_n;
+    if ( bTag > WP_BTAG_CSVv2M ) ++b_bjetsM_n;
+    if ( bTag > WP_BTAG_CSVv2T ) ++b_bjetsT_n;
     jetRefs.push_back(JetRefQPair(edm::Ref<cat::JetCollection>(jetsHandle, i), bTag));
   }
   std::sort(jetRefs.begin(), jetRefs.end(), [](const JetRefQPair& a, const JetRefQPair& b){return a.second > b.second;});
