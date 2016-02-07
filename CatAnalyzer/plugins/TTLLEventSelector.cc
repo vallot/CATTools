@@ -529,9 +529,9 @@ private:
   bool isBjet(const cat::Jet& jet)
   {
     const double bTag = jet.bDiscriminator(bTagName_);
-    if      ( bTagWP_ == BTagWP::CSVL ) return bTag > 0.605;
-    else if ( bTagWP_ == BTagWP::CSVM ) return bTag > 0.890;
-    else if ( bTagWP_ == BTagWP::CSVT ) return bTag > 0.970;
+    if      ( bTagWP_ == BTagWP::CSVL ) return bTag > 0.460;
+    else if ( bTagWP_ == BTagWP::CSVM ) return bTag > 0.800;
+    else if ( bTagWP_ == BTagWP::CSVT ) return bTag > 0.935;
     return false;
   }
 
@@ -851,7 +851,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
   // ElEl channel Cutstep 0b with trigger requirements
   int cutstep_ee = -2;
-  if ( isTrigElEl )
+  if ( isIgnoreTrig_ or isTrigElEl )
   {
     ++cutstep_ee;
     h_ee.hCutstep->Fill(-1, weight);
@@ -869,7 +869,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     }
 
     // Cutstep 0c with reco filters
-    if ( isRECOFilterOK )
+    if ( isMC_ or isRECOFilterOK )
     {
       ++cutstep_ee;
       h_ee.hCutstep->Fill(0., weight);
@@ -889,7 +889,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   }
   // MuMu channel Cutstep 0b with trigger requirements
   int cutstep_mm = -2;
-  if ( isTrigMuMu )
+  if ( isIgnoreTrig_ or isTrigMuMu )
   {
     ++cutstep_mm;
     h_mm.hCutstep->Fill(-1, weight);
@@ -907,7 +907,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     }
 
     // Cutstep 0c with reco filters
-    if ( isRECOFilterOK )
+    if ( isMC_ or isRECOFilterOK )
     {
       ++cutstep_mm;
       h_mm.hCutstep->Fill(0., weight);
@@ -927,7 +927,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   }
   // MuEl channel Cutstep 0b with trigger requirements
   int cutstep_em = -2;
-  if ( isTrigMuEl )
+  if ( isIgnoreTrig_ or isTrigMuEl )
   {
     ++cutstep_em;
     h_em.hCutstep->Fill(-1, weight);
@@ -945,7 +945,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     }
 
     // Cutstep 0c with reco filters
-    if ( isRECOFilterOK )
+    if ( isMC_ or isRECOFilterOK )
     {
       ++cutstep_em;
       h_em.hCutstep->Fill(0., weight);
@@ -1986,7 +1986,7 @@ TTLLEventSelector::~TTLLEventSelector()
     cout << "---- cut flows without weight ----\n";
     cout << "Step\tee\tmumu\temu\n";
     const int n = h_em.hCutstepNoweight->GetNbinsX();
-    for ( int i=1; i<n; ++i )
+    for ( int i=1; i<=n; ++i )
     {
       const string name(h_ee.hCutstepNoweight->GetXaxis()->GetBinLabel(i));
       if ( name.empty() ) break;
