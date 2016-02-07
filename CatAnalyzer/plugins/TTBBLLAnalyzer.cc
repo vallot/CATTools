@@ -287,7 +287,7 @@ void TTBBLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
   b_bjetsT_n = 0, b_bjetsM_n = 0, b_bjetsL_n = 0;
   for ( size_t i=0, n=jetsHandle->size(); i<n; ++i ) {
     const auto& jet = jetsHandle->at(i);
-    const double bTag = jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
+    const double bTag = jet.bDiscriminator(BTAG_CSVv2);
     if ( bTag > WP_BTAG_CSVv2L ) ++b_bjetsL_n;
     if ( bTag > WP_BTAG_CSVv2M ) ++b_bjetsM_n;
     if ( bTag > WP_BTAG_CSVv2T ) ++b_bjetsT_n;

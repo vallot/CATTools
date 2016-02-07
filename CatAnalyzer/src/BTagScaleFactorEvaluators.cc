@@ -1,6 +1,8 @@
 #include "CATTools/CatAnalyzer/interface/BTagScaleFactorEvaluators.h"
 #include "FWCore/ParameterSet/interface/FileInPath.h"
 
+#include "CATTools/CommonTools/interface/WorkingPointDefs.h"
+
 using namespace cat;
 
 using namespace std;
@@ -46,7 +48,7 @@ double CSVWeightEvaluator::operator()(const cat::Jet& jet, const int unc) const
   const double aeta = std::abs(jet.eta());
   if ( pt <= 20 or aeta >= 2.4 ) return 1;
 
-  double csv = jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
+  double csv = jet.bDiscriminator(BTAG_CSVv2);
   if ( csv < 0.0 ) csv = -0.05;
   else if ( csv > 1.0 ) csv = 1.0;
 

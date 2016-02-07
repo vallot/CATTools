@@ -47,9 +47,9 @@ namespace cat {
     float bDiscriminator(const std::string &theLabel) const;
     const std::vector<std::pair<std::string, float> > & getPairDiscri() const {return pairDiscriVector_; }
 
-    bool CSVv2L(){ return (bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") > WP_BTAG_CSVv2L);}
-    bool CSVv2M(){ return (bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") > WP_BTAG_CSVv2M);}
-    bool CSVv2T(){ return (bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") > WP_BTAG_CSVv2T);}
+    bool CSVv2L(){ return (bDiscriminator(BTAG_CSVv2) > WP_BTAG_CSVv2L);}
+    bool CSVv2M(){ return (bDiscriminator(BTAG_CSVv2) > WP_BTAG_CSVv2M);}
+    bool CSVv2T(){ return (bDiscriminator(BTAG_CSVv2) > WP_BTAG_CSVv2T);}
 
     enum BTAGCSV_CUT { BTAGCSV_LOOSE=0, BTAGCSV_MEDIUM, BTAGCSV_TIGHT };
     float scaleFactorCSVv2(BTAGCSV_CUT op, int systDir) const;

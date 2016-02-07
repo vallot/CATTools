@@ -634,7 +634,7 @@ void TtbarSingleLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Eve
         b_Jet_shiftedEnDown  ->push_back(jet.shiftedEnDown());
 
         // b-tag discriminant
-        double bDiscriminator = jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
+        double bDiscriminator = jet.bDiscriminator(BTAG_CSVv2);
         mapJetBDiscriminator[index] = bDiscriminator;
         b_Jet_CSV->push_back(bDiscriminator);
         if( bDiscriminator > WP_BTAG_CSVv2M) nbJets30++;

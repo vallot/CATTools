@@ -931,9 +931,9 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     std::map<int,float> mapJetBDiscriminator;
     std::map<int,float> mapJetBDiscriminatorMVA;
     for (auto jet1 = selectedJets.begin(), end = selectedJets.end(); jet1 != end; ++jet1){
-      float bDisCSV= (float) jet1->bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
-      float bDisMVA= (float) jet1->bDiscriminator("pfCombinedMVAV2BJetTags");
-      //float bDisCSV= (float) jet1->bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTagsAK4PFPuppi");
+      float bDisCSV= (float) jet1->bDiscriminator(BTAG_CSVv2);
+      float bDisMVA= (float) jet1->bDiscriminator(BTAG_cMVAv2);
+      //float bDisCSV= (float) jet1->bDiscriminator(BTAG_CSVv2+"AK4PFPuppi");
       int flavor = jet1->partonFlavour();
       mapJetBDiscriminator[idx] = bDisCSV;
       mapJetBDiscriminatorMVA[idx] = bDisMVA;
@@ -1168,7 +1168,7 @@ cat::JetCollection TtbarBbbarDiLeptonAnalyzer::selectBJets(const JetCollection& 
   // 76x : 0.460, 0.800, 0.935
   cat::JetCollection selBjets;
   for (auto& jet : jets) {
-    if (jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") < workingpoint) continue;
+    if (jet.bDiscriminator(BTAG_CSVv2) < workingpoint) continue;
     selBjets.push_back(jet);
   }
   return selBjets;
