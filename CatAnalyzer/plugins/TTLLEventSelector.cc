@@ -126,6 +126,7 @@ struct ControlPlots
     hCutstep = dir.make<TH1D>("cutstep", "cutstep", nMaxCutstep, -2, nMaxCutstep-2);
     hCutstepNoweight = dir.make<TH1D>("cutstepNoweight", "cutstepNoweight", nMaxCutstep, -2, nMaxCutstep-2);
     h2Cutstep = dir.make<TH2D>("cutcorrelation", "cutcorrelation", nMaxCutstep, -2, nMaxCutstep-2, nMaxCutstep, -2, nMaxCutstep-2);
+    h2CutstepNoweight = dir.make<TH2D>("cutcorrelationNoweight", "cutcorrelationNoweight", nMaxCutstep, -2, nMaxCutstep-2, nMaxCutstep, -2, nMaxCutstep-2);
 
     hCutstep->GetXaxis()->SetBinLabel(1, "S0a all event");
     hCutstep->GetXaxis()->SetBinLabel(2, "S0b Trigger");
@@ -162,6 +163,24 @@ struct ControlPlots
     h2Cutstep->GetYaxis()->SetBinLabel(6, "S3 nJet2");
     h2Cutstep->GetYaxis()->SetBinLabel(7, "S4 MET40");
     h2Cutstep->GetYaxis()->SetBinLabel(8, "S5 nBJet1");
+
+    h2CutstepNoweight->GetXaxis()->SetBinLabel(1, "S0a all event");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel(2, "S0b Trigger");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel(3, "S0c Event filter");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel(4, "S1 Dilepton");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel(5, "S2 Z veto");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel(6, "S3 nJet2");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel(7, "S4 MET40");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel(8, "S5 nBJet1");
+
+    h2CutstepNoweight->GetYaxis()->SetBinLabel(1, "S0a all event");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel(2, "S0b Trigger");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel(3, "S0c Event filter");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel(4, "S1 Dilepton");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel(5, "S2 Z veto");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel(6, "S3 nJet2");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel(7, "S4 MET40");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel(8, "S5 nBJet1");
 
     auto subdir = dir.mkdir("step0a");
     h0a_vertex_n = subdir.make<TH1D>("vertex_n", "vertex_n", 100, 0, 100);
@@ -1898,13 +1917,45 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   for ( int istep=1, nstep=cutstepBits.size(); istep<=nstep; ++istep )
   {
     const bool res1 = cutstepBits[istep-1];
-    for ( int jstep=1; jstep<=nstep; ++jstep )
+
+    // Fill diagonal terms
+    if      ( channel == CH_ELEL ) {
+      h_ee.h2Cutstep->Fill(istep, istep, res1*weight);
+      h_ee.h2CutstepNoweight->Fill(istep, istep, res1);
+    }
+    else if ( channel == CH_MUMU ) {
+      h_mm.h2Cutstep->Fill(istep, istep, res1*weight);
+      h_mm.h2CutstepNoweight->Fill(istep, istep, res1);
+    }
+    else if ( channel == CH_MUEL ) {
+      h_em.h2Cutstep->Fill(istep, istep, res1*weight);
+      h_em.h2CutstepNoweight->Fill(istep, istep, res1);
+    }
+
+    // Fill correlations and anti-correlations
+    for ( int jstep=1; jstep<istep; ++jstep )
     {
       const bool res2 = cutstepBits[jstep-1];
       const int result = res1 && res2;
-      if      ( channel == CH_ELEL ) h_ee.h2Cutstep->Fill(istep, jstep, result*weight);
-      else if ( channel == CH_MUMU ) h_mm.h2Cutstep->Fill(istep, jstep, result*weight);
-      else if ( channel == CH_MUEL ) h_em.h2Cutstep->Fill(istep, jstep, result*weight);
+      const int aresult = res1 && !res2;
+      if      ( channel == CH_ELEL ) {
+        h_ee.h2Cutstep->Fill(istep, jstep, result*weight);
+        h_ee.h2CutstepNoweight->Fill(istep, jstep, result);
+        h_ee.h2Cutstep->Fill(jstep, istep, aresult*weight);
+        h_ee.h2CutstepNoweight->Fill(jstep, istep, aresult);
+      }
+      else if ( channel == CH_MUMU ) {
+        h_mm.h2Cutstep->Fill(istep, jstep, result*weight);
+        h_mm.h2CutstepNoweight->Fill(istep, jstep, result);
+        h_mm.h2Cutstep->Fill(jstep, istep, aresult*weight);
+        h_mm.h2CutstepNoweight->Fill(jstep, istep, aresult);
+      }
+      else if ( channel == CH_MUEL ) {
+        h_em.h2Cutstep->Fill(istep, jstep, result*weight);
+        h_em.h2CutstepNoweight->Fill(istep, jstep, result);
+        h_em.h2Cutstep->Fill(jstep, istep, aresult*weight);
+        h_em.h2CutstepNoweight->Fill(jstep, istep, aresult);
+      }
     }
   }
 
