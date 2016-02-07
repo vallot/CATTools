@@ -161,9 +161,9 @@ for systName in systMC:
 ## Scale up/down systematic uncertainty from LHE weight
 ## This uncertainty have to be combined with envelope
 ## Let us assume index1-10 are for the scale variations (muF & muR)
-for i in range(1,9): # total 8 scale variations, 3 muF x 3 muR and one for central weight
+for i in range(1, 9): # total 8 scale variations, 3 muF x 3 muR and one for central weight
     systName = "gen_scale/%d" % i
-    syst = 'eventsTTLL.genWeight.src="genWeight:pdfWeights" eventsTTLL.genWeight.index=%d ttll.doTree=False ttbbll.doTree=False' % i
+    syst = 'eventsTTLL.genWeight.src="genWeight:scaleWeights" eventsTTLL.genWeight.index=%d ttll.doTree=False ttbbll.doTree=False' % i
     for d in bkgList:
         name = d['name']
         if isBlacklisted(name): continue
@@ -172,7 +172,7 @@ for i in range(1,9): # total 8 scale variations, 3 muF x 3 muR and one for centr
         print>>out_bkg, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, syst)))
 
     ## Modification for ttbar samples
-    syst += ' agen.weight="genWeight:pdfWeights" agen.weightIndex=%d' % i
+    syst += ' agen.weight="genWeight:scaleWeights" agen.weightIndex=%d' % i
     for d in sigList:
         name = d['name']
         if isBlacklisted(name): continue
@@ -183,20 +183,20 @@ for i in range(1,9): # total 8 scale variations, 3 muF x 3 muR and one for centr
         print>>out_bkg, (submitCmd + (" --jobName %s_Others/%s --args '%s filterPartonTTLL.invert=True'" % (name, systName, syst)))
 
 ## PDF weights
-## 110 variations for aMC@NLO, 248 for POWHEG
+## 110 variations for aMC@NLO, 212 for POWHEG
 ## NOTE: there is weight vector, but we don't do it for LO generator here.
 ## -- for note madgraph weightSize = 445 + 8 variations
 for d in bkgList:
     name = d['name']
     if isBlacklisted(name): continue
     if '_aMC' in name: weightSize = 110
-    elif '_powheg' in name: weightSize = 248
+    elif '_powheg' in name: weightSize = 212
     else: continue
 
     submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 100"
     submitCmd += " --fileList %s/dataset/dataset_%s.txt" % (dataDir, name)
 
-    for i in range(9, weightSize+1):
+    for i in range(1, weightSize+1):
         arg = 'eventsTTLL.genWeight.src="genWeight:pdfWeights" eventsTTLL.genWeight.index=%d' % i
         print>>out_bkg, (submitCmd + (" --jobName %s/gen_PDF/%d --args '%s'" % (name, i, arg)))
 
@@ -205,13 +205,13 @@ for d in sigList:
     if isBlacklisted(name): continue
     if '_scale' in name: continue
     if '_aMC' in name: weightSize = 110
-    elif '_powheg' in name: weightSize = 248
+    elif '_powheg' in name: weightSize = 212
     else: continue
 
     submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 100"
     submitCmd += " --fileList %s/dataset/dataset_%s.txt" % (dataDir, name)
 
-    for i in range(9, weightSize+1):
+    for i in range(1, weightSize+1):
         arg  = 'eventsTTLL.genWeight.src="genWeight:pdfWeights" eventsTTLL.genWeight.index=%d' % i
         arg += ' agen.weight="genWeight:pdfWeights" agen.weightIndex=%d' % i
         print>>out_sig, (submitCmd + (" --jobName %s_LL/gen_PDF/%d --args '%s'" % (name, i, arg)))
