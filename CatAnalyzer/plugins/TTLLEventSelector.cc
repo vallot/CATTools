@@ -605,8 +605,7 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   else if ( bTagWPStr == "CSVM" ) bTagWP_ = BTagWP::CSVM;
   else if ( bTagWPStr == "CSVT" ) bTagWP_ = BTagWP::CSVT;
   else edm::LogError("TTLLEventSelector") << "Wrong bTagWP parameter " << bTagWPStr;
-  isSkipJER_ = false;
-  if ( jetSet.existsAs<bool>("skipJER") ) isSkipJER_ = jetSet.getParameter<bool>("skipJER");
+  isSkipJER_ = jetSet.getParameter<bool>("skipJER");
 
   const auto metSet = pset.getParameter<edm::ParameterSet>("met");
   metToken_ = consumes<cat::METCollection>(metSet.getParameter<edm::InputTag>("src"));

@@ -38,6 +38,7 @@ eventsTTLL = cms.EDFilter("TTLLEventSelector",
         resolDirection = cms.int32(0),
         #resolDirection = cms.int32(-1),
         #resolDirection = cms.int32(+1),
+        skipJER = cms.bool(False),
     ),
 
     met = cms.PSet(
