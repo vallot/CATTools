@@ -42,7 +42,7 @@ public:
   explicit TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet&);
   ~TtbarBbbarDiLeptonAnalyzer();
 
-  enum sys_e {sys_nom,  sys_jes_u, sys_jes_d, sys_jer_u, sys_jer_d,
+  enum sys_e {sys_nom,  sys_jes_u, sys_jes_d, sys_jer_n,sys_jer_u, sys_jer_d,
      sys_mu_u, sys_mu_d, sys_el_u, sys_el_d,
      sys_mueff_u, sys_mueff_d, sys_eleff_u, sys_eleff_d,
 //    sys_btag_u, sys_btag_d,
@@ -58,6 +58,7 @@ private:
   //  cat::JetCollection selectJets(const cat::JetCollection& jets, const LeptonCollection& recolep) const;
   cat::JetCollection selectJets(const cat::JetCollection& jets, const LeptonCollection& recolep, TtbarBbbarDiLeptonAnalyzer::sys_e sys);
   cat::JetCollection selectBJets(const cat::JetCollection& jets, double workingpoint) const;
+  cat::JetCollection selectBJetsMVA(const cat::JetCollection& jets, double workingpoint) const;
   const reco::Candidate* getLast(const reco::Candidate* p) const;
   const bool isLastP( const reco::GenParticle& p) const;
   //float MuonSF(float pt, float eta);
@@ -88,7 +89,7 @@ private:
   }
 
   edm::EDGetTokenT<int> recoFiltersToken_, nGoodVertexToken_, lumiSelectionToken_;
-  edm::EDGetTokenT<float> genweightToken_, puweightToken_, puweightUpToken_, puweightDownToken_, genweightQToken_;
+  edm::EDGetTokenT<float> genweightToken_, puweightToken_, puweightUpToken_, puweightDownToken_, genweightQToken_, topPtWeight_;
   edm::EDGetTokenT<int> trigTokenMUEL_, trigTokenMUMU_, trigTokenELEL_;
 
   edm::EDGetTokenT<cat::MuonCollection>     muonToken_;
@@ -98,7 +99,7 @@ private:
   edm::EDGetTokenT<reco::VertexCollection>   vtxToken_;
   edm::EDGetTokenT<int>          partonTop_channel_;
   edm::EDGetTokenT<vector<int> > partonTop_modes_;
-  edm::EDGetTokenT<vector<float> > pdfWeightsToken_;
+  edm::EDGetTokenT<vector<float> > pdfWeightsToken_, scaleweightToken_;
   edm::EDGetTokenT<reco::GenJetCollection> GenJetsToken_;
   edm::EDGetTokenT<reco::GenParticleCollection> GenParticlesToken_;
 
@@ -115,11 +116,13 @@ private:
 
   TTree * ttree7_, * ttree8_,* ttree9_,* ttree10_;
   TTree * ttree11_, * ttree12_,* ttree13_,* ttree14_;
+  TTree * ttree15_;
   
   int b_nvertex, b_step, b_channel;
   bool b_step1, b_step2, b_step3, b_step4, b_step5, b_step6, b_tri, b_filtered;
   float b_met, b_metphi;
   int b_njet30, b_nbjetL30, b_nbjetM30, b_nbjetT30;
+  int b_nbjetL30MVA, b_nbjetM30MVA, b_nbjetT30MVA;
 
   float b_lep1_pt, b_lep1_eta, b_lep1_phi, b_lep1_RelIso;
   float b_lep2_pt, b_lep2_eta, b_lep2_phi, b_lep2_RelIso;
@@ -133,9 +136,11 @@ private:
   std::vector<int>    b_jets_flavor;
   std::vector<float> b_jets_bDiscriminatorCSV;
   std::vector<int>    b_csvd_jetid;
+  std::vector<float> b_jets_bDiscriminatorMVA;
+  std::vector<int>    b_mvad_jetid;
 
   //mc
-  std::vector<float> b_pdfWeights;
+  std::vector<float> b_pdfWeights, b_scaleWeights;
   float b_weight, b_puweight, b_puweightUp, b_puweightDown, b_weightQ;
   int b_partonChannel, b_partonMode1, b_partonMode2;
   float b_partonlep1_pt, b_partonlep1_eta;
@@ -146,7 +151,7 @@ private:
   int b_NgenJet, b_NgenJet30, b_NgenJet40;
 
   //mc
-
+  float  b_topPtWeight;
   float  b_lepweight;
   float  b_csvweight;
   float  b_csvweight_JES_Up;
@@ -271,6 +276,8 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
   genweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("genweight"));
   genweightQToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("genweightQ"));
   pdfWeightsToken_   = consumes<vector<float> >(iConfig.getParameter<edm::InputTag>("genweightPDF"));
+  scaleweightToken_ = consumes<vector<float>>(iConfig.getParameter<edm::InputTag>("scaleweight"));
+  topPtWeight_ = consumes<float>(iConfig.getParameter<edm::InputTag>("topPtWeight"));
 
   puweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("puweight"));
   puweightUpToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("puweightUp"));
@@ -320,18 +327,19 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
 
   ttree3_ = fs->make<TTree>("nomJES_up", "nom2");
   ttree4_ = fs->make<TTree>("nomJES_dw", "nom2");
-  ttree5_ = fs->make<TTree>("nomJER_up", "nom2");
-  ttree6_ = fs->make<TTree>("nomJER_dw", "nom2");
+  ttree5_ = fs->make<TTree>("nomJER_n", "nom2");
+  ttree6_ = fs->make<TTree>("nomJER_up", "nom2");
+  ttree7_ = fs->make<TTree>("nomJER_dw", "nom2");
 
-  ttree7_ = fs->make<TTree>("nomMu_up", "nom2");
-  ttree8_ = fs->make<TTree>("nomMu_dw", "nom2");
-  ttree9_ = fs->make<TTree>("nomEl_up", "nom2");
-  ttree10_ = fs->make<TTree>("nomEl_dw", "nom2");
+  ttree8_ = fs->make<TTree>("nomMu_up", "nom2");
+  ttree9_ = fs->make<TTree>("nomMu_dw", "nom2");
+  ttree10_ = fs->make<TTree>("nomEl_up", "nom2");
+  ttree11_ = fs->make<TTree>("nomEl_dw", "nom2");
 
-  ttree11_ = fs->make<TTree>("nomMueff_up", "nom2");
-  ttree12_ = fs->make<TTree>("nomMueff_dw", "nom2");
-  ttree13_ = fs->make<TTree>("nomEleff_up", "nom2");
-  ttree14_ = fs->make<TTree>("nomEleff_dw", "nom2");
+  ttree12_ = fs->make<TTree>("nomMueff_up", "nom2");
+  ttree13_ = fs->make<TTree>("nomMueff_dw", "nom2");
+  ttree14_ = fs->make<TTree>("nomEleff_up", "nom2");
+  ttree15_ = fs->make<TTree>("nomEleff_dw", "nom2");
 
   book(ttree_);
   book(ttree2_);
@@ -349,6 +357,7 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
   book(ttree12_);
   book(ttree13_);
   book(ttree14_);
+  book(ttree15_);
 
   for (int i = 0; i < NCutflow; i++) cutflow_.push_back({0,0,0,0});
 }
@@ -358,9 +367,14 @@ void TtbarBbbarDiLeptonAnalyzer::book(TTree* tree){
   tree->Branch("step", &b_step, "step/I");
   tree->Branch("channel", &b_channel, "channel/I");
   tree->Branch("njet30", &b_njet30, "njet30/I");
+
   tree->Branch("nbjetL30", &b_nbjetL30, "nbjetL30/I");
   tree->Branch("nbjetM30", &b_nbjetM30, "nbjetM30/I");
   tree->Branch("nbjetT30", &b_nbjetT30, "nbjetT30/I");
+  tree->Branch("nbjetL30MVA", &b_nbjetL30MVA, "nbjetL30MVA/I");
+  tree->Branch("nbjetM30MVA", &b_nbjetM30MVA, "nbjetM30MVA/I");
+  tree->Branch("nbjetT30MVA", &b_nbjetT30MVA, "nbjetT30MVA/I");
+
   tree->Branch("step1", &b_step1, "step1/O");
   tree->Branch("step2", &b_step2, "step2/O");
   tree->Branch("step3", &b_step3, "step3/O");
@@ -374,7 +388,9 @@ void TtbarBbbarDiLeptonAnalyzer::book(TTree* tree){
 
   tree->Branch("weight", &b_weight, "weight/F");
   tree->Branch("weightQ", &b_weightQ, "weightQ/F");
-  tree->Branch("pdfWeihgts","std::vector<float>",&b_pdfWeights);
+  tree->Branch("pdfWeights","std::vector<float>",&b_pdfWeights);
+  tree->Branch("scaleWeights","std::vector<float>",&b_scaleWeights);
+  tree->Branch("topPtWeight", &b_topPtWeight, "topPtWeight/F");
 
   tree->Branch("puweight", &b_puweight, "puweight/F");
   tree->Branch("puweightUp", &b_puweightUp, "puweightUp/F");
@@ -422,6 +438,8 @@ void TtbarBbbarDiLeptonAnalyzer::book(TTree* tree){
   tree->Branch("jets_flavor","std::vector<int>",&b_jets_flavor);
   tree->Branch("jets_bDiscriminatorCSV","std::vector<float>",&b_jets_bDiscriminatorCSV);
   tree->Branch("csvd_jetid","std::vector<int>",&b_csvd_jetid);
+  tree->Branch("jets_bDiscriminatorMVA","std::vector<float>",&b_jets_bDiscriminatorMVA);
+  tree->Branch("mvad_jetid","std::vector<int>",&b_mvad_jetid);
 
   tree->Branch("csvweight", &b_csvweight, "csvweight/F");
   tree->Branch("csvweight_JES_Up",          &b_csvweight_JES_Up,          "csvweight_JES_Up/F");
@@ -647,6 +665,16 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
   }
   ////////////
   if ( iEvent.getByToken(partonTop_channel_, partonTop_channel)){
+    edm::Handle<float> topPtWeightHandle;
+    iEvent.getByToken(topPtWeight_, topPtWeightHandle);
+    b_topPtWeight = *topPtWeightHandle;
+
+    edm::Handle<vector<float>> scaleweightHandle;
+    iEvent.getByToken(scaleweightToken_, scaleweightHandle);
+    for (const float & aScaleWeight : *scaleweightHandle){
+      b_scaleWeights.push_back(aScaleWeight);  
+    }
+
     edm::Handle<vector<int> > partonTop_modes;
     edm::Handle<reco::GenParticleCollection> partonTop_genParticles;
     iEvent.getByToken(partonTop_modes_, partonTop_modes);
@@ -889,43 +917,33 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     
     //JetCollection&& selectedJets = selectJets(*jets, recolep);
     JetCollection&& selectedJets = selectJets(*jets, recolep, (sys_e)sys);
-    JetCollection&& selectedBJetsL = selectBJets(selectedJets,0.605);
-    JetCollection&& selectedBJetsM = selectBJets(selectedJets,0.890);
-    JetCollection&& selectedBJetsT = selectBJets(selectedJets,0.970);
+    JetCollection&& selectedBJetsL = selectBJets(selectedJets,0.460);//0.605);
+    JetCollection&& selectedBJetsM = selectBJets(selectedJets,0.800);//0.890);
+    JetCollection&& selectedBJetsT = selectBJets(selectedJets,0.935);//0.970);
+
+    JetCollection&& selectedBJetsLMVA = selectBJetsMVA(selectedJets,-0.715);//0.605);
+    JetCollection&& selectedBJetsMMVA = selectBJetsMVA(selectedJets,0.185);//0.890);
+    JetCollection&& selectedBJetsTMVA = selectBJetsMVA(selectedJets,0.875);//0.970);
     
     int idx=0;
     std::map<int,float> mapJetBDiscriminator;
+    std::map<int,float> mapJetBDiscriminatorMVA;
     for (auto jet1 = selectedJets.begin(), end = selectedJets.end(); jet1 != end; ++jet1){
       float bDisCSV= (float) jet1->bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
+      float bDisMVA= (float) jet1->bDiscriminator("pfCombinedMVAV2BJetTags");
       //float bDisCSV= (float) jet1->bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTagsAK4PFPuppi");
       int flavor = jet1->partonFlavour();
       mapJetBDiscriminator[idx] = bDisCSV;
+      mapJetBDiscriminatorMVA[idx] = bDisMVA;
       idx++;
-      //b_jets_pt.push_back(jet1->p4().pt()*jet1->smearedRes());
       b_jets_pt.push_back(jet1->p4().pt());
       b_jets_eta.push_back(jet1->p4().eta());
       b_jets_phi.push_back(jet1->p4().phi());
       b_jets_flavor.push_back(flavor);
       b_jets_bDiscriminatorCSV.push_back(bDisCSV);
-    
-      /*      if (runOnMC_) {
-              cat::Jet::JETFLAV fla = cat::Jet::JETFLAV_LIGHT;
-              if (abs(flavor)==4){ fla=cat::Jet::JETFLAV_C; }
-              if (abs(flavor)==5){ fla=cat::Jet::JETFLAV_B; }
-              b_csvl_sf = b_csvl_sf*(jet1->scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE,0,fla));
-              b_csvl_sfup = b_csvl_sfup*(jet1->scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE,1,fla));
-              b_csvl_sfdw = b_csvl_sfdw*(jet1->scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE,-1,fla));
-    
-              b_csvm_sf = b_csvm_sf*(jet1->scaleFactorCSVv2(cat::Jet::BTAGCSV_MEDIUM,0,fla));
-              b_csvm_sfup = b_csvm_sfup*(jet1->scaleFactorCSVv2(cat::Jet::BTAGCSV_MEDIUM,1,fla));
-              b_csvm_sfdw = b_csvm_sfdw*(jet1->scaleFactorCSVv2(cat::Jet::BTAGCSV_MEDIUM,-1,fla));
-    
-              b_csvt_sf = b_csvt_sf*(jet1->scaleFactorCSVv2(cat::Jet::BTAGCSV_TIGHT,0,fla));
-              b_csvt_sfup = b_csvt_sfup*(jet1->scaleFactorCSVv2(cat::Jet::BTAGCSV_TIGHT,1,fla));
-              b_csvt_sfdw = b_csvt_sfdw*(jet1->scaleFactorCSVv2(cat::Jet::BTAGCSV_TIGHT,-1,fla));
-              }*/
+      b_jets_bDiscriminatorMVA.push_back(bDisMVA);
     }
-    
+   
     if (runOnMC_){
       //double csvWgtHF, csvWgtLF, csvWgtCF;
       for ( const auto& jet : selectedJets ) {
@@ -954,14 +972,25 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     std::vector<data_t> vecJetBDisc(mapJetBDiscriminator.begin(), mapJetBDiscriminator.end());
     std::sort(vecJetBDisc.begin(), vecJetBDisc.end(), bigger_second<data_t>());
     for ( const auto& x : vecJetBDisc ) b_csvd_jetid.push_back(x.first);
-    
+
+    //mvad order
+    std::vector<data_t> vecJetBDiscMVA(mapJetBDiscriminatorMVA.begin(), mapJetBDiscriminatorMVA.end());
+    std::sort(vecJetBDiscMVA.begin(), vecJetBDiscMVA.end(), bigger_second<data_t>());
+    for ( const auto& x : vecJetBDiscMVA ) b_mvad_jetid.push_back(x.first);
+ 
     const auto met = mets->front().p4();
     b_met = met.pt();
     b_metphi = met.phi();
     b_njet30 = selectedJets.size();
+
     b_nbjetL30 = selectedBJetsL.size();
     b_nbjetM30 = selectedBJetsM.size();
     b_nbjetT30 = selectedBJetsT.size();
+
+    b_nbjetL30MVA = selectedBJetsLMVA.size();
+    b_nbjetM30MVA = selectedBJetsMMVA.size();
+    b_nbjetT30MVA = selectedBJetsTMVA.size();
+ 
     
     if ((b_channel == CH_MUEL) || (b_met > 40.)){
       b_step3 = true;
@@ -1013,6 +1042,7 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     else if (sys==10) ttree12_->Fill();
     else if (sys==11) ttree13_->Fill();
     else if (sys==12) ttree14_->Fill();
+    else if (sys==13) ttree15_->Fill();
 
   }
 }
@@ -1074,11 +1104,11 @@ void TtbarBbbarDiLeptonAnalyzer::selectElecs(const cat::ElectronCollection& elec
     //if (!el.electronID("cutBasedElectronID-Spring15-50ns-V1-standalone-medium")) continue;
     //if (el.electronID("cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-medium") == 0) continue;
     //if (!el.electronID("mvaEleID-Spring15-25ns-Trig-V1-wp90")) continue;
-    //if ( !el.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-medium") ) continue;
+    if ( !el.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-medium") ) continue;
     //if (!el.passConversionVeto()) continue;
     //if (!el.isPF()) continue;
-    if ( !el.isTrigMVAValid() or !el.electronID("mvaEleID-Spring15-25ns-Trig-V1-wp90") ) continue;
-    if (el.relIso(0.3) > 0.12) continue;
+    //if ( !el.isTrigMVAValid() or !el.electronID("mvaEleID-Spring15-25ns-Trig-V1-wp90") ) continue;
+    //if (el.relIso(0.3) > 0.12) continue;
 
 
     //printf("electron with pt %4.1f\n", el.pt());
@@ -1094,6 +1124,7 @@ cat::JetCollection TtbarBbbarDiLeptonAnalyzer::selectJets(const cat::JetCollecti
     cat::Jet jet(j);
     if (sys == sys_jes_u) jet.setP4(j.p4() * j.shiftedEnUp());
     if (sys == sys_jes_d) jet.setP4(j.p4() * j.shiftedEnDown());
+    if (sys == sys_jer_n) jet.setP4(j.p4() * j.smearedRes());
     if (sys == sys_jer_u) jet.setP4(j.p4() * j.smearedResUp());
     if (sys == sys_jer_d) jet.setP4(j.p4() * j.smearedResDown());
 
@@ -1132,15 +1163,26 @@ cat::JetCollection TtbarBbbarDiLeptonAnalyzer::selectBJets(const JetCollection& 
 {
   //https://twiki.cern.ch/twiki/bin/view/CMS/TopBTV
   // 25ns pfCombinedInclusiveSecondaryVertexV2BJetTags :L,M,T 0.605, 0.890, 0.970
+  // 76x : 0.460, 0.800, 0.935
   cat::JetCollection selBjets;
   for (auto& jet : jets) {
     if (jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") < workingpoint) continue;
-    //if (jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTagsAK4PFPuppi") < workingpoint) continue;
-    //printf("b jet with pt %4.1f\n", jet.pt());
     selBjets.push_back(jet);
   }
   return selBjets;
 }
+cat::JetCollection TtbarBbbarDiLeptonAnalyzer::selectBJetsMVA(const JetCollection& jets, double workingpoint) const
+{
+  //https://twiki.cern.ch/twiki/bin/view/CMS/TopBTV
+  // 76x : -0.715, 0.185, 0.875
+  cat::JetCollection selBjets;
+  for (auto& jet : jets) {
+    if (jet.bDiscriminator("pfCombinedMVAV2BJetTags") < workingpoint) continue;
+    selBjets.push_back(jet);
+  }
+  return selBjets;
+}
+
 void TtbarBbbarDiLeptonAnalyzer::resetBr()
 {
     resetBrGEN();
@@ -1150,7 +1192,9 @@ void TtbarBbbarDiLeptonAnalyzer::resetBrReco()
 {
 
   b_step = -1; b_channel = 0;
-  b_njet30 = 0; b_nbjetL30=0, b_nbjetM30 = 0; b_nbjetT30 = 0;
+  b_njet30 = 0;
+  b_nbjetL30=0, b_nbjetM30 = 0; b_nbjetT30 = 0;
+  b_nbjetL30MVA=0, b_nbjetM30MVA = 0; b_nbjetT30MVA = 0;
   b_step1 = 0;b_step2 = 0;    b_step3 = 0;b_step4 = 0;b_step5 = 0;b_step6 = 0;b_tri = 0;
   b_met = -9; b_metphi = -9;
 
@@ -1172,8 +1216,11 @@ void TtbarBbbarDiLeptonAnalyzer::resetBrJets()
   b_jets_eta.clear();
   b_jets_phi.clear();
   b_jets_flavor.clear();
+
   b_jets_bDiscriminatorCSV.clear();
   b_csvd_jetid.clear();
+  b_jets_bDiscriminatorMVA.clear();
+  b_mvad_jetid.clear();
 
   b_csvweight = 1;
   b_csvweight_JES_Up = 1;
@@ -1205,6 +1252,8 @@ void TtbarBbbarDiLeptonAnalyzer::resetBrGEN()
   b_genTtbarId=0; b_genTtbarId30=0; b_genTtbarId40=0;
   b_NgenJet=0; b_NgenJet30=0; b_NgenJet40=0;
   b_pdfWeights.clear();
+  b_scaleWeights.clear();
+  b_topPtWeight = 1.;
   b_weight = 1; b_weightQ = 1;
   b_puweight = 1; b_puweightUp = 1; b_puweightDown =1;
   b_nvertex = 0;

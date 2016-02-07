@@ -321,6 +321,7 @@ void DESYSmearedSolver::solve(const LV input[])
     const double w1 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin((newl1+newj1).mass()));
     const double w2 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin((newl2+newj2).mass()));
     const double weight = w1*w2/h_mbl_w_->Integral()/h_mbl_w_->Integral();
+    if ( weight <= 0 ) continue;
 
     KinSolverUtils::findCoeffs(mTopInput_, getRandom(h_wmass_.get()), getRandom(h_wmass_.get()),
                                newl1, newl2, newj1, newj2, newmetX, newmetY, koef, cache);
