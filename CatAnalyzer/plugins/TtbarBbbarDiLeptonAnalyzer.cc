@@ -80,8 +80,8 @@ private:
       else return muonSF_(pt, aeta, 0);
     }
     else {
-      const auto& el = dynamic_cast<const cat::Electron&>(p);
-      const double pt = p.pt(), eta = el.scEta();
+      //const auto& el = //dynamic_cast<const cat::Electron&>(p);
+      const double pt = p.pt(), eta = p.eta();
       if      ( sys == sys_eleff_u ) return elecSF_(pt, eta,  1);
       else if ( sys == sys_eleff_d ) return elecSF_(pt, eta, -1);
       else return elecSF_(pt, eta, 0);
