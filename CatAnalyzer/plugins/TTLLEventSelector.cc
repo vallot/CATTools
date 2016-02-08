@@ -722,7 +722,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     edm::Handle<float> h;
     if ( event.getByToken(t, h) ) weight *= *h;
   }
-  for ( auto t : eventWeightTokensD_ ) {
+  for ( auto t : extWeightTokensD_ ) {
     edm::Handle<double> h;
     if ( event.getByToken(t, h) ) weight *= *h;
   }
