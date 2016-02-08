@@ -168,8 +168,8 @@ for d in sigList:
     name = d['name']
     if isBlacklisted(name): continue
 
-    if   '_scaleup'   in name: idxset = (1, 3, 4)
-    elif '_scaledown' in name: idxset = (2, 6, 7)
+    if   '_scaleup'   in name: idxset = (0, 2, 3)
+    elif '_scaledown' in name: idxset = (1, 5, 6)
 
     for i in idxset:
         systName = "gen_scale/%d" % i
@@ -196,7 +196,7 @@ for d in bkgList:
     submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 100"
     submitCmd += " --fileList %s/dataset/dataset_%s.txt" % (dataDir, name)
 
-    for i in range(1, weightSize+1):
+    for i in range(weightSize):
         arg = 'eventsTTLL.genWeight.src="genWeight:pdfWeights" eventsTTLL.genWeight.index=%d' % i
         print>>out_bkg, (submitCmd + (" --jobName %s/gen_PDF/%d --args '%s'" % (name, i, arg)))
 
@@ -210,7 +210,7 @@ for d in sigList:
     submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 100"
     submitCmd += " --fileList %s/dataset/dataset_%s.txt" % (dataDir, name)
 
-    for i in range(1, weightSize+1):
+    for i in range(weightSize):
         arg  = 'eventsTTLL.genWeight.src="genWeight:pdfWeights" eventsTTLL.genWeight.index=%d' % i
         arg += ' agen.weight="genWeight:pdfWeights" agen.weightIndex=%d' % i
         print>>out_sig, (submitCmd + (" --jobName %s_LL/gen_PDF/%d --args '%s'" % (name, i, arg)))
