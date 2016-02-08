@@ -333,6 +333,14 @@ void DESYSmearedSolver::solve(const LV input[])
       // Recompute neutrino four momentum
       double nu1solTmp[4], nu2solTmp[4];
       KinSolverUtils::getNuPxPyPzE(sol, cache, nu1solTmp, nu2solTmp);
+      bool hasNan = false;
+      for ( int i=0; i<4; ++i ) {
+        if ( std::isnan(nu1solTmp[i]) or std::isnan(nu2solTmp[i]) ) {
+          hasNan = true;
+          break;
+        }
+      }
+      if ( hasNan ) continue;
 
       const double ttX = visSum.px()+nu1sol[0]+nu2sol[0];
       const double ttY = visSum.py()+nu1sol[1]+nu2sol[1];
