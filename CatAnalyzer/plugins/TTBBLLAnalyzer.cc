@@ -107,7 +107,8 @@ private:
 
 TTBBLLAnalyzer::TTBBLLAnalyzer(const edm::ParameterSet& pset):
   doTree_(pset.getParameter<bool>("doTree")),
-  isTopMC_(pset.getParameter<bool>("isTopMC"))
+  isTopMC_(pset.getParameter<bool>("isTopMC")),
+  csvWeight_(CSVWeightEvaluator::ROOT)
 {
   const auto srcLabel = pset.getParameter<edm::InputTag>("src");
   const auto srcLabelName = srcLabel.label();
