@@ -90,7 +90,7 @@ GenWeightsProducer::GenWeightsProducer(const edm::ParameterSet& pset):
 void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
 {
   vstring weightTypes;
-  vvstring weightParams;
+  //vvstring weightParams;
   scaleWeightIdxs_.clear();
   pdfWeightIdxs_.clear();
 
@@ -148,12 +148,13 @@ void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
       if ( weightTypes.back().substr(0, 5) == "scale" ) weightType = 1;
       else if ( weightTypes.back().substr(0, 3) == "PDF" ) weightType = 2;
       int weightSize = 0;
-      weightParams.push_back(vstring());
+      //weightParams.push_back(vstring());
       for ( TXMLNode* weightNode = grpNode->GetChildren(); weightNode != 0; weightNode = weightNode->GetNextNode() )
       {
         if ( string(weightNode->GetNodeName()) != "weight" ) continue;
-        weightParams.back().push_back(weightNode->GetText());
         ++weightSize;
+        if ( weightSize == 1 ) continue; // Skip the first one of the weight group since it is the nominal value.
+        //weightParams.back().push_back(weightNode->GetText());
         if ( weightType == 1 ) scaleWeightIdxs_.insert(weightTotalSize);
         else if ( weightType == 2 ) pdfWeightIdxs_.insert(weightTotalSize);
         ++weightTotalSize;
