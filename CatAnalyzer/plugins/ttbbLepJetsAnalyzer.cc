@@ -755,8 +755,8 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 	const cat::Jet & jet_i = jets->at(JetIndex[ijet]);
 	const cat::Jet & jet_j = jets->at(JetIndex[jjet]);
 
-        float iJetCSV = jet_i.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
-        float jJetCSV = jet_j.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
+        float iJetCSV = jet_i.bDiscriminator(BTAG_CSVv2);
+        float jJetCSV = jet_j.bDiscriminator(BTAG_CSVv2);
 
         if(jJetCSV > iJetCSV){
           float tempIndex = JetIndex[ijet];
@@ -803,7 +803,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         b_Jet_shiftedEnDown  ->push_back(jet.shiftedEnDown());
 
         // b-tag discriminant
-        float jet_btagDis_CSV = jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
+        float jet_btagDis_CSV = jet.bDiscriminator(BTAG_CSVv2);
         b_Jet_CSV ->push_back(jet_btagDis_CSV);
 
         b_Jet_SF_CSV *= SF_CSV_(jet, CSVWeightEvaluator::CENTRAL); // FIXME: 2nd argument should be given by systematics variations
