@@ -67,7 +67,7 @@ private:
   int TTbarMC_;
 
   edm::EDGetTokenT<float>                        genWeightToken_;
-  edm::EDGetTokenT<vector<float>>           ScaleWeightToken_;
+  edm::EDGetTokenT<vector<float>>                ScaleWeightToken_;
   edm::EDGetTokenT<reco::GenParticleCollection>  genToken_;
   edm::EDGetTokenT<reco::GenJetCollection>       genJetToken_;
   edm::EDGetTokenT<int>                          genttbarCatToken_;
@@ -437,7 +437,8 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     edm::Handle<vector<float>> scaleWeight;
     iEvent.getByToken(ScaleWeightToken_, scaleWeight);
     
-    for (unsigned int i = 0; i < scaleWeight->size(); i++){
+    for (unsigned int i = 0; i < 8; i++){
+    // for (unsigned int i = 0; i < scaleWeight->size(); i++){
       const float & ScWe = (*scaleWeight)[i];
       b_ScaleWeight->push_back(ScWe);
     }
@@ -867,7 +868,6 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         b_Jet_partonFlavour->push_back(jet.partonFlavour());
         b_Jet_hadronFlavour->push_back(jet.hadronFlavour());
 
-<<<<<<< HEAD
 	// b-tag discriminant
 	float jet_btagDis_CSV = jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
 	b_Jet_CSV ->push_back(jet_btagDis_CSV);
@@ -889,20 +889,6 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 	  if(jet.pt() > 30.) for (unsigned int iu=0; iu<19; iu++) Jet_SF_CSV[iu] *= SF_CSV_(jet, iu);
 	} // if(isMC_)
 	
-=======
-        // Smeared and Shifted
-        b_Jet_smearedRes     ->push_back(jet.smearedRes() );
-        b_Jet_smearedResDown ->push_back(jet.smearedResDown());
-        b_Jet_smearedResUp   ->push_back(jet.smearedResUp());
-        b_Jet_shiftedEnUp    ->push_back(jet.shiftedEnUp());
-        b_Jet_shiftedEnDown  ->push_back(jet.shiftedEnDown());
-
-        // b-tag discriminant
-        float jet_btagDis_CSV = jet.bDiscriminator(BTAG_CSVv2);
-        b_Jet_CSV ->push_back(jet_btagDis_CSV);
-
-        b_Jet_SF_CSV *= SF_CSV_(jet, CSVWeightEvaluator::CENTRAL); // FIXME: 2nd argument should be given by systematics variations
->>>>>>> origin/cat76x
       }
     }
     
