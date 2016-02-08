@@ -2,54 +2,66 @@
 #include "FWCore/ParameterSet/interface/FileInPath.h"
 
 using namespace cat;
-
 using namespace std;
-CSVWeightEvaluator::CSVWeightEvaluator()
+
+CSVWeightEvaluator::CSVWeightEvaluator(const int inputType)
 {
-/*
-  const char* method = "iterativefit";
-  // setup calibration readers (once)
-  const auto csvFile = edm::FileInPath("CATTools/CatAnalyzer/data/scaleFactors/ttH_BTV_CSVv2_13TeV_2015D_20151120.csv").fullPath();
-  BTagCalibration calib_csvv2("csvv2", csvFile);
-  readers_[CENTRAL] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "central");
+  const string csvFileName = "ttH_BTV_CSVv2_13TeV_2015D_20151120.csv";
+  const string rootFileNameHF = "csv_rwt_fit_hf_2016_01_28.root";
+  const string rootFileNameLF = "csv_rwt_fit_lf_2016_01_28.root";
 
-  readers_[JES_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_jes");
-  readers_[JES_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_jes");
+  if ( inputType == CSV ) {
+    const char* method = "iterativefit";
+    // setup calibration readers (once)
+    const auto csvFile = edm::FileInPath("CATTools/CatAnalyzer/data/scaleFactors/"+csvFileName).fullPath();
+    BTagCalibration calib_csvv2("csvv2", csvFile);
+    readers_[CENTRAL] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "central");
 
-  readers_[LF_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_lf");
-  readers_[LF_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_lf");
+    readers_[JES_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_jes");
+    readers_[JES_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_jes");
 
-  readers_[HF_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_hf");
-  readers_[HF_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_hf");
+    readers_[LF_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_lf");
+    readers_[LF_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_lf");
 
-  readers_[HFSTAT1_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_hfstats1");
-  readers_[HFSTAT1_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_hfstats1");
+    readers_[HF_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_hf");
+    readers_[HF_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_hf");
 
-  readers_[HFSTAT2_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_hfstats2");
-  readers_[HFSTAT2_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_hfstats2");
+    readers_[HFSTAT1_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_hfstats1");
+    readers_[HFSTAT1_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_hfstats1");
 
-  readers_[LFSTAT1_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_lfstats1");
-  readers_[LFSTAT1_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_lfstats1");
+    readers_[HFSTAT2_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_hfstats2");
+    readers_[HFSTAT2_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_hfstats2");
 
-  readers_[LFSTAT2_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_lfstats2");
-  readers_[LFSTAT2_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_lfstats2");
+    readers_[LFSTAT1_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_lfstats1");
+    readers_[LFSTAT1_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_lfstats1");
 
-  readers_[CFERR1_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_cferr1");
-  readers_[CFERR1_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_cferr1");
+    readers_[LFSTAT2_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_lfstats2");
+    readers_[LFSTAT2_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_lfstats2");
 
-  readers_[CFERR2_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_cferr2");
-  readers_[CFERR2_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_cferr2");
-*/
-  std::string inputFileHF = "CATTools/CatAnalyzer/data/scaleFactors/csv_rwt_fit_hf_2016_01_28.root";
-  std::string inputFileLF = "CATTools/CatAnalyzer/data/scaleFactors/csv_rwt_fit_lf_2016_01_28.root";
+    readers_[CFERR1_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_cferr1");
+    readers_[CFERR1_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_cferr1");
 
-  TFile *f_CSVwgt_HF = new TFile((std::string(getenv("CMSSW_BASE")) + "/src/" + inputFileHF).c_str());
-  TFile *f_CSVwgt_LF = new TFile((std::string(getenv("CMSSW_BASE")) + "/src/" + inputFileLF).c_str());
+    readers_[CFERR2_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_cferr2");
+    readers_[CFERR2_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_cferr2");
+  }
+  else {
+    const auto inputFileHF = edm::FileInPath("CATTools/CatAnalyzer/data/scaleFactors/"+rootFileNameHF).fullPath();
+    const auto inputFileLF = edm::FileInPath("CATTools/CatAnalyzer/data/scaleFactors/"+rootFileNameLF).fullPath();
 
-  fillCSVHistos(f_CSVwgt_HF, f_CSVwgt_LF,6);
+    TFile f_CSVwgt_HF(inputFileHF.c_str());
+    TFile f_CSVwgt_LF(inputFileLF.c_str());
+
+    fillCSVHistos(&f_CSVwgt_HF, &f_CSVwgt_LF, 6);
+  }
 }
 
 double CSVWeightEvaluator::operator()(const cat::Jet& jet, const int unc) const
+{
+  if ( readers_.empty() ) return computeWeightFromROOT(jet, unc);
+  return computeWeightFromCSV(jet, unc);
+}
+
+double CSVWeightEvaluator::computeWeightFromROOT(const cat::Jet& jet, const int unc) const
 {
   const double pt = std::min(jet.pt(), 999.);
   const double aeta = std::abs(jet.eta());
@@ -111,11 +123,11 @@ double CSVWeightEvaluator::operator()(const cat::Jet& jet, const int unc) const
   if (iPt < 0 || iEta < 0) return (float) 1.0;
 
   if (flav == 5) {
-    if(iPt>=nHFptBins) iPt=nHFptBins-1;
+    if(iPt>=nHFptBins_) iPt=nHFptBins_-1;
     int useCSVBin = (csv >= 0.) ? h_csv_wgt_hf[iSysHF][iPt]->FindBin(csv) : 1;
     return (float) h_csv_wgt_hf[iSysHF][iPt]->GetBinContent(useCSVBin);
   } else if (flav == 4) {
-    if(iPt>=nHFptBins) iPt=nHFptBins-1;
+    if(iPt>=nHFptBins_) iPt=nHFptBins_-1;
     int useCSVBin = (csv >= 0.) ? c_csv_wgt_hf[iSysC][iPt]->FindBin(csv) : 1;
     return (float) c_csv_wgt_hf[iSysC][iPt]->GetBinContent(useCSVBin);
   } else {
@@ -124,8 +136,8 @@ double CSVWeightEvaluator::operator()(const cat::Jet& jet, const int unc) const
     return  (float) h_csv_wgt_lf[iSysLF][iPt][iEta]->GetBinContent(useCSVBin);
   }
 }
-/*
-double CSVWeightEvaluator::operator()(const cat::Jet& jet, const int unc) const
+
+double CSVWeightEvaluator::computeWeightFromCSV(const cat::Jet& jet, const int unc) const
 {
   const double pt = std::min(jet.pt(), 999.);
   const double aeta = std::abs(jet.eta());
@@ -161,29 +173,25 @@ double CSVWeightEvaluator::operator()(const cat::Jet& jet, const int unc) const
 
   return reader->second.eval(jf, aeta, pt, csv);
 }
-*/
 
 // fill the histograms (done once)
-void CSVWeightEvaluator::fillCSVHistos(TFile *fileHF, TFile *fileLF,int nHFptBins_)
+void CSVWeightEvaluator::fillCSVHistos(TFile *fileHF, TFile *fileLF, int nHFptBins)
 {
-  nHFptBins=nHFptBins_;
+  nHFptBins_ = nHFptBins;
   for (int iSys = 0; iSys < 9; iSys++) {
-    for (int iPt = 0; iPt < 5; iPt++)
-      h_csv_wgt_hf[iSys][iPt] = NULL;
+    for (int iPt = 0; iPt < 5; iPt++) h_csv_wgt_hf[iSys][iPt] = 0;
     for (int iPt = 0; iPt < 3; iPt++) {
-      for (int iEta = 0; iEta < 3; iEta++)
-        h_csv_wgt_lf[iSys][iPt][iEta] = NULL;
+      for (int iEta = 0; iEta < 3; iEta++) h_csv_wgt_lf[iSys][iPt][iEta] = 0;
     }
   }
   for (int iSys = 0; iSys < 5; iSys++) {
-    for (int iPt = 0; iPt < 5; iPt++)
-      c_csv_wgt_hf[iSys][iPt] = NULL;
+    for (int iPt = 0; iPt < 5; iPt++) c_csv_wgt_hf[iSys][iPt] = 0;
   }
 
   // CSV reweighting /// only care about the nominal ones
   for (int iSys = 0; iSys < 9; iSys++) {
     TString syst_csv_suffix_hf = "final";
-    TString syst_csv_suffix_c = "final";
+    TString syst_csv_suffix_c  = "final";
     TString syst_csv_suffix_lf = "final";
 
     switch (iSys) {
@@ -236,24 +244,30 @@ void CSVWeightEvaluator::fillCSVHistos(TFile *fileHF, TFile *fileLF,int nHFptBin
         break;
     }
 
-    for (int iPt = 0; iPt < nHFptBins; iPt++)
-      h_csv_wgt_hf[iSys][iPt] =
-        (TH1D *)fileHF->Get(Form("csv_ratio_Pt%i_Eta0_%s", iPt, syst_csv_suffix_hf.Data()));
+    for (int iPt = 0; iPt < nHFptBins_; iPt++) {
+      TH1D* h = (TH1D *)fileHF->Get(Form("csv_ratio_Pt%i_Eta0_%s", iPt, syst_csv_suffix_hf.Data()));
+      if ( !h ) continue;
+      h->SetDirectory(0);
+      h_csv_wgt_hf[iSys][iPt] = h;
+    }
 
     if (iSys < 5) {
-      for (int iPt = 0; iPt < nHFptBins; iPt++)
-        c_csv_wgt_hf[iSys][iPt] =
-          (TH1D *)fileHF->Get(Form("c_csv_ratio_Pt%i_Eta0_%s", iPt, syst_csv_suffix_c.Data()));
+      for (int iPt = 0; iPt < nHFptBins_; iPt++) {
+        TH1D* h = (TH1D *)fileHF->Get(Form("c_csv_ratio_Pt%i_Eta0_%s", iPt, syst_csv_suffix_c.Data()));
+        if ( !h ) continue;
+        h->SetDirectory(0);
+        c_csv_wgt_hf[iSys][iPt] = h;
+      }
     }
 
     for (int iPt = 0; iPt < 4; iPt++) {
-      for (int iEta = 0; iEta < 3; iEta++)
-        h_csv_wgt_lf[iSys][iPt][iEta] =
-          (TH1D *)fileLF->Get(Form("csv_ratio_Pt%i_Eta%i_%s", iPt, iEta, syst_csv_suffix_lf.Data()));
+      for (int iEta = 0; iEta < 3; iEta++) {
+        TH1D* h = (TH1D *)fileLF->Get(Form("csv_ratio_Pt%i_Eta%i_%s", iPt, iEta, syst_csv_suffix_lf.Data()));
+        if ( !h ) continue;
+        h->SetDirectory(0);
+        h_csv_wgt_lf[iSys][iPt][iEta] = h;
+      }
     }
-
   }
-
-  return;
 }
 

@@ -17,8 +17,11 @@ namespace cat {
 class CSVWeightEvaluator
 {
 public:
-  CSVWeightEvaluator();
+  CSVWeightEvaluator(const int inputType = ROOT);
+
   double operator()(const cat::Jet& jet, const int unc) const;
+
+  enum InputType { ROOT, CSV };
 
   enum UNC {
     CENTRAL,
@@ -31,15 +34,19 @@ public:
   };
   
 private:
+  // For the CSV reader
+  double computeWeightFromCSV(const cat::Jet& jet, const int unc) const;
   std::map<int, BTagCalibrationReader> readers_;
 
-  void fillCSVHistos(TFile *fileHF, TFile *fileLF,int nHFptBins_);
+  // For the ROOT file reader
+  double computeWeightFromROOT(const cat::Jet& jet, const int unc) const;
+  void fillCSVHistos(TFile *fileHF, TFile *fileLF, int nHFptBins);
 
   // CSV reweighting
   TH1D *h_csv_wgt_hf[9][6];
   TH1D *c_csv_wgt_hf[9][6];
   TH1D *h_csv_wgt_lf[9][4][3];
-  int nHFptBins;
+  int nHFptBins_;
 };
 
 }
