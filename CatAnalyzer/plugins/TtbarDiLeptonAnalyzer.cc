@@ -64,7 +64,8 @@ private:
       else return muonSF_(pt, aeta, 0);
     }
     else {
-      const double pt = p.pt(), eta = p.eta();
+      const auto& el = dynamic_cast<const cat::Electron&>(p);
+      const double pt = p.pt(), eta = el.scEta();
       if      ( sys == sys_eleff_u ) return elecSF_(pt, eta,  1);
       else if ( sys == sys_eleff_d ) return elecSF_(pt, eta, -1);
       else return elecSF_(pt, eta, 0);
@@ -877,9 +878,8 @@ cat::JetCollection TtbarDiLeptonAnalyzer::selectBJets(const JetCollection& jets)
 {
   cat::JetCollection selBjets;
   for (auto& jet : jets) {
-    if (jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") < 0.460) continue;//76x version
-    //if (jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") < 0.605) continue; //74x version
-    //if (jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") < 0.89) continue;//forsync
+    if (jet.bDiscriminator(BTAG_CSVv2) < WP_BTAG_CSVv2L) continue;
+    //if (jet.bDiscriminator(BTAG_CSVv2) < WP_BTAG_CSVv2M) continue;//forsync
     //printf("b jet with pt %4.1f\n", jet.pt());
     selBjets.push_back(jet);
   }
