@@ -247,7 +247,7 @@ void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& event
   {
     if ( lheHandle.isValid() )
     {
-      for ( size_t i=1; i<lheHandle->weights().size(); ++i )
+      for ( size_t i=0; i<lheHandle->weights().size(); ++i )
       {
         const double w0 = lheHandle->weights().at(i).wgt;
         const double w = w0/(enforceUnitGenWeight_ ? std::abs(lheWeight) : originalWeight);
@@ -258,7 +258,7 @@ void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& event
     }
     else
     {
-      for ( size_t i=1; i<genInfoHandle->weights().size(); ++i )
+      for ( size_t i=0; i<genInfoHandle->weights().size(); ++i )
       {
         const double w0 = genInfoHandle->weights().at(i);
         const double w = w0/(enforceUnitGenWeight_ ? std::abs(genWeight) : originalWeight);
