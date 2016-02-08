@@ -846,11 +846,10 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 	  b_Jet_JER_Nom  ->push_back(jet.smearedRes());    
 	  b_Jet_JER_Down ->push_back(jet.smearedResDown());
 	 	
-	  // Not clear yet...........
 	  // b_Jet_SF_CSV *= SF_CSV_(jet, CSVWeightEvaluator::CENTRAL); // FIXME: 2nd argument should be given by systematics variations
 	  // Ref: https://twiki.cern.ch/twiki/bin/view/CMS/BTagShapeCalibration
-	  // Saving the central SF and the 18 syst. unc.
-	  for (unsigned int iu=0; iu<19; iu++) Jet_SF_CSV[iu] *= SF_CSV_(jet, iu);
+	  // Saving the central SF and the 18 syst. unc. for pT_Jets > 30 GeV
+	  if(jet.pt() > 30.) for (unsigned int iu=0; iu<19; iu++) Jet_SF_CSV[iu] *= SF_CSV_(jet, iu);
 	} // if(isMC_)
 	
       }
