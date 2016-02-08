@@ -92,6 +92,7 @@ void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
   vstring weightTypes;
   vvstring weightParams;
   scaleWeightIdxs_.clear();
+  pdfWeightIdxs_.clear();
 
   std::auto_ptr<string> combineScaleBy(new string);
   std::auto_ptr<string> combinePDFBy(new string);
@@ -138,7 +139,8 @@ void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
     for ( TXMLNode* grpNode = topNode->GetChildren(); grpNode != 0; grpNode = grpNode->GetNextNode() )
     {
       if ( string(grpNode->GetNodeName()) != "weightgroup" ) continue;
-      auto weightTypeObj = (TXMLAttr*)grpNode->GetAttributes()->FindObject("type");
+      auto weightTypeObj = (TXMLAttr*)grpNode->GetAttributes()->FindObject("name");
+      if ( !weightTypeObj ) weightTypeObj = (TXMLAttr*)grpNode->GetAttributes()->FindObject("type"); // FIXME: this may not needed - double check LHE header doc.
       if ( !weightTypeObj ) continue;
 
       weightTypes.push_back(weightTypeObj->GetValue());
@@ -245,7 +247,7 @@ void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& event
   {
     if ( lheHandle.isValid() )
     {
-      for ( size_t i=1; i<lheHandle->weights().size(); ++i )
+      for ( size_t i=0; i<lheHandle->weights().size(); ++i )
       {
         const double w0 = lheHandle->weights().at(i).wgt;
         const double w = w0/(enforceUnitGenWeight_ ? std::abs(lheWeight) : originalWeight);
@@ -256,7 +258,7 @@ void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& event
     }
     else
     {
-      for ( size_t i=1; i<genInfoHandle->weights().size(); ++i )
+      for ( size_t i=0; i<genInfoHandle->weights().size(); ++i )
       {
         const double w0 = genInfoHandle->weights().at(i);
         const double w = w0/(enforceUnitGenWeight_ ? std::abs(genWeight) : originalWeight);
