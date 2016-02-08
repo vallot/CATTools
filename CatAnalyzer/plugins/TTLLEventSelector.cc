@@ -33,7 +33,7 @@ struct ControlPlots
   typedef TH2D* H2;
 
   H1 hCutstep, hCutstepNoweight;
-  H2 h2Cutstep;
+  H2 h2Cutstep, h2CutstepNoweight;
 
   H1 h0a_vertex_n;
 
@@ -126,6 +126,7 @@ struct ControlPlots
     hCutstep = dir.make<TH1D>("cutstep", "cutstep", nMaxCutstep, -2, nMaxCutstep-2);
     hCutstepNoweight = dir.make<TH1D>("cutstepNoweight", "cutstepNoweight", nMaxCutstep, -2, nMaxCutstep-2);
     h2Cutstep = dir.make<TH2D>("cutcorrelation", "cutcorrelation", nMaxCutstep, -2, nMaxCutstep-2, nMaxCutstep, -2, nMaxCutstep-2);
+    h2CutstepNoweight = dir.make<TH2D>("cutcorrelationNoweight", "cutcorrelationNoweight", nMaxCutstep, -2, nMaxCutstep-2, nMaxCutstep, -2, nMaxCutstep-2);
 
     hCutstep->GetXaxis()->SetBinLabel(1, "S0a all event");
     hCutstep->GetXaxis()->SetBinLabel(2, "S0b Trigger");
@@ -162,6 +163,24 @@ struct ControlPlots
     h2Cutstep->GetYaxis()->SetBinLabel(6, "S3 nJet2");
     h2Cutstep->GetYaxis()->SetBinLabel(7, "S4 MET40");
     h2Cutstep->GetYaxis()->SetBinLabel(8, "S5 nBJet1");
+
+    h2CutstepNoweight->GetXaxis()->SetBinLabel(1, "S0a all event");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel(2, "S0b Trigger");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel(3, "S0c Event filter");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel(4, "S1 Dilepton");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel(5, "S2 Z veto");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel(6, "S3 nJet2");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel(7, "S4 MET40");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel(8, "S5 nBJet1");
+
+    h2CutstepNoweight->GetYaxis()->SetBinLabel(1, "S0a all event");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel(2, "S0b Trigger");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel(3, "S0c Event filter");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel(4, "S1 Dilepton");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel(5, "S2 Z veto");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel(6, "S3 nJet2");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel(7, "S4 MET40");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel(8, "S5 nBJet1");
 
     auto subdir = dir.mkdir("step0a");
     h0a_vertex_n = subdir.make<TH1D>("vertex_n", "vertex_n", 100, 0, 100);
@@ -479,7 +498,7 @@ private:
     if      ( jetScale_ == +1 ) pt *= jet.shiftedEnUp();
     else if ( jetScale_ == -1 ) pt *= jet.shiftedEnDown();
 
-    if ( isMC_ ) pt *= jet.smearedRes(jetResol_);
+    if ( isMC_ and !isSkipJER_ ) pt *= jet.smearedRes(jetResol_);
 
     return pt;
   }
@@ -498,7 +517,7 @@ private:
     if ( std::abs(el.eta()) > 2.4 ) return false;
     if ( shiftedElectronPt(el) < 20 ) return false;
 
-    if ( !el.isTrigMVAValid() ) return false;
+    if ( isMVAElectronSel_ and !el.isTrigMVAValid() ) return false;
 
     //if ( el.relIso(0.3) >= 0.11 ) return false;
     if ( !el.electronID(elIdName_) ) return false;
@@ -510,9 +529,9 @@ private:
   bool isBjet(const cat::Jet& jet)
   {
     const double bTag = jet.bDiscriminator(bTagName_);
-    if      ( bTagWP_ == BTagWP::CSVL ) return bTag > 0.605;
-    else if ( bTagWP_ == BTagWP::CSVM ) return bTag > 0.890;
-    else if ( bTagWP_ == BTagWP::CSVT ) return bTag > 0.970;
+    if      ( bTagWP_ == BTagWP::CSVL ) return bTag > 0.460;
+    else if ( bTagWP_ == BTagWP::CSVM ) return bTag > 0.800;
+    else if ( bTagWP_ == BTagWP::CSVT ) return bTag > 0.935;
     return false;
   }
 
@@ -521,15 +540,18 @@ private:
 
   // Energy scales
   int muonScale_, electronScale_, jetScale_, jetResol_;
+  bool isSkipJER_; // Do not apply JER, needed to remove randomness during the Synchronization
 
   // Efficiency SF
   ScaleFactorEvaluator muonSF_, electronSF_;
   double muonSFShift_, electronSFShift_;
 
   bool isMC_;
+  bool isIgnoreTrig_; // Accept event even if it does not pass HLT. Needed for synchronization
   const int applyFilterAt_;
 
   // ID variables
+  bool isMVAElectronSel_;
   std::string bTagName_;
   std::string elIdName_;
   enum class BTagWP { CSVL, CSVM, CSVT } bTagWP_;
@@ -571,6 +593,8 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
                     electronSFSet.getParameter<vdouble>("errors"));
     electronSFShift_ = electronSet.getParameter<int>("efficiencySFDirection");
   }
+  isMVAElectronSel_ = false;
+  if ( elIdName_.substr(0,3) == "mva" ) isMVAElectronSel_ = true;
 
   const auto jetSet = pset.getParameter<edm::ParameterSet>("jet");
   jetToken_ = consumes<cat::JetCollection>(jetSet.getParameter<edm::InputTag>("src"));
@@ -582,6 +606,7 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   else if ( bTagWPStr == "CSVM" ) bTagWP_ = BTagWP::CSVM;
   else if ( bTagWPStr == "CSVT" ) bTagWP_ = BTagWP::CSVT;
   else edm::LogError("TTLLEventSelector") << "Wrong bTagWP parameter " << bTagWPStr;
+  isSkipJER_ = jetSet.getParameter<bool>("skipJER");
 
   const auto metSet = pset.getParameter<edm::ParameterSet>("met");
   metToken_ = consumes<cat::METCollection>(metSet.getParameter<edm::InputTag>("src"));
@@ -595,6 +620,7 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   trigElElToken_ = consumes<int>(filterSet.getParameter<edm::InputTag>("trigELEL"));
   trigMuMuToken_ = consumes<int>(filterSet.getParameter<edm::InputTag>("trigMUMU"));
   trigMuElToken_ = consumes<int>(filterSet.getParameter<edm::InputTag>("trigMUEL"));
+  isIgnoreTrig_ = filterSet.getParameter<bool>("ignoreTrig");
 
   if ( isMC_ )
   {
@@ -825,7 +851,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
   // ElEl channel Cutstep 0b with trigger requirements
   int cutstep_ee = -2;
-  if ( isTrigElEl )
+  if ( isIgnoreTrig_ or isTrigElEl )
   {
     ++cutstep_ee;
     h_ee.hCutstep->Fill(-1, weight);
@@ -843,7 +869,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     }
 
     // Cutstep 0c with reco filters
-    if ( isRECOFilterOK )
+    if ( isMC_ or isRECOFilterOK )
     {
       ++cutstep_ee;
       h_ee.hCutstep->Fill(0., weight);
@@ -863,7 +889,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   }
   // MuMu channel Cutstep 0b with trigger requirements
   int cutstep_mm = -2;
-  if ( isTrigMuMu )
+  if ( isIgnoreTrig_ or isTrigMuMu )
   {
     ++cutstep_mm;
     h_mm.hCutstep->Fill(-1, weight);
@@ -881,7 +907,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     }
 
     // Cutstep 0c with reco filters
-    if ( isRECOFilterOK )
+    if ( isMC_ or isRECOFilterOK )
     {
       ++cutstep_mm;
       h_mm.hCutstep->Fill(0., weight);
@@ -901,7 +927,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   }
   // MuEl channel Cutstep 0b with trigger requirements
   int cutstep_em = -2;
-  if ( isTrigMuEl )
+  if ( isIgnoreTrig_ or isTrigMuEl )
   {
     ++cutstep_em;
     h_em.hCutstep->Fill(-1, weight);
@@ -919,7 +945,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     }
 
     // Cutstep 0c with reco filters
-    if ( isRECOFilterOK )
+    if ( isMC_ or isRECOFilterOK )
     {
       ++cutstep_em;
       h_em.hCutstep->Fill(0., weight);
@@ -1898,13 +1924,45 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   for ( int istep=1, nstep=cutstepBits.size(); istep<=nstep; ++istep )
   {
     const bool res1 = cutstepBits[istep-1];
-    for ( int jstep=1; jstep<=nstep; ++jstep )
+
+    // Fill diagonal terms
+    if      ( channel == CH_ELEL ) {
+      h_ee.h2Cutstep->Fill(istep, istep, res1*weight);
+      h_ee.h2CutstepNoweight->Fill(istep, istep, res1);
+    }
+    else if ( channel == CH_MUMU ) {
+      h_mm.h2Cutstep->Fill(istep, istep, res1*weight);
+      h_mm.h2CutstepNoweight->Fill(istep, istep, res1);
+    }
+    else if ( channel == CH_MUEL ) {
+      h_em.h2Cutstep->Fill(istep, istep, res1*weight);
+      h_em.h2CutstepNoweight->Fill(istep, istep, res1);
+    }
+
+    // Fill correlations and anti-correlations
+    for ( int jstep=1; jstep<istep; ++jstep )
     {
       const bool res2 = cutstepBits[jstep-1];
       const int result = res1 && res2;
-      if      ( channel == CH_ELEL ) h_ee.h2Cutstep->Fill(istep, jstep, result*weight);
-      else if ( channel == CH_MUMU ) h_mm.h2Cutstep->Fill(istep, jstep, result*weight);
-      else if ( channel == CH_MUEL ) h_em.h2Cutstep->Fill(istep, jstep, result*weight);
+      const int aresult = res1 && !res2;
+      if      ( channel == CH_ELEL ) {
+        h_ee.h2Cutstep->Fill(istep, jstep, result*weight);
+        h_ee.h2CutstepNoweight->Fill(istep, jstep, result);
+        h_ee.h2Cutstep->Fill(jstep, istep, aresult*weight);
+        h_ee.h2CutstepNoweight->Fill(jstep, istep, aresult);
+      }
+      else if ( channel == CH_MUMU ) {
+        h_mm.h2Cutstep->Fill(istep, jstep, result*weight);
+        h_mm.h2CutstepNoweight->Fill(istep, jstep, result);
+        h_mm.h2Cutstep->Fill(jstep, istep, aresult*weight);
+        h_mm.h2CutstepNoweight->Fill(jstep, istep, aresult);
+      }
+      else if ( channel == CH_MUEL ) {
+        h_em.h2Cutstep->Fill(istep, jstep, result*weight);
+        h_em.h2CutstepNoweight->Fill(istep, jstep, result);
+        h_em.h2Cutstep->Fill(jstep, istep, aresult*weight);
+        h_em.h2CutstepNoweight->Fill(jstep, istep, aresult);
+      }
     }
   }
 
@@ -1928,7 +1986,7 @@ TTLLEventSelector::~TTLLEventSelector()
     cout << "---- cut flows without weight ----\n";
     cout << "Step\tee\tmumu\temu\n";
     const int n = h_em.hCutstepNoweight->GetNbinsX();
-    for ( int i=1; i<n; ++i )
+    for ( int i=1; i<=n; ++i )
     {
       const string name(h_ee.hCutstepNoweight->GetXaxis()->GetBinLabel(i));
       if ( name.empty() ) break;

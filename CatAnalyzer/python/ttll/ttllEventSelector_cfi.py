@@ -38,6 +38,7 @@ eventsTTLL = cms.EDFilter("TTLLEventSelector",
         resolDirection = cms.int32(0),
         #resolDirection = cms.int32(-1),
         #resolDirection = cms.int32(+1),
+        skipJER = cms.bool(False), # Needed for synchronization
     ),
 
     met = cms.PSet(
@@ -56,6 +57,7 @@ eventsTTLL = cms.EDFilter("TTLLEventSelector",
         trigMUEL = cms.InputTag("filterTrigMUEL"),
         trigMUMU = cms.InputTag("filterTrigMUMU"),
         trigELEL = cms.InputTag("filterTrigELEL"),
+        ignoreTrig = cms.bool(False), # Accept event even if it does not pass HLT. Needed for synchronization
     ),
 
     # Event weights

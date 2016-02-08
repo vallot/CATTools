@@ -16,33 +16,12 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 process.MessageLogger.cerr.FwkReport.reportEvery = 10000
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
-if os.path.exists("TTJets_MSDecays_central.txt"):
-    mylist = FileUtils.loadListFromFile("TTJets_MSDecays_central.txt")
-    process.source.fileNames = mylist
-else:
-    process.source.fileNames = [
-        '/store/mc/Summer12_DR53X/TTJets_MSDecays_central_TuneZ2star_8TeV-madgraph-tauola/AODSIM/PU_S10_START53_V19-v1/00000/FEA8DB51-F343-E311-A964-848F69FD2484.root',
-    ]
+process.source.fileNames = [
+    '/store/user/jhgoh/CATTools/sync/v7-6-1/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',
+]
 
-process.pseudoTop = cms.EDProducer("PseudoTopProducer",
-    finalStates = cms.InputTag("genParticles"),
-    genParticles = cms.InputTag("genParticles"),
-    jetConeSize = cms.double(0.5),
-    jetMaxEta = cms.double(2.4),
-    jetMinPt = cms.double(20),
-    leptonConeSize = cms.double(0.1),
-    leptonMaxEta = cms.double(2.4),
-    leptonMinPt = cms.double(20),
-    tMass = cms.double(172.5),
-    wMass = cms.double(80.4)
-)
-
-process.partonTop = cms.EDProducer("PartonTopProducer",
-    genParticles = cms.InputTag("genParticles"),
-    jetConeSize = cms.double(0.5),
-    jetMaxEta = cms.double(2.4),
-    jetMinPt = cms.double(20)
-)
+#process.load("TopQuarkAnalysis.TopEventProducers.producers.pseudoTop_cfi")
+#process.load("CATTools.CatProducers.mcTruthTop.partonTop_cfi")
 
 process.ttbar = cms.EDAnalyzer("CATGenTopAnalysis",
     channel = cms.InputTag("partonTop","channel"),

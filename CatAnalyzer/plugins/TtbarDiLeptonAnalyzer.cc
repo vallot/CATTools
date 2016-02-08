@@ -697,7 +697,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
     ////////////////////////////////////////////////////////  KIN  /////////////////////////////////////
     //int kin=0;
-    math::XYZTLorentzVector top1, top2, nu1, nu2, bjet1, bjet2;
+    math::XYZTLorentzVector top1, top2, nu1, nu2, nu_1, nu_2, nu_3, nu_4, bjet1, bjet2;
     double maxweight=0;
     //const cat::Jet* kinj1, * kinj2;
 
@@ -714,15 +714,19 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         inputLV[3] = recojet1;
         inputLV[4] = recojet2;
         solver_->solve(inputLV);
+        nu_1 = solver_->nu1();
+        nu_2 = solver_->nu2();
         const double weight1 = solver_->quality();
         inputLV[3] = recojet2;
         inputLV[4] = recojet1;
         solver_->solve(inputLV);
+        nu_3 = solver_->nu1();
+        nu_4 = solver_->nu2();
         const double weight2 = solver_->quality();
 
         if ( weight2 > maxweight and weight2 >= weight1 ) {
-          nu1 = solver_->nu1();
-          nu2 = solver_->nu2();
+          nu1 = nu_3;
+          nu2 = nu_4;
           maxweight = weight2;
         }
         else if ( weight1 > maxweight and weight1 >= weight2 ) {
@@ -730,20 +734,19 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
           // Weights are re-calculated since there can be very little difference due to random number effect in smearing algorithm
           inputLV[3] = recojet1;
           inputLV[4] = recojet2;
-          solver_->solve(inputLV);
-          nu1 = solver_->nu1();
-          nu2 = solver_->nu2();
-          maxweight = solver_->quality();
+          nu1 = nu_1;
+          nu2 = nu_2;
+          maxweight = weight1;
         }
         else continue;
 
         //saving results
-        bjet1 = recojet1;
-        bjet2 = recojet2;
+		bjet1 = inputLV[3];
+        bjet2 = inputLV[4];
 
         top1 = recolepLV1+inputLV[3]+nu1;
         top2 = recolepLV2+inputLV[4]+nu2;
-
+        printf("top1.M() %f, lep1.M() %f jet1.M() %f, nu.M() %f \n", top1.M(), recolepLV1.M(), inputLV[3].M(), nu1.M() );
       }
     }
 
@@ -774,7 +777,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
 
     b_maxweight = maxweight;
-    if (maxweight){
+    if (maxweight>0){
       b_step6 = true;
       if (b_step == 5){
         ++b_step;
