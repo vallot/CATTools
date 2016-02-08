@@ -92,6 +92,24 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         
         process.catJetsPuppi.src = cms.InputTag("patJetsPuppiUpdated")
         process.catJetsPuppi.setGenParticle = cms.bool(False)
+        
+        from PhysicsTools.SelectorUtils.tools.vid_id_tools import DataFormat,switchOnVIDPhotonIdProducer,setupAllVIDIdsInModule,setupVIDPhotonSelection            
+        switchOnVIDPhotonIdProducer(process, DataFormat.MiniAOD)
+
+        photon_ids = ['RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_Spring15_25ns_V1_cff',
+                      'RecoEgamma.PhotonIdentification.Identification.mvaPhotonID_Spring15_25ns_nonTrig_V2_cff']
+        
+        #add them to the VID producer
+        for idmod in photon_ids:
+            setupAllVIDIdsInModule(process,idmod,setupVIDPhotonSelection)
+
+        process.Photons.photonIDSources = cms.PSet( 
+            cutBasedPhotonID_Spring15_25ns_V1_standalone_loose = cms.IntputTag("egmPhotonIDs:cutBasedPhotonID-Spring15-25ns-V1-standalone-loose"),
+            cutBasedPhotonID_Spring15_25ns_V1_standalone_medium = cms.IntputTag("egmPhotonIDs:cutBasedPhotonID-Spring15-25ns-V1-standalone-medium"),
+            cutBasedPhotonID_Spring15_25ns_V1_standalone_tight = cms.IntputTag("egmPhotonIDs:cutBasedPhotonID-Spring15-25ns-V1-standalone-tight"),
+            mvaPhoID_Spring15_25ns_nonTrig_V2_wp90 =  cms.IntputTag("egmPhotonIDs:mvaPhoID-Spring15-25ns-nonTrig-V2-wp90"),
+            )
+
         ## #######################################################################
         ## # MET corrections from https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
         #from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
