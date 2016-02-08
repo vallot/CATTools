@@ -161,21 +161,21 @@ for systName in systMC:
 ## Scale up/down systematic uncertainty from LHE weight
 ## This uncertainty have to be combined with envelope
 ## Let us assume index1-10 are for the scale variations (muF & muR)
-for i in range(1, 9): # total 8 scale variations, 3 muF x 3 muR and one for central weight
-    systName = "gen_scale/%d" % i
-    syst = 'eventsTTLL.genWeight.src="genWeight:scaleWeights" eventsTTLL.genWeight.index=%d ttll.doTree=False ttbbll.doTree=False' % i
-    for d in bkgList:
-        name = d['name']
-        if isBlacklisted(name): continue
-        submitCmd  = "create-batch --cfg analyze_bkg_cfg.py --maxFiles 100"
-        submitCmd += " --fileList %s/dataset/dataset_%s.txt" % (dataDir, name)
-        print>>out_bkg, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, syst)))
+## total 8 scale variations, 3 muF x 3 muR and one for central weight
+## Skip unphysical scale variation combinations, (muF=2, muR=0.5) and (muF=0.5, muR=2) should be skipped
+## and combine with PS level scale variations samples
+for d in sigList:
+    name = d['name']
+    if isBlacklisted(name): continue
 
-    ## Modification for ttbar samples
-    syst += ' agen.weight="genWeight:scaleWeights" agen.weightIndex=%d' % i
-    for d in sigList:
-        name = d['name']
-        if isBlacklisted(name): continue
+    if   '_scaleup'   in name: idxset = (1, 3, 4)
+    elif '_scaledown' in name: idxset = (2, 6, 7)
+
+    for i in idxset:
+        systName = "gen_scale/%d" % i
+        syst = 'eventsTTLL.genWeight.src="genWeight:scaleWeights" eventsTTLL.genWeight.index=%d ttll.doTree=False ttbbll.doTree=False' % i
+        syst += ' agen.weight="genWeight:scaleWeights" agen.weightIndex=%d' % i
+
         submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 100"
         submitCmd += " --fileList %s/dataset/dataset_%s.txt" % (dataDir, name)
 
@@ -183,14 +183,14 @@ for i in range(1, 9): # total 8 scale variations, 3 muF x 3 muR and one for cent
         print>>out_bkg, (submitCmd + (" --jobName %s_Others/%s --args '%s filterPartonTTLL.invert=True'" % (name, systName, syst)))
 
 ## PDF weights
-## 110 variations for aMC@NLO, 212 for POWHEG
+## Weight vector size differs to include different PDF considerations
+## -> 110 variations for aMC@NLO, 248 for POWHEG
+## Basically, (1+8 scale variations) + (1+100 NNPDF variations) + (other PDF variations) + (1+N hdamp variations)
 ## NOTE: there is weight vector, but we don't do it for LO generator here.
-## -- for note madgraph weightSize = 445 + 8 variations
 for d in bkgList:
     name = d['name']
     if isBlacklisted(name): continue
-    if '_aMC' in name: weightSize = 110
-    elif '_powheg' in name: weightSize = 212
+    if '_aMC' in name or '_powheg' in name: weightSize = 100
     else: continue
 
     submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 100"
@@ -204,8 +204,7 @@ for d in sigList:
     name = d['name']
     if isBlacklisted(name): continue
     if '_scale' in name: continue
-    if '_aMC' in name: weightSize = 110
-    elif '_powheg' in name: weightSize = 212
+    if '_aMC' in name or '_powheg' in name: weightSize = 100
     else: continue
 
     submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 100"
