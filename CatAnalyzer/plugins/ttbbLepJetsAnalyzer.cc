@@ -67,6 +67,7 @@ private:
   int TTbarMC_;
 
   edm::EDGetTokenT<float>                        genWeightToken_;
+  edm::EDGetTokenT<vector<float>>           ScaleWeightToken_;
   edm::EDGetTokenT<reco::GenParticleCollection>  genToken_;
   edm::EDGetTokenT<reco::GenJetCollection>       genJetToken_;
   edm::EDGetTokenT<int>                          genttbarCatToken_;
@@ -77,6 +78,8 @@ private:
   edm::EDGetTokenT<cat::METCollection>           metToken_;
   edm::EDGetTokenT<int>                          pvToken_;
   edm::EDGetTokenT<float>                        puWeightToken_;
+  edm::EDGetTokenT<float>                        puUpWeightToken_;
+  edm::EDGetTokenT<float>                        puDownWeightToken_;
 
   edm::EDGetTokenT<edm::TriggerResults> triggerBits_;
   edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjects_;
@@ -95,9 +98,10 @@ private:
   // Event info
   int b_Event, b_Run, b_Lumi_Number;
   float b_GenWeight;
+  std::vector<float> *b_ScaleWeight;
 
   // PU/Vertices
-  float b_PUWeight;
+  std::vector<float> *b_PUWeight;
   int b_nGoodPV;
 
   // Channel and Categorization
@@ -187,6 +191,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   
   //now do what ever initialization is needed
   genWeightToken_       = consumes<float>                        (iConfig.getParameter<edm::InputTag>("genWeightLabel"));
+  ScaleWeightToken_     = consumes<vector<float>>           (iConfig.getParameter<edm::InputTag>("ScaleWeightLabel"));
   genToken_             = consumes<reco::GenParticleCollection>  (iConfig.getParameter<edm::InputTag>("genLabel"));
   genJetToken_          = consumes<reco::GenJetCollection>       (iConfig.getParameter<edm::InputTag>("genJetLabel"));
   genttbarCatToken_     = consumes<int>                          (iConfig.getParameter<edm::InputTag>("genttbarCatLabel"));
@@ -198,11 +203,17 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   metToken_          = consumes<cat::METCollection>           (iConfig.getParameter<edm::InputTag>("metLabel"));
   pvToken_           = consumes<int>                          (iConfig.getParameter<edm::InputTag>("pvLabel"));
   puWeightToken_     = consumes<float>                        (iConfig.getParameter<edm::InputTag>("puWeightLabel"));
+  puUpWeightToken_   = consumes<float>                        (iConfig.getParameter<edm::InputTag>("puUpWeightLabel"));
+  puDownWeightToken_ = consumes<float>                        (iConfig.getParameter<edm::InputTag>("puDownWeightLabel"));
 
   triggerBits_       = consumes<edm::TriggerResults>          (iConfig.getParameter<edm::InputTag>("triggerBits"));
   triggerObjects_    = consumes<pat::TriggerObjectStandAloneCollection> (iConfig.getParameter<edm::InputTag>("triggerObjects"));
 
-  b_GenConeCatID= new std::vector<int>;
+
+  b_PUWeight    = new std::vector<float>;
+  b_ScaleWeight = new std::vector<float>;
+
+  b_GenConeCatID = new std::vector<int>; 
 
   b_GenJet_pT = new std::vector<float>;
 
@@ -235,7 +246,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("luminumber", &b_Lumi_Number, "Lumi_Number/I");
   tree->Branch("genweight",  &b_GenWeight,   "GenWeight/F");
 
-  tree->Branch("PUWeight", &b_PUWeight, "PUWeight/F");
+  tree->Branch("PUWeight", "std::vector<float>", &b_PUWeight);
   tree->Branch("GoodPV",   &b_nGoodPV,  "nGoodPV/I");
 
   tree->Branch("channel",  &b_Channel,  "Channel/I");
@@ -275,6 +286,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
 
   // GEN Tree (only ttbarSignal)
   if(isMC_ && TTbarMC_==1){
+    tree->Branch("scaleweight", "std::vector<float>", &b_ScaleWeight );
     tree->Branch("gencatid", &b_GenCatID, "GenCatID/I");
     tree->Branch("genconecatid" , "std::vector<int>", &b_GenConeCatID);
     tree->Branch("genchannel",    &b_GenChannel,    "genchannel/I");
@@ -304,6 +316,8 @@ ttbbLepJetsAnalyzer::~ttbbLepJetsAnalyzer()
 {
    // do anything here that needs to be done at desctruction time
    // (e.g. close files, deallocate resources etc.)
+  delete b_PUWeight;   
+  delete b_ScaleWeight;
 
   delete b_GenConeCatID;
 
@@ -340,6 +354,9 @@ ttbbLepJetsAnalyzer::~ttbbLepJetsAnalyzer()
 void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   using namespace edm;
+
+  b_PUWeight->clear();    
+  b_ScaleWeight->clear();
 
   b_GenConeCatID->clear();
 
@@ -383,10 +400,17 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
 
-    edm::Handle<float> PUWeight;
-    
+    edm::Handle<float> PUWeight;    
     iEvent.getByToken(puWeightToken_, PUWeight);
-    b_PUWeight = *PUWeight;
+    b_PUWeight->push_back(*PUWeight); // Central
+
+    edm::Handle<float> PUWeight_Up;    
+    iEvent.getByToken(puUpWeightToken_, PUWeight_Up);
+    b_PUWeight->push_back(*PUWeight_Up); //Syst. Up
+
+    edm::Handle<float> PUWeight_Down;    
+    iEvent.getByToken(puDownWeightToken_, PUWeight_Down);
+    b_PUWeight->push_back(*PUWeight_Down); //Syst. Up
 
     //---------------------------------------------------------------------------
     // Weights at Generation Level: MC@NLO
@@ -402,10 +426,22 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   }
   
   else{ 
-    b_PUWeight = 1;
+    b_PUWeight->push_back(1.0);
     b_GenWeight = 1.0;
   }
 
+  //---------------------------------------------------------------------------
+  // Weights for Syst. Scale: ttbar
+  //---------------------------------------------------------------------------
+  if(TTbarMC_ == 1 ) {
+    edm::Handle<vector<float>> scaleWeight;
+    iEvent.getByToken(ScaleWeightToken_, scaleWeight);
+    
+    for (unsigned int i = 0; i < scaleWeight->size(); i++){
+      const float & ScWe = (*scaleWeight)[i];
+      b_ScaleWeight->push_back(ScWe);
+    }
+  }  
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   // Generated Particles (For Pythia8)
