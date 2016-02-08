@@ -436,11 +436,20 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   if(TTbarMC_ == 1 ) {
     edm::Handle<vector<float>> scaleWeight;
     iEvent.getByToken(ScaleWeightToken_, scaleWeight);
-    
-    for (unsigned int i = 0; i < 8; i++){
     // for (unsigned int i = 0; i < scaleWeight->size(); i++){
-      const float & ScWe = (*scaleWeight)[i];
-      b_ScaleWeight->push_back(ScWe);
+    // const float & ScWe = (*scaleWeight)[i];
+    // b_ScaleWeight->push_back(ScWe);
+    // }
+    if(scaleWeight->size() > 7){ // Temporal Solution
+      // Up
+      b_ScaleWeight->push_back((*scaleWeight)[0]);
+      b_ScaleWeight->push_back((*scaleWeight)[2]);
+      b_ScaleWeight->push_back((*scaleWeight)[3]);
+      // Down
+      b_ScaleWeight->push_back((*scaleWeight)[1]);
+      b_ScaleWeight->push_back((*scaleWeight)[5]);
+      b_ScaleWeight->push_back((*scaleWeight)[7]);
+
     }
   }  
   //---------------------------------------------------------------------------
@@ -869,7 +878,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         b_Jet_hadronFlavour->push_back(jet.hadronFlavour());
 
 	// b-tag discriminant
-	float jet_btagDis_CSV = jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
+	float jet_btagDis_CSV = jet.bDiscriminator(BTAG_CSVv2);
 	b_Jet_CSV ->push_back(jet_btagDis_CSV);
 	
 	if(isMC_) {
