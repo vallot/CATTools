@@ -53,10 +53,12 @@ public:
 private:
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
 
-  void selectMuons(const cat::MuonCollection& muons, LeptonCollection& selmuons, TtbarBbbarDiLeptonAnalyzer::sys_e sys) const;
-  void selectElecs(const cat::ElectronCollection& elecs, LeptonCollection& selelecs, TtbarBbbarDiLeptonAnalyzer::sys_e sys) const;
+  typedef std::vector<const cat::Lepton*> LeptonPtrs;
+
+  void selectMuons(const cat::MuonCollection& muons, cat::MuonCollection& selmuons, TtbarBbbarDiLeptonAnalyzer::sys_e sys) const;
+  void selectElecs(const cat::ElectronCollection& elecs, cat::ElectronCollection& selelecs, TtbarBbbarDiLeptonAnalyzer::sys_e sys) const;
   //  cat::JetCollection selectJets(const cat::JetCollection& jets, const LeptonCollection& recolep) const;
-  cat::JetCollection selectJets(const cat::JetCollection& jets, const LeptonCollection& recolep, TtbarBbbarDiLeptonAnalyzer::sys_e sys);
+  cat::JetCollection selectJets(const cat::JetCollection& jets, const LeptonPtrs& recolep, TtbarBbbarDiLeptonAnalyzer::sys_e sys);
   cat::JetCollection selectBJets(const cat::JetCollection& jets, double workingpoint) const;
   cat::JetCollection selectBJetsMVA(const cat::JetCollection& jets, double workingpoint) const;
   const reco::Candidate* getLast(const reco::Candidate* p) const;
@@ -845,25 +847,30 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     resetBrReco();
 
     // Find leptons and sort by pT
-    LeptonCollection recolep;
-    selectMuons(*muons, recolep, (sys_e) sys);
-    selectElecs(*electrons, recolep, (sys_e) sys);
+    cat::MuonCollection selMuons;
+    cat::ElectronCollection selElecs;
+    selectMuons(*muons, selMuons, (sys_e) sys);
+    selectElecs(*electrons, selElecs, (sys_e) sys);
     
-    if (recolep.size() < 2){
+    if (selMuons.size()+selElecs.size() < 2){
       ttree_->Fill();
       return;
     }
     cutflow_[3][b_channel]++;
+
+    LeptonPtrs recolep;
+    for ( const auto& x : selMuons ) recolep.push_back(&x);
+    for ( const auto& x : selElecs ) recolep.push_back(&x);
     
-    sort(recolep.begin(), recolep.end(), GtByCandPt());
+    sort(recolep.begin(), recolep.end(), [](const cat::Lepton* a, const cat::Lepton* b){return a->pt() > b->pt();});
     int lep1_idx=0, lep2_idx=1;
     //for emu
-    if(std::abs(recolep[1].pdgId())==11 && std::abs(recolep[0].pdgId())==13){
+    if(std::abs(recolep[1]->pdgId())==11 && std::abs(recolep[0]->pdgId())==13){
       lep1_idx = 1; lep2_idx = 0;
     }
     
-    const cat::Lepton& recolep1 = recolep[lep1_idx];
-    const cat::Lepton& recolep2 = recolep[lep2_idx];
+    const cat::Lepton& recolep1 = *recolep[lep1_idx];
+    const cat::Lepton& recolep2 = *recolep[lep2_idx];
     
     // Determine channel
     const int pdgIdSum = std::abs(recolep1.pdgId()) + std::abs(recolep2.pdgId());
@@ -1075,7 +1082,7 @@ const reco::Candidate* TtbarBbbarDiLeptonAnalyzer::getLast(const reco::Candidate
   return p;
 }
 
-void TtbarBbbarDiLeptonAnalyzer::selectMuons(const cat::MuonCollection& muons, LeptonCollection& selmuons,sys_e sys) const
+void TtbarBbbarDiLeptonAnalyzer::selectMuons(const cat::MuonCollection& muons, cat::MuonCollection& selmuons,sys_e sys) const
 {
   for (auto& m : muons) {
     cat::Muon mu(m);
@@ -1092,7 +1099,7 @@ void TtbarBbbarDiLeptonAnalyzer::selectMuons(const cat::MuonCollection& muons, L
   }
 }
 
-void TtbarBbbarDiLeptonAnalyzer::selectElecs(const cat::ElectronCollection& elecs, LeptonCollection& selelecs, sys_e sys) const
+void TtbarBbbarDiLeptonAnalyzer::selectElecs(const cat::ElectronCollection& elecs, cat::ElectronCollection& selelecs, sys_e sys) const
 {
   for (auto& e : elecs) {
     cat::Electron el(e);
@@ -1118,7 +1125,7 @@ void TtbarBbbarDiLeptonAnalyzer::selectElecs(const cat::ElectronCollection& elec
 }
 
 
-cat::JetCollection TtbarBbbarDiLeptonAnalyzer::selectJets(const cat::JetCollection& jets, const LeptonCollection& recolep, sys_e sys)
+cat::JetCollection TtbarBbbarDiLeptonAnalyzer::selectJets(const cat::JetCollection& jets, const TtbarBbbarDiLeptonAnalyzer::LeptonPtrs& recolep, sys_e sys)
 {
   cat::JetCollection seljets;
   for (auto& j : jets) {
@@ -1135,7 +1142,7 @@ cat::JetCollection TtbarBbbarDiLeptonAnalyzer::selectJets(const cat::JetCollecti
 
     bool hasOverLap = false;
     for (auto lep : recolep){
-      if (deltaR(jet.p4(),lep.p4()) < 0.4) hasOverLap = true;
+      if (deltaR(jet.p4(),lep->p4()) < 0.4) hasOverLap = true;
     }
     if (hasOverLap) continue;
     // printf("jet with pt %4.1f\n", jet.pt());
