@@ -33,7 +33,7 @@ public:
   explicit TtbarDiLeptonAnalyzer(const edm::ParameterSet&);
   ~TtbarDiLeptonAnalyzer();
 
-  enum sys_e {sys_nom, 
+  enum sys_e {sys_nom,
     sys_jes_u, sys_jes_d, sys_jer_u, sys_jer_d,
     sys_mu_u, sys_mu_d, sys_el_u, sys_el_d,
     sys_mueff_u, sys_mueff_d, sys_eleff_u, sys_eleff_d,
@@ -46,15 +46,17 @@ private:
   void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&) override;
   void endLuminosityBlock(const edm::LuminosityBlock&, const edm::EventSetup&) override {};
 
+  typedef std::vector<const cat::Lepton*> LeptonPtrs;
+
   void resetBr();
-  float selectMuons(const cat::MuonCollection& muons, ParticleCollection& selmuons, sys_e sys) const;
-  float selectElecs(const cat::ElectronCollection& elecs, ParticleCollection& selelecs, sys_e sys) const;
-  cat::JetCollection selectJets(const cat::JetCollection& jets, const ParticleCollection& recolep, sys_e sys);
+  float selectMuons(const cat::MuonCollection& muons, cat::MuonCollection& selmuons, sys_e sys) const;
+  float selectElecs(const cat::ElectronCollection& elecs, cat::ElectronCollection& selelecs, sys_e sys) const;
+  cat::JetCollection selectJets(const cat::JetCollection& jets, const LeptonPtrs& recolep, sys_e sys);
   cat::JetCollection selectBJets(const cat::JetCollection& jets) const;
   const reco::Candidate* getLast(const reco::Candidate* p) const;
 
   ScaleFactorEvaluator muonSF_, elecSF_;
-  float getSF(const cat::Particle& p, int sys) const
+  float getSF(const cat::Lepton& p, int sys) const
   {
     const int aid = abs(p.pdgId());
     if ( aid == 13 ) {
@@ -369,18 +371,18 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       b_topPtWeight = *topPtWeightHandle;
 
       if (sys == sys_nom){
-	edm::Handle<vector<float>> pdfweightHandle;
-	iEvent.getByToken(pdfweightToken_, pdfweightHandle);
-	for (const float & aPdfWeight : *pdfweightHandle){
-	  b_pdfWeights.push_back(aPdfWeight);  
-	}
-	edm::Handle<vector<float>> scaleweightHandle;
-	iEvent.getByToken(scaleweightToken_, scaleweightHandle);
-	for (const float & aScaleWeight : *scaleweightHandle){
-	  b_scaleWeights.push_back(aScaleWeight);  
-	}
+        edm::Handle<vector<float>> pdfweightHandle;
+        iEvent.getByToken(pdfweightToken_, pdfweightHandle);
+        for (const float & aPdfWeight : *pdfweightHandle){
+          b_pdfWeights.push_back(aPdfWeight);
+        }
+        edm::Handle<vector<float>> scaleweightHandle;
+        iEvent.getByToken(scaleweightToken_, scaleweightHandle);
+        for (const float & aScaleWeight : *scaleweightHandle){
+          b_scaleWeights.push_back(aScaleWeight);
+        }
       }
-      
+
       edm::Handle<vector<int> > partonTop_modes;
       edm::Handle<reco::GenParticleCollection> partonTop_genParticles;
       iEvent.getByToken(partonTop_modes_, partonTop_modes);
@@ -615,20 +617,25 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     edm::Handle<cat::METCollection> mets;            iEvent.getByToken(metToken_, mets);
 
     // Find leptons and sort by pT
-    ParticleCollection recolep;
-    selectMuons(*muons, recolep, (sys_e)sys);
-    selectElecs(*electrons, recolep, (sys_e)sys);
+    cat::MuonCollection selMuons;
+    cat::ElectronCollection selElecs;
+    selectMuons(*muons, selMuons, (sys_e)sys);
+    selectElecs(*electrons, selElecs, (sys_e)sys);
     //b_lepweight = mu_weight * el_weight;
-    if (recolep.size() < 2){
+    if ( selMuons.size()+selElecs.size() < 2 ) {
       ttree_[sys]->Fill();
       continue;
     }
     cutflow_[3][b_channel]++;
 
-    sort(recolep.begin(), recolep.end(), GtByCandPt());
+    std::vector<const cat::Lepton*> recolep;
+    for ( const auto& x : selMuons ) recolep.push_back(&x);
+    for ( const auto& x : selElecs ) recolep.push_back(&x);
+
+    sort(recolep.begin(), recolep.end(), [](const cat::Lepton* a, const cat::Lepton* b){return a->pt() > b->pt();});
     recolep.erase(recolep.begin()+2,recolep.end());
-    const cat::Particle& recolep1 = recolep[0];
-    const cat::Particle& recolep2 = recolep[1];
+    const cat::Lepton& recolep1 = *recolep[0];
+    const cat::Lepton& recolep2 = *recolep[1];
 
     // Determine channel
     const int pdgIdSum = std::abs(recolep1.pdgId()) + std::abs(recolep2.pdgId());
@@ -731,8 +738,6 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
           maxweight = weight2;
         }
         else if ( weight1 > maxweight and weight1 >= weight2 ) {
-          // Re-solve with previous jet combinations
-          // Weights are re-calculated since there can be very little difference due to random number effect in smearing algorithm
           inputLV[3] = recojet1;
           inputLV[4] = recojet2;
           nu1 = nu_1;
@@ -742,12 +747,11 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         else continue;
 
         //saving results
-		bjet1 = inputLV[3];
+        bjet1 = inputLV[3];
         bjet2 = inputLV[4];
 
         top1 = recolepLV1+inputLV[3]+nu1;
         top2 = recolepLV2+inputLV[4]+nu2;
-        printf("top1.M() %f, lep1.M() %f jet1.M() %f, nu.M() %f \n", top1.M(), recolepLV1.M(), inputLV[3].M(), nu1.M() );
       }
     }
 
@@ -801,7 +805,7 @@ const reco::Candidate* TtbarDiLeptonAnalyzer::getLast(const reco::Candidate* p) 
   return p;
 }
 
-float TtbarDiLeptonAnalyzer::selectMuons(const cat::MuonCollection& muons, ParticleCollection& selmuons, sys_e sys) const
+float TtbarDiLeptonAnalyzer::selectMuons(const cat::MuonCollection& muons, cat::MuonCollection& selmuons, sys_e sys) const
 {
   float weight = 1.;
   for (auto& m : muons) {
@@ -821,7 +825,7 @@ float TtbarDiLeptonAnalyzer::selectMuons(const cat::MuonCollection& muons, Parti
   return weight;
 }
 
-float TtbarDiLeptonAnalyzer::selectElecs(const cat::ElectronCollection& elecs, ParticleCollection& selelecs, sys_e sys) const
+float TtbarDiLeptonAnalyzer::selectElecs(const cat::ElectronCollection& elecs, cat::ElectronCollection& selelecs, sys_e sys) const
 {
   float weight = 1.;
   for (auto& e : elecs) {
@@ -844,7 +848,7 @@ float TtbarDiLeptonAnalyzer::selectElecs(const cat::ElectronCollection& elecs, P
   return weight;
 }
 
-cat::JetCollection TtbarDiLeptonAnalyzer::selectJets(const cat::JetCollection& jets, const ParticleCollection& recolep, sys_e sys)
+cat::JetCollection TtbarDiLeptonAnalyzer::selectJets(const cat::JetCollection& jets, const TtbarDiLeptonAnalyzer::LeptonPtrs& recolep, sys_e sys)
 {
   cat::JetCollection seljets;
   for (auto& j : jets) {
@@ -860,14 +864,14 @@ cat::JetCollection TtbarDiLeptonAnalyzer::selectJets(const cat::JetCollection& j
 
     bool hasOverLap = false;
     for (auto lep : recolep){
-      if (deltaR(jet.p4(),lep.p4()) < 0.4) hasOverLap = true;
+      if (deltaR(jet.p4(),lep->p4()) < 0.4) hasOverLap = true;
     }
     if (hasOverLap) continue;
     // printf("jet with pt %4.1f\n", jet.pt());
     if (sys == sys_btag_u) b_btagweight *= jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE, 1);
     else if (sys == sys_btag_d) b_btagweight *= jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE, -1);
     else b_btagweight *= jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE, 0);
-    
+
     b_csvweight *= csvWeight(jet, CSVWeightEvaluator::CENTRAL);
     seljets.push_back(jet);
   }
