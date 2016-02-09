@@ -4,7 +4,7 @@
 using namespace cat;
 using namespace std;
 
-BTagWeightEvaluator::BTagWeightEvaluator(const edm::ParameterSet& pset)
+void BTagWeightEvaluator::init(const edm::ParameterSet& pset)
 {
   method_ = pset.getParameter<string>("method");
   const string btagName = pset.getParameter<string>("btagName"); // csvv2 or ...

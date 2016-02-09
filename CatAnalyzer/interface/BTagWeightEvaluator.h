@@ -17,7 +17,8 @@ namespace cat {
 class BTagWeightEvaluator
 {
 public:
-  BTagWeightEvaluator(const edm::ParameterSet& pset);
+  BTagWeightEvaluator() {};
+  void init(const edm::ParameterSet& pset);
   double computeWeight(const cat::JetCollection& jets, const int unc) const;
 
 private:
