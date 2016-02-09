@@ -158,15 +158,15 @@ cat::CATPhotonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
     aPhoton.setphotonIso(aPatPhoton.photonIso() );
     aPhoton.setpuhargedHadronIso(aPatPhoton.puChargedHadronIso() ); 
     
-    
     if (phoIDSrcs_.size()){// for remade photon IDs
       for (size_t i = 0; i < phoIDSrcs_.size(); ++i){
 	ids[i].second = (*idhandles[i])[phosRef];
 	aPhoton.setPhotonID(ids[i]);
       }
     }
-    else if (photonIDs_.size() == 0){// for sphoted IDs in miniAOD
+    else if (photonIDs_.size()){// for sphoted IDs in miniAOD
       for(unsigned int i = 0; i < photonIDs_.size(); i++){
+
 	pat::Photon::IdPair pid(photonIDs_.at(i), aPatPhoton.photonID(photonIDs_.at(i)));
 	aPhoton.setPhotonID(pid);
       }
