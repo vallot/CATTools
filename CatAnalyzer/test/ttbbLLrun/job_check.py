@@ -3,7 +3,7 @@ import sys
 
 if len(sys.argv) is 1:
   print "Please, add the name as like followings."
-  print "> python  ntuple2hist.py [1,2,3, or 4] \n"
+  print "> python job_check.py .  \n"
   sys.exit()
 
 arg = sys.argv[1]
