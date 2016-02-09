@@ -149,9 +149,15 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         #######################################################################
         ## Energy smearing and scale correction
         ## https://twiki.cern.ch/twiki/bin/view/CMS/EGMSmearer
+        process.RandomNumberGeneratorService.calibratedPatElectrons=cms.PSet(
+            engineName = cms.untracked.string('TRandom3'),
+            initialSeed = cms.untracked.uint32(1)
+        )
         process.load('EgammaAnalysis.ElectronTools.calibratedElectronsRun2_cfi')
         process.calibratedPatElectrons.isMC = runOnMC
-        process.catElectrons.src = cms.InputTag("calibratedPatElectrons")
+        process.catElectrons.src = cms.InputTag("calibratedPatElectrons")    
+    
+        # photons not yet working...
         #process.load('EgammaAnalysis.ElectronTools.calibratedPhotonsRun2_cfi')
         
         #######################################################################    
