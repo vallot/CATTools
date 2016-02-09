@@ -23,7 +23,7 @@ public:
 
   enum InputType { ROOT, CSV, MVA};
   enum Method { Incl, MuJets, IterativeFit };
-  enum BTAGUNC { BTAGCENTRAL, BTAGUP, BTAGDOWN  };
+  enum BTAGUNC { BTAGCENTRAL=0, BTAGUP=1, BTAGDOWN=-1  };
 
   enum UNC {
     CENTRAL,
