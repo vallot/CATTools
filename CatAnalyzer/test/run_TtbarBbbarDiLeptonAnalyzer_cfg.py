@@ -9,8 +9,8 @@ process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
 process.options.allowUnscheduled = cms.untracked.bool(True)
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
-process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-6-1_RunIIFall15MiniAODv1-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext3-v1/160203_113158/0000/catTuple_1.root')
-
+#process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-6-1_RunIIFall15MiniAODv1-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext3-v1/160203_113158/0000/catTuple_1.root')
+process.source.fileNames.append('/store/user/jhgoh/CATTools/sync/v7-6-1/TTbarXSecSynchronization_76X_MC_TT_powheg.root')
 #process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-1/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',]
 #process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-1/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8.root',]
 #process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-1/DoubleEG_Run2015D-16Dec2015-v2.root',]
@@ -39,12 +39,17 @@ lumiMask = 'lumiMask'
 #    process.pileupWeight.pileupDn = pileupWeightMap["Run2015Dn_25nsV1"]
 
 #process.load("CATTools.CatAnalyzer.ttll.ttbarDileptonKinSolutionAlgos_cff")
+
+####for running genTop on the fly. however it is running slowly.
 #process.load("CATTools.CatProducer.genTopProducer_cfi")
 #from CATTools.CatProducer.Tools.tools import genHFTool
 #genHFTool(process,True)
 
 process.load("CATTools.CatAnalyzer.filters_cff")
+
+##for only ttbar signal mc sample
 process.load("CATTools.CatAnalyzer.topPtWeightProducer_cfi")
+
 from CATTools.CatAnalyzer.leptonSF_cff import *
 
 process.cattree = cms.EDAnalyzer("TtbarBbbarDiLeptonAnalyzer",
