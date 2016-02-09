@@ -2,11 +2,6 @@
 
 import sys, os
 
-if len(sys.argv) < 2:
-    print sys.argv[0], "PROD_VERSION"
-    print "Default PROD_VERISON = v7-6-1"
-    sys.argv.append('v7-6-1')
-
 gidMap = {
     'v7-3-4':'857222646',
     'v7-4-1':'212761185',
@@ -16,8 +11,16 @@ gidMap = {
     'v7-4-5':'519625370',
     'v7-4-6':'1087889200',
     'v7-6-1':'1617837617',
+    'v7-6-2':'1966334211',
 }
-gid = gidMap[sys.argv[1]]
+       
+if len(sys.argv) < 2:
+    lastest = sorted(gidMap)[-1]
+    gid = gidMap[lastest]
+    print "Default PROD_VERISON =", lastest
+else:
+    gid = gidMap[sys.argv[1]]
+    print "Using =",sys.argv[1]
 
 from ROOT import *
 
@@ -37,8 +40,8 @@ lumiIdx = csv[0].index("luminosity (fb-1)")
 colourIdx = csv[0].index("colour")
 pathIdx = csv[0].index("Path")
 DataSetNameIdx = csv[0].index("DataSetName")
-GlobalTagIdx = csv[0].index("GlobalTag")
-LumiMaskIdx = csv[0].index("LumiMask")
+#GlobalTagIdx = csv[0].index("GlobalTag")
+#LumiMaskIdx = csv[0].index("LumiMask")
 for l in csv[1:]:
     if len(l) == 0 or len(l[0]) == 0: continue
     xsec, nevt, lumi, colour = l[xsecIdx], l[nevtIdx], l[lumiIdx], l[colourIdx]
@@ -53,8 +56,8 @@ for l in csv[1:]:
                'colour':eval(colour),
                'path':l[pathIdx],
                'DataSetName':l[DataSetNameIdx],
-               'GlobalTag':l[GlobalTagIdx],
-               'LumiMask':l[LumiMaskIdx],
+               #'GlobalTag':l[GlobalTagIdx],
+               #'LumiMask':l[LumiMaskIdx],
                })
 
 outDir = os.environ["CMSSW_BASE"]+"/src/CATTools/CatAnalyzer/data"
