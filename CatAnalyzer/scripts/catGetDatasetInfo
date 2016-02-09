@@ -40,8 +40,8 @@ lumiIdx = csv[0].index("luminosity (fb-1)")
 colourIdx = csv[0].index("colour")
 pathIdx = csv[0].index("Path")
 DataSetNameIdx = csv[0].index("DataSetName")
-GlobalTagIdx = csv[0].index("GlobalTag")
-LumiMaskIdx = csv[0].index("LumiMask")
+#GlobalTagIdx = csv[0].index("GlobalTag")
+#LumiMaskIdx = csv[0].index("LumiMask")
 for l in csv[1:]:
     if len(l) == 0 or len(l[0]) == 0: continue
     xsec, nevt, lumi, colour = l[xsecIdx], l[nevtIdx], l[lumiIdx], l[colourIdx]
@@ -56,8 +56,8 @@ for l in csv[1:]:
                'colour':eval(colour),
                'path':l[pathIdx],
                'DataSetName':l[DataSetNameIdx],
-               'GlobalTag':l[GlobalTagIdx],
-               'LumiMask':l[LumiMaskIdx],
+               #'GlobalTag':l[GlobalTagIdx],
+               #'LumiMask':l[LumiMaskIdx],
                })
 
 outDir = os.environ["CMSSW_BASE"]+"/src/CATTools/CatAnalyzer/data"
