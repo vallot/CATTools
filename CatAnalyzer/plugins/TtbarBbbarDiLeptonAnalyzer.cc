@@ -83,7 +83,7 @@ private:
     }
     else {
       const auto& el = dynamic_cast<const cat::Electron&>(p);
-      const double pt = p.pt(), eta = el.eta();
+      const double pt = p.pt(), eta = el.scEta();
       if      ( sys == sys_eleff_u ) return elecSF_(pt, eta,  1);
       else if ( sys == sys_eleff_d ) return elecSF_(pt, eta, -1);
       else return elecSF_(pt, eta, 0);
