@@ -109,7 +109,10 @@ cat::CATPhotonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
   std::vector<pat::Photon::IdPair>               ids;
   idhandles.resize(phoIDSrcs_.size());
   ids.resize(phoIDSrcs_.size());
-
+  for (size_t i = 0; i < phoIDSrcs_.size(); ++i) {
+    iEvent.getByToken(phoIDTokens_[i], idhandles[i]);
+    ids[i].first = phoIDSrcs_[i].first;
+  }
   
 
   auto_ptr<vector<cat::Photon> >  out(new vector<cat::Photon>());
