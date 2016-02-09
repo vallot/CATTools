@@ -33,7 +33,7 @@ public:
   explicit TtbarDiLeptonAnalyzer(const edm::ParameterSet&);
   ~TtbarDiLeptonAnalyzer();
 
-  enum sys_e {sys_nom, 
+  enum sys_e {sys_nom,
     sys_jes_u, sys_jes_d, sys_jer_u, sys_jer_d,
     sys_mu_u, sys_mu_d, sys_el_u, sys_el_d,
     sys_mueff_u, sys_mueff_d, sys_eleff_u, sys_eleff_d,
@@ -372,18 +372,18 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       b_topPtWeight = *topPtWeightHandle;
 
       if (sys == sys_nom){
-	edm::Handle<vector<float>> pdfweightHandle;
-	iEvent.getByToken(pdfweightToken_, pdfweightHandle);
-	for (const float & aPdfWeight : *pdfweightHandle){
-	  b_pdfWeights.push_back(aPdfWeight);  
-	}
-	edm::Handle<vector<float>> scaleweightHandle;
-	iEvent.getByToken(scaleweightToken_, scaleweightHandle);
-	for (const float & aScaleWeight : *scaleweightHandle){
-	  b_scaleWeights.push_back(aScaleWeight);  
-	}
+        edm::Handle<vector<float>> pdfweightHandle;
+        iEvent.getByToken(pdfweightToken_, pdfweightHandle);
+        for (const float & aPdfWeight : *pdfweightHandle){
+          b_pdfWeights.push_back(aPdfWeight);
+        }
+        edm::Handle<vector<float>> scaleweightHandle;
+        iEvent.getByToken(scaleweightToken_, scaleweightHandle);
+        for (const float & aScaleWeight : *scaleweightHandle){
+          b_scaleWeights.push_back(aScaleWeight);
+        }
       }
-      
+
       edm::Handle<vector<int> > partonTop_modes;
       edm::Handle<reco::GenParticleCollection> partonTop_genParticles;
       iEvent.getByToken(partonTop_modes_, partonTop_modes);
@@ -739,8 +739,6 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
           maxweight = weight2;
         }
         else if ( weight1 > maxweight and weight1 >= weight2 ) {
-          // Re-solve with previous jet combinations
-          // Weights are re-calculated since there can be very little difference due to random number effect in smearing algorithm
           inputLV[3] = recojet1;
           inputLV[4] = recojet2;
           nu1 = nu_1;
@@ -750,12 +748,11 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         else continue;
 
         //saving results
-		bjet1 = inputLV[3];
+        bjet1 = inputLV[3];
         bjet2 = inputLV[4];
 
         top1 = recolepLV1+inputLV[3]+nu1;
         top2 = recolepLV2+inputLV[4]+nu2;
-        printf("top1.M() %f, lep1.M() %f jet1.M() %f, nu.M() %f \n", top1.M(), recolepLV1.M(), inputLV[3].M(), nu1.M() );
       }
     }
 
