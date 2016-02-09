@@ -4,8 +4,8 @@ import sys, os
 
 if len(sys.argv) < 2:
     print sys.argv[0], "PROD_VERSION"
-    print "Default PROD_VERISON = v7-6-1"
-    sys.argv.append('v7-6-1')
+    print "Default PROD_VERISON = v7-6-2"
+    sys.argv.append('v7-6-2')
 
 gidMap = {
     'v7-3-4':'857222646',
@@ -16,8 +16,12 @@ gidMap = {
     'v7-4-5':'519625370',
     'v7-4-6':'1087889200',
     'v7-6-1':'1617837617',
+    'v7-6-2':'1966334211',
 }
-gid = gidMap[sys.argv[1]]
+if len(sys.argv[1]):
+    gid = gidMap[sys.argv[1]]
+else
+    print gidMap[-1]
 
 from ROOT import *
 
