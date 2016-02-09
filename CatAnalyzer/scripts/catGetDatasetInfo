@@ -20,7 +20,7 @@ if len(sys.argv) < 2:
     print "Default PROD_VERISON =", lastest
 else:
     gid = gidMap[sys.argv[1]]
-    print "Using =",gid
+    print "Using =",sys.argv[1]
 
 from ROOT import *
 
