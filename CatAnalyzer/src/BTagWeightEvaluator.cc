@@ -6,14 +6,19 @@ using namespace std;
 
 void BTagWeightEvaluator::init(const edm::ParameterSet& pset)
 {
-  method_ = pset.getParameter<string>("method");
+  const string method = pset.getParameter<string>("method");
+  if ( method == "CSVWeight" ) method_ = CSVWEIGHT;
+  else if ( method == "iterativefit" ) method_ = ITERATIVEFIT;
+  else if ( method == "" ) method_ = INCL;
+  else if ( method == "" ) method_ = MUJET;
+
   const string btagName = pset.getParameter<string>("btagName"); // csvv2 or ...
   if ( btagName == "csvv2" ) btagAlgo_ = BTAG_CSVv2;
   else if ( btagName == "cmvav2" ) btagAlgo_ = BTAG_cMVAv2;
   else if ( btagName == "jp" ) btagAlgo_ = BTAG_JP;
   else btagAlgo_ = "undefined"; // FIXME: Eventually raise error somewhere?
 
-  if ( method_ == "CSVWeight" ) {
+  if ( method_ == CSVWEIGHT ) {
     const string rootFileNameHF = "csv_rwt_fit_hf_2016_01_28.root";
     const string rootFileNameLF = "csv_rwt_fit_lf_2016_01_28.root";
     const auto inputFileHF = edm::FileInPath("CATTools/CatAnalyzer/data/scaleFactors/"+rootFileNameHF).fullPath();
@@ -26,7 +31,7 @@ void BTagWeightEvaluator::init(const edm::ParameterSet& pset)
 
     return;
   }
-  else if ( method_ == "iterativefit" ) {
+  else if ( method_ == ITERATIVEFIT ) {
     //const string csvFileName = "ttH_BTV_CSVv2_13TeV_2015D_20151120.csv";
     const string csvFileName = pset.getParameter<string>("csvFileName"); // CSVv2_prelim.csv or cMVAv2_prelim.csv
     const auto csvFile = edm::FileInPath("CATTools/CatAnalyzer/data/scaleFactors/"+csvFileName).fullPath();
@@ -40,7 +45,7 @@ void BTagWeightEvaluator::init(const edm::ParameterSet& pset)
       "up_cferr1", "down_cferr1", "up_cferr2", "down_cferr2"
     };
     for ( unsigned int i=0; i<uncNames_.size(); ++i ) {
-      readers_[i] = BTagCalibrationReader(&calib, op, method_, uncNames_[i]); 
+      readers_[i] = BTagCalibrationReader(&calib, op, method, uncNames_[i]); 
     }
   }
   else {
@@ -55,21 +60,21 @@ void BTagWeightEvaluator::init(const edm::ParameterSet& pset)
     else if ( opName == "tight"  ) op = BTagEntry::OP_TIGHT;
     uncNames_ = {"central", "up", "down"};
 
-    readers_[0] = BTagCalibrationReader(&calib, op, method_, "central");
-    readers_[1] = BTagCalibrationReader(&calib, op, method_, "up"     );
-    readers_[2] = BTagCalibrationReader(&calib, op, method_, "down"   );
+    readers_[0] = BTagCalibrationReader(&calib, op, method, "central");
+    readers_[1] = BTagCalibrationReader(&calib, op, method, "up"     );
+    readers_[2] = BTagCalibrationReader(&calib, op, method, "down"   );
   }
 }
 
 double BTagWeightEvaluator::computeWeight(const cat::JetCollection& jets, const int unc) const
 {
   // Do the simplest weighting methods
-  if ( method_ == "CSVWeight" ) {
+  if ( method_ == CSVWEIGHT ) {
     double weight = 1.0;
     for ( auto& jet : jets ) weight *= computeCSVWeightFromROOT(jet, unc);
     return weight;
   }
-  else if ( method_ == "iterativefit" ) {
+  else if ( method_ == ITERATIVEFIT ) {
     double weight = 1.0;
     for ( auto& jet : jets ) weight *= computeCSVWeightFromCSV(jet, unc);
     return weight;

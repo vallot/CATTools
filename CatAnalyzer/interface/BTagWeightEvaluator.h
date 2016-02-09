@@ -21,8 +21,14 @@ public:
   void init(const edm::ParameterSet& pset);
   double computeWeight(const cat::JetCollection& jets, const int unc) const;
 
+  // For per-jet SF evaluation
+  double getSF(const cat::Jet& jet, const int unc) const {
+    if ( method_ == CSVWEIGHT ) return computeCSVWeightFromROOT(jet, unc);
+    return computeCSVWeightFromCSV(jet, unc);
+  };
+
 private:
-  std::string method_;
+  int method_;
   std::string btagAlgo_;
   std::vector<std::string> uncNames_;
   std::map<int, BTagCalibrationReader> readers_;
@@ -31,6 +37,10 @@ private:
   double computeCSVWeightFromCSV(const cat::Jet& jet, const int unc) const;
   double computeCSVWeightFromROOT(const cat::Jet& jet, const int unc) const;
   void fillCSVHistos(TFile *fileHF, TFile *fileLF, int nHFptBins);
+
+  enum METHOD {
+    INCL, MUJET, ITERATIVEFIT, CSVWEIGHT
+  };
 
   enum CSVUNC {
     CENTRAL,
