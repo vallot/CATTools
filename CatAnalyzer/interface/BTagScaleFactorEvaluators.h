@@ -17,7 +17,7 @@ namespace cat {
 class CSVWeightEvaluator
 {
 public:
-  CSVWeightEvaluator(const int inputType = CSV, const int Method = IterativeFit);
+  CSVWeightEvaluator(const int inputType = CSV, const int Method = IterativeFit, const int operatingPoint = BTagEntry::OP_RESHAPING );
 
   double operator()(const cat::Jet& jet, const int unc) const;
 

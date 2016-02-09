@@ -4,7 +4,7 @@
 using namespace cat;
 using namespace std;
 
-CSVWeightEvaluator::CSVWeightEvaluator(const int inputType, const int Method)
+CSVWeightEvaluator::CSVWeightEvaluator(const int inputType, const int Method, const int operatingPoint)
 {
   //const string csvFileName = "ttH_BTV_CSVv2_13TeV_2015D_20151120.csv";
   const string csvFileName = "CSVv2_prelim.csv";
@@ -18,7 +18,7 @@ CSVWeightEvaluator::CSVWeightEvaluator(const int inputType, const int Method)
     // setup calibration readers (once)
     const auto csvFile = edm::FileInPath("CATTools/CatAnalyzer/data/scaleFactors/"+csvFileName).fullPath();
     BTagCalibration calib_csvv2("csvv2", csvFile);
-    if ( Method == IterativeFit) {
+    if ( method_ == IterativeFit) {
       const char* method = "iterativefit";
       readers_[CENTRAL] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "central");
       
@@ -49,19 +49,19 @@ CSVWeightEvaluator::CSVWeightEvaluator(const int inputType, const int Method)
       readers_[CFERR2_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_cferr2");
       readers_[CFERR2_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_cferr2");
     }
-    else if ( Method == MuJets) {
+    else if ( method_ == MuJets) {
       const char* method = "mujets";
-      readers_[BTAGCENTRAL] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "central");
+      readers_[BTAGCENTRAL] = BTagCalibrationReader(&calib_csvv2, (BTagEntry::OperatingPoint) operatingPoint, method, "central");
       
-      readers_[BTAGUP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up");
-      readers_[BTAGDOWN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down");
+      readers_[BTAGUP] = BTagCalibrationReader(&calib_csvv2, (BTagEntry::OperatingPoint) operatingPoint, method, "up");
+      readers_[BTAGDOWN] = BTagCalibrationReader(&calib_csvv2, (BTagEntry::OperatingPoint) operatingPoint, method, "down");
     } 
-    else { //if ( Method == Incl) {
+    else { //if ( method_ == Incl) {
       const char* method = "incl";
-      readers_[BTAGCENTRAL] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "central");
+      readers_[BTAGCENTRAL] = BTagCalibrationReader(&calib_csvv2, (BTagEntry::OperatingPoint) operatingPoint, method, "central");
       
-      readers_[BTAGUP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up");
-      readers_[BTAGDOWN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down");
+      readers_[BTAGUP] = BTagCalibrationReader(&calib_csvv2, (BTagEntry::OperatingPoint) operatingPoint, method, "up");
+      readers_[BTAGDOWN] = BTagCalibrationReader(&calib_csvv2, (BTagEntry::OperatingPoint) operatingPoint, method, "down");
     } 
   }
   else if ( inputType == MVA ) {
@@ -101,17 +101,17 @@ CSVWeightEvaluator::CSVWeightEvaluator(const int inputType, const int Method)
     }
     else if ( Method == MuJets) {
       const char* method = "mujets";
-      readers_[BTAGCENTRAL] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "central");
+      readers_[BTAGCENTRAL] = BTagCalibrationReader(&calib_csvv2, (BTagEntry::OperatingPoint) operatingPoint, method, "central");
       
-      readers_[BTAGUP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up");
-      readers_[BTAGDOWN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down");
+      readers_[BTAGUP] = BTagCalibrationReader(&calib_csvv2, (BTagEntry::OperatingPoint) operatingPoint, method, "up");
+      readers_[BTAGDOWN] = BTagCalibrationReader(&calib_csvv2, (BTagEntry::OperatingPoint) operatingPoint, method, "down");
     } 
     else { //if ( Method == Incl) {
       const char* method = "incl";
-      readers_[BTAGCENTRAL] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "central");
+      readers_[BTAGCENTRAL] = BTagCalibrationReader(&calib_csvv2, (BTagEntry::OperatingPoint) operatingPoint, method, "central");
       
-      readers_[BTAGUP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up");
-      readers_[BTAGDOWN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down");
+      readers_[BTAGUP] = BTagCalibrationReader(&calib_csvv2, (BTagEntry::OperatingPoint) operatingPoint, method, "up");
+      readers_[BTAGDOWN] = BTagCalibrationReader(&calib_csvv2, (BTagEntry::OperatingPoint) operatingPoint, method, "down");
     } 
   }
   else {
