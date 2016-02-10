@@ -83,14 +83,10 @@ void BTagWeightEvaluator::initCSVWeight(const bool isFromROOT, const string btag
   }
 }
 
-void BTagWeightEvaluator::init(const int method, const string type,
+void BTagWeightEvaluator::init(const int method,
                                const string btagName, BTagEntry::OperatingPoint operationPoint, int minNbjet)
 {
-  if ( type == "CSVWeight" ) return initCSVWeight(true, btagName);
-  if ( type == "iterativefit" ) return initCSVWeight(true, btagName);
-
-  if      ( type == "incl"  ) type_ = INCL;
-  else if ( type == "mujet" ) type_ = MUJET;
+  type_ = STANDARD;
 
   minNbjet_ = minNbjet;
   method_ = method;
@@ -109,27 +105,26 @@ void BTagWeightEvaluator::init(const int method, const string type,
 
   const auto csvFile = edm::FileInPath("CATTools/CatAnalyzer/data/scaleFactors/"+csvFileName).fullPath();
   BTagCalibration calib(btagName, csvFile);
-
-  string opName;
-  if      ( operationPoint == BTagEntry::OP_LOOSE  ) opName = "loose" ;
-  else if ( operationPoint == BTagEntry::OP_MEDIUM ) opName = "medium";
-  else if ( operationPoint == BTagEntry::OP_TIGHT  ) opName = "tight" ;
   uncNames_ = {"central", "up", "down"};
 
-  readers_[0] = BTagCalibrationReader(&calib, operationPoint, type, "central");
-  readers_[1] = BTagCalibrationReader(&calib, operationPoint, type, "up"     );
-  readers_[2] = BTagCalibrationReader(&calib, operationPoint, type, "down"   );
+  readers_[0] = BTagCalibrationReader(&calib, operationPoint, "incl", "central");
+  readers_[1] = BTagCalibrationReader(&calib, operationPoint, "incl", "up"     );
+  readers_[2] = BTagCalibrationReader(&calib, operationPoint, "incl", "down"   );
+
+  readers_[3] = BTagCalibrationReader(&calib, operationPoint, "mujets", "central");
+  readers_[4] = BTagCalibrationReader(&calib, operationPoint, "mujets", "up"     );
+  readers_[5] = BTagCalibrationReader(&calib, operationPoint, "mujets", "down"   );
 }
 
 double BTagWeightEvaluator::getSF(const cat::Jet& jet, const int unc) const
 {
   const double pt = std::min(jet.pt(), 999.);
-  const double aeta = std::abs(jet.eta());
+  const double eta = jet.eta();
+  const double aeta = std::abs(eta);
   if ( pt <= 20 or aeta >= 2.4 ) return 1.0;
 
   double discr = jet.bDiscriminator(btagAlgo_);
   const int flav = std::abs(jet.hadronFlavour());
-  int uncKey = unc;
 
   if ( type_ == CSVWEIGHT or type_ == ITERATIVEFIT ) {
     if      ( discr < -1.0 ) discr = -0.05;
@@ -138,6 +133,7 @@ double BTagWeightEvaluator::getSF(const cat::Jet& jet, const int unc) const
     if ( type_ == CSVWEIGHT ) return getCSVWeightSFFromROOT(pt, aeta, flav, discr, unc);
 
     // Special care for the flavour dependent SFs
+    int uncKey = unc;
     if ( flav == 5 ) {
       if ( unc != LF_UP and unc != LF_DN and
           unc != HFSTAT1_UP and unc != HFSTAT1_DN and
@@ -152,16 +148,30 @@ double BTagWeightEvaluator::getSF(const cat::Jet& jet, const int unc) const
           unc != LFSTAT1_UP and unc != LFSTAT1_DN and
           unc != LFSTAT2_UP and unc != LFSTAT2_DN ) uncKey = CENTRAL;
     }
+
+    auto readerItr = readers_.find(uncKey);
+    if ( readerItr == readers_.end() ) return 1.0;
+
+    BTagEntry::JetFlavor jf = BTagEntry::FLAV_UDSG;
+    if      ( flav == 5 ) jf = BTagEntry::FLAV_B;
+    else if ( flav == 4 ) jf = BTagEntry::FLAV_C;
+
+    return readerItr->second.eval(jf, aeta, pt, discr);
+  }
+  else {
+    int uncKey = unc;
+    if ( flav == 5 or flav == 4 ) uncKey += 3; // Use mujets reader for b flavour and c-flavour
+
+    auto readerItr = readers_.find(uncKey);
+    if ( readerItr == readers_.end() ) return 1.0;
+
+    if      ( flav == 5 ) return readerItr->second.eval(BTagEntry::FLAV_B, eta, pt, discr);
+    else if ( flav == 4 ) return readerItr->second.eval(BTagEntry::FLAV_C, eta, pt, discr);
+
+    return readerItr->second.eval(BTagEntry::FLAV_UDSG, aeta, pt, discr);
   }
 
-  auto readerItr = readers_.find(uncKey);
-  if ( readerItr == readers_.end() ) return 1.0;
-
-  BTagEntry::JetFlavor jf = BTagEntry::FLAV_UDSG;
-  if      ( flav == 5 ) jf = BTagEntry::FLAV_B;
-  else if ( flav == 4 ) jf = BTagEntry::FLAV_C;
-
-  return readerItr->second.eval(jf, aeta, pt, discr);
+  return 1.;
 };
 
 double BTagWeightEvaluator::getCSVWeightSFFromROOT(const double pt, const double aeta,

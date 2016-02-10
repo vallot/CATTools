@@ -18,7 +18,7 @@ class BTagWeightEvaluator
 {
 public:
   BTagWeightEvaluator() {};
-  void init(const int combineMethod, const std::string measurementType,
+  void init(const int combineMethod,
             const std::string btagName, BTagEntry::OperatingPoint operationPoint,
             const int minNbjet);
   void initCSVWeight(const bool isFromROOT, const std::string btagName);
@@ -35,7 +35,7 @@ public:
     LFSTAT1_UP, LFSTAT1_DN, LFSTAT2_UP, LFSTAT2_DN,
     CFERR1_UP, CFERR1_DN, CFERR2_UP, CFERR2_DN
   };
-  enum TYPE {INCL, MUJET, ITERATIVEFIT, CSVWEIGHT};
+  enum TYPE {STANDARD, ITERATIVEFIT, CSVWEIGHT};
 
 private:
   int type_; // Measurement type
