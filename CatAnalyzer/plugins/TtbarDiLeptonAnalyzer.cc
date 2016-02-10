@@ -95,8 +95,8 @@ private:
   int b_nvertex, b_step, b_channel, b_njet, b_nbjet;
   bool b_step1, b_step2, b_step3, b_step4, b_step5, b_step6, b_tri, b_filtered;
   float b_met, b_weight, b_puweight, b_puweight_up, b_puweight_dn, b_genweight, b_lepweight, b_btagweight, b_btagweight_up, b_btagweight_dn;
-  float b_csvweight, b_topPtWeight;
-  std::vector<float> b_pdfWeights, b_scaleWeights;
+  float b_topPtWeight;
+  std::vector<float> b_pdfWeights, b_scaleWeights, b_csvweights;
 
   float b_lep1_pt, b_lep1_eta, b_lep1_phi;
   float b_lep2_pt, b_lep2_eta, b_lep2_phi;
@@ -240,7 +240,8 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
     tr->Branch("btagweight", &b_btagweight, "btagweight/F");
     tr->Branch("btagweight_up", &b_btagweight_up, "btagweight_up/F");
     tr->Branch("btagweight_dn", &b_btagweight_dn, "btagweight_dn/F");
-    tr->Branch("csvweight", &b_csvweight, "csvweight/F");
+    tr->Branch("csvweights","std::vector<float>",&b_csvweights);
+    //tr->Branch("csvweight", &b_csvweight, "csvweight/F");
 
     tr->Branch("lep1_pt", &b_lep1_pt, "lep1_pt/F");
     tr->Branch("lep1_eta", &b_lep1_eta, "lep1_eta/F");
@@ -850,6 +851,10 @@ float TtbarDiLeptonAnalyzer::selectElecs(const cat::ElectronCollection& elecs, c
 
 cat::JetCollection TtbarDiLeptonAnalyzer::selectJets(const cat::JetCollection& jets, const TtbarDiLeptonAnalyzer::LeptonPtrs& recolep, sys_e sys)
 {
+      // Initialize SF_btag
+   float Jet_SF_CSV[19];
+  for (unsigned int iu=0; iu<19; iu++) Jet_SF_CSV[iu] = 1.0;
+
   cat::JetCollection seljets;
   for (auto& j : jets) {
     cat::Jet jet(j);
@@ -872,9 +877,12 @@ cat::JetCollection TtbarDiLeptonAnalyzer::selectJets(const cat::JetCollection& j
     else if (sys == sys_btag_d) b_btagweight *= jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE, -1);
     else b_btagweight *= jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE, 0);
 
-    b_csvweight *= csvWeight(jet, CSVWeightEvaluator::CENTRAL);
+    for (unsigned int iu=0; iu<19; iu++) Jet_SF_CSV[iu] *= csvWeight(jet, iu);
+    //b_csvweight *= csvWeight(jet, CSVWeightEvaluator::CENTRAL);
     seljets.push_back(jet);
   }
+  for (unsigned int iu=0; iu<19; iu++) b_csvweights.push_back(Jet_SF_CSV[iu]);
+
   return seljets;
 }
 
@@ -896,7 +904,8 @@ void TtbarDiLeptonAnalyzer::resetBr()
   b_met = -9;
   b_weight = 1; b_puweight = 1; b_puweight_up = 1; b_puweight_dn = 1; b_genweight = 1; b_lepweight = 1;
   b_btagweight = 1;b_btagweight_up = 1;b_btagweight_dn = 1;
-  b_csvweight = 1.; b_topPtWeight = 1.;
+  b_topPtWeight = 1.;
+  b_csvweights.clear();
   b_pdfWeights.clear();
   b_scaleWeights.clear();
 

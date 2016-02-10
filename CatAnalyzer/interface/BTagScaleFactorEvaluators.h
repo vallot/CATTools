@@ -17,11 +17,13 @@ namespace cat {
 class CSVWeightEvaluator
 {
 public:
-  CSVWeightEvaluator(const int inputType = ROOT);
+  CSVWeightEvaluator(const int inputType = CSV, const int Method = IterativeFit, const int operatingPoint = BTagEntry::OP_RESHAPING );
 
   double operator()(const cat::Jet& jet, const int unc) const;
 
-  enum InputType { ROOT, CSV };
+  enum InputType { ROOT, CSV, MVA};
+  enum Method { Incl, MuJets, IterativeFit };
+  enum BTAGUNC { BTAGCENTRAL, BTAGUP, BTAGDOWN  };
 
   enum UNC {
     CENTRAL,
@@ -37,6 +39,8 @@ private:
   // For the CSV reader
   double computeWeightFromCSV(const cat::Jet& jet, const int unc) const;
   std::map<int, BTagCalibrationReader> readers_;
+
+  int inputtype_, method_; 
 
   // For the ROOT file reader
   double computeWeightFromROOT(const cat::Jet& jet, const int unc) const;

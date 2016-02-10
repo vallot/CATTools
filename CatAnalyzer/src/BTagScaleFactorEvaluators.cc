@@ -4,45 +4,115 @@
 using namespace cat;
 using namespace std;
 
-CSVWeightEvaluator::CSVWeightEvaluator(const int inputType)
+CSVWeightEvaluator::CSVWeightEvaluator(const int inputType, const int Method, const int operatingPoint)
 {
-  const string csvFileName = "ttH_BTV_CSVv2_13TeV_2015D_20151120.csv";
+  //const string csvFileName = "ttH_BTV_CSVv2_13TeV_2015D_20151120.csv";
+  const string csvFileName = "CSVv2_prelim.csv";
+  const string csvFileName2 = "cMVAv2_prelim.csv";
+  inputtype_=inputType;
+  method_=Method;
   const string rootFileNameHF = "csv_rwt_fit_hf_2016_01_28.root";
   const string rootFileNameLF = "csv_rwt_fit_lf_2016_01_28.root";
 
   if ( inputType == CSV ) {
-    const char* method = "iterativefit";
     // setup calibration readers (once)
     const auto csvFile = edm::FileInPath("CATTools/CatAnalyzer/data/scaleFactors/"+csvFileName).fullPath();
     BTagCalibration calib_csvv2("csvv2", csvFile);
-    readers_[CENTRAL] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "central");
-
-    readers_[JES_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_jes");
-    readers_[JES_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_jes");
-
-    readers_[LF_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_lf");
-    readers_[LF_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_lf");
-
-    readers_[HF_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_hf");
-    readers_[HF_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_hf");
-
-    readers_[HFSTAT1_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_hfstats1");
-    readers_[HFSTAT1_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_hfstats1");
-
-    readers_[HFSTAT2_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_hfstats2");
-    readers_[HFSTAT2_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_hfstats2");
-
-    readers_[LFSTAT1_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_lfstats1");
-    readers_[LFSTAT1_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_lfstats1");
-
-    readers_[LFSTAT2_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_lfstats2");
-    readers_[LFSTAT2_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_lfstats2");
-
-    readers_[CFERR1_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_cferr1");
-    readers_[CFERR1_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_cferr1");
-
-    readers_[CFERR2_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_cferr2");
-    readers_[CFERR2_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_cferr2");
+    if ( method_ == IterativeFit) {
+      const char* method = "iterativefit";
+      readers_[CENTRAL] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "central");
+      
+      readers_[JES_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_jes");
+      readers_[JES_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_jes");
+      
+      readers_[LF_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_lf");
+      readers_[LF_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_lf");
+      
+      readers_[HF_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_hf");
+      readers_[HF_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_hf");
+      
+      readers_[HFSTAT1_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_hfstats1");
+      readers_[HFSTAT1_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_hfstats1");
+      
+      readers_[HFSTAT2_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_hfstats2");
+      readers_[HFSTAT2_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_hfstats2");
+      
+      readers_[LFSTAT1_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_lfstats1");
+      readers_[LFSTAT1_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_lfstats1");
+      
+      readers_[LFSTAT2_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_lfstats2");
+      readers_[LFSTAT2_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_lfstats2");
+      
+      readers_[CFERR1_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_cferr1");
+      readers_[CFERR1_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_cferr1");
+      
+      readers_[CFERR2_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_cferr2");
+      readers_[CFERR2_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_cferr2");
+    }
+    else if ( method_ == MuJets) {
+      const char* method = "mujets";
+      readers_[BTAGCENTRAL] = BTagCalibrationReader(&calib_csvv2, (BTagEntry::OperatingPoint) operatingPoint, method, "central");
+      
+      readers_[BTAGUP] = BTagCalibrationReader(&calib_csvv2, (BTagEntry::OperatingPoint) operatingPoint, method, "up");
+      readers_[BTAGDOWN] = BTagCalibrationReader(&calib_csvv2, (BTagEntry::OperatingPoint) operatingPoint, method, "down");
+    } 
+    else { //if ( method_ == Incl) {
+      const char* method = "incl";
+      readers_[BTAGCENTRAL] = BTagCalibrationReader(&calib_csvv2, (BTagEntry::OperatingPoint) operatingPoint, method, "central");
+      
+      readers_[BTAGUP] = BTagCalibrationReader(&calib_csvv2, (BTagEntry::OperatingPoint) operatingPoint, method, "up");
+      readers_[BTAGDOWN] = BTagCalibrationReader(&calib_csvv2, (BTagEntry::OperatingPoint) operatingPoint, method, "down");
+    } 
+  }
+  else if ( inputType == MVA ) {
+    // setup calibration readers (once)
+    const auto csvFile = edm::FileInPath("CATTools/CatAnalyzer/data/scaleFactors/"+csvFileName2).fullPath();
+    BTagCalibration calib_csvv2("csvv2", csvFile);
+    if ( Method == IterativeFit) {
+      const char* method = "iterativefit";
+      readers_[CENTRAL] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "central");
+      
+      readers_[JES_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_jes");
+      readers_[JES_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_jes");
+      
+      readers_[LF_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_lf");
+      readers_[LF_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_lf");
+      
+      readers_[HF_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_hf");
+      readers_[HF_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_hf");
+      
+      readers_[HFSTAT1_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_hfstats1");
+      readers_[HFSTAT1_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_hfstats1");
+      
+      readers_[HFSTAT2_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_hfstats2");
+      readers_[HFSTAT2_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_hfstats2");
+      
+      readers_[LFSTAT1_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_lfstats1");
+      readers_[LFSTAT1_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_lfstats1");
+      
+      readers_[LFSTAT2_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_lfstats2");
+      readers_[LFSTAT2_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_lfstats2");
+      
+      readers_[CFERR1_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_cferr1");
+      readers_[CFERR1_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_cferr1");
+      
+      readers_[CFERR2_UP] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "up_cferr2");
+      readers_[CFERR2_DN] = BTagCalibrationReader(&calib_csvv2, BTagEntry::OP_RESHAPING, method, "down_cferr2");
+    }
+    else if ( Method == MuJets) {
+      const char* method = "mujets";
+      readers_[BTAGCENTRAL] = BTagCalibrationReader(&calib_csvv2, (BTagEntry::OperatingPoint) operatingPoint, method, "central");
+      
+      readers_[BTAGUP] = BTagCalibrationReader(&calib_csvv2, (BTagEntry::OperatingPoint) operatingPoint, method, "up");
+      readers_[BTAGDOWN] = BTagCalibrationReader(&calib_csvv2, (BTagEntry::OperatingPoint) operatingPoint, method, "down");
+    } 
+    else { //if ( Method == Incl) {
+      const char* method = "incl";
+      readers_[BTAGCENTRAL] = BTagCalibrationReader(&calib_csvv2, (BTagEntry::OperatingPoint) operatingPoint, method, "central");
+      
+      readers_[BTAGUP] = BTagCalibrationReader(&calib_csvv2, (BTagEntry::OperatingPoint) operatingPoint, method, "up");
+      readers_[BTAGDOWN] = BTagCalibrationReader(&calib_csvv2, (BTagEntry::OperatingPoint) operatingPoint, method, "down");
+    } 
   }
   else {
     const auto inputFileHF = edm::FileInPath("CATTools/CatAnalyzer/data/scaleFactors/"+rootFileNameHF).fullPath();
@@ -59,6 +129,53 @@ double CSVWeightEvaluator::operator()(const cat::Jet& jet, const int unc) const
 {
   if ( readers_.empty() ) return computeWeightFromROOT(jet, unc);
   return computeWeightFromCSV(jet, unc);
+}
+
+double CSVWeightEvaluator::computeWeightFromCSV(const cat::Jet& jet, const int unc) const
+{
+  const double pt = std::min(jet.pt(), 999.);
+  const double aeta = std::abs(jet.eta());
+  const double eta = jet.eta();
+  if ( pt <= 20 or aeta >= 2.4 ) return 1;
+
+  double csv = jet.bDiscriminator(BTAG_CSVv2);
+  double mva = jet.bDiscriminator(BTAG_cMVAv2);
+  if ( csv < 0.0 ) csv = -0.05;
+  else if ( csv > 1.0 ) csv = 1.0;
+
+  const int flav = std::abs(jet.hadronFlavour());
+  BTagEntry::JetFlavor jf = BTagEntry::FLAV_UDSG;
+  if ( flav == 5 ) jf = BTagEntry::FLAV_B;
+  else if ( flav == 4 ) jf = BTagEntry::FLAV_C;
+
+  int uncKey = unc;
+  if (method_  == IterativeFit){
+    // Special care for the flavour dependent SFs
+    if ( flav == 5 ) {
+      if ( unc != LF_UP and unc != LF_DN and
+           unc != HFSTAT1_UP and unc != HFSTAT1_DN and
+           unc != HFSTAT2_UP and unc != HFSTAT2_DN ) uncKey = CENTRAL;
+    }
+    else if ( flav == 4 ) {
+      if ( unc != CFERR1_UP and unc != CFERR1_DN and
+           unc != CFERR2_UP and unc != CFERR2_DN ) uncKey = CENTRAL;
+    }
+    else {
+      if ( unc != HF_UP and unc != HF_DN and
+           unc != LFSTAT1_UP and unc != LFSTAT1_DN and
+           unc != LFSTAT2_UP and unc != LFSTAT2_DN ) uncKey = CENTRAL;
+    }
+  }
+  else {
+     uncKey = unc;
+  }
+  const auto reader = readers_.find(uncKey);
+  if ( reader == readers_.end() ) return 1;
+
+  if      (method_  == IterativeFit && inputtype_ == CSV)  return reader->second.eval(jf, aeta, pt, csv);
+  else if (method_  == IterativeFit && inputtype_ == MVA)  return reader->second.eval(jf, aeta, pt, mva);
+  else if (inputtype_ == CSV)                              return reader->second.eval(jf, eta, pt, csv);
+  else                                                     return reader->second.eval(jf, aeta, pt, mva);
 }
 
 double CSVWeightEvaluator::computeWeightFromROOT(const cat::Jet& jet, const int unc) const
@@ -135,43 +252,6 @@ double CSVWeightEvaluator::computeWeightFromROOT(const cat::Jet& jet, const int 
     int useCSVBin = (csv >= 0.) ? h_csv_wgt_lf[iSysLF][iPt][iEta]->FindBin(csv) : 1;
     return  (float) h_csv_wgt_lf[iSysLF][iPt][iEta]->GetBinContent(useCSVBin);
   }
-}
-
-double CSVWeightEvaluator::computeWeightFromCSV(const cat::Jet& jet, const int unc) const
-{
-  const double pt = std::min(jet.pt(), 999.);
-  const double aeta = std::abs(jet.eta());
-  if ( pt <= 20 or aeta >= 2.4 ) return 1;
-
-  double csv = jet.bDiscriminator(BTAG_CSVv2);
-  if ( csv < 0.0 ) csv = -0.05;
-  else if ( csv > 1.0 ) csv = 1.0;
-
-  const int flav = std::abs(jet.hadronFlavour());
-  BTagEntry::JetFlavor jf = BTagEntry::FLAV_UDSG;
-  if ( flav == 5 ) jf = BTagEntry::FLAV_B;
-  else if ( flav == 4 ) jf = BTagEntry::FLAV_C;
-
-  int uncKey = unc;
-  // Special care for the flavour dependent SFs
-  if ( flav == 5 ) {
-    if ( unc != LF_UP and unc != LF_DN and
-         unc != HFSTAT1_UP and unc != HFSTAT1_DN and
-         unc != HFSTAT2_UP and unc != HFSTAT2_DN ) uncKey = CENTRAL;
-  }
-  else if ( flav == 4 ) {
-    if ( unc != CFERR1_UP and unc != CFERR1_DN and
-         unc != CFERR2_UP and unc != CFERR2_DN ) uncKey = CENTRAL;
-  }
-  else {
-    if ( unc != HF_UP and unc != HF_DN and
-         unc != LFSTAT1_UP and unc != LFSTAT1_DN and
-         unc != LFSTAT2_UP and unc != LFSTAT2_DN ) uncKey = CENTRAL;
-  }
-  const auto reader = readers_.find(uncKey);
-  if ( reader == readers_.end() ) return 1;
-
-  return reader->second.eval(jf, aeta, pt, csv);
 }
 
 // fill the histograms (done once)
