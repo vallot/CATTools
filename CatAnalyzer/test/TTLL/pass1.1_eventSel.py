@@ -168,6 +168,7 @@ for d in sigList:
     name = d['name']
     if isBlacklisted(name): continue
 
+    idxset = ()
     if   '_scaleup'   in name: idxset = (0, 2, 3)
     elif '_scaledown' in name: idxset = (1, 5, 6)
 
