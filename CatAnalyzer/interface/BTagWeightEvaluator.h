@@ -20,12 +20,12 @@ public:
   BTagWeightEvaluator() {};
   void init(const int combineMethod, const std::string measurementType,
             const std::string btagName, BTagEntry::OperatingPoint operationPoint,
-            const int nbjet);
+            const int minNbjet);
   void initCSVWeight(const bool isFromROOT, const std::string btagName);
 
-  //double computeWeight(const cat::JetCollection& jets, const int unc) const;
+  double eventWeight(const cat::JetCollection& jets, const int unc) const;
 
-  // For per-jet SF evaluation
+  // For per-jet SF evaluation - useful for CSV weight
   double getSF(const cat::Jet& jet, const int unc) const;
 
   enum CSVUNC {
@@ -38,12 +38,15 @@ public:
   enum TYPE {INCL, MUJET, ITERATIVEFIT, CSVWEIGHT};
 
 private:
-  // Measurement type
-  int type_;
+  int type_; // Measurement type
+  int method_; // Combination method
 
   std::string btagAlgo_;
   std::vector<std::string> uncNames_;
   std::map<int, BTagCalibrationReader> readers_;
+
+  // For the standard methods
+  int minNbjet_;
 
   // For the iterative fit method
   double getCSVWeightSFFromROOT(const double pt, const double aeta,

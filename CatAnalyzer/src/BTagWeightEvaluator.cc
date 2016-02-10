@@ -4,8 +4,41 @@
 using namespace cat;
 using namespace std;
 
+double BTagWeightEvaluator::eventWeight(const cat::JetCollection& jets, const int unc) const
+{
+  if ( method_ == 3 ) {
+    // Method 1c) using scale factors only
+    const int njet = jets.size();
+    if ( njet == 0 ) return 1;
+
+    double w0n = 1; // w(0|n) : weight of 0-tag among n-jets
+    double w1n = 0; // w(1|n) : weight of 1-tag among n-jets
+    for ( int i=0; i<njet; ++i ) {
+      w0n *= 1-getSF(jets[i], unc);
+      double prodw1n = 1;
+      for ( int j=0; j<njet; ++j ) {
+        if ( i == j ) prodw1n *= getSF(jets[j], unc);
+        else prodw1n *= 1-getSF(jets[j], unc);
+      }
+      w1n += prodw1n;
+    }
+
+    if      ( minNbjet_ == 0 ) return w0n;
+    else if ( minNbjet_ == 1 ) return 1-w0n;
+    else if ( minNbjet_ == 2 ) return 1-w0n-w1n;
+  }
+  else if ( method_ == 4 ) {
+    // Method 1d) using discriminator-dependent scale factors;
+    double weight = 1.0;
+    for ( auto& jet : jets ) weight *= getSF(jet, unc);
+    return weight;
+  }
+  return 1.0;
+}
+
 void BTagWeightEvaluator::initCSVWeight(const bool isFromROOT, const string btagName)
 {
+  method_ = 4;
   if ( isFromROOT ) {
     type_ = CSVWEIGHT;
 
@@ -51,13 +84,16 @@ void BTagWeightEvaluator::initCSVWeight(const bool isFromROOT, const string btag
 }
 
 void BTagWeightEvaluator::init(const int method, const string type,
-                               const string btagName, BTagEntry::OperatingPoint operationPoint, int nbjet)
+                               const string btagName, BTagEntry::OperatingPoint operationPoint, int minNbjet)
 {
   if ( type == "CSVWeight" ) return initCSVWeight(true, btagName);
   if ( type == "iterativefit" ) return initCSVWeight(true, btagName);
 
   if      ( type == "incl"  ) type_ = INCL;
   else if ( type == "mujet" ) type_ = MUJET;
+
+  minNbjet_ = minNbjet;
+  method_ = method;
 
   string csvFileName;
   if      ( btagName == "csvv2" ) {
