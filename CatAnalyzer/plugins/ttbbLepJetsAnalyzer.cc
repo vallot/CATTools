@@ -32,7 +32,7 @@
 #include "CATTools/DataFormats/interface/MET.h"
 
 #include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
-#include "CATTools/CatAnalyzer/interface/BTagScaleFactorEvaluators.h"
+#include "CATTools/CatAnalyzer/interface/BTagWeightEvaluator.h"
 #include "CATTools/CommonTools/interface/AnalysisHelper.h"
 
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
@@ -122,8 +122,8 @@ private:
   float b_Lepton_pz;
   float b_Lepton_E;
   float b_Lepton_pT;
-  std::vector<float> *b_Lepton_SF; 
-  float b_Lepton_LES; 
+  std::vector<float> *b_Lepton_SF;
+  float b_Lepton_LES;
 
   // GEN Jets
   std::vector<float> *b_GenJet_pT;
@@ -138,11 +138,11 @@ private:
   std::vector<int> *b_Jet_partonFlavour;
   std::vector<int> *b_Jet_hadronFlavour;
   // JES and JER
-  std::vector<float> *b_Jet_JES_Up; 
-  std::vector<float> *b_Jet_JES_Down; 
-  std::vector<float> *b_Jet_JER_Up; 
-  std::vector<float> *b_Jet_JER_Nom; 
-  std::vector<float> *b_Jet_JER_Down; 
+  std::vector<float> *b_Jet_JES_Up;
+  std::vector<float> *b_Jet_JES_Down;
+  std::vector<float> *b_Jet_JER_Up;
+  std::vector<float> *b_Jet_JER_Nom;
+  std::vector<float> *b_Jet_JER_Down;
   // b-Jet discriminant
   std::vector<float> *b_Jet_CSV;
   std::vector<float> *b_Jet_SF_CSV;
@@ -157,7 +157,7 @@ private:
   TH1F *EventInfo;
 
   // Scale factor evaluators
-  CSVWeightEvaluator SF_CSV_;
+  BTagWeightEvaluator SF_CSV_;
   ScaleFactorEvaluator SF_muon_, SF_elec_;
 
 };
@@ -182,13 +182,15 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
 	       elecSFSet.getParameter<std::vector<double>>("eta_bins"),
 	       elecSFSet.getParameter<std::vector<double>>("values"  ),
 	       elecSFSet.getParameter<std::vector<double>>("errors"  ));
-  
+
   const auto muonSFSet = iConfig.getParameter<edm::ParameterSet>("muonSF");
   SF_muon_.set(muonSFSet.getParameter<std::vector<double>>("pt_bins"    ),
 	       muonSFSet.getParameter<std::vector<double>>("abseta_bins"),
 	       muonSFSet.getParameter<std::vector<double>>("values"     ),
 	       muonSFSet.getParameter<std::vector<double>>("errors"     ));
-  
+
+  SF_CSV_.initCSVWeight(false, "csvv2");
+
   //now do what ever initialization is needed
   genWeightToken_       = consumes<float>                        (iConfig.getParameter<edm::InputTag>("genWeightLabel"));
   ScaleWeightToken_     = consumes<vector<float>>           (iConfig.getParameter<edm::InputTag>("ScaleWeightLabel"));
@@ -213,7 +215,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   b_PUWeight    = new std::vector<float>;
   b_ScaleWeight = new std::vector<float>;
 
-  b_GenConeCatID = new std::vector<int>; 
+  b_GenConeCatID = new std::vector<int>;
 
   b_GenJet_pT = new std::vector<float>;
 
@@ -293,7 +295,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
     tree->Branch("genlepton_pT",  &b_GenLepton_pT,  "genlepton_pT/F");
     tree->Branch("genlepton_eta", &b_GenLepton_eta, "genlepton_eta/F");
     tree->Branch("genjet_pT", "std::vector<float>", &b_GenJet_pT);
-    
+
     gentree = fs->make<TTree>("gentree", "TopGENTree");
     gentree->Branch("genchannel",   &b_GenChannel,   "genchannel/I");
     gentree->Branch("gencatid", &b_GenCatID, "GenCatID/I");
@@ -303,7 +305,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
     gentree->Branch("genjet_pT", "std::vector<float>", &b_GenJet_pT);
   }
 
-  EventInfo = fs->make<TH1F>("EventInfo","Event Information",5,0,5); 
+  EventInfo = fs->make<TH1F>("EventInfo","Event Information",5,0,5);
   EventInfo->GetXaxis()->SetBinLabel(1,"Number of Events");
   EventInfo->GetXaxis()->SetBinLabel(2,"Sum of Weights");
   EventInfo->GetXaxis()->SetBinLabel(3,"Number of ttbb Events");
@@ -316,7 +318,7 @@ ttbbLepJetsAnalyzer::~ttbbLepJetsAnalyzer()
 {
    // do anything here that needs to be done at desctruction time
    // (e.g. close files, deallocate resources etc.)
-  delete b_PUWeight;   
+  delete b_PUWeight;
   delete b_ScaleWeight;
 
   delete b_GenConeCatID;
@@ -355,7 +357,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 {
   using namespace edm;
 
-  b_PUWeight->clear();    
+  b_PUWeight->clear();
   b_ScaleWeight->clear();
 
   b_GenConeCatID->clear();
@@ -391,7 +393,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   b_Event        = iEvent.id().event();
   b_Run          = iEvent.id().run();
   b_Lumi_Number  = iEvent.luminosityBlock();
- 
+
   if(isMC_) {
 
     //---------------------------------------------------------------------------
@@ -400,32 +402,32 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
 
-    edm::Handle<float> PUWeight;    
+    edm::Handle<float> PUWeight;
     iEvent.getByToken(puWeightToken_, PUWeight);
     b_PUWeight->push_back(*PUWeight); // Central
 
-    edm::Handle<float> PUWeight_Up;    
+    edm::Handle<float> PUWeight_Up;
     iEvent.getByToken(puUpWeightToken_, PUWeight_Up);
     b_PUWeight->push_back(*PUWeight_Up); //Syst. Up
 
-    edm::Handle<float> PUWeight_Down;    
+    edm::Handle<float> PUWeight_Down;
     iEvent.getByToken(puDownWeightToken_, PUWeight_Down);
     b_PUWeight->push_back(*PUWeight_Down); //Syst. Up
 
     //---------------------------------------------------------------------------
     // Weights at Generation Level: MC@NLO
     //---------------------------------------------------------------------------
-    
+
     edm::Handle<float> genWeight;
-    
+
     iEvent.getByToken(genWeightToken_, genWeight);
     b_GenWeight = *genWeight;
 
     EventInfo->Fill(0.5, 1.0);         // First bin: Number of Events
     EventInfo->Fill(1.5, b_GenWeight); // Second bin: Sum of Weights
   }
-  
-  else{ 
+
+  else{
     b_PUWeight->push_back(1.0);
     b_GenWeight = 1.0;
   }
@@ -451,7 +453,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       b_ScaleWeight->push_back((*scaleWeight)[7]);
 
     }
-  }  
+  }
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   // Generated Particles (For Pythia8)
@@ -495,9 +497,9 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
     // [0]: Decay mode. Just as a Cross Check!
     b_GenConeCatID->push_back(genttbarConeCat->begin()->semiLeptonic(0));
-    // [1]: Number of Jets 
+    // [1]: Number of Jets
     b_GenConeCatID->push_back(genttbarConeCat->begin()->NJets20());
-    // [2]: Number of b-Jets 
+    // [2]: Number of b-Jets
     b_GenConeCatID->push_back(genttbarConeCat->begin()->NbJets20());
     // [3]: Number of c-Jets
     b_GenConeCatID->push_back(genttbarConeCat->begin()->NcJets20());
@@ -569,20 +571,20 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
         if (abs(momid) == 24 && abs(mommomid) == 6){
 	  if (abs(id) == 13 || abs(id) == 11){
-	    Genlepton.SetPxPyPzE(gp.px(), gp.py(), gp.pz(), gp.energy());  
+	    Genlepton.SetPxPyPzE(gp.px(), gp.py(), gp.pz(), gp.energy());
 	    if (id == 13)  GenMu_p = true; // Muons +
 	    if (id == 11)  GenEG_p = true; // Electrons +
 	    if (id == -13) GenMu_m = true; // Muons -
 	    if (id == -11) GenEG_m = true; // Electrons -
 	  }
-	  if (abs(id) == 15){         // Taus 
+	  if (abs(id) == 15){         // Taus
             if (id == 15)   GenTau_p = true; // Muons +
             if (id == -15)  GenTau_m = true; // Electrons +
             for(unsigned int h = 0; h <  gp.numberOfDaughters(); h++) {
               const reco::Candidate *gd = gp.daughter(h);
               const int taudauid = gd->pdgId();
 	      if (abs(taudauid) == 13 || abs(taudauid) == 11){
-		Genlepton.SetPxPyPzE(gd->px(), gd->py(), gd->pz(), gd->energy());  
+		Genlepton.SetPxPyPzE(gd->px(), gd->py(), gd->pz(), gd->energy());
 		if (taudauid == 13)  GenMu_p = true; // Muons +
 		if (taudauid == 11)  GenEG_p = true; // Electrons +
 		if (taudauid == -13) GenMu_m = true; // Muons -
@@ -590,7 +592,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 	      }
 	    } // for(taus' daughters)
 	  } // if(taus)
-	  
+	
         } // if(t->W)
 	
       }// if (mu || e || tau)
@@ -603,7 +605,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     // !! Problems
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // if(!GenMu_p && !GenEG_p && !GenMu_m && !GenEG_m && !GenTau_m && !GenTau_p) nGenLep = 0;
-    // else if((GenMu_p  && GenMu_m)  || 
+    // else if((GenMu_p  && GenMu_m)  ||
     // 	    (GenEG_p  && GenEG_m)  ||
     // 	    (GenTau_p && GenTau_m) ||
     // 	    (GenMu_p  && GenEG_m)  ||
@@ -613,7 +615,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     // 	    (GenTau_p && GenMu_m)  ||
     // 	    (GenTau_p && GenEG_m) ) nGenLep = 2;
     // else nGenLep = 1;
-    
+
     // To avoid the error!!!
     if(!GenMu_p && !GenEG_p && !GenMu_m && !GenEG_m && !GenTau_m && !GenTau_p);
 
@@ -643,7 +645,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 	
 	for (unsigned int j = 0; j < genJets->size(); j++){
 	  const cat::GenJet & gjet = (*genJets)[j];
-	  if(std::abs(gjet.eta())< 2.5 && 
+	  if(std::abs(gjet.eta())< 2.5 &&
 	     gjet.pt()> 20){
 	    b_GenJet_pT->push_back(gjet.pt());
 	  }// if(Good genJet)
@@ -728,7 +730,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
   TLorentzVector lepton;
   std::vector<float> *lepton_SF;
-  lepton_SF = new std::vector<float>; 
+  lepton_SF = new std::vector<float>;
 
   float lepton_LES = 0.0;
   int ch_tag  = 999;
@@ -759,9 +761,9 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
      if(isMC_) {
        // Lepton SF (ID/ISO)
-       lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), selectedElectrons[0].scEta() ) );       // [0]-> SF       
-       lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(),  1.0 ) ); // [1]-> SF+Error 
-       lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(), -1.0 ) ); // [2]-> SF-Error 
+       lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), selectedElectrons[0].scEta() ) );       // [0]-> SF
+       lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(),  1.0 ) ); // [1]-> SF+Error
+       lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(), -1.0 ) ); // [2]-> SF-Error
        //LES
        lepton_LES = selectedElectrons[0].shiftedEn();
      }
@@ -773,7 +775,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
 
-  bool EvTrigger = false; 
+  bool EvTrigger = false;
   edm::Handle<edm::TriggerResults> triggerBits;
   edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
   iEvent.getByToken(triggerBits_, triggerBits);
@@ -824,13 +826,13 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     Handle<cat::JetCollection> jets;
     iEvent.getByToken(jetToken_, jets);
 
-    // Arrange Jets by CSV discriminator 
+    // Arrange Jets by CSV discriminator
     std::vector<int>  JetIndex;
     for (unsigned int i = 0; i < jets->size() ; i++) JetIndex.push_back(i);
     for(unsigned int ijet=0; ijet < JetIndex.size(); ijet++){
       for(unsigned int jjet=ijet+1; jjet < JetIndex.size(); jjet++){
-	const cat::Jet & jet_i = jets->at(JetIndex[ijet]);
-	const cat::Jet & jet_j = jets->at(JetIndex[jjet]);
+        const cat::Jet & jet_i = jets->at(JetIndex[ijet]);
+        const cat::Jet & jet_j = jets->at(JetIndex[jjet]);
 
         float iJetCSV = jet_i.bDiscriminator(BTAG_CSVv2);
         float jJetCSV = jet_j.bDiscriminator(BTAG_CSVv2);
@@ -851,7 +853,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
     // Run again over all Jets (CSV order)
     for (unsigned int i = 0; i < JetIndex.size() ; i++) {
-      
+
       const cat::Jet & jet = jets->at(JetIndex[i]);
 
       bool goodJet  = false;
@@ -865,8 +867,8 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       if(dr_LepJet > 0.4) cleanJet = true;
 
       if(goodJet && cleanJet){
-	// Basic variables
-	N_GoodJets ++;
+        // Basic variables
+        N_GoodJets ++;
         b_Jet_px->push_back(jet.px());
         b_Jet_py->push_back(jet.py());
         b_Jet_pz->push_back(jet.pz());
@@ -877,30 +879,29 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         b_Jet_partonFlavour->push_back(jet.partonFlavour());
         b_Jet_hadronFlavour->push_back(jet.hadronFlavour());
 
-	// b-tag discriminant
-	float jet_btagDis_CSV = jet.bDiscriminator(BTAG_CSVv2);
-	b_Jet_CSV ->push_back(jet_btagDis_CSV);
-	
-	if(isMC_) {
-	  // JES
-	  b_Jet_JES_Up  ->push_back(jet.shiftedEnUp());
-	  b_Jet_JES_Down->push_back(jet.shiftedEnDown());
-	  
-	  // JER
-	  // Ref: https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution
-	  b_Jet_JER_Up   ->push_back(jet.smearedResUp()); 
-	  b_Jet_JER_Nom  ->push_back(jet.smearedRes());    
-	  b_Jet_JER_Down ->push_back(jet.smearedResDown());
-	 	
-	  // b_Jet_SF_CSV *= SF_CSV_(jet, CSVWeightEvaluator::CENTRAL); // FIXME: 2nd argument should be given by systematics variations
-	  // Ref: https://twiki.cern.ch/twiki/bin/view/CMS/BTagShapeCalibration
-	  // Saving the central SF and the 18 syst. unc. for pT_Jets > 30 GeV
-	  if(jet.pt() > 30.) for (unsigned int iu=0; iu<19; iu++) Jet_SF_CSV[iu] *= SF_CSV_(jet, iu);
-	} // if(isMC_)
+        // b-tag discriminant
+        float jet_btagDis_CSV = jet.bDiscriminator(BTAG_CSVv2);
+        b_Jet_CSV ->push_back(jet_btagDis_CSV);
+
+        if(isMC_) {
+          // JES
+          b_Jet_JES_Up  ->push_back(jet.shiftedEnUp());
+          b_Jet_JES_Down->push_back(jet.shiftedEnDown());
+
+          // JER
+          // Ref: https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution
+          b_Jet_JER_Up   ->push_back(jet.smearedResUp());
+          b_Jet_JER_Nom  ->push_back(jet.smearedRes());
+          b_Jet_JER_Down ->push_back(jet.smearedResDown());
+
+          // Ref: https://twiki.cern.ch/twiki/bin/view/CMS/BTagShapeCalibration
+          // Saving the central SF and the 18 syst. unc. for pT_Jets > 30 GeV
+          if(jet.pt() > 30.) for (unsigned int iu=0; iu<19; iu++) Jet_SF_CSV[iu] *= SF_CSV_.getSF(jet, iu);
+        } // if(isMC_)
 	
       }
     }
-    
+
     b_Jet_Number = N_GoodJets;
 
     for (unsigned int iu=0; iu<19; iu++) b_Jet_SF_CSV->push_back(1.0);
@@ -908,7 +909,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     // To save only the error
     for (unsigned int iu=1; iu<19; iu+=2) (*b_Jet_SF_CSV)[iu] = Jet_SF_CSV[iu] - Jet_SF_CSV[0] ; // Syst. Unc. Up
     for (unsigned int iu=2; iu<19; iu+=2) (*b_Jet_SF_CSV)[iu] = Jet_SF_CSV[0]  - Jet_SF_CSV[iu]; // Syst. Unc. Down
-   
+
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     // Fill Tree with event at 1 lepton cut level
@@ -987,10 +988,10 @@ bool ttbbLepJetsAnalyzer::IsSelectElectron(const cat::Electron & i_electron_cand
   // From https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2
   GoodElectron &= i_electron_candidate.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-medium") > 0.0;
 
-  // Electron MVA selection (Tight: WP80) 
+  // Electron MVA selection (Tight: WP80)
   // From https://twiki.cern.ch/twiki/bin/viewauth/CMS/MultivariateElectronIdentificationRun2#Recipes_for_7_4_12_Spring15_MVA
   // if (std::abs(i_electron_candidate.eta()) < 0.8)        GoodElectron &= i_electron_candidate.electronID("mvaEleID-Spring15-25ns-Trig-V1-wp80") > 0.988153; // Barrel
-  // else if (std::abs(i_electron_candidate.eta()) > 0.8 && 
+  // else if (std::abs(i_electron_candidate.eta()) > 0.8 &&
   // 	   std::abs(i_electron_candidate.eta()) < 1.479) GoodElectron &= i_electron_candidate.electronID("mvaEleID-Spring15-25ns-Trig-V1-wp80") > 0.967910; // Barrel
   // else if (std::abs(i_electron_candidate.eta()) > 1.479) GoodElectron &= i_electron_candidate.electronID("mvaEleID-Spring15-25ns-Trig-V1-wp80") > 0.841729; // EndCaps
 

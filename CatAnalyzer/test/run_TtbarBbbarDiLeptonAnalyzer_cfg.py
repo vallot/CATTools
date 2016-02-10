@@ -1,6 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 process = cms.Process("TtbarDiLeptonAnalyzer")
 
+#process.Tracer = cms.Service("Tracer") 
 process.load("FWCore.MessageService.MessageLogger_cfi")
 #process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
