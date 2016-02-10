@@ -532,9 +532,9 @@ private:
   bool isBjet(const cat::Jet& jet)
   {
     const double bTag = jet.bDiscriminator(bTagName_);
-    if      ( bTagWP_ == BTagWP::CSVL ) return bTag > 0.460;
-    else if ( bTagWP_ == BTagWP::CSVM ) return bTag > 0.800;
-    else if ( bTagWP_ == BTagWP::CSVT ) return bTag > 0.935;
+    if      ( bTagWP_ == BTagWP::CSVL ) return bTag > WP_BTAG_CSVv2L;
+    else if ( bTagWP_ == BTagWP::CSVM ) return bTag > WP_BTAG_CSVv2M;
+    else if ( bTagWP_ == BTagWP::CSVT ) return bTag > WP_BTAG_CSVv2T;
     return false;
   }
 
