@@ -17,7 +17,7 @@
 
 #include "CATTools/CommonTools/interface/TTbarModeDefs.h"
 #include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
-#include "CATTools/CatAnalyzer/interface/BTagScaleFactorEvaluators.h"
+#include "CATTools/CatAnalyzer/interface/BTagWeightEvaluator.h"
 
 #include "CATTools/CommonTools/interface/AnalysisHelper.h"
 #include "DataFormats/Math/interface/deltaR.h"
@@ -266,7 +266,7 @@ private:
   const static int NCutflow = 10;
   std::vector<std::vector<int> > cutflow_;
   bool runOnMC_;
-  CSVWeightEvaluator csvWeight;
+  BTagWeightEvaluator csvWeight;
 };
 //
 // constructors and destructor
@@ -955,25 +955,25 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     if (runOnMC_){
       //double csvWgtHF, csvWgtLF, csvWgtCF;
       for ( const auto& jet : selectedJets ) {
-        b_csvweight         *= csvWeight(jet, CSVWeightEvaluator::CENTRAL);//);
-        b_csvweight_JES_Up  *= csvWeight(jet, CSVWeightEvaluator::JES_UP);
-        b_csvweight_JES_Down*= csvWeight(jet, CSVWeightEvaluator::JES_DN);
-        b_csvweight_LF_Up   *= csvWeight(jet, CSVWeightEvaluator::LF_UP);
-        b_csvweight_LF_Down *= csvWeight(jet, CSVWeightEvaluator::LF_DN);
-        b_csvweight_HF_Up   *= csvWeight(jet, CSVWeightEvaluator::HF_UP);
-        b_csvweight_HF_Down *= csvWeight(jet, CSVWeightEvaluator::HF_DN);
-        b_csvweight_HF_Stats1_Up  *= csvWeight(jet, CSVWeightEvaluator::HFSTAT1_UP);
-        b_csvweight_HF_Stats1_Down*= csvWeight(jet, CSVWeightEvaluator::HFSTAT1_DN);
-        b_csvweight_HF_Stats2_Up  *= csvWeight(jet, CSVWeightEvaluator::HFSTAT2_UP);
-        b_csvweight_HF_Stats2_Down*= csvWeight(jet, CSVWeightEvaluator::HFSTAT2_DN);
-        b_csvweight_LF_Stats1_Up  *= csvWeight(jet, CSVWeightEvaluator::LFSTAT1_UP);
-        b_csvweight_LF_Stats1_Down*= csvWeight(jet, CSVWeightEvaluator::LFSTAT1_DN);
-        b_csvweight_LF_Stats2_Up  *= csvWeight(jet, CSVWeightEvaluator::LFSTAT2_UP);
-        b_csvweight_LF_Stats2_Down*= csvWeight(jet, CSVWeightEvaluator::LFSTAT2_DN);
-        b_csvweight_Charm_Err1_Up *= csvWeight(jet, CSVWeightEvaluator::CFERR1_UP);
-        b_csvweight_Charm_Err1_Down*= csvWeight(jet, CSVWeightEvaluator::CFERR1_DN);
-        b_csvweight_Charm_Err2_Up  *= csvWeight(jet, CSVWeightEvaluator::CFERR2_UP);
-        b_csvweight_Charm_Err2_Down*= csvWeight(jet, CSVWeightEvaluator::CFERR2_DN);
+        b_csvweight         *= csvWeight.getSF(jet, BTagWeightEvaluator::CENTRAL);//);
+        b_csvweight_JES_Up  *= csvWeight.getSF(jet, BTagWeightEvaluator::JES_UP);
+        b_csvweight_JES_Down*= csvWeight.getSF(jet, BTagWeightEvaluator::JES_DN);
+        b_csvweight_LF_Up   *= csvWeight.getSF(jet, BTagWeightEvaluator::LF_UP);
+        b_csvweight_LF_Down *= csvWeight.getSF(jet, BTagWeightEvaluator::LF_DN);
+        b_csvweight_HF_Up   *= csvWeight.getSF(jet, BTagWeightEvaluator::HF_UP);
+        b_csvweight_HF_Down *= csvWeight.getSF(jet, BTagWeightEvaluator::HF_DN);
+        b_csvweight_HF_Stats1_Up  *= csvWeight.getSF(jet, BTagWeightEvaluator::HFSTAT1_UP);
+        b_csvweight_HF_Stats1_Down*= csvWeight.getSF(jet, BTagWeightEvaluator::HFSTAT1_DN);
+        b_csvweight_HF_Stats2_Up  *= csvWeight.getSF(jet, BTagWeightEvaluator::HFSTAT2_UP);
+        b_csvweight_HF_Stats2_Down*= csvWeight.getSF(jet, BTagWeightEvaluator::HFSTAT2_DN);
+        b_csvweight_LF_Stats1_Up  *= csvWeight.getSF(jet, BTagWeightEvaluator::LFSTAT1_UP);
+        b_csvweight_LF_Stats1_Down*= csvWeight.getSF(jet, BTagWeightEvaluator::LFSTAT1_DN);
+        b_csvweight_LF_Stats2_Up  *= csvWeight.getSF(jet, BTagWeightEvaluator::LFSTAT2_UP);
+        b_csvweight_LF_Stats2_Down*= csvWeight.getSF(jet, BTagWeightEvaluator::LFSTAT2_DN);
+        b_csvweight_Charm_Err1_Up *= csvWeight.getSF(jet, BTagWeightEvaluator::CFERR1_UP);
+        b_csvweight_Charm_Err1_Down*= csvWeight.getSF(jet, BTagWeightEvaluator::CFERR1_DN);
+        b_csvweight_Charm_Err2_Up  *= csvWeight.getSF(jet, BTagWeightEvaluator::CFERR2_UP);
+        b_csvweight_Charm_Err2_Down*= csvWeight.getSF(jet, BTagWeightEvaluator::CFERR2_DN);
       }
     }
     //csvd order

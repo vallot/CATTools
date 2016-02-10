@@ -11,7 +11,6 @@
 #include "CATTools/DataFormats/interface/MET.h"
 
 #include "CATTools/CommonTools/interface/TTbarModeDefs.h"
-#include "CATTools/CatAnalyzer/interface/BTagScaleFactorEvaluators.h"
 
 #include "TH1D.h"
 #include "TH2D.h"
@@ -57,7 +56,6 @@ private:
 
   float b_j1_pt_, b_j2_pt_, b_j3_pt_, b_j4_pt_;
   float b_j1_btag_, b_j2_btag_, b_j3_btag_, b_j4_btag_;
-  float b_csvWeight_;
 
   float b_kinfit_quality_;
   float b_l1_pt_, b_l2_pt_;
@@ -87,13 +85,11 @@ private:
   const bool isTopMC_;
   const std::string bTagName_;
 
-  CSVWeightEvaluator csvWeight_;
 };
 
 TTLLAnalyzer::TTLLAnalyzer(const edm::ParameterSet& pset):
   doTree_(pset.getParameter<bool>("doTree")),
-  isTopMC_(pset.getParameter<bool>("isTopMC")),
-  bTagName_(pset.getParameter<std::string>("bTagName"))
+  isTopMC_(pset.getParameter<bool>("isTopMC"))
 {
   const auto recoLabel = pset.getParameter<edm::InputTag>("recoObjects").label();
   channelToken_ = consumes<int>(edm::InputTag(recoLabel, "channel"));
@@ -131,8 +127,6 @@ TTLLAnalyzer::TTLLAnalyzer(const edm::ParameterSet& pset):
     tree_->Branch("j2_btag", &b_j2_btag_, "j2_btag/F");
     tree_->Branch("j3_btag", &b_j3_btag_, "j3_btag/F");
     tree_->Branch("j4_btag", &b_j4_btag_, "j4_btag/F");
-
-    tree_->Branch("csvWeight", &b_csvWeight_, "csvWeight/F");
 
     tree_->Branch("kinfit_quality", &b_kinfit_quality_, "kinfit_quality/F");
     tree_->Branch("l1_pt", &b_l1_pt_, "l1_pt/F");
@@ -191,7 +185,6 @@ void TTLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
   // Initialize variables
   b_j1_pt_ = b_j2_pt_ = b_j3_pt_ = b_j4_pt_ = 0;
   b_j1_btag_ = b_j2_btag_ = b_j3_btag_ = b_j4_btag_ = -999;
-  b_csvWeight_ = 1.;
 
   b_kinfit_quality_ = -1;
   b_l1_pt_ = b_l2_pt_ = b_b1_pt_ = b_b2_pt_ = 0;
@@ -260,7 +253,6 @@ void TTLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
     b_j4_pt_ = jetsHandle->at(3).pt();
     b_j4_btag_ = jetsHandle->at(3).bDiscriminator(bTagName_);
   }
-  for ( const auto& jet : *jetsHandle ) b_csvWeight_ *= csvWeight_(jet, CSVWeightEvaluator::CENTRAL);
 
   edm::Handle<edm::View<reco::Candidate> > candsHandle;
   event.getByToken(candsToken_, candsHandle);

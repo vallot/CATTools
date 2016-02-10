@@ -15,7 +15,7 @@
 
 #include "CATTools/CommonTools/interface/TTbarModeDefs.h"
 #include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
-#include "CATTools/CatAnalyzer/interface/BTagScaleFactorEvaluators.h"
+#include "CATTools/CatAnalyzer/interface/BTagWeightEvaluator.h"
 //#include "TopQuarkAnalysis/TopKinFitter/interface/TtFullLepKinSolver.h"
 #include "CATTools/CatAnalyzer/interface/KinematicSolvers.h"
 
@@ -74,7 +74,11 @@ private:
     }
     return 1;
   }
-  CSVWeightEvaluator csvWeight;
+
+  BTagWeightEvaluator csvWeight;
+  BTagWeightEvaluator bTagWeightL;
+  BTagWeightEvaluator bTagWeightM;
+  BTagWeightEvaluator bTagWeightT;
 
   edm::EDGetTokenT<int> recoFiltersToken_, nGoodVertexToken_, lumiSelectionToken_;
   edm::EDGetTokenT<float> genweightToken_, puweightToken_, puweightToken_up_, puweightToken_dn_, topPtWeight_;
@@ -201,6 +205,11 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
     cerr << "Fall back to the default dummy solver\n";
     solver_.reset(new TTDileptonSolver(solverPSet)); // A dummy solver
   }
+
+  csvWeight.initCSVWeight(false, "csvv2");
+  bTagWeightL.init(3, "iterativefit", "csvv2", BTagEntry::OP_LOOSE , 1);
+  bTagWeightM.init(3, "iterativefit", "csvv2", BTagEntry::OP_MEDIUM, 1);
+  bTagWeightT.init(3, "iterativefit", "csvv2", BTagEntry::OP_TIGHT , 1);
 
   usesResource("TFileService");
   edm::Service<TFileService> fs;
@@ -873,12 +882,14 @@ cat::JetCollection TtbarDiLeptonAnalyzer::selectJets(const cat::JetCollection& j
     }
     if (hasOverLap) continue;
     // printf("jet with pt %4.1f\n", jet.pt());
-    if (sys == sys_btag_u) b_btagweight *= jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE, 1);
-    else if (sys == sys_btag_d) b_btagweight *= jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE, -1);
-    else b_btagweight *= jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE, 0);
+    //if (sys == sys_btag_u) b_btagweight *= jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE, 1);
+    //else if (sys == sys_btag_d) b_btagweight *= jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE, -1);
+    //else b_btagweight *= jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE, 0);
+    if      (sys == sys_btag_u) b_btagweight *= bTagWeightL.getSF(jet, 1);
+    else if (sys == sys_btag_d) b_btagweight *= bTagWeightL.getSF(jet, 2);
+    else                        b_btagweight *= bTagWeightL.getSF(jet, 0);
 
-    for (unsigned int iu=0; iu<19; iu++) Jet_SF_CSV[iu] *= csvWeight(jet, iu);
-    //b_csvweight *= csvWeight(jet, CSVWeightEvaluator::CENTRAL);
+    for (unsigned int iu=0; iu<19; iu++) Jet_SF_CSV[iu] *= csvWeight.getSF(jet, iu);
     seljets.push_back(jet);
   }
   for (unsigned int iu=0; iu<19; iu++) b_csvweights.push_back(Jet_SF_CSV[iu]);
