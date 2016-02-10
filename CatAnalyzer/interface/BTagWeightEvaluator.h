@@ -28,9 +28,17 @@ public:
   // For per-jet SF evaluation
   double getSF(const cat::Jet& jet, const int unc) const;
 
+  enum CSVUNC {
+    CENTRAL, JES_UP, JES_DN,
+    LF_UP, LF_DN, HF_UP, HF_DN,
+    HFSTAT1_UP, HFSTAT1_DN, HFSTAT2_UP, HFSTAT2_DN,
+    LFSTAT1_UP, LFSTAT1_DN, LFSTAT2_UP, LFSTAT2_DN,
+    CFERR1_UP, CFERR1_DN, CFERR2_UP, CFERR2_DN
+  };
+  enum TYPE {INCL, MUJET, ITERATIVEFIT, CSVWEIGHT};
+
 private:
   // Measurement type
-  enum TYPE {INCL, MUJET, ITERATIVEFIT, CSVWEIGHT};
   int type_;
 
   std::string btagAlgo_;
@@ -42,14 +50,6 @@ private:
                                 const int flav, const double discr,
                                 const int unc) const;
   void fillCSVHistos(TFile *fileHF, TFile *fileLF, int nHFptBins);
-
-  enum CSVUNC {
-    CENTRAL, JES_UP, JES_DN,
-    LF_UP, LF_DN, HF_UP, HF_DN,
-    HFSTAT1_UP, HFSTAT1_DN, HFSTAT2_UP, HFSTAT2_DN,
-    LFSTAT1_UP, LFSTAT1_DN, LFSTAT2_UP, LFSTAT2_DN,
-    CFERR1_UP, CFERR1_DN, CFERR2_UP, CFERR2_DN
-  };
 
   TH1D *h_csv_wgt_hf[9][6];
   TH1D *c_csv_wgt_hf[9][6];
