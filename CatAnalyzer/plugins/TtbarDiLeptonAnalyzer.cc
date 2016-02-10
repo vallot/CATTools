@@ -207,9 +207,9 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   }
 
   csvWeight.initCSVWeight(false, "csvv2");
-  bTagWeightL.init(3, "iterativefit", "csvv2", BTagEntry::OP_LOOSE , 1);
-  bTagWeightM.init(3, "iterativefit", "csvv2", BTagEntry::OP_MEDIUM, 1);
-  bTagWeightT.init(3, "iterativefit", "csvv2", BTagEntry::OP_TIGHT , 1);
+  bTagWeightL.init(3, "incl", "csvv2", BTagEntry::OP_LOOSE , 1);
+  bTagWeightM.init(3, "incl", "csvv2", BTagEntry::OP_MEDIUM, 1);
+  bTagWeightT.init(3, "incl", "csvv2", BTagEntry::OP_TIGHT , 1);
 
   usesResource("TFileService");
   edm::Service<TFileService> fs;
@@ -860,8 +860,8 @@ float TtbarDiLeptonAnalyzer::selectElecs(const cat::ElectronCollection& elecs, c
 
 cat::JetCollection TtbarDiLeptonAnalyzer::selectJets(const cat::JetCollection& jets, const TtbarDiLeptonAnalyzer::LeptonPtrs& recolep, sys_e sys)
 {
-      // Initialize SF_btag
-   float Jet_SF_CSV[19];
+  // Initialize SF_btag
+  float Jet_SF_CSV[19];
   for (unsigned int iu=0; iu<19; iu++) Jet_SF_CSV[iu] = 1.0;
 
   cat::JetCollection seljets;
@@ -885,14 +885,14 @@ cat::JetCollection TtbarDiLeptonAnalyzer::selectJets(const cat::JetCollection& j
     //if (sys == sys_btag_u) b_btagweight *= jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE, 1);
     //else if (sys == sys_btag_d) b_btagweight *= jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE, -1);
     //else b_btagweight *= jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE, 0);
-    if      (sys == sys_btag_u) b_btagweight *= bTagWeightL.getSF(jet, 1);
-    else if (sys == sys_btag_d) b_btagweight *= bTagWeightL.getSF(jet, 2);
-    else                        b_btagweight *= bTagWeightL.getSF(jet, 0);
-
     for (unsigned int iu=0; iu<19; iu++) Jet_SF_CSV[iu] *= csvWeight.getSF(jet, iu);
     seljets.push_back(jet);
   }
   for (unsigned int iu=0; iu<19; iu++) b_csvweights.push_back(Jet_SF_CSV[iu]);
+
+  if      ( sys == sys_btag_u ) b_btagweight = bTagWeightL.eventWeight(seljets, 1);
+  else if ( sys == sys_btag_d ) b_btagweight = bTagWeightL.eventWeight(seljets, 2);
+  else                          b_btagweight = bTagWeightL.eventWeight(seljets, 0);
 
   return seljets;
 }

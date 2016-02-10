@@ -132,8 +132,8 @@ double BTagWeightEvaluator::getSF(const cat::Jet& jet, const int unc) const
   int uncKey = unc;
 
   if ( type_ == CSVWEIGHT or type_ == ITERATIVEFIT ) {
-    if      ( discr < 0.0 ) discr = -0.05;
-    else if ( discr > 1.0 ) discr = 1.0;
+    if      ( discr < -1.0 ) discr = -0.05;
+    else if ( discr >  1.0 ) discr = 1.0;
 
     if ( type_ == CSVWEIGHT ) return getCSVWeightSFFromROOT(pt, aeta, flav, discr, unc);
 
