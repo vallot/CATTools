@@ -18,35 +18,34 @@ class BTagWeightEvaluator
 {
 public:
   BTagWeightEvaluator() {};
-  void init(const edm::ParameterSet& pset);
-  double computeWeight(const cat::JetCollection& jets, const int unc) const;
+  void init(const int combineMethod, const std::string measurementType,
+            const std::string btagName, BTagEntry::OperatingPoint operationPoint,
+            const int nbjet);
+  void initCSVWeight(const bool isFromROOT, const std::string btagName);
+
+  //double computeWeight(const cat::JetCollection& jets, const int unc) const;
 
   // For per-jet SF evaluation
-  double getSF(const cat::Jet& jet, const int unc) const {
-    if ( method_ == CSVWEIGHT ) return computeCSVWeightFromROOT(jet, unc);
-    return computeCSVWeightFromCSV(jet, unc);
-  };
+  double getSF(const cat::Jet& jet, const int unc) const;
 
 private:
-  int method_;
+  // Measurement type
+  enum TYPE {INCL, MUJET, ITERATIVEFIT, CSVWEIGHT};
+  int type_;
+
   std::string btagAlgo_;
   std::vector<std::string> uncNames_;
   std::map<int, BTagCalibrationReader> readers_;
 
-  // For the CSV weights
-  double computeCSVWeightFromCSV(const cat::Jet& jet, const int unc) const;
-  double computeCSVWeightFromROOT(const cat::Jet& jet, const int unc) const;
+  // For the iterative fit method
+  double getCSVWeightSFFromROOT(const double pt, const double aeta,
+                                const int flav, const double discr,
+                                const int unc) const;
   void fillCSVHistos(TFile *fileHF, TFile *fileLF, int nHFptBins);
 
-  enum METHOD {
-    INCL, MUJET, ITERATIVEFIT, CSVWEIGHT
-  };
-
   enum CSVUNC {
-    CENTRAL,
-    JES_UP, JES_DN,
-    LF_UP, LF_DN,
-    HF_UP, HF_DN,
+    CENTRAL, JES_UP, JES_DN,
+    LF_UP, LF_DN, HF_UP, HF_DN,
     HFSTAT1_UP, HFSTAT1_DN, HFSTAT2_UP, HFSTAT2_DN,
     LFSTAT1_UP, LFSTAT1_DN, LFSTAT2_UP, LFSTAT2_DN,
     CFERR1_UP, CFERR1_DN, CFERR2_UP, CFERR2_DN

@@ -4,21 +4,11 @@
 using namespace cat;
 using namespace std;
 
-void BTagWeightEvaluator::init(const edm::ParameterSet& pset)
+void BTagWeightEvaluator::initCSVWeight(const bool isFromROOT, const string btagName)
 {
-  const string method = pset.getParameter<string>("method");
-  if ( method == "CSVWeight" ) method_ = CSVWEIGHT;
-  else if ( method == "iterativefit" ) method_ = ITERATIVEFIT;
-  else if ( method == "" ) method_ = INCL;
-  else if ( method == "" ) method_ = MUJET;
+  if ( isFromROOT ) {
+    type_ = CSVWEIGHT;
 
-  const string btagName = pset.getParameter<string>("btagName"); // csvv2 or ...
-  if ( btagName == "csvv2" ) btagAlgo_ = BTAG_CSVv2;
-  else if ( btagName == "cmvav2" ) btagAlgo_ = BTAG_cMVAv2;
-  else if ( btagName == "jp" ) btagAlgo_ = BTAG_JP;
-  else btagAlgo_ = "undefined"; // FIXME: Eventually raise error somewhere?
-
-  if ( method_ == CSVWEIGHT ) {
     const string rootFileNameHF = "csv_rwt_fit_hf_2016_01_28.root";
     const string rootFileNameLF = "csv_rwt_fit_lf_2016_01_28.root";
     const auto inputFileHF = edm::FileInPath("CATTools/CatAnalyzer/data/scaleFactors/"+rootFileNameHF).fullPath();
@@ -28,15 +18,25 @@ void BTagWeightEvaluator::init(const edm::ParameterSet& pset)
     TFile f_CSVwgt_LF(inputFileLF.c_str());
 
     fillCSVHistos(&f_CSVwgt_HF, &f_CSVwgt_LF, 6);
-
-    return;
   }
-  else if ( method_ == ITERATIVEFIT ) {
-    //const string csvFileName = "ttH_BTV_CSVv2_13TeV_2015D_20151120.csv";
-    const string csvFileName = pset.getParameter<string>("csvFileName"); // CSVv2_prelim.csv or cMVAv2_prelim.csv
+  else {
+    type_ = ITERATIVEFIT;
+
+    string csvFileName;
+    if      ( btagName == "csvv2" ) {
+      btagAlgo_ = BTAG_CSVv2 ;
+      csvFileName = "CSVv2_prelim.csv";
+      //csvFileName = "ttH_BTV_CSVv2_13TeV_2015D_20151120.csv";
+    }
+    else if ( btagName == "mva" ) {
+      btagAlgo_ = BTAG_cMVAv2;
+      csvFileName = "cMVAv2_prelim.csv";
+    }
+    //else if ( btagName == "jp"    ) btagAlgo_ = BTAG_JP    ;
+    else btagAlgo_ = "undefined"; // FIXME: Eventually raise error somewhere?
+
     const auto csvFile = edm::FileInPath("CATTools/CatAnalyzer/data/scaleFactors/"+csvFileName).fullPath();
     BTagCalibration calib(btagName, csvFile);
-    BTagEntry::OperatingPoint op = BTagEntry::OP_RESHAPING;
     uncNames_ = {
       "central", "up_jes", "down_jes",
       "up_lf", "down_lf", "up_hf", "down_hf", 
@@ -45,99 +45,94 @@ void BTagWeightEvaluator::init(const edm::ParameterSet& pset)
       "up_cferr1", "down_cferr1", "up_cferr2", "down_cferr2"
     };
     for ( unsigned int i=0; i<uncNames_.size(); ++i ) {
-      readers_[i] = BTagCalibrationReader(&calib, op, method, uncNames_[i]); 
+      readers_[i] = BTagCalibrationReader(&calib, BTagEntry::OP_RESHAPING, "iterativefit", uncNames_[i]); 
     }
   }
-  else {
-    const string csvFileName = pset.getParameter<string>("csvFileName"); // CSVv2_prelim.csv or cMVAv2_prelim.csv
-    const auto csvFile = edm::FileInPath("CATTools/CatAnalyzer/data/scaleFactors/"+csvFileName).fullPath();
-    BTagCalibration calib(btagName, csvFile);
-
-    const string opName = pset.getParameter<string>("operatingPoint");
-    BTagEntry::OperatingPoint op = BTagEntry::OP_LOOSE;
-    if      ( opName == "loose"  ) op = BTagEntry::OP_LOOSE;
-    else if ( opName == "medium" ) op = BTagEntry::OP_MEDIUM;
-    else if ( opName == "tight"  ) op = BTagEntry::OP_TIGHT;
-    uncNames_ = {"central", "up", "down"};
-
-    readers_[0] = BTagCalibrationReader(&calib, op, method, "central");
-    readers_[1] = BTagCalibrationReader(&calib, op, method, "up"     );
-    readers_[2] = BTagCalibrationReader(&calib, op, method, "down"   );
-  }
 }
 
-double BTagWeightEvaluator::computeWeight(const cat::JetCollection& jets, const int unc) const
+void BTagWeightEvaluator::init(const int method, const string type,
+                               const string btagName, BTagEntry::OperatingPoint operationPoint, int nbjet)
 {
-  // Do the simplest weighting methods
-  if ( method_ == CSVWEIGHT ) {
-    double weight = 1.0;
-    for ( auto& jet : jets ) weight *= computeCSVWeightFromROOT(jet, unc);
-    return weight;
+  if ( type == "CSVWeight" ) return initCSVWeight(true, btagName);
+  if ( type == "iterativefit" ) return initCSVWeight(true, btagName);
+
+  if      ( type == "incl"  ) type_ = INCL;
+  else if ( type == "mujet" ) type_ = MUJET;
+
+  string csvFileName;
+  if      ( btagName == "csvv2" ) {
+    btagAlgo_ = BTAG_CSVv2 ;
+    csvFileName = "CSVv2_prelim.csv";
   }
-  else if ( method_ == ITERATIVEFIT ) {
-    double weight = 1.0;
-    for ( auto& jet : jets ) weight *= computeCSVWeightFromCSV(jet, unc);
-    return weight;
+  else if ( btagName == "mva" ) {
+    btagAlgo_ = BTAG_cMVAv2;
+    csvFileName = "cMVAv2_prelim.csv";
   }
+  //else if ( btagName == "jp"    ) btagAlgo_ = BTAG_JP    ;
+  else btagAlgo_ = "undefined"; // FIXME: Eventually raise error somewhere?
 
-  // Other standard weights
-  //auto& reader = readers_[unc];
+  const auto csvFile = edm::FileInPath("CATTools/CatAnalyzer/data/scaleFactors/"+csvFileName).fullPath();
+  BTagCalibration calib(btagName, csvFile);
 
-  return 1.0;
+  string opName;
+  if      ( operationPoint == BTagEntry::OP_LOOSE  ) opName = "loose" ;
+  else if ( operationPoint == BTagEntry::OP_MEDIUM ) opName = "medium";
+  else if ( operationPoint == BTagEntry::OP_TIGHT  ) opName = "tight" ;
+  uncNames_ = {"central", "up", "down"};
 
+  readers_[0] = BTagCalibrationReader(&calib, operationPoint, type, "central");
+  readers_[1] = BTagCalibrationReader(&calib, operationPoint, type, "up"     );
+  readers_[2] = BTagCalibrationReader(&calib, operationPoint, type, "down"   );
 }
 
-double BTagWeightEvaluator::computeCSVWeightFromCSV(const cat::Jet& jet, const int unc) const
+double BTagWeightEvaluator::getSF(const cat::Jet& jet, const int unc) const
 {
   const double pt = std::min(jet.pt(), 999.);
   const double aeta = std::abs(jet.eta());
-  if ( pt <= 20 or aeta >= 2.4 ) return 1;
+  if ( pt <= 20 or aeta >= 2.4 ) return 1.0;
 
-  double csv = jet.bDiscriminator(BTAG_CSVv2);
-  if ( csv < 0.0 ) csv = -0.05;
-  else if ( csv > 1.0 ) csv = 1.0;
-
+  double discr = jet.bDiscriminator(btagAlgo_);
   const int flav = std::abs(jet.hadronFlavour());
+  int uncKey = unc;
+
+  if ( type_ == CSVWEIGHT or type_ == ITERATIVEFIT ) {
+    if      ( discr < 0.0 ) discr = -0.05;
+    else if ( discr > 1.0 ) discr = 1.0;
+
+    if ( type_ == CSVWEIGHT ) return getCSVWeightSFFromROOT(pt, aeta, flav, discr, unc);
+
+    // Special care for the flavour dependent SFs
+    if ( flav == 5 ) {
+      if ( unc != LF_UP and unc != LF_DN and
+          unc != HFSTAT1_UP and unc != HFSTAT1_DN and
+          unc != HFSTAT2_UP and unc != HFSTAT2_DN ) uncKey = CENTRAL;
+    }
+    else if ( flav == 4 ) {
+      if ( unc != CFERR1_UP and unc != CFERR1_DN and
+          unc != CFERR2_UP and unc != CFERR2_DN ) uncKey = CENTRAL;
+    }
+    else {
+      if ( unc != HF_UP and unc != HF_DN and
+          unc != LFSTAT1_UP and unc != LFSTAT1_DN and
+          unc != LFSTAT2_UP and unc != LFSTAT2_DN ) uncKey = CENTRAL;
+    }
+  }
+
+  auto readerItr = readers_.find(uncKey);
+  if ( readerItr == readers_.end() ) return 1.0;
+
   BTagEntry::JetFlavor jf = BTagEntry::FLAV_UDSG;
-  if ( flav == 5 ) jf = BTagEntry::FLAV_B;
+  if      ( flav == 5 ) jf = BTagEntry::FLAV_B;
   else if ( flav == 4 ) jf = BTagEntry::FLAV_C;
 
-  int uncKey = unc;
-  // Special care for the flavour dependent SFs
-  if ( flav == 5 ) {
-    if ( unc != LF_UP and unc != LF_DN and
-        unc != HFSTAT1_UP and unc != HFSTAT1_DN and
-        unc != HFSTAT2_UP and unc != HFSTAT2_DN ) uncKey = CENTRAL;
-  }
-  else if ( flav == 4 ) {
-    if ( unc != CFERR1_UP and unc != CFERR1_DN and
-        unc != CFERR2_UP and unc != CFERR2_DN ) uncKey = CENTRAL;
-  }
-  else {
-    if ( unc != HF_UP and unc != HF_DN and
-        unc != LFSTAT1_UP and unc != LFSTAT1_DN and
-        unc != LFSTAT2_UP and unc != LFSTAT2_DN ) uncKey = CENTRAL;
-  }
+  return readerItr->second.eval(jf, aeta, pt, discr);
+};
 
-  const auto reader = readers_.find(uncKey);
-  if ( reader == readers_.end() ) return 1;
-
-  return reader->second.eval(jf, aeta, pt, csv);
-}
-
-double BTagWeightEvaluator::computeCSVWeightFromROOT(const cat::Jet& jet, const int unc) const
+double BTagWeightEvaluator::getCSVWeightSFFromROOT(const double pt, const double aeta,
+                                                   const int flav, const double discr,
+                                                   const int unc) const
 {
   // original code : https://github.com/cms-ttH/MiniAOD/blob/master/MiniAODHelper/interface/CSVHelper.h
-  const double pt = std::min(jet.pt(), 999.);
-  const double aeta = std::abs(jet.eta());
-  if ( pt <= 20 or aeta >= 2.4 ) return 1;
-
-  double csv = jet.bDiscriminator(BTAG_CSVv2);
-  if ( csv < 0.0 ) csv = -0.05;
-  else if ( csv > 1.0 ) csv = 1.0;
-
-  const int flav = std::abs(jet.hadronFlavour());
-
   int iSysHF = 0;
   switch (unc) {
     case JES_UP: iSysHF = 1; break; // JESUp
@@ -189,15 +184,15 @@ double BTagWeightEvaluator::computeCSVWeightFromROOT(const cat::Jet& jet, const 
 
   if (flav == 5) {
     if(iPt>=nHFptBins_) iPt=nHFptBins_-1;
-    int useCSVBin = (csv >= 0.) ? h_csv_wgt_hf[iSysHF][iPt]->FindBin(csv) : 1;
+    int useCSVBin = (discr >= 0.) ? h_csv_wgt_hf[iSysHF][iPt]->FindBin(discr) : 1;
     return (float) h_csv_wgt_hf[iSysHF][iPt]->GetBinContent(useCSVBin);
   } else if (flav == 4) {
     if(iPt>=nHFptBins_) iPt=nHFptBins_-1;
-    int useCSVBin = (csv >= 0.) ? c_csv_wgt_hf[iSysC][iPt]->FindBin(csv) : 1;
+    int useCSVBin = (discr >= 0.) ? c_csv_wgt_hf[iSysC][iPt]->FindBin(discr) : 1;
     return (float) c_csv_wgt_hf[iSysC][iPt]->GetBinContent(useCSVBin);
   } else {
     if (iPt >= 3)  iPt = 3; /// [30-40], [40-60] and [60-10000] only 3 Pt bins for lf
-    int useCSVBin = (csv >= 0.) ? h_csv_wgt_lf[iSysLF][iPt][iEta]->FindBin(csv) : 1;
+    int useCSVBin = (discr >= 0.) ? h_csv_wgt_lf[iSysLF][iPt][iEta]->FindBin(discr) : 1;
     return  (float) h_csv_wgt_lf[iSysLF][iPt][iEta]->GetBinContent(useCSVBin);
   }
 }
