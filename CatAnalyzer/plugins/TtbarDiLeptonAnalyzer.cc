@@ -207,9 +207,9 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   }
 
   csvWeight.initCSVWeight(false, "csvv2");
-  bTagWeightL.init(0, "iterativefit", "csvv2", BTagEntry::OP_LOOSE , 1);
-  bTagWeightM.init(0, "iterativefit", "csvv2", BTagEntry::OP_MEDIUM, 1);
-  bTagWeightT.init(0, "iterativefit", "csvv2", BTagEntry::OP_TIGHT , 1);
+  bTagWeightL.init(3, "iterativefit", "csvv2", BTagEntry::OP_LOOSE , 1);
+  bTagWeightM.init(3, "iterativefit", "csvv2", BTagEntry::OP_MEDIUM, 1);
+  bTagWeightT.init(3, "iterativefit", "csvv2", BTagEntry::OP_TIGHT , 1);
 
   usesResource("TFileService");
   edm::Service<TFileService> fs;
