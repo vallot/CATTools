@@ -13,14 +13,16 @@ gidMap = {
     'v7-6-1':'1617837617',
     'v7-6-2':'1966334211',
 }
-       
+    
+era = ''    
 if len(sys.argv) < 2:
-    lastest = sorted(gidMap)[-1]
-    gid = gidMap[lastest]
-    print "Default PROD_VERISON =", lastest
+    era = sorted(gidMap)[-1]
+    gid = gidMap[era]
 else:
+    era = sys.argv[1]
     gid = gidMap[sys.argv[1]]
-    print "Using =",sys.argv[1]
+    
+print "Using =",era
 
 from ROOT import *
 
@@ -84,7 +86,6 @@ if "sdfarm" in hostname:
 if not "sdfarm" in hostname:    
     sys.exit()
 
-era = sys.argv[1]
 storageprefix = "/store/group/CAT"
 unmatching = []
 emptydirectory = []
