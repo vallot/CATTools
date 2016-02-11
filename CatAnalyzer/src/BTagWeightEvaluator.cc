@@ -41,9 +41,10 @@ void BTagWeightEvaluator::initCSVWeight(const bool isFromROOT, const string btag
   method_ = 4;
   if ( isFromROOT ) {
     type_ = CSVWEIGHT;
-
-    const string rootFileNameHF = "csv_rwt_fit_hf_2016_01_28.root";
-    const string rootFileNameLF = "csv_rwt_fit_lf_2016_01_28.root";
+//    const string rootFileNameHF = "csv_rwt_fit_hf_2016_01_28.root";
+//    const string rootFileNameLF = "csv_rwt_fit_lf_2016_01_28.root";
+    const string rootFileNameHF = "csv_rwt_fit_hf_76x_2016_02_08.root";
+    const string rootFileNameLF = "csv_rwt_fit_lf_76x_2016_02_08.root";
     const auto inputFileHF = edm::FileInPath("CATTools/CatAnalyzer/data/scaleFactors/"+rootFileNameHF).fullPath();
     const auto inputFileLF = edm::FileInPath("CATTools/CatAnalyzer/data/scaleFactors/"+rootFileNameLF).fullPath();
 
