@@ -2,15 +2,14 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("TtbarDiLeptonAnalyzer")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
 
 process.options.allowUnscheduled = cms.untracked.bool(True)
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-1/MuonEG_Run2015D-16Dec2015-v1.root',]
-process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-1/TTbarXSecSynchronization_76X_MC_TT_powheg.root',]
-
+process.source.fileNames = ['/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-6-2_RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext3-v1/160209_213504/0000/catTuple_1.root',]
 useSilver = False
 catmet = 'catMETs'
 lumiMask = 'lumiMask'
@@ -30,8 +29,7 @@ process.cattree = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     nGoodVertex = cms.InputTag("catVertex","nGoodPV"),
     lumiSelection = cms.InputTag(lumiMask),
     genweight = cms.InputTag("genWeight","genWeight"),
-    #pdfweight = cms.InputTag("genWeight","pdfWeights"),
-    pdfweight = cms.InputTag("genWeight","otherWeights"),
+    pdfweight = cms.InputTag("genWeight","pdfWeights"),
     scaleweight = cms.InputTag("genWeight","scaleWeights"),
     topPtWeight = cms.InputTag("topPtWeight"),
     puweight = cms.InputTag(pileupWeight),
