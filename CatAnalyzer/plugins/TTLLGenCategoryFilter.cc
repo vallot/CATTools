@@ -6,7 +6,10 @@
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/JetReco/interface/GenJetCollection.h"
 
+#include "CATTools/CommonTools/interface/TTbarModeDefs.h"
+
 using namespace std;
+using namespace cat;
 
 class TTLLGenCategoryFilter : public edm::one::EDFilter<edm::one::SharedResources>
 {
@@ -19,8 +22,6 @@ private:
 
   typedef std::vector<int> vint;
   enum InputType { IN_PartonTop, IN_PseudoTop, IN_Hadron } inputType_;
-  enum DecayMode { CH_HADRON = 0, CH_MUON, CH_ELECTRON, 
-                   CH_TAU_HADRON, CH_TAU_MUON, CH_TAU_ELECTRON } decayMode_;
 
   // For the parton top
   edm::EDGetTokenT<reco::GenParticleCollection> parton_srcToken_;

@@ -110,8 +110,8 @@ def setDefTH1Style(th1, x_name, y_name):
     return th1
     
 def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=True, ratioRange=0.45):
-    leg = ROOT.TLegend(0.58,0.78,0.8,0.9)
-    #leg = ROOT.TLegend(0.71,0.68,0.88,0.91)
+    #leg = ROOT.TLegend(0.58,0.78,0.8,0.9)
+    leg = ROOT.TLegend(0.71,0.68,0.88,0.91)
     leg.SetBorderSize(0)
     #leg.SetNColumns(2)
     leg.SetTextSize(0.029)
@@ -134,7 +134,6 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
             leg.AddEntry(inversed, inversed.GetTitle(), "f")
             leghist.append(inversed.GetTitle())
                         
-    #hratio.Divide(data,mclist[0],1.,1.,"B")
     hratio.Divide(data,hratio,1.,1.,"B")
 
     tdrstyle.setTDRStyle()
@@ -143,7 +142,7 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
     data.SetMaximum(data.GetMaximum()*1.8)
     if doLog:
         #data.SetMaximum(10**7)
-        data.SetMaximum(data.GetMaximum()*10)
+        data.SetMaximum(data.GetMaximum()*100)
         
     ratio_fraction = 0
     if doRatio:
@@ -165,7 +164,6 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
 
     data.Draw()
     hs.Draw("same")
-    #hs.Draw("samenostack")
     data.Draw("esamex0")
     leg.Draw("same")
     pads[0].Update()
@@ -193,15 +191,16 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
     canv.Modified()
     canv.Update()
     canv.SaveAs(name)
-    canv.SaveAs(name.split('.')[0]+'.C')
 
 def drellYanEstimation(mc_ee_in, mc_ee_out, mc_mm_in, mc_mm_out,
-                       rd_ee_in, rd_mm_in, rd_em_in):    
-    kMM = math.sqrt(rd_mm_in/rd_ee_in)/2.
-    kEE = math.sqrt(rd_ee_in/rd_mm_in)/2.
+                       rd_ee_in, rd_mm_in, rd_em_in, kMM, kEE):    
+    #kMM = math.sqrt(rd_mm_in/rd_ee_in)/2.
+    #kEE = math.sqrt(rd_ee_in/rd_mm_in)/2.
 
     rMC_mm = mc_mm_out/mc_mm_in
     rMC_ee = mc_ee_out/mc_ee_in
+    print "rMC_mm  ", rMC_mm
+    print "rMC_ee  ", rMC_ee
     
     nOutEst_mm = rMC_mm*(rd_mm_in - rd_em_in*kMM)
     nOutEst_ee = rMC_ee*(rd_ee_in - rd_em_in*kEE)

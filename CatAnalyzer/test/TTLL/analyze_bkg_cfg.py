@@ -10,18 +10,21 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 50000
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 process.source.fileNames = [
-    '/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-4-6_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/151127_200613/0000/catTuple_1.root'
+    '/store/user/jhgoh/CATTools/sync/v7-6-1/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8.root',
 ]
 
 process.load("CATTools.CatAnalyzer.filters_cff")
 process.load("CATTools.CatAnalyzer.ttll.ttllEventSelector_cfi")
+process.load("CATTools.CatAnalyzer.ttll.ttllAnalyzers_cff")
 process.load("CATTools.CatAnalyzer.ttll.ntuple_cff")
 
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string("hist.root"),
 )
 
-process.p = cms.Path(process.ttll)#*process.ntuple)
+process.p = cms.Path(
+    process.eventsTTLL * process.ttll + process.ttbbll
+)
 
 ## Customise with cmd arguments
 import sys

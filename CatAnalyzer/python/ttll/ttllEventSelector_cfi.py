@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 from CATTools.CatAnalyzer.leptonSF_cff import *
 
-ttll = cms.EDFilter("TTLLEventSelector",
+eventsTTLL = cms.EDFilter("TTLLEventSelector",
     isMC = cms.bool(True),
     ## alwaysAcceptAfter : Accept event even though selection may fail _AFTER_ this step
     ## Use case: store ntuple only for events that passes step4
@@ -38,6 +38,7 @@ ttll = cms.EDFilter("TTLLEventSelector",
         resolDirection = cms.int32(0),
         #resolDirection = cms.int32(-1),
         #resolDirection = cms.int32(+1),
+        skipJER = cms.bool(False), # Needed for synchronization
     ),
 
     met = cms.PSet(
@@ -56,6 +57,7 @@ ttll = cms.EDFilter("TTLLEventSelector",
         trigMUEL = cms.InputTag("filterTrigMUEL"),
         trigMUMU = cms.InputTag("filterTrigMUMU"),
         trigELEL = cms.InputTag("filterTrigELEL"),
+        ignoreTrig = cms.bool(False), # Accept event even if it does not pass HLT. Needed for synchronization
     ),
 
     # Event weights
@@ -63,5 +65,6 @@ ttll = cms.EDFilter("TTLLEventSelector",
         index = cms.uint32(0),
         src = cms.InputTag("genWeight", "genWeight"),
     ),
+    extWeights = cms.VInputTag(),
 )
 

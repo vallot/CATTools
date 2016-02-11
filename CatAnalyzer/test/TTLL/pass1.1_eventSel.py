@@ -93,12 +93,12 @@ out_dat = open("%s/submit_dat_unc.sh" % outDir, "w")
 
 ## Loop over common systematics
 systAny = {
-    'mu_pt/up':'ttll.muon.scaleDirection=1',
-    'mu_pt/dn':'ttll.muon.scaleDirection=-1',
-    'el_pt/up':'ttll.electron.scaleDirection=1',
-    'el_pt/dn':'ttll.electron.scaleDirection=-1',
-    'jet_cor/up':'ttll.jet.scaleDirection=1',
-    'jet_cor/dn':'ttll.jet.scaleDirection=-1',
+    'mu_pt/up':'eventsTTLL.muon.scaleDirection=1',
+    'mu_pt/dn':'eventsTTLL.muon.scaleDirection=-1',
+    'el_pt/up':'eventsTTLL.electron.scaleDirection=1',
+    'el_pt/dn':'eventsTTLL.electron.scaleDirection=-1',
+    'jet_cor/up':'eventsTTLL.jet.scaleDirection=1',
+    'jet_cor/dn':'eventsTTLL.jet.scaleDirection=-1',
 }
 for systName in systAny:
     syst = systAny[systName]
@@ -129,14 +129,14 @@ for systName in systAny:
 
 ## Then loop over MC specific systematics
 systMC = {
-    'jet_res/up':'ttll.jet.resolDirection=1',
-    'jet_res/dn':'ttll.jet.resolDirection=-1',
-    'pileup/up':'ttll.vertex.pileupWeight="pileupWeight:up"',
-    'pileup/dn':'ttll.vertex.pileupWeight="pileupWeight:dn"',
-    'mu_eff/up':'ttll.muon.efficiencySFDirection=1',
-    'mu_eff/dn':'ttll.muon.efficiencySFDirection=-1',
-    'el_eff/up':'ttll.electron.efficiencySFDirection=1',
-    'el_eff/dn':'ttll.electron.efficiencySFDirection=-1',
+    'jet_res/up':'eventsTTLL.jet.resolDirection=1 ttll.doTree=False ttbbll.doTree=False',
+    'jet_res/dn':'eventsTTLL.jet.resolDirection=-1 ttll.doTree=False ttbbll.doTree=False',
+    'pileup/up':'eventsTTLL.vertex.pileupWeight="pileupWeight:up" ttll.doTree=False ttbbll.doTree=False',
+    'pileup/dn':'eventsTTLL.vertex.pileupWeight="pileupWeight:dn" ttll.doTree=False ttbbll.doTree=False',
+    'mu_eff/up':'eventsTTLL.muon.efficiencySFDirection=1 ttll.doTree=False ttbbll.doTree=False',
+    'mu_eff/dn':'eventsTTLL.muon.efficiencySFDirection=-1 ttll.doTree=False ttbbll.doTree=False',
+    'el_eff/up':'eventsTTLL.electron.efficiencySFDirection=1 ttll.doTree=False ttbbll.doTree=False',
+    'el_eff/dn':'eventsTTLL.electron.efficiencySFDirection=-1 ttll.doTree=False ttbbll.doTree=False',
 }
 for systName in systMC:
     syst = systMC[systName]
@@ -161,21 +161,22 @@ for systName in systMC:
 ## Scale up/down systematic uncertainty from LHE weight
 ## This uncertainty have to be combined with envelope
 ## Let us assume index1-10 are for the scale variations (muF & muR)
-for i in range(1,9): # total 8 scale variations, 3 muF x 3 muR and one for central weight
-    systName = "gen_scale/%d" % i
-    syst = 'ttll.genWeight.src="genWeight:pdfWeights" ttll.genWeight.index=%d' % i
-    for d in bkgList:
-        name = d['name']
-        if isBlacklisted(name): continue
-        submitCmd  = "create-batch --cfg analyze_bkg_cfg.py --maxFiles 100"
-        submitCmd += " --fileList %s/dataset/dataset_%s.txt" % (dataDir, name)
-        print>>out_bkg, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, syst)))
+## total 8 scale variations, 3 muF x 3 muR and one for central weight
+## Skip unphysical scale variation combinations, (muF=2, muR=0.5) and (muF=0.5, muR=2) should be skipped
+## and combine with PS level scale variations samples
+for d in sigList:
+    name = d['name']
+    if isBlacklisted(name): continue
 
-    ## Modification for ttbar samples
-    syst += ' agen.weight="genWeight:pdfWeights" agen.weightIndex=%d' % i
-    for d in sigList:
-        name = d['name']
-        if isBlacklisted(name): continue
+    idxset = ()
+    if   '_scaleup'   in name: idxset = (0, 2, 3)
+    elif '_scaledown' in name: idxset = (1, 5, 6)
+
+    for i in idxset:
+        systName = "gen_scale/%d" % i
+        syst = 'eventsTTLL.genWeight.src="genWeight:scaleWeights" eventsTTLL.genWeight.index=%d ttll.doTree=False ttbbll.doTree=False' % i
+        syst += ' agen.weight="genWeight:scaleWeights" agen.weightIndex=%d' % i
+
         submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 100"
         submitCmd += " --fileList %s/dataset/dataset_%s.txt" % (dataDir, name)
 
@@ -183,36 +184,35 @@ for i in range(1,9): # total 8 scale variations, 3 muF x 3 muR and one for centr
         print>>out_bkg, (submitCmd + (" --jobName %s_Others/%s --args '%s filterPartonTTLL.invert=True'" % (name, systName, syst)))
 
 ## PDF weights
-## 110 variations for aMC@NLO, 248 for POWHEG
+## Weight vector size differs to include different PDF considerations
+## -> 110 variations for aMC@NLO, 248 for POWHEG
+## Basically, (1+8 scale variations) + (1+100 NNPDF variations) + (other PDF variations) + (1+N hdamp variations)
 ## NOTE: there is weight vector, but we don't do it for LO generator here.
-## -- for note madgraph weightSize = 445 + 8 variations
 for d in bkgList:
     name = d['name']
     if isBlacklisted(name): continue
-    if '_aMC' in name: weightSize = 110
-    elif '_powheg' in name: weightSize = 248
+    if '_aMC' in name or '_powheg' in name: weightSize = 100
     else: continue
 
     submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 100"
     submitCmd += " --fileList %s/dataset/dataset_%s.txt" % (dataDir, name)
 
-    for i in range(9, weightSize+1):
-        arg = 'ttll.genWeight.src="genWeight:pdfWeights" ttll.genWeight.index=%d' % i
+    for i in range(weightSize):
+        arg = 'eventsTTLL.genWeight.src="genWeight:pdfWeights" eventsTTLL.genWeight.index=%d' % i
         print>>out_bkg, (submitCmd + (" --jobName %s/gen_PDF/%d --args '%s'" % (name, i, arg)))
 
 for d in sigList:
     name = d['name']
     if isBlacklisted(name): continue
     if '_scale' in name: continue
-    if '_aMC' in name: weightSize = 110
-    elif '_powheg' in name: weightSize = 248
+    if '_aMC' in name or '_powheg' in name: weightSize = 100
     else: continue
 
     submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 100"
     submitCmd += " --fileList %s/dataset/dataset_%s.txt" % (dataDir, name)
 
-    for i in range(9, weightSize+1):
-        arg  = 'ttll.genWeight.src="genWeight:pdfWeights" ttll.genWeight.index=%d' % i
+    for i in range(weightSize):
+        arg  = 'eventsTTLL.genWeight.src="genWeight:pdfWeights" eventsTTLL.genWeight.index=%d' % i
         arg += ' agen.weight="genWeight:pdfWeights" agen.weightIndex=%d' % i
         print>>out_sig, (submitCmd + (" --jobName %s_LL/gen_PDF/%d --args '%s'" % (name, i, arg)))
         print>>out_bkg, (submitCmd + (" --jobName %s_Others/gen_PDF/%d --args '%s filterPartonTTLL.invert=True'" % (name, i, arg)))

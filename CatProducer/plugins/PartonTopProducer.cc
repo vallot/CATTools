@@ -8,25 +8,16 @@
 #include "fastjet/ClusterSequence.hh"
 #include "RecoJets/JetProducers/interface/JetSpecific.h"
 
-#include "CommonTools/Utils/interface/PtComparator.h"
-
-#include "FWCore/ServiceRegistry/interface/Service.h"
-#include "CommonTools/UtilAlgos/interface/TFileService.h"
-#include "TH1F.h"
-#include "TH2F.h"
+#include "CATTools/CommonTools/interface/TTbarModeDefs.h"
 
 using namespace std;
-using namespace edm;
-using namespace reco;
+using namespace cat;
 
 class PartonTopProducer : public edm::stream::EDProducer<>
 {
 public:
   PartonTopProducer(const edm::ParameterSet& pset);
   void produce(edm::Event& event, const edm::EventSetup& eventSetup) override;
-
-  enum TTbarMode { CH_NONE = -1, CH_FULLHADRON = 0, CH_SEMILEPTON, CH_FULLLEPTON };
-  enum DecayMode { CH_HADRON = 0, CH_MUON, CH_ELECTRON, CH_TAU_HADRON, CH_TAU_MUON, CH_TAU_ELECTRON };
 
 private:
   const reco::Candidate* getLast(const reco::Candidate* p) const;
@@ -68,7 +59,7 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
   std::auto_ptr<reco::GenParticleCollection> partons(new reco::GenParticleCollection);
   auto partonRefHandle = event.getRefBeforePut<reco::GenParticleCollection>();
 
-  std::auto_ptr<int> channel(new int(CH_NONE));
+  std::auto_ptr<int> channel(new int(CH_NOTT));
   std::auto_ptr<std::vector<int> > modes(new std::vector<int>());
 
   std::auto_ptr<reco::GenJetCollection> qcdJets(new reco::GenJetCollection);
@@ -209,7 +200,7 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
         partons->at(wDauRef1.key()).addDaughter(lepRef);
       }
     }
-    int mode = 0;
+    int mode = CH_HADRON;
     switch ( abs(wDau1->pdgId()) )
     {
       case 11: ++nElectron; mode = CH_ELECTRON; break;

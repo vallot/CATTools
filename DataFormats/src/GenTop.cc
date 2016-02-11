@@ -11,12 +11,14 @@ GenTop::GenTop(){
   leptons_ = {null, null};
   nus_ = {null, null};
   taunus_ = {null, null};
-  quarksfromW_ = {null, null};
+  quarksfromW_ = {null, null, null, null};
 
   cJets_ = {null, null};
   bJets_ = {null, null, null, null};
   addbJets_ = {null, null};
+  addcJets_ = {null, null};
   addbJetsHad_ = {null, null};
+  addcJetsHad_ = {null, null};
   addJets_ = {null, null};
 }
 
@@ -31,12 +33,14 @@ GenTop::GenTop(const reco::Candidate & aGenTop) : reco::LeafCandidate(aGenTop) {
   leptons_ = {null, null};
   nus_ = {null, null};
   taunus_ = {null, null};
-  quarksfromW_ = {null, null};
+  quarksfromW_ = {null, null, null, null};
 
   cJets_ = {null, null};
   bJets_ = {null, null, null, null};
   addbJets_ = {null, null};
+  addcJets_ = {null, null};
   addbJetsHad_ = {null, null};
+  addcJetsHad_ = {null, null};
   addJets_ = {null, null};
 }
 
@@ -64,6 +68,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
   std::vector<math::XYZTLorentzVector> bquarksfromtop;
   std::vector<math::XYZTLorentzVector> bquarks;
   std::vector<math::XYZTLorentzVector> cquarks;
+  std::vector<math::XYZTLorentzVector> addcquarks;
 
   std::vector<math::XYZTLorentzVector> topquarks;
 
@@ -90,7 +95,9 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
       bool isLast = isLastcharm(p);
       if(isLast == true){
         bool isfromtop = isFromtop(p);
+        bool isfromW = isFromW(p);
         if( isfromtop == false ) cquarks.push_back( p.p4() );
+        if( isfromtop == false && isfromW == false ) addcquarks.push_back( p.p4() );
       }
     }
 
@@ -216,7 +223,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
         } else if( decayId < 6 ){
           hadronic[ntop] = true;
           if(nWquarkDaughters == 2) break;
-          quarksfromW_[nWquarkDaughters] = decay->p4();  
+          quarksfromW_[ntop*2+nWquarkDaughters] = decay->p4();  
           nWquarkDaughters++;
         } else {
           continue;
@@ -304,6 +311,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
   NbQuarksNoTop_ = (int) bquarksfromnotop.size();
   NbQuarksTop_ = (int) bquarksfromtop.size();
   NcQuarks_ = (int) cquarks.size();
+  NaddcQuarks_ = (int) addcquarks.size();
 
   //inseart b-quarks from top to the b-quarks from non-top.
   //bquarks.insert( bquarks.begin(), bquarksfromtop.begin(), bquarksfromtop.end());
@@ -334,8 +342,8 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
   }
   NbQuarks20_ = nbQuark20;
   NbQuarks40_ = nbQuark40;
-  NaddbQuarks20_ = naddbQuark20;
-  NaddbQuarks40_ = naddbQuark40;
+  //NaddbQuarks20_ = naddbQuark20;
+  //NaddbQuarks40_ = naddbQuark40;
 
 //////
   std::map<int, vector<const reco::Candidate*> > mapJetToBHadrons;
@@ -351,7 +359,9 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
   std::vector<math::XYZTLorentzVector> addbJetsBHad;
   std::vector<math::XYZTLorentzVector> addbJets;
   std::vector<math::XYZTLorentzVector> cJets;
+  std::vector<math::XYZTLorentzVector> addcJets;
   std::vector<math::XYZTLorentzVector> cJetsCHad;
+  std::vector<math::XYZTLorentzVector> addcJetsCHad;
   std::vector<math::XYZTLorentzVector> addJets;
 
   NJets_ = 0;
@@ -483,6 +493,13 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     }
     if( minDR2c < 0.5 ) cJets.push_back(gJet.p4());
 
+    double minDR2addc = 999;
+    for(unsigned int i=0 ; i < addcquarks.size() ; i++){
+      double dR = reco::deltaR(gJet, addcquarks[i]);
+      if( dR < minDR2addc ) minDR2addc = dR;
+    }
+    if( minDR2addc < 0.5 ) addcJets.push_back(gJet.p4());
+
     NJets_++;
     if( gJet.pt() > 40 && std::abs(gJet.eta()) < 2.5 ) NJets40_++;
     if( gJet.pt() > 30 && std::abs(gJet.eta()) < 2.5 ) NJets30_++;
@@ -502,6 +519,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     if(bJetFromTopIds.count(idx) < 1 && bJetFromWIds.count(idx) < 1 && cJetFromWIds.count(idx) < 1) {
       double minDRWquarks = 999;
       for(unsigned int i=0 ; i < quarksfromW_.size() ; i++){
+        if( quarksfromW_[i] == null ) continue;
         double dR = reco::deltaR(gJet, quarksfromW_[i]);
         if( dR < minDRWquarks ) minDRWquarks = dR;
       }
@@ -518,6 +536,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     
     if(cJetIds.count(idx) > 0){
       cJetsCHad.push_back( gJet.p4() );
+      if( cJetAdditionalIds.count(idx) > 0 ) addcJetsCHad.push_back( gJet.p4() ); 
     }
 
     //Looking at Jet constituents
@@ -621,6 +640,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
 
   std::sort(bJetsBHad.begin(), bJetsBHad.end(), GreaterByPt<reco::Candidate::LorentzVector>());
   std::sort(addbJetsBHad.begin(), addbJetsBHad.end(), GreaterByPt<reco::Candidate::LorentzVector>());
+  std::sort(addcJetsCHad.begin(), addcJetsCHad.end(), GreaterByPt<reco::Candidate::LorentzVector>());
 
   NbJetsBHad_ = 0;
   NbJets10BHad_ = 0;
@@ -651,6 +671,19 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     if( addbJetsBHad[i].pt() > 20 && std::abs(addbJetsBHad[i].eta()) < 2.5) NaddbJets20BHad_++;
     if( addbJetsBHad[i].pt() > 40 && std::abs(addbJetsBHad[i].eta()) < 2.5) NaddbJets40BHad_++;
   }
+
+  NaddcJetsCHad_ = 0;
+  NaddcJets20CHad_ = 0;
+  NaddcJets40CHad_ = 0;
+  for( unsigned int i = 0 ; i < addcJetsCHad.size() ; i++){
+    if( i < 2 ){
+      addcJetsHad_[i] = addcJetsCHad[i];
+    }
+    NaddcJetsCHad_++;
+    if( addcJetsCHad[i].pt() > 20 && std::abs(addcJetsCHad[i].eta()) < 2.5) NaddcJets20CHad_++;
+    if( addcJetsCHad[i].pt() > 40 && std::abs(addcJetsCHad[i].eta()) < 2.5) NaddcJets40CHad_++;
+  }
+
 
   /*
   for( std::map<int, vector<const reco::Candidate*> >::iterator it = mapJetToCHadrons.begin() ; it != mapJetToCHadrons.end(); it++){
@@ -724,6 +757,21 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     if( cJets[i].pt() > 40 && std::abs(cJets[i].eta()) < 2.5) NcJets40_++;
   }
 
+  NaddcJets_ = 0;
+  NaddcJets10_ = 0;
+  NaddcJets20_ = 0;
+  NaddcJets30_ = 0;
+  NaddcJets40_ = 0;
+
+  for( unsigned int i = 0 ; i < addcJets.size() ; i++){
+    NaddcJets_++;
+    if( addcJets[i].pt() > 10 && std::abs(addcJets[i].eta()) < 2.5) NaddcJets10_++;
+    if( addcJets[i].pt() > 20 && std::abs(addcJets[i].eta()) < 2.5) NaddcJets20_++;
+    if( addcJets[i].pt() > 30 && std::abs(addcJets[i].eta()) < 2.5) NaddcJets30_++;
+    if( addcJets[i].pt() > 40 && std::abs(addcJets[i].eta()) < 2.5) NaddcJets40_++;
+  }
+
+
   NaddJets20_ = 0;
   NaddJets40_ = 0;
 
@@ -736,13 +784,16 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
   dRaddJets_ = 0;
   dRaddbJets_ = 0;
   dRaddbJetsHad_ = 0;
+  dRaddcJetsHad_ = 0;
   dRcJets_ = 0;
   dRcJetsHad_ = 0;
 
   if( addJets.size() >= 2) dRaddJets_ = reco::deltaR(addJets[0], addJets[1]);
   if( addbJetsBHad.size() >= 2) dRaddbJetsHad_ = reco::deltaR(addbJetsBHad[0], addbJetsBHad[1]);
+  if( addcJetsCHad.size() >= 2) dRaddcJetsHad_ = reco::deltaR(addcJetsCHad[0], addcJetsCHad[1]);
   if( cJetsCHad.size() >= 2) dRcJetsHad_ = reco::deltaR(cJetsCHad[0], cJetsCHad[1]);
   if( addbJets.size() >= 2) dRaddbJets_ = reco::deltaR(addbJets[0], addbJets[1]);
+  if( addcJets.size() >= 2) dRaddcJets_ = reco::deltaR(addcJets[0], addcJets[1]);
   if( cJets.size() >= 2) dRcJets_ = reco::deltaR(cJets[0], cJets[1]);
 }
 
@@ -913,6 +964,23 @@ bool GenTop::isFromtop( const reco::GenParticle& p){
     //    string id = Form("%i", mother->pdgId());
     //    string mopt = Form("%f", mother->pt());
     if( abs(mother->pdgId()) == 6 ) {
+      out = true;
+    }
+    mother = dynamic_cast<const reco::GenParticle*>(mother->mother());
+  }
+
+  return out;
+}
+bool GenTop::isFromW( const reco::GenParticle& p){
+  bool out = false;
+
+  //  string pt = Form("%f", p.pt());
+  //  string pdgid = Form("%i",p.pdgId());
+  const reco::GenParticle* mother = dynamic_cast<const reco::GenParticle*>(p.mother());
+  while( mother != 0 ){
+    //    string id = Form("%i", mother->pdgId());
+    //    string mopt = Form("%f", mother->pt());
+    if( abs(mother->pdgId()) == 24 ) {
       out = true;
     }
     mother = dynamic_cast<const reco::GenParticle*>(mother->mother());

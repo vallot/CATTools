@@ -4,7 +4,7 @@
 
 namespace cat {
 
-class ScaleFactorGetter
+class ScaleFactorEvaluator
 {
 public:
   void set(const std::vector<double>& xbins,

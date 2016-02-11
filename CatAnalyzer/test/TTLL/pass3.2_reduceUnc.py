@@ -1,21 +1,28 @@
 #!/usr/bin/env python
 
-from ROOT import *
 import json
-import sys, os
-from math import sqrt
-from multiprocessing import Pool
+import os
+from multiprocessing import Pool, cpu_count
 
-gROOT.ProcessLine(".L submacros/combine.C+")
+outbase = "pass3/hists"
+try:
+    from ROOT import *
+    res = gSystem.CompileMacro("submacros/combine.C", "k")
+    if res != 1:
+        raise "Cannot compile"
 
-def combineCaller(fNameCen, fNameUp, fNameDn, fNames, plotNames, combineBy):
-    combine(fNameCen, fNameUp, fNameDn,
-            vstring(fNames), vstring(plotNames), combineBy)
+    def runCombine(fNameCen, fNameUp, fNameDn, fNames, plotNames, combineBy):
+        combine(fNameCen, fNameUp, fNameDn,
+                vstring(fNames), vstring(plotNames), combineBy)
 
-def vstring(l):
-    out = std.vector("string")()
-    for x in l: out.push_back(std.string(x))
-    return out
+    def vstring(l):
+        out = std.vector("string")()
+        for x in l: out.push_back(std.string(x))
+        return out
+
+except:
+    import imp
+    runCombine = imp.load_source("combine", "submacros/combine.py").combine
 
 if __name__ == '__main__':
     ## Build sample list to combine uncertainty
@@ -31,22 +38,20 @@ if __name__ == '__main__':
         cat, id, fName = fPath.split('/')[1:]
         if id in ('up', 'dn'): continue
 
-        #fName = fName.replace("pass2", "pass3/hists")
-        #uncToReduce[cat]["files"].append(fName)
         key = (cat, fName)
         if key not in uncToReduce: uncToReduce[key] = []
-        uncToReduce[key].append(fPath.replace("pass2", "pass3/hists"))
+        uncToReduce[key].append(fPath.replace("pass2", outbase))
 
     ## Start to loop over all of them and do the reduction.
-    pool = Pool(20)
+    pool = Pool(cpu_count())
     for cat, fName in uncToReduce:
         ## Prepare output
-        if not os.path.exists("pass3/hists/%s/up" % cat): os.makedirs("pass3/hists/%s/up" % cat)
-        if not os.path.exists("pass3/hists/%s/dn" % cat): os.makedirs("pass3/hists/%s/dn" % cat)
+        if not os.path.exists("%s/%s/up" % (outbase, cat)): os.makedirs("%s/%s/up" % (outbase, cat))
+        if not os.path.exists("%s/%s/dn" % (outbase, cat)): os.makedirs("%s/%s/dn" % (outbase, cat))
 
-        fNameCen = "pass3/hists/central/"+fName
-        fNameUp = "pass3/hists/%s/up/%s" % (cat, fName)
-        fNameDn = "pass3/hists/%s/dn/%s" % (cat, fName)
+        fNameCen = "%s/central/%s" % (outbase, fName)
+        fNameUp = "%s/%s/up/%s" % (outbase, cat, fName)
+        fNameDn = "%s/%s/dn/%s" % (outbase, cat, fName)
 
         if   cat == 'gen_PDF'  : combineBy = "hessian"
         elif cat == 'gen_scale': combineBy = "envelope"
@@ -55,7 +60,7 @@ if __name__ == '__main__':
             print "!!!! Skip this one..."
             continue
 
-        pool.apply_async(combineCaller,
+        pool.apply_async(runCombine,
                          [fNameCen, fNameUp, fNameDn,
                           uncToReduce[(cat, fName)], plotNames, combineBy])
     pool.close()

@@ -6,8 +6,10 @@ from array import array
 sys.argv.append("-b")
 from math import hypot
 from ROOT import *
-from CATTools.CatAnalyzer.tdrstyle import *
-setTDRStyle()
+import imp
+printCutflow = imp.load_source("printCutflow", "submacros/printCutflow.py").printCutflow
+st = imp.load_source("st", "submacros/tdrstyle.py")
+st.setTDRStyle()
 gStyle.SetOptTitle(0)
 gStyle.SetOptStat(0)
 
@@ -24,11 +26,7 @@ srcMCs = [
 ]
 for s in srcMCs: s.append(TFile("pass2/central/%s.root" % s[0]))
 
-fRDs = {
-    "ee":TFile("pass2/central/DoubleEG.root"),
-    "mm":TFile("pass2/central/DoubleMuon.root"),
-    "em":TFile("pass2/central/MuonEG.root"),
-}
+fRD = TFile("pass2/central/Data.root")
 
 ## Data driven corrections
 scaleDY = json.loads(open("pass2/scaler_DY.json").read())
@@ -36,7 +34,7 @@ scaleDY = json.loads(open("pass2/scaler_DY.json").read())
 ## Pick the first root file to get full list of plots
 plts = []
 f = TFile("pass2/central/%s.root" % srcMCs[0][0])
-moddir = f.Get("ttll")
+moddir = f.Get("eventsTTLL")
 for ch in [x.GetName() for x in moddir.GetListOfKeys()]:
     chdir = moddir.GetDirectory(ch)
     if chdir == None: continue
@@ -46,11 +44,11 @@ for ch in [x.GetName() for x in moddir.GetListOfKeys()]:
         if stepobj == None: continue
 
         if stepobj.IsA().GetName() in ("TH1D", "TH1F"):
-            plts.append({'name':"ttll/%s/%s" % (ch, step)})
+            plts.append({'name':"eventsTTLL/%s/%s" % (ch, step)})
         elif stepobj.IsA().InheritsFrom("TDirectory"):
             for plt in [x.GetName() for x in stepobj.GetListOfKeys()]:
                 if stepobj.Get(plt) == None: continue
-                plts.append({'name':"ttll/%s/%s/%s" % (ch, step, plt)})
+                plts.append({'name':"eventsTTLL/%s/%s/%s" % (ch, step, plt)})
 
 ## Start loop
 fout = TFile("pass2/preview.root", "recreate")
@@ -63,8 +61,6 @@ for iplt, pltInfo in enumerate(plts):
     fout.cd(dirName)
 
     ## Add real data histograms
-    fRD = fRDs[plt[5:7]]
-
     hRD = fRD.Get(plt).Clone()
     nbinsX = hRD.GetNbinsX()
     hRD.SetOption("pe")
@@ -95,15 +91,15 @@ for iplt, pltInfo in enumerate(plts):
         hMC.Add(h)
     hRatio = hRD.Clone()
     hRatio.Reset()
-    hRatio.SetTitle(";%s;MC/Data" % hRD.GetXaxis().GetTitle())
+    hRatio.SetTitle(";%s;Data/MC" % hRD.GetXaxis().GetTitle())
     grpRatio = TGraphErrors()
     rMax = 2
     for b in range(nbinsX):
         yRD, yMC = hRD.GetBinContent(b+1), hMC.GetBinContent(b+1)
         eRD, eMC = hRD.GetBinError(b+1), hMC.GetBinError(b+1)
         r, e = 1e9, 1e9
-        if yRD > 0:
-            r = yMC/yRD
+        if yMC > 0:
+            r = yRD/yMC
             rMax = max(r, rMax)
         if yMC > 0 and yRD > 0: e = r*hypot(eRD/yRD, eMC/yMC)
 
@@ -172,56 +168,39 @@ for iplt, pltInfo in enumerate(plts):
     for h in (hRD, hMC, hsMC, hRatio, grpRatio, c): del(h)
 
 ## Start to print cut flow
-cutflow = {"ee":{}, "mm":{}, "em":{}}
+cutflow = {
+    "count":{"ee":{}, "mm":{}, "em":{}},
+    "error":{"ee":{}, "mm":{}, "em":{}},
+    "nstep":0,
+    "step":None,
+}
 nstep = 0
-fws = [0,]
-fws[0] = max([len(x[0]) for x in srcMCs]+[4,])
-for mode in cutflow.keys():
-    h = fRDs[mode].Get("ttll/%s/cutstep" % mode)
+for mode in cutflow["count"].keys():
+    h = fRD.Get("eventsTTLL/%s/cutstep" % mode)
     nstep = h.GetNbinsX()
-    cutflow[mode]["Data"] = [h.GetBinContent(i) for i in range(1, nstep+1)]
-    if len(fws) == 1: fws.extend([len(h.GetXaxis().GetBinLabel(i)) for i in range(1, nstep+1)])
+    cutflow["count"][mode]["Data"] = [h.GetBinContent(i) for i in range(1, nstep+1)]
+    cutflow["error"][mode]["Data"] = [h.GetBinError(i) for i in range(1, nstep+1)]
+    if cutflow["step"] == None:
+        cutflow["step"] = [h.GetXaxis().GetBinLabel(i) for i in range(1, nstep+1)]
 
     for finName, color, f in srcMCs:
-        h = f.Get("ttll/%s/cutstep" % mode)
-        cutflow[mode][finName] = [h.GetBinContent(i) for i in range(1, nstep+1)]
-fwtot = sum(fws)+12+len(fws)
-for mode in cutflow.keys():
-    print "="*((fwtot-12)/2), "Cutflow for", mode, "="*((fwtot-12)/2)
-    print " "*fws[0], "|",
-    print " | ".join([h.GetXaxis().GetBinLabel(i+1) for i in range(nstep)])
-    tfmt = "%"+str(fws[0])+"s |"
-    cutflow_bkg = [0.]*nstep
-    for x in cutflow[mode]:
-        if x == "Data" or 't_bar_t' in x: continue
-        print tfmt % x,
-        print " | ".join([("%"+str(fws[i+1])+".2f") % cutflow[mode][x][i] for i in range(nstep)])
-        for i in range(nstep): cutflow_bkg[i] += cutflow[mode][x][i]
-    print "-"*fwtot
-    cutflow_sig = [0.]*nstep
-    for x in cutflow[mode]:
-        if 't_bar_t' not in x: continue
-        print tfmt % x,
-        print " | ".join([("%"+str(fws[i+1])+".2f") % cutflow[mode][x][i] for i in range(nstep)])
-        for i in range(nstep): cutflow_sig[i] += cutflow[mode][x][i]
-    print "-"*fwtot
-    print tfmt % "All Signal",
-    print " | ".join([("%"+str(fws[i+1])+".2f") % cutflow_sig[i] for i in range(nstep)])
-    print tfmt % "All Bkg",
-    print " | ".join([("%"+str(fws[i+1])+".2f") % cutflow_bkg[i] for i in range(nstep)])
-    print tfmt % "All MC",
-    print " | ".join([("%"+str(fws[i+1])+".2f") % (cutflow_sig[i] + cutflow_bkg[i]) for i in range(nstep)])
-    print "-"*fwtot
-    print tfmt % "Data",
-    print " | ".join([("%"+str(fws[i+1]-3)+"d   ") % cutflow[mode]["Data"][i] for i in range(nstep)])
-    print "="*fwtot
-    print
+        h = f.Get("eventsTTLL/%s/cutstep" % mode)
+        cutflow["count"][mode][finName] = [h.GetBinContent(i) for i in range(1, nstep+1)]
+        cutflow["error"][mode][finName] = [h.GetBinError(i) for i in range(1, nstep+1)]
+cutflow["nstep"] = nstep
+printCutflow(cutflow)
 
-print "A preview root file for the central sample is produced"
-print "Run `root -l pass2/preview.root' and browse into each directories to open canvases"
-print "You can also use dumpRoot command from the hep-tools, dumpRoot pass2/preview.root"
+## Save cut flow
+f = open("pass2/cutflow.json", "w")
+f.write(json.dumps(cutflow, indent=4, sort_keys=True))
+f.close()
 
 ## Save plot list
 f = open("pass2/plots.json", "w")
 f.write(json.dumps({'plots':plts}, indent=4, sort_keys=True))
 f.close()
+
+print "A preview root file for the central sample is produced"
+print "Run `root -l pass2/preview.root' and browse into each directories to open canvases"
+print "You can also use dumpRoot command from the hep-tools, dumpRoot pass2/preview.root"
+print "Cutflow table is saved in JSON format, pass2/cutflow.json"
