@@ -315,12 +315,12 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
 
   csvWeight.initCSVWeight(false, "csvv2");
   mvaWeight.initCSVWeight(false, "mva");
-  bTagWeightCSVL.init(3, "incl", "csvv2", BTagEntry::OP_LOOSE , 1);
-  bTagWeightCSVM.init(3, "incl", "csvv2", BTagEntry::OP_MEDIUM, 1);
-  bTagWeightCSVT.init(3, "incl", "csvv2", BTagEntry::OP_TIGHT , 1);
-  bTagWeightMVAL.init(3, "incl", "mva", BTagEntry::OP_LOOSE , 1);
-  bTagWeightMVAM.init(3, "incl", "mva", BTagEntry::OP_MEDIUM, 1);
-  bTagWeightMVAT.init(3, "incl", "mva", BTagEntry::OP_TIGHT , 1);
+  bTagWeightCSVL.init(3, "csvv2", BTagEntry::OP_LOOSE , 1);
+  bTagWeightCSVM.init(3, "csvv2", BTagEntry::OP_MEDIUM, 1);
+  bTagWeightCSVT.init(3, "csvv2", BTagEntry::OP_TIGHT , 1);
+  bTagWeightMVAL.init(3, "mva", BTagEntry::OP_LOOSE , 1);
+  bTagWeightMVAM.init(3, "mva", BTagEntry::OP_MEDIUM, 1);
+  bTagWeightMVAT.init(3, "mva", BTagEntry::OP_TIGHT , 1);
 
   usesResource("TFileService");
   edm::Service<TFileService> fs;

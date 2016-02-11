@@ -65,5 +65,6 @@ eventsTTLL = cms.EDFilter("TTLLEventSelector",
         index = cms.uint32(0),
         src = cms.InputTag("genWeight", "genWeight"),
     ),
+    extWeights = cms.VInputTag(),
 )
 

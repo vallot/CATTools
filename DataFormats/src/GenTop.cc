@@ -11,7 +11,7 @@ GenTop::GenTop(){
   leptons_ = {null, null};
   nus_ = {null, null};
   taunus_ = {null, null};
-  quarksfromW_ = {null, null};
+  quarksfromW_ = {null, null, null, null};
 
   cJets_ = {null, null};
   bJets_ = {null, null, null, null};
@@ -33,7 +33,7 @@ GenTop::GenTop(const reco::Candidate & aGenTop) : reco::LeafCandidate(aGenTop) {
   leptons_ = {null, null};
   nus_ = {null, null};
   taunus_ = {null, null};
-  quarksfromW_ = {null, null};
+  quarksfromW_ = {null, null, null, null};
 
   cJets_ = {null, null};
   bJets_ = {null, null, null, null};
@@ -223,7 +223,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
         } else if( decayId < 6 ){
           hadronic[ntop] = true;
           if(nWquarkDaughters == 2) break;
-          quarksfromW_[nWquarkDaughters] = decay->p4();  
+          quarksfromW_[ntop*2+nWquarkDaughters] = decay->p4();  
           nWquarkDaughters++;
         } else {
           continue;
@@ -519,6 +519,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     if(bJetFromTopIds.count(idx) < 1 && bJetFromWIds.count(idx) < 1 && cJetFromWIds.count(idx) < 1) {
       double minDRWquarks = 999;
       for(unsigned int i=0 ; i < quarksfromW_.size() ; i++){
+        if( quarksfromW_[i] == null ) continue;
         double dR = reco::deltaR(gJet, quarksfromW_[i]);
         if( dR < minDRWquarks ) minDRWquarks = dR;
       }
