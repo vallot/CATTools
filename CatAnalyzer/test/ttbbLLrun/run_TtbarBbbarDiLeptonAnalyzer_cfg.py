@@ -1,6 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 process = cms.Process("TtbarDiLeptonAnalyzer")
 
+#process.Tracer = cms.Service("Tracer") 
 process.load("FWCore.MessageService.MessageLogger_cfi")
 #process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
@@ -14,6 +15,7 @@ process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-2/TT_TuneCUETP
 #process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-2/DoubleEG_Run2015D-16Dec2015-v2.root',]
 #process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-2/DoubleMuon_Run2015D-16Dec2015-v1.root',]
 #process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-2/MuonEG_Run2015D-16Dec2015-v1.root',]
+#process.source.fileNames.append('/store/user/jhgoh/CATTools/sync/v7-6-1/TTbarXSecSynchronization_76X_MC_TT_powheg.root')
 
 #import os
 #useGold = True
@@ -55,8 +57,8 @@ process.cattree = cms.EDAnalyzer("TtbarBbbarDiLeptonAnalyzer",
     nGoodVertex = cms.InputTag("catVertex","nGoodPV"),
     genweight = cms.InputTag("genWeight","genWeight"),
     genweightQ = cms.InputTag("genWeight","Q"),
-    #genweightPDF = cms.InputTag("genWeight","pdfWeights"),
-    genweightPDF = cms.InputTag("genWeight","otherWeights"),
+    genweightPDF = cms.InputTag("genWeight","pdfWeights"),
+    #genweightPDF = cms.InputTag("genWeight","otherWeights"),
     scaleweight = cms.InputTag("genWeight","scaleWeights"),
     topPtWeight = cms.InputTag("topPtWeight"),
 

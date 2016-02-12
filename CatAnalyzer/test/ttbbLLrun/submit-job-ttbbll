@@ -17,14 +17,14 @@ iii=0
 args=["--jobName","--fileList","--maxFiles","--cfg","--transferDest","--args","--customise customise_cff.py"]
 for aa in dataset:
  isLL = aa['name'] in ["DoubleEG_Run2015C","DoubleEG_Run2015D","DoubleMuon_Run2015C","DoubleMuon_Run2015D","MuonEG_Run2015C","MuonEG_Run2015D","DYJets","DYJets_10to50","DYJets_MG","DYJets_MG_5to50","WJets","TTJets_MG5","TTJets_aMC","TTJets_scaleup","TTJets_scaledown","TT_powheg","TT_powheg_scaledown","TT_powheg_scaleup","SingleTbar_tW","SingleTop_tW","SingleTbar_t","SingleTop_t","SingleTop_s","WW","WZ","ZZ","ttH_bb","ttH_nonbb","ttWJetsToQQ","ttWJetsToLNu","ttZToLLNuNu","ttZToQQ"]
- isMC = aa['name'] in ["DYJets","DYJets_10to50","DYJets_MG","DYJets_MG_5to50","WJets","TTJets_MG5","TTJets_aMC","TTJets_scaleup","TTJets_scaledown","TT_powheg","TT_powheg_scaledown","TT_powheg_scaleup","SingleTbar_tW","SingleTop_tW","SingleTbar_t","SingleTop_t","SingleTop_s","WW","WZ","ZZ","tt    H_bb","ttH_nonbb","ttWJetsToQQ","ttWJetsToLNu","ttZToLLNuNu","ttZToQQ"]
+ isMC = aa['name'] in ["DYJets","DYJets_10to50","DYJets_MG","DYJets_MG_5to50","WJets","TTJets_MG5","TTJets_aMC","TTJets_scaleup","TTJets_scaledown","TT_powheg","TT_powheg_scaledown","TT_powheg_scaleup","SingleTbar_tW","SingleTop_tW","SingleTbar_t","SingleTop_t","SingleTop_s","WW","WZ","ZZ","ttH_bb","ttH_nonbb","ttWJetsToQQ","ttWJetsToLNu","ttZToLLNuNu","ttZToQQ"]
  isTTbar = aa['name'] in ["TTJets_MG5","TTJets_aMC","TTJets_scaleup","TTJets_scaledown","TT_powheg","TT_powheg_scaledown","TT_powheg_scaleup"]
  isMissing = aa['name'] in ["MuonEG_Run2015C","MuonEG_Run2015D"]
 
  isDATA = aa['name'].find("Run2015")>-1
  isPOWTTbar = aa['name'].find("TT_powheg")>-1 
  isMG5TTbar = aa['name'].find("TTJets_MG5")>-1 
- if ( isMC ) :
+ if ( isTTbar ) :
    #ddd = "create-batch -n "
    ddd = "create-batch "
    ddd+= args[0]+" "+aa['name']+" "
@@ -35,9 +35,9 @@ for aa in dataset:
    #else:
    #  ddd+= args[2]+" 20 "
 
-   fff = "/store/user/youngjo/Cattools/v7-6-1v3/"+aa['name']+"v2"
-   if isTTbar : ddd+= args[3]+" run_TtbarBbbarDiLeptonAnalyzer_cfg.py "
-   else       : ddd+= args[3]+" run_TtbarBbbarDiLeptonAnalyzer_bkg_cfg.py "
+   fff = "/store/user/youngjo/Cattools/v7-6-2v1/"+aa['name']+"v2"
+   ddd+= args[3]+" run_TtbarBbbarDiLeptonAnalyzer_cfg.py "
+   #else       : ddd+= args[3]+" run_TtbarBbbarDiLeptonAnalyzer_bkg_cfg.py "
    ddd+= args[4]+" "+fff+" "
 
    eee="srmmkdir srm://cms-se.sdfarm.kr:8443/srm/v2/server?SFN=/xrootd"+fff
