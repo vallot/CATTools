@@ -145,7 +145,7 @@ private:
   //mc
   std::vector<float> b_pdfWeights, b_scaleWeights;
   std::vector<float> b_csvweights, b_btagweightsCSVL,  b_btagweightsCSVM,  b_btagweightsCSVT;
-  std::vector<float> b_mvaweights, b_btagweightsMVAL,  b_btagweightsMVAM,  b_btagweightsMVAT;
+  //std::vector<float> b_mvaweights, b_btagweightsMVAL,  b_btagweightsMVAM,  b_btagweightsMVAT;
 
   float b_weight, b_puweight, b_puweightUp, b_puweightDown, b_weightQ;
   int b_partonChannel, b_partonMode1, b_partonMode2;
@@ -252,11 +252,11 @@ private:
   BTagWeightEvaluator bTagWeightCSVM;
   BTagWeightEvaluator bTagWeightCSVT;
 
-  BTagWeightEvaluator mvaWeight;
+/*  BTagWeightEvaluator mvaWeight;
   BTagWeightEvaluator bTagWeightMVAL;
   BTagWeightEvaluator bTagWeightMVAM;
   BTagWeightEvaluator bTagWeightMVAT;
-
+*/
 };
 //
 // constructors and destructor
@@ -313,15 +313,15 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
   partonTop_modes_   = consumes<vector<int> >(iConfig.getParameter<edm::InputTag>("partonTop_modes"));
   partonTop_genParticles_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("partonTop_genParticles"));
 
-  csvWeight.initCSVWeight(false, "csvv2");
-  mvaWeight.initCSVWeight(false, "mva");
+  csvWeight.initCSVWeight(true, "csvv2");
+  //mvaWeight.initCSVWeight(false, "mva");
   bTagWeightCSVL.init(3, "csvv2", BTagEntry::OP_LOOSE , 1);
   bTagWeightCSVM.init(3, "csvv2", BTagEntry::OP_MEDIUM, 1);
   bTagWeightCSVT.init(3, "csvv2", BTagEntry::OP_TIGHT , 1);
-  bTagWeightMVAL.init(3, "mva", BTagEntry::OP_LOOSE , 1);
+  /*bTagWeightMVAL.init(3, "mva", BTagEntry::OP_LOOSE , 1);
   bTagWeightMVAM.init(3, "mva", BTagEntry::OP_MEDIUM, 1);
   bTagWeightMVAT.init(3, "mva", BTagEntry::OP_TIGHT , 1);
-
+*/
   usesResource("TFileService");
   edm::Service<TFileService> fs;
   ttree_ = fs->make<TTree>("nom", "nom");
@@ -398,11 +398,11 @@ void TtbarBbbarDiLeptonAnalyzer::book(TTree* tree){
   tree->Branch("btagweightsCSVM","std::vector<float>",&b_btagweightsCSVM);
   tree->Branch("btagweightsCSVT","std::vector<float>",&b_btagweightsCSVT);
 
-  tree->Branch("mvaweights","std::vector<float>",&b_mvaweights);
+/*  tree->Branch("mvaweights","std::vector<float>",&b_mvaweights);
   tree->Branch("btagweightsMVAL","std::vector<float>",&b_btagweightsMVAL);
   tree->Branch("btagweightsMVAM","std::vector<float>",&b_btagweightsMVAM);
   tree->Branch("btagweightsMVAT","std::vector<float>",&b_btagweightsMVAT);
-
+*/
   tree->Branch("topPtWeight", &b_topPtWeight, "topPtWeight/F");
 
   tree->Branch("puweight", &b_puweight, "puweight/F");
@@ -936,17 +936,18 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
       for (unsigned int iu=0; iu<19; iu++)
       {
          b_csvweights.push_back(csvWeight.eventWeight(selectedJets,iu));
-         b_mvaweights.push_back(mvaWeight.eventWeight(selectedJets,iu));
+         //b_mvaweights.push_back(mvaWeight.eventWeight(selectedJets,iu));
       }
-      /*for (unsigned int iu=0; iu<3; iu++)
+      for (unsigned int iu=0; iu<3; iu++)
       {
          b_btagweightsCSVL.push_back(bTagWeightCSVL.eventWeight(selectedJets, iu));
          b_btagweightsCSVM.push_back(bTagWeightCSVM.eventWeight(selectedJets, iu));
          b_btagweightsCSVT.push_back(bTagWeightCSVT.eventWeight(selectedJets, iu));
-         b_btagweightsMVAL.push_back(bTagWeightMVAL.eventWeight(selectedJets, iu));
+         /*b_btagweightsMVAL.push_back(bTagWeightMVAL.eventWeight(selectedJets, iu));
          b_btagweightsMVAM.push_back(bTagWeightMVAM.eventWeight(selectedJets, iu));
          b_btagweightsMVAT.push_back(bTagWeightMVAT.eventWeight(selectedJets, iu));
-      }*/
+         */
+      }
  
     }
     //csvd order
@@ -1186,7 +1187,7 @@ void TtbarBbbarDiLeptonAnalyzer::resetBrJets()
   b_jets_bDiscriminatorMVA.clear();
   b_mvad_jetid.clear();
   b_csvweights.clear(); b_btagweightsCSVL.clear();  b_btagweightsCSVM.clear();  b_btagweightsCSVT.clear();
-  b_mvaweights.clear(); b_btagweightsMVAL.clear();  b_btagweightsMVAM.clear();  b_btagweightsMVAT.clear();
+  //b_mvaweights.clear(); b_btagweightsMVAL.clear();  b_btagweightsMVAM.clear();  b_btagweightsMVAT.clear();
 
 
 }

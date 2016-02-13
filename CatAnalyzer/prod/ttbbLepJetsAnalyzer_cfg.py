@@ -24,12 +24,12 @@ process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.source = cms.Source("PoolSource",
-     fileNames = cms.untracked.vstring(
+    fileNames = cms.untracked.vstring(
         'file:ttbar_PowhegPythia.root',
         #'file:catTuple_1.root',
-        #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-6-1_RunIIFall15MiniAODv1-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext3-v1/160203_090812/0000/catTuple_1.root',
-        )
-                            )
+        #'/store/user/jhgoh/CATTools/sync/v7-6-2/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',
+    )
+)
 
 # PUReWeight
 # process.load("CATTools.CatProducer.pileupWeight_cff")

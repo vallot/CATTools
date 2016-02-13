@@ -1,6 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 process = cms.Process("TtbarDiLeptonAnalyzer")
 
+#process.Tracer = cms.Service("Tracer") 
 process.load("FWCore.MessageService.MessageLogger_cfi")
 #process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
@@ -9,13 +10,12 @@ process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
 process.options.allowUnscheduled = cms.untracked.bool(True)
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
-process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-6-1_RunIIFall15MiniAODv1-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext3-v1/160203_113158/0000/catTuple_1.root')
-
-#process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-1/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',]
-#process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-1/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8.root',]
-#process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-1/DoubleEG_Run2015D-16Dec2015-v2.root',]
-#process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-1/DoubleMuon_Run2015D-16Dec2015-v1.root',]
-#process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-1/MuonEG_Run2015D-16Dec2015-v1.root',]
+process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-2/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',]
+#process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-2/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8.root',]
+#process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-2/DoubleEG_Run2015D-16Dec2015-v2.root',]
+#process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-2/DoubleMuon_Run2015D-16Dec2015-v1.root',]
+#process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-2/MuonEG_Run2015D-16Dec2015-v1.root',]
+#process.source.fileNames.append('/store/user/jhgoh/CATTools/sync/v7-6-1/TTbarXSecSynchronization_76X_MC_TT_powheg.root')
 
 #import os
 #useGold = True
@@ -57,8 +57,8 @@ process.cattree = cms.EDAnalyzer("TtbarBbbarDiLeptonAnalyzer",
     nGoodVertex = cms.InputTag("catVertex","nGoodPV"),
     genweight = cms.InputTag("genWeight","genWeight"),
     genweightQ = cms.InputTag("genWeight","Q"),
-    #genweightPDF = cms.InputTag("genWeight","pdfWeights"),
-    genweightPDF = cms.InputTag("genWeight","otherWeights"),
+    genweightPDF = cms.InputTag("genWeight","pdfWeights"),
+    #genweightPDF = cms.InputTag("genWeight","otherWeights"),
     scaleweight = cms.InputTag("genWeight","scaleWeights"),
     topPtWeight = cms.InputTag("topPtWeight"),
 
