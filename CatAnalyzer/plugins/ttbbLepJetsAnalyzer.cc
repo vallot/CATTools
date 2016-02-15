@@ -303,12 +303,17 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
     gentree->Branch("genjet_pT", "std::vector<float>", &b_GenJet_pT);
   }
 
-  EventInfo = fs->make<TH1F>("EventInfo","Event Information",5,0,5); 
+  EventInfo = fs->make<TH1F>("EventInfo","Event Information",14,0,14); 
   EventInfo->GetXaxis()->SetBinLabel(1,"Number of Events");
   EventInfo->GetXaxis()->SetBinLabel(2,"Sum of Weights");
-  EventInfo->GetXaxis()->SetBinLabel(3,"Number of ttbb Events");
-  EventInfo->GetXaxis()->SetBinLabel(4,"Sum of ttbb Weights");
-
+  EventInfo->GetXaxis()->SetBinLabel(3,"ttbb Events pT > 20");
+  EventInfo->GetXaxis()->SetBinLabel(4,"ttbb Events pT > 20 lep(-1)");
+  EventInfo->GetXaxis()->SetBinLabel(5,"Sum of Scale R/F Weights [0]");
+  EventInfo->GetXaxis()->SetBinLabel(6,"Sum of Scale R/F Weights [1]");
+  EventInfo->GetXaxis()->SetBinLabel(7,"Sum of Scale R/F Weights [2]");
+  EventInfo->GetXaxis()->SetBinLabel(8,"Sum of Scale R/F Weights [3]");
+  EventInfo->GetXaxis()->SetBinLabel(9,"Sum of Scale R/F Weights [4]");
+  EventInfo->GetXaxis()->SetBinLabel(10,"Sum of Scale R/F Weights [5]");
 }
 
 
@@ -450,6 +455,13 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       b_ScaleWeight->push_back((*scaleWeight)[5]);
       b_ScaleWeight->push_back((*scaleWeight)[7]);
 
+      EventInfo->Fill(8.5, (*scaleWeight)[0]); // Sum of Scale R/F Weights
+      EventInfo->Fill(9.5, (*scaleWeight)[2]); // Sum of Scale R/F Weights
+      EventInfo->Fill(10.5, (*scaleWeight)[3]); // Sum of Scale R/F Weights
+      EventInfo->Fill(11.5, (*scaleWeight)[1]); // Sum of Scale R/F Weights
+      EventInfo->Fill(12.5, (*scaleWeight)[5]); // Sum of Scale R/F Weights
+      EventInfo->Fill(13.5, (*scaleWeight)[7]); // Sum of Scale R/F Weights
+
     }
   }  
   //---------------------------------------------------------------------------
@@ -482,8 +494,6 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     int tu = *genttbarCatHandle % 100;
 
     if(tu == 55 || tu == 54 || tu == 53){
-      EventInfo->Fill(2.5, 1.0);         // Third bin: Number of ttbb Events
-      EventInfo->Fill(3.5, b_GenWeight); // Fourth bin: Sum of ttbb Weights
     }
 
 
@@ -507,6 +517,17 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     b_GenConeCatID->push_back(genttbarConeCat->begin()-> NaddJets20());
     // [6]: Number of add b-Jets
     b_GenConeCatID->push_back(genttbarConeCat->begin()-> NaddbJets20());
+
+      if(genttbarConeCat->begin()-> NaddbJets20() > 1){
+	EventInfo->Fill(2.5, 1.0); // Third bin: Number of ttbb Events	
+	if(genttbarConeCat->begin()->semiLeptonic(-1)) EventInfo->Fill(3.5, 1.0); // Fourth bin: Number of ttbb Events 
+	if(genttbarConeCat->begin()->semiLeptonic(0)) EventInfo->Fill(4.5, 1.0); // Fiveth bin: Number of ttbb Events 
+      }
+      if(genttbarConeCat->begin()-> NaddJets20() > 1){
+	EventInfo->Fill(5.5, 1.0); // Sixth bin: Number of ttbb Events	
+	if(genttbarConeCat->begin()->semiLeptonic(-1)) EventInfo->Fill(6.5, 1.0); // Seventh bin: Number of ttbb Events 
+	if(genttbarConeCat->begin()->semiLeptonic(0)) EventInfo->Fill(7.5, 1.0); // Seventh bin: Number of ttbb Events 
+      }
 
     //---------------------------------------------------------------------------
     // GEN Particles: Decay mode
