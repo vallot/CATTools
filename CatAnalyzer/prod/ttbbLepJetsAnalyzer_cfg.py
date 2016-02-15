@@ -25,9 +25,14 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.source = cms.Source("PoolSource",
      fileNames = cms.untracked.vstring(
-        'file:ttbar_PowhegPythia.root',
+        #'file:ttbar_PowhegPythia.root',
         #'file:catTuple_1.root',
-        #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-6-1_RunIIFall15MiniAODv1-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext3-v1/160203_090812/0000/catTuple_1.root',
+        #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-6-2_RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12-v1/160211_132427/0000/catTuple_99.root',
+        #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-6-2_RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12-v1/160211_132427/0000/catTuple_98.root',
+        'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/v7-6-2_RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12-v1/160211_132354/0000/catTuple_99.root',
+        'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/v7-6-2_RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12-v1/160211_132354/0000/catTuple_98.root',
+
+        #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/SingleMuon/v7-6-1_Run2015C_25ns-16Dec2015-v1/160123_211932/0000/catTuple_1.root'
         )
                             )
 
@@ -51,7 +56,8 @@ process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      sampleLabel       = cms.untracked.bool(runOnMC),
                                      TTbarSampleLabel  = cms.untracked.int32(runOnTTbarMC),
                                      genWeightLabel    = cms.InputTag("genWeight:genWeight"),
-                                     ScaleWeightLabel  = cms.InputTag("genWeight:scaleWeights"),
+                                     # ScaleWeightLabel  = cms.InputTag("genWeight:scaleWeights"),
+                                     ScaleWeightLabel  = cms.InputTag("genWeight:otherWeights"),
                                      genLabel          = cms.InputTag("prunedGenParticles"),
                                      genJetLabel       = cms.InputTag("slimmedGenJets"),
                                      genttbarCatLabel  = cms.InputTag("GenTtbarCategories:genTtbarId"),
