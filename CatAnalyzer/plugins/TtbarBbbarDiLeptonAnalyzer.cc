@@ -313,7 +313,8 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
   partonTop_modes_   = consumes<vector<int> >(iConfig.getParameter<edm::InputTag>("partonTop_modes"));
   partonTop_genParticles_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("partonTop_genParticles"));
 
-  csvWeight.initCSVWeight(true, "csvv2");
+  //csvWeight.initCSVWeight(true, "csvv2");
+  csvWeight.initCSVWeight(false, "csvv2");
   //mvaWeight.initCSVWeight(false, "mva");
   bTagWeightCSVL.init(3, "csvv2", BTagEntry::OP_LOOSE , 1);
   bTagWeightCSVM.init(3, "csvv2", BTagEntry::OP_MEDIUM, 1);
