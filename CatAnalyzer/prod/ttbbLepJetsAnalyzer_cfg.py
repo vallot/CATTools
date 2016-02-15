@@ -34,7 +34,6 @@ process.source = cms.Source("PoolSource",
 
         #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/SingleMuon/v7-6-1_Run2015C_25ns-16Dec2015-v1/160123_211932/0000/catTuple_1.root'
         )
-                            )
 
 # PUReWeight
 # process.load("CATTools.CatProducer.pileupWeight_cff")
