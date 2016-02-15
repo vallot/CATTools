@@ -476,6 +476,9 @@ private:
   edm::EDGetTokenT<int> trigElElToken_, trigMuMuToken_, trigMuElToken_;
   edm::EDGetTokenT<int> nVertexToken_;
 
+  std::vector<edm::EDGetTokenT<float> > extWeightTokensF_;
+  std::vector<edm::EDGetTokenT<double> > extWeightTokensD_;
+
 private:
   TH1D* h_weight, * h_pileupWeight, * h_genWeight;
   ControlPlots h_ee, h_mm, h_em;
@@ -529,9 +532,9 @@ private:
   bool isBjet(const cat::Jet& jet)
   {
     const double bTag = jet.bDiscriminator(bTagName_);
-    if      ( bTagWP_ == BTagWP::CSVL ) return bTag > 0.460;
-    else if ( bTagWP_ == BTagWP::CSVM ) return bTag > 0.800;
-    else if ( bTagWP_ == BTagWP::CSVT ) return bTag > 0.935;
+    if      ( bTagWP_ == BTagWP::CSVL ) return bTag > WP_BTAG_CSVv2L;
+    else if ( bTagWP_ == BTagWP::CSVM ) return bTag > WP_BTAG_CSVv2M;
+    else if ( bTagWP_ == BTagWP::CSVT ) return bTag > WP_BTAG_CSVv2T;
     return false;
   }
 
@@ -631,6 +634,13 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
     else genWeightsToken_ = consumes<vfloat>(genWeightTag);
   }
 
+  // Other weights
+  const auto extWeightLabels = pset.getParameter<std::vector<edm::InputTag> >("extWeights");
+  for ( auto x : extWeightLabels ) {
+    extWeightTokensF_.push_back(consumes<float>(x));
+    extWeightTokensD_.push_back(consumes<double>(x));
+  }
+
   // Fill histograms, etc
   usesResource("TFileService");
   edm::Service<TFileService> fs;
@@ -688,16 +698,14 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     edm::Handle<float> fHandle;
 
     float genWeight = 1.;
-    if ( genWeightIndex_ == 0 )
-    {
+    if ( genWeightIndex_ == 0 ) {
       event.getByToken(genWeightToken_, fHandle);
       genWeight = *fHandle;
     }
-    else
-    {
+    else {
       edm::Handle<vfloat> vfHandle;
       event.getByToken(genWeightsToken_, vfHandle);
-      genWeight = vfHandle->at(genWeightIndex_-1);
+      genWeight = vfHandle->at(genWeightIndex_);
     }
 
     event.getByToken(pileupWeightToken_, fHandle);
@@ -707,6 +715,16 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     h_pileupWeight->Fill(pileupWeight);
     weight *= genWeight*pileupWeight;
     // NOTE: weight value to be multiplied by lepton SF, etc.
+  }
+
+  // Apply all other weights
+  for ( auto t : extWeightTokensF_ ) {
+    edm::Handle<float> h;
+    if ( event.getByToken(t, h) ) weight *= *h;
+  }
+  for ( auto t : extWeightTokensD_ ) {
+    edm::Handle<double> h;
+    if ( event.getByToken(t, h) ) weight *= *h;
   }
 
   // Get event filters and triggers

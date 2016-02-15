@@ -17,7 +17,7 @@
 
 #include "CATTools/CommonTools/interface/TTbarModeDefs.h"
 #include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
-#include "CATTools/CatAnalyzer/interface/BTagScaleFactorEvaluators.h"
+#include "CATTools/CatAnalyzer/interface/BTagWeightEvaluator.h"
 
 #include "CATTools/CommonTools/interface/AnalysisHelper.h"
 #include "DataFormats/Math/interface/deltaR.h"
@@ -53,10 +53,12 @@ public:
 private:
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
 
-  void selectMuons(const cat::MuonCollection& muons, LeptonCollection& selmuons, TtbarBbbarDiLeptonAnalyzer::sys_e sys) const;
-  void selectElecs(const cat::ElectronCollection& elecs, LeptonCollection& selelecs, TtbarBbbarDiLeptonAnalyzer::sys_e sys) const;
+  typedef std::vector<const cat::Lepton*> LeptonPtrs;
+
+  void selectMuons(const cat::MuonCollection& muons, cat::MuonCollection& selmuons, TtbarBbbarDiLeptonAnalyzer::sys_e sys) const;
+  void selectElecs(const cat::ElectronCollection& elecs, cat::ElectronCollection& selelecs, TtbarBbbarDiLeptonAnalyzer::sys_e sys) const;
   //  cat::JetCollection selectJets(const cat::JetCollection& jets, const LeptonCollection& recolep) const;
-  cat::JetCollection selectJets(const cat::JetCollection& jets, const LeptonCollection& recolep, TtbarBbbarDiLeptonAnalyzer::sys_e sys);
+  cat::JetCollection selectJets(const cat::JetCollection& jets, const LeptonPtrs& recolep, TtbarBbbarDiLeptonAnalyzer::sys_e sys);
   cat::JetCollection selectBJets(const cat::JetCollection& jets, double workingpoint) const;
   cat::JetCollection selectBJetsMVA(const cat::JetCollection& jets, double workingpoint) const;
   const reco::Candidate* getLast(const reco::Candidate* p) const;
@@ -142,6 +144,9 @@ private:
 
   //mc
   std::vector<float> b_pdfWeights, b_scaleWeights;
+  std::vector<float> b_csvweights, b_btagweightsCSVL,  b_btagweightsCSVM,  b_btagweightsCSVT;
+  //std::vector<float> b_mvaweights, b_btagweightsMVAL,  b_btagweightsMVAM,  b_btagweightsMVAT;
+
   float b_weight, b_puweight, b_puweightUp, b_puweightDown, b_weightQ;
   int b_partonChannel, b_partonMode1, b_partonMode2;
   float b_partonlep1_pt, b_partonlep1_eta;
@@ -154,29 +159,7 @@ private:
   //mc
   float  b_topPtWeight;
   float  b_lepweight;
-  float  b_csvweight;
-  float  b_csvweight_JES_Up;
-  float  b_csvweight_JES_Down;
-  float  b_csvweight_LF_Up;
-  float  b_csvweight_LF_Down;
-  float  b_csvweight_HF_Up;
-  float  b_csvweight_HF_Down;
-  float  b_csvweight_HF_Stats1_Up;
-  float  b_csvweight_HF_Stats1_Down;
-  float  b_csvweight_HF_Stats2_Up;
-  float  b_csvweight_HF_Stats2_Down;
-  float  b_csvweight_LF_Stats1_Up;
-  float  b_csvweight_LF_Stats1_Down;
-  float  b_csvweight_LF_Stats2_Up;
-  float  b_csvweight_LF_Stats2_Down;
-  float  b_csvweight_Charm_Err1_Up;
-  float  b_csvweight_Charm_Err1_Down;
-  float  b_csvweight_Charm_Err2_Up;
-  float  b_csvweight_Charm_Err2_Down;
 
-  float b_csvl_sf, b_csvl_sfup, b_csvl_sfdw;
-  float b_csvm_sf, b_csvm_sfup, b_csvm_sfdw;
-  float b_csvt_sf, b_csvt_sfup, b_csvt_sfdw;
   /////////
   float  lepton1_pt       ;//  cms.string("lepton1().Pt()"),
   float  lepton1_eta      ;//  cms.string("lepton1().Eta()"),
@@ -264,7 +247,16 @@ private:
   const static int NCutflow = 10;
   std::vector<std::vector<int> > cutflow_;
   bool runOnMC_;
-  CSVWeightEvaluator csvWeight;
+  BTagWeightEvaluator csvWeight;
+  BTagWeightEvaluator bTagWeightCSVL;
+  BTagWeightEvaluator bTagWeightCSVM;
+  BTagWeightEvaluator bTagWeightCSVT;
+
+/*  BTagWeightEvaluator mvaWeight;
+  BTagWeightEvaluator bTagWeightMVAL;
+  BTagWeightEvaluator bTagWeightMVAM;
+  BTagWeightEvaluator bTagWeightMVAT;
+*/
 };
 //
 // constructors and destructor
@@ -321,6 +313,15 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
   partonTop_modes_   = consumes<vector<int> >(iConfig.getParameter<edm::InputTag>("partonTop_modes"));
   partonTop_genParticles_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("partonTop_genParticles"));
 
+  csvWeight.initCSVWeight(true, "csvv2");
+  //mvaWeight.initCSVWeight(false, "mva");
+  bTagWeightCSVL.init(3, "csvv2", BTagEntry::OP_LOOSE , 1);
+  bTagWeightCSVM.init(3, "csvv2", BTagEntry::OP_MEDIUM, 1);
+  bTagWeightCSVT.init(3, "csvv2", BTagEntry::OP_TIGHT , 1);
+  /*bTagWeightMVAL.init(3, "mva", BTagEntry::OP_LOOSE , 1);
+  bTagWeightMVAM.init(3, "mva", BTagEntry::OP_MEDIUM, 1);
+  bTagWeightMVAT.init(3, "mva", BTagEntry::OP_TIGHT , 1);
+*/
   usesResource("TFileService");
   edm::Service<TFileService> fs;
   ttree_ = fs->make<TTree>("nom", "nom");
@@ -391,6 +392,17 @@ void TtbarBbbarDiLeptonAnalyzer::book(TTree* tree){
   tree->Branch("weightQ", &b_weightQ, "weightQ/F");
   tree->Branch("pdfWeights","std::vector<float>",&b_pdfWeights);
   tree->Branch("scaleWeights","std::vector<float>",&b_scaleWeights);
+
+  tree->Branch("csvweights","std::vector<float>",&b_csvweights);
+  tree->Branch("btagweightsCSVL","std::vector<float>",&b_btagweightsCSVL);
+  tree->Branch("btagweightsCSVM","std::vector<float>",&b_btagweightsCSVM);
+  tree->Branch("btagweightsCSVT","std::vector<float>",&b_btagweightsCSVT);
+
+/*  tree->Branch("mvaweights","std::vector<float>",&b_mvaweights);
+  tree->Branch("btagweightsMVAL","std::vector<float>",&b_btagweightsMVAL);
+  tree->Branch("btagweightsMVAM","std::vector<float>",&b_btagweightsMVAM);
+  tree->Branch("btagweightsMVAT","std::vector<float>",&b_btagweightsMVAT);
+*/
   tree->Branch("topPtWeight", &b_topPtWeight, "topPtWeight/F");
 
   tree->Branch("puweight", &b_puweight, "puweight/F");
@@ -442,36 +454,6 @@ void TtbarBbbarDiLeptonAnalyzer::book(TTree* tree){
   tree->Branch("jets_bDiscriminatorMVA","std::vector<float>",&b_jets_bDiscriminatorMVA);
   tree->Branch("mvad_jetid","std::vector<int>",&b_mvad_jetid);
 
-  tree->Branch("csvweight", &b_csvweight, "csvweight/F");
-  tree->Branch("csvweight_JES_Up",          &b_csvweight_JES_Up,          "csvweight_JES_Up/F");
-  tree->Branch("csvweight_JES_Down",        &b_csvweight_JES_Down,        "csvweight_JES_Down/F");
-  tree->Branch("csvweight_LF_Up",           &b_csvweight_LF_Up,           "csvweight_LF_Up/F");
-  tree->Branch("csvweight_LF_Down",         &b_csvweight_LF_Down,         "csvweight_LF_Down/F");
-  tree->Branch("csvweight_HF_Up",           &b_csvweight_HF_Up,           "csvweight_HF_Up/F");
-  tree->Branch("csvweight_HF_Down",         &b_csvweight_HF_Down,         "csvweight_HF_Down/F");
-  tree->Branch("csvweight_HF_Stats1_Up",    &b_csvweight_HF_Stats1_Up,    "csvweight_HF_Stats1_Up/F");
-  tree->Branch("csvweight_HF_Stats1_Down",  &b_csvweight_HF_Stats1_Down,  "csvweight_HF_Stats1_Down/F");
-  tree->Branch("csvweight_HF_Stats2_Up",    &b_csvweight_HF_Stats2_Up,    "csvweight_HF_Stats2_Up/F");
-  tree->Branch("csvweight_HF_Stats2_Down",  &b_csvweight_HF_Stats2_Down,  "csvweight_HF_Stats2_Down/F");
-  tree->Branch("csvweight_LF_Stats1_Up",    &b_csvweight_LF_Stats1_Up,    "csvweight_LF_Stats1_Up/F");
-  tree->Branch("csvweight_LF_Stats1_Down",  &b_csvweight_LF_Stats1_Down,  "csvweight_LF_Stats1_Down/F");
-  tree->Branch("csvweight_LF_Stats2_Up",    &b_csvweight_LF_Stats2_Up,    "csvweight_LF_Stats2_Up/F");
-  tree->Branch("csvweight_LF_Stats2_Down",  &b_csvweight_LF_Stats2_Down,  "csvweight_LF_Stats2_Down/F");
-  tree->Branch("csvweight_Charm_Err1_Up",   &b_csvweight_Charm_Err1_Up,   "csvweight_Charm_Err1_Up/F");
-  tree->Branch("csvweight_Charm_Err1_Down", &b_csvweight_Charm_Err1_Down, "csvweight_Charm_Err1_Down/F");
-  tree->Branch("csvweight_Charm_Err2_Up",   &b_csvweight_Charm_Err2_Up,   "csvweight_Charm_Err2_Up/F");
-  tree->Branch("csvweight_Charm_Err2_Down", &b_csvweight_Charm_Err2_Down, "csvweight_Charm_Err2_Down/F");
-
-
-  tree->Branch("csvl_sf", &b_csvl_sf, "csvl_sf/F");
-  tree->Branch("csvl_sfup", &b_csvl_sfup, "csvl_sfup/F");
-  tree->Branch("csvl_sfdw", &b_csvl_sfdw, "csvl_sfdw/F");
-  tree->Branch("csvm_sf", &b_csvm_sf, "csvm_sf/F");
-  tree->Branch("csvm_sfup", &b_csvm_sfup, "csvm_sfup/F");
-  tree->Branch("csvm_sfdw", &b_csvm_sfdw, "csvm_sfdw/F");
-  tree->Branch("csvt_sf", &b_csvt_sf, "csvt_sf/F");
-  tree->Branch("csvt_sfup", &b_csvt_sfup, "csvt_sfup/F");
-  tree->Branch("csvt_sfdw", &b_csvt_sfdw, "csvt_sfdw/F");
 /////////////////////////////
   tree->Branch("lepton1_pt",    &lepton1_pt   , "lepton1_pt/F");
   tree->Branch("lepton1_eta",   &lepton1_eta  , "lepton1_eta/F");
@@ -845,25 +827,30 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     resetBrReco();
 
     // Find leptons and sort by pT
-    LeptonCollection recolep;
-    selectMuons(*muons, recolep, (sys_e) sys);
-    selectElecs(*electrons, recolep, (sys_e) sys);
+    cat::MuonCollection selMuons;
+    cat::ElectronCollection selElecs;
+    selectMuons(*muons, selMuons, (sys_e) sys);
+    selectElecs(*electrons, selElecs, (sys_e) sys);
     
-    if (recolep.size() < 2){
+    if (selMuons.size()+selElecs.size() < 2){
       ttree_->Fill();
       return;
     }
     cutflow_[3][b_channel]++;
+
+    LeptonPtrs recolep;
+    for ( const auto& x : selMuons ) recolep.push_back(&x);
+    for ( const auto& x : selElecs ) recolep.push_back(&x);
     
-    sort(recolep.begin(), recolep.end(), GtByCandPt());
+    sort(recolep.begin(), recolep.end(), [](const cat::Lepton* a, const cat::Lepton* b){return a->pt() > b->pt();});
     int lep1_idx=0, lep2_idx=1;
     //for emu
-    if(std::abs(recolep[1].pdgId())==11 && std::abs(recolep[0].pdgId())==13){
+    if(std::abs(recolep[1]->pdgId())==11 && std::abs(recolep[0]->pdgId())==13){
       lep1_idx = 1; lep2_idx = 0;
     }
     
-    const cat::Lepton& recolep1 = recolep[lep1_idx];
-    const cat::Lepton& recolep2 = recolep[lep2_idx];
+    const cat::Lepton& recolep1 = *recolep[lep1_idx];
+    const cat::Lepton& recolep2 = *recolep[lep2_idx];
     
     // Determine channel
     const int pdgIdSum = std::abs(recolep1.pdgId()) + std::abs(recolep2.pdgId());
@@ -946,28 +933,22 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     }
    
     if (runOnMC_){
-      //double csvWgtHF, csvWgtLF, csvWgtCF;
-      for ( const auto& jet : selectedJets ) {
-        b_csvweight         *= csvWeight(jet, CSVWeightEvaluator::CENTRAL);//);
-        b_csvweight_JES_Up  *= csvWeight(jet, CSVWeightEvaluator::JES_UP);
-        b_csvweight_JES_Down*= csvWeight(jet, CSVWeightEvaluator::JES_DN);
-        b_csvweight_LF_Up   *= csvWeight(jet, CSVWeightEvaluator::LF_UP);
-        b_csvweight_LF_Down *= csvWeight(jet, CSVWeightEvaluator::LF_DN);
-        b_csvweight_HF_Up   *= csvWeight(jet, CSVWeightEvaluator::HF_UP);
-        b_csvweight_HF_Down *= csvWeight(jet, CSVWeightEvaluator::HF_DN);
-        b_csvweight_HF_Stats1_Up  *= csvWeight(jet, CSVWeightEvaluator::HFSTAT1_UP);
-        b_csvweight_HF_Stats1_Down*= csvWeight(jet, CSVWeightEvaluator::HFSTAT1_DN);
-        b_csvweight_HF_Stats2_Up  *= csvWeight(jet, CSVWeightEvaluator::HFSTAT2_UP);
-        b_csvweight_HF_Stats2_Down*= csvWeight(jet, CSVWeightEvaluator::HFSTAT2_DN);
-        b_csvweight_LF_Stats1_Up  *= csvWeight(jet, CSVWeightEvaluator::LFSTAT1_UP);
-        b_csvweight_LF_Stats1_Down*= csvWeight(jet, CSVWeightEvaluator::LFSTAT1_DN);
-        b_csvweight_LF_Stats2_Up  *= csvWeight(jet, CSVWeightEvaluator::LFSTAT2_UP);
-        b_csvweight_LF_Stats2_Down*= csvWeight(jet, CSVWeightEvaluator::LFSTAT2_DN);
-        b_csvweight_Charm_Err1_Up *= csvWeight(jet, CSVWeightEvaluator::CFERR1_UP);
-        b_csvweight_Charm_Err1_Down*= csvWeight(jet, CSVWeightEvaluator::CFERR1_DN);
-        b_csvweight_Charm_Err2_Up  *= csvWeight(jet, CSVWeightEvaluator::CFERR2_UP);
-        b_csvweight_Charm_Err2_Down*= csvWeight(jet, CSVWeightEvaluator::CFERR2_DN);
+      for (unsigned int iu=0; iu<19; iu++)
+      {
+         b_csvweights.push_back(csvWeight.eventWeight(selectedJets,iu));
+         //b_mvaweights.push_back(mvaWeight.eventWeight(selectedJets,iu));
       }
+      for (unsigned int iu=0; iu<3; iu++)
+      {
+         b_btagweightsCSVL.push_back(bTagWeightCSVL.eventWeight(selectedJets, iu));
+         b_btagweightsCSVM.push_back(bTagWeightCSVM.eventWeight(selectedJets, iu));
+         b_btagweightsCSVT.push_back(bTagWeightCSVT.eventWeight(selectedJets, iu));
+         /*b_btagweightsMVAL.push_back(bTagWeightMVAL.eventWeight(selectedJets, iu));
+         b_btagweightsMVAM.push_back(bTagWeightMVAM.eventWeight(selectedJets, iu));
+         b_btagweightsMVAT.push_back(bTagWeightMVAT.eventWeight(selectedJets, iu));
+         */
+      }
+ 
     }
     //csvd order
     std::vector<data_t> vecJetBDisc(mapJetBDiscriminator.begin(), mapJetBDiscriminator.end());
@@ -1075,7 +1056,7 @@ const reco::Candidate* TtbarBbbarDiLeptonAnalyzer::getLast(const reco::Candidate
   return p;
 }
 
-void TtbarBbbarDiLeptonAnalyzer::selectMuons(const cat::MuonCollection& muons, LeptonCollection& selmuons,sys_e sys) const
+void TtbarBbbarDiLeptonAnalyzer::selectMuons(const cat::MuonCollection& muons, cat::MuonCollection& selmuons,sys_e sys) const
 {
   for (auto& m : muons) {
     cat::Muon mu(m);
@@ -1092,7 +1073,7 @@ void TtbarBbbarDiLeptonAnalyzer::selectMuons(const cat::MuonCollection& muons, L
   }
 }
 
-void TtbarBbbarDiLeptonAnalyzer::selectElecs(const cat::ElectronCollection& elecs, LeptonCollection& selelecs, sys_e sys) const
+void TtbarBbbarDiLeptonAnalyzer::selectElecs(const cat::ElectronCollection& elecs, cat::ElectronCollection& selelecs, sys_e sys) const
 {
   for (auto& e : elecs) {
     cat::Electron el(e);
@@ -1118,7 +1099,7 @@ void TtbarBbbarDiLeptonAnalyzer::selectElecs(const cat::ElectronCollection& elec
 }
 
 
-cat::JetCollection TtbarBbbarDiLeptonAnalyzer::selectJets(const cat::JetCollection& jets, const LeptonCollection& recolep, sys_e sys)
+cat::JetCollection TtbarBbbarDiLeptonAnalyzer::selectJets(const cat::JetCollection& jets, const TtbarBbbarDiLeptonAnalyzer::LeptonPtrs& recolep, sys_e sys)
 {
   cat::JetCollection seljets;
   for (auto& j : jets) {
@@ -1135,26 +1116,9 @@ cat::JetCollection TtbarBbbarDiLeptonAnalyzer::selectJets(const cat::JetCollecti
 
     bool hasOverLap = false;
     for (auto lep : recolep){
-      if (deltaR(jet.p4(),lep.p4()) < 0.4) hasOverLap = true;
+      if (deltaR(jet.p4(),lep->p4()) < 0.4) hasOverLap = true;
     }
     if (hasOverLap) continue;
-    // printf("jet with pt %4.1f\n", jet.pt());
-    //if (sys == sys_btag_u) b_btagweight *= jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE, 1);
-    //else if (sys == sys_btag_d) b_btagweight *= jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE, -1);
-    //else b_btagweight *= jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE, 0);
-    ////
-    b_csvl_sf   = b_csvl_sf   * jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE,0);
-    b_csvl_sfup = b_csvl_sfup * jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE,1);
-    b_csvl_sfdw = b_csvl_sfdw * jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE,-1);
-
-    b_csvm_sf   = b_csvm_sf   * jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_MEDIUM,0);
-    b_csvm_sfup = b_csvm_sfup * jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_MEDIUM,1);
-    b_csvm_sfdw = b_csvm_sfdw * jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_MEDIUM,-1);
-
-    b_csvt_sf   = b_csvt_sf   * jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_TIGHT,0);
-    b_csvt_sfup = b_csvt_sfup * jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_TIGHT,1);
-    b_csvt_sfdw = b_csvt_sfdw * jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_TIGHT,-1);
-
     seljets.push_back(jet);
   }
   return seljets;
@@ -1222,31 +1186,10 @@ void TtbarBbbarDiLeptonAnalyzer::resetBrJets()
   b_csvd_jetid.clear();
   b_jets_bDiscriminatorMVA.clear();
   b_mvad_jetid.clear();
-
-  b_csvweight = 1;
-  b_csvweight_JES_Up = 1;
-  b_csvweight_JES_Down = 1;
-  b_csvweight_LF_Up = 1;
-  b_csvweight_LF_Down = 1;
-  b_csvweight_HF_Up = 1;
-  b_csvweight_HF_Down = 1;
-  b_csvweight_HF_Stats1_Up = 1;
-  b_csvweight_HF_Stats1_Down = 1;
-  b_csvweight_HF_Stats2_Up = 1;
-  b_csvweight_HF_Stats2_Down = 1;
-  b_csvweight_LF_Stats1_Up = 1;
-  b_csvweight_LF_Stats1_Down = 1;
-  b_csvweight_LF_Stats2_Up = 1;
-  b_csvweight_LF_Stats2_Down = 1;
-  b_csvweight_Charm_Err1_Up = 1;
-  b_csvweight_Charm_Err1_Down = 1;
-  b_csvweight_Charm_Err2_Up = 1;
-  b_csvweight_Charm_Err2_Down = 1;
+  b_csvweights.clear(); b_btagweightsCSVL.clear();  b_btagweightsCSVM.clear();  b_btagweightsCSVT.clear();
+  //b_mvaweights.clear(); b_btagweightsMVAL.clear();  b_btagweightsMVAM.clear();  b_btagweightsMVAT.clear();
 
 
-  b_csvl_sf = 1;  b_csvl_sfup = 1;  b_csvl_sfdw = 1;
-  b_csvm_sf = 1;  b_csvm_sfup = 1;  b_csvm_sfdw = 1;
-  b_csvt_sf = 1;  b_csvt_sfup = 1;  b_csvt_sfdw = 1;
 }
 void TtbarBbbarDiLeptonAnalyzer::resetBrGEN()
 {
