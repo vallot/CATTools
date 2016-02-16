@@ -70,7 +70,7 @@ private:
   edm::EDGetTokenT<vector<float>>                ScaleWeightToken_;
   edm::EDGetTokenT<reco::GenParticleCollection>  genToken_;
   edm::EDGetTokenT<reco::GenJetCollection>       genJetToken_;
-  edm::EDGetTokenT<cat::GenTopCollection>        genttbarConeCatToken_;
+  edm::EDGetTokenT<cat::GenTopCollection>        genttbarCatToken_;
   edm::EDGetTokenT<cat::MuonCollection>          muonToken_;
   edm::EDGetTokenT<cat::ElectronCollection>      electronToken_;
   edm::EDGetTokenT<cat::JetCollection>           jetToken_;
@@ -195,7 +195,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
 
   genToken_             = consumes<reco::GenParticleCollection>  (iConfig.getParameter<edm::InputTag>("genLabel"));
   genJetToken_          = consumes<reco::GenJetCollection>       (iConfig.getParameter<edm::InputTag>("genJetLabel"));
-  genttbarConeCatToken_ = consumes<cat::GenTopCollection>        (iConfig.getParameter<edm::InputTag>("genttbarConeCatLabel"));
+  genttbarCatToken_     = consumes<cat::GenTopCollection>        (iConfig.getParameter<edm::InputTag>("genttbarCatLabel"));
 
   muonToken_         = consumes<cat::MuonCollection>          (iConfig.getParameter<edm::InputTag>("muonLabel"));
   electronToken_     = consumes<cat::ElectronCollection>      (iConfig.getParameter<edm::InputTag>("electronLabel"));
@@ -480,7 +480,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     // Event Categorization Using Cone
     //---------------------------------------------------------------------------
     edm::Handle<cat::GenTopCollection> genttbarConeCat;
-    iEvent.getByToken( genttbarConeCatToken_, genttbarConeCat );
+    iEvent.getByToken( genttbarCatToken_, genttbarConeCat );
 
     // [0]: Decay mode. Just as a Cross Check!
     b_GenConeCatID->push_back(genttbarConeCat->begin()->semiLeptonic(0));
