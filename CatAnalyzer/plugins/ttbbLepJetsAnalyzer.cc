@@ -447,14 +447,17 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     // const float & ScWe = (*scaleWeight)[i];
     // b_ScaleWeight->push_back(ScWe);
     // }
+    std::cout << "Number of Scale var = " << scaleWeight->size() << std::endl;
     if(scaleWeight->size() > 7){ // Temporal Solution
-      // Up
-      b_ScaleWeight->push_back((*scaleWeight)[0]);
+
+      // muR and muF variations
+      b_ScaleWeight->push_back((*scaleWeight)[0]); //muR=Nom muF=Up
+      b_ScaleWeight->push_back((*scaleWeight)[1]);//muR=Nom muF=Up
       b_ScaleWeight->push_back((*scaleWeight)[2]);
       b_ScaleWeight->push_back((*scaleWeight)[3]);
-      // Down
-      b_ScaleWeight->push_back((*scaleWeight)[1]);
+      b_ScaleWeight->push_back((*scaleWeight)[4]);
       b_ScaleWeight->push_back((*scaleWeight)[5]);
+      b_ScaleWeight->push_back((*scaleWeight)[6]);
       b_ScaleWeight->push_back((*scaleWeight)[7]);
 
       EventInfo->Fill(8.5, (*scaleWeight)[0]); // Sum of Scale R/F Weights
