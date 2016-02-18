@@ -8,7 +8,7 @@ if len(sys.argv) is 1:
 
 arg = sys.argv[1]
 xrootdpath = "/xrootd/store/user//youngjo/Cattools/v7-6-2v1/"
-v = "v2" 
+v = "v3" 
 
 
 

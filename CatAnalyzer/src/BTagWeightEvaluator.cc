@@ -216,16 +216,16 @@ double BTagWeightEvaluator::getCSVWeightSFFromROOT(const double pt, const double
   }
 
   int iPt = -1, iEta = -1;
-  if (pt >=19.99 && pt<30) iPt = 0;
-  else if (pt >=30 && pt<40) iPt = 1;
-  else if (pt >=40 && pt<60) iPt = 2;
+  if (pt >=19.99 && pt<30)    iPt = 0;
+  else if (pt >=30 && pt<40)  iPt = 1;
+  else if (pt >=40 && pt<60)  iPt = 2;
   else if (pt >=60 && pt<100) iPt = 3;
   else if (pt >=100)          iPt = 4;
 
   if (aeta >= 0 && aeta < 0.8)          iEta = 0;
   else if (aeta >= 0.8 && aeta < 1.6)   iEta = 1;
   else if (aeta >= 1.6 && aeta < 2.41)  iEta = 2;
-  else  iEta = 2;
+  //else  iEta = 2;
 
   if (iPt < 0 || iEta < 0) return (float) 1.0;
 

@@ -23,6 +23,8 @@
 #include "DataFormats/Math/interface/deltaR.h"
 #include "TTree.h"
 
+#include "CATHelpers/CSVHelper/interface/CSVHelper.h"
+
 using namespace std;
 using namespace cat;
 
@@ -145,6 +147,7 @@ private:
   //mc
   std::vector<float> b_pdfWeights, b_scaleWeights;
   std::vector<float> b_csvweights, b_btagweightsCSVL,  b_btagweightsCSVM,  b_btagweightsCSVT;
+  std::vector<float> b_csvweights2;
   //std::vector<float> b_mvaweights, b_btagweightsMVAL,  b_btagweightsMVAM,  b_btagweightsMVAT;
 
   float b_weight, b_puweight, b_puweightUp, b_puweightDown, b_weightQ;
@@ -252,6 +255,7 @@ private:
   BTagWeightEvaluator bTagWeightCSVM;
   BTagWeightEvaluator bTagWeightCSVT;
 
+  CSVHelper *myCsvWeight;
 /*  BTagWeightEvaluator mvaWeight;
   BTagWeightEvaluator bTagWeightMVAL;
   BTagWeightEvaluator bTagWeightMVAM;
@@ -313,6 +317,7 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
   partonTop_modes_   = consumes<vector<int> >(iConfig.getParameter<edm::InputTag>("partonTop_modes"));
   partonTop_genParticles_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("partonTop_genParticles"));
 
+  myCsvWeight = new CSVHelper();
   //csvWeight.initCSVWeight(true, "csvv2");
   csvWeight.initCSVWeight(false, "csvv2");
   //mvaWeight.initCSVWeight(false, "mva");
@@ -395,6 +400,7 @@ void TtbarBbbarDiLeptonAnalyzer::book(TTree* tree){
   tree->Branch("scaleWeights","std::vector<float>",&b_scaleWeights);
 
   tree->Branch("csvweights","std::vector<float>",&b_csvweights);
+  tree->Branch("csvweights2","std::vector<float>",&b_csvweights2);
   tree->Branch("btagweightsCSVL","std::vector<float>",&b_btagweightsCSVL);
   tree->Branch("btagweightsCSVM","std::vector<float>",&b_btagweightsCSVM);
   tree->Branch("btagweightsCSVT","std::vector<float>",&b_btagweightsCSVT);
@@ -934,9 +940,12 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     }
    
     if (runOnMC_){
-      for (unsigned int iu=0; iu<19; iu++)
+      b_csvweights2.push_back(myCsvWeight->getCSVWeight(selectedJets,0));
+      b_csvweights.push_back(csvWeight.eventWeight(selectedJets,0));
+      for (unsigned int iu=0; iu<18; iu++)
       {
-         b_csvweights.push_back(csvWeight.eventWeight(selectedJets,iu));
+         b_csvweights2.push_back(myCsvWeight->getCSVWeight(selectedJets,iu+7));
+         b_csvweights.push_back(csvWeight.eventWeight(selectedJets,iu+1));
          //b_mvaweights.push_back(mvaWeight.eventWeight(selectedJets,iu));
       }
       for (unsigned int iu=0; iu<3; iu++)
@@ -1111,7 +1120,8 @@ cat::JetCollection TtbarBbbarDiLeptonAnalyzer::selectJets(const cat::JetCollecti
     if (sys == sys_jer_u) jet.setP4(j.p4() * j.smearedResUp());
     if (sys == sys_jer_d) jet.setP4(j.p4() * j.smearedResDown());
 
-    if (jet.pt() < 30.) continue;
+    //if (jet.pt() < 30.) continue;
+    if (jet.pt() < 25.) continue;
     if (std::abs(jet.eta()) > 2.4)  continue;
     if (!jet.LooseId()) continue;
 
@@ -1188,6 +1198,7 @@ void TtbarBbbarDiLeptonAnalyzer::resetBrJets()
   b_jets_bDiscriminatorMVA.clear();
   b_mvad_jetid.clear();
   b_csvweights.clear(); b_btagweightsCSVL.clear();  b_btagweightsCSVM.clear();  b_btagweightsCSVT.clear();
+  b_csvweights2.clear();
   //b_mvaweights.clear(); b_btagweightsMVAL.clear();  b_btagweightsMVAM.clear();  b_btagweightsMVAT.clear();
 
 

@@ -5,6 +5,7 @@
   <use name="CATTools/DataFormats"/>
   <use name="CATTools/CatAnalyzer"/>
   <use name="CATTools/CommonTools"/>
+  <use name="CATHelpers/CSVHelper"/>
   <use name="CommonTools/UtilAlgos"/>
 
   <use name="root"/>
