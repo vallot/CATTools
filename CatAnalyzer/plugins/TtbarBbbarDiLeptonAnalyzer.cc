@@ -23,7 +23,7 @@
 #include "DataFormats/Math/interface/deltaR.h"
 #include "TTree.h"
 
-#include "CATHelpers/CSVHelper/interface/CSVHelper.h"
+#include "CATTools/CatAnalyzer/interface/CSVHelper.h"
 
 using namespace std;
 using namespace cat;
@@ -1120,8 +1120,8 @@ cat::JetCollection TtbarBbbarDiLeptonAnalyzer::selectJets(const cat::JetCollecti
     if (sys == sys_jer_u) jet.setP4(j.p4() * j.smearedResUp());
     if (sys == sys_jer_d) jet.setP4(j.p4() * j.smearedResDown());
 
-    //if (jet.pt() < 30.) continue;
-    if (jet.pt() < 25.) continue;
+    if (jet.pt() < 30.) continue;
+    //if (jet.pt() < 25.) continue;
     if (std::abs(jet.eta()) > 2.4)  continue;
     if (!jet.LooseId()) continue;
 

@@ -59,12 +59,12 @@ void BTagWeightEvaluator::initCSVWeight(const bool isFromROOT, const string btag
     string csvFileName;
     if      ( btagName == "csvv2" ) {
       btagAlgo_ = BTAG_CSVv2 ;
-      csvFileName = "CSVv2_prelim.csv";
+      csvFileName = "CSVv2.csv";
       //csvFileName = "ttH_BTV_CSVv2_13TeV_2015D_20151120.csv";
     }
     else if ( btagName == "mva" ) {
       btagAlgo_ = BTAG_cMVAv2;
-      csvFileName = "cMVAv2_prelim.csv";
+      csvFileName = "cMVAv2.csv";
     }
     //else if ( btagName == "jp"    ) btagAlgo_ = BTAG_JP    ;
     else btagAlgo_ = "undefined"; // FIXME: Eventually raise error somewhere?
