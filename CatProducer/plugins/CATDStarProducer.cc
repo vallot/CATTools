@@ -55,7 +55,7 @@ namespace cat {
       const float gKaonMass = 0.4937;
       const float gD0Mass   = 1.86480;
       float d0MassWindow_;
-      int maxNumPFCand_;
+      unsigned int maxNumPFCand_;
       bool applyCuts_;
 
 
@@ -86,41 +86,32 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
 
   for (const pat::Jet & aPatJet : *jetHandle){
     std::vector<const reco::Candidate*> jetDaughters;
-    int nDaughter = aPatJet.numberOfDaughters();
-    if ( nDaughter < 3 ) continue;
-    for( int idx = 0 ; idx < nDaughter ; idx++) {
-      if ( nDaughter > maxNumPFCand_ ) break;
-      jetDaughters.push_back( aPatJet.daughter(idx) );
-    }
-    jetsDaughters.push_back( jetDaughters );
-  }
-
-  for( unsigned int i = 0 ; i < jetsDaughters.size() ; i++) {
-    //std::sort( jetsDaughters[i].begin(), jetsDaughters[i].end(), cat::pTComp );
-    unsigned int dau_size = jetsDaughters[i].size(); 
+    unsigned int dau_size = aPatJet.numberOfDaughters();
+    if ( dau_size < 3 ) continue;
+    if ( dau_size > maxNumPFCand_ ) break;
     for ( unsigned int pion_idx = 0 ; pion_idx< dau_size ; pion_idx++) {
       for ( unsigned int kaon_idx = 0 ; kaon_idx< dau_size ; kaon_idx++) {
         if ( pion_idx == kaon_idx ) continue;
-        const reco::Candidate* pionCand = jetsDaughters[i][pion_idx];
-        const reco::Candidate* kaonCand = jetsDaughters[i][kaon_idx];
+        const reco::Candidate* pionCand = aPatJet.daughter(pion_idx);
+        const reco::Candidate* kaonCand = aPatJet.daughter(kaon_idx);
         if ( abs(pionCand->pdgId()) != 211 || abs( kaonCand->pdgId()) != 211) continue;
 
         TLorentzVector pion, pion2, kaon, D0, Dstar ;
         pion.SetPtEtaPhiM(pionCand->pt(), pionCand->eta(), pionCand->phi(),gPionMass );
         kaon.SetPtEtaPhiM(kaonCand->pt(), kaonCand->eta(), kaonCand->phi(),gKaonMass );
         if ( pion.DeltaR(kaon) > 0.2 ) continue;
-       
+
         D0 = pion+kaon;
         const math::XYZTLorentzVector lv( D0.Px(), D0.Py(), D0.Pz(), D0.E());
         VertexCompositeCandidate* D0Cand = new VertexCompositeCandidate(0, lv, Point(0,0,0), 421) ;  // + pdgId,
         D0Cand->addDaughter( *pionCand );
         D0Cand->addDaughter( *kaonCand );
-    
+
         D0_Out_->push_back( cat::SecVertex(*D0Cand) );
         if ( abs( D0.M() - gD0Mass)  < d0MassWindow_ ) {
           for( unsigned int extra_pion_idx = 0 ;  extra_pion_idx < dau_size ; extra_pion_idx++) {
             if ( extra_pion_idx== pion_idx || extra_pion_idx == kaon_idx) continue;
-            const reco::Candidate* pion2Cand = jetsDaughters[i][extra_pion_idx];
+            const reco::Candidate* pion2Cand = aPatJet.daughter(extra_pion_idx);
             if ( pion2Cand->pdgId() != 211) continue;
             pion2.SetPtEtaPhiM( pion2Cand->pt(), pion2Cand->eta(), pion2Cand->phi(), gPionMass);
             Dstar = pion+kaon+pion2;
@@ -135,6 +126,7 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
           }
         }
       }
+
     }
   }
   auto_ptr<vector<cat::SecVertex> >    D0_Out(D0_Out_   );
