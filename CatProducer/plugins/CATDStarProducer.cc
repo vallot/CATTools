@@ -11,27 +11,10 @@
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include <TLorentzVector.h>
 #include "CATTools/DataFormats/interface/SecVertex.h"
-/*
-#include "DataFormats/PatCandidates/interface/Electron.h"
-#include "CATTools/DataFormats/interface/SecVertex.h"
-#include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
-#include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
-#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
-#include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
-#include "DataFormats/VertexReco/interface/Vertex.h"
-
-#include "RecoVertex/KalmanVertexFit/interface/KalmanVertexFitter.h"
-#include "DataFormats/Candidate/interface/VertexCompositeCandidate.h"
-#include "DataFormats/Candidate/interface/VertexCompositePtrCandidateFwd.h"
-#include "TrackingTools/Records/interface/TransientTrackRecord.h"
-#include "TrackingTools/PatternTools/interface/ClosestApproachInRPhi.h"
-#include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
-*/
 
 using namespace edm;
 using namespace std;
 using namespace reco;
-
 
 namespace cat {
 
@@ -43,11 +26,6 @@ namespace cat {
       void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
 
     private:
-
-      vector<cat::SecVertex> *D0_Out_;
-      vector<cat::SecVertex> *Dstar_Out_;
-      //JetHandle, JetLabel = Handle("vector<pat::Jet>"),"slimmedJets"
-
 
       edm::EDGetTokenT<edm::View<pat::Jet> >                    jetSrc_;
 
@@ -66,8 +44,8 @@ namespace cat {
 cat::CATDStarProducer::CATDStarProducer(const edm::ParameterSet & iConfig) :
   jetSrc_(consumes<edm::View<pat::Jet> >(iConfig.getParameter<edm::InputTag>("jetLabel")))
 {
-  produces<vector<cat::SecVertex> >("D0").setBranchAlias("D0");
-  produces<vector<cat::SecVertex> >("Dstar").setBranchAlias("Dstar");
+  produces<vector<cat::SecVertex> >("D0Cand");
+  produces<vector<cat::SecVertex> >("DstarCand");
 
   maxNumPFCand_ = iConfig.getParameter<int>("maxNumPFCand");
   d0MassWindow_ = iConfig.getParameter<double>("d0MassWindow");
@@ -79,8 +57,8 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
 {
   Handle<edm::View<pat::Jet> > jetHandle;
   iEvent.getByToken(jetSrc_, jetHandle);
-  D0_Out_    = new std::vector<cat::SecVertex>();
-  Dstar_Out_ = new std::vector<cat::SecVertex>();
+  vector<cat::SecVertex>* D0_Out_    = new std::vector<cat::SecVertex>();
+  vector<cat::SecVertex>* Dstar_Out_ = new std::vector<cat::SecVertex>();
 
   std::vector< std::vector<const reco::Candidate*> > jetsDaughters;
 
@@ -103,7 +81,7 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
 
         D0 = pion+kaon;
         const math::XYZTLorentzVector lv( D0.Px(), D0.Py(), D0.Pz(), D0.E());
-        VertexCompositeCandidate* D0Cand = new VertexCompositeCandidate(0, lv, Point(0,0,0), 421) ;  // + pdgId,
+        VertexCompositeCandidate* D0Cand = new VertexCompositeCandidate(0, lv, Point(0,0,0), 521) ;  // + pdgId,
         D0Cand->addDaughter( *pionCand );
         D0Cand->addDaughter( *kaonCand );
 
@@ -117,7 +95,7 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
             Dstar = pion+kaon+pion2;
             const math::XYZTLorentzVector lv2( Dstar.Px(), Dstar.Py(), Dstar.Pz(), Dstar.E());
 
-            VertexCompositeCandidate* DstarCand = new VertexCompositeCandidate(pion2Cand->charge(), lv2, Point(0,0,0), 421211) ;  // + pdgId,
+            VertexCompositeCandidate* DstarCand = new VertexCompositeCandidate(pion2Cand->charge(), lv2, Point(0,0,0), 521211) ;  // + pdgId,
             DstarCand->addDaughter( *pionCand );
             DstarCand->addDaughter( *kaonCand );
             DstarCand->addDaughter( *pion2Cand );
@@ -131,8 +109,8 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
   }
   auto_ptr<vector<cat::SecVertex> >    D0_Out(D0_Out_   );
   auto_ptr<vector<cat::SecVertex> > Dstar_Out(Dstar_Out_);
-  iEvent.put(D0_Out   , "D0");
-  iEvent.put(Dstar_Out, "Dstar");
+  iEvent.put(D0_Out   , "D0Cand");
+  iEvent.put(Dstar_Out, "DstarCand");
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"
