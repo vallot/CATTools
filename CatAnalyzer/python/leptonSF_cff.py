@@ -22,6 +22,28 @@ muonSFTight = cms.PSet(
     ),
 )
 
+## Electron SF from https://indico.cern.ch/event/491528/contribution/2/attachments/1231399/1805319/CutBasedId_EGM_19Feb.pdf
+## Actual numbers are taken from https://arun-afs.web.cern.ch/arun-afs/Fits_Data_ID_76X_AbsEta/CutBasedID_MediumWP_76X_18Feb.txt
+electronSFCutBasedIDMediumWP = cms.PSet(
+    # Values of "CutBasedID_MediumWP"
+    pt_bins = cms.vdouble(10, 20, 30, 40, 50, 200),
+    abseta_bins = cms.vdouble(0, 0.8, 1.444, 1.566, 2, 2.5),
+    values = cms.vdouble(
+        1.00726, 0.971182, 0.984906, 0.985899, 0.988597,
+        1.0902, 0.983359, 0.987179, 0.98692, 0.986159,
+        1.08642, 0.963054, 0.949123, 0.981612, 0.997257,
+        0.984444, 0.936809, 0.975066, 0.992806, 1.00579,
+        1.03557, 0.986446, 0.963351, 1.00611, 1.00949,
+    ),
+    errors = cms.vdouble(
+        0.0575377, 0.0863955, 0.0681855, 0.0397944, 0.0432174,
+        0.221994, 0.066815, 0.0462825, 0.037, 0.0387096,
+        0.345051, 0.119545, 0.0888143, 0.0532062, 0.0863477,
+        0.0584217, 0.142723, 0.0727665, 0.0353211, 0.0177176,
+        0.0831695, 0.0507292, 0.0270231, 0.0129103, 0.0272045,
+    ),
+)
+
 ## Retrieve data from the cmsdoc web page:
 ##   https://cmsdoc.cern.ch/cms/Physics/muon/ReferenceEfficiencies/Run2015/25ns/MuonID_Z_RunCD_Reco74X_Dec1.json
 muonSFTight74X = cms.PSet(
@@ -42,7 +64,7 @@ muonSFTight74X = cms.PSet(
     ),
 )
 
-electronSFWP90 = cms.PSet(
+electronSFWP9074X = cms.PSet(
     ## SF from https://indico.cern.ch/event/369259/contribution/3/attachments/1204731/1755463/update_SFs_triggering_MVA_ID_systematics.pdf
     eta_bins = cms.vdouble(-2.5, -1.5, -1.0, 0, 1.0, 1.5, 2.5),
     pt_bins = cms.vdouble(15, 25, 35, 45, 55, 1e9),
@@ -62,12 +84,9 @@ electronSFWP90 = cms.PSet(
     ),
 )
 
-electronSFCutBasedIDMediumWP = cms.PSet(
-    ## SF from https://indico.cern.ch/event/369259/contribution/1/attachments/1204682/1754936/EGM_14Dec.pdf
-    ## Actual numbers are taken from /afs/cern.ch/work/a/arun/public/forEGM/CutBased_textFiles_withSyst/CutBasedID_MediumWP_fromTemplates_withSyst_v1.txt
-    ## Documentations are available in https://twiki.cern.ch/twiki/bin/viewauth/CMS/HWW2015TriggerResults
-    ## FIXME : NUMBERS SEEM TO BE PRELIMINARY, SCALE FACTORS ARE GREATER THAN 1
-    ## FIXME : ERROR PROPAGATION WITH SIMPLE SQARE SUM - TO BE DOUBLE CHECKED!!!
+electronSFCutBasedIDMediumWP74X = cms.PSet(
+    ## SF from https://indico.cern.ch/event/491528/contribution/2/attachments/1231399/1805319/CutBasedId_EGM_19Feb.pdf
+    ## Actual numbers are taken from https://arun-afs.web.cern.ch/arun-afs/Final_Fits_Data_74X/CutBasedID_MediumWP_fromTemplates_withSyst_Final.txt
     # Values of "CutBasedID_MediumWP"
     pt_bins = cms.vdouble(10, 20, 30, 40, 50, 200),
     eta_bins = cms.vdouble(-2.5, -2, -1.566, -1.444, -0.8, 0, 0.8, 1.444, 1.566, 2, 2.5),
