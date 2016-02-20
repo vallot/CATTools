@@ -203,10 +203,7 @@ cat::CATSecVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & 
       const reco::Candidate *cand1, *cand2;
       cand1 = sv->daughter(0);
       cand2 = sv->daughter(1);
-      if ( std::abs(cand1->pdgId()) == 11 || std::abs(cand2->pdgId()) == 11) pdgId = 11;
-      else if ( std::abs(cand1->pdgId()) == 13 || std::abs(cand2->pdgId()) == 13) pdgId = 13;
-      else pdgId = 221;
-      //if ( pdgId !=11 && pdgId !=13 ) continue;
+      if ( std::abs(cand1->pdgId()) == 211 && std::abs(cand2->pdgId()) == 211) continue;
 
       VertexCompositeCandidate aVC = VertexCompositeCandidate( sv->charge(), sv->p4(), sv->vertex(), sv->vertexCovariance(), sv->vertexChi2(), sv->vertexNdof(), pdgId, 0, true);
       cat::SecVertex aSecVtx(aVC);
