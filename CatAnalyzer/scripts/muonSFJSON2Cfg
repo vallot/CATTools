@@ -3,7 +3,7 @@
 import sys, os
 from math import hypot
 
-muonSFBase = "%s/src/CATTools/CatAnalyzer/data/scale" % os.environ["CMSSW_BASE"]
+muonSFBase = "%s/src/CATTools/CatAnalyzer/data/scaleFactors" % os.environ["CMSSW_BASE"]
 if not os.path.exists("%s/MuonID_Z_RunCD_Reco74X_Dec1.json" % muonSFBase) or \
    not os.path.exists("%s/MuonIso_Z_RunCD_Reco74X_Dec1.json" % muonSFBase):
    #not os.path.exists("%s/SingleMuonTrigger_Z_RunCD_Reco74X_Dec1.json" % muonSFBase):
@@ -53,49 +53,49 @@ def extract(js):
     return sorted(list(set(xbins))), sorted(list(set(ybins))), values, errors
 
 print "==== SF for ID ===="
-abseta_bins_id, pt_bins_id, values_id, errors_id = extract(muonJSId[muonIdSFName]['abseta_pt_ratio'])
+pt_bins_id, abseta_bins_id, values_id, errors_id = extract(muonJSId[muonIdSFName]['pt_abseta_ratio'])
 print """cms.PSet(
     # Values of "%s"
-    abseta_bins = cms.vdouble(%s),
-    pt_bins = cms.vdouble(%s),""" % (muonIdSFName, 
-       (", ".join(["%g" % x for x in abseta_bins_id])),
-       (", ".join(["%g" % x for x in pt_bins_id])))
+    pt_bins = cms.vdouble(%s),
+    abseta_bins = cms.vdouble(%s),""" % (muonIdSFName, 
+       (", ".join(["%g" % x for x in pt_bins_id])),
+       (", ".join(["%g" % x for x in abseta_bins_id])))
 print "    values = cms.vdouble("
-for pt in pt_bins_id[:-1]:
+for abseta in abseta_bins_id[:-1]:
     print "       ",
-    for abseta in abseta_bins_id[:-1]:
-        print "%g," % values_id[(abseta, pt)],
+    for pt in pt_bins_id[:-1]:
+        print "%g," % values_id[(pt, abseta)],
     print ""
 print """    ),
     errors = cms.vdouble("""
-for pt in pt_bins_id[:-1]:
+for abseta in abseta_bins_id[:-1]:
     print "       ",
-    for abseta in abseta_bins_id[:-1]:
-        print "%g," % (errors_id[(abseta, pt)]+1e-2), ## Additional 1% systematic error
+    for pt in pt_bins_id[:-1]:
+        print "%g," % (errors_id[(pt, abseta)]+1e-2), ## Additional 1% systematic error
     print ""
 print"""    ),
 )"""
 
 print "==== SF for Iso ===="
-abseta_bins_iso, pt_bins_iso, values_iso, errors_iso = extract(muonJSIso[muonIsoSFName]['abseta_pt_ratio'])
+pt_bins_iso, abseta_bins_iso, values_iso, errors_iso = extract(muonJSIso[muonIsoSFName]['pt_abseta_ratio'])
 print """cms.PSet(
     # Values of "%s"
-    abseta_bins = cms.vdouble(%s),
-    pt_bins = cms.vdouble(%s),""" % (muonIsoSFName, 
-       (", ".join(["%g" % x for x in abseta_bins_iso])),
-       (", ".join(["%g" % x for x in pt_bins_iso])))
+    pt_bins = cms.vdouble(%s),
+    abseta_bins = cms.vdouble(%s),""" % (muonIsoSFName, 
+       (", ".join(["%g" % x for x in pt_bins_iso])),
+       (", ".join(["%g" % x for x in abseta_bins_iso])))
 print "    values = cms.vdouble("
-for pt in pt_bins_iso[:-1]:
+for abseta in abseta_bins_iso[:-1]:
     print "       ",
-    for abseta in abseta_bins_iso[:-1]:
-        print "%g," % values_iso[(abseta, pt)],
+    for pt in pt_bins_iso[:-1]:
+        print "%g," % values_iso[(pt, abseta)],
     print ""
 print """    ),
     errors = cms.vdouble("""
-for pt in pt_bins_iso[:-1]:
+for abseta in abseta_bins_iso[:-1]:
     print "       ",
-    for abseta in abseta_bins_iso[:-1]:
-        print "%g," % (errors_iso[(abseta, pt)]+1e-2), ## Additional 1% systematic error
+    for pt in pt_bins_iso[:-1]:
+        print "%g," % (errors_iso[(pt, abseta)]+1e-2), ## Additional 1% systematic error
     print ""
 print"""    ),
 )"""
@@ -106,22 +106,22 @@ if abseta_bins_id != abseta_bins_iso or pt_bins_iso != pt_bins_id:
 else:
     print """cms.PSet(
     # Values of "%s + %s"
-    abseta_bins = cms.vdouble(%s),
-    pt_bins = cms.vdouble(%s),""" % (muonIdSFName, muonIsoSFName,
-           (", ".join(["%g" % x for x in abseta_bins_iso])),
-           (", ".join(["%g" % x for x in pt_bins_iso])))
+    pt_bins = cms.vdouble(%s),
+    abseta_bins = cms.vdouble(%s),""" % (muonIdSFName, muonIsoSFName,
+           (", ".join(["%g" % x for x in pt_bins_iso])),
+           (", ".join(["%g" % x for x in abseta_bins_iso])))
     print "    values = cms.vdouble("
-    for pt in pt_bins_iso[:-1]:
+    for abseta in abseta_bins_iso[:-1]:
         print "       ",
-        for abseta in abseta_bins_iso[:-1]:
-            print "%g," % (values_id[(abseta, pt)]*values_iso[(abseta, pt)]),
+        for pt in pt_bins_iso[:-1]:
+            print "%g," % (values_id[(pt, abseta)]*values_iso[(pt, abseta)]),
         print ""
     print """    ),
     errors = cms.vdouble("""
-    for pt in pt_bins_iso[:-1]:
+    for abseta in abseta_bins_iso[:-1]:
         print "       ",
-        for abseta in abseta_bins_iso[:-1]:
-            print "%g," % hypot(errors_id[(abseta, pt)]+1e-2, errors_iso[(abseta, pt)]+1e-2), ## Additional 1% systematic error
+        for pt in pt_bins_iso[:-1]:
+            print "%g," % hypot(errors_id[(pt, abseta)]+1e-2, errors_iso[(pt, abseta)]+1e-2), ## Additional 1% systematic error
         print ""
     print"""    ),
 )"""

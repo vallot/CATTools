@@ -22,7 +22,6 @@ private:
 
   typedef std::vector<int> vint;
   enum InputType { IN_PartonTop, IN_PseudoTop, IN_Hadron } inputType_;
-  cat::DecayMode decayMode_;
 
   // For the parton top
   edm::EDGetTokenT<reco::GenParticleCollection> parton_srcToken_;
