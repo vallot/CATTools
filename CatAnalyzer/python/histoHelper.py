@@ -7,7 +7,6 @@ def getTH1(title, binning, tree, plotvar, cut, scale = 0.):
         hist = ROOT.TH1D("name", title, binning[0], binning[1], binning[2])
     else:
         hist = ROOT.TH1D("name", title, len(binning)-1, array.array('f', binning))
-    #tree.Project("name", 'min(%s,%s-0.001)'%(plotvar,binning[2]), cut)
     tree.Project("name", plotvar, cut)
     if hist.GetSumw2N() == 0:
         hist.Sumw2()
@@ -135,7 +134,6 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
             leg.AddEntry(inversed, inversed.GetTitle(), "f")
             leghist.append(inversed.GetTitle())
                         
-    #hratio.Divide(data,mclist[0],1.,1.,"B")
     hratio.Divide(data,hratio,1.,1.,"B")
 
     tdrstyle.setTDRStyle()
@@ -166,7 +164,6 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
 
     data.Draw()
     hs.Draw("same")
-    #hs.Draw("samenostack")
     data.Draw("esamex0")
     leg.Draw("same")
     pads[0].Update()

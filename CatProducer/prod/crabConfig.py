@@ -13,7 +13,7 @@ config.section_("Data")
 config.Data.publication  = False
 #################################################################
 # ALLOWS NON VALID DATASETS
-#config.Data.allowNonValidInputDataset = True
+config.Data.allowNonValidInputDataset = True
 
 config.section_("Site")
 # Where the output files will be transmitted to

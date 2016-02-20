@@ -321,6 +321,7 @@ void DESYSmearedSolver::solve(const LV input[])
     const double w1 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin((newl1+newj1).mass()));
     const double w2 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin((newl2+newj2).mass()));
     const double weight = w1*w2/h_mbl_w_->Integral()/h_mbl_w_->Integral();
+    if ( weight <= 0 ) continue;
 
     KinSolverUtils::findCoeffs(mTopInput_, getRandom(h_wmass_.get()), getRandom(h_wmass_.get()),
                                newl1, newl2, newj1, newj2, newmetX, newmetY, koef, cache);
@@ -332,6 +333,14 @@ void DESYSmearedSolver::solve(const LV input[])
       // Recompute neutrino four momentum
       double nu1solTmp[4], nu2solTmp[4];
       KinSolverUtils::getNuPxPyPzE(sol, cache, nu1solTmp, nu2solTmp);
+      bool hasNan = false;
+      for ( int i=0; i<4; ++i ) {
+        if ( std::isnan(nu1solTmp[i]) or std::isnan(nu2solTmp[i]) ) {
+          hasNan = true;
+          break;
+        }
+      }
+      if ( hasNan ) continue;
 
       const double ttX = visSum.px()+nu1sol[0]+nu2sol[0];
       const double ttY = visSum.py()+nu1sol[1]+nu2sol[1];
@@ -376,14 +385,26 @@ LV DESYSmearedSolver::getSmearedLV(const LV& lv0,
   const double p = sqrt(std::max(0., e*e-lv0.M2()));
   if ( KinSolverUtils::isZero(e) or KinSolverUtils::isZero(p) ) return LV();
 
+  const double px0 = lv0.px(), py0 = lv0.py(), pz0 = lv0.pz();
+  if ( px0 == 0 and py0 == 0 and pz0 == 0 ) return lv0;
+
   // Apply rotation
   const double localPhi = 2*TMath::Pi()*rng_->flat();
-  const double theta = lv0.Theta() + dRot*cos(localPhi);
-  const double phi = lv0.Phi() + dRot*sin(localPhi);
+  const double px1 = -p*sin(dRot)*sin(localPhi);
+  const double py1 =  p*sin(dRot)*cos(localPhi);
+  const double pz1 =  p*cos(dRot);
 
-  const double pz = p*cos(theta);
-  const double px = p*sin(theta)*cos(phi);
-  const double py = p*sin(theta)*sin(phi);
+  if ( py0 == 0 and pz0 == 0 ) return LV(px1, py1, pz1, e);
+
+  const double d = hypot(pz0, py0);
+
+  const double x1 =  d/p        , y1 = 0    , z1 = px0/p;
+  const double x2 = -px0*py0/d/p, y2 = pz0/d, z2 = py0/p;
+  const double x3 = -px0*pz0/d/p, y3 = py0/d, z3 = pz0/p;
+
+  const double px = x1*px1 + y1*py1 + z1*pz1;
+  const double py = x2*px1 + y2*py1 + z2*pz1;
+  const double pz = x3*px1 + y3*py1 + z3*pz1;
 
   return LV(px, py, pz, e);
 }

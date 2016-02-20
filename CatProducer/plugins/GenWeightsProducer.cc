@@ -90,8 +90,9 @@ GenWeightsProducer::GenWeightsProducer(const edm::ParameterSet& pset):
 void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
 {
   vstring weightTypes;
-  vvstring weightParams;
+  //vvstring weightParams;
   scaleWeightIdxs_.clear();
+  pdfWeightIdxs_.clear();
 
   std::auto_ptr<string> combineScaleBy(new string);
   std::auto_ptr<string> combinePDFBy(new string);
@@ -138,7 +139,8 @@ void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
     for ( TXMLNode* grpNode = topNode->GetChildren(); grpNode != 0; grpNode = grpNode->GetNextNode() )
     {
       if ( string(grpNode->GetNodeName()) != "weightgroup" ) continue;
-      auto weightTypeObj = (TXMLAttr*)grpNode->GetAttributes()->FindObject("type");
+      auto weightTypeObj = (TXMLAttr*)grpNode->GetAttributes()->FindObject("name");
+      if ( !weightTypeObj ) weightTypeObj = (TXMLAttr*)grpNode->GetAttributes()->FindObject("type"); // FIXME: this may not needed - double check LHE header doc.
       if ( !weightTypeObj ) continue;
 
       weightTypes.push_back(weightTypeObj->GetValue());
@@ -146,12 +148,13 @@ void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
       if ( weightTypes.back().substr(0, 5) == "scale" ) weightType = 1;
       else if ( weightTypes.back().substr(0, 3) == "PDF" ) weightType = 2;
       int weightSize = 0;
-      weightParams.push_back(vstring());
+      //weightParams.push_back(vstring());
       for ( TXMLNode* weightNode = grpNode->GetChildren(); weightNode != 0; weightNode = weightNode->GetNextNode() )
       {
         if ( string(weightNode->GetNodeName()) != "weight" ) continue;
-        weightParams.back().push_back(weightNode->GetText());
         ++weightSize;
+        if ( weightSize == 1 ) continue; // Skip the first one of the weight group since it is the nominal value.
+        //weightParams.back().push_back(weightNode->GetText());
         if ( weightType == 1 ) scaleWeightIdxs_.insert(weightTotalSize);
         else if ( weightType == 2 ) pdfWeightIdxs_.insert(weightTotalSize);
         ++weightTotalSize;
@@ -245,7 +248,7 @@ void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& event
   {
     if ( lheHandle.isValid() )
     {
-      for ( size_t i=1; i<lheHandle->weights().size(); ++i )
+      for ( size_t i=0; i<lheHandle->weights().size(); ++i )
       {
         const double w0 = lheHandle->weights().at(i).wgt;
         const double w = w0/(enforceUnitGenWeight_ ? std::abs(lheWeight) : originalWeight);
@@ -256,7 +259,7 @@ void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& event
     }
     else
     {
-      for ( size_t i=1; i<genInfoHandle->weights().size(); ++i )
+      for ( size_t i=0; i<genInfoHandle->weights().size(); ++i )
       {
         const double w0 = genInfoHandle->weights().at(i);
         const double w = w0/(enforceUnitGenWeight_ ? std::abs(genWeight) : originalWeight);

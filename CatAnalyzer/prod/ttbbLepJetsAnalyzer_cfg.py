@@ -25,7 +25,9 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-        '/store/user/jhgoh/CATTools/sync/v7-6-1/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',
+        'file:ttbar_PowhegPythia.root',
+        #'file:catTuple_1.root',
+        #'/store/user/jhgoh/CATTools/sync/v7-6-2/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',
     )
 )
 
@@ -38,15 +40,18 @@ process.source = cms.Source("PoolSource",
 # process.pileupWeight.pileupDn = pileupWeightMap["Run2015Dn_25nsV1"]
 
 # json file (Only Data)
+# ReReco JSON file taken from: https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions15/13TeV/Reprocessing/Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON.txt
 # import FWCore.PythonUtilities.LumiList as LumiList
-# process.source.lumisToProcess = LumiList.LumiList(filename = 'Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON.txt').getVLuminosityBlockRange()
+# process.source.lumisToProcess = LumiList.LumiList(filename = 'Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON.txt').getVLuminosityBlockRange()
 
+# Lepton SF
 from CATTools.CatAnalyzer.leptonSF_cff import *
 
 process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      sampleLabel       = cms.untracked.bool(runOnMC),
                                      TTbarSampleLabel  = cms.untracked.int32(runOnTTbarMC),
                                      genWeightLabel    = cms.InputTag("genWeight:genWeight"),
+                                     ScaleWeightLabel  = cms.InputTag("genWeight:scaleWeights"),
                                      genLabel          = cms.InputTag("prunedGenParticles"),
                                      genJetLabel       = cms.InputTag("slimmedGenJets"),
                                      genttbarCatLabel  = cms.InputTag("GenTtbarCategories:genTtbarId"),
@@ -56,12 +61,13 @@ process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      electronLabel     = cms.InputTag("catElectrons"),
                                      elecSF = electronSFWP90,
                                      jetLabel          = cms.InputTag("catJets"),
-                                     metLabel         = cms.InputTag("catMETs"),
-                                     #metLabel          = cms.InputTag("catMETsNoHF"),
+                                     metLabel          = cms.InputTag("catMETs"),
                                      pvLabel           = cms.InputTag("catVertex:nGoodPV"),
                                      puWeightLabel     = cms.InputTag("pileupWeight"),
-                                     triggerBits       = cms.InputTag("TriggerResults::HLT"), # Not working yet
-                                     triggerObjects    = cms.InputTag("catTrigger"), # Not working yet
+                                     puUpWeightLabel   = cms.InputTag("pileupWeight:up"),
+                                     puDownWeightLabel = cms.InputTag("pileupWeight:dn"),
+                                     triggerBits       = cms.InputTag("TriggerResults::HLT"), 
+                                     triggerObjects    = cms.InputTag("catTrigger"), 
                                      )
 
 process.TFileService = cms.Service("TFileService",
@@ -69,9 +75,9 @@ process.TFileService = cms.Service("TFileService",
                                    )
 
 
-#process.Tracer = cms.Service("Tracer")
-#process.dump=cms.EDAnalyzer('EventContentAnalyzer')
-#process.p = cms.Path(process.demo*process.dump)
+# process.Tracer = cms.Service("Tracer")
+# process.dump=cms.EDAnalyzer('EventContentAnalyzer')
+# process.p = cms.Path(process.demo*process.dump)
 # process.p = cms.Path(process.pileupWeight*
 #                      process.ttbarSingleLepton)
 process.p = cms.Path(process.ttbbLepJets)

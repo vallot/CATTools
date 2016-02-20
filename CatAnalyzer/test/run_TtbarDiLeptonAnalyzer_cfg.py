@@ -8,12 +8,8 @@ process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
 process.options.allowUnscheduled = cms.untracked.bool(True)
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
-process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-1/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',]
-#process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-1/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8.root',]
-#process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-1/DoubleEG_Run2015D-16Dec2015-v2.root',]
-#process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-1/DoubleMuon_Run2015D-16Dec2015-v1.root',]
-#process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-1/MuonEG_Run2015D-16Dec2015-v1.root',]
-
+process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-2/MuonEG_Run2015D-16Dec2015-v1.root',]
+process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-2/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',]
 useSilver = False
 catmet = 'catMETs'
 lumiMask = 'lumiMask'
@@ -25,6 +21,7 @@ if useSilver:
 
 process.load("CATTools.CatAnalyzer.ttll.ttbarDileptonKinSolutionAlgos_cff")
 process.load("CATTools.CatAnalyzer.filters_cff")
+process.load("CATTools.CatAnalyzer.topPtWeightProducer_cfi")
 from CATTools.CatAnalyzer.leptonSF_cff import *
 
 process.cattree = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
@@ -33,6 +30,8 @@ process.cattree = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     lumiSelection = cms.InputTag(lumiMask),
     genweight = cms.InputTag("genWeight","genWeight"),
     pdfweight = cms.InputTag("genWeight","pdfWeights"),
+    scaleweight = cms.InputTag("genWeight","scaleWeights"),
+    topPtWeight = cms.InputTag("topPtWeight"),
     puweight = cms.InputTag(pileupWeight),
     puweight_up = cms.InputTag(pileupWeight,"up"),
     puweight_dn = cms.InputTag(pileupWeight,"dn"),
@@ -47,7 +46,7 @@ process.cattree = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     ),
     electron = cms.PSet(
         src = cms.InputTag("catElectrons"),
-        effSF = electronSFWP90,
+        effSF = electronSFCutBasedIDMediumWP,#electronSFWP90,
     ),
     jets = cms.InputTag("catJets"),
     mets = cms.InputTag(catmet),

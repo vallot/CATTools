@@ -11,7 +11,6 @@
 #include "CATTools/DataFormats/interface/MET.h"
 
 #include "CATTools/CommonTools/interface/TTbarModeDefs.h"
-#include "CATTools/CatAnalyzer/interface/BTagScaleFactorEvaluators.h"
 
 #include "TH1D.h"
 #include "TH2D.h"
@@ -85,7 +84,6 @@ private:
   int b_jet1_qflav_, b_jet2_qflav_, b_jet3_qflav_, b_jet4_qflav_;
 
   int b_bjetsT_n, b_bjetsM_n, b_bjetsL_n;
-  float b_csvWeight_;
 
   int b_parton_channel_, b_parton_mode1_, b_parton_mode2_;
   int b_parton_jets20_n_, b_parton_jets30_n_;
@@ -102,7 +100,6 @@ private:
   const bool doTree_;
   const bool isTopMC_;
 
-  CSVWeightEvaluator csvWeight_;
 };
 
 TTBBLLAnalyzer::TTBBLLAnalyzer(const edm::ParameterSet& pset):
@@ -172,8 +169,6 @@ TTBBLLAnalyzer::TTBBLLAnalyzer(const edm::ParameterSet& pset):
     tree_->Branch("nbjetsT", &b_bjetsT_n, "nbjetsT/I");
     tree_->Branch("nbjetsM", &b_bjetsM_n, "nbjetsM/I");
     tree_->Branch("nbjetsL", &b_bjetsL_n, "nbjetsL/I");
-
-    tree_->Branch("csvWeight", &b_csvWeight_, "csvWeight/F");
 
     if ( isTopMC_ ) {
       tree_->Branch("parton_channel", &b_parton_channel_, "parton_channel/I");
@@ -286,17 +281,13 @@ void TTBBLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
   b_bjetsT_n = 0, b_bjetsM_n = 0, b_bjetsL_n = 0;
   for ( size_t i=0, n=jetsHandle->size(); i<n; ++i ) {
     const auto& jet = jetsHandle->at(i);
-    const double bTag = jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
-    if ( bTag > 0.605 ) ++b_bjetsL_n;
-    if ( bTag > 0.890 ) ++b_bjetsM_n;
-    if ( bTag > 0.970 ) ++b_bjetsT_n;
+    const double bTag = jet.bDiscriminator(BTAG_CSVv2);
+    if ( bTag > WP_BTAG_CSVv2L ) ++b_bjetsL_n;
+    if ( bTag > WP_BTAG_CSVv2M ) ++b_bjetsM_n;
+    if ( bTag > WP_BTAG_CSVv2T ) ++b_bjetsT_n;
     jetRefs.push_back(JetRefQPair(edm::Ref<cat::JetCollection>(jetsHandle, i), bTag));
   }
   std::sort(jetRefs.begin(), jetRefs.end(), [](const JetRefQPair& a, const JetRefQPair& b){return a.second > b.second;});
-  b_csvWeight_  = csvWeight_(*jetRefs.at(0).first, CSVWeightEvaluator::CENTRAL);
-  b_csvWeight_ *= csvWeight_(*jetRefs.at(1).first, CSVWeightEvaluator::CENTRAL);
-  b_csvWeight_ *= csvWeight_(*jetRefs.at(2).first, CSVWeightEvaluator::CENTRAL);
-  b_csvWeight_ *= csvWeight_(*jetRefs.at(3).first, CSVWeightEvaluator::CENTRAL);
 
   b_jet1_pt_ = jetRefs.at(0).first->pt();
   b_jet2_pt_ = jetRefs.at(1).first->pt();

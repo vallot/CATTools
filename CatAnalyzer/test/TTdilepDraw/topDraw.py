@@ -7,14 +7,14 @@ ROOT.gROOT.SetBatch(True)
 topDraw.py -a 1 -s 1 -c 'tri==1&&filtered==1' -b [40,0,40] -p nvertex -x 'no. vertex' &
 topDraw.py -a 1 -s 1 -b [100,-3,3] -p lep1_eta,lep2_eta -x '#eta' &
 '''
-datalumi = 2.11
+datalumi = 2.17
 CMS_lumi.lumi_sqrtS = "%.2f fb^{-1}, #sqrt{s} = 13 TeV"%(datalumi)
 datalumi = datalumi*1000 # due to fb
 
 mcfilelist = ['TT_powheg', 'WJets', 'SingleTbar_tW', 'SingleTop_tW', 'ZZ', 'WW', 'WZ', 'DYJets', 'DYJets_10to50']
 rdfilelist = ['MuonEG_Run2015','DoubleEG_Run2015','DoubleMuon_Run2015']
-rootfileDir = "file:/xrootd/store/user/tt8888tt/v7-4-6/"
-channel_name = ['MuEl', 'ElEl', 'MuMu']
+rootfileDir = "file:/xrootd/store/user/tt8888tt/v7-6-1/"
+channel_name = ['Combined', 'MuEl', 'ElEl', 'MuMu']
 
 datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json" % os.environ['CMSSW_BASE']))
 
@@ -22,16 +22,19 @@ datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json" % os.e
 step = 1
 channel = 1
 cut = 'tri==1&&filtered==1'
+#weight = 'genweight*puweight'
 weight = 'genweight*puweight*lepweight'
 binning = [60, 20, 320]
 plotvar = 'll_m'
 x_name = 'mass [GeV]'
 y_name = 'Events'
 dolog = False
+overflow = False
+binNormalize = False
 
 #get input
 try:
-    opts, args = getopt.getopt(sys.argv[1:],"hdc:w:b:p:x:y:a:s:",["cut","weight","binning","plotvar","x_name","y_name","dolog","channel","step"])
+    opts, args = getopt.getopt(sys.argv[1:],"hdnoc:w:b:p:x:y:a:s:",["binNormalize","overflow","cut","weight","binning","plotvar","x_name","y_name","dolog","channel","step"])
 except getopt.GetoptError:          
     print 'Usage : ./topDraw.py -c <cut> -w <weight> -b <binning> -p <plotvar> -x <x_name> -y <y_name> -d <dolog>'
     sys.exit(2)
@@ -57,6 +60,10 @@ for opt, arg in opts:
         y_name = arg
     elif opt in ("-d", "--dolog"):
         dolog = True
+    elif opt in ("-o", "--overflow"):
+        overflow = True
+    elif opt in ("-n", "--binNormalize"):
+        binNormalize = True
 
 tname = "cattree/nom"
 
@@ -68,10 +75,11 @@ stepch_tcut =  'step>=%i&&channel==%i'%(step,channel)
 
 tcut = '(%s&&%s)*(%s)'%(stepch_tcut,cut,weight)
 ttother_tcut = '(%s&&%s&&%s)*(%s)'%(stepch_tcut,cut,ttother_tcut,weight)
+rd_tcut = '%s&&%s'%(stepch_tcut,cut)
 print "TCut =",tcut
 
 #namming
-x_name = channel_name[channel-1]+" "+x_name
+x_name = channel_name[channel]+" "+x_name
 if len(binning) <= 3:
     num = (binning[2]-binning[1])/float(binning[0])
     if num != 1:
@@ -85,7 +93,7 @@ if not os.path.exists('./DYFactor.json'):
 	DYestimation.printDYFactor(rootfileDir, tname, datasets, datalumi, cut, weight, rdfilelist)# <------ This will create 'DYFactor.json' on same dir.
 dyratio=json.load(open('./DYFactor.json'))
 
-#saving histos
+#saving mc histos
 mchistList = []
 for i, mcname in enumerate(mcfilelist):
 	data = findDataSet(mcname, datasets)
@@ -111,24 +119,33 @@ for i, mcname in enumerate(mcfilelist):
 		mchistList.append(ttothers)
 		mchist.Add(ttothers, -1)
 
-rdtcut = '%s&&%s'%(stepch_tcut,cut)
+#data histo
 rfname = rootfileDir + rdfilelist[channel-1] +".root"
-rdhist = makeTH1(rfname, tname, 'data', binning, plotvar, rdtcut)
+rdhist = makeTH1(rfname, tname, 'data', binning, plotvar, rd_tcut)
 rdhist.SetLineColor(1)
 
+#overflow
+if overflow:
+	if len(binning) == 3 : nbin = binning[0]
+	else : nbin = len(binnin)-1
+	for hist in mchistList:
+		hist.SetBinContent(nbin, hist.GetBinContent(nbin+1))
+	rdhist.SetBinContent(nbin, rdhist.GetBinContent(nbin+1))
+
 #bin normalize
-for hist in mchistList:
+if binNormalize:
+	for hist in mchistList:
+		for i in range(len(binning)):
+			hist.SetBinContent(i, hist.GetBinContent(i)/hist.GetBinWidth(i))
+			hist.SetBinError(i, hist.GetBinError(i)/hist.GetBinWidth(i))
 	for i in range(len(binning)):
-		hist.SetBinContent(i, hist.GetBinContent(i)/hist.GetBinWidth(i))
-		hist.SetBinError(i, hist.GetBinError(i)/hist.GetBinWidth(i))
-for i in range(len(binning)):
-	rdhist.SetBinContent(i, rdhist.GetBinContent(i)/rdhist.GetBinWidth(i))
-	rdhist.SetBinError(i, rdhist.GetBinError(i)/rdhist.GetBinWidth(i))
+		rdhist.SetBinContent(i, rdhist.GetBinContent(i)/rdhist.GetBinWidth(i))
+		rdhist.SetBinError(i, rdhist.GetBinError(i)/rdhist.GetBinWidth(i))
 
 #Drawing plots on canvas
 var = plotvar.split(',')[0]
 var = ''.join(i for i in var if not i.isdigit())
-outfile = "%s_s%d_%s.png"%(channel_name[channel-1],step,var)
+outfile = "%s_s%d_%s.png"%(channel_name[channel],step,var)
 drawTH1(outfile, CMS_lumi, mchistList, rdhist, x_name, y_name, dolog)
 print outfile
 
