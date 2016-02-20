@@ -203,9 +203,8 @@ cat::CATSecVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & 
       const reco::Candidate *cand1, *cand2;
       cand1 = sv->daughter(0);
       cand2 = sv->daughter(1);
-      if ( std::abs(cand1->pdgId()) == 11 || std::abs(cand2->pdgId()) == 11) pdgId = 11;
-      if ( std::abs(cand1->pdgId()) == 13 || std::abs(cand2->pdgId()) == 13) pdgId = 13;
       if ( pdgId !=11 && pdgId ==13 ) continue;
+      pdgId = 443;
       //const reco::TransientTrack  transTrack1, transTrack2;
       if ( cand1->get<TrackRef>().isNull() || cand2->get<TrackRef>().isNull()) continue;
       auto ttrack1 = trackBuilder->build(cand1->get<TrackRef>());
