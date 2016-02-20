@@ -179,7 +179,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
 {
   const auto elecSFSet = iConfig.getParameter<edm::ParameterSet>("elecSF");
   SF_elec_.set(elecSFSet.getParameter<std::vector<double>>("pt_bins" ),
-	       elecSFSet.getParameter<std::vector<double>>("eta_bins"),
+	       elecSFSet.getParameter<std::vector<double>>("abseta_bins"),
 	       elecSFSet.getParameter<std::vector<double>>("values"  ),
 	       elecSFSet.getParameter<std::vector<double>>("errors"  ));
 
@@ -761,9 +761,9 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
      if(isMC_) {
        // Lepton SF (ID/ISO)
-       lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), selectedElectrons[0].scEta() ) );       // [0]-> SF
-       lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(),  1.0 ) ); // [1]-> SF+Error
-       lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(), -1.0 ) ); // [2]-> SF-Error
+       lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), std::abs(selectedElectrons[0].scEta()) ) );       // [0]-> SF
+       lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), std::abs(selectedElectrons[0].scEta()),  1.0 ) ); // [1]-> SF+Error
+       lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), std::abs(selectedElectrons[0].scEta()), -1.0 ) ); // [2]-> SF-Error
        //LES
        lepton_LES = selectedElectrons[0].shiftedEn();
      }

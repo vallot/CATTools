@@ -591,7 +591,7 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
     const auto electronSFSet = electronSet.getParameter<edm::ParameterSet>("efficiencySF");
     // FIXME : for electrons, eta bins are NOT folded - always double check this with cfg
     electronSF_.set(electronSFSet.getParameter<vdouble>("pt_bins"),
-                    electronSFSet.getParameter<vdouble>("eta_bins"),
+                    electronSFSet.getParameter<vdouble>("abseta_bins"),
                     electronSFSet.getParameter<vdouble>("values"),
                     electronSFSet.getParameter<vdouble>("errors"));
     electronSFShift_ = electronSet.getParameter<int>("efficiencySFDirection");
@@ -741,6 +741,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
   // Select good leptons
   double leptons_st = 0;
+  cat::MuonCollection selMuons;
   for ( int i=0, n=muonHandle->size(); i<n; ++i )
   {
     auto& p = muonHandle->at(i);
@@ -748,14 +749,15 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     const double pt = shiftedMuonPt(p);
     const double scale = pt/p.pt();
 
-    cat::Lepton lep(p);
+    cat::Muon lep(p);
     lep.setP4(p.p4()*scale);
-    out_leptons->push_back(lep);
+    selMuons.push_back(lep);
 
     leptons_st += pt;
     metDpx += lep.px()-p.px();
     metDpy += lep.py()-p.py();
   }
+  cat::ElectronCollection selElectrons;
   for ( int i=0, n=electronHandle->size(); i<n; ++i )
   {
     auto& p = electronHandle->at(i);
@@ -763,25 +765,28 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     const double pt = shiftedElectronPt(p);
     const double scale = pt/p.pt();
 
-    cat::Lepton lep(p);
+    cat::Electron lep(p);
     lep.setP4(p.p4()*scale);
-    out_leptons->push_back(lep);
+    selElectrons.push_back(lep);
 
     leptons_st += pt;
     metDpx += lep.px()-p.px();
     metDpy += lep.py()-p.py();
   }
-  const int leptons_n = out_leptons->size();
+  std::vector<const cat::Lepton*> selLeptons;
+  for ( auto& x : selMuons ) selLeptons.push_back(&x);
+  for ( auto& x : selElectrons ) selLeptons.push_back(&x);
+  std::sort(selLeptons.begin(), selLeptons.end(),
+            [&](const cat::Lepton* a, const cat::Lepton* b){return a->pt() > b->pt();});
+  // Copy selLeptons to out_leptons
+  for ( auto x : selLeptons ) out_leptons->push_back(*x);
+  const int leptons_n = selLeptons.size();
   const cat::Lepton* lepton1 = 0, * lepton2 = 0;
   int channel = CH_NOLL;
   if ( leptons_n >= 2 ) {
-    // Partial sort to select leading 2 leptons
-    std::nth_element(out_leptons->begin(), out_leptons->begin()+2, out_leptons->end(),
-                     [&](const cat::Lepton& a, const cat::Lepton& b){return a.pt() > b.pt();});
-
     // Set lepton1 and 2
-    lepton1 = &out_leptons->at(0);
-    lepton2 = &out_leptons->at(1);
+    lepton1 = selLeptons.at(0);
+    lepton2 = selLeptons.at(1);
 
     const int pdgId1 = std::abs(lepton1->pdgId());
     const int pdgId2 = std::abs(lepton2->pdgId());
@@ -799,8 +804,10 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     // Apply lepton SF
     if ( channel == CH_ELEL )
     {
-      const double w1 = electronSF_(lepton1->pt(), lepton1->eta(), electronSFShift_);
-      const double w2 = electronSF_(lepton2->pt(), lepton2->eta(), electronSFShift_);
+      const auto e1 = dynamic_cast<const cat::Electron*>(lepton1);
+      const auto e2 = dynamic_cast<const cat::Electron*>(lepton2);
+      const double w1 = electronSF_(lepton1->pt(), std::abs(e1->scEta()), electronSFShift_);
+      const double w2 = electronSF_(lepton2->pt(), std::abs(e2->scEta()), electronSFShift_);
       weight *= w1*w2;
     }
     else if ( channel == CH_MUMU )
@@ -811,7 +818,8 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     }
     else if ( channel == CH_MUEL )
     {
-      const double w1 = electronSF_(lepton1->pt(), lepton1->eta(), electronSFShift_);
+      const auto e1 = dynamic_cast<const cat::Electron*>(lepton1);
+      const double w1 = electronSF_(lepton1->pt(), std::abs(e1->scEta()), electronSFShift_);
       const double w2 = muonSF_(lepton2->pt(), std::abs(lepton2->eta()), muonSFShift_);
       weight *= w1*w2;
     }
