@@ -2,29 +2,9 @@ import FWCore.ParameterSet.Config as cms
 
 ## Muon SF reference https://twiki.cern.ch/twiki/bin/viewauth/CMS/MuonReferenceEffsRun2
 ## Retrieve data from the cmsdoc web page:
-##   https://cmsdoc.cern.ch/cms/Physics/muon/ReferenceEfficiencies/Run2015/25ns/MuonID_Z_RunCD_Reco74X_Dec1.json
-cms.PSet(
-    # Values of "NUM_TightIDandIPCut_DEN_genTracks_PAR_pt_spliteta_bin1 + NUM_TightRelIso_DEN_TightID_PAR_pt_spliteta_bin1"
-    pt_bins = cms.vdouble(20, 25, 30, 40, 50, 60, 120),
-    abseta_bins = cms.vdouble(0, 0.9, 1.2, 2.1, 2.4),
-    values = cms.vdouble(
-        0.979479, 0.984375, 0.987068, 0.986086, 0.983674, 0.985021,
-        0.978054, 0.980927, 0.984458, 0.981568, 0.975983, 0.984876,
-        0.99541, 0.991193, 0.994704, 0.992697, 0.988925, 0.995536,
-        0.983608, 0.974278, 0.976037, 0.980598, 0.969666, 0.969941,
-    ),
-    errors = cms.vdouble(
-        0.0191201, 0.0168928, 0.0151444, 0.0148111, 0.015527, 0.0162596,
-        0.021688, 0.0189092, 0.0159175, 0.0150692, 0.0164092, 0.0178394,
-        0.0179975, 0.0166027, 0.0151404, 0.0147407, 0.0154785, 0.0167413,
-        0.0219747, 0.0194149, 0.0165014, 0.0159522, 0.0180924, 0.0243999,
-    ),
-)
-
-## Retrieve data from the cmsdoc web page:
 ##   https://cmsdoc.cern.ch/cms/Physics/muon/ReferenceEfficiencies/Run2015/25ns/MuonID_Z_RunCD_Reco76X_Feb15.json
 ##   https://cmsdoc.cern.ch/cms/Physics/muon/ReferenceEfficiencies/Run2015/25ns/MuonIso_Z_RunCD_Reco76X_Feb15.json
-cms.PSet(
+muonSFTight = cms.PSet(
     # Values of "MC_NUM_TightIDandIPCut_DEN_genTracks_PAR_pt_spliteta_bin1 + MC_NUM_TightRelIso_DEN_TightID_PAR_pt_spliteta_bin1"
     pt_bins = cms.vdouble(20, 25, 30, 40, 50, 60, 120),
     abseta_bins = cms.vdouble(0, 0.9, 1.2, 2.1, 2.4),
@@ -39,6 +19,26 @@ cms.PSet(
         0.0215028, 0.0187818, 0.015895, 0.0151044, 0.0164114, 0.0179288,
         0.0177231, 0.0164137, 0.0150865, 0.0146144, 0.0153961, 0.0165706,
         0.0209034, 0.0185737, 0.0162192, 0.0155509, 0.0176528, 0.0220295,
+    ),
+)
+
+## Retrieve data from the cmsdoc web page:
+##   https://cmsdoc.cern.ch/cms/Physics/muon/ReferenceEfficiencies/Run2015/25ns/MuonID_Z_RunCD_Reco74X_Dec1.json
+muonSFTight74X = cms.PSet(
+    # Values of "NUM_TightIDandIPCut_DEN_genTracks_PAR_pt_spliteta_bin1 + NUM_TightRelIso_DEN_TightID_PAR_pt_spliteta_bin1"
+    pt_bins = cms.vdouble(20, 25, 30, 40, 50, 60, 120),
+    abseta_bins = cms.vdouble(0, 0.9, 1.2, 2.1, 2.4),
+    values = cms.vdouble(
+        0.979479, 0.984375, 0.987068, 0.986086, 0.983674, 0.985021,
+        0.978054, 0.980927, 0.984458, 0.981568, 0.975983, 0.984876,
+        0.99541, 0.991193, 0.994704, 0.992697, 0.988925, 0.995536,
+        0.983608, 0.974278, 0.976037, 0.980598, 0.969666, 0.969941,
+    ),
+    errors = cms.vdouble(
+        0.0191201, 0.0168928, 0.0151444, 0.0148111, 0.015527, 0.0162596,
+        0.021688, 0.0189092, 0.0159175, 0.0150692, 0.0164092, 0.0178394,
+        0.0179975, 0.0166027, 0.0151404, 0.0147407, 0.0154785, 0.0167413,
+        0.0219747, 0.0194149, 0.0165014, 0.0159522, 0.0180924, 0.0243999,
     ),
 )
 
