@@ -196,21 +196,43 @@ cat::CATSecVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & 
 
   else if ( mode_ == 2) {
     for(VertexCompositePtrCandidateCollection::const_iterator sv = secvtxSrc->begin() ; sv != secvtxSrc->end() ; ++sv) {
+
       int pdgId = 0 ;
       // If the secvtx did not have 2 daughter(consist of 2 tracks), it must be ignored.
       if ( sv->numberOfDaughters() != 2 ) continue;
-      //make the tracks from secvtx
       const reco::Candidate *cand1, *cand2;
       cand1 = sv->daughter(0);
       cand2 = sv->daughter(1);
       if ( std::abs(cand1->pdgId()) == 11 || std::abs(cand2->pdgId()) == 11) pdgId = 11;
-      if ( std::abs(cand1->pdgId()) == 13 || std::abs(cand2->pdgId()) == 13) pdgId = 13;
-      if ( pdgId !=11 && pdgId ==13 ) continue;
-      //const reco::TransientTrack  transTrack1, transTrack2;
-      if ( cand1->get<TrackRef>().isNull() || cand2->get<TrackRef>().isNull()) continue;
-      auto ttrack1 = trackBuilder->build(cand1->get<TrackRef>());
-      auto ttrack2 = trackBuilder->build(cand2->get<TrackRef>());
-      fitTransientTracks(out_, pv, ttrack1, ttrack2, pdgId);
+      else if ( std::abs(cand1->pdgId()) == 13 || std::abs(cand2->pdgId()) == 13) pdgId = 13;
+      else pdgId = 221;
+      //if ( pdgId !=11 && pdgId !=13 ) continue;
+
+      VertexCompositeCandidate aVC = VertexCompositeCandidate( sv->charge(), sv->p4(), sv->vertex(), sv->vertexCovariance(), sv->vertexChi2(), sv->vertexNdof(), pdgId, 0, true);
+      cat::SecVertex aSecVtx(aVC);
+
+      aSecVtx.setVProb(TMath::Prob( aVC.vertexChi2(), (int) aVC.vertexNdof()));
+      auto vertex = aVC.vertex();
+      GlobalPoint vtxPos( vertex.x(), vertex.y(), vertex.z() );
+
+      typedef ROOT::Math::SMatrix<double, 3, 3, ROOT::Math::MatRepSym<double, 3> > SMatrixSym3D;
+      typedef ROOT::Math::SVector<double, 3> SVector3;
+
+      SMatrixSym3D totalCov = pv.covariance() + aVC.vertexCovariance();
+      SVector3 distanceVectorXY(vertex.x() - pv.position().x(), vertex.y() - pv.position().y(), 0.);
+
+      double rVtxMag = ROOT::Math::Mag(distanceVectorXY);
+      double sigmaRvtxMag = sqrt(ROOT::Math::Similarity(totalCov, distanceVectorXY)) / rVtxMag;
+
+      if(applyCuts_ && ( rVtxMag < cut_minLxy_ or rVtxMag > cut_maxLxy_ or rVtxMag / sigmaRvtxMag < cut_vtxSignif_ )) continue;
+
+      SVector3 distanceVector3D(vertex.x() - pv.position().x(), vertex.y() - pv.position().y(), vertex.z() - pv.position().z());
+      const double rVtxMag3D = ROOT::Math::Mag(distanceVector3D);
+
+      aSecVtx.setLxy(rVtxMag);
+      aSecVtx.setL3D(rVtxMag3D);
+      aSecVtx.setInts(0,0);
+      out_->push_back( aSecVtx); 
     }
   }
   else if ( mode_ == 3) {
