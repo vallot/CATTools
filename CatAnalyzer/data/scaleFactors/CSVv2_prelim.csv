@@ -1,4 +1,4 @@
-CSVv2;OperatingPoint, measurementType, sysType, jetFlavor, etaMin, etaMax, ptMin, ptMax, discrMin, discrMax, formula 
+CSVv2;OperatingPoint, measurementType, sysType, jetFlavor, etaMin, etaMax, ptMin, ptMax, discrMin, discrMax, formula
 0, incl, central, 2, 0, 0.3, 20, 1000, 0, 1, "((1.13199+(0.00121087*x))+(-2.1714e-06*(x*x)))+(1.06583e-09*(x*(x*x)))" 
 0, incl, down, 2, 0, 0.3, 20, 1000, 0, 1, "((1.09518+(0.000823444*x))+(-1.1289e-06*(x*x)))+(3.82933e-10*(x*(x*x)))" 
 0, incl, up, 2, 0, 0.3, 20, 1000, 0, 1, "((1.1688+(0.00159691*x))+(-3.21137e-06*(x*x)))+(1.74795e-09*(x*(x*x)))" 
