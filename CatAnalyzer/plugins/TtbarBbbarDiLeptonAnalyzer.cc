@@ -83,10 +83,10 @@ private:
     }
     else {
       const auto& el = dynamic_cast<const cat::Electron&>(p);
-      const double pt = p.pt(), eta = el.scEta();
-      if      ( sys == sys_eleff_u ) return elecSF_(pt, eta,  1);
-      else if ( sys == sys_eleff_d ) return elecSF_(pt, eta, -1);
-      else return elecSF_(pt, eta, 0);
+      const double pt = p.pt(), aeta = std::abs(el.scEta());
+      if      ( sys == sys_eleff_u ) return elecSF_(pt, aeta,  1);
+      else if ( sys == sys_eleff_d ) return elecSF_(pt, aeta, -1);
+      else return elecSF_(pt, aeta, 0);
     }
     return 1;
   }
@@ -299,7 +299,7 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
 
   const auto elecSFSet = iConfig.getParameter<edm::ParameterSet>("elecSF");
   elecSF_.set(elecSFSet.getParameter<std::vector<double>>("pt_bins"),
-              elecSFSet.getParameter<std::vector<double>>("eta_bins"),
+              elecSFSet.getParameter<std::vector<double>>("abseta_bins"),
               elecSFSet.getParameter<std::vector<double>>("values"),
               elecSFSet.getParameter<std::vector<double>>("errors"));
 
