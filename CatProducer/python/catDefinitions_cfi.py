@@ -7,6 +7,6 @@ lumiJSON       = 'Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON'
 lumiJSONSilver = 'Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON_Silver'
 pileupMCmap    = '2015_25ns_FallMC'
 
-JetEnergyCorrection = 'Summer15_25nsV7'
+JetEnergyCorrection = 'Fall15_25nsV2'
 JECUncertaintyFile  = 'CATTools/CatProducer/data/JEC/%s_DATA_UncertaintySources_AK4PFchs.txt'%JetEnergyCorrection
 
