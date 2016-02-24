@@ -10,7 +10,7 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 50000
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 process.source.fileNames = [
-    '/store/user/jhgoh/CATTools/sync/v7-6-1/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',
+    '/store/user/jhgoh/CATTools/sync/v7-6-2/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',
 ]
 
 process.load("CATTools.CatAnalyzer.filters_cff")

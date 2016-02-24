@@ -25,12 +25,9 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.source = cms.Source("PoolSource",
      fileNames = cms.untracked.vstring(
-        'file:ttbar_PowhegPythia.root',
-        #'file:catTuple_1.root',
-        #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-6-1_RunIIFall15MiniAODv1-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext3-v1/160203_090812/0000/catTuple_1.root',
+        'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-6-2_RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext3-v1/160211_132614/0000/catTuple_1.root',
         )
-                            )
-
+)
 # PUReWeight
 # process.load("CATTools.CatProducer.pileupWeight_cff")
 # from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
@@ -54,12 +51,11 @@ process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      ScaleWeightLabel  = cms.InputTag("genWeight:scaleWeights"),
                                      genLabel          = cms.InputTag("prunedGenParticles"),
                                      genJetLabel       = cms.InputTag("slimmedGenJets"),
-                                     genttbarCatLabel  = cms.InputTag("GenTtbarCategories:genTtbarId"),
-                                     genttbarConeCatLabel  = cms.InputTag("catGenTops"),
+                                     genttbarCatLabel  = cms.InputTag("catGenTops"),
                                      muonLabel         = cms.InputTag("catMuons"),
-                                     muonSF = muonSFTight,
+                                     muonSF            = muonSFTight,
                                      electronLabel     = cms.InputTag("catElectrons"),
-                                     elecSF = electronSFWP90,
+                                     elecSF            = electronSFCutBasedIDMediumWP,
                                      jetLabel          = cms.InputTag("catJets"),
                                      metLabel          = cms.InputTag("catMETs"),
                                      pvLabel           = cms.InputTag("catVertex:nGoodPV"),

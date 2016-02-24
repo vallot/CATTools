@@ -1,20 +1,15 @@
 #!/usr/bin/env python
 
 from math import *
+import sys
 
-# Documentation found from https://twiki.cern.ch/twiki/bin/viewauth/CMS/HWW2015TriggerResults#Electrons_Tables_or_text_files_f
-#    First two columns are Eta range.
-#    Next 2 columns are PT range.
-#    Column 5 & 6 shows the efficiency in data and statistical error.
-#    Column 7 & 8 shows the efficiency in MC and statistical error.
-#    Column 9 shows the systematics uncertainty because of changing signal PDF.
-#    Column 10 shows the systematics uncertainty because of changing background PDF.
-#    Column 11 - systematics after changing the fit range.
-#    Column 12 - systematics because of NLO and LO MC sample.
-#    Last two columns will be systematics because of Tag selection and PU reweighing. But their effect will be really small. 
+# Documentation found from https://twiki.cern.ch/twiki/bin/view/CMS/ElectronScaleFactorsRun2#Sharing_of_results_in_e_gamma_PO
+# Most recent presentation https://indico.cern.ch/event/491528/contribution/2/attachments/1231399/1805319/CutBasedId_EGM_19Feb.pdf
+# Cut based ID for 76X : https://arun-afs.web.cern.ch/arun-afs/Fits_Data_ID_76X_AbsEta/CutBasedID_MediumWP_76X_18Feb.txt
+# Cut based ID for 74X : https://arun-afs.web.cern.ch/arun-afs/Final_Fits_Data_74X/CutBasedID_MediumWP_fromTemplates_withSyst_Final.txt
 
 cutName = "CutBasedID_MediumWP"
-fin = "/afs/cern.ch/work/a/arun/public/forEGM/CutBased_textFiles_withSyst/%s_fromTemplates_withSyst_v1.txt" % cutName
+fin = sys.argv[1]
 
 ptbins = []
 etabins = []
@@ -22,18 +17,20 @@ values, errors = {}, {}
 
 for line in open(fin).readlines():
     vals = [float(x) for x in line.strip().split()]
-    if len(vals) < 12: continue
+    if len(vals) < 15: continue
 
+    # etaMin etaMax ptMin ptMax
     eta1, eta2, pt1, pt2 = vals[:4]
+    # effData statErrData effMC
     effRD, errRD, effMC, errMC = vals[4:8]
-    systs = vals[8:]
+    # statErrMC effAltBkgModel effAltSigModel effAltMCSignal effAltTagSel effPUup effPUdown effAltFitRange 
+    systs = [x-effMC for x in vals[8:13]+[vals[-1]] if x >= 0]
 
     sf, err = 1., 0
     if effMC > 0 and effRD > 0:
         sf = effRD/effMC
         err2 = (errRD/effRD)**2 + (errMC/effMC)**2
-        for e in systs:
-            if e > 0: err2 += (e/effRD)**2 + (e/effMC)**2
+        for e in systs: err2 += (e/effRD)**2 + (e/effMC)**2
         err = sf*sqrt(err2)
   
     ptbins.append(pt1)

@@ -3,10 +3,10 @@
 import sys, os
 from math import hypot
 
-muonSFBase = "%s/src/CATTools/CatAnalyzer/data/scaleFactors" % os.environ["CMSSW_BASE"]
-if not os.path.exists("%s/MuonID_Z_RunCD_Reco74X_Dec1.json" % muonSFBase) or \
-   not os.path.exists("%s/MuonIso_Z_RunCD_Reco74X_Dec1.json" % muonSFBase):
-   #not os.path.exists("%s/SingleMuonTrigger_Z_RunCD_Reco74X_Dec1.json" % muonSFBase):
+uonSFBase = "%s/src/CATTools/CatAnalyzer/data/scaleFactors" % os.environ["CMSSW_BASE"]
+if not os.path.exists("%s/MuonID_Z_RunCD_Reco76_Feb15.json" % muonSFBase) or \
+   not os.path.exists("%s/MuonIso_Z_RunCD_Reco76_Feb15.json" % muonSFBase):
+   #not os.path.exists("%s/SingleMuonTrigger_Z_RunCD_Reco76_Feb15.json" % muonSFBase):
     print "Cannot find SF json files under", muonSFBase
     print "Please download them from the official muon twiki page,"
     print "https://twiki.cern.ch/twiki/bin/viewauth/CMS/MuonReferenceEffsRun2"
@@ -15,12 +15,12 @@ if not os.path.exists("%s/MuonID_Z_RunCD_Reco74X_Dec1.json" % muonSFBase) or \
 
 import json
 
-muonJSId = json.loads(open("%s/MuonID_Z_RunCD_Reco74X_Dec1.json" % muonSFBase).read())
-muonJSIso = json.loads(open("%s/MuonIso_Z_RunCD_Reco74X_Dec1.json" % muonSFBase).read())
-#muonJSTrg = json.loads(open("%s/SingleMuonTrigger_Z_RunCD_Reco74X_Dec1.json" % muonSFBase).read())
+muonJSId = json.loads(open("%s/MuonID_Z_RunCD_Reco76_Feb15.json" % muonSFBase).read())
+muonJSIso = json.loads(open("%s/MuonIso_Z_RunCD_Reco76_Feb15.json" % muonSFBase).read())
+#muonJSTrg = json.loads(open("%s/SingleMuonTrigger_Z_RunCD_Reco76_Feb15.json" % muonSFBase).read())
 
-muonIdSFName = 'NUM_TightIDandIPCut_DEN_genTracks_PAR_pt_spliteta_bin1'
-muonIsoSFName = 'NUM_TightRelIso_DEN_TightID_PAR_pt_spliteta_bin1'
+muonIdSFName = 'MC_NUM_TightIDandIPCut_DEN_genTracks_PAR_pt_spliteta_bin1'
+muonIsoSFName = 'MC_NUM_TightRelIso_DEN_TightID_PAR_pt_spliteta_bin1'
 
 if muonIdSFName not in muonJSId:
     print "Cannot find interested ID variable"

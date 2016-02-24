@@ -67,10 +67,10 @@ private:
     }
     else {
       const auto& el = dynamic_cast<const cat::Electron&>(p);
-      const double pt = p.pt(), eta = el.scEta();
-      if      ( sys == sys_eleff_u ) return elecSF_(pt, eta,  1);
-      else if ( sys == sys_eleff_d ) return elecSF_(pt, eta, -1);
-      else return elecSF_(pt, eta, 0);
+      const double pt = p.pt(), aeta = std::abs(el.scEta());
+      if      ( sys == sys_eleff_u ) return elecSF_(pt, aeta,  1);
+      else if ( sys == sys_eleff_d ) return elecSF_(pt, aeta, -1);
+      else return elecSF_(pt, aeta, 0);
     }
     return 1;
   }
@@ -179,7 +179,7 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   elecToken_ = consumes<cat::ElectronCollection>(elecSet.getParameter<edm::InputTag>("src"));
   const auto elecSFSet = elecSet.getParameter<edm::ParameterSet>("effSF");
   elecSF_.set(elecSFSet.getParameter<vdouble>("pt_bins"),
-              elecSFSet.getParameter<vdouble>("eta_bins"),
+              elecSFSet.getParameter<vdouble>("abseta_bins"),
               elecSFSet.getParameter<vdouble>("values"),
               elecSFSet.getParameter<vdouble>("errors"));
 
@@ -726,7 +726,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     for (auto jet1 = selectedJets.begin(), end = selectedJets.end(); jet1 != end; ++jet1){
       const auto recojet1= jet1->p4();
       for (auto jet2 = next(jet1); jet2 != end; ++jet2){
-
+        if (jet1->bDiscriminator(BTAG_CSVv2) < WP_BTAG_CSVv2L && jet2->bDiscriminator(BTAG_CSVv2) < WP_BTAG_CSVv2L) continue;
         const auto recojet2= jet2->p4();
 
         inputLV[3] = recojet1;

@@ -1,6 +1,7 @@
 from CATTools.CatProducer.catTemplate_cfg import *
 ## some options
 doSecVertex=False # for jpsi candidates
+doDstar=False      # for Dstar meson.
     
 ## setting up arguements
 from FWCore.ParameterSet.VarParsing import VarParsing
@@ -54,6 +55,10 @@ if runGenTop:
 if doSecVertex:
     process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
     process.catOut.outputCommands.extend(catEventContentSecVertexs)
+
+if doDstar :
+    process.catOut.outputCommands.extend(['keep *_catDstars_*_*',])
+
 
 from PhysicsTools.PatAlgos.slimming.miniAOD_tools import miniAOD_customizeOutput
 miniAOD_customizeOutput(process.catOut)
