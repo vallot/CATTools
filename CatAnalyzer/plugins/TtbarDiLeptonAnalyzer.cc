@@ -657,6 +657,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     b_lepweight = getSF(recolep1, sys)*getSF(recolep2, sys);
 
     // Trigger results
+    // Scale factors are from AN16-025 (v4) http://cms.cern.ch/iCMS/jsp/openfile.jsp?tp=draft&files=AN2016_025_v4.pdf
     b_tri = 0;
     edm::Handle<int> trigHandle;
     if ( b_channel == CH_ELEL ) {

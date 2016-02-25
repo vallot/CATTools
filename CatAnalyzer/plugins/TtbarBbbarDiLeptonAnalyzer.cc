@@ -122,7 +122,8 @@ private:
   TTree * ttree15_;
   
   int b_nvertex, b_step, b_channel;
-  bool b_step1, b_step2, b_step3, b_step4, b_step5, b_step6, b_tri, b_filtered;
+  bool b_step1, b_step2, b_step3, b_step4, b_step5, b_step6, b_filtered;
+  float b_tri;
   float b_met, b_metphi;
   int b_njet30, b_nbjetL30, b_nbjetM30, b_nbjetT30;
   int b_nbjetL30MVA, b_nbjetM30MVA, b_nbjetT30MVA;
@@ -383,7 +384,7 @@ void TtbarBbbarDiLeptonAnalyzer::book(TTree* tree){
   tree->Branch("step4", &b_step4, "step4/O");
   tree->Branch("step5", &b_step5, "step5/O");
   tree->Branch("step6", &b_step6, "step6/O");
-  tree->Branch("tri", &b_tri, "tri/O");
+  tree->Branch("tri", &b_tri, "tri/F");
   tree->Branch("filtered", &b_filtered, "filtered/O");
   tree->Branch("met", &b_met, "met/F");
   tree->Branch("metphi", &b_metphi, "metphi/F");
@@ -859,12 +860,22 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     if (pdgIdSum == 26) b_channel = CH_MUMU; // mumu
     
     // Trigger results
+    // Scale factors are from AN16-025 (v4) http://cms.cern.ch/iCMS/jsp/openfile.jsp?tp=draft&files=AN2016_025_v4.pdf
+    b_tri = 0;
     edm::Handle<int> trigHandle;
-    if      ( b_channel == CH_ELEL ) iEvent.getByToken(trigTokenELEL_, trigHandle);
-    else if ( b_channel == CH_MUMU ) iEvent.getByToken(trigTokenMUMU_, trigHandle);
-    else if ( b_channel == CH_MUEL ) iEvent.getByToken(trigTokenMUEL_, trigHandle);
-    b_tri = *trigHandle;
-    
+    if ( b_channel == CH_ELEL ) {
+      iEvent.getByToken(trigTokenELEL_, trigHandle);
+      if ( *trigHandle != 0 ) b_tri = 0.953; // +- 0.009
+    }
+    else if ( b_channel == CH_MUMU ) {
+      iEvent.getByToken(trigTokenMUMU_, trigHandle);
+      if ( *trigHandle != 0 ) b_tri = 0.948; // +- 0.002
+    }
+    else if ( b_channel == CH_MUEL ) {
+      iEvent.getByToken(trigTokenMUEL_, trigHandle);
+      if ( *trigHandle != 0 ) b_tri = 0.975; // +- 0.004
+    }
+
     b_lep1_pt = recolep1.pt(); b_lep1_eta = recolep1.eta(); b_lep1_phi = recolep1.phi(); b_lep1_q = recolep1.charge();
     b_lep2_pt = recolep2.pt(); b_lep2_eta = recolep2.eta(); b_lep2_phi = recolep2.phi(); b_lep2_q = recolep2.charge();
     
@@ -1160,7 +1171,8 @@ void TtbarBbbarDiLeptonAnalyzer::resetBrReco()
   b_njet30 = 0;
   b_nbjetL30=0, b_nbjetM30 = 0; b_nbjetT30 = 0;
   b_nbjetL30MVA=0, b_nbjetM30MVA = 0; b_nbjetT30MVA = 0;
-  b_step1 = 0;b_step2 = 0;    b_step3 = 0;b_step4 = 0;b_step5 = 0;b_step6 = 0;b_tri = 0;
+  b_step1 = 0;b_step2 = 0;    b_step3 = 0;b_step4 = 0;b_step5 = 0;b_step6 = 0;
+  b_tri = 0;
   b_met = -9; b_metphi = -9;
 
   b_lepweight = 1;
