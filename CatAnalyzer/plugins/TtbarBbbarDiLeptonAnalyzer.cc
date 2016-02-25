@@ -18,6 +18,7 @@
 #include "CATTools/CommonTools/interface/TTbarModeDefs.h"
 #include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
 #include "CATTools/CatAnalyzer/interface/BTagWeightEvaluator.h"
+#include "CATTools/CatAnalyzer/interface/CSVHelper.h"
 
 #include "CATTools/CommonTools/interface/AnalysisHelper.h"
 #include "DataFormats/Math/interface/deltaR.h"
@@ -145,6 +146,7 @@ private:
   //mc
   std::vector<float> b_pdfWeights, b_scaleWeights;
   std::vector<float> b_csvweights, b_btagweightsCSVL,  b_btagweightsCSVM,  b_btagweightsCSVT;
+  std::vector<float> b_csvweights2;
   //std::vector<float> b_mvaweights, b_btagweightsMVAL,  b_btagweightsMVAM,  b_btagweightsMVAT;
 
   float b_weight, b_puweight, b_puweightUp, b_puweightDown, b_weightQ;
@@ -247,6 +249,7 @@ private:
   const static int NCutflow = 10;
   std::vector<std::vector<int> > cutflow_;
   bool runOnMC_;
+  CSVHelper *myCsvWeight;
   BTagWeightEvaluator csvWeight;
   BTagWeightEvaluator bTagWeightCSVL;
   BTagWeightEvaluator bTagWeightCSVM;
@@ -313,6 +316,7 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
   partonTop_modes_   = consumes<vector<int> >(iConfig.getParameter<edm::InputTag>("partonTop_modes"));
   partonTop_genParticles_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("partonTop_genParticles"));
 
+  myCsvWeight = new CSVHelper();
   //csvWeight.initCSVWeight(true, "csvv2");
   csvWeight.initCSVWeight(false, "csvv2");
   //mvaWeight.initCSVWeight(false, "mva");
@@ -395,6 +399,7 @@ void TtbarBbbarDiLeptonAnalyzer::book(TTree* tree){
   tree->Branch("scaleWeights","std::vector<float>",&b_scaleWeights);
 
   tree->Branch("csvweights","std::vector<float>",&b_csvweights);
+  tree->Branch("csvweights2","std::vector<float>",&b_csvweights2);
   tree->Branch("btagweightsCSVL","std::vector<float>",&b_btagweightsCSVL);
   tree->Branch("btagweightsCSVM","std::vector<float>",&b_btagweightsCSVM);
   tree->Branch("btagweightsCSVT","std::vector<float>",&b_btagweightsCSVT);
@@ -934,9 +939,12 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     }
    
     if (runOnMC_){
-      for (unsigned int iu=0; iu<19; iu++)
+      b_csvweights2.push_back(myCsvWeight->getCSVWeight(selectedJets,0));
+      b_csvweights.push_back(csvWeight.eventWeight(selectedJets,0));
+      for (unsigned int iu=0; iu<18; iu++)
       {
-         b_csvweights.push_back(csvWeight.eventWeight(selectedJets,iu));
+         b_csvweights2.push_back(myCsvWeight->getCSVWeight(selectedJets,iu+7));
+         b_csvweights.push_back(csvWeight.eventWeight(selectedJets,iu+1));
          //b_mvaweights.push_back(mvaWeight.eventWeight(selectedJets,iu));
       }
       for (unsigned int iu=0; iu<3; iu++)
@@ -1187,7 +1195,9 @@ void TtbarBbbarDiLeptonAnalyzer::resetBrJets()
   b_csvd_jetid.clear();
   b_jets_bDiscriminatorMVA.clear();
   b_mvad_jetid.clear();
-  b_csvweights.clear(); b_btagweightsCSVL.clear();  b_btagweightsCSVM.clear();  b_btagweightsCSVT.clear();
+  b_csvweights.clear();
+  b_csvweights2.clear();
+  b_btagweightsCSVL.clear();  b_btagweightsCSVM.clear();  b_btagweightsCSVT.clear();
   //b_mvaweights.clear(); b_btagweightsMVAL.clear();  b_btagweightsMVAM.clear();  b_btagweightsMVAT.clear();
 
 
