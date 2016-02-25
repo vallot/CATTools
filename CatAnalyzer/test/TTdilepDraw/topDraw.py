@@ -7,14 +7,14 @@ ROOT.gROOT.SetBatch(True)
 topDraw.py -a 1 -s 1 -c 'tri==1&&filtered==1' -b [40,0,40] -p nvertex -x 'no. vertex' &
 topDraw.py -a 1 -s 1 -b [100,-3,3] -p lep1_eta,lep2_eta -x '#eta' &
 '''
-datalumi = 2.17
-CMS_lumi.lumi_sqrtS = "%.2f fb^{-1}, #sqrt{s} = 13 TeV"%(datalumi)
+datalumi = 2.26
+CMS_lumi.lumi_sqrtS = "%.1f fb^{-1}, #sqrt{s} = 13 TeV"%(datalumi)
 datalumi = datalumi*1000 # due to fb
 
 mcfilelist = ['TT_powheg', 'WJets', 'SingleTbar_tW', 'SingleTop_tW', 'ZZ', 'WW', 'WZ', 'DYJets', 'DYJets_10to50']
 rdfilelist = ['MuonEG_Run2015','DoubleEG_Run2015','DoubleMuon_Run2015']
-rootfileDir = "file:/xrootd/store/user/tt8888tt/v7-6-1/"
-channel_name = ['Combined', 'MuEl', 'ElEl', 'MuMu']
+rootfileDir = "file:/xrootd/store/user/tt8888tt/v7-6-2/"
+channel_name = ['MuEl', 'ElEl', 'MuMu']
 
 datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json" % os.environ['CMSSW_BASE']))
 
@@ -22,8 +22,7 @@ datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json" % os.e
 step = 1
 channel = 1
 cut = 'tri==1&&filtered==1'
-#weight = 'genweight*puweight'
-weight = 'genweight*puweight*lepweight'
+weight = 'genweight*puweight*lepweight*csvweights[0]'
 binning = [60, 20, 320]
 plotvar = 'll_m'
 x_name = 'mass [GeV]'
@@ -68,7 +67,7 @@ for opt, arg in opts:
 tname = "cattree/nom"
 
 #cut define
-if channel == 1: ttother_tcut = "!(parton_channel==2 && ((parton_mode1==1 && parton_mode2==2) || (parton_mode1==2 && parton_mode2==1)))"
+if   channel == 1: ttother_tcut = "!(parton_channel==2 && ((parton_mode1==1 && parton_mode2==2) || (parton_mode1==2 && parton_mode2==1)))"
 elif channel == 2: ttother_tcut = "!(parton_channel==2 && (parton_mode1==2 && parton_mode2==2))"
 elif channel == 3: ttother_tcut = "!(parton_channel==2 && (parton_mode1==1 && parton_mode2==1))"
 stepch_tcut =  'step>=%i&&channel==%i'%(step,channel)
@@ -79,8 +78,8 @@ rd_tcut = '%s&&%s'%(stepch_tcut,cut)
 print "TCut =",tcut
 
 #namming
-x_name = channel_name[channel]+" "+x_name
-if len(binning) <= 3:
+x_name = channel_name[channel-1]+" "+x_name
+if len(binning) == 3:
     num = (binning[2]-binning[1])/float(binning[0])
     if num != 1:
         if x_name.endswith(']'):
@@ -104,7 +103,6 @@ for i, mcname in enumerate(mcfilelist):
 		scale = scale*dyratio[channel][step]
 
 	rfname = rootfileDir + mcname +".root"
-
 	wentries = getWeightedEntries(rfname, tname, "tri", weight)
 	scale = scale/wentries
 		
@@ -133,7 +131,7 @@ if overflow:
 	rdhist.SetBinContent(nbin, rdhist.GetBinContent(nbin+1))
 
 #bin normalize
-if binNormalize:
+if binNormalize and len(binning)!=3:
 	for hist in mchistList:
 		for i in range(len(binning)):
 			hist.SetBinContent(i, hist.GetBinContent(i)/hist.GetBinWidth(i))
@@ -141,11 +139,12 @@ if binNormalize:
 	for i in range(len(binning)):
 		rdhist.SetBinContent(i, rdhist.GetBinContent(i)/rdhist.GetBinWidth(i))
 		rdhist.SetBinError(i, rdhist.GetBinError(i)/rdhist.GetBinWidth(i))
+	y_name = y_name + "/%s"%(unit)
 
 #Drawing plots on canvas
 var = plotvar.split(',')[0]
 var = ''.join(i for i in var if not i.isdigit())
-outfile = "%s_s%d_%s.png"%(channel_name[channel],step,var)
+outfile = "%s_s%d_%s.png"%(channel_name[channel-1],step,var)
 drawTH1(outfile, CMS_lumi, mchistList, rdhist, x_name, y_name, dolog)
 print outfile
 
