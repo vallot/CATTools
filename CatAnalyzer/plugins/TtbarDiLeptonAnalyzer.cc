@@ -97,7 +97,8 @@ private:
 
   std::vector<TTree*> ttree_;
   int b_nvertex, b_step, b_channel, b_njet, b_nbjet;
-  bool b_step1, b_step2, b_step3, b_step4, b_step5, b_step6, b_tri, b_filtered;
+  bool b_step1, b_step2, b_step3, b_step4, b_step5, b_step6, b_filtered;
+  float b_tri;
   float b_met, b_weight, b_puweight, b_puweight_up, b_puweight_dn, b_genweight, b_lepweight, b_btagweight, b_btagweight_up, b_btagweight_dn;
   float b_topPtWeight;
   std::vector<float> b_pdfWeights, b_scaleWeights, b_csvweights;
@@ -234,7 +235,7 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
     tr->Branch("step4", &b_step4, "step4/O");
     tr->Branch("step5", &b_step5, "step5/O");
     tr->Branch("step6", &b_step6, "step6/O");
-    tr->Branch("tri", &b_tri, "tri/O");
+    tr->Branch("tri", &b_tri, "tri/F");
     tr->Branch("filtered", &b_filtered, "filtered/O");
     tr->Branch("met", &b_met, "met/F");
     tr->Branch("weight", &b_weight, "weight/F");
@@ -656,11 +657,20 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     b_lepweight = getSF(recolep1, sys)*getSF(recolep2, sys);
 
     // Trigger results
+    b_tri = 0;
     edm::Handle<int> trigHandle;
-    if      ( b_channel == CH_ELEL ) iEvent.getByToken(trigTokenELEL_, trigHandle);
-    else if ( b_channel == CH_MUMU ) iEvent.getByToken(trigTokenMUMU_, trigHandle);
-    else if ( b_channel == CH_MUEL ) iEvent.getByToken(trigTokenMUEL_, trigHandle);
-    b_tri = *trigHandle;
+    if ( b_channel == CH_ELEL ) {
+      iEvent.getByToken(trigTokenELEL_, trigHandle);
+      if ( *trigHandle != 0 ) b_tri = 0.953; // +- 0.009
+    }
+    else if ( b_channel == CH_MUMU ) {
+      iEvent.getByToken(trigTokenMUMU_, trigHandle);
+      if ( *trigHandle != 0 ) b_tri = 0.948; // +- 0.002
+    }
+    else if ( b_channel == CH_MUEL ) {
+      iEvent.getByToken(trigTokenMUEL_, trigHandle);
+      if ( *trigHandle != 0 ) b_tri = 0.975; // +- 0.004
+    }
 
     b_lep1_pt = recolep1.pt(); b_lep1_eta = recolep1.eta(); b_lep1_phi = recolep1.phi();
     b_lep2_pt = recolep2.pt(); b_lep2_eta = recolep2.eta(); b_lep2_phi = recolep2.phi();
