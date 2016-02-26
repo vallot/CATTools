@@ -901,9 +901,10 @@ cat::JetCollection TtbarDiLeptonAnalyzer::selectJets(const cat::JetCollection& j
   }
   for (unsigned int iu=0; iu<19; iu++) b_csvweights.push_back(Jet_SF_CSV[iu]);
 
-  if      ( sys == sys_btag_u ) b_btagweight = bTagWeightL.eventWeight(seljets, 1);
-  else if ( sys == sys_btag_d ) b_btagweight = bTagWeightL.eventWeight(seljets, 2);
-  else                          b_btagweight = bTagWeightL.eventWeight(seljets, 0);
+  b_btagweight = Jet_SF_CSV[0];
+  // if      ( sys == sys_btag_u ) b_btagweight = bTagWeightL.eventWeight(seljets, 1);
+  // else if ( sys == sys_btag_d ) b_btagweight = bTagWeightL.eventWeight(seljets, 2);
+  // else                          b_btagweight = bTagWeightL.eventWeight(seljets, 0);
 
   return seljets;
 }
