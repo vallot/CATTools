@@ -36,8 +36,8 @@ public:
   enum sys_e {sys_nom,
     sys_jes_u, sys_jes_d, sys_jer_u, sys_jer_d,
     sys_mu_u, sys_mu_d, sys_el_u, sys_el_d,
-    sys_mueff_u, sys_mueff_d, sys_eleff_u, sys_eleff_d,
-    sys_btag_u, sys_btag_d,
+	      //sys_mueff_u, sys_mueff_d, sys_eleff_u, sys_eleff_d,
+	      //sys_btag_u, sys_btag_d,
     nsys_e
   };
 
@@ -61,15 +61,15 @@ private:
     const int aid = abs(p.pdgId());
     if ( aid == 13 ) {
       const double pt = p.pt(), aeta = std::abs(p.eta());
-      if      ( sys == sys_mueff_u ) return muonSF_(pt, aeta,  1);
-      else if ( sys == sys_mueff_d ) return muonSF_(pt, aeta, -1);
+      if      ( sys == +1 ) return muonSF_(pt, aeta,  1);
+      else if ( sys == -1 ) return muonSF_(pt, aeta, -1);
       else return muonSF_(pt, aeta, 0);
     }
     else {
       const auto& el = dynamic_cast<const cat::Electron&>(p);
       const double pt = p.pt(), aeta = std::abs(el.scEta());
-      if      ( sys == sys_eleff_u ) return elecSF_(pt, aeta,  1);
-      else if ( sys == sys_eleff_d ) return elecSF_(pt, aeta, -1);
+      if      ( sys == +1 ) return elecSF_(pt, aeta,  1);
+      else if ( sys == -1 ) return elecSF_(pt, aeta, -1);
       else return elecSF_(pt, aeta, 0);
     }
     return 1;
@@ -99,7 +99,9 @@ private:
   int b_nvertex, b_step, b_channel, b_njet, b_nbjet;
   bool b_step1, b_step2, b_step3, b_step4, b_step5, b_step6, b_filtered;
   float b_tri;
-  float b_met, b_weight, b_puweight, b_puweight_up, b_puweight_dn, b_genweight, b_lepweight, b_btagweight, b_btagweight_up, b_btagweight_dn;
+  float b_met, b_weight, b_puweight, b_puweight_up, b_puweight_dn, b_genweight,
+    b_lepweight, b_lepweight_up, b_lepweight_dn,
+    b_btagweight, b_btagweight_up, b_btagweight_dn;
   float b_topPtWeight;
   std::vector<float> b_pdfWeights, b_scaleWeights, b_csvweights;
 
@@ -218,8 +220,8 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
     "nom",
     "jes_u", "jes_d", "jer_u", "jer_d",
     "mu_u", "mu_d", "el_u", "el_d",
-    "mueff_u", "mueff_d", "eleff_u", "eleff_d",
-    "btag_u", "btag_d"
+    //    "mueff_u", "mueff_d", "eleff_u", "eleff_d",
+    //    "btag_u", "btag_d"
   };
   for (int sys = 0; sys < nsys_e; ++sys){
     ttree_.push_back(fs->make<TTree>(sys_name[sys].c_str(), sys_name[sys].c_str()));
@@ -247,6 +249,8 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
     tr->Branch("puweight_dn", &b_puweight_dn, "puweight_dn/F");
     tr->Branch("genweight", &b_genweight, "genweight/F");
     tr->Branch("lepweight", &b_lepweight, "lepweight/F");
+    tr->Branch("lepweight_up", &b_lepweight_up, "lepweight_up/F");
+    tr->Branch("lepweight_dn", &b_lepweight_dn, "lepweight_dn/F");
     tr->Branch("btagweight", &b_btagweight, "btagweight/F");
     tr->Branch("btagweight_up", &b_btagweight_up, "btagweight_up/F");
     tr->Branch("btagweight_dn", &b_btagweight_dn, "btagweight_dn/F");
@@ -632,7 +636,6 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     cat::ElectronCollection selElecs;
     selectMuons(*muons, selMuons, (sys_e)sys);
     selectElecs(*electrons, selElecs, (sys_e)sys);
-    //b_lepweight = mu_weight * el_weight;
     if ( selMuons.size()+selElecs.size() < 2 ) {
       ttree_[sys]->Fill();
       continue;
@@ -654,7 +657,9 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     if (pdgIdSum == 22) b_channel = CH_ELEL; // ee
     if (pdgIdSum == 26) b_channel = CH_MUMU; // mumu
 
-    b_lepweight = getSF(recolep1, sys)*getSF(recolep2, sys);
+    b_lepweight = getSF(recolep1, 0)*getSF(recolep2, 0);
+    b_lepweight_up = getSF(recolep1, +1)*getSF(recolep2, +1);
+    b_lepweight_dn = getSF(recolep1, -1)*getSF(recolep2, -1);
 
     // Trigger results
     // Scale factors are from AN16-025 (v4) http://cms.cern.ch/iCMS/jsp/openfile.jsp?tp=draft&files=AN2016_025_v4.pdf
@@ -925,7 +930,8 @@ void TtbarDiLeptonAnalyzer::resetBr()
   b_nvertex = 0;b_step = -1;b_channel = 0;b_njet = 0;b_nbjet = 0;
   b_step1 = 0;b_step2 = 0;b_step3 = 0;b_step4 = 0;b_step5 = 0;b_step6 = 0;b_tri = 0;b_filtered = 0;
   b_met = -9;
-  b_weight = 1; b_puweight = 1; b_puweight_up = 1; b_puweight_dn = 1; b_genweight = 1; b_lepweight = 1;
+  b_weight = 1; b_puweight = 1; b_puweight_up = 1; b_puweight_dn = 1; b_genweight = 1;
+  b_lepweight = 1;b_lepweight_up = 1;b_lepweight_dn = 1;
   b_btagweight = 1;b_btagweight_up = 1;b_btagweight_dn = 1;
   b_topPtWeight = 1.;
   b_csvweights.clear();
