@@ -353,6 +353,8 @@ void DESYSmearedSolver::solve(const LV input[])
         std::copy(nu1solTmp, nu1solTmp+4, nu1sol);
         std::copy(nu2solTmp, nu2solTmp+4, nu2sol);
       }
+
+      break; // The DESY implementaion just takes first solution. Strange, even commented in their code
     }
     if ( minMTTsqr < 0 ) continue;
 
@@ -385,8 +387,10 @@ LV DESYSmearedSolver::getSmearedLV(const LV& lv0,
   const double p = sqrt(std::max(0., e*e-lv0.M2()));
   if ( KinSolverUtils::isZero(e) or KinSolverUtils::isZero(p) ) return LV();
 
-  const double px0 = lv0.px(), py0 = lv0.py(), pz0 = lv0.pz();
-  if ( px0 == 0 and py0 == 0 and pz0 == 0 ) return lv0;
+  const double px0 = std::abs(lv0.px()) < 0.001 ? 0 : lv0.px();
+  const double py0 = std::abs(lv0.py()) < 0.001 ? 0 : lv0.py();
+  const double pz0 = std::abs(lv0.pz()) < 0.001 ? 0 : lv0.pz();
+  if ( p == 0 ) return LV(0, 0, 0, e);
 
   // Apply rotation
   const double localPhi = 2*TMath::Pi()*rng_->flat();
