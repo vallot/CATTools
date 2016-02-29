@@ -156,8 +156,8 @@ void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
         ++weightTotalSize;
         if ( weightSize == 1 ) continue; // Skip the first one of the weight group since it is the nominal value.
         //weightParams.back().push_back(weightNode->GetText());
-        if ( weightType == 1 ) scaleWeightIdxs_.insert(weightTotalSize);
-        else if ( weightType == 2 ) pdfWeightIdxs_.insert(weightTotalSize);
+        if ( weightType == 1 ) scaleWeightIdxs_.insert(weightTotalSize-1);
+        else if ( weightType == 2 ) pdfWeightIdxs_.insert(weightTotalSize-1);
       }
 
       auto weightCombineByObj = (TXMLAttr*)grpNode->GetAttributes()->FindObject("combine");
