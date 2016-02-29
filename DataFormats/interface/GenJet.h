@@ -29,19 +29,16 @@ namespace cat {
 
     const MCParticle hadron() const {return hadron_; }
     void setHadron( MCParticle Had ) { hadron_ = Had; }	
-    void setGhost(MCParticle ghost) { ghost_ = ghost; }
     /// \return the matched MC parton flavour (from the shower, used e.g. for b-tagging)
     int partonFlavour() const{ return partonFlavour_;}
     /// \return the pdgId of the matched MC parton from hard scattering (i.e. the closest quark or gluon of status == 3)
     int partonPdgId() const{ return partonPdgId_;}
-    int ghostFlavour() const { return ghost_.pdgId(); }
     void setPartonFlavour(int i) { partonFlavour_ = i; }
     void setPartonPdgId(int i) { partonPdgId_ = i; }
 
   private:
 
     MCParticle hadron_;
-    MCParticle ghost_;
     //parton flavour
     int partonFlavour_;
     int partonPdgId_;
