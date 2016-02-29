@@ -382,7 +382,7 @@ LV DESYSmearedSolver::getSmearedLV(const LV& lv0,
 {
   // Rescale at the first step
   const double e = fE*lv0.energy();
-  const double p = sqrt(std::max(0., e*e-lv0.M2()));
+  const double p = std::sqrt(std::max(0., e*e-lv0.M2()));
   if ( KinSolverUtils::isZero(e) or KinSolverUtils::isZero(p) ) return LV();
 
   const double px0 = std::abs(lv0.px()) < 0.001 ? 0 : lv0.px();
@@ -396,13 +396,13 @@ LV DESYSmearedSolver::getSmearedLV(const LV& lv0,
   const double py1 =  p*sin(dRot)*cos(localPhi);
   const double pz1 =  p*cos(dRot);
 
-  if ( py0 == 0 and pz0 == 0 ) return LV(px1, py1, pz1, e);
+  if ( py0 == 0 and pz0 == 0 ) return LV(pz1, px1, py1, e);
 
   const double d = hypot(pz0, py0);
 
-  const double x1 =  d/p        , y1 = 0    , z1 = px0/p;
-  const double x2 = -px0*py0/d/p, y2 = pz0/d, z2 = py0/p;
-  const double x3 = -px0*pz0/d/p, y3 = py0/d, z3 = pz0/p;
+  const double x1 =  d/p        , y1 =  0    , z1 = px0/p;
+  const double x2 = -px0*py0/d/p, y2 =  pz0/d, z2 = py0/p;
+  const double x3 = -px0*pz0/d/p, y3 = -py0/d, z3 = pz0/p;
 
   const double px = x1*px1 + y1*py1 + z1*pz1;
   const double py = x2*px1 + y2*py1 + z2*pz1;
