@@ -353,8 +353,6 @@ void DESYSmearedSolver::solve(const LV input[])
         std::copy(nu1solTmp, nu1solTmp+4, nu1sol);
         std::copy(nu2solTmp, nu2solTmp+4, nu2sol);
       }
-
-      break; // The DESY implementaion just takes first solution. Strange, even commented in their code
     }
     if ( minMTTsqr < 0 ) continue;
 
@@ -417,7 +415,7 @@ double DESYSmearedSolver::getRandom(TH1* h)
 {
   if ( !h ) return 0;
 
-  h->GetRandom();
+  //h->GetRandom();
   const int n = h->GetNbinsX();
   const double* fIntegral = h->GetIntegral();
   const double integral = fIntegral[n];
