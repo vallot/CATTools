@@ -22,7 +22,7 @@ public:
   void init(const int combineMethod,
             const std::string btagName, BTagEntry::OperatingPoint operationPoint,
             const int minNbjet);
-  void initCSVWeight(const bool dummy, const std::string btagName);
+  void initCSVWeight(const bool useCSVHelper, const std::string btagName);
 
   double eventWeight(const cat::JetCollection& jets, const int unc) const;
 
