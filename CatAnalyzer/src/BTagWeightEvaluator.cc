@@ -28,44 +28,55 @@ double BTagWeightEvaluator::eventWeight(const cat::JetCollection& jets, const in
     else if ( minNbjet_ == 2 ) return 1-w0n-w1n;
   }
   else if ( method_ == 4 ) {
-    // Method 1d) using discriminator-dependent scale factors;
-    double weight = 1.0;
-    for ( auto& jet : jets ) weight *= getSF(jet, unc);
-    return weight;
+    if ( type_ == ITERATIVEFIT ) {
+      // Method 1d) using discriminator-dependent scale factors;
+      double weight = 1.0;
+      for ( auto& jet : jets ) weight *= getSF(jet, unc);
+      return weight;
+    }
+    else if ( type_ == CSVWEIGHT ) {
+      csvHelper_->getCSVWeight(jets, unc == 0 ? 0 : unc+7);
+    }
   }
   return 1.0;
 }
 
-void BTagWeightEvaluator::initCSVWeight(const string btagName)
+void BTagWeightEvaluator::initCSVWeight(const bool useCSVHelper, const string btagName)
 {
   method_ = 4;
 
-  type_ = ITERATIVEFIT;
-
-  string csvFileName;
-  if      ( btagName == "csvv2" ) {
-    btagAlgo_ = BTAG_CSVv2 ;
-    csvFileName = "CSVv2_prelim.csv";
-    //csvFileName = "ttH_BTV_CSVv2_13TeV_2015D_20151120.csv";
+  if ( useCSVHelper ) {
+    type_ = CSVWEIGHT;
+    csvHelper_.reset(new CSVHelper());
   }
-  else if ( btagName == "mva" ) {
-    btagAlgo_ = BTAG_cMVAv2;
-    csvFileName = "cMVAv2_prelim.csv";
-  }
-  //else if ( btagName == "jp"    ) btagAlgo_ = BTAG_JP    ;
-  else btagAlgo_ = "undefined"; // FIXME: Eventually raise error somewhere?
+  else {
+    type_ = ITERATIVEFIT;
 
-  const auto csvFile = edm::FileInPath("CATTools/CatAnalyzer/data/scaleFactors/"+csvFileName).fullPath();
-  BTagCalibration calib(btagName, csvFile);
-  uncNames_ = {
-    "central", "up_jes", "down_jes",
-    "up_lf", "down_lf", "up_hf", "down_hf", 
-    "up_hfstats1", "down_hfstats1", "up_hfstats2", "down_hfstats2",
-    "up_lfstats1", "down_lfstats1", "up_lfstats2", "down_lfstats2",
-    "up_cferr1", "down_cferr1", "up_cferr2", "down_cferr2"
-  };
-  for ( unsigned int i=0; i<uncNames_.size(); ++i ) {
-    readers_[i] = BTagCalibrationReader(&calib, BTagEntry::OP_RESHAPING, "iterativefit", uncNames_[i]); 
+    string csvFileName;
+    if      ( btagName == "csvv2" ) {
+      btagAlgo_ = BTAG_CSVv2 ;
+      csvFileName = "CSVv2_prelim.csv";
+      //csvFileName = "ttH_BTV_CSVv2_13TeV_2015D_20151120.csv";
+    }
+    else if ( btagName == "mva" ) {
+      btagAlgo_ = BTAG_cMVAv2;
+      csvFileName = "cMVAv2_prelim.csv";
+    }
+    //else if ( btagName == "jp"    ) btagAlgo_ = BTAG_JP    ;
+    else btagAlgo_ = "undefined"; // FIXME: Eventually raise error somewhere?
+
+    const auto csvFile = edm::FileInPath("CATTools/CatAnalyzer/data/scaleFactors/"+csvFileName).fullPath();
+    BTagCalibration calib(btagName, csvFile);
+    uncNames_ = {
+      "central", "up_jes", "down_jes",
+      "up_lf", "down_lf", "up_hf", "down_hf",
+      "up_hfstats1", "down_hfstats1", "up_hfstats2", "down_hfstats2",
+      "up_lfstats1", "down_lfstats1", "up_lfstats2", "down_lfstats2",
+      "up_cferr1", "down_cferr1", "up_cferr2", "down_cferr2"
+    };
+    for ( unsigned int i=0; i<uncNames_.size(); ++i ) {
+      readers_[i] = BTagCalibrationReader(&calib, BTagEntry::OP_RESHAPING, "iterativefit", uncNames_[i]);
+    }
   }
 }
 

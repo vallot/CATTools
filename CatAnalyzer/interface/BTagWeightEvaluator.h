@@ -4,6 +4,7 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "CATTools/CatAnalyzer/interface/BTagCalibrationStandalone.h"
 #include "CATTools/DataFormats/interface/Jet.h"
+#include "CATTools/CatAnalyzer/interface/CSVHelper.h"
 
 #include <string>
 #include <vector>
@@ -21,11 +22,7 @@ public:
   void init(const int combineMethod,
             const std::string btagName, BTagEntry::OperatingPoint operationPoint,
             const int minNbjet);
-  void initCSVWeight(const bool dummy, const std::string btagName) { // This function is kept just for backward compatibility, to be removed.
-    assert(dummy == false);
-    initCSVWeight(false, btagName);
-  };
-  void initCSVWeight(const std::string btagName);
+  void initCSVWeight(const bool dummy, const std::string btagName);
 
   double eventWeight(const cat::JetCollection& jets, const int unc) const;
 
@@ -39,9 +36,10 @@ public:
     LFSTAT1_UP, LFSTAT1_DN, LFSTAT2_UP, LFSTAT2_DN,
     CFERR1_UP, CFERR1_DN, CFERR2_UP, CFERR2_DN
   };
-  enum TYPE {STANDARD, ITERATIVEFIT};
+  enum TYPE {STANDARD, ITERATIVEFIT, CSVWEIGHT};
 
 private:
+
   int type_; // Measurement type
   int method_; // Combination method
 
@@ -50,6 +48,7 @@ private:
   std::map<int, BTagCalibrationReader> readers_;
 
   int minNbjet_;
+  std::unique_ptr<CSVHelper> csvHelper_;
 };
 
 }
