@@ -21,7 +21,11 @@ public:
   void init(const int combineMethod,
             const std::string btagName, BTagEntry::OperatingPoint operationPoint,
             const int minNbjet);
-  void initCSVWeight(const bool isFromROOT, const std::string btagName);
+  void initCSVWeight(const bool dummy, const std::string btagName) { // This function is kept just for backward compatibility, to be removed.
+    assert(dummy == false);
+    initCSVWeight(false, btagName);
+  };
+  void initCSVWeight(const std::string btagName);
 
   double eventWeight(const cat::JetCollection& jets, const int unc) const;
 
@@ -35,7 +39,7 @@ public:
     LFSTAT1_UP, LFSTAT1_DN, LFSTAT2_UP, LFSTAT2_DN,
     CFERR1_UP, CFERR1_DN, CFERR2_UP, CFERR2_DN
   };
-  enum TYPE {STANDARD, ITERATIVEFIT, CSVWEIGHT};
+  enum TYPE {STANDARD, ITERATIVEFIT};
 
 private:
   int type_; // Measurement type
@@ -45,19 +49,7 @@ private:
   std::vector<std::string> uncNames_;
   std::map<int, BTagCalibrationReader> readers_;
 
-  // For the standard methods
   int minNbjet_;
-
-  // For the iterative fit method
-  double getCSVWeightSFFromROOT(const double pt, const double aeta,
-                                const int flav, const double discr,
-                                const int unc) const;
-  void fillCSVHistos(TFile *fileHF, TFile *fileLF, int nHFptBins);
-
-  TH1D *h_csv_wgt_hf[9][6];
-  TH1D *c_csv_wgt_hf[9][6];
-  TH1D *h_csv_wgt_lf[9][4][3];
-  int nHFptBins_;
 };
 
 }
