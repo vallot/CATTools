@@ -13,8 +13,8 @@ datalumi = datalumi*1000 # due to fb
 
 mcfilelist = ['TT_powheg', 'WJets', 'SingleTbar_tW', 'SingleTop_tW', 'ZZ', 'WW', 'WZ', 'DYJets', 'DYJets_10to50']
 rdfilelist = ['MuonEG_Run2015','DoubleEG_Run2015','DoubleMuon_Run2015']
-rootfileDir = "file:/xrootd/store/user/tt8888tt/v7-6-2/"
-channel_name = ['MuEl', 'ElEl', 'MuMu']
+rootfileDir = "file:/xrootd/store/user/tt8888tt/v7-6-3_CMSKIN/"
+channel_name = ['Combined', 'MuEl', 'ElEl', 'MuMu']
 
 datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json" % os.environ['CMSSW_BASE']))
 
@@ -22,6 +22,7 @@ datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json" % os.e
 step = 1
 channel = 1
 cut = 'tri==1&&filtered==1'
+#weight = 'genweight*puweight*lepweight'
 weight = 'genweight*puweight*lepweight*csvweights[0]'
 binning = [60, 20, 320]
 plotvar = 'll_m'
@@ -67,19 +68,19 @@ for opt, arg in opts:
 tname = "cattree/nom"
 
 #cut define
-if   channel == 1: ttother_tcut = "!(parton_channel==2 && ((parton_mode1==1 && parton_mode2==2) || (parton_mode1==2 && parton_mode2==1)))"
+if channel == 1: ttother_tcut = "!(parton_channel==2 && ((parton_mode1==1 && parton_mode2==2) || (parton_mode1==2 && parton_mode2==1)))"
 elif channel == 2: ttother_tcut = "!(parton_channel==2 && (parton_mode1==2 && parton_mode2==2))"
 elif channel == 3: ttother_tcut = "!(parton_channel==2 && (parton_mode1==1 && parton_mode2==1))"
-stepch_tcut =  'step>=%i&&channel==%i'%(step,channel)
 
+stepch_tcut =  'step>=%i'%(step)
 tcut = '(%s&&%s)*(%s)'%(stepch_tcut,cut,weight)
 ttother_tcut = '(%s&&%s&&%s)*(%s)'%(stepch_tcut,cut,ttother_tcut,weight)
 rd_tcut = '%s&&%s'%(stepch_tcut,cut)
 print "TCut =",tcut
 
 #namming
-x_name = channel_name[channel-1]+" "+x_name
-if len(binning) == 3:
+x_name = "Dilepton "+x_name
+if len(binning) <= 3:
     num = (binning[2]-binning[1])/float(binning[0])
     if num != 1:
         if x_name.endswith(']'):
@@ -111,16 +112,33 @@ for i, mcname in enumerate(mcfilelist):
 	mchist.SetFillColor(colour)
 	mchistList.append(mchist)
 	if 'TT' in mcname:
-		ttothers = makeTH1(rfname, tname, title+' others', binning, plotvar, ttother_tcut, scale)
-		ttothers.SetLineColor(906)
-		ttothers.SetFillColor(906)
-		mchistList.append(ttothers)
-		mchist.Add(ttothers, -1)
+		if len(binning) == 3:
+			ttothershist = ROOT.TH1D("name", title+' others', binning[0], binning[1], binning[2])
+		else:
+			ttothershist = ROOT.TH1D("name", title+' others', len(binning)-1, array.array('f', binning))
+		for channel in range(1,4):
+			if channel == 1: ttother_tcut = "!(parton_channel==2 && ((parton_mode1==1 && parton_mode2==2) || (parton_mode1==2 && parton_mode2==1)))"
+			elif channel == 2: ttother_tcut = "!(parton_channel==2 && (parton_mode1==2 && parton_mode2==2))"
+			elif channel == 3: ttother_tcut = "!(parton_channel==2 && (parton_mode1==1 && parton_mode2==1))"
+			ttother_tcut = '(channel==%d&&%s&&%s&&%s)*%s'%(channel,stepch_tcut,cut,ttother_tcut,weight)
+			ttothers = makeTH1(rfname, tname, title+' others', binning, plotvar, ttother_tcut, scale)
+			ttothershist.Add(ttothers)
+		ttothershist.SetLineColor(906)
+		ttothershist.SetFillColor(906)
+		mchistList.append(ttothershist)
+		mchist.Add(ttothershist, -1)
 
 #data histo
-rfname = rootfileDir + rdfilelist[channel-1] +".root"
-rdhist = makeTH1(rfname, tname, 'data', binning, plotvar, rd_tcut)
-rdhist.SetLineColor(1)
+if len(binning) == 3:
+	rdhist = ROOT.TH1D("name", title, binning[0], binning[1], binning[2])
+else:
+	rdhist = ROOT.TH1D("name", title, len(binning)-1, array.array('f', binning))
+for i, rdfile in enumerate(rdfilelist):
+	rfname = rootfileDir + rdfile +".root"
+	rdtcut = 'channel==%d&&%s&&%s'%((i+1),stepch_tcut,cut)
+	rdhist_tmp = makeTH1(rfname, tname, 'data', binning, plotvar, rdtcut)
+	rdhist.SetLineColor(1)
+	rdhist.Add(rdhist_tmp)
 
 #overflow
 if overflow:
@@ -144,7 +162,7 @@ if binNormalize and len(binning)!=3:
 #Drawing plots on canvas
 var = plotvar.split(',')[0]
 var = ''.join(i for i in var if not i.isdigit())
-outfile = "%s_s%d_%s.png"%(channel_name[channel-1],step,var)
+outfile = "Dilepton_s%d_%s.png"%(step,var)
 drawTH1(outfile, CMS_lumi, mchistList, rdhist, x_name, y_name, dolog)
 print outfile
 
