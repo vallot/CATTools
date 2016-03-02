@@ -38,7 +38,7 @@ namespace cat {
 
 
   };
-  bool pTComp( const reco::Candidate* a, const reco::Candidate* b) { return a->pt() > b->pt();  }
+  //bool pTComp( const reco::Candidate* a, const reco::Candidate* b) { return a->pt() > b->pt();  }
 } // namespace
 
 cat::CATDStarProducer::CATDStarProducer(const edm::ParameterSet & iConfig) :
@@ -57,10 +57,11 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
 {
   Handle<edm::View<pat::Jet> > jetHandle;
   iEvent.getByToken(jetSrc_, jetHandle);
-  vector<cat::SecVertex>* D0_Out_    = new std::vector<cat::SecVertex>();
-  vector<cat::SecVertex>* Dstar_Out_ = new std::vector<cat::SecVertex>();
+  //vector<cat::SecVertex>* D0_Out_    = new std::vector<cat::SecVertex>();
+  //vector<cat::SecVertex>* Dstar_Out_ = 
 
-  std::vector< std::vector<const reco::Candidate*> > jetsDaughters;
+  auto_ptr<vector<cat::SecVertex> >    D0_Out(new vector<cat::SecVertex>());
+  auto_ptr<vector<cat::SecVertex> > Dstar_Out(new std::vector<cat::SecVertex>());
 
   for (const pat::Jet & aPatJet : *jetHandle){
     std::vector<const reco::Candidate*> jetDaughters;
@@ -81,11 +82,11 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
 
         D0 = pion+kaon;
         const math::XYZTLorentzVector lv( D0.Px(), D0.Py(), D0.Pz(), D0.E());
-        VertexCompositeCandidate* D0Cand = new VertexCompositeCandidate(0, lv, Point(0,0,0), 521) ;  // + pdgId,
-        D0Cand->addDaughter( *pionCand );
-        D0Cand->addDaughter( *kaonCand );
+        VertexCompositeCandidate D0Cand = VertexCompositeCandidate(0, lv, Point(0,0,0), 521) ;  // + pdgId,
+        D0Cand.addDaughter( *pionCand );
+        D0Cand.addDaughter( *kaonCand );
 
-        D0_Out_->push_back( cat::SecVertex(*D0Cand) );
+        D0_Out->push_back( cat::SecVertex(D0Cand) );
         if ( abs( D0.M() - gD0Mass)  < d0MassWindow_ ) {
           for( unsigned int extra_pion_idx = 0 ;  extra_pion_idx < dau_size ; extra_pion_idx++) {
             if ( extra_pion_idx== pion_idx || extra_pion_idx == kaon_idx) continue;
@@ -95,20 +96,18 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
             Dstar = pion+kaon+pion2;
             const math::XYZTLorentzVector lv2( Dstar.Px(), Dstar.Py(), Dstar.Pz(), Dstar.E());
 
-            VertexCompositeCandidate* DstarCand = new VertexCompositeCandidate(pion2Cand->charge(), lv2, Point(0,0,0), 521211) ;  // + pdgId,
-            DstarCand->addDaughter( *pionCand );
-            DstarCand->addDaughter( *kaonCand );
-            DstarCand->addDaughter( *pion2Cand );
+            VertexCompositeCandidate DstarCand = VertexCompositeCandidate(pion2Cand->charge(), lv2, Point(0,0,0), 521211) ;  // + pdgId,
+            DstarCand.addDaughter( *pionCand );
+            DstarCand.addDaughter( *kaonCand );
+            DstarCand.addDaughter( *pion2Cand );
 
-            Dstar_Out_->push_back( cat::SecVertex(*DstarCand) );
+            Dstar_Out->push_back( cat::SecVertex(DstarCand) );
           }
         }
       }
 
     }
   }
-  auto_ptr<vector<cat::SecVertex> >    D0_Out(D0_Out_   );
-  auto_ptr<vector<cat::SecVertex> > Dstar_Out(Dstar_Out_);
   iEvent.put(D0_Out   , "D0Cand");
   iEvent.put(Dstar_Out, "DstarCand");
 }
