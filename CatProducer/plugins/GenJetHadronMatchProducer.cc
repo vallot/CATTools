@@ -44,8 +44,10 @@ GenJetHadronMatchProducer::GenJetHadronMatchProducer(const edm::ParameterSet& ps
   genJetToken_ = consumes<reco::GenJetCollection>(pset.getParameter<edm::InputTag>("genJet"));
   genJetFlavourToken_ = consumes<reco::JetFlavourInfoMatchingCollection>(pset.getParameter<edm::InputTag>("genJetFlavour"));
 
-  produces<vint>("flavour");
-  produces<vvint>("ancestorIds");
+  produces<vint>("nBHadron");
+  produces<vint>("nCHadron");
+  produces<vvint>("ancestors");
+  produces<vvint>("hadronAncestors");
 }
 
 void GenJetHadronMatchProducer::produce(edm::Event& event, const edm::EventSetup&)
@@ -57,8 +59,9 @@ void GenJetHadronMatchProducer::produce(edm::Event& event, const edm::EventSetup
   event.getByToken(genJetFlavourToken_, genJetFlavourHandle);
 
   // Collect HF, LF jets
-  std::map<int, int> jetToFlavour;
-  std::map<int, std::vector<int> > jetToPartonIds;
+  std::map<int, int> jetToNBHadron, jetToNCHadron;
+  std::map<int, vint> jetToPartonIds;
+  std::map<int, vint> jetToHPartonIds;
   for ( auto& jetFlavPair : *genJetFlavourHandle ) {
     const auto& jetRefBase = jetFlavPair.first;
     const auto& flavInfo = jetFlavPair.second;
@@ -68,9 +71,17 @@ void GenJetHadronMatchProducer::produce(edm::Event& event, const edm::EventSetup
     const auto& cHadrons = flavInfo.getcHadrons();
     //const auto& partons = flavInfo.getPartons();
 
-    if      ( !bHadrons.empty() ) jetToFlavour[jetIndex] = 5;
-    else if ( !cHadrons.empty() ) jetToFlavour[jetIndex] = 4;
-    else jetToFlavour[jetIndex] = 0;
+    jetToNBHadron[jetIndex] = bHadrons.size();
+    jetToNCHadron[jetIndex] = cHadrons.size();
+
+    std::set<int> hPartonIds;
+    for ( auto& x : bHadrons ) collectAncestorPartons(x.get(), hPartonIds);
+    for ( auto& x : cHadrons ) collectAncestorPartons(x.get(), hPartonIds);
+
+    jetToHPartonIds.insert(std::make_pair(jetIndex, vint()));
+    auto& vHPartonIds = jetToHPartonIds[jetIndex];
+    vHPartonIds.reserve(hPartonIds.size());
+    std::copy(hPartonIds.begin(), hPartonIds.end(), std::back_inserter(vHPartonIds));
 
     std::set<int> partonIds;
     for ( auto& x : jetRefBase->getJetConstituents() ) {
@@ -78,25 +89,36 @@ void GenJetHadronMatchProducer::produce(edm::Event& event, const edm::EventSetup
       collectAncestorPartons(x.get(), partonIds);
     }
 
-    jetToPartonIds.insert(std::make_pair(jetIndex, std::vector<int>()));
+    jetToPartonIds.insert(std::make_pair(jetIndex, vint()));
     auto& vPartonIds = jetToPartonIds[jetIndex];
     vPartonIds.reserve(partonIds.size());
     std::copy(partonIds.begin(), partonIds.end(), std::back_inserter(vPartonIds));
   }
 
-  std::auto_ptr<vint> out_flavours(new vint);
-  std::auto_ptr<vvint> out_ancestorIds(new vvint);
+  std::auto_ptr<vint> out_nBHadron(new vint), out_nCHadron(new vint);
+  std::auto_ptr<vvint> out_ancestors(new vvint);
+  std::auto_ptr<vvint> out_hAncestors(new vvint);
   for ( int i=0, n=genJetHandle->size(); i<n; ++i ) {
-    auto fitr = jetToFlavour.find(i);
-    if ( fitr == jetToFlavour.end() ) out_flavours->push_back(0);
-    else out_flavours->push_back(fitr->second);
+    auto nbitr = jetToNBHadron.find(i);
+    if ( nbitr == jetToNBHadron.end() ) out_nBHadron->push_back(0);
+    else out_nBHadron->push_back(nbitr->second);
 
-    auto itr = jetToPartonIds.find(i);
-    if ( itr == jetToPartonIds.end() ) out_ancestorIds->push_back(vint());
-    else out_ancestorIds->push_back(itr->second);
+    auto ncitr = jetToNCHadron.find(i);
+    if ( ncitr == jetToNCHadron.end() ) out_nCHadron->push_back(0);
+    else out_nCHadron->push_back(ncitr->second);
+
+    auto pitr = jetToPartonIds.find(i);
+    if ( pitr == jetToPartonIds.end() ) out_ancestors->push_back(vint());
+    else out_ancestors->push_back(pitr->second);
+
+    auto hitr = jetToHPartonIds.find(i);
+    if ( hitr == jetToHPartonIds.end() ) out_hAncestors->push_back(vint());
+    else out_hAncestors->push_back(hitr->second);
   }
-  event.put(out_flavours, "flavour");
-  event.put(out_ancestorIds, "ancestorIds");
+  event.put(out_nBHadron, "nBHadron");
+  event.put(out_nCHadron, "nCHadron");
+  event.put(out_ancestors, "ancestors");
+  event.put(out_hAncestors, "hadronAncestors");
 
 }
 
