@@ -23,11 +23,14 @@ public:
 
   void addWeightGroup(const std::string typeName, const std::string combineBy, const std::vector<std::string> weightParams);
 
+  enum KnownTypes { NONE=-1, Nominal, PDF, ScaleUp, ScaleDown };
+  static KnownTypes toKnownType(std::string typeName);
+
 private:
   std::vector<std::string> typeNames_;
   std::vector<std::string> combineMethods_;
   std::vector<std::vector<std::string> > weightParams_;
-  
+
 };
 
 class GenWeights {
