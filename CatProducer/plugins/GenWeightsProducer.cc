@@ -143,7 +143,6 @@ void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
         if ( string(weightNode->GetNodeName()) != "weight" ) continue;
         ++weightSize;
         ++weightTotalSize;
-        if ( weightSize == 1 ) continue; // Skip the first one of the weight group since it is the nominal value.
         weightParams.push_back(weightNode->GetText());
         if ( weightType == 1 ) {
           // FIXME: For the first implementation, we assume scale up/down weights are fixed.
