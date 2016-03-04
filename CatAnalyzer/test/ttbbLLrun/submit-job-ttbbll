@@ -39,7 +39,7 @@ for aa in dataset:
    #  ddd+= args[2]+" 20 "
 
    fff = "/store/user/youngjo/Cattools/v7-6-3v1/"+aa['name']+"v1"
-   ddd+= args[3]+" run_TtbarBbbarDiLeptonAnalyzer_cfg.py "
+   ddd+= args[3]+" ../run_TtbarBbbarDiLeptonAnalyzer_cfg.py "
    #else       : ddd+= args[3]+" run_TtbarBbbarDiLeptonAnalyzer_bkg_cfg.py "
    ddd+= args[4]+" "+fff+" "
 
