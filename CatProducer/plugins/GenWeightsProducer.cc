@@ -221,6 +221,8 @@ void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& event
   const float x1 = genInfoHandle->pdf()->x.first;
   const float x2 = genInfoHandle->pdf()->x.second;
   out_genWeights->setInfo(id1, id2, x1, x2, q);
+  out_genWeights->setLHEWeight(lheWeight);
+  out_genWeights->setGenWeight(genWeight);
 
   if ( doLOPDFReweight_ )
   {
