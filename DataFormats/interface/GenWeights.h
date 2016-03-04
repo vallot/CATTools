@@ -21,7 +21,9 @@ public:
   std::string combineMethod(int i) const { return combineMethods_.at(i); }
   std::vector<std::string> weightParams(int i) const { return weightParams_.at(i); }
 
-  void addWeightGroup(const std::string typeName, const std::string combineBy, const std::vector<std::string> weightParams);
+  int print() const;
+
+  void addWeightGroup(const std::string typeName, const std::string combineBy, const std::vector<std::string> weightParams, const std::vector<std::string> weightKey);
 
   enum KnownTypes { NONE=-1, Nominal, PDF, ScaleUp, ScaleDown };
   static KnownTypes toKnownType(std::string typeName);
@@ -29,6 +31,7 @@ public:
 private:
   std::vector<std::string> typeNames_;
   std::vector<std::string> combineMethods_;
+  std::vector<std::vector<std::string> > weightKeys_;
   std::vector<std::vector<std::string> > weightParams_;
 
 };

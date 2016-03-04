@@ -124,7 +124,7 @@ void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
 
     // XML is ready. Browser the xmldoc and find nodes with weight information
     TXMLNode* topNode = xmlParser.GetXMLDocument()->GetRootNode();
-    int weightTotalSize = 0;
+    int weightTotalSize = 0, nOtherWeights = 0;
     for ( TXMLNode* grpNode = topNode->GetChildren(); grpNode != 0; grpNode = grpNode->GetNextNode() )
     {
       if ( string(grpNode->GetNodeName()) != "weightgroup" ) continue;
@@ -137,26 +137,41 @@ void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
       if ( weightTypeStr.substr(0, 5) == "scale" ) weightType = 1;
       else if ( weightTypeStr.substr(0, 3) == "PDF" ) weightType = 2;
       int weightSize = 0;
-      vstring weightParams;
+      vstring weightParams, weightKeys;
       for ( TXMLNode* weightNode = grpNode->GetChildren(); weightNode != 0; weightNode = weightNode->GetNextNode() )
       {
         if ( string(weightNode->GetNodeName()) != "weight" ) continue;
         ++weightSize;
         ++weightTotalSize;
+        string weightKey;
         weightParams.push_back(weightNode->GetText());
         if ( weightType == 1 ) {
           // FIXME: For the first implementation, we assume scale up/down weights are fixed.
           // FIXME: Maybe this can be updated to parse parameter string to distinguish them.
           // FIXME: up=(1002, 1004, 1005), down=(1003, 1007, 1009), unphysical=(1006, 1008)
-          if ( weightSize == 2 or weightSize == 4 or weightSize == 5 ) scaleUpWeightIdxs_.insert(weightTotalSize-1);
-          else if ( weightSize == 3 or weightSize == 7 or weightSize == 9 ) scaleDownWeightIdxs_.insert(weightTotalSize-1);
+          if ( weightSize == 2 or weightSize == 4 or weightSize == 5 ) {
+            weightKey = "scaleUpWeights["+std::to_string(scaleUpWeightIdxs_.size())+"]";
+            scaleUpWeightIdxs_.insert(weightTotalSize-1);
+          }
+          else if ( weightSize == 3 or weightSize == 7 or weightSize == 9 ) {
+            weightKey = "scaleDownWeights["+std::to_string(scaleUpWeightIdxs_.size())+"]";
+            scaleDownWeightIdxs_.insert(weightTotalSize-1);
+          }
+          else weightKey = "otherWeights["+std::to_string(nOtherWeights++)+"]";
         }
-        else if ( weightType == 2 ) pdfWeightIdxs_.insert(weightTotalSize-1);
+        else if ( weightType == 2 ) {
+          weightKey = "pdfWeights["+std::to_string(pdfWeightIdxs_.size())+"]";
+          pdfWeightIdxs_.insert(weightTotalSize-1);
+        }
+        else {
+          weightKey = "otherWeights["+std::to_string(nOtherWeights++)+"]";
+        }
+        weightKeys.push_back(weightKey);
       }
 
       auto weightCombineByObj = (TXMLAttr*)grpNode->GetAttributes()->FindObject("combine");
       string combineBy = weightCombineByObj ? weightCombineByObj->GetValue() : "";
-      out_genWeightInfo->addWeightGroup(weightTypeStr, combineBy, weightParams);
+      out_genWeightInfo->addWeightGroup(weightTypeStr, combineBy, weightParams, weightKeys);
     }
 
   } while ( false );

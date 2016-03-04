@@ -1,14 +1,16 @@
 #include "CATTools/DataFormats/interface/GenWeights.h"
 #include <algorithm>
+#include <iostream>
 
 using namespace std;
 using namespace cat;
 
-void GenWeightInfo::addWeightGroup(const string typeName, const string combineBy, const vector<string> weightParams)
+void GenWeightInfo::addWeightGroup(const string typeName, const string combineBy, const vector<string> weightParams, const vector<string> weightKeys)
 {
   typeNames_.push_back(typeName);
   combineMethods_.push_back(combineBy);
   weightParams_.push_back(weightParams);
+  weightKeys_.push_back(weightKeys);
 }
 
 GenWeightInfo::KnownTypes GenWeightInfo::toKnownType(string typeName)
@@ -38,5 +40,19 @@ void GenWeights::setInfo(const int id1, const int id2, const float x1, const flo
   x1_ = x1;
   x2_ = x2;
   qScale_ = qScale;
+}
+
+int GenWeightInfo::print() const
+{
+  cout << "------------------------------------------------\n";
+  for ( int i=0, n=typeNames_.size(); i<n; ++i ) {
+    cout << typeNames_[i] << ' ' << combineMethods_[i] << endl;
+    for ( int j=0, m=weightParams_[i].size(); j<m; ++j ) {
+      cout << "  -> " << weightParams_[i][j] << " access using " << weightKeys_[i][j] << endl;
+    }
+  }
+  cout << "------------------------------------------------\n";
+
+  return 0;
 }
 
