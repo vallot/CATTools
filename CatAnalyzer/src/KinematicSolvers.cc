@@ -297,6 +297,57 @@ void DESYSmearedSolver::solve(const LV input[])
   const double b4 = (j2E*l2.pz()-l2E*j2.pz())/l2E/(j2E+l2E);
 
   std::vector<double> koef, cache, sols;
+  double minMTTsqr = -1;
+  double nu1sol[4] = {}, nu2sol[4] = {};
+
+  do {
+    // Compute weight by m(B,L)
+    const double w1 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin((l1+j1).mass()));
+    const double w2 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin((l2+j2).mass()));
+    const double weight = w1*w2/h_mbl_w_->Integral()/h_mbl_w_->Integral();
+    if ( weight <= 0 ) break;
+
+    // First try to run the solver without smearing
+    KinSolverUtils::findCoeffs(mTopInput_, 80.4, 80.4, l1, l2, j1, j2, metX, metY, koef, cache);
+    KinSolverUtils::solve_quartic(koef, a4, b4, sols);
+
+    // Choose one solution with minimal mass of top pair
+    for ( const double& sol : sols ) {
+      // Recompute neutrino four momentum
+      double nu1solTmp[4], nu2solTmp[4];
+      KinSolverUtils::getNuPxPyPzE(sol, cache, nu1solTmp, nu2solTmp);
+      bool hasNan = false;
+      for ( int i=0; i<4; ++i ) {
+        if ( std::isnan(nu1solTmp[i]) or std::isnan(nu2solTmp[i]) ) {
+          hasNan = true;
+          break;
+        }
+      }
+      if ( hasNan ) continue;
+
+      const double ttX = visSum.px()+nu1sol[0]+nu2sol[0];
+      const double ttY = visSum.py()+nu1sol[1]+nu2sol[1];
+      const double ttZ = visSum.pz()+nu1sol[2]+nu2sol[2];
+      const double ttE = visSum.E()+nu1sol[3]+nu2sol[3];
+      const double mTTsqr = ttE*ttE-ttX*ttX-ttY*ttY-ttZ*ttZ;
+
+      if ( minMTTsqr < 0 or mTTsqr < minMTTsqr ) {
+        minMTTsqr = mTTsqr;
+        std::copy(nu1solTmp, nu1solTmp+4, nu1sol);
+        std::copy(nu2solTmp, nu2solTmp+4, nu2sol);
+      }
+    }
+    if ( minMTTsqr > 0 ) {
+      l1_ = l1; l2_ = l2; j1_ = j1; j2_ = j2;
+      nu1_.SetXYZT(nu1sol[0], nu1sol[1], nu1sol[2], nu1sol[3]);
+      nu2_.SetXYZT(nu2sol[0], nu2sol[1], nu2sol[2], nu2sol[3]);
+      quality_ = weight;
+
+      return;
+    }
+  } while ( false );
+
+  // Continue to get smeared solution if exact solver fails
   // Try 100 times with energy/angle smearing. Take weighted average of solutions
   //double sumW = 0., maxSumW = 0;
   // Set random seed using kinematics (follow DESY code)
