@@ -354,6 +354,7 @@ void DESYSmearedSolver::solve(const LV input[])
     }
     if ( maxWeightSol > 0 ) {
       if ( weightByMnub_ ) weight *= maxWeightSol;
+      else weight = sqrt(weight);
       l1_ = l1; l2_ = l2; j1_ = j1; j2_ = j2;
       nu1_.SetXYZT(nu1sol[0], nu1sol[1], nu1sol[2], nu1sol[3]);
       nu2_.SetXYZT(nu2sol[0], nu2sol[1], nu2sol[2], nu2sol[3]);
@@ -437,6 +438,7 @@ void DESYSmearedSolver::solve(const LV input[])
     if ( maxWeightSol <= 0 ) continue;
 
     if ( weightByMnub_ ) weight *= maxWeightSol;
+    else weight = sqrt(weight);
     sumW += weight;
     sumP[0][0] += weight*newl1.px(); sumP[0][1] += weight*newl1.py(); sumP[0][2] += weight*newl1.pz();
     sumP[1][0] += weight*newl2.px(); sumP[1][1] += weight*newl2.py(); sumP[1][2] += weight*newl2.pz();
