@@ -252,7 +252,8 @@ DESYSmearedSolver::DESYSmearedSolver(const edm::ParameterSet& pset):
   KinematicSolver(pset),
   nTrial_(pset.getParameter<int>("nTrial")),
   maxLBMass_(pset.getParameter<double>("maxLBMass")),
-  mTopInput_(pset.getParameter<double>("mTopInput"))
+  mTopInput_(pset.getParameter<double>("mTopInput")),
+  weightByMnub_(pset.getParameter<bool>("weightByMnub"))
 {
   rng_ = 0;
 
@@ -297,14 +298,13 @@ void DESYSmearedSolver::solve(const LV input[])
   const double b4 = (j2E*l2.pz()-l2E*j2.pz())/l2E/(j2E+l2E);
 
   std::vector<double> koef, cache, sols;
-  double minMTTsqr = -1;
   double nu1sol[4] = {}, nu2sol[4] = {};
 
   do {
     // Compute weight by m(B,L)
     const double w1 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin((l1+j1).mass()));
     const double w2 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin((l2+j2).mass()));
-    const double weight = w1*w2/h_mbl_w_->Integral()/h_mbl_w_->Integral();
+    double weight = w1*w2/h_mbl_w_->Integral()/h_mbl_w_->Integral();
     if ( weight <= 0 ) break;
 
     // First try to run the solver without smearing
@@ -312,6 +312,7 @@ void DESYSmearedSolver::solve(const LV input[])
     KinSolverUtils::solve_quartic(koef, a4, b4, sols);
 
     // Choose one solution with minimal mass of top pair
+    double maxWeightSol = 0;
     for ( const double& sol : sols ) {
       // Recompute neutrino four momentum
       double nu1solTmp[4], nu2solTmp[4];
@@ -324,20 +325,35 @@ void DESYSmearedSolver::solve(const LV input[])
         }
       }
       if ( hasNan ) continue;
+      const LV nu1(nu1solTmp[0], nu1solTmp[1], nu1solTmp[2], nu1solTmp[3]);
+      const LV nu2(nu2solTmp[0], nu2solTmp[1], nu2solTmp[2], nu2solTmp[3]);
 
-      const double ttX = visSum.px()+nu1sol[0]+nu2sol[0];
-      const double ttY = visSum.py()+nu1sol[1]+nu2sol[1];
-      const double ttZ = visSum.pz()+nu1sol[2]+nu2sol[2];
-      const double ttE = visSum.E()+nu1sol[3]+nu2sol[3];
-      const double mTTsqr = ttE*ttE-ttX*ttX-ttY*ttY-ttZ*ttZ;
+      if ( weightByMnub_ ) {
+        const double nw1 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin((nu1+j1).mass()));
+        const double nw2 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin((nu2+j2).mass()));
+        const double nw = nw1*nw2/h_mbl_w_->Integral()/h_mbl_w_->Integral();
+        if ( nw <= 0 ) continue;
 
-      if ( minMTTsqr < 0 or mTTsqr < minMTTsqr ) {
-        minMTTsqr = mTTsqr;
-        std::copy(nu1solTmp, nu1solTmp+4, nu1sol);
-        std::copy(nu2solTmp, nu2solTmp+4, nu2sol);
+        if ( nw > maxWeightSol ) {
+          maxWeightSol = nw;
+          std::copy(nu1solTmp, nu1solTmp+4, nu1sol);
+          std::copy(nu2solTmp, nu2solTmp+4, nu2sol);
+        }
+      }
+      else {
+        const LV tt = visSum+nu1+nu2;
+        const double mTTsqr = tt.M2();
+        if ( mTTsqr == 0 ) continue;
+
+        if ( 1./mTTsqr > maxWeightSol ) {
+          maxWeightSol = 1./mTTsqr;
+          std::copy(nu1solTmp, nu1solTmp+4, nu1sol);
+          std::copy(nu2solTmp, nu2solTmp+4, nu2sol);
+        }
       }
     }
-    if ( minMTTsqr > 0 ) {
+    if ( maxWeightSol > 0 ) {
+      if ( weightByMnub_ ) weight *= maxWeightSol;
       l1_ = l1; l2_ = l2; j1_ = j1; j2_ = j2;
       nu1_.SetXYZT(nu1sol[0], nu1sol[1], nu1sol[2], nu1sol[3]);
       nu2_.SetXYZT(nu2sol[0], nu2sol[1], nu2sol[2], nu2sol[3]);
@@ -371,7 +387,7 @@ void DESYSmearedSolver::solve(const LV input[])
     // Compute weight by m(B,L)
     const double w1 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin((newl1+newj1).mass()));
     const double w2 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin((newl2+newj2).mass()));
-    const double weight = w1*w2/h_mbl_w_->Integral()/h_mbl_w_->Integral();
+    double weight = w1*w2/h_mbl_w_->Integral()/h_mbl_w_->Integral();
     if ( weight <= 0 ) continue;
 
     KinSolverUtils::findCoeffs(mTopInput_, getRandom(h_wmass_.get()), getRandom(h_wmass_.get()),
@@ -379,7 +395,7 @@ void DESYSmearedSolver::solve(const LV input[])
     KinSolverUtils::solve_quartic(koef, a4, b4, sols);
     double nu1sol[4] = {}, nu2sol[4] = {};
     // Choose one solution with minimal mass of top pair
-    double minMTTsqr = -1;
+    double maxWeightSol = 0;
     for ( const double& sol : sols ) {
       // Recompute neutrino four momentum
       double nu1solTmp[4], nu2solTmp[4];
@@ -392,21 +408,35 @@ void DESYSmearedSolver::solve(const LV input[])
         }
       }
       if ( hasNan ) continue;
+      const LV nu1(nu1solTmp[0], nu1solTmp[1], nu1solTmp[2], nu1solTmp[3]);
+      const LV nu2(nu2solTmp[0], nu2solTmp[1], nu2solTmp[2], nu2solTmp[3]);
 
-      const double ttX = visSum.px()+nu1sol[0]+nu2sol[0];
-      const double ttY = visSum.py()+nu1sol[1]+nu2sol[1];
-      const double ttZ = visSum.pz()+nu1sol[2]+nu2sol[2];
-      const double ttE = visSum.E()+nu1sol[3]+nu2sol[3];
-      const double mTTsqr = ttE*ttE-ttX*ttX-ttY*ttY-ttZ*ttZ;
+      if ( weightByMnub_ ) {
+        const double nw1 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin((nu1+newj1).mass()));
+        const double nw2 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin((nu2+newj2).mass()));
+        const double nw = nw1*nw2/h_mbl_w_->Integral()/h_mbl_w_->Integral();
+        if ( nw <= 0 ) continue;
 
-      if ( minMTTsqr < 0 or mTTsqr < minMTTsqr ) {
-        minMTTsqr = mTTsqr;
-        std::copy(nu1solTmp, nu1solTmp+4, nu1sol);
-        std::copy(nu2solTmp, nu2solTmp+4, nu2sol);
+        if ( nw > maxWeightSol ) {
+          maxWeightSol = nw;
+          std::copy(nu1solTmp, nu1solTmp+4, nu1sol);
+          std::copy(nu2solTmp, nu2solTmp+4, nu2sol);
+        }
+      }
+      else {
+        const LV tt = visSum + nu1 + nu2;
+        const double mTTsqr = tt.M2();
+
+        if ( 1./mTTsqr > maxWeightSol ) {
+          maxWeightSol = 1./mTTsqr;
+          std::copy(nu1solTmp, nu1solTmp+4, nu1sol);
+          std::copy(nu2solTmp, nu2solTmp+4, nu2sol);
+        }
       }
     }
-    if ( minMTTsqr < 0 ) continue;
+    if ( maxWeightSol <= 0 ) continue;
 
+    if ( weightByMnub_ ) weight *= maxWeightSol;
     sumW += weight;
     sumP[0][0] += weight*newl1.px(); sumP[0][1] += weight*newl1.py(); sumP[0][2] += weight*newl1.pz();
     sumP[1][0] += weight*newl2.px(); sumP[1][1] += weight*newl2.py(); sumP[1][2] += weight*newl2.pz();
