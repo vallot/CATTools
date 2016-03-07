@@ -817,7 +817,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	b_desytop2_rapi = top2.Rapidity();
 	b_desytop2_m = top2.M();
 
-	auto ttbar = top1+top2;
+	LV ttbar = kinematicReconstructionSolutions.solution().ttbar();
 	b_desyttbar_pt = ttbar.Pt();
 	b_desyttbar_eta = ttbar.Eta();
 	b_desyttbar_dphi = deltaPhi(top1.Phi(), top2.Phi());
