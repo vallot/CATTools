@@ -48,7 +48,7 @@ void KinSolverUtils::findCoeffs(const double mT, const double mW1, const double 
   const double a14 = a1/a4, a24 = a2/a4, a34 = a3/a4;
   const double c00 = -4*(dxsqr(l1E, l1.py()) + dxsqr(l1E, l1.pz())*a34*a34 + 2*l1.py()*l1.pz()*a34)/divC;
   const double c10 = -8*(dxsqr(l1E, l1.pz())*a24*a34 - l1.px()*l1.py() + l1.px()*l1.pz()*a34 + l1.py()*l1.pz()*a24)/divC;
-  const double c20 = -4*(dxsqr(l1E, l1.px()) + dxsqr(l1E, l1.pz())*sqr(a2/a4) + 2*l1.px()*l1.pz()*a24)/divC; 
+  const double c20 = -4*(dxsqr(l1E, l1.px()) + dxsqr(l1E, l1.pz())*a24*a24 + 2*l1.px()*l1.pz()*a24)/divC;
   const double c11 = 4*(dmW1*(l1.py()-l1.pz()*a34)-2*dxsqr(l1E, l1.pz())*a14*a34-2*l1.py()*l1.pz()*a14)/divC;
   const double c21 = 4*(dmW1*(l1.px()-l1.pz()*a24)-2*dxsqr(l1E, l1.pz())*a14*a24-2*l1.px()*l1.pz()*a14)/divC;
   const double c22 = (dmW1*dmW1-4*dxsqr(l1E, l1.pz())*a14*a14-4*dmW1*l1.pz()*a14)/divC;
@@ -181,7 +181,7 @@ void KinSolverUtils::solve_quartic(const std::vector<double>& h,
 
   const double h0 = h[0], h1 = h[1], h2 = h[2], h3 = h[3], h4 = h[4];
   if ( isZero(h0) ) return solve_cubic(h1, h2, h3, h4, v);
-  if ( isZero(h3) ) {
+  if ( isZero(h4) ) {
     solve_cubic(h0, h1, h2, h3, v);
     v.push_back(0);
     return;
