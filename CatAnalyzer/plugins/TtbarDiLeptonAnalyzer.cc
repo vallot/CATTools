@@ -583,16 +583,15 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         auto gentop1 = w1 + bjet1;
         auto gentop2 = w2 + bjet2;
 	
-        if ( true ) {
-          const auto t1Alt = w1 + bjet2;
-          const auto t2Alt = w2 + bjet1;
+        // if ( true ) {
+        //   const auto t1Alt = w1 + bjet2;
+        //   const auto t2Alt = w2 + bjet1;
 
-          const double tMass = 172.5;
-          const double dm = std::abs(gentop1.mass()-tMass)+std::abs(gentop2.mass()-tMass);
-          const double dmAlt = std::abs(t1Alt.mass()-tMass)+std::abs(t2Alt.mass()-tMass);
-          if ( dm > dmAlt ) { gentop1 = t1Alt; gentop2 = t2Alt; std::swap(bjet1, bjet2); }
-        }
-
+        //   const double tMass = 172.5;
+        //   const double dm = std::abs(gentop1.mass()-tMass)+std::abs(gentop2.mass()-tMass);
+        //   const double dmAlt = std::abs(t1Alt.mass()-tMass)+std::abs(t2Alt.mass()-tMass);
+        //   if ( dm > dmAlt ) { gentop1 = t1Alt; gentop2 = t2Alt; std::swap(bjet1, bjet2); }
+        // }
 	//        if (gentop1.Pt() < gentop2.Pt()) { swap(gentop1, gentop2); }
 	if (pseudoTopLeptonHandle->at(leptonIdxs[0]).charge() < 0) swap(gentop1, gentop2);
         b_gentop1_pt = gentop1.Pt();
