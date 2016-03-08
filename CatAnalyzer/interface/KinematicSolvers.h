@@ -109,6 +109,7 @@ protected:
 
   const int nTrial_;
   const double maxLBMass_, mTopInput_;
+  const bool weightByMnub_;
 };
 
 // Neutrino weighting method (from thesis by Temple)
