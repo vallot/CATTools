@@ -416,12 +416,12 @@ void TtbarDiLeptonAnalyzer::beginLuminosityBlock(const edm::LuminosityBlock& lum
 void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   const bool runOnMC = !iEvent.isRealData();
-
   cutflow_[0][0]++;
 
   for (int sys = 0; sys < nsys_e; ++sys){
     if (sys > 0 && !runOnMC) break;
     resetBr();
+    bool keepTtbarSignal = false;
 
     edm::Handle<int> partonTop_channel;
     if ( iEvent.getByToken(partonTop_channel_, partonTop_channel)){
@@ -457,6 +457,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         b_partonMode1 = (*partonTop_modes)[0];
         b_partonMode2 = (*partonTop_modes)[1];
       }
+      if (b_partonChannel == CH_FULLLEPTON) keepTtbarSignal = true;
 
       if ( !(partonTop_genParticles->empty()) ){
 
@@ -550,7 +551,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
           case 24: b_pseudoTopChannel = CH_MUEL; break;
           default: b_pseudoTopChannel = CH_NOLL;
         }
-
+	if (b_pseudoTopChannel > 0) keepTtbarSignal = true;
         //std::nth_element(neutrinoIdxs.begin(), neutrinoIdxs.begin()+2, neutrinoIdxs.end(),
         //                 [&](size_t i, size_t j){return pseudoTopLeptonHandle->at(i).pt() > pseudoTopLeptonHandle->at(j).pt();});
         auto nu1 = pseudoTopNeutrinoHandle->at(0).p4(), nu2 = pseudoTopNeutrinoHandle->at(1).p4();
@@ -652,7 +653,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     edm::Handle<reco::VertexCollection> vertices;
     iEvent.getByToken(vtxToken_, vertices);
     if (vertices->empty()){ // skip the event if no PV found
-      //ttree_[sys]->Fill();
+      if (keepTtbarSignal) ttree_[sys]->Fill();
       continue;
     }
     if (sys == sys_nom) cutflow_[1][b_channel]++;
@@ -688,7 +689,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     selectMuons(*muons, selMuons, (sys_e)sys);
     selectElecs(*electrons, selElecs, (sys_e)sys);
     if ( selMuons.size()+selElecs.size() < 2 ) {
-      //ttree_[sys]->Fill();
+      if (keepTtbarSignal) ttree_[sys]->Fill();      
       continue;
     }
     if (sys == sys_nom) cutflow_[3][b_channel]++;
@@ -739,7 +740,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     b_ll_pt = tlv_ll.Pt(); b_ll_eta = tlv_ll.Eta(); b_ll_phi = tlv_ll.Phi(); b_ll_m = tlv_ll.M();
 
     if (b_ll_m < 20. || recolep1.charge() * recolep2.charge() > 0){
-      //ttree_[sys]->Fill();
+      if (keepTtbarSignal) ttree_[sys]->Fill();
       continue;
     }
     b_step1 = true;
