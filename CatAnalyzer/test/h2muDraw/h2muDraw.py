@@ -14,11 +14,24 @@ h2muDraw.py -c 'll_m>50&&step>=5&&isTight==1&&filtered==1' -b [100,-3,3] -p lep1
 '''
 
 json_used = 'Golden'
-datalumi = 2110
-rootfileDir = "/cms/scratch/jlee/v7-4-6/h2muAnalyzer_"
+datalumi = 2260
+rootfileDir = "%s/src/CATTools/CatAnalyzer/test/results_merged/h2muAnalyzer_" % os.environ['CMSSW_BASE']
 
 CMS_lumi.lumi_sqrtS = "%.0f pb^{-1}, #sqrt{s} = 13 TeV 25ns "%(datalumi)
-mcfilelist = ['VBF_HToMuMu','DYJets','ZZTo4L_powheg','ZZTo2L2Q','ZZTo2L2Nu_powheg','WWTo2L2Nu_powheg','WZTo2L2Q','WZTo3LNu_powheg','GluGluToZZTo2mu2tau','GluGluToZZTo2e2mu','GluGluToZZTo4mu','TTJets_aMC','ttZToLLNuNu']#ref : https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToMuMu
+mcfilelist = ['VBF_HToMuMu',
+              'DYJets',
+              'ZZTo4L_powheg',
+              'ZZTo2L2Q',
+              'ZZTo2L2Nu_powheg',
+              'WWTo2L2Nu_powheg',
+              'WZTo2L2Q',
+              'WZTo3LNu_powheg',
+             # 'GluGluToZZTo2mu2tau',
+             # 'GluGluToZZTo2e2mu',
+             # 'GluGluToZZTo4mu',
+              'TTJets_aMC',
+             # 'ttZToLLNuNu',
+             ]#ref : https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToMuMu
 #mcfilelist = ['VBF_HToMuMu','WW','WZ','ZZ','TT_powheg','DYJets','DYJets_10to50']#,'WJets']
 rdfilelist = ['SingleMuon_Run2015']
 
@@ -63,11 +76,24 @@ for opt, arg in opts:
 print plotvar, x_name, f_name
 
 if json_used=='Silver':
-    datalumi = 2460
-    rootfileDir = "/cms/scratch/jlee/v7-4-6/h2muAnalyzerSilver_"
+    datalumi = 2630
+    rootfileDir = "%s/src/CATTools/CatAnalyzer/test/results_merged/h2muAnalyzerSilver_" % os.environ['CMSSW_BASE']
 
     CMS_lumi.lumi_sqrtS = "%.0f pb^{-1}, #sqrt{s} = 13 TeV 25ns "%(datalumi)
-    mcfilelist = ['GG_HToMuMu','DYJets','ZZTo4L_powheg','ZZTo2L2Q','ZZTo2L2Nu_powheg','WWTo2L2Nu_powheg','WZTo2L2Q','WZTo3LNu_powheg','GluGluToZZTo2mu2tau','GluGluToZZTo2e2mu','GluGluToZZTo4mu','TTJets_aMC','ttZToLLNuNu']#ref : https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToMuMu
+    mcfilelist = ['GG_HToMuMu',
+                  'DYJets',
+                  'ZZTo4L_powheg',
+                  'ZZTo2L2Q',
+                  'ZZTo2L2Nu_powheg',
+                  'WWTo2L2Nu_powheg',
+                  'WZTo2L2Q',
+                  'WZTo3LNu_powheg',
+                 # 'GluGluToZZTo2mu2tau',
+                 # 'GluGluToZZTo2e2mu',
+                 # 'GluGluToZZTo4mu',
+                  'TTJets_aMC',
+                 # 'ttZToLLNuNu'
+                 ]#ref : https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToMuMu
     #mcfilelist = ['GG_HToMuMu','WW','WZ','ZZ','TT_powheg','DYJets','DYJets_10to50']#,'WJets'] silver
     rdfilelist = ['SingleMuon_Run2015']
     f_name = "Silver_"+f_name 
@@ -97,7 +123,9 @@ for mcname in mcfilelist:
 rfname = rootfileDir + rdfilelist[0] +".root"
 rdhist = makeTH1(rfname, tname, 'data', binning, plotvar, tcut)
 if plotvar == 'll_m':# blind data around higgs mass
+    f_txt = open("events_%s.txt"%(f_name),"w")
+    print>>f_txt, "\n cut : %s\n # : %d\n"%(f_name,rdhist.Integral(rdhist.FindBin(100),rdhist.FindBin(110)))
     for i in range(11):
         rdhist.SetBinContent(120+i,0)
-
+    f_txt.close()
 drawTH1(f_name+".png", CMS_lumi, mchistList, rdhist, x_name, y_name,dolog)

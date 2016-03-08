@@ -297,12 +297,6 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   b_step = 2;
   b_step2 = true;
 
-  if (b_ll_m < 20){
-    ttree_->Fill();
-    return;
-  }
-  b_step = 3;
-  b_step3 = true;
   
   edm::Handle<edm::TriggerResults> triggerBits;
   edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
@@ -312,19 +306,25 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   AnalysisHelper trigHelper = AnalysisHelper(triggerNames, triggerBits, triggerObjects);
 
   if (trigHelper.triggerFired("HLT_IsoMu20_v") || trigHelper.triggerFired("HLT_IsoTrkMu20_v")){
-    b_step = 4;
-    b_step4 = true;
+    b_step = 3;
+    b_step3 = true;
   }
 
   if ( trigHelper.triggerMatched("HLT_IsoMu20_v", selectedMuons[0]) ||
        trigHelper.triggerMatched("HLT_IsoMu20_v", selectedMuons[1]) ||
        trigHelper.triggerMatched("HLT_IsoTrkMu20_v", selectedMuons[0]) ||
        trigHelper.triggerMatched("HLT_IsoTrkMu20_v", selectedMuons[1])){
-    b_tri = true;
-    b_step = 5;
-    b_step5 = true;
+      
+      b_step = 4;
+      b_step4 = true;
+      b_tri = true;
+      
+      if ((selectedMuons[0].pt() > 20. && std::abs(selectedMuons[0].eta()) < 2.4) ||
+          (selectedMuons[1].pt() > 20. && std::abs(selectedMuons[1].eta()) < 2.4) ){
+        b_step = 5;
+        b_step5 = true;
+      }
   }
-
   // -----------------------------  Jet Category  -----------------------------------
   b_cat_jet = jetCategory(selectedJets, b_met, b_ll_pt);
 
@@ -335,10 +335,10 @@ cat::MuonCollection h2muAnalyzer::selectMuons(const cat::MuonCollection& muons )
 {
   cat::MuonCollection selmuons;
   for (auto mu : muons) {
-    if (mu.pt() <= 20.) continue;
+    if (mu.pt() <= 10.) continue;
     if (std::abs(mu.eta()) >= 2.4) continue;
     if (!mu.isLooseMuon()) continue;
-    if (mu.relIso(0.4) >= 0.15) continue;
+    if (mu.relIso(0.4) >= 0.25) continue;//???
     //printf("muon with pt %4.1f, POG loose id %d, tight id %d\n", mu.pt(), mu.isLooseMuon(), mu.isTightMuon());
     selmuons.push_back(mu);
   }
