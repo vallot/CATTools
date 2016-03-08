@@ -20,9 +20,13 @@
 #include "CATTools/CatAnalyzer/interface/KinematicSolvers.h"
 
 #include "CATTools/CommonTools/interface/AnalysisHelper.h"
+#include "CATTools/CatAnalyzer/interface/KinematicReconstruction.h"
+#include "CATTools/CatAnalyzer/interface/KinematicReconstructionSolution.h"
+#include "CATTools/CatAnalyzer/interface/analysisUtils.h"
 #include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/Math/interface/deltaPhi.h"
 #include "TTree.h"
+#include "TH1D.h"
 //#include "TLorentzVector.h"
 
 using namespace std;
@@ -101,6 +105,7 @@ private:
   edm::EDGetTokenT<edm::View<reco::Candidate> > pseudoTop_leptons_, pseudoTop_neutrinos_, pseudoTop_jets_;
 
   std::vector<TTree*> ttree_;
+  TH1D * h_nevents;
   int b_nvertex, b_step, b_channel, b_njet, b_nbjet;
   bool b_step1, b_step2, b_step3, b_step4, b_step5, b_step6, b_filtered;
   float b_tri;
@@ -142,14 +147,24 @@ private:
   float b_top1_pt, b_top1_eta, b_top1_phi, b_top1_rapi, b_top1_m;
   float b_top2_pt, b_top2_eta, b_top2_phi, b_top2_rapi, b_top2_m;
   float b_ttbar_pt, b_ttbar_eta, b_ttbar_dphi, b_ttbar_m, b_ttbar_rapi;
+
+  float b_desytop1_pt, b_desytop1_eta, b_desytop1_phi, b_desytop1_rapi, b_desytop1_m;
+  float b_desytop2_pt, b_desytop2_eta, b_desytop2_phi, b_desytop2_rapi, b_desytop2_m;
+  float b_desyttbar_pt, b_desyttbar_eta, b_desyttbar_dphi, b_desyttbar_m, b_desyttbar_rapi;
+
   float b_maxweight;
   int b_is3lep;
 
   //std::unique_ptr<TtFullLepKinSolver> solver;
   std::unique_ptr<KinematicSolver> solver_;
 
+  const KinematicReconstruction* kinematicReconstruction;
+  typedef ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double> > LV;
+  typedef std::vector<LV> VLV;
+
   const static int NCutflow = 10;
   std::vector<std::vector<int> > cutflow_;
+  
 };
 //
 // constructors and destructor
@@ -229,6 +244,8 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
     //    "mueff_u", "mueff_d", "eleff_u", "eleff_d",
     //    "btag_u", "btag_d"
   };
+  
+  h_nevents = fs->make<TH1D>("nevents","nevents",1,0,1);       
   for (int sys = 0; sys < nsys_e; ++sys){
     ttree_.push_back(fs->make<TTree>(sys_name[sys].c_str(), sys_name[sys].c_str()));
     auto tr = ttree_.back();
@@ -354,10 +371,29 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
     tr->Branch("ttbar_rapi", &b_ttbar_rapi, "ttbar_rapi/F");
     tr->Branch("ttbar_m", &b_ttbar_m, "ttbar_m/F");
 
+    tr->Branch("desytop1_pt", &b_desytop1_pt, "desytop1_pt/F");
+    tr->Branch("desytop1_eta", &b_desytop1_eta, "desytop1_eta/F");
+    tr->Branch("desytop1_phi", &b_desytop1_phi, "desytop1_phi/F");
+    tr->Branch("desytop1_rapi", &b_desytop1_rapi, "desytop1_rapi/F");
+    tr->Branch("desytop1_m", &b_desytop1_m, "desytop1_m/F");
+    tr->Branch("desytop2_pt", &b_desytop2_pt, "desytop2_pt/F");
+    tr->Branch("desytop2_eta", &b_desytop2_eta, "desytop2_eta/F");
+    tr->Branch("desytop2_phi", &b_desytop2_phi, "desytop2_phi/F");
+    tr->Branch("desytop2_rapi", &b_desytop2_rapi, "desytop2_rapi/F");
+    tr->Branch("desytop2_m", &b_desytop2_m, "desytop2_m/F");
+    tr->Branch("desyttbar_pt", &b_desyttbar_pt, "desyttbar_pt/F");
+    tr->Branch("desyttbar_eta", &b_desyttbar_eta, "desyttbar_eta/F");
+    tr->Branch("desyttbar_dphi", &b_desyttbar_dphi, "desyttbar_dphi/F");
+    tr->Branch("desyttbar_rapi", &b_desyttbar_rapi, "desyttbar_rapi/F");
+    tr->Branch("desyttbar_m", &b_desyttbar_m, "desyttbar_m/F");
+    
     tr->Branch("is3lep", &b_is3lep, "is3lep/I");
   }
-
+ 
   for (int i = 0; i < NCutflow; i++) cutflow_.push_back({0,0,0,0});
+
+  kinematicReconstruction = new KinematicReconstruction(1, true);
+
 }
 
 TtbarDiLeptonAnalyzer::~TtbarDiLeptonAnalyzer()
@@ -380,12 +416,12 @@ void TtbarDiLeptonAnalyzer::beginLuminosityBlock(const edm::LuminosityBlock& lum
 void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   const bool runOnMC = !iEvent.isRealData();
-
   cutflow_[0][0]++;
 
   for (int sys = 0; sys < nsys_e; ++sys){
     if (sys > 0 && !runOnMC) break;
     resetBr();
+    bool keepTtbarSignal = false;
 
     edm::Handle<int> partonTop_channel;
     if ( iEvent.getByToken(partonTop_channel_, partonTop_channel)){
@@ -421,12 +457,15 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         b_partonMode1 = (*partonTop_modes)[0];
         b_partonMode2 = (*partonTop_modes)[1];
       }
+      if (b_partonChannel == CH_FULLLEPTON) keepTtbarSignal = true;
 
       if ( !(partonTop_genParticles->empty()) ){
 
         // Get Top quark pairs
-        const auto parton1 = &partonTop_genParticles->at(0);
-        const auto parton2 = &partonTop_genParticles->at(1);
+	auto parton1 = &partonTop_genParticles->at(0);
+	auto parton2 = &partonTop_genParticles->at(1);
+	if (parton1->charge() < 0) swap(parton1, parton2);
+	
         b_partontop1_pt = parton1->pt();
         b_partontop1_eta = parton1->eta();
         b_partontop1_phi = parton1->phi();
@@ -512,7 +551,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
           case 24: b_pseudoTopChannel = CH_MUEL; break;
           default: b_pseudoTopChannel = CH_NOLL;
         }
-
+	if (b_pseudoTopChannel > 0) keepTtbarSignal = true;
         //std::nth_element(neutrinoIdxs.begin(), neutrinoIdxs.begin()+2, neutrinoIdxs.end(),
         //                 [&](size_t i, size_t j){return pseudoTopLeptonHandle->at(i).pt() > pseudoTopLeptonHandle->at(j).pt();});
         auto nu1 = pseudoTopNeutrinoHandle->at(0).p4(), nu2 = pseudoTopNeutrinoHandle->at(1).p4();
@@ -544,17 +583,18 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         // Do the top combinations
         auto gentop1 = w1 + bjet1;
         auto gentop2 = w2 + bjet2;
-        if ( true ) {
-          const auto t1Alt = w1 + bjet2;
-          const auto t2Alt = w2 + bjet1;
+	
+        // if ( true ) {
+        //   const auto t1Alt = w1 + bjet2;
+        //   const auto t2Alt = w2 + bjet1;
 
-          const double tMass = 172.5;
-          const double dm = std::abs(gentop1.mass()-tMass)+std::abs(gentop2.mass()-tMass);
-          const double dmAlt = std::abs(t1Alt.mass()-tMass)+std::abs(t2Alt.mass()-tMass);
-          if ( dm > dmAlt ) { gentop1 = t1Alt; gentop2 = t2Alt; std::swap(bjet1, bjet2); }
-        }
-
-        if (gentop1.Pt() < gentop2.Pt()) { swap(gentop1, gentop2); }
+        //   const double tMass = 172.5;
+        //   const double dm = std::abs(gentop1.mass()-tMass)+std::abs(gentop2.mass()-tMass);
+        //   const double dmAlt = std::abs(t1Alt.mass()-tMass)+std::abs(t2Alt.mass()-tMass);
+        //   if ( dm > dmAlt ) { gentop1 = t1Alt; gentop2 = t2Alt; std::swap(bjet1, bjet2); }
+        // }
+	//        if (gentop1.Pt() < gentop2.Pt()) { swap(gentop1, gentop2); }
+	if (pseudoTopLeptonHandle->at(leptonIdxs[0]).charge() < 0) swap(gentop1, gentop2);
         b_gentop1_pt = gentop1.Pt();
         b_gentop1_eta = gentop1.Eta();
         b_gentop1_phi = gentop1.Phi();
@@ -606,14 +646,17 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       b_genweight = (*genweightHandle);
       b_weight = b_genweight*b_puweight;
     }
-
+    
+    if (sys == sys_nom)
+      h_nevents->Fill(0.5,b_puweight*b_genweight);
+      
     edm::Handle<reco::VertexCollection> vertices;
     iEvent.getByToken(vtxToken_, vertices);
     if (vertices->empty()){ // skip the event if no PV found
-      ttree_[sys]->Fill();
+      if (keepTtbarSignal) ttree_[sys]->Fill();
       continue;
     }
-    cutflow_[1][b_channel]++;
+    if (sys == sys_nom) cutflow_[1][b_channel]++;
 
     // const reco::Vertex &PV = vertices->front();
     edm::Handle<int> nGoodVertexHandle;
@@ -633,7 +676,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     //   ttree_[sys]->Fill();
     //   continue;
     // }
-    cutflow_[2][b_channel]++;
+    if (sys == sys_nom) cutflow_[2][b_channel]++;
 
     edm::Handle<cat::MuonCollection> muons;          iEvent.getByToken(muonToken_, muons);
     edm::Handle<cat::ElectronCollection> electrons;  iEvent.getByToken(elecToken_, electrons);
@@ -646,10 +689,10 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     selectMuons(*muons, selMuons, (sys_e)sys);
     selectElecs(*electrons, selElecs, (sys_e)sys);
     if ( selMuons.size()+selElecs.size() < 2 ) {
-      ttree_[sys]->Fill();
+      if (keepTtbarSignal) ttree_[sys]->Fill();      
       continue;
     }
-    cutflow_[3][b_channel]++;
+    if (sys == sys_nom) cutflow_[3][b_channel]++;
 
     std::vector<const cat::Lepton*> recolep;
     for ( const auto& x : selMuons ) recolep.push_back(&x);
@@ -697,17 +740,17 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     b_ll_pt = tlv_ll.Pt(); b_ll_eta = tlv_ll.Eta(); b_ll_phi = tlv_ll.Phi(); b_ll_m = tlv_ll.M();
 
     if (b_ll_m < 20. || recolep1.charge() * recolep2.charge() > 0){
-      ttree_[sys]->Fill();
+      if (keepTtbarSignal) ttree_[sys]->Fill();
       continue;
     }
     b_step1 = true;
     b_step = 1;
-    cutflow_[4][b_channel]++;
+    if (sys == sys_nom) cutflow_[4][b_channel]++;
 
     if ( (b_channel == CH_MUEL) || ((b_ll_m < 76) || (b_ll_m > 106)) ){
       b_step2 = true;
       b_step = 2;
-      cutflow_[5][b_channel]++;
+      if (sys == sys_nom) cutflow_[5][b_channel]++;
     }
 
     JetCollection&& selectedJets = selectJets(*jets, recolep, (sys_e)sys);
@@ -722,7 +765,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       b_step3 = true;
       if (b_step == 2){
         ++b_step;
-        cutflow_[6][b_channel]++;
+	if (sys == sys_nom) cutflow_[6][b_channel]++;
       }
     }
 
@@ -730,7 +773,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       b_step4 = true;
       if (b_step == 3){
         ++b_step;
-        cutflow_[7][b_channel]++;
+	if (sys == sys_nom) cutflow_[7][b_channel]++;
       }
     }
 
@@ -738,10 +781,59 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       b_step5 = true;
       if (b_step == 4){
         ++b_step;
-        cutflow_[8][b_channel]++;
+	if (sys == sys_nom) cutflow_[8][b_channel]++;
       }
     }
 
+    //////////////////////////////////////////////////////// DESY KIN /////////////////////////////////////
+    if (selectedBJets.size() > 0){
+      vector<int> leptonIndex, antiLeptonIndex, jetIndices, bjetIndices;
+      VLV allLeptonslv, jetslv;
+      vector<double> jetBtags;
+      LV metlv = common::TLVtoLV(mets->front().tlv());
+
+      int ijet=0;
+      for (auto & jet : selectedJets){
+	jetslv.push_back(common::TLVtoLV(jet.tlv()));
+	jetBtags.push_back(jet.bDiscriminator(BTAG_CSVv2));
+	if (jet.bDiscriminator(BTAG_CSVv2) < WP_BTAG_CSVv2L) jetIndices.push_back(ijet);
+	else bjetIndices.push_back(ijet);
+	++ijet;
+      }
+      
+      int ilep = 0;
+      for (auto & lep : recolep){
+	allLeptonslv.push_back(common::TLVtoLV(lep->tlv()));
+	if (lep->charge() > 0) antiLeptonIndex.push_back(ilep);
+	else leptonIndex.push_back(ilep);
+	++ilep;
+      }
+      
+      KinematicReconstructionSolutions kinematicReconstructionSolutions  =  kinematicReconstruction->solutions(leptonIndex, antiLeptonIndex, jetIndices, bjetIndices,  allLeptonslv, jetslv, jetBtags, metlv);
+
+      if (kinematicReconstructionSolutions.numberOfSolutions()){
+	LV top1 = kinematicReconstructionSolutions.solution().top();
+	LV top2 = kinematicReconstructionSolutions.solution().antiTop();
+
+	b_desytop1_pt = top1.Pt();
+	b_desytop1_eta = top1.Eta();
+	b_desytop1_phi = top1.Phi();
+	b_desytop1_rapi = top1.Rapidity();
+	b_desytop1_m = top1.M();
+	b_desytop2_pt = top2.Pt();
+	b_desytop2_eta = top2.Eta();
+	b_desytop2_phi = top2.Phi();
+	b_desytop2_rapi = top2.Rapidity();
+	b_desytop2_m = top2.M();
+
+	LV ttbar = kinematicReconstructionSolutions.solution().ttbar();
+	b_desyttbar_pt = ttbar.Pt();
+	b_desyttbar_eta = ttbar.Eta();
+	b_desyttbar_dphi = deltaPhi(top1.Phi(), top2.Phi());
+	b_desyttbar_m = ttbar.M();
+	b_desyttbar_rapi = ttbar.Rapidity();
+      }
+    }
     ////////////////////////////////////////////////////////  KIN  /////////////////////////////////////
     //int kin=0;
     math::XYZTLorentzVector top1, top2, nu1, nu2, nu_1, nu_2, nu_3, nu_4, bjet1, bjet2;
@@ -788,11 +880,12 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         //saving results
         bjet1 = inputLV[3];
         bjet2 = inputLV[4];
-
-        top1 = recolepLV1+inputLV[3]+nu1;
-        top2 = recolepLV2+inputLV[4]+nu2;
-      }
+	top1 = recolepLV1+inputLV[3]+nu1;
+	top2 = recolepLV2+inputLV[4]+nu2;
+	if (recolep1.charge() < 0) swap(top1, top2);
+      }	  
     }
+  
 
     if (bjet1.Pt() < bjet2.Pt()) { swap(bjet1, bjet2); }
     b_jet1_pt = bjet1.Pt();
@@ -800,7 +893,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     b_jet2_pt = bjet2.Pt();
     b_jet2_eta = bjet2.Eta();
 
-    if (top1.Pt() < top2.Pt()) { swap(top1, top2); }
+    //if (top1.Pt() < top2.Pt()) { swap(top1, top2); }
     b_top1_pt = top1.Pt();
     b_top1_eta = top1.Eta();
     b_top1_phi = top1.Phi();
@@ -825,7 +918,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       b_step6 = true;
       if (b_step == 5){
         ++b_step;
-        cutflow_[9][b_channel]++;
+	if (sys == sys_nom) cutflow_[9][b_channel]++;
       }
     }
     //  printf("maxweight %f, top1.M() %f, top2.M() %f \n",maxweight, top1.M(), top2.M() );
@@ -984,6 +1077,10 @@ void TtbarDiLeptonAnalyzer::resetBr()
   b_top2_pt = -9; b_top2_eta = -9; b_top2_phi = -9; b_top2_rapi = -9; b_top2_m = -9;
   b_ttbar_pt = -9; b_ttbar_eta = -9; b_ttbar_dphi = -9; b_ttbar_m = -9; b_ttbar_rapi = -9;
   b_is3lep = -9;
+  
+  b_desytop1_pt = -9; b_desytop1_eta = -9; b_desytop1_phi = -9; b_desytop1_rapi = -9; b_desytop1_m = -9;
+  b_desytop2_pt = -9; b_desytop2_eta = -9; b_desytop2_phi = -9; b_desytop2_rapi = -9; b_desytop2_m = -9;
+  b_desyttbar_pt = -9; b_desyttbar_eta = -9; b_desyttbar_dphi = -9; b_desyttbar_m = -9; b_desyttbar_rapi = -9;
 }
 
 //define this as a plug-in
