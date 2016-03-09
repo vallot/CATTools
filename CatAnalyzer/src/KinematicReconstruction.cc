@@ -20,22 +20,7 @@
 #include "CATTools/CatAnalyzer/interface/KinematicReconstruction_MeanSol.h"
 #include "CATTools/CatAnalyzer/interface/KinematicReconstructionSolution.h"
 
-
-
-
 constexpr double TopMASS = 172.5;
-
-
-
-
-
-
-
-
-
-
-
-
 
 // -------------------------------------- Methods for KinematicReconstruction --------------------------------------
 
@@ -145,7 +130,6 @@ void KinematicReconstruction::setRandomNumberSeeds(const LV& lepton, const LV& a
     gRandom->SetSeed(seed);
     r3_->SetSeed(seed);
 }
-
 
 
 KinematicReconstructionSolutions KinematicReconstruction::solutions(const std::vector<int>& leptonIndices, const std::vector<int>& antiLeptonIndices,
