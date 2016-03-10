@@ -162,9 +162,8 @@ private:
   typedef ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double> > LV;
   typedef std::vector<LV> VLV;
 
-  const static int NCutflow = 10;
+  const static int NCutflow = 12;
   std::vector<std::vector<int> > cutflow_;
-  
 };
 //
 // constructors and destructor
@@ -393,7 +392,6 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   for (int i = 0; i < NCutflow; i++) cutflow_.push_back({0,0,0,0});
 
   kinematicReconstruction = new KinematicReconstruction(1, true);
-
 }
 
 TtbarDiLeptonAnalyzer::~TtbarDiLeptonAnalyzer()
@@ -796,8 +794,8 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       for (auto & jet : selectedJets){
 	jetslv.push_back(common::TLVtoLV(jet.tlv()));
 	jetBtags.push_back(jet.bDiscriminator(BTAG_CSVv2));
-	if (jet.bDiscriminator(BTAG_CSVv2) < WP_BTAG_CSVv2L) jetIndices.push_back(ijet);
-	else bjetIndices.push_back(ijet);
+	if (jet.bDiscriminator(BTAG_CSVv2) > WP_BTAG_CSVv2L) bjetIndices.push_back(ijet);
+	jetIndices.push_back(ijet);
 	++ijet;
       }
       
@@ -807,13 +805,21 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	if (lep->charge() > 0) antiLeptonIndex.push_back(ilep);
 	else leptonIndex.push_back(ilep);
 	++ilep;
-      }
+      }      
       
       KinematicReconstructionSolutions kinematicReconstructionSolutions  =  kinematicReconstruction->solutions(leptonIndex, antiLeptonIndex, jetIndices, bjetIndices,  allLeptonslv, jetslv, jetBtags, metlv);
 
+      if (b_step == 5)
+	if (sys == sys_nom)
+	  cutflow_[10][b_channel]++;
+      
       if (kinematicReconstructionSolutions.numberOfSolutions()){
 	LV top1 = kinematicReconstructionSolutions.solution().top();
 	LV top2 = kinematicReconstructionSolutions.solution().antiTop();
+
+	if (b_step == 5)
+	  if (sys == sys_nom)
+	    cutflow_[11][b_channel]++;
 
 	b_desytop1_pt = top1.Pt();
 	b_desytop1_eta = top1.Eta();
