@@ -346,10 +346,13 @@ void DESYSmearedSolver::solve(const LV input[])
       const LV nu1(nu1solTmp[0], nu1solTmp[1], nu1solTmp[2], nu1solTmp[3]);
       const LV nu2(nu2solTmp[0], nu2solTmp[1], nu2solTmp[2], nu2solTmp[3]);
 
+/*
       const double nw1 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin((nu1+newj1).mass()));
       const double nw2 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin((nu2+newj2).mass()));
       const double nw = nw1*nw2/h_mbl_w_->Integral()/h_mbl_w_->Integral();
       if ( nw <= 0 ) continue;
+*/
+      const double nw = 1./(nu1+nu2+visSum).mass();
 
       if ( nw > maxWeightSol ) {
         maxWeightSol = nw;
