@@ -18,20 +18,26 @@ typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > LV;
 class KinematicSolver
 {
 public:
-  KinematicSolver(const edm::ParameterSet& pset) {};
-  virtual ~KinematicSolver() {};
+  KinematicSolver(const edm::ParameterSet& pset) {}
+  virtual ~KinematicSolver() {}
   virtual void solve(const LV input[]) = 0;
   virtual std::string algoName() = 0;
 
-  double quality() const { return quality_; };
-  const LV& l1() const { return l1_; };
-  const LV& l2() const { return l2_; };
-  const LV& j1() const { return j1_; };
-  const LV& j2() const { return j2_; };
-  const LV& nu1() const { return nu1_; };
-  const LV& nu2() const { return nu2_; };
-  double aux(size_t i) const { return values_.at(i); };
-  const std::vector<double>& aux() const { return values_; };
+  double quality() const { return quality_; }
+  const LV l1() const { return l1_; }
+  const LV l2() const { return l2_; }
+  const LV j1() const { return j1_; }
+  const LV j2() const { return j2_; }
+  const LV nu1() const { return nu1_; }
+  const LV nu2() const { return nu2_; }
+  double aux(size_t i) const { return values_.at(i); }
+  const std::vector<double>& aux() const { return values_; }
+
+  const LV w1() const { return l1()+nu1(); }
+  const LV w2() const { return l2()+nu2(); }
+  const LV t1() const { return w1()+j1(); }
+  const LV t2() const { return w2()+j2(); }
+  const LV tt() const { return t1()+t2(); }
 
 protected:
   double quality_;
@@ -43,7 +49,7 @@ protected:
 class TTDileptonSolver : public KinematicSolver // A dummy solver for now
 {
 public:
-  TTDileptonSolver(const edm::ParameterSet& pset): KinematicSolver(pset) {};
+  TTDileptonSolver(const edm::ParameterSet& pset): KinematicSolver(pset) {}
   void solve(const LV input[]) override;
   std::string algoName() override { return "DUMMY"; }
 };
@@ -63,7 +69,7 @@ protected:
 class MAOSSolver : public MT2Solver
 {
 public:
-  MAOSSolver(const edm::ParameterSet& pset): MT2Solver(pset) {};
+  MAOSSolver(const edm::ParameterSet& pset): MT2Solver(pset) {}
   std::string algoName() override { return "MAOS"; }
   void solve(const LV input[]) override;
 };
@@ -95,7 +101,7 @@ public:
   DESYSmearedSolver(const edm::ParameterSet& pset);
   void solve(const LV input[]) override;
   std::string algoName() override { return "DESYSmeared"; }
-  void setRandom(CLHEP::HepRandomEngine* rng) { rng_ = rng; };
+  void setRandom(CLHEP::HepRandomEngine* rng) { rng_ = rng; }
 
 protected:
   LV getSmearedLV(const LV& v, const double fE, const double dRot);
@@ -109,7 +115,6 @@ protected:
 
   const int nTrial_;
   const double maxLBMass_, mTopInput_;
-  const bool weightByMnub_;
 };
 
 // Neutrino weighting method (from thesis by Temple)

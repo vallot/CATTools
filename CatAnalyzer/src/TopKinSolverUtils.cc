@@ -153,14 +153,13 @@ void KinSolverUtils::solve_cubic(const double a, const double b, const double c,
 
   if ( det < 0 ) {
     const double F = acos(r/sqrt(q3));
-    v.push_back(-2*sqrt(abs(q))*cos(F/3)-s1/3);
-    v.push_back(-2*sqrt(abs(q))*cos((F+2*pi)/3)-s1/3);
-    v.push_back(-2*sqrt(abs(q))*cos((F-2*pi)/3)-s1/3);
+    v.push_back(-2*sqrt(std::abs(q))*cos(F/3)-s1/3);
+    v.push_back(-2*sqrt(std::abs(q))*cos((F+2*pi)/3)-s1/3);
+    v.push_back(-2*sqrt(std::abs(q))*cos((F-2*pi)/3)-s1/3);
   }
   else {
-    const long double atmp = r+sqrt(abs(r2-q3));
-    const int sgnTmp = atmp >= 0 ? 1 : -1;
-    const double A = -sgnTmp*pow(abs(atmp), 1./3);
+    const long double atmp = r+sqrt(std::abs(r2-q3));
+    const double A = atmp < 0 ? pow(std::abs(atmp), 1./3) : -pow(std::abs(atmp), 1./3);
     const double B = isZero(A) ? 0 : q/A;
     if ( isZero(det) ) {
       v.push_back(A+B-s1/3);
@@ -217,8 +216,8 @@ void KinSolverUtils::solve_quartic(const std::vector<double>& h,
     solve_quadratic(1., vp.first, vp.second, pre_v1);
     for ( const auto xPre : pre_v1 ) {
       bool isOverlap = false;
-      for ( const auto x : v ) {
-        if ( abs(x - xPre) < 0.02 ) { isOverlap = true ; break; }
+      for ( auto x : v ) {
+        if ( std::abs(x - xPre) < 0.02 ) { isOverlap = true ; break; }
       }
       if ( !isOverlap ) v.push_back(xPre);
     }

@@ -6,7 +6,7 @@
 
 struct KinSolverUtils {
 
-  constexpr static double pi = std::asin(-1);
+  constexpr static double pi = -2*std::asin(-1);
   constexpr static double mB = 4.8;
   constexpr static double mL = 0.0;
   constexpr static double mV = 0.0;
