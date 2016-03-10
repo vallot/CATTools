@@ -107,7 +107,7 @@ private:
   std::vector<TTree*> ttree_;
   TH1D * h_nevents;
   int b_nvertex, b_step, b_channel, b_njet, b_nbjet;
-  bool b_step1, b_step2, b_step3, b_step4, b_step5, b_step6, b_filtered;
+  bool b_step1, b_step2, b_step3, b_step4, b_step5, b_step6, b_step7, b_filtered;
   float b_tri;
   float b_met, b_weight, b_puweight, b_puweight_up, b_puweight_dn, b_genweight,
     b_mueffweight, b_mueffweight_up, b_mueffweight_dn,
@@ -259,6 +259,7 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
     tr->Branch("step4", &b_step4, "step4/O");
     tr->Branch("step5", &b_step5, "step5/O");
     tr->Branch("step6", &b_step6, "step6/O");
+    tr->Branch("step7", &b_step7, "step7/O");
     tr->Branch("tri", &b_tri, "tri/F");
     tr->Branch("filtered", &b_filtered, "filtered/O");
     tr->Branch("met", &b_met, "met/F");
@@ -817,6 +818,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	LV top1 = kinematicReconstructionSolutions.solution().top();
 	LV top2 = kinematicReconstructionSolutions.solution().antiTop();
 
+	b_step7 = true;	
 	if (b_step == 5)
 	  if (sys == sys_nom)
 	    cutflow_[11][b_channel]++;
@@ -1040,7 +1042,7 @@ cat::JetCollection TtbarDiLeptonAnalyzer::selectBJets(const JetCollection& jets)
 void TtbarDiLeptonAnalyzer::resetBr()
 {
   b_nvertex = 0;b_step = -1;b_channel = 0;b_njet = 0;b_nbjet = 0;
-  b_step1 = 0;b_step2 = 0;b_step3 = 0;b_step4 = 0;b_step5 = 0;b_step6 = 0;b_tri = 0;b_filtered = 0;
+  b_step1 = 0;b_step2 = 0;b_step3 = 0;b_step4 = 0;b_step5 = 0;b_step6 = 0;b_step7 = 0;b_tri = 0;b_filtered = 0;
   b_met = -9;
   b_weight = 1; b_puweight = 1; b_puweight_up = 1; b_puweight_dn = 1; b_genweight = 1;
   b_mueffweight = 1;b_mueffweight_up = 1;b_mueffweight_dn = 1;
