@@ -334,27 +334,27 @@ bool KinematicReconstruction::solutionSmearing(KinematicReconstruction_MeanSol& 
             TLorentzVector l_sm=l_temp;
             TLorentzVector al_sm=al_temp;
             //jets energy smearing
-            double fB=h_jetEres_->GetRandom();//fB=1;  //sm off
+            double fB=1;//h_jetEres_->GetRandom();//fB=1;  //sm off
             double xB=sqrt((fB*fB*b_sm.E()*b_sm.E()-b_sm.M2())/(b_sm.P()*b_sm.P()));
-            double fBbar=h_jetEres_->GetRandom();//fBbar=1; //sm off
+            double fBbar=1;//h_jetEres_->GetRandom();//fBbar=1; //sm off
             double xBbar=sqrt((fBbar*fBbar*bbar_sm.E()*bbar_sm.E()-bbar_sm.M2())/(bbar_sm.P()*bbar_sm.P()));
             //leptons energy smearing
-            double fL=h_lepEres_->GetRandom();//fL=1; //sm off
+            double fL=1;//h_lepEres_->GetRandom();//fL=1; //sm off
             double xL=sqrt((fL*fL*l_sm.E()*l_sm.E()-l_sm.M2())/(l_sm.P()*l_sm.P()));
-            double faL=h_lepEres_->GetRandom();//faL=1;  //sm off
+            double faL=1;//h_lepEres_->GetRandom();//faL=1;  //sm off
             double xaL=sqrt((faL*faL*al_sm.E()*al_sm.E()-al_sm.M2())/(al_sm.P()*al_sm.P()));
             //b-jet angle smearing
             b_sm.SetXYZT(b_sm.Px()*xB,b_sm.Py()*xB,b_sm.Pz()*xB,b_sm.E()*fB);
-            angle_rot(h_jetAngleRes_->GetRandom(),0.001,b_sm,b_sm);
+            //angle_rot(h_jetAngleRes_->GetRandom(),0.001,b_sm,b_sm);
             //bbar jet angel smearing
             bbar_sm.SetXYZT(bbar_sm.Px()*xBbar,bbar_sm.Py()*xBbar,bbar_sm.Pz()*xBbar,bbar_sm.E()*fBbar);    
-            angle_rot(h_jetAngleRes_->GetRandom(),0.001,bbar_sm,bbar_sm);
+            //angle_rot(h_jetAngleRes_->GetRandom(),0.001,bbar_sm,bbar_sm);
             //lepton angle smearing
             l_sm.SetXYZT(l_sm.Px()*xL,l_sm.Py()*xL,l_sm.Pz()*xL,l_sm.E()*fL);
-            angle_rot(h_lepAngleRes_->GetRandom(),0.001,l_sm,l_sm);
+            //angle_rot(h_lepAngleRes_->GetRandom(),0.001,l_sm,l_sm);
             // anti lepton angle smearing
             al_sm.SetXYZT(al_sm.Px()*xaL,al_sm.Py()*xaL,al_sm.Pz()*xaL,al_sm.E()*faL);
-            angle_rot(h_lepAngleRes_->GetRandom(),0.001,al_sm,al_sm);
+            //angle_rot(h_lepAngleRes_->GetRandom(),0.001,al_sm,al_sm);
             
             
             TVector3 metV3_sm= -b_sm.Vect()-bbar_sm.Vect()-l_sm.Vect()-al_sm.Vect()-vX_reco;

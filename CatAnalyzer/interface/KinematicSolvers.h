@@ -103,6 +103,9 @@ public:
   std::string algoName() override { return "DESYSmeared"; }
   void setRandom(CLHEP::HepRandomEngine* rng) { rng_ = rng; }
 
+  LV t1() { return t1_; }
+  LV t2() { return t2_; }
+
 protected:
   LV getSmearedLV(const LV& v, const double fE, const double dRot);
   double getRandom(TH1* h);
@@ -115,6 +118,8 @@ protected:
 
   const int nTrial_;
   const double maxLBMass_, mTopInput_;
+
+  LV t1_, t2_;
 };
 
 // Neutrino weighting method (from thesis by Temple)

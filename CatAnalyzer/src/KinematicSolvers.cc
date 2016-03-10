@@ -381,6 +381,12 @@ void DESYSmearedSolver::solve(const LV input[])
   j2_.SetXYZT(sumP[3][0], sumP[3][1], sumP[3][2], KinSolverUtils::computeEnergy(sumP[3], KinSolverUtils::mB));
   nu1_.SetXYZT(sumP[4][0], sumP[4][1], sumP[4][2], KinSolverUtils::computeEnergy(sumP[4], KinSolverUtils::mV));
   nu2_.SetXYZT(sumP[5][0], sumP[5][1], sumP[5][2], KinSolverUtils::computeEnergy(sumP[5], KinSolverUtils::mV));
+  t1_ = l1_+j1_+nu1_;
+  t2_ = l2_+j2_+nu2_;
+  const double p1[] = {t1_.px(), t1_.py(), t1_.pz()};
+  const double p2[] = {t2_.px(), t2_.py(), t2_.pz()};
+  t1_.SetE(KinSolverUtils::computeEnergy(p1, mTopInput_));
+  t2_.SetE(KinSolverUtils::computeEnergy(p2, mTopInput_));
 
 }
 
