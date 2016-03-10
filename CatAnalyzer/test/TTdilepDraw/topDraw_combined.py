@@ -7,13 +7,13 @@ ROOT.gROOT.SetBatch(True)
 topDraw.py -a 1 -s 1 -c 'tri==1&&filtered==1' -b [40,0,40] -p nvertex -x 'no. vertex' &
 topDraw.py -a 1 -s 1 -b [100,-3,3] -p lep1_eta,lep2_eta -x '#eta' &
 '''
-datalumi = 2.26
+datalumi = 2.17
 CMS_lumi.lumi_sqrtS = "%.1f fb^{-1}, #sqrt{s} = 13 TeV"%(datalumi)
 datalumi = datalumi*1000 # due to fb
 
 mcfilelist = ['TT_powheg', 'WJets', 'SingleTbar_tW', 'SingleTop_tW', 'ZZ', 'WW', 'WZ', 'DYJets', 'DYJets_10to50']
 rdfilelist = ['MuonEG_Run2015','DoubleEG_Run2015','DoubleMuon_Run2015']
-rootfileDir = "file:/xrootd/store/user/tt8888tt/v7-6-3_CMSKIN/"
+rootfileDir = "/xrootd/store/user/tt8888tt/v763_desy/TtbarDileptonAnalyzer_"
 channel_name = ['Combined', 'MuEl', 'ElEl', 'MuMu']
 
 datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json" % os.environ['CMSSW_BASE']))
@@ -21,9 +21,8 @@ datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json" % os.e
 #defalts
 step = 1
 channel = 1
-cut = 'tri==1&&filtered==1'
-#weight = 'genweight*puweight*lepweight'
-weight = 'genweight*puweight*lepweight*csvweights[0]'
+cut = 'tri!=0&&filtered==1'
+weight = 'genweight*puweight*mueffweight*eleffweight*tri'
 binning = [60, 20, 320]
 plotvar = 'll_m'
 x_name = 'mass [GeV]'
@@ -68,10 +67,9 @@ for opt, arg in opts:
 tname = "cattree/nom"
 
 #cut define
-if channel == 1: ttother_tcut = "!(parton_channel==2 && ((parton_mode1==1 && parton_mode2==2) || (parton_mode1==2 && parton_mode2==1)))"
+if   channel == 1: ttother_tcut = "!(parton_channel==2 && ((parton_mode1==1 && parton_mode2==2) || (parton_mode1==2 && parton_mode2==1)))"
 elif channel == 2: ttother_tcut = "!(parton_channel==2 && (parton_mode1==2 && parton_mode2==2))"
 elif channel == 3: ttother_tcut = "!(parton_channel==2 && (parton_mode1==1 && parton_mode2==1))"
-
 stepch_tcut =  'step>=%i'%(step)
 tcut = '(%s&&%s)*(%s)'%(stepch_tcut,cut,weight)
 ttother_tcut = '(%s&&%s&&%s)*(%s)'%(stepch_tcut,cut,ttother_tcut,weight)
@@ -104,7 +102,8 @@ for i, mcname in enumerate(mcfilelist):
 		scale = scale*dyratio[channel][step]
 
 	rfname = rootfileDir + mcname +".root"
-	wentries = getWeightedEntries(rfname, tname, "tri", weight)
+	tfile = ROOT.TFile(rfname)
+	wentries = tfile.Get("cattree/nevents").Integral()
 	scale = scale/wentries
 		
 	mchist = makeTH1(rfname, tname, title, binning, plotvar, tcut, scale)
