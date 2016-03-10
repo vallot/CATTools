@@ -21,7 +21,7 @@
 #include "TTree.h"
 #include "TLorentzVector.h"
 #include "Math/PtEtaPhiM4D.h"
-#include "TRandom.h"
+#include "TRandom3.h"
 
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -51,6 +51,7 @@ private:
   edm::EDGetTokenT<float> pileupWeight_up_;
   edm::EDGetTokenT<float> pileupWeight_dn_;
 
+  std::unique_ptr<TRandom3> rnd_;
   vector<TTree*> ttree_;
 
   int b_nVtx, b_nJet;
@@ -84,6 +85,8 @@ ColorCoherenceAnalyzer::ColorCoherenceAnalyzer(const edm::ParameterSet& iConfig)
   pileupWeight_  = consumes<float>(iConfig.getParameter<edm::InputTag>("pileupWeight"));
   pileupWeight_up_  = consumes<float>(iConfig.getParameter<edm::InputTag>("pileupWeight_up"));
   pileupWeight_dn_  = consumes<float>(iConfig.getParameter<edm::InputTag>("pileupWeight_dn"));
+
+  rnd_.reset(new TRandom3());
 
   usesResource("TFileService");
   edm::Service<TFileService> fs;
@@ -297,7 +300,7 @@ TLorentzVector ColorCoherenceAnalyzer::jarJet(TLorentzVector jet) const
   float sig_eta = eta_c[eta_bin][0]/jet.Pt() + eta_c[eta_bin][1]/sqrt(jet.Pt()) + eta_c[eta_bin][2];
   float sig_phi = phi_c[eta_bin][0]/jet.Pt() + phi_c[eta_bin][1]/sqrt(jet.Pt()) + phi_c[eta_bin][2];
 
-  sJet.SetPtEtaPhiM(jet.Pt(), TRandom().Gaus(jet.Eta(), sig_eta), TRandom().Gaus(jet.Phi(), sig_phi), jet.M());
+  sJet.SetPtEtaPhiM(jet.Pt(), rnd_->Gaus(jet.Eta(), sig_eta), rnd_->Gaus(jet.Phi(), sig_phi), jet.M());
   return sJet;
 }
 

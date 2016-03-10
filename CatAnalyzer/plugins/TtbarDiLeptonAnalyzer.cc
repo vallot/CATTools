@@ -107,7 +107,7 @@ private:
   std::vector<TTree*> ttree_;
   TH1D * h_nevents;
   int b_nvertex, b_step, b_channel, b_njet, b_nbjet;
-  bool b_step1, b_step2, b_step3, b_step4, b_step5, b_step6, b_filtered;
+  bool b_step1, b_step2, b_step3, b_step4, b_step5, b_step6, b_step7, b_filtered;
   float b_tri;
   float b_met, b_weight, b_puweight, b_puweight_up, b_puweight_dn, b_genweight,
     b_mueffweight, b_mueffweight_up, b_mueffweight_dn,
@@ -162,9 +162,8 @@ private:
   typedef ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double> > LV;
   typedef std::vector<LV> VLV;
 
-  const static int NCutflow = 10;
+  const static int NCutflow = 12;
   std::vector<std::vector<int> > cutflow_;
-  
 };
 //
 // constructors and destructor
@@ -260,6 +259,7 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
     tr->Branch("step4", &b_step4, "step4/O");
     tr->Branch("step5", &b_step5, "step5/O");
     tr->Branch("step6", &b_step6, "step6/O");
+    tr->Branch("step7", &b_step7, "step7/O");
     tr->Branch("tri", &b_tri, "tri/F");
     tr->Branch("filtered", &b_filtered, "filtered/O");
     tr->Branch("met", &b_met, "met/F");
@@ -393,7 +393,6 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   for (int i = 0; i < NCutflow; i++) cutflow_.push_back({0,0,0,0});
 
   kinematicReconstruction = new KinematicReconstruction(1, true);
-
 }
 
 TtbarDiLeptonAnalyzer::~TtbarDiLeptonAnalyzer()
@@ -796,8 +795,8 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       for (auto & jet : selectedJets){
 	jetslv.push_back(common::TLVtoLV(jet.tlv()));
 	jetBtags.push_back(jet.bDiscriminator(BTAG_CSVv2));
-	if (jet.bDiscriminator(BTAG_CSVv2) < WP_BTAG_CSVv2L) jetIndices.push_back(ijet);
-	else bjetIndices.push_back(ijet);
+	if (jet.bDiscriminator(BTAG_CSVv2) > WP_BTAG_CSVv2L) bjetIndices.push_back(ijet);
+	jetIndices.push_back(ijet);
 	++ijet;
       }
       
@@ -807,13 +806,22 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	if (lep->charge() > 0) antiLeptonIndex.push_back(ilep);
 	else leptonIndex.push_back(ilep);
 	++ilep;
-      }
+      }      
       
       KinematicReconstructionSolutions kinematicReconstructionSolutions  =  kinematicReconstruction->solutions(leptonIndex, antiLeptonIndex, jetIndices, bjetIndices,  allLeptonslv, jetslv, jetBtags, metlv);
 
+      if (b_step == 5)
+	if (sys == sys_nom)
+	  cutflow_[10][b_channel]++;
+      
       if (kinematicReconstructionSolutions.numberOfSolutions()){
 	LV top1 = kinematicReconstructionSolutions.solution().top();
 	LV top2 = kinematicReconstructionSolutions.solution().antiTop();
+
+	b_step7 = true;	
+	if (b_step == 5)
+	  if (sys == sys_nom)
+	    cutflow_[11][b_channel]++;
 
 	b_desytop1_pt = top1.Pt();
 	b_desytop1_eta = top1.Eta();
@@ -1034,7 +1042,7 @@ cat::JetCollection TtbarDiLeptonAnalyzer::selectBJets(const JetCollection& jets)
 void TtbarDiLeptonAnalyzer::resetBr()
 {
   b_nvertex = 0;b_step = -1;b_channel = 0;b_njet = 0;b_nbjet = 0;
-  b_step1 = 0;b_step2 = 0;b_step3 = 0;b_step4 = 0;b_step5 = 0;b_step6 = 0;b_tri = 0;b_filtered = 0;
+  b_step1 = 0;b_step2 = 0;b_step3 = 0;b_step4 = 0;b_step5 = 0;b_step6 = 0;b_step7 = 0;b_tri = 0;b_filtered = 0;
   b_met = -9;
   b_weight = 1; b_puweight = 1; b_puweight_up = 1; b_puweight_dn = 1; b_genweight = 1;
   b_mueffweight = 1;b_mueffweight_up = 1;b_mueffweight_dn = 1;
