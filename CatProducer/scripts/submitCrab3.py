@@ -47,7 +47,7 @@ for dataset in datasets:
 
     publishDataName = dataset.split("/")[2]
     
-    sendjob = crabcommand + " Data.publishDataName='%s' General.requestName='%s' Data.inputDataset='%s'"%(publishDataName,requestNameFull,dataset)
+    sendjob = crabcommand + " Data.outputDatasetTag='%s' General.requestName='%s' Data.inputDataset='%s'"%(publishDataName,requestNameFull,dataset)
     print sendjob
     if submit:
         print "submiting job"
