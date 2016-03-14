@@ -30,7 +30,6 @@ ttbarDileptonKinAlgoPSetDESYSmeared = cms.PSet(
     nTrial = cms.int32(100),
     maxLBMass = cms.double(360),
     mTopInput = cms.double(172.5),
-    weightByMnub = cms.bool(False),
 )
 
 ttbarDileptonKinAlgoPSetDESYMassLoop = cms.PSet(
