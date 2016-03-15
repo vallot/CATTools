@@ -11,10 +11,6 @@ ttbarDileptonKinAlgoPSetCMSKin = cms.PSet(
     #nuPars = cms.vdouble(30.7137,56.2880,23.0744,59.1015,24.9145), # 7TeV pythia from CMSSW default
 )
 
-ttbarDileptonKinAlgoPSetNuWGT = cms.PSet(
-    algo = cms.string("NUWGT"),
-)
-
 ttbarDileptonKinAlgoPSetMT2 = cms.PSet(
     algo = cms.string("MT2"),
 )
