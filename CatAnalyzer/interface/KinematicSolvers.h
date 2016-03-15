@@ -122,15 +122,6 @@ protected:
   LV t1_, t2_;
 };
 
-// Neutrino weighting method (from thesis by Temple)
-class NuWeightSolver : public KinematicSolver
-{
-public:
-  NuWeightSolver(const edm::ParameterSet& pset);
-  void solve(const LV input[]) override;
-  std::string algoName() override { return "NuWeight"; }
-};
-
 }
 
 #endif
