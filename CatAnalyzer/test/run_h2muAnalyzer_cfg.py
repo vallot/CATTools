@@ -19,10 +19,11 @@ useSilver = False
 catmet = 'catMETs'
 lumiMask = 'lumiMask'
 pileupWeight = 'pileupWeight'
-if useSilver:
-    catmet = 'catMETsNoHF'
-    lumiMask = 'lumiMaskSilver'
-    pileupWeight = 'pileupWeightSilver'
+
+#if useSilver:
+#    catmet = 'catMETsNoHF'
+#    lumiMask = 'lumiMaskSilver'
+#    pileupWeight = 'pileupWeightSilver'
 
 process.load("CATTools.CatAnalyzer.filters_cff")
 

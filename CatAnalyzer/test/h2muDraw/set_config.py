@@ -7,14 +7,14 @@ ds = []
 outDir = "%s/src/CATTools/CatAnalyzer/test/h2muDraw/plot" %( os.environ['CMSSW_BASE'] )
 if not os.path.isdir(outDir):os.mkdir(outDir)
 
-info = [['nvertex','nvertex','(ll_m>50&&step>=5&&filtered==1)','[30,0,30]','no. vertex','events'],
-        ['ll_m','ll_m','(ll_m>50&&step>=5&&filtered==1)','[200,0,200]','mass [GeV]','events'],
-        ['ll_pt','ll_pt','(ll_m>50&&step>=5&&filtered==1)','[100,0,100]','diMuon p_{T} [GeV]','events'],
-        ['lep1_pt','lep1_pt','(ll_m>50&&step>=5&&filtered==1)','[100,0,100]','leading muon p_{T} [GeV]','events'],
-        ['lep2_pt','lep2_pt','(ll_m>50&&step>=5&&filtered==1)','[100,0,100]','sub-leading muon p_{T} [GeV]','events'],
-        ['lep1_eta','lep1_eta','(ll_m>50&&step>=5&&filtered==1)','[100,-3,3]','#eta','events'],
-        ['lep2_eta','lep2_eta','(ll_m>50&&step>=5&&filtered==1)','[100,-3,3]','#eta','events'],
-        ['met','met','(ll_m>50&&step>=5&&filtered==1)','[100,0,100]','met [GeV]','events'],
+info = [['nvertex','nvertex','(step>=5&&filtered==1)','[30,0,30]','no. vertex','events'],
+        ['ll_m','ll_m','(step>=5&&filtered==1)','[200,0,200]','mass [GeV]','events'],
+        ['ll_pt','ll_pt','(step>=5&&filtered==1)','[100,0,100]','diMuon p_{T} [GeV]','events'],
+        ['lep1_pt','lep1_pt','(step>=5&&filtered==1)','[100,0,100]','leading muon p_{T} [GeV]','events'],
+        ['lep2_pt','lep2_pt','(step>=5&&filtered==1)','[100,0,100]','sub-leading muon p_{T} [GeV]','events'],
+        ['lep1_eta','lep1_eta','(step>=5&&filtered==1)','[100,-3,3]','#eta','events'],
+        ['lep2_eta','lep2_eta','(step>=5&&filtered==1)','[100,-3,3]','#eta','events'],
+        ['met','met','(step>=5&&filtered==1)','[100,0,100]','met [GeV]','events'],
        ]
 
 muid = ["tight","medium"]
@@ -51,11 +51,10 @@ for info_loop in range(len(info)):
         info.append(tmp_info[info_loop])
         tmp_info = copy.deepcopy(info)
         for j_i, j in enumerate(cat_jet_cut):
-            if j_i>3:
-                tmp_info[info_loop][2] += "*%s*%s"%(i,j)
-                tmp_info[info_loop][1] += "_%s_%s"%(muid[i_i],cat_jet[j_i])
-                info.append(tmp_info[info_loop])
-                tmp_info = copy.deepcopy(info)
+            tmp_info[info_loop][2] += "*%s*%s"%(i,j)
+            tmp_info[info_loop][1] += "_%s_%s"%(muid[i_i],cat_jet[j_i])
+            info.append(tmp_info[info_loop])
+            tmp_info = copy.deepcopy(info)
             for k_i, k in enumerate(cat_eta_cut):
                 if j_i<4:
                     tmp_info[info_loop][2] += "*%s*%s*%s"%(i,j,k)

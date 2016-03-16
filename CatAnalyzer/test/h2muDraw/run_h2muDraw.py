@@ -39,8 +39,7 @@ mkdir -p %s
 host=`hostname`
 ./%s
 """
-
-jds_s = """
+jds_s1 = """
 executable = %s
 universe = vanilla
 getenv = True
@@ -55,8 +54,29 @@ log = $(dirSaved)/log_$(num)
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
 transfer_input_files = h2muDraw.py
-transfer_output_files = $(f_name).png
+transfer_output_files = $(f_name).png 
 transfer_output_remaps = "$(f_name).png = $(dirSaved)/$(f_name).png"
+
+queue
+""" 
+
+jds_s2 = """
+executable = %s
+universe = vanilla
+getenv = True
+
+num= %s
+dirSaved= %s
+f_name= %s
+
+error = $(dirSaved)/error_$(num)
+log = $(dirSaved)/log_$(num)
+
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
+transfer_input_files = h2muDraw.py
+transfer_output_files = $(f_name).png, events_$(f_name).txt 
+transfer_output_remaps = "$(f_name).png = $(dirSaved)/$(f_name).png ; events_$(f_name).txt = $(dirSaved)/events_$(f_name).txt"
 
 queue
 """ 
@@ -73,6 +93,9 @@ for i,info in enumerate(info_json):
     tmp_f_sh = open(name_sh,"w")
     tmp_f_sh.write(f_sh)
     tmp_f_sh.close()
+    jds_s=jds_s1
+    if plotvar == 'll_m':
+        jds_s=jds_s2
     f_jds = jds_s%(name_sh,i,"%s"%(outDir),f_name)
     if json_used == 'Silver':f_jds = jds_s%(name_sh,i,"%s"%(outDir),'Silver_'+f_name)
     tmp_f_jds = open(name_jds,"w")
