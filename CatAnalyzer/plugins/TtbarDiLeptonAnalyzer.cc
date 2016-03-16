@@ -12,6 +12,7 @@
 #include "CATTools/DataFormats/interface/Electron.h"
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/MET.h"
+#include "CATTools/DataFormats/interface/GenWeights.h"
 
 #include "CATTools/CommonTools/interface/TTbarModeDefs.h"
 #include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
@@ -90,8 +91,8 @@ private:
   BTagWeightEvaluator bTagWeightT;
 
   edm::EDGetTokenT<int> recoFiltersToken_, nGoodVertexToken_, lumiSelectionToken_;
-  edm::EDGetTokenT<float> genweightToken_, puweightToken_, puweightToken_up_, puweightToken_dn_, topPtWeight_;
-  edm::EDGetTokenT<vector<float>> pdfweightToken_, scaleweightToken_;
+  edm::EDGetTokenT<cat::GenWeights> genweightToken_;
+  edm::EDGetTokenT<float> puweightToken_, puweightToken_up_, puweightToken_dn_, topPtWeight_;
   edm::EDGetTokenT<int> trigTokenMUEL_, trigTokenMUMU_, trigTokenELEL_;
 
   edm::EDGetTokenT<cat::MuonCollection>     muonToken_;
@@ -114,7 +115,7 @@ private:
     b_eleffweight, b_eleffweight_up, b_eleffweight_dn,
     b_btagweight, b_btagweight_up, b_btagweight_dn;
   float b_topPtWeight;
-  std::vector<float> b_pdfWeights, b_scaleWeights, b_csvweights;
+  std::vector<float> b_pdfWeights, b_scaleWeights_up, b_scaleWeights_dn, b_csvweights;
 
   float b_lep1_pt, b_lep1_eta, b_lep1_phi;
   float b_lep2_pt, b_lep2_eta, b_lep2_phi;
@@ -173,9 +174,7 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   recoFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("recoFilters"));
   nGoodVertexToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("nGoodVertex"));
   lumiSelectionToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("lumiSelection"));
-  genweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("genweight"));
-  pdfweightToken_ = consumes<vector<float>>(iConfig.getParameter<edm::InputTag>("pdfweight"));
-  scaleweightToken_ = consumes<vector<float>>(iConfig.getParameter<edm::InputTag>("scaleweight"));
+  genweightToken_ = consumes<cat::GenWeights>(iConfig.getParameter<edm::InputTag>("genweight"));
   topPtWeight_ = consumes<float>(iConfig.getParameter<edm::InputTag>("topPtWeight"));
   puweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("puweight"));
   puweightToken_up_ = consumes<float>(iConfig.getParameter<edm::InputTag>("puweight_up"));
@@ -264,7 +263,8 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
     tr->Branch("met", &b_met, "met/F");
     tr->Branch("weight", &b_weight, "weight/F");
     tr->Branch("pdfWeights","std::vector<float>",&b_pdfWeights);
-    tr->Branch("scaleWeights","std::vector<float>",&b_scaleWeights);
+    tr->Branch("scaleWeights_up","std::vector<float>",&b_scaleWeights_up);
+    tr->Branch("scaleWeights_dn","std::vector<float>",&b_scaleWeights_dn);
     tr->Branch("topPtWeight", &b_topPtWeight, "topPtWeight/F");
     tr->Branch("puweight", &b_puweight, "puweight/F");
     tr->Branch("puweight_up", &b_puweight_up, "puweight_up/F");
@@ -429,15 +429,17 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       b_topPtWeight = *topPtWeightHandle;
 
       if (sys == sys_nom){
-        edm::Handle<vector<float>> pdfweightHandle;
-        iEvent.getByToken(pdfweightToken_, pdfweightHandle);
-        for (const float & aPdfWeight : *pdfweightHandle){
+        edm::Handle<cat::GenWeights> genweightHandle;
+        iEvent.getByToken(genweightToken_, genweightHandle);
+
+        for (const float & aPdfWeight : genweightHandle->pdfWeights() ){
           b_pdfWeights.push_back(aPdfWeight);
         }
-        edm::Handle<vector<float>> scaleweightHandle;
-        iEvent.getByToken(scaleweightToken_, scaleweightHandle);
-        for (const float & aScaleWeight : *scaleweightHandle){
-          b_scaleWeights.push_back(aScaleWeight);
+        for (const float & aScaleWeight : genweightHandle->scaleUpWeights() ){
+          b_scaleWeights_up.push_back(aScaleWeight);
+        }
+        for (const float & aScaleWeight : genweightHandle->scaleDownWeights() ){
+          b_scaleWeights_dn.push_back(aScaleWeight);
         }
       }
 
@@ -639,9 +641,9 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       iEvent.getByToken(puweightToken_dn_, puweightHandle_dn);
       b_puweight_dn = *puweightHandle_dn;
 
-      edm::Handle<float> genweightHandle;
+      edm::Handle<cat::GenWeights> genweightHandle;
       iEvent.getByToken(genweightToken_, genweightHandle);
-      b_genweight = (*genweightHandle);
+      b_genweight = genweightHandle->genWeight();
       b_weight = b_genweight*b_puweight;
     }
     
@@ -1050,7 +1052,7 @@ void TtbarDiLeptonAnalyzer::resetBr()
   b_topPtWeight = 1.;
   b_csvweights.clear();
   b_pdfWeights.clear();
-  b_scaleWeights.clear();
+  b_scaleWeights_up.clear(); b_scaleWeights_dn.clear();
 
   b_lep1_pt = -9;b_lep1_eta = -9;b_lep1_phi = -9;
   b_lep2_pt = -9;b_lep2_eta = -9;b_lep2_phi = -9;

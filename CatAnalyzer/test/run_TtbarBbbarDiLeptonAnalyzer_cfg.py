@@ -56,11 +56,7 @@ from CATTools.CatAnalyzer.leptonSF_cff import *
 process.cattree = cms.EDAnalyzer("TtbarBbbarDiLeptonAnalyzer",
     recoFilters = cms.InputTag("filterRECO"),
     nGoodVertex = cms.InputTag("catVertex","nGoodPV"),
-    genweight = cms.InputTag("genWeight","genWeight"),
-    genweightQ = cms.InputTag("genWeight","Q"),
-    genweightPDF = cms.InputTag("genWeight","pdfWeights"),
-    #genweightPDF = cms.InputTag("genWeight","otherWeights"),
-    scaleweight = cms.InputTag("genWeight","scaleWeights"),
+    genweight = cms.InputTag("genWeight"),
     topPtWeight = cms.InputTag("topPtWeight"),
 
     lumiSelection = cms.InputTag(lumiMask),

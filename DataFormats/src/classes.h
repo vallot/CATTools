@@ -12,6 +12,7 @@
 #include "CATTools/DataFormats/interface/GenTop.h"
 #include "CATTools/DataFormats/interface/MCParticle.h"
 #include "CATTools/DataFormats/interface/SecVertex.h"
+#include "CATTools/DataFormats/interface/GenWeights.h"
 #include "DataFormats/Common/interface/ValueMap.h"
 
 #include <vector>
@@ -109,6 +110,12 @@ namespace {
     edm::reftobase::RefHolder<reco::CompositePtrCandidateRef> a3;
     edm::reftobase::VectorHolder<reco::Candidate, reco::CompositePtrCandidateRefVector> a4;
     edm::reftobase::RefVectorHolder<reco::CompositePtrCandidateRefVector> a5;
+
+    cat::GenWeights gw;
+    edm::Wrapper<cat::GenWeights> wgw;
+
+    cat::GenWeightInfo gwi;
+    edm::Wrapper<cat::GenWeightInfo> wgwi;
   };
 
 
