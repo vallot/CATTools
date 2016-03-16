@@ -11,3 +11,4 @@ from CATTools.CatProducer.dstarProducer_cfi import *
 from CATTools.CatProducer.vertexProducer_cfi import *
 from CATTools.CatProducer.triggerProducer_cfi import *
 from CATTools.CatProducer.genTopProducer_cfi import * #please do not remove it.
+from CATTools.CatProducer.genJetHadronMatch_cfi import *
