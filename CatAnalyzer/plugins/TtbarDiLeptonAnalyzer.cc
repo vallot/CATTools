@@ -899,7 +899,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         // Enforce the top quark mass to 172.5
         const double tMass = 172.5;
         top1.SetE(sqrt(top1.P2() + tMass*tMass));
-        top2.SetE(sqrt(top1.P2() + tMass*tMass));
+        top2.SetE(sqrt(top2.P2() + tMass*tMass));
         if (recolep1.charge() < 0) swap(top1, top2);
       }
     }
