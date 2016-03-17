@@ -7,7 +7,6 @@
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/MET.h"
 #include "CATTools/DataFormats/interface/SecVertex.h"
-#include "CATTools/DataFormats/interface/GenWeights.h"
 
 #include "CATTools/CommonTools/interface/TTbarModeDefs.h"
 #include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
@@ -464,10 +463,9 @@ public:
 private:
   typedef std::vector<float> vfloat;
   typedef std::vector<double> vdouble;
-  edm::EDGetTokenT<float> pileupWeightToken_;
-  edm::EDGetTokenT<cat::GenWeights> genWeightsToken_;
+  edm::EDGetTokenT<float> genWeightToken_, pileupWeightToken_;
+  edm::EDGetTokenT<vfloat> genWeightsToken_;
   unsigned int genWeightIndex_;
-  cat::GenWeightInfo::KnownTypes genWeightType_;
 
   edm::EDGetTokenT<cat::MuonCollection> muonToken_;
   edm::EDGetTokenT<cat::ElectronCollection> electronToken_;
@@ -560,7 +558,6 @@ private:
   std::string bTagName_;
   std::string elIdName_;
   enum class BTagWP { CSVL, CSVM, CSVT } bTagWP_;
-
 };
 
 }
@@ -631,10 +628,10 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   if ( isMC_ )
   {
     const auto genWeightSet = pset.getParameter<edm::ParameterSet>("genWeight");
-    genWeightType_ = GenWeightInfo::toKnownType(genWeightSet.getParameter<string>("weightType"));
-
     genWeightIndex_ = genWeightSet.getParameter<unsigned int>("index");
-    genWeightsToken_ = consumes<cat::GenWeights>(genWeightSet.getParameter<edm::InputTag>("src"));
+    const auto genWeightTag = genWeightSet.getParameter<edm::InputTag>("src");
+    if ( genWeightIndex_ == 0 )  genWeightToken_ = consumes<float>(genWeightTag);
+    else genWeightsToken_ = consumes<vfloat>(genWeightTag);
   }
 
   // Other weights
@@ -698,19 +695,18 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   double weight = 1.0;
   if ( isMC_ )
   {
-    float genWeight = 1.;
-
-    edm::Handle<cat::GenWeights> genWeightsHandle;
-    event.getByToken(genWeightsToken_, genWeightsHandle);
-    switch ( genWeightType_ ) {
-      case GenWeightInfo::Nominal  : genWeight = genWeightsHandle->genWeight(); break;
-      case GenWeightInfo::ScaleUp  : genWeight = genWeightsHandle->scaleUpWeights().at(genWeightIndex_); break;
-      case GenWeightInfo::ScaleDown: genWeight = genWeightsHandle->scaleDownWeights().at(genWeightIndex_); break;
-      case GenWeightInfo::PDF      : genWeight = genWeightsHandle->pdfWeights().at(genWeightIndex_); break;
-      case GenWeightInfo::NONE: default: genWeight = 1;
-    }
-
     edm::Handle<float> fHandle;
+
+    float genWeight = 1.;
+    if ( genWeightIndex_ == 0 ) {
+      event.getByToken(genWeightToken_, fHandle);
+      genWeight = *fHandle;
+    }
+    else {
+      edm::Handle<vfloat> vfHandle;
+      event.getByToken(genWeightsToken_, vfHandle);
+      genWeight = vfHandle->at(genWeightIndex_);
+    }
 
     event.getByToken(pileupWeightToken_, fHandle);
     const float pileupWeight = *fHandle;
