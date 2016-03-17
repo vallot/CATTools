@@ -160,7 +160,7 @@ private:
   std::unique_ptr<KinematicSolver> solver_;
 
   const KinematicReconstruction* kinematicReconstruction;
-  typedef ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double> > LV;
+  typedef math::XYZTLorentzVector LV;
   typedef std::vector<LV> VLV;
 
   const static int NCutflow = 12;
@@ -790,11 +790,11 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       vector<int> leptonIndex, antiLeptonIndex, jetIndices, bjetIndices;
       VLV allLeptonslv, jetslv;
       vector<double> jetBtags;
-      LV metlv = common::TLVtoLV(mets->front().tlv());
+      LV metlv = mets->front().p4();
 
       int ijet=0;
       for (auto & jet : selectedJets){
-	jetslv.push_back(common::TLVtoLV(jet.tlv()));
+	jetslv.push_back(jet.p4());
 	jetBtags.push_back(jet.bDiscriminator(BTAG_CSVv2));
 	if (jet.bDiscriminator(BTAG_CSVv2) > WP_BTAG_CSVv2L) bjetIndices.push_back(ijet);
 	jetIndices.push_back(ijet);
@@ -803,7 +803,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       
       int ilep = 0;
       for (auto & lep : recolep){
-	allLeptonslv.push_back(common::TLVtoLV(lep->tlv()));
+	allLeptonslv.push_back(lep->p4());
 	if (lep->charge() > 0) antiLeptonIndex.push_back(ilep);
 	else leptonIndex.push_back(ilep);
 	++ilep;
@@ -889,10 +889,14 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         //saving results
         bjet1 = inputLV[3];
         bjet2 = inputLV[4];
-	top1 = recolepLV1+inputLV[3]+nu1;
-	top2 = recolepLV2+inputLV[4]+nu2;
-	if (recolep1.charge() < 0) swap(top1, top2);
-      }	  
+        top1 = recolepLV1+inputLV[3]+nu1;
+        top2 = recolepLV2+inputLV[4]+nu2;
+        // Enforce the top quark mass to 172.5
+        const double tMass = 172.5;
+        top1.SetE(sqrt(top1.P2() + tMass*tMass));
+        top2.SetE(sqrt(top1.P2() + tMass*tMass));
+        if (recolep1.charge() < 0) swap(top1, top2);
+      }
     }
   
 

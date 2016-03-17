@@ -4,16 +4,12 @@
 #include "classesFwd.h"
 
 #include <Math/LorentzVector.h>
-#include <Math/PtEtaPhiM4D.h>
-
-
+#include <Math/PxPyPzE4D.h>
 
 namespace {
     LV dummy;
     VLV dummy2;
 }
-
-
 
 #endif
 
