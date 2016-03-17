@@ -13,8 +13,6 @@
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 #include "DataFormats/Common/interface/View.h"
 
-#include "CATTools/DataFormats/interface/GenWeights.h"
-
 #include <LHAPDF/LHAPDF.h>
 #include <TDOMParser.h>
 #include <TXMLNode.h>
@@ -47,7 +45,7 @@ private:
   const edm::EDGetTokenT<LHEEventProduct> lheToken_;
   const edm::EDGetTokenT<GenEventInfoProduct> genInfoToken_;
 
-  std::set<int> scaleUpWeightIdxs_, scaleDownWeightIdxs_, pdfWeightIdxs_;
+  std::set<int> scaleWeightIdxs_, pdfWeightIdxs_;
 };
 
 GenWeightsProducer::GenWeightsProducer(const edm::ParameterSet& pset):
@@ -66,8 +64,19 @@ GenWeightsProducer::GenWeightsProducer(const edm::ParameterSet& pset):
     if ( generatedPdfName != pdfName ) reweightToNewPDF_ = true;
   }
 
-  produces<cat::GenWeightInfo, edm::InRun>();
-  produces<cat::GenWeights>();
+  produces<string, edm::InRun>("combineScaleBy");
+  produces<string, edm::InRun>("combinePDFBy");
+
+  produces<float>("genWeight");
+  produces<float>("lheWeight");
+  produces<vfloat>("scaleWeights");
+  produces<vfloat>("pdfWeights");
+  produces<vfloat>("otherWeights"); // Should be empty mostly
+  produces<int>("id1");
+  produces<int>("id2");
+  produces<float>("x1");
+  produces<float>("x2");
+  produces<float>("Q");
 
   if ( doLOPDFReweight_ )
   {
@@ -80,11 +89,13 @@ GenWeightsProducer::GenWeightsProducer(const edm::ParameterSet& pset):
 
 void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
 {
-  scaleUpWeightIdxs_.clear();
-  scaleDownWeightIdxs_.clear();
+  vstring weightTypes;
+  //vvstring weightParams;
+  scaleWeightIdxs_.clear();
   pdfWeightIdxs_.clear();
 
-  std::auto_ptr<cat::GenWeightInfo> out_genWeightInfo(new cat::GenWeightInfo);
+  std::auto_ptr<string> combineScaleBy(new string);
+  std::auto_ptr<string> combinePDFBy(new string);
 
   do {
     // Workaround found in HN, physicstools #3437
@@ -124,7 +135,7 @@ void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
 
     // XML is ready. Browser the xmldoc and find nodes with weight information
     TXMLNode* topNode = xmlParser.GetXMLDocument()->GetRootNode();
-    int weightTotalSize = 0, nOtherWeights = 0;
+    int weightTotalSize = 0;
     for ( TXMLNode* grpNode = topNode->GetChildren(); grpNode != 0; grpNode = grpNode->GetNextNode() )
     {
       if ( string(grpNode->GetNodeName()) != "weightgroup" ) continue;
@@ -132,63 +143,55 @@ void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
       if ( !weightTypeObj ) weightTypeObj = (TXMLAttr*)grpNode->GetAttributes()->FindObject("type"); // FIXME: this may not needed - double check LHE header doc.
       if ( !weightTypeObj ) continue;
 
-      const string weightTypeStr = weightTypeObj->GetValue();
+      weightTypes.push_back(weightTypeObj->GetValue());
       int weightType = 0;
-      if ( weightTypeStr.substr(0, 5) == "scale" ) weightType = 1;
-      else if ( weightTypeStr.substr(0, 3) == "PDF" ) weightType = 2;
+      if ( weightTypes.back().substr(0, 5) == "scale" ) weightType = 1;
+      else if ( weightTypes.back().substr(0, 3) == "PDF" ) weightType = 2;
       int weightSize = 0;
-      vstring weightParams, weightKeys;
+      //weightParams.push_back(vstring());
       for ( TXMLNode* weightNode = grpNode->GetChildren(); weightNode != 0; weightNode = weightNode->GetNextNode() )
       {
         if ( string(weightNode->GetNodeName()) != "weight" ) continue;
         ++weightSize;
         ++weightTotalSize;
-        string weightKey;
-        weightParams.push_back(weightNode->GetText());
-        if ( weightType == 1 ) {
-          // FIXME: For the first implementation, we assume scale up/down weights are fixed.
-          // FIXME: Maybe this can be updated to parse parameter string to distinguish them.
-          // FIXME: up=(1002, 1004, 1005), down=(1003, 1007, 1009), unphysical=(1006, 1008)
-          if ( weightSize == 2 or weightSize == 4 or weightSize == 5 ) {
-            weightKey = "scaleUpWeights["+std::to_string(scaleUpWeightIdxs_.size())+"]";
-            scaleUpWeightIdxs_.insert(weightTotalSize-1);
-          }
-          else if ( weightSize == 3 or weightSize == 7 or weightSize == 9 ) {
-            weightKey = "scaleDownWeights["+std::to_string(scaleUpWeightIdxs_.size())+"]";
-            scaleDownWeightIdxs_.insert(weightTotalSize-1);
-          }
-          else weightKey = "otherWeights["+std::to_string(nOtherWeights++)+"]";
-        }
-        else if ( weightType == 2 ) {
-          weightKey = "pdfWeights["+std::to_string(pdfWeightIdxs_.size())+"]";
-          pdfWeightIdxs_.insert(weightTotalSize-1);
-        }
-        else {
-          weightKey = "otherWeights["+std::to_string(nOtherWeights++)+"]";
-        }
-        weightKeys.push_back(weightKey);
+        if ( weightSize == 1 ) continue; // Skip the first one of the weight group since it is the nominal value.
+        //weightParams.back().push_back(weightNode->GetText());
+        if ( weightType == 1 ) scaleWeightIdxs_.insert(weightTotalSize-1);
+        else if ( weightType == 2 ) pdfWeightIdxs_.insert(weightTotalSize-1);
       }
 
       auto weightCombineByObj = (TXMLAttr*)grpNode->GetAttributes()->FindObject("combine");
-      string combineBy = weightCombineByObj ? weightCombineByObj->GetValue() : "";
-      out_genWeightInfo->addWeightGroup(weightTypeStr, combineBy, weightParams, weightKeys);
+      if ( weightCombineByObj ) {
+        if ( weightType == 1 ) *combineScaleBy = weightCombineByObj->GetValue();
+        else if ( weightType == 2 ) *combinePDFBy = weightCombineByObj->GetValue();
+      }
     }
 
   } while ( false );
 
-  run.put(out_genWeightInfo);
+  run.put(combineScaleBy, "combineScaleBy");
+  run.put(combinePDFBy, "combinePDFBy");
 }
 
 void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& eventSetup)
 {
   float lheWeight = 1, genWeight = 1;
-  std::auto_ptr<cat::GenWeights> out_genWeights(new cat::GenWeights);
-
+  std::auto_ptr<vfloat> scaleWeights(new vfloat);
+  std::auto_ptr<vfloat> pdfWeights(new vfloat);
+  std::auto_ptr<vfloat> otherWeights(new vfloat);
   if ( event.isRealData() )
   {
-    out_genWeights->setLHEWeight(lheWeight);
-    out_genWeights->setGenWeight(genWeight);
-    event.put(out_genWeights);
+    pdfWeights->push_back(1); // no reweighting
+    event.put(std::auto_ptr<float>(new float(lheWeight)), "lheWeight");
+    event.put(std::auto_ptr<float>(new float(genWeight)), "genWeight");
+    event.put(scaleWeights, "scaleWeights");
+    event.put(pdfWeights, "pdfWeights");
+    event.put(otherWeights, "otherWeights");
+    event.put(std::auto_ptr<int>(new int(0)), "id1");
+    event.put(std::auto_ptr<int>(new int(0)), "id2");
+    event.put(std::auto_ptr<float>(new float(0)), "x1");
+    event.put(std::auto_ptr<float>(new float(0)), "x2");
+    event.put(std::auto_ptr<float>(new float(0)), "Q");
   }
 
   edm::Handle<LHEEventProduct> lheHandle;
@@ -220,9 +223,6 @@ void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& event
   const int id2 = genInfoHandle->pdf()->id.second;
   const float x1 = genInfoHandle->pdf()->x.first;
   const float x2 = genInfoHandle->pdf()->x.second;
-  out_genWeights->setInfo(id1, id2, x1, x2, q);
-  out_genWeights->setLHEWeight(lheWeight);
-  out_genWeights->setGenWeight(genWeight);
 
   if ( doLOPDFReweight_ )
   {
@@ -234,14 +234,14 @@ void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& event
     const float xpdf1_new = LHAPDF::xfx(1, x1, q, id1);
     const float xpdf2_new = LHAPDF::xfx(1, x2, q, id2);
     const float w_new = xpdf1_new*xpdf2_new;
-    out_genWeights->addPDFWeight(w_new/w0);
+    pdfWeights->push_back(w_new/w0);
 
     for ( unsigned int i=1, n=LHAPDF::numberPDF(1); i<=n; ++i )
     {
       LHAPDF::usePDFMember(1, i);
       const float xpdf1_syst = LHAPDF::xfx(1, x1, q, id1);
       const float xpdf2_syst = LHAPDF::xfx(1, x2, q, id2);
-      out_genWeights->addPDFWeight(xpdf1_syst*xpdf2_syst/w0);
+      pdfWeights->push_back(xpdf1_syst*xpdf2_syst/w0);
     }
   }
   else
@@ -252,10 +252,9 @@ void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& event
       {
         const double w0 = lheHandle->weights().at(i).wgt;
         const double w = w0/(enforceUnitGenWeight_ ? std::abs(lheWeight) : originalWeight);
-        if ( scaleUpWeightIdxs_.find(i) != scaleUpWeightIdxs_.end() ) out_genWeights->addScaleUpWeight(w);
-        else if ( scaleDownWeightIdxs_.find(i) != scaleDownWeightIdxs_.end() ) out_genWeights->addScaleDownWeight(w);
-        else if ( pdfWeightIdxs_.find(i) != pdfWeightIdxs_.end() ) out_genWeights->addPDFWeight(w);
-        else out_genWeights->addOtherWeight(w);
+        if ( scaleWeightIdxs_.find(i) != scaleWeightIdxs_.end() ) scaleWeights->push_back(w);
+        else if ( pdfWeightIdxs_.find(i) != pdfWeightIdxs_.end() ) pdfWeights->push_back(w);
+        else otherWeights->push_back(w);
       }
     }
     else
@@ -264,15 +263,23 @@ void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& event
       {
         const double w0 = genInfoHandle->weights().at(i);
         const double w = w0/(enforceUnitGenWeight_ ? std::abs(genWeight) : originalWeight);
-        if ( scaleUpWeightIdxs_.find(i) != scaleUpWeightIdxs_.end() ) out_genWeights->addScaleUpWeight(w);
-        else if ( scaleDownWeightIdxs_.find(i) != scaleDownWeightIdxs_.end() ) out_genWeights->addScaleDownWeight(w);
-        else if ( pdfWeightIdxs_.find(i) != pdfWeightIdxs_.end() ) out_genWeights->addPDFWeight(w);
-        else out_genWeights->addOtherWeight(w);
+        if ( scaleWeightIdxs_.find(i) != scaleWeightIdxs_.end() ) scaleWeights->push_back(w);
+        else if ( pdfWeightIdxs_.find(i) != pdfWeightIdxs_.end() ) pdfWeights->push_back(w);
+        else otherWeights->push_back(w);
       }
     }
   }
 
-  event.put(out_genWeights);
+  event.put(std::auto_ptr<float>(new float(lheWeight)), "lheWeight");
+  event.put(std::auto_ptr<float>(new float(genWeight)), "genWeight");
+  event.put(scaleWeights, "scaleWeights");
+  event.put(pdfWeights, "pdfWeights");
+  event.put(otherWeights, "otherWeights");
+  event.put(std::auto_ptr<int>(new int(id1)), "id1");
+  event.put(std::auto_ptr<int>(new int(id2)), "id2");
+  event.put(std::auto_ptr<float>(new float(x1)), "x1");
+  event.put(std::auto_ptr<float>(new float(x2)), "x2");
+  event.put(std::auto_ptr<float>(new float(q)), "Q");
 
 }
 

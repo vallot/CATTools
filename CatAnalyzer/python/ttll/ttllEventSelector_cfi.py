@@ -63,8 +63,7 @@ eventsTTLL = cms.EDFilter("TTLLEventSelector",
     # Event weights
     genWeight = cms.PSet(
         index = cms.uint32(0),
-        src = cms.InputTag("genWeight"),
-        weightType = cms.string("nominal"), # can be PDF, scaleUp, scaleDown
+        src = cms.InputTag("genWeight", "genWeight"),
     ),
     extWeights = cms.VInputTag(),
 )
