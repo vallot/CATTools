@@ -862,7 +862,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       const bool isBjet1 = jet1->bDiscriminator(BTAG_CSVv2) >= WP_BTAG_CSVv2L;
       for (auto jet2 = next(jet1); jet2 != end; ++jet2){
         const auto recojet2= jet2->p4();
-        const bool isBjet2 = jet2->bDiscriminator(BTAG_CSVv2) < WP_BTAG_CSVv2L;
+        const bool isBjet2 = jet2->bDiscriminator(BTAG_CSVv2) >= WP_BTAG_CSVv2L;
 
         inputLV[3] = recojet1;
         inputLV[4] = recojet2;
