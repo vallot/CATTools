@@ -106,6 +106,7 @@ private:
 
   std::vector<TTree*> ttree_;
   TH1D * h_nevents;
+  int b_run, b_lumi, b_event;
   int b_nvertex, b_step, b_channel, b_njet, b_nbjet;
   bool b_step1, b_step2, b_step3, b_step4, b_step5, b_step6, b_step7, b_filtered;
   float b_tri;
@@ -247,6 +248,9 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   for (int sys = 0; sys < nsys_e; ++sys){
     ttree_.push_back(fs->make<TTree>(sys_name[sys].c_str(), sys_name[sys].c_str()));
     auto tr = ttree_.back();
+    tr->Branch("run", &b_run, "run/I");
+    tr->Branch("event", &b_event, "event/I");
+
     tr->Branch("nvertex", &b_nvertex, "nvertex/I");
     tr->Branch("step", &b_step, "step/I");
     tr->Branch("channel", &b_channel, "channel/I");
@@ -413,6 +417,9 @@ void TtbarDiLeptonAnalyzer::beginLuminosityBlock(const edm::LuminosityBlock& lum
 
 void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
+  b_run = iEvent.id().run();
+  b_event = iEvent.id().event();
+
   const bool runOnMC = !iEvent.isRealData();
   cutflow_[0][0]++;
 
