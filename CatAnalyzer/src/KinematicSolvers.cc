@@ -12,8 +12,8 @@ using namespace std;
 
 void TTDileptonSolver::solve(const LV input[])
 {
-  quality_ = -1e9; // default value
-  values_.clear();
+  sol_.quality_ = -1e9; // default value
+  sol_.values_.clear();
 
   const auto& met = input[0];
   const auto& l1 = input[1];
@@ -21,26 +21,26 @@ void TTDileptonSolver::solve(const LV input[])
   const auto& j1 = input[3];
   const auto& j2 = input[4];
 
-  l1_ = input[1]; l2_ = input[2]; j1_ = input[3]; j2_ = input[4];
-  nu1_ = met/2;
-  nu2_ = met/2;
+  sol_.l1_ = input[1]; sol_.l2_ = input[2]; sol_.j1_ = input[3]; sol_.j2_ = input[4];
+  sol_.nu1_ = met/2;
+  sol_.nu2_ = met/2;
 
   const double mW = 80.4;
-  if ( abs((nu1_+l1).mass()-mW)+abs((nu2_+l2).mass()-mW) <
-       abs((nu1_+l2).mass()-mW)+abs((nu2_+l1).mass()-mW) ) swap(nu1_, nu2_);
-  //if ( abs((nu1_+l1).mass()-mW) > 20 or abs((nu2_+l2).mass()-mW) > 20 ) return;
+  if ( abs((sol_.nu1_+l1).mass()-mW)+abs((sol_.nu2_+l2).mass()-mW) <
+       abs((sol_.nu1_+l2).mass()-mW)+abs((sol_.nu2_+l1).mass()-mW) ) swap(sol_.nu1_, sol_.nu2_);
+  //if ( abs((sol_.nu1_+l1).mass()-mW) > 20 or abs((sol_.nu2_+l2).mass()-mW) > 20 ) return;
 
-  quality_ = abs((nu1_+l1+j1).mass()-172.5) + abs((nu2_+l2+j2).mass()-172.5);
-  quality_ = 0.01/(0.01+quality_);
+  sol_.quality_ = abs((sol_.nu1_+l1+j1).mass()-172.5) + abs((sol_.nu2_+l2+j2).mass()-172.5);
+  sol_.quality_ = 0.01/(0.01+sol_.quality_);
 
   //const auto& lb1 = l1+j1;
   //const auto& lb2 = l2+j2;
-  //if ( lb1.mass() > 150 or lb2.mass() > 150 ) quality_ = 0;
+  //if ( lb1.mass() > 150 or lb2.mass() > 150 ) sol_.quality_ = 0;
 
   const auto& vsum = l1+l2+j1+j2+met;
-  if ( vsum.mass() < 300 ) quality_ = 0;
+  if ( vsum.mass() < 300 ) sol_.quality_ = 0;
 
-  values_.push_back(vsum.mass());
+  sol_.values_.push_back(vsum.mass());
 }
 
 namespace CATMT2
@@ -82,15 +82,15 @@ void MT2Solver::solve(const LV input[])
 {
   using namespace CATMT2;
 
-  quality_ = -1e9; // default value
-  values_.clear();
+  sol_.quality_ = -1e9; // default value
+  sol_.values_.clear();
 
   const auto& met = input[0];
   const auto& l1 = input[1];
   const auto& l2 = input[2];
   const auto& j1 = input[3];
   const auto& j2 = input[4];
-  l1_ = input[1]; l2_ = input[2]; j1_ = input[3]; j2_ = input[4];
+  sol_.l1_ = input[1]; sol_.l2_ = input[2]; sol_.j1_ = input[3]; sol_.j2_ = input[4];
 
   // pars : bx1, by1, bx2, by2, Kx, Ky, xmin, xmax
   //        b : b jet px, py
@@ -133,9 +133,9 @@ void MT2Solver::solve(const LV input[])
   const double qx2 = met.px()+l1.px()+l2.px()-qx1;
   const double qy2 = met.py()+l1.py()+l2.py()-qy1;
   const double mt2 = sqrt(mtsqr(qx1, qy1, pars[0], pars[1]));
-  quality_ = 1;
+  sol_.quality_ = 1;
   // For debug : print out mt2(qx1, qy1) vs mt2(qx2, qy2).
-  // If minimization was failed, mt2_A != mt2_B
+  // If minimization was failed, msol_.t2_A != msol_.t2_B
   // Of course this is not full test of minimization, but this must be the very first observable
   // cout << sqrt(mtsqr(qx1, qy1, pars[0], pars[1]))-sqrt(mtsqr(qx2, qy2, pars[2], pars[3])) << endl;
 
@@ -143,10 +143,10 @@ void MT2Solver::solve(const LV input[])
   const double ew2 = sqrt(mwsqr + qx2*qx2 + qy2*qy2);
   LV w1(qx1, qy1, 0, ew1);
   LV w2(qx2, qy2, 0, ew2);
-  nu1_ = w1-l1;
-  nu2_ = w2-l2;
+  sol_.nu1_ = w1-l1;
+  sol_.nu2_ = w2-l2;
 
-  values_.push_back(mt2);
+  sol_.values_.push_back(mt2);
 
 }
 
@@ -169,8 +169,8 @@ CMSKinSolver::CMSKinSolver(const edm::ParameterSet& pset): KinematicSolver(pset)
 
 void CMSKinSolver::solve(const LV input[])
 {
-  quality_ = -1e9; // default value
-  values_.clear();
+  sol_.quality_ = -1e9; // default value
+  sol_.values_.clear();
 
   const double metX = input[0].px();
   const double metY = input[0].py();
@@ -182,18 +182,18 @@ void CMSKinSolver::solve(const LV input[])
   solver_->SetConstraints(metX+l1.Px()+j1.Px()+l2.Px()+j2.Px(),
                           metY+l1.Py()+j1.Py()+l2.Py()+j2.Py());
   auto nuSol = solver_->getNuSolution(l1, l2, j1, j2);
-  quality_  = nuSol.weight;
-  if ( quality_ < 0 ) return;
+  sol_.quality_  = nuSol.weight;
+  if ( sol_.quality_ < 0 ) return;
 
-  nu1_ = nuSol.neutrino.p4();
-  nu2_ = nuSol.neutrinoBar.p4();
-  l1_ = input[1]; l2_ = input[2]; j1_ = input[3]; j2_ = input[4];
+  sol_.nu1_ = nuSol.neutrino.p4();
+  sol_.nu2_ = nuSol.neutrinoBar.p4();
+  sol_.l1_ = input[1]; sol_.l2_ = input[2]; sol_.j1_ = input[3]; sol_.j2_ = input[4];
 
-  const LV t1 = input[1]+input[3]+nu1_;
-  const LV t2 = input[2]+input[4]+nu2_;
-  values_.push_back((t1+t2).mass());
-  values_.push_back(t1.mass());
-  values_.push_back(t2.mass());
+  const LV t1 = input[1]+input[3]+sol_.nu1_;
+  const LV t2 = input[2]+input[4]+sol_.nu2_;
+  sol_.values_.push_back((t1+t2).mass());
+  sol_.values_.push_back(t1.mass());
+  sol_.values_.push_back(t2.mass());
 }
 
 DESYMassLoopSolver::DESYMassLoopSolver(const edm::ParameterSet& pset):
@@ -206,8 +206,8 @@ DESYMassLoopSolver::DESYMassLoopSolver(const edm::ParameterSet& pset):
 
 void DESYMassLoopSolver::solve(const LV input[])
 {
-  quality_ = -1e9;
-  values_.clear();
+  sol_.quality_ = -1e9;
+  sol_.values_.clear();
 
   const double metX = input[0].px(), metY = input[0].py();
   const auto& l1 = input[1], l2 = input[2];
@@ -238,14 +238,14 @@ void DESYMassLoopSolver::solve(const LV input[])
       const double ttE = visSum.E()+nu1sol[3]+nu2sol[3];
       const double weight = 1/sqrt(ttE*ttE-ttX*ttX-ttY*ttY-ttZ*ttZ);
 
-      if ( weight < quality_ ) continue;
+      if ( weight < sol_.quality_ ) continue;
 
-      quality_ = weight;
-      nu1_.SetPxPyPzE(nu1sol[0], nu1sol[1], nu1sol[2], nu1sol[3]);
-      nu2_.SetPxPyPzE(nu2sol[0], nu2sol[1], nu2sol[2], nu2sol[3]);
+      sol_.quality_ = weight;
+      sol_.nu1_.SetPxPyPzE(nu1sol[0], nu1sol[1], nu1sol[2], nu1sol[3]);
+      sol_.nu2_.SetPxPyPzE(nu2sol[0], nu2sol[1], nu2sol[2], nu2sol[3]);
     }
   }
-  l1_ = input[1]; l2_ = input[2]; j1_ = input[3]; j2_ = input[4];
+  sol_.l1_ = input[1]; sol_.l2_ = input[2]; sol_.j1_ = input[3]; sol_.j2_ = input[4];
 }
 
 DESYSmearedSolver::DESYSmearedSolver(const edm::ParameterSet& pset):
@@ -278,8 +278,8 @@ DESYSmearedSolver::DESYSmearedSolver(const edm::ParameterSet& pset):
 
 void DESYSmearedSolver::solve(const LV input[])
 {
-  quality_ = -1e9;
-  values_.clear();
+  sol_.quality_ = -1e9;
+  sol_.values_.clear();
 
   const double metX = input[0].px(), metY = input[0].py();
   const auto& l1 = input[1], l2 = input[2];
@@ -371,22 +371,22 @@ void DESYSmearedSolver::solve(const LV input[])
     sumP[4][0] += weight*nu1sol[0]; sumP[4][1] += weight*nu1sol[1]; sumP[4][2] += weight*nu1sol[2];
     sumP[5][0] += weight*nu2sol[0]; sumP[5][1] += weight*nu2sol[1]; sumP[5][2] += weight*nu2sol[2];
   }
-  quality_ = sumW;
-  if ( quality_ <= 0 ) { quality_ = -1e9; return; }
+  sol_.quality_ = sumW;
+  if ( sol_.quality_ <= 0 ) { sol_.quality_ = -1e9; return; }
   for ( int i=0; i<6; ++i ) for ( int j=0; j<3; ++j ) sumP[i][j] /= sumW;
 
-  l1_.SetXYZT(sumP[0][0], sumP[0][1], sumP[0][2], KinSolverUtils::computeEnergy(sumP[0], KinSolverUtils::mL));
-  l2_.SetXYZT(sumP[1][0], sumP[1][1], sumP[1][2], KinSolverUtils::computeEnergy(sumP[1], KinSolverUtils::mL));
-  j1_.SetXYZT(sumP[2][0], sumP[2][1], sumP[2][2], KinSolverUtils::computeEnergy(sumP[2], KinSolverUtils::mB));
-  j2_.SetXYZT(sumP[3][0], sumP[3][1], sumP[3][2], KinSolverUtils::computeEnergy(sumP[3], KinSolverUtils::mB));
-  nu1_.SetXYZT(sumP[4][0], sumP[4][1], sumP[4][2], KinSolverUtils::computeEnergy(sumP[4], KinSolverUtils::mV));
-  nu2_.SetXYZT(sumP[5][0], sumP[5][1], sumP[5][2], KinSolverUtils::computeEnergy(sumP[5], KinSolverUtils::mV));
-  t1_ = l1_+j1_+nu1_;
-  t2_ = l2_+j2_+nu2_;
-  const double p1[] = {t1_.px(), t1_.py(), t1_.pz()};
-  const double p2[] = {t2_.px(), t2_.py(), t2_.pz()};
-  t1_.SetE(KinSolverUtils::computeEnergy(p1, mTopInput_));
-  t2_.SetE(KinSolverUtils::computeEnergy(p2, mTopInput_));
+  sol_.l1_.SetXYZT(sumP[0][0], sumP[0][1], sumP[0][2], KinSolverUtils::computeEnergy(sumP[0], KinSolverUtils::mL));
+  sol_.l2_.SetXYZT(sumP[1][0], sumP[1][1], sumP[1][2], KinSolverUtils::computeEnergy(sumP[1], KinSolverUtils::mL));
+  sol_.j1_.SetXYZT(sumP[2][0], sumP[2][1], sumP[2][2], KinSolverUtils::computeEnergy(sumP[2], KinSolverUtils::mB));
+  sol_.j2_.SetXYZT(sumP[3][0], sumP[3][1], sumP[3][2], KinSolverUtils::computeEnergy(sumP[3], KinSolverUtils::mB));
+  sol_.nu1_.SetXYZT(sumP[4][0], sumP[4][1], sumP[4][2], KinSolverUtils::computeEnergy(sumP[4], KinSolverUtils::mV));
+  sol_.nu2_.SetXYZT(sumP[5][0], sumP[5][1], sumP[5][2], KinSolverUtils::computeEnergy(sumP[5], KinSolverUtils::mV));
+  sol_.t1_ = sol_.l1_+sol_.j1_+sol_.nu1_;
+  sol_.t2_ = sol_.l2_+sol_.j2_+sol_.nu2_;
+  const double p1[] = {sol_.t1_.px(), sol_.t1_.py(), sol_.t1_.pz()};
+  const double p2[] = {sol_.t2_.px(), sol_.t2_.py(), sol_.t2_.pz()};
+  sol_.t1_.SetE(KinSolverUtils::computeEnergy(p1, mTopInput_));
+  sol_.t2_.SetE(KinSolverUtils::computeEnergy(p2, mTopInput_));
 
 }
 

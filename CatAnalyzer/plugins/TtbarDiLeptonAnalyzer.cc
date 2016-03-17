@@ -850,60 +850,63 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     }
     ////////////////////////////////////////////////////////  KIN  /////////////////////////////////////
     //int kin=0;
-    math::XYZTLorentzVector top1, top2, nu1, nu2, nu_1, nu_2, nu_3, nu_4, bjet1, bjet2;
-    double maxweight=0;
     //const cat::Jet* kinj1, * kinj2;
 
     const auto recolepLV1= recolep1.p4();
     const auto recolepLV2= recolep2.p4();
     math::XYZTLorentzVector inputLV[5] = {met, recolepLV1, recolepLV2};
+    std::vector<cat::KinematicSolution> sol2Bs, sol1Bs, sol0Bs;
 
     for (auto jet1 = selectedJets.begin(), end = selectedJets.end(); jet1 != end; ++jet1){
       const auto recojet1= jet1->p4();
+      const bool isBjet1 = jet1->bDiscriminator(BTAG_CSVv2) >= WP_BTAG_CSVv2L;
       for (auto jet2 = next(jet1); jet2 != end; ++jet2){
-        if (jet1->bDiscriminator(BTAG_CSVv2) < WP_BTAG_CSVv2L && jet2->bDiscriminator(BTAG_CSVv2) < WP_BTAG_CSVv2L) continue;
         const auto recojet2= jet2->p4();
+        const bool isBjet2 = jet2->bDiscriminator(BTAG_CSVv2) < WP_BTAG_CSVv2L;
 
         inputLV[3] = recojet1;
         inputLV[4] = recojet2;
         solver_->solve(inputLV);
-        nu_1 = solver_->nu1();
-        nu_2 = solver_->nu2();
-        const double weight1 = solver_->quality();
+        auto sol1 = solver_->solution();
+
         inputLV[3] = recojet2;
         inputLV[4] = recojet1;
         solver_->solve(inputLV);
-        nu_3 = solver_->nu1();
-        nu_4 = solver_->nu2();
-        const double weight2 = solver_->quality();
+        auto sol2 = solver_->solution();
 
-        if ( weight2 > maxweight and weight2 >= weight1 ) {
-          nu1 = nu_3;
-          nu2 = nu_4;
-          maxweight = weight2;
+        if ( isBjet1 and isBjet2 ) {
+          sol2Bs.push_back(sol1);
+          sol2Bs.push_back(sol2);
         }
-        else if ( weight1 > maxweight and weight1 >= weight2 ) {
-          inputLV[3] = recojet1;
-          inputLV[4] = recojet2;
-          nu1 = nu_1;
-          nu2 = nu_2;
-          maxweight = weight1;
+        else if ( isBjet1 or isBjet2 ) {
+          sol1Bs.push_back(sol1);
+          sol1Bs.push_back(sol2);
         }
-        else continue;
-
-        //saving results
-        bjet1 = inputLV[3];
-        bjet2 = inputLV[4];
-        top1 = recolepLV1+inputLV[3]+nu1;
-        top2 = recolepLV2+inputLV[4]+nu2;
-        // Enforce the top quark mass to 172.5
-        const double tMass = 172.5;
-        top1.SetE(sqrt(top1.P2() + tMass*tMass));
-        top2.SetE(sqrt(top2.P2() + tMass*tMass));
-        if (recolep1.charge() < 0) swap(top1, top2);
+        else {
+          sol0Bs.push_back(sol1);
+          sol0Bs.push_back(sol2);
+        }
       }
     }
-  
+    auto greaterByQuality = [](const cat::KinematicSolution& a, const cat::KinematicSolution& b) { return a.quality() > b.quality(); };
+    std::sort(sol2Bs.begin(), sol2Bs.end(), greaterByQuality);
+    std::sort(sol1Bs.begin(), sol1Bs.end(), greaterByQuality);
+    std::sort(sol0Bs.begin(), sol0Bs.end(), greaterByQuality);
+
+    math::XYZTLorentzVector top1, top2, nu1, nu2, bjet1, bjet2;
+    // Prefer to select b jets
+    cat::KinematicSolution sol;
+    if      ( !sol2Bs.empty() ) sol = sol2Bs.front();
+    else if ( !sol1Bs.empty() ) sol = sol1Bs.front();
+    else if ( !sol0Bs.empty() ) sol = sol0Bs.front();
+
+    //saving results
+    const double maxweight = sol.quality();
+    bjet1 = sol.j1();
+    bjet2 = sol.j2();
+    top1 = sol.t1();
+    top2 = sol.t2();
+    if (recolep1.charge() < 0) swap(top1, top2);
 
     if (bjet1.Pt() < bjet2.Pt()) { swap(bjet1, bjet2); }
     b_jet1_pt = bjet1.Pt();
@@ -929,7 +932,6 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     b_ttbar_dphi = deltaPhi(top1.Phi(), top2.Phi());
     b_ttbar_m = ttbar.M();
     b_ttbar_rapi = ttbar.Rapidity();
-
 
     b_maxweight = maxweight;
     if (maxweight>0){
