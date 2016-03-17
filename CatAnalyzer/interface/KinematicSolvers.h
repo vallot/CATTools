@@ -35,8 +35,8 @@ public:
 
   const LV w1() const { return l1()+nu1(); }
   const LV w2() const { return l2()+nu2(); }
-  const LV t1() const { return w1()+j1(); }
-  const LV t2() const { return w2()+j2(); }
+  virtual const LV t1() const { return w1()+j1(); } // Virtual since the smeared solver have to fix the top quark mass
+  virtual const LV t2() const { return w2()+j2(); } // Virtual since the smeared solver have to fix the top quark mass
   const LV tt() const { return t1()+t2(); }
 
 protected:
