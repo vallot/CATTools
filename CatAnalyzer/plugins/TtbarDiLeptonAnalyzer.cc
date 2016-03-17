@@ -898,7 +898,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     cat::KinematicSolution sol;
     if      ( !sol2Bs.empty() ) sol = sol2Bs.front();
     else if ( !sol1Bs.empty() ) sol = sol1Bs.front();
-    else if ( !sol0Bs.empty() ) sol = sol0Bs.front();
+    //else if ( !sol0Bs.empty() ) sol = sol0Bs.front();
 
     //saving results
     const double maxweight = sol.quality();
