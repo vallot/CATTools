@@ -769,7 +769,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       b_step3 = true;
       if (b_step == 2){
         ++b_step;
-	if (sys == sys_nom) cutflow_[6][b_channel]++;
+        if (sys == sys_nom) cutflow_[6][b_channel]++;
       }
     }
 
@@ -777,7 +777,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       b_step4 = true;
       if (b_step == 3){
         ++b_step;
-	if (sys == sys_nom) cutflow_[7][b_channel]++;
+        if (sys == sys_nom) cutflow_[7][b_channel]++;
       }
     }
 
@@ -785,15 +785,15 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       b_step5 = true;
       if (b_step == 4){
         ++b_step;
-	if (sys == sys_nom) cutflow_[8][b_channel]++;
+        if (sys == sys_nom) cutflow_[8][b_channel]++;
       }
     }
 
-    //////////////////////////////////////////////////////// DESY KIN /////////////////////////////////////
-    if (selectedBJets.size() > 0){
       vector<int> leptonIndex, antiLeptonIndex, jetIndices, bjetIndices;
       VLV allLeptonslv, jetslv;
       vector<double> jetBtags;
+    //////////////////////////////////////////////////////// DESY KIN /////////////////////////////////////
+    if (selectedBJets.size() > 0){
       LV metlv = mets->front().p4();
 
       int ijet=0;
@@ -815,18 +815,14 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
       KinematicReconstructionSolutions kinematicReconstructionSolutions  =  kinematicReconstruction->solutions(leptonIndex, antiLeptonIndex, jetIndices, bjetIndices,  allLeptonslv, jetslv, jetBtags, metlv);
 
-      if (b_step == 5)
-        if (sys == sys_nom)
-          cutflow_[10][b_channel]++;
+      if (b_step == 5 and sys == sys_nom) cutflow_[10][b_channel]++;
 
       if (kinematicReconstructionSolutions.numberOfSolutions()){
         LV top1 = kinematicReconstructionSolutions.solution().top();
         LV top2 = kinematicReconstructionSolutions.solution().antiTop();
 
         b_step7 = true;	
-        if (b_step == 5)
-          if (sys == sys_nom)
-            cutflow_[11][b_channel]++;
+        if (b_step == 5 and sys == sys_nom) cutflow_[11][b_channel]++;
 
         b_desytop1_pt = top1.Pt();
         b_desytop1_eta = top1.Eta();
@@ -853,8 +849,8 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
     const auto recolepLV1= recolep1.p4();
     const auto recolepLV2= recolep2.p4();
-    math::XYZTLorentzVector inputLV[5] = {met, recolepLV1, recolepLV2};
     std::vector<cat::KinematicSolution> sol2Bs, sol1Bs, sol0Bs;
+    cat::KinematicSolution bestSol;
 
     for (auto jet1 = selectedJets.begin(), end = selectedJets.end(); jet1 != end; ++jet1){
       const auto recojet1= jet1->p4();
@@ -863,15 +859,14 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         const auto recojet2= jet2->p4();
         const bool isBjet2 = jet2->bDiscriminator(BTAG_CSVv2) >= WP_BTAG_CSVv2L;
 
-        inputLV[3] = recojet1;
-        inputLV[4] = recojet2;
-        solver_->solve(inputLV);
-        auto sol1 = solver_->solution();
+        solver_->solve(met, recolepLV1, recolepLV2, recojet2, recojet1);
+        const cat::KinematicSolution sol1 = solver_->solution();
 
-        inputLV[3] = recojet2;
-        inputLV[4] = recojet1;
-        solver_->solve(inputLV);
-        auto sol2 = solver_->solution();
+        solver_->solve(met, recolepLV1, recolepLV2, recojet1, recojet2);
+        const cat::KinematicSolution sol2 = solver_->solution();
+
+        //if      ( sol1.quality() >= sol2.quality() and sol1.quality() > bestSol.quality() ) bestSol = sol1;
+        //else if ( sol2.quality() >= sol1.quality() and sol2.quality() > bestSol.quality() ) bestSol = sol2;
 
         if ( isBjet1 and isBjet2 ) {
           sol2Bs.push_back(sol1);
@@ -892,20 +887,19 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     std::sort(sol1Bs.begin(), sol1Bs.end(), greaterByQuality);
     std::sort(sol0Bs.begin(), sol0Bs.end(), greaterByQuality);
 
-    math::XYZTLorentzVector top1, top2, nu1, nu2, bjet1, bjet2;
     // Prefer to select b jets
-    cat::KinematicSolution sol;
-    if      ( !sol2Bs.empty() ) sol = sol2Bs.front();
-    else if ( !sol1Bs.empty() ) sol = sol1Bs.front();
-    //else if ( !sol0Bs.empty() ) sol = sol0Bs.front();
+    if      ( !sol2Bs.empty() ) bestSol = sol2Bs.front();
+    else if ( !sol1Bs.empty() ) bestSol = sol1Bs.front();
+    //else if ( !sol0Bs.empty() ) bestSol = sol0Bs.front();
 
     //saving results
-    const double maxweight = sol.quality();
+    const double maxweight = bestSol.quality();
     if ( maxweight > 0 ) {
-      bjet1 = sol.j1();
-      bjet2 = sol.j2();
-      top1 = sol.t1();
-      top2 = sol.t2();
+      math::XYZTLorentzVector top1, top2, nu1, nu2, bjet1, bjet2;
+      bjet1 = bestSol.j1();
+      bjet2 = bestSol.j2();
+      top1 = bestSol.t1();
+      top2 = bestSol.t2();
       if (recolep1.charge() < 0) swap(top1, top2);
 
       if (bjet1.Pt() < bjet2.Pt()) { swap(bjet1, bjet2); }
