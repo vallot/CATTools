@@ -17,7 +17,7 @@ void TTDileptonSolver::solve(const LV input[])
   const auto& l2 = input[2];
   const auto& j1 = input[3];
   const auto& j2 = input[4];
-  sol_.setVisible(l1, l1, j1, j2);
+  sol_.setVisible(l1, l2, j1, j2);
 
   auto nu1 = met/2;
   auto nu2 = met/2;
@@ -208,8 +208,8 @@ void DESYMassLoopSolver::solve(const LV input[])
 
   const double l1E = l1.energy(), j1E = j1.energy();
   const double l2E = l2.energy(), j2E = j2.energy();
-  const double a4 = (j1E*l1.pz()-l1E*j1.pz())/l1E/(j1E+l1E);
-  const double b4 = (j2E*l2.pz()-l2E*j2.pz())/l2E/(j2E+l2E);
+  const double a4 = (j2E*l2.pz()-l2E*j2.pz())/l2E/(j2E+l2E);
+  const double b4 = (j1E*l1.pz()-l1E*j1.pz())/l1E/(j1E+l1E);
 
   double quality = sol_.quality(); // Just take the default quality value for initial input
   math::XYZTLorentzVector nu1, nu2;
@@ -275,6 +275,7 @@ void DESYSmearedSolver::solve(const LV input[])
   const double metX = input[0].px(), metY = input[0].py();
   auto l1 = input[1], l2 = input[2];
   auto j1 = input[3], j2 = input[4];
+  sol_.setVisible(l1, l2, j1, j2);
 
   // Skip if L+B mass is large in Smeared solution case
   const double mbl1 = (l1+j1).mass();
@@ -284,8 +285,8 @@ void DESYSmearedSolver::solve(const LV input[])
 
   const double l1E = l1.energy(), j1E = j1.energy();
   const double l2E = l2.energy(), j2E = j2.energy();
-  const double a4 = (j1E*l1.pz()-l1E*j1.pz())/l1E/(j1E+l1E);
-  const double b4 = (j2E*l2.pz()-l2E*j2.pz())/l2E/(j2E+l2E);
+  const double a4 = (j2E*l2.pz()-l2E*j2.pz())/l2E/(j2E+l2E);
+  const double b4 = (j1E*l1.pz()-l1E*j1.pz())/l1E/(j1E+l1E);
 
   // Continue to get smeared solution if exact solver fails
   // Try 100 times with energy/angle smearing. Take weighted average of solutions
@@ -316,8 +317,14 @@ void DESYSmearedSolver::solve(const LV input[])
     double weight = w1*w2/h_mbl_w_->Integral()/h_mbl_w_->Integral();
     if ( weight <= 0 ) continue;
 
+//#define KINRECONOSM
+#ifdef KINRECONOSM
+    KinSolverUtils::findCoeffs(mTopInput_, 80.4, 80.4,
+                               newl1, newl2, newj1, newj2, newmetX, newmetY, koef, cache);
+#else
     KinSolverUtils::findCoeffs(mTopInput_, getRandom(h_wmass_.get()), getRandom(h_wmass_.get()),
                                newl1, newl2, newj1, newj2, newmetX, newmetY, koef, cache);
+#endif
     KinSolverUtils::solve_quartic(koef, a4, b4, sols);
     double nu1sol[4] = {}, nu2sol[4] = {};
     // Choose one solution with minimal mass of top pair
@@ -343,8 +350,8 @@ void DESYSmearedSolver::solve(const LV input[])
       const double nw = nw1*nw2/h_mbl_w_->Integral()/h_mbl_w_->Integral();
       if ( nw <= 0 ) continue;
 */
-      const double nw = 1./(nu1+nu2+visSum).mass();
 
+      const double nw = 1./(nu1+nu2+visSum).mass();
       if ( nw > maxWeightSol ) {
         maxWeightSol = nw;
         std::copy(nu1solTmp, nu1solTmp+4, nu1sol);
@@ -365,10 +372,10 @@ void DESYSmearedSolver::solve(const LV input[])
   if ( sumW <= 0 ) return;
   for ( int i=0; i<6; ++i ) for ( int j=0; j<3; ++j ) sumP[i][j] /= sumW;
 
-  l1.SetXYZT(sumP[0][0], sumP[0][1], sumP[0][2], KinSolverUtils::computeEnergy(sumP[0], KinSolverUtils::mL));
-  l2.SetXYZT(sumP[1][0], sumP[1][1], sumP[1][2], KinSolverUtils::computeEnergy(sumP[1], KinSolverUtils::mL));
-  j1.SetXYZT(sumP[2][0], sumP[2][1], sumP[2][2], KinSolverUtils::computeEnergy(sumP[2], KinSolverUtils::mB));
-  j2.SetXYZT(sumP[3][0], sumP[3][1], sumP[3][2], KinSolverUtils::computeEnergy(sumP[3], KinSolverUtils::mB));
+  l1.SetXYZT(sumP[0][0], sumP[0][1], sumP[0][2], KinSolverUtils::computeEnergy(sumP[0], l1.M()));//KinSolverUtils::mL));
+  l2.SetXYZT(sumP[1][0], sumP[1][1], sumP[1][2], KinSolverUtils::computeEnergy(sumP[1], l2.M()));//KinSolverUtils::mL));
+  j1.SetXYZT(sumP[2][0], sumP[2][1], sumP[2][2], KinSolverUtils::computeEnergy(sumP[2], j1.M()));//KinSolverUtils::mB));
+  j2.SetXYZT(sumP[3][0], sumP[3][1], sumP[3][2], KinSolverUtils::computeEnergy(sumP[3], j2.M()));//KinSolverUtils::mB));
 
   sol_.setVisible(l1, l2, j1, j2);
   const math::XYZTLorentzVector nu1(sumP[4][0], sumP[4][1], sumP[4][2], KinSolverUtils::computeEnergy(sumP[4], KinSolverUtils::mV));
@@ -384,6 +391,9 @@ void DESYSmearedSolver::solve(const LV input[])
 LV DESYSmearedSolver::getSmearedLV(const LV& lv0,
                                    const double fE, const double dRot)
 {
+#ifdef KINRECONOSM
+  return lv0;
+#endif
   // Rescale at the first step
   const double e = fE*lv0.energy();
   const double p = std::sqrt(std::max(0., e*e-lv0.M2()));
