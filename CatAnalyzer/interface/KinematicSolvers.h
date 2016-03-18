@@ -67,6 +67,11 @@ class KinematicSolver
 public:
   KinematicSolver(const edm::ParameterSet& pset) {}
   virtual ~KinematicSolver() {}
+  void solve(const LV met, const LV l1, const LV l2, const LV j1, const LV j2)
+  {
+    LV input[5] = {met, l1, l2, j1, j2};
+    solve(input);
+  }
   virtual void solve(const LV input[]) = 0;
   virtual std::string algoName() = 0;
 
