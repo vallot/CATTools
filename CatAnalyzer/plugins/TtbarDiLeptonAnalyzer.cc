@@ -117,8 +117,8 @@ private:
   float b_topPtWeight;
   std::vector<float> b_pdfWeights, b_scaleWeights, b_csvweights;
 
-  float b_lep1_pt, b_lep1_eta, b_lep1_phi;
-  float b_lep2_pt, b_lep2_eta, b_lep2_phi;
+  float b_lep1_pt, b_lep1_eta, b_lep1_phi, b_lep1_pdgid;
+  float b_lep2_pt, b_lep2_eta, b_lep2_phi, b_lep2_pdgid;
   float b_ll_pt, b_ll_eta, b_ll_phi, b_ll_m;
 
   float b_partontop1_pt, b_partontop1_eta, b_partontop1_phi, b_partontop1_rapi, b_partontop1_m;
@@ -289,21 +289,23 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
     tr->Branch("lep1_pt", &b_lep1_pt, "lep1_pt/F");
     tr->Branch("lep1_eta", &b_lep1_eta, "lep1_eta/F");
     tr->Branch("lep1_phi", &b_lep1_phi, "lep1_phi/F");
+    tr->Branch("lep1_pdgid", &b_lep1_pdgid, "lep1_pdgid/I");
     tr->Branch("lep2_pt", &b_lep2_pt, "lep2_pt/F");
     tr->Branch("lep2_eta", &b_lep2_eta, "lep2_eta/F");
     tr->Branch("lep2_phi", &b_lep2_phi, "lep2_phi/F");
+    tr->Branch("lep2_pdgid", &b_lep2_pdgid, "lep2_pdgid/I");
     tr->Branch("ll_pt", &b_ll_pt, "ll_pt/F");
-    tr->Branch("ll_eta", &b_ll_eta, "ll_eta/F");
-    tr->Branch("ll_phi", &b_ll_phi, "ll_phi/F");
+    //    tr->Branch("ll_eta", &b_ll_eta, "ll_eta/F");
+    //    tr->Branch("ll_phi", &b_ll_phi, "ll_phi/F");
     tr->Branch("ll_m", &b_ll_m, "ll_m/F");
 
     tr->Branch("partontop1_pt", &b_partontop1_pt, "partontop1_pt/F");
     tr->Branch("partontop1_eta", &b_partontop1_eta, "partontop1_eta/F");
-    tr->Branch("partontop1_rapi", &b_partontop1_rapi, "partontop1_rapi/F");
+    tr->Branch("partontop1_phi", &b_partontop1_phi, "partontop1_phi/F");
     tr->Branch("partontop1_m", &b_partontop1_m, "partontop1_m/F");
     tr->Branch("partontop2_pt", &b_partontop2_pt, "partontop2_pt/F");
     tr->Branch("partontop2_eta", &b_partontop2_eta, "partontop2_eta/F");
-    tr->Branch("partontop2_rapi", &b_partontop2_rapi, "partontop2_rapi/F");
+    tr->Branch("partontop2_phi", &b_partontop2_phi, "partontop2_phi/F");
     tr->Branch("partontop2_m", &b_partontop2_m, "partontop2_m/F");
     tr->Branch("partonttbar_pt", &b_partonttbar_pt, "partonttbar_pt/F");
     tr->Branch("partonttbar_eta", &b_partonttbar_eta, "partonttbar_eta/F");
@@ -328,11 +330,11 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
 
     tr->Branch("gentop1_pt", &b_gentop1_pt, "gentop1_pt/F");
     tr->Branch("gentop1_eta", &b_gentop1_eta, "gentop1_eta/F");
-    tr->Branch("gentop1_rapi", &b_gentop1_rapi, "gentop1_rapi/F");
+    tr->Branch("gentop1_phi", &b_gentop1_phi, "gentop1_phi/F");
     tr->Branch("gentop1_m", &b_gentop1_m, "gentop1_m/F");
     tr->Branch("gentop2_pt", &b_gentop2_pt, "gentop2_pt/F");
     tr->Branch("gentop2_eta", &b_gentop2_eta, "gentop2_eta/F");
-    tr->Branch("gentop2_rapi", &b_gentop2_rapi, "gentop2_rapi/F");
+    tr->Branch("gentop2_phi", &b_gentop2_phi, "gentop2_phi/F");
     tr->Branch("gentop2_m", &b_gentop2_m, "gentop2_m/F");
     tr->Branch("genttbar_pt", &b_genttbar_pt, "genttbar_pt/F");
     tr->Branch("genttbar_eta", &b_genttbar_eta, "genttbar_eta/F");
@@ -474,11 +476,11 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         b_partontop1_pt = parton1->pt();
         b_partontop1_eta = parton1->eta();
         b_partontop1_phi = parton1->phi();
-        b_partontop1_rapi = parton1->rapidity();
+        //b_partontop1_rapi = parton1->rapidity();
         b_partontop1_m = parton1->mass();
         b_partontop2_pt = parton2->pt();
         b_partontop2_eta = parton2->eta();
-        b_partontop2_rapi = parton2->rapidity();
+        //b_partontop2_rapi = parton2->rapidity();
         b_partontop2_m = parton2->mass();
 
         // Get TTbar
@@ -603,12 +605,12 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         b_gentop1_pt = gentop1.Pt();
         b_gentop1_eta = gentop1.Eta();
         b_gentop1_phi = gentop1.Phi();
-        b_gentop1_rapi = gentop1.Rapidity();
+        //b_gentop1_rapi = gentop1.Rapidity();
         b_gentop1_m = gentop1.M();
         b_gentop2_pt = gentop2.Pt();
         b_gentop2_eta = gentop2.Eta();
         b_gentop2_phi = gentop2.Phi();
-        b_gentop2_rapi = gentop2.Rapidity();
+        //b_gentop2_rapi = gentop2.Rapidity();
         b_gentop2_m = gentop2.M();
 
         // Get Top quark pairs
@@ -739,8 +741,8 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       if ( *trigHandle != 0 ) b_tri = 0.975; // +- 0.004
     }
 
-    b_lep1_pt = recolep1.pt(); b_lep1_eta = recolep1.eta(); b_lep1_phi = recolep1.phi();
-    b_lep2_pt = recolep2.pt(); b_lep2_eta = recolep2.eta(); b_lep2_phi = recolep2.phi();
+    b_lep1_pt = recolep1.pt(); b_lep1_eta = recolep1.eta(); b_lep1_phi = recolep1.phi(); b_lep1_pdgid = recolep1.pdgId();
+    b_lep2_pt = recolep2.pt(); b_lep2_eta = recolep2.eta(); b_lep2_phi = recolep2.phi(); b_lep2_pdgid = recolep2.pdgId();
     const auto tlv_ll = recolep1.p4()+recolep2.p4();
     b_ll_pt = tlv_ll.Pt(); b_ll_eta = tlv_ll.Eta(); b_ll_phi = tlv_ll.Phi(); b_ll_m = tlv_ll.M();
 
@@ -812,7 +814,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	if (lep->charge() > 0) antiLeptonIndex.push_back(ilep);
 	else leptonIndex.push_back(ilep);
 	++ilep;
-      }      
+      }
       
       KinematicReconstructionSolutions kinematicReconstructionSolutions  =  kinematicReconstruction->solutions(leptonIndex, antiLeptonIndex, jetIndices, bjetIndices,  allLeptonslv, jetslv, jetBtags, metlv);
 
@@ -1063,8 +1065,8 @@ void TtbarDiLeptonAnalyzer::resetBr()
   b_pdfWeights.clear();
   b_scaleWeights.clear();
 
-  b_lep1_pt = -9;b_lep1_eta = -9;b_lep1_phi = -9;
-  b_lep2_pt = -9;b_lep2_eta = -9;b_lep2_phi = -9;
+  b_lep1_pt = -9;b_lep1_eta = -9;b_lep1_phi = -9;b_lep1_pdgid = -9;
+  b_lep2_pt = -9;b_lep2_eta = -9;b_lep2_phi = -9;b_lep2_pdgid = -9;
   b_ll_pt = -9;b_ll_eta = -9;b_ll_phi = -9;b_ll_m = -9;
 
   b_partontop1_pt = -9; b_partontop1_eta = -9; b_partontop1_phi = -9; b_partontop1_rapi = -9; b_partontop1_m = -9;
