@@ -24,15 +24,16 @@ namespace cat {
       virtual ~CATDStarProducer() { }
 
       void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
-
+      void mcMatching( vector<reco::GenParticle>& aGens, VertexCompositeCandidate& aRecos);
     private:
 
       edm::EDGetTokenT<edm::View<pat::Jet> >                    jetSrc_;
+      edm::EDGetTokenT<edm::View<reco::GenParticle> >            mcSrc_;
 
       const float gPionMass = 0.1396;
       const float gKaonMass = 0.4937;
       const float gD0Mass   = 1.86480;
-      float d0MassWindow_;
+      float d0MassWindow_, maxDeltaR_ ,d0MassCut_, matchingDeltaR_;
       unsigned int maxNumPFCand_;
       bool applyCuts_;
 
@@ -42,23 +43,51 @@ namespace cat {
 } // namespace
 
 cat::CATDStarProducer::CATDStarProducer(const edm::ParameterSet & iConfig) :
-  jetSrc_(consumes<edm::View<pat::Jet> >(iConfig.getParameter<edm::InputTag>("jetLabel")))
+  jetSrc_(consumes<edm::View<pat::Jet> >(iConfig.getParameter<edm::InputTag>("jetLabel"))),
+   mcSrc_(consumes<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("mcLabel")))
 {
   produces<vector<cat::SecVertex> >("D0Cand");
   produces<vector<cat::SecVertex> >("DstarCand");
 
   maxNumPFCand_ = iConfig.getParameter<int>("maxNumPFCand");
   d0MassWindow_ = iConfig.getParameter<double>("d0MassWindow");
+  d0MassCut_ = iConfig.getParameter<double>("d0MassCut");
+  maxDeltaR_  = iConfig.getParameter<double>("maxDeltaR");
+  matchingDeltaR_  = iConfig.getParameter<double>("matchingDeltaR");
   applyCuts_ = iConfig.getParameter<bool>("applyCut");
 }
 
   void
+cat::CATDStarProducer::mcMatching( vector<reco::GenParticle>& aGens, VertexCompositeCandidate& aReco) {
+  float minDR= 999.;
+  //float minRelPt = 1.0;
+  reco::GenParticle matchedGen;
+  for( const auto& aGen : aGens ) {
+      float deltaR = reco::deltaR( aGen, aReco);
+      if ( deltaR < minDR ) { matchedGen = aGen; minDR = deltaR; }
+  }
+  if ( minDR < matchingDeltaR_ ) {
+    aReco.addDaughter( matchedGen );
+  }
+  return;
+}
+  void
 cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
+
+  Handle<edm::View<reco::GenParticle> > mcHandle;
+  iEvent.getByToken(mcSrc_, mcHandle);
+
+  vector<reco::GenParticle> d0s;
+  vector<reco::GenParticle> dstars;
+
+  for( const auto& aGenParticle : *mcHandle) {
+    // If genParticle is D0,
+    if ( std::abs(aGenParticle.pdgId()) == 421 ) d0s.push_back( aGenParticle);  
+    else if ( std::abs(aGenParticle.pdgId()) ==  413 ) dstars.push_back( aGenParticle);
+  } 
   Handle<edm::View<pat::Jet> > jetHandle;
   iEvent.getByToken(jetSrc_, jetHandle);
-  //vector<cat::SecVertex>* D0_Out_    = new std::vector<cat::SecVertex>();
-  //vector<cat::SecVertex>* Dstar_Out_ = 
 
   auto_ptr<vector<cat::SecVertex> >    D0_Out(new vector<cat::SecVertex>());
   auto_ptr<vector<cat::SecVertex> > Dstar_Out(new std::vector<cat::SecVertex>());
@@ -67,39 +96,45 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
     std::vector<const reco::Candidate*> jetDaughters;
     unsigned int dau_size = aPatJet.numberOfDaughters();
     if ( dau_size < 3 ) continue;
-    if ( dau_size > maxNumPFCand_ ) break;
+    if ( dau_size > maxNumPFCand_ ) dau_size = maxNumPFCand_;
     for ( unsigned int pion_idx = 0 ; pion_idx< dau_size ; pion_idx++) {
       for ( unsigned int kaon_idx = 0 ; kaon_idx< dau_size ; kaon_idx++) {
         if ( pion_idx == kaon_idx ) continue;
         const reco::Candidate* pionCand = aPatJet.daughter(pion_idx);
         const reco::Candidate* kaonCand = aPatJet.daughter(kaon_idx);
         if ( abs(pionCand->pdgId()) != 211 || abs( kaonCand->pdgId()) != 211) continue;
+        if ( pionCand->charge() * kaonCand->charge() != -1 ) continue;
 
         TLorentzVector pion, pion2, kaon, D0, Dstar ;
         pion.SetPtEtaPhiM(pionCand->pt(), pionCand->eta(), pionCand->phi(),gPionMass );
         kaon.SetPtEtaPhiM(kaonCand->pt(), kaonCand->eta(), kaonCand->phi(),gKaonMass );
-        if ( pion.DeltaR(kaon) > 0.2 ) continue;
+        if ( pion.DeltaR(kaon) > maxDeltaR_ ) continue;
 
         D0 = pion+kaon;
+        if ( abs(D0.M() - gD0Mass) > d0MassCut_) continue;
+ 
         const math::XYZTLorentzVector lv( D0.Px(), D0.Py(), D0.Pz(), D0.E());
-        VertexCompositeCandidate D0Cand = VertexCompositeCandidate(0, lv, Point(0,0,0), 521) ;  // + pdgId,
+        VertexCompositeCandidate D0Cand = VertexCompositeCandidate(0, lv, Point(0,0,0), 421) ;  // + pdgId,
         D0Cand.addDaughter( *pionCand );
         D0Cand.addDaughter( *kaonCand );
+        mcMatching( d0s, D0Cand);
 
         D0_Out->push_back( cat::SecVertex(D0Cand) );
-        if ( abs( D0.M() - gD0Mass)  < d0MassWindow_ ) {
+        if ( abs( D0.M() - gD0Mass) < d0MassWindow_ ) {
           for( unsigned int extra_pion_idx = 0 ;  extra_pion_idx < dau_size ; extra_pion_idx++) {
             if ( extra_pion_idx== pion_idx || extra_pion_idx == kaon_idx) continue;
             const reco::Candidate* pion2Cand = aPatJet.daughter(extra_pion_idx);
-            if ( pion2Cand->pdgId() != 211) continue;
+            if ( abs(pion2Cand->pdgId()) != 211) continue;
             pion2.SetPtEtaPhiM( pion2Cand->pt(), pion2Cand->eta(), pion2Cand->phi(), gPionMass);
+            if ( D0.DeltaR(pion2)> maxDeltaR_) continue;
             Dstar = pion+kaon+pion2;
             const math::XYZTLorentzVector lv2( Dstar.Px(), Dstar.Py(), Dstar.Pz(), Dstar.E());
 
-            VertexCompositeCandidate DstarCand = VertexCompositeCandidate(pion2Cand->charge(), lv2, Point(0,0,0), 521211) ;  // + pdgId,
+            VertexCompositeCandidate DstarCand = VertexCompositeCandidate(pion2Cand->charge(), lv2, Point(0,0,0), pion2Cand->charge()*413) ;  // + pdgId,
             DstarCand.addDaughter( *pionCand );
             DstarCand.addDaughter( *kaonCand );
             DstarCand.addDaughter( *pion2Cand );
+            mcMatching( dstars, DstarCand );
 
             Dstar_Out->push_back( cat::SecVertex(DstarCand) );
           }

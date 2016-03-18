@@ -23,11 +23,11 @@ namespace common{
     std::string d2s(const double& d);
     
     
-    /// Conversion from TLorentzVector to our LV type (ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double> >)
+    /// Conversion from TLorentzVector to our LV type
     const LV TLVtoLV(const TLorentzVector& lv);
     
     
-    /// Conversion from our LV type to TLorentzVector (ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double> >)
+    /// Conversion from our LV type to TLorentzVector
     const TLorentzVector LVtoTLV(const LV& lv);
 }
 

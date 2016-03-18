@@ -213,7 +213,7 @@ void KinematicReconstruction_LSroutines::doAll()
                 //TS_temp.weight=Landau2D(neutrino_.E(),neutrinobar_.E());
                 
                 ttSol_.push_back(TS_temp);
-                  
+
             }
         nSol_=ttSol_.size();
         if(nSol_>0) this->sortTopSol(ttSol_);

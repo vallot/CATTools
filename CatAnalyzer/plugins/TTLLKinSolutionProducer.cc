@@ -64,7 +64,6 @@ TTLLKinSolutionProducer::TTLLKinSolutionProducer(const edm::ParameterSet& pset)
   else if ( algoName == "DESYSMEARED" ) solver_.reset(new DESYSmearedSolver(solverPSet));
   else if ( algoName == "MT2"    ) solver_.reset(new MT2Solver(solverPSet));
   else if ( algoName == "MAOS"   ) solver_.reset(new MAOSSolver(solverPSet));
-  else if ( algoName == "NUWGT"  ) solver_.reset(new NuWeightSolver(solverPSet));
   else if ( algoName == "DEFAULT" ) solver_.reset(new TTDileptonSolver(solverPSet));
   else {
     cerr << "The solver name \"" << solverPSet.getParameter<std::string>("algo") << "\" is not known please check spellings.\n";
