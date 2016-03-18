@@ -18,6 +18,8 @@ class KinematicSolver;
 
 struct KinematicSolution
 {
+  KinematicSolution() { quality_ = -1e9; }
+
   double quality() const { return quality_; }
   const LV l1() const { return l1_; }
   const LV l2() const { return l2_; }
@@ -33,12 +35,16 @@ struct KinematicSolution
   const LV t1() const { return t1_; }
   const LV t2() const { return t2_; }
 
-  void setVisible(const LV& l1, const LV& l2, const LV& j1, const LV& j2) {
+  void setVisible(const LV& l1, const LV& l2, const LV& j1, const LV& j2)
+  {
+    quality_ = -1e9;
+    values_.clear();
     l1_ = l1; l2_ = l2; j1_ = j1; j2_ = j2;
   }
 
   void setSolution(const double quality, const LV& nu1, const LV& nu2,
-                   const std::vector<double> values = {}) {
+                   const std::vector<double> values = {})
+  {
     quality_ = quality;
     values_ = values;
 
