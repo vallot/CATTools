@@ -223,3 +223,37 @@ def findDataSet(name, datasets):
         if data["name"] == name:
             return data
     return None
+
+
+def table(mchistList, errorList, signal_hist, signal_error):
+    hist_inorder = []
+    errs_inorder = []
+    for i, mc in enumerate(mchistList):
+        if not any(mc.GetTitle() == tmp.GetTitle() for tmp in hist_inorder):
+            tmp = mc.Clone()
+            tmp.Reset()
+            hist_inorder.append(tmp)
+            errs_inorder.append(0)
+
+    total = signal_hist.Clone()
+    total.Reset()
+    total_error = 0
+    for i, mc in enumerate(mchistList):
+        for j, tmp in enumerate(hist_inorder):
+            if mc.GetTitle() == tmp.GetTitle():
+                tmp.Add(mc)
+                errs_inorder[j] = errs_inorder[j]+errorList[i]
+        total.Add(mc)
+        total_error += errorList[i]
+
+    bkg = total.Clone()
+    bkg.Add(signal_hist, -1)
+    bkg_error = total_error - signal_error
+
+    hist_inorder.append(bkg)
+    errs_inorder.append(bkg_error)
+    hist_inorder.append(total)
+    errs_inorder.append(total_error)
+
+    return hist_inorder, errs_inorder
+
