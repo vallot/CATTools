@@ -896,8 +896,8 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     math::XYZTLorentzVector top1, top2, nu1, nu2, bjet1, bjet2;
     // Prefer to select b jets
     cat::KinematicSolution sol;
-    if      ( !sol2Bs.empty() ) sol = *sol2Bs.begin();
-    else if ( !sol1Bs.empty() ) sol = *sol1Bs.begin();
+    if      ( !sol2Bs.empty() ) sol = sol2Bs.front();
+    else if ( !sol1Bs.empty() ) sol = sol1Bs.front();
     //else if ( !sol0Bs.empty() ) sol = sol0Bs.front();
 
     //saving results
