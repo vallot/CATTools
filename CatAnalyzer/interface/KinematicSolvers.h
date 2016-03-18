@@ -33,7 +33,20 @@ struct KinematicSolution
   const LV t1() const { return t1_; }
   const LV t2() const { return t2_; }
 
-  friend class KinematicSolver;
+  void setVisible(const LV& l1, const LV& l2, const LV& j1, const LV& j2) {
+    l1_ = l1; l2_ = l2; j1_ = j1; j2_ = j2;
+  }
+
+  void setSolution(const double quality, const LV& nu1, const LV& nu2,
+                   const std::vector<double> values = {}) {
+    quality_ = quality;
+    values_ = values;
+
+    nu1_ = nu1; nu2_ = nu2;
+
+    t1_ = l1_+j1_+nu1_;
+    t2_ = l2_+j2_+nu2_;
+  }
 
   double quality_;
   LV l1_, l2_, j1_, j2_;
