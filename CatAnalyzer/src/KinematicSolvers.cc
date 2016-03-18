@@ -283,11 +283,6 @@ void DESYSmearedSolver::solve(const LV input[])
   if ( mbl1 > maxLBMass_ or mbl2 > maxLBMass_ ) return;
   const auto visSum = l1+l2+j1+j2;
 
-  const double l1E = l1.energy(), j1E = j1.energy();
-  const double l2E = l2.energy(), j2E = j2.energy();
-  const double a4 = (j2E*l2.pz()-l2E*j2.pz())/l2E/(j2E+l2E);
-  const double b4 = (j1E*l1.pz()-l1E*j1.pz())/l1E/(j1E+l1E);
-
   // Continue to get smeared solution if exact solver fails
   // Try 100 times with energy/angle smearing. Take weighted average of solutions
   //double sumW = 0., maxSumW = 0;
@@ -306,10 +301,15 @@ void DESYSmearedSolver::solve(const LV input[])
     const auto newl2 = getSmearedLV(l2, getRandom(h_lepEres_.get()), getRandom(h_lepAres_.get()));
     const auto newj1 = getSmearedLV(j1, getRandom(h_jetEres_.get()), getRandom(h_jetAres_.get()));
     const auto newj2 = getSmearedLV(j2, getRandom(h_jetEres_.get()), getRandom(h_jetAres_.get()));
+    const double newl1E = newl1.E(), newl2E = newl2.E();
+    const double newj1E = newj1.E(), newj2E = newj2.E();
+    const double a4 = (newj2E*newl2.pz()-newl2E*newj2.pz())/newl2E/(newj2E+newl2E);
+    const double b4 = (newj1E*newl1.pz()-newl1E*newj1.pz())/newl1E/(newj1E+newl1E);
 
     // new MET = old MET + MET correction; MET correction = - (Vis. Pxy sum)
-    const double newmetX = metX - (-visSum.px() + newj1.px() + newj2.px() + newl1.px() + newl2.px());
-    const double newmetY = metY - (-visSum.py() + newj1.py() + newj2.py() + newl1.py() + newl2.py());
+    const auto newVisSum = newl1 + newl2 + newj1 + newj2;
+    const double newmetX = metX + visSum.px() - newVisSum.px();
+    const double newmetY = metY + visSum.py() - newVisSum.py();
 
     // Compute weight by m(B,L)
     const double w1 = h_mbl_w_->GetBinContent(h_mbl_w_->FindBin((newl1+newj1).mass()));
@@ -351,7 +351,7 @@ void DESYSmearedSolver::solve(const LV input[])
       if ( nw <= 0 ) continue;
 */
 
-      const double nw = 1./(nu1+nu2+visSum).mass();
+      const double nw = 1./(nu1+nu2+newVisSum).mass();
       if ( nw > maxWeightSol ) {
         maxWeightSol = nw;
         std::copy(nu1solTmp, nu1solTmp+4, nu1sol);
