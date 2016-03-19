@@ -9,12 +9,20 @@ process.options.allowUnscheduled = cms.untracked.bool(True)
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring(),)
 #process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-3/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',]
-process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-3/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8.root',]
+#process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-3/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8.root',]
 #process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-3/DoubleEG_Run2015D-16Dec2015-v2.root',]
 #process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-3/DoubleMuon_Run2015D-16Dec2015-v1.root',]
 #process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-3/MuonEG_Run2015D-16Dec2015-v1.root',]
 #process.source.fileNames = ['file:%s/src/CATTools/CatProducer/prod/catTuple.root'%os.environ["CMSSW_BASE"]]
 
+process.source.fileNames = []
+txtfile = '../data/dataset/dataset_SingleMuon_Run2015C.txt'
+f = open(txtfile)
+for line in f:
+    if '#' not in line:
+        process.source.fileNames.append(line)
+print process.source.fileNames
+    
 useSilver = False
 catmet = 'catMETs'
 lumiMask = 'lumiMask'
@@ -25,13 +33,18 @@ if useSilver:
     pileupWeight = 'pileupWeightSilver'
 
 process.load("CATTools.CatAnalyzer.filters_cff")
+from CATTools.CatAnalyzer.leptonSF_cff import *
 
 process.cattree = cms.EDAnalyzer("h2muAnalyzer",
     recoFilters = cms.InputTag("filterRECO"),
     nGoodVertex = cms.InputTag("catVertex","nGoodPV"),
     lumiSelection = cms.InputTag(lumiMask),
     genweight = cms.InputTag("genWeight","genWeight"),
+    pdfweight = cms.InputTag("genWeight","pdfWeights"),
+    scaleweight = cms.InputTag("genWeight","scaleWeights"),
     puweight = cms.InputTag(pileupWeight),
+    puweight_up = cms.InputTag(pileupWeight,"up"),
+    puweight_dn = cms.InputTag(pileupWeight,"dn"),
     vertices = cms.InputTag("catVertex"),
     muons = cms.InputTag("catMuons"),
     electrons = cms.InputTag("catElectrons"),
@@ -41,6 +54,14 @@ process.cattree = cms.EDAnalyzer("h2muAnalyzer",
     triggerBits = cms.InputTag("TriggerResults","","HLT"),
     triggerObjects = cms.InputTag("catTrigger"),
     #triggerObjects = cms.InputTag("selectedPatTrigger"),
+    muon = cms.PSet(
+        src = cms.InputTag("catMuons"),
+        effSF = muonSFTight,
+    ),
+    electron = cms.PSet(
+        src = cms.InputTag("catElectrons"),
+        effSF = electronSFCutBasedIDMediumWP,#electronSFWP90,
+    ),    
 )
 
 process.TFileService = cms.Service("TFileService",
