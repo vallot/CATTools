@@ -14,7 +14,7 @@ struct KinSolverUtils {
   //class TtFullLepSolution;
   typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > LV;
 
-  static inline bool isZero(const double x) { return std::abs(x) < 1e-5; };
+  static inline bool isZero(const double x) { return std::abs(x) < 1e-13; };
   //void print(const std::vector<TtFullLepSolution>& sols);
   static void findCoeffs(const double mT, const double mW1, const double mW2,
                          const LV& l1, const LV& l2, const LV& b1, const LV& b2,

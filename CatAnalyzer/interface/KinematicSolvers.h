@@ -14,14 +14,11 @@ class TtFullLepKinSolver;
 namespace cat {
 
 typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > LV;
+class KinematicSolver;
 
-class KinematicSolver
+struct KinematicSolution
 {
-public:
-  KinematicSolver(const edm::ParameterSet& pset) {}
-  virtual ~KinematicSolver() {}
-  virtual void solve(const LV input[]) = 0;
-  virtual std::string algoName() = 0;
+  KinematicSolution() { quality_ = -1e9; }
 
   double quality() const { return quality_; }
   const LV l1() const { return l1_; }
@@ -32,18 +29,71 @@ public:
   const LV nu2() const { return nu2_; }
   double aux(size_t i) const { return values_.at(i); }
   const std::vector<double>& aux() const { return values_; }
-
   const LV w1() const { return l1()+nu1(); }
   const LV w2() const { return l2()+nu2(); }
-  virtual const LV t1() const { return w1()+j1(); } // Virtual since the smeared solver have to fix the top quark mass
-  virtual const LV t2() const { return w2()+j2(); } // Virtual since the smeared solver have to fix the top quark mass
   const LV tt() const { return t1()+t2(); }
+  const LV t1() const { return t1_; }
+  const LV t2() const { return t2_; }
+
+  void setVisible(const LV& l1, const LV& l2, const LV& j1, const LV& j2)
+  {
+    quality_ = -1e9;
+    values_.clear();
+    l1_ = l1; l2_ = l2; j1_ = j1; j2_ = j2;
+  }
+
+  void setSolution(const double quality, const LV& nu1, const LV& nu2,
+                   const std::vector<double> values = {})
+  {
+    quality_ = quality;
+    values_ = values;
+
+    nu1_ = nu1; nu2_ = nu2;
+
+    t1_ = l1_+j1_+nu1_;
+    t2_ = l2_+j2_+nu2_;
+  }
+
+  double quality_;
+  LV l1_, l2_, j1_, j2_;
+  LV nu1_, nu2_;
+  LV t1_, t2_;
+  std::vector<double> values_;
+
+};
+
+class KinematicSolver
+{
+public:
+  KinematicSolver(const edm::ParameterSet& pset) {}
+  virtual ~KinematicSolver() {}
+  void solve(const LV met, const LV l1, const LV l2, const LV j1, const LV j2)
+  {
+    LV input[5] = {met, l1, l2, j1, j2};
+    solve(input);
+  }
+  virtual void solve(const LV input[]) = 0;
+  virtual std::string algoName() = 0;
+
+  KinematicSolution solution() const { return sol_; }
+  // Legacy interfaces
+  double quality() const { return sol_.quality_; }
+  const LV l1() const { return sol_.l1_; }
+  const LV l2() const { return sol_.l2_; }
+  const LV j1() const { return sol_.j1_; }
+  const LV j2() const { return sol_.j2_; }
+  const LV nu1() const { return sol_.nu1_; }
+  const LV nu2() const { return sol_.nu2_; }
+  double aux(size_t i) const { return sol_.values_.at(i); }
+  const std::vector<double>& aux() const { return sol_.values_; }
+  const LV w1() const { return l1()+nu1(); }
+  const LV w2() const { return l2()+nu2(); }
+  const LV tt() const { return t1()+t2(); }
+  const LV t1() const { return sol_.t1_; }
+  const LV t2() const { return sol_.t2_; }
 
 protected:
-  double quality_;
-  LV nu1_, nu2_;
-  LV l1_, l2_, j1_, j2_;
-  std::vector<double> values_;
+  KinematicSolution sol_;
 };
 
 class TTDileptonSolver : public KinematicSolver // A dummy solver for now
@@ -103,9 +153,6 @@ public:
   std::string algoName() override { return "DESYSmeared"; }
   void setRandom(CLHEP::HepRandomEngine* rng) { rng_ = rng; }
 
-  LV t1() { return t1_; }
-  LV t2() { return t2_; }
-
 protected:
   LV getSmearedLV(const LV& v, const double fE, const double dRot);
   double getRandom(TH1* h);
@@ -118,8 +165,6 @@ protected:
 
   const int nTrial_;
   const double maxLBMass_, mTopInput_;
-
-  LV t1_, t2_;
 };
 
 }
