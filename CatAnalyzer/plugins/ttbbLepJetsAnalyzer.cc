@@ -30,6 +30,7 @@
 #include "CATTools/DataFormats/interface/Electron.h"
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/MET.h"
+#include "CATTools/DataFormats/interface/GenWeights.h"
 
 #include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
 #include "CATTools/CatAnalyzer/interface/BTagWeightEvaluator.h"
@@ -66,8 +67,7 @@ private:
   // TTbarMC_ == 2, ttbar Background
   int TTbarMC_;
 
-  edm::EDGetTokenT<float>                        genWeightToken_;
-  edm::EDGetTokenT<vector<float>>                ScaleWeightToken_;
+  edm::EDGetTokenT<cat::GenWeights>              genWeightToken_;
   edm::EDGetTokenT<reco::GenParticleCollection>  genToken_;
   edm::EDGetTokenT<reco::GenJetCollection>       genJetToken_;
   edm::EDGetTokenT<cat::GenTopCollection>        genttbarCatToken_;
@@ -190,8 +190,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   SF_CSV_.initCSVWeight(false, "csvv2");
 
   //now do what ever initialization is needed
-  genWeightToken_       = consumes<float>          (iConfig.getParameter<edm::InputTag>("genWeightLabel"));
-  ScaleWeightToken_     = consumes<vector<float>>  (iConfig.getParameter<edm::InputTag>("ScaleWeightLabel"));
+  genWeightToken_       = consumes<cat::GenWeights>(iConfig.getParameter<edm::InputTag>("genWeightLabel"));
 
   genToken_             = consumes<reco::GenParticleCollection>  (iConfig.getParameter<edm::InputTag>("genLabel"));
   genJetToken_          = consumes<reco::GenJetCollection>       (iConfig.getParameter<edm::InputTag>("genJetLabel"));
@@ -302,7 +301,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
     gentree->Branch("genjet_pT", "std::vector<float>", &b_GenJet_pT);
   }
 
-  EventInfo = fs->make<TH1F>("EventInfo","Event Information",14,0,14); 
+  EventInfo = fs->make<TH1F>("EventInfo","Event Information",14,0,14);
   EventInfo->GetXaxis()->SetBinLabel(1,"Number of Events");
   EventInfo->GetXaxis()->SetBinLabel(2,"Sum of Weights");
   EventInfo->GetXaxis()->SetBinLabel(3,"ttbb Events pT>20");
@@ -424,10 +423,10 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     // Weights at Generation Level: MC@NLO
     //---------------------------------------------------------------------------
 
-    edm::Handle<float> genWeight;
+    edm::Handle<cat::GenWeights> genWeight;
 
     iEvent.getByToken(genWeightToken_, genWeight);
-    b_GenWeight = *genWeight;
+    b_GenWeight = genWeight->genWeight();
 
     EventInfo->Fill(0.5, 1.0);         // Number of Events
     EventInfo->Fill(1.5, b_GenWeight); // Sum of Weights
@@ -442,28 +441,26 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   // Weights for Syst. Scale: ttbar
   //---------------------------------------------------------------------------
   if(TTbarMC_ == 1 ) {
-    edm::Handle<vector<float>> scaleWeight;
-    iEvent.getByToken(ScaleWeightToken_, scaleWeight);
+    edm::Handle<cat::GenWeights> genWeightHandle;
+    iEvent.getByToken(genWeightToken_, genWeightHandle);
 
-    if(scaleWeight->size() > 7){
-      // muR/muF Scale Weights
-      b_ScaleWeight->push_back((*scaleWeight)[0]); // muR=Nom  muF=Up
-      b_ScaleWeight->push_back((*scaleWeight)[1]); // muR=Nom  muF=Down
-      b_ScaleWeight->push_back((*scaleWeight)[2]); // muR=Up   muF=Nom
-      b_ScaleWeight->push_back((*scaleWeight)[3]); // muR=Up   muF=Up
-      // b_ScaleWeight->push_back((*scaleWeight)[4]); // muR=Up   muF=Down ==> Unphysical anti-correlated
-      b_ScaleWeight->push_back((*scaleWeight)[5]); // muR=Down muF=Nom  
-      // b_ScaleWeight->push_back((*scaleWeight)[6]); // muR=Down muF=Up   ==> Unphysical anti-correlated
-      b_ScaleWeight->push_back((*scaleWeight)[7]); // muR=Down muF=Down
+    // muR/muF Scale Weights
+    // Comment from J. Goh - scale up/down are split in the new format, but I'm keeping the original index to minimize change
+    // Originally, it was (Nom,Up) (Nom,Down), (Up,Nom), (Up, Up), (Down,Nom), (Down,Down)
+    b_ScaleWeight->push_back(genWeightHandle->scaleUpWeights()[0]);
+    b_ScaleWeight->push_back(genWeightHandle->scaleDownWeights()[0]);
+    b_ScaleWeight->push_back(genWeightHandle->scaleUpWeights()[1]);
+    b_ScaleWeight->push_back(genWeightHandle->scaleUpWeights()[2]);
+    b_ScaleWeight->push_back(genWeightHandle->scaleDownWeights()[1]);
+    b_ScaleWeight->push_back(genWeightHandle->scaleDownWeights()[2]);
 
-      // Sum of muR/muF Scale Weights
-      EventInfo->Fill(8.5,  (*scaleWeight)[0]); 
-      EventInfo->Fill(9.5,  (*scaleWeight)[1]); 
-      EventInfo->Fill(10.5, (*scaleWeight)[2]);
-      EventInfo->Fill(11.5, (*scaleWeight)[3]);
-      EventInfo->Fill(12.5, (*scaleWeight)[5]);
-      EventInfo->Fill(13.5, (*scaleWeight)[7]);
-    }
+    // Sum of muR/muF Scale Weights
+    EventInfo->Fill(8.5,  b_ScaleWeight->at(0));
+    EventInfo->Fill(9.5,  b_ScaleWeight->at(1));
+    EventInfo->Fill(10.5, b_ScaleWeight->at(2));
+    EventInfo->Fill(11.5, b_ScaleWeight->at(3));
+    EventInfo->Fill(12.5, b_ScaleWeight->at(4));
+    EventInfo->Fill(13.5, b_ScaleWeight->at(5));
   }
 
   //---------------------------------------------------------------------------
@@ -499,13 +496,13 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
       if(genttbarConeCat->begin()-> NaddbJets20() > 1){
 	EventInfo->Fill(2.5, 1.0); // Number of ttbb Events	
-	if(genttbarConeCat->begin()->semiLeptonic(-1)) EventInfo->Fill(3.5, 1.0); // Number of ttbb Events (Includes tau) 
-	if(genttbarConeCat->begin()->semiLeptonic(0))  EventInfo->Fill(4.5, 1.0); // Number of ttbb Events (Includes tau leptonic decay) 
+	if(genttbarConeCat->begin()->semiLeptonic(-1)) EventInfo->Fill(3.5, 1.0); // Number of ttbb Events (Includes tau)
+	if(genttbarConeCat->begin()->semiLeptonic(0))  EventInfo->Fill(4.5, 1.0); // Number of ttbb Events (Includes tau leptonic decay)
       }
       if(genttbarConeCat->begin()-> NaddJets20() > 1){
 	EventInfo->Fill(5.5, 1.0); // Number of ttjj Events	
-	if(genttbarConeCat->begin()->semiLeptonic(-1)) EventInfo->Fill(6.5, 1.0); // Number of ttjj Events (Includes tau) 
-	if(genttbarConeCat->begin()->semiLeptonic(0))  EventInfo->Fill(7.5, 1.0); // Number of ttjj Events (Includes tau leptonic decay) 
+	if(genttbarConeCat->begin()->semiLeptonic(-1)) EventInfo->Fill(6.5, 1.0); // Number of ttjj Events (Includes tau)
+	if(genttbarConeCat->begin()->semiLeptonic(0))  EventInfo->Fill(7.5, 1.0); // Number of ttjj Events (Includes tau leptonic decay)
       }
 
     //---------------------------------------------------------------------------

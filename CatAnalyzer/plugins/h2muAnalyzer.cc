@@ -13,6 +13,7 @@
 #include "CATTools/DataFormats/interface/Electron.h"
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/MET.h"
+#include "CATTools/DataFormats/interface/GenWeights.h"
 
 #include "CATTools/CommonTools/interface/AnalysisHelper.h"
 #include "DataFormats/Math/interface/deltaR.h"
@@ -43,7 +44,8 @@ private:
   int etaCategory(float lep1_eta, float lep2_eta) const;
 
   edm::EDGetTokenT<int> recoFiltersToken_, nGoodVertexToken_, lumiSelectionToken_;
-  edm::EDGetTokenT<float> genweightToken_, puweightToken_;
+  edm::EDGetTokenT<cat::GenWeights> genweightToken_;
+  edm::EDGetTokenT<float> puweightToken_;
   edm::EDGetTokenT<cat::MuonCollection>     muonToken_;
   edm::EDGetTokenT<cat::ElectronCollection> elecToken_;
   edm::EDGetTokenT<cat::JetCollection>      jetToken_;
@@ -80,7 +82,7 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
   recoFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("recoFilters"));
   nGoodVertexToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("nGoodVertex"));
   lumiSelectionToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("lumiSelection"));
-  genweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("genweight"));
+  genweightToken_ = consumes<cat::GenWeights>(iConfig.getParameter<edm::InputTag>("genweight"));
   puweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("puweight"));
   muonToken_ = consumes<cat::MuonCollection>(iConfig.getParameter<edm::InputTag>("muons"));
   elecToken_ = consumes<cat::ElectronCollection>(iConfig.getParameter<edm::InputTag>("electrons"));
@@ -183,9 +185,9 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
     edm::Handle<float> puweightHandle;
     iEvent.getByToken(puweightToken_, puweightHandle);
     b_puweight = *puweightHandle;
-    edm::Handle<float> genweightHandle;
+    edm::Handle<cat::GenWeights> genweightHandle;
     iEvent.getByToken(genweightToken_, genweightHandle);
-    b_weight = (*genweightHandle)*b_puweight;
+    b_weight = (genweightHandle->genWeight())*b_puweight;
   }
   
   edm::Handle<reco::VertexCollection> vertices;
