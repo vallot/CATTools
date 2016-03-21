@@ -7,12 +7,15 @@
 #include "CATTools/DataFormats/interface/Particle.h"
 #include "DataFormats/Math/interface/deltaR.h"
 #include "CommonTools/Utils/interface/PtComparator.h"
+#include "DataFormats/Math/interface/LorentzVector.h"
 
 #include "TLorentzVector.h"
 
 namespace cat {
 
+TLorentzVector ToTLorentzVector(const math::XYZTLorentzVector& t);
 TLorentzVector ToTLorentzVector(const reco::Candidate& t);
+
 typedef GreaterByPt<reco::Candidate> GtByCandPt;
 bool GtByTLVPt( TLorentzVector & t1, TLorentzVector & t2 );
 
