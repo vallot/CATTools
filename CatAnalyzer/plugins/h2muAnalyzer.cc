@@ -12,6 +12,7 @@
 #include "CATTools/DataFormats/interface/Electron.h"
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/MET.h"
+#include "CATTools/DataFormats/interface/GenWeights.h"
 
 #include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
 #include "CATTools/CommonTools/interface/AnalysisHelper.h"
@@ -79,7 +80,6 @@ private:
   edm::EDGetTokenT<int> recoFiltersToken_, nGoodVertexToken_, lumiSelectionToken_;
   edm::EDGetTokenT<float> genweightToken_, puweightToken_, puweightToken_up_, puweightToken_dn_, topPtWeight_;
   edm::EDGetTokenT<vector<float>> pdfweightToken_, scaleweightToken_;
-
   edm::EDGetTokenT<cat::MuonCollection>     muonToken_;
   edm::EDGetTokenT<cat::ElectronCollection> elecToken_;
   edm::EDGetTokenT<cat::JetCollection>      jetToken_;
@@ -164,7 +164,7 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
     //    "mueff_u", "mueff_d", "eleff_u", "eleff_d",
     //    "btag_u", "btag_d"
   };
-  
+
   h_nevents = fs->make<TH1D>("nevents","nevents",1,0,1);       
   for (int sys = 0; sys < nsys_e; ++sys){
     ttree_.push_back(fs->make<TTree>(sys_name[sys].c_str(), sys_name[sys].c_str()));

@@ -402,7 +402,7 @@ void KinematicReconstruction_LSroutines::swap(double& realone, double& realtwo)c
 
 int KinematicReconstruction_LSroutines::sign(const long double& ld)const
 {
-    if(fabs(ld)<0.0000000000001) return 0;
+    if(std::abs(ld)<0.0000000000001) return 0;
     return (ld>0)?1:-1;
 }
 

@@ -9,6 +9,8 @@
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
+#include "CATTools/DataFormats/interface/GenWeights.h"
+
 #include "TH1F.h"
 #include "TH2F.h"
 
@@ -23,7 +25,7 @@ public:
   void analyze(const edm::Event& event, const edm::EventSetup& eventSetup) override;
 
 private:
-  edm::EDGetTokenT<float> genWeightToken_;
+  edm::EDGetTokenT<cat::GenWeights> genWeightsToken_;
   edm::EDGetTokenT<reco::GenParticleCollection> genParticlesToken_;
 
   TH1F* hZMass_, * hZDEta_, * hZDPhi_;
@@ -48,7 +50,7 @@ private:
 CATGenLeptonAnalysis::CATGenLeptonAnalysis(const edm::ParameterSet& pset)
 {
   genParticlesToken_ = consumes<reco::GenParticleCollection>(pset.getParameter<edm::InputTag>("src"));
-  genWeightToken_ = consumes<float>(pset.getParameter<edm::InputTag>("weight"));
+  genWeightsToken_ = consumes<cat::GenWeights>(pset.getParameter<edm::InputTag>("weight"));
 
   usesResource("TFileService");
   edm::Service<TFileService> fs;
@@ -109,9 +111,9 @@ CATGenLeptonAnalysis::CATGenLeptonAnalysis(const edm::ParameterSet& pset)
 
 void CATGenLeptonAnalysis::analyze(const edm::Event& event, const edm::EventSetup& eventSetup)
 {
-  edm::Handle<float> genWeightHandle;
-  event.getByToken(genWeightToken_, genWeightHandle);
-  const auto weight = *genWeightHandle;
+  edm::Handle<cat::GenWeights> genWeightsHandle;
+  event.getByToken(genWeightsToken_, genWeightsHandle);
+  const float weight = genWeightsHandle->genWeight();
 
   edm::Handle<reco::GenParticleCollection> genParticlesHandle;
   event.getByToken(genParticlesToken_, genParticlesHandle);
