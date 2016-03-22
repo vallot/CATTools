@@ -228,7 +228,8 @@ cat::CATSecVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & 
 
       aSecVtx.setLxy(rVtxMag);
       aSecVtx.setL3D(rVtxMag3D);
-      aSecVtx.setInts(0,0);
+      //aSecVtx.setLeptonID(0,0);
+      //aSecVtx.setTrackQuality(0,0);
       out_->push_back( aSecVtx); 
     }
   }
@@ -384,13 +385,14 @@ void cat::CATSecVertexProducer::fitTransientTracks(cat::SecVertexCollection* out
   cand->addDaughter(newLep1);
   cand->addDaughter(newLep2);
 
-  cand->setPdgId(pdgId);
+  cand->setPdgId(443);
 
   cat::SecVertex aSecVertex(*cand);
   aSecVertex.setVProb(TMath::Prob( vtxChi2, (int) vtxNdof));
   aSecVertex.setLxy(rVtxMag);
   aSecVertex.setL3D(rVtxMag3D);
-  aSecVertex.setInts(0,0);
+  //aSecVertex.setLeptonID(0,0);
+  //aSecVertex.setTrackQuality(0,0);
 
   out_->push_back(aSecVertex);
 

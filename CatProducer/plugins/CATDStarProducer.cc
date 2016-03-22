@@ -12,6 +12,12 @@
 #include <TLorentzVector.h>
 #include "CATTools/DataFormats/interface/SecVertex.h"
 
+
+#include "RecoVertex/KalmanVertexFit/interface/KalmanVertexFitter.h"
+#include "TrackingTools/Records/interface/TransientTrackRecord.h"
+#include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
+#include "TrackingTools/IPTools/interface/IPTools.h"
+
 using namespace edm;
 using namespace std;
 using namespace reco;
@@ -29,6 +35,7 @@ namespace cat {
 
       edm::EDGetTokenT<edm::View<pat::Jet> >                    jetSrc_;
       edm::EDGetTokenT<edm::View<reco::GenParticle> >            mcSrc_;
+      edm::EDGetTokenT<reco::VertexCollection>                vertexLabel_;
 
       const float gPionMass = 0.1396;
       const float gKaonMass = 0.4937;
@@ -44,7 +51,8 @@ namespace cat {
 
 cat::CATDStarProducer::CATDStarProducer(const edm::ParameterSet & iConfig) :
   jetSrc_(consumes<edm::View<pat::Jet> >(iConfig.getParameter<edm::InputTag>("jetLabel"))),
-   mcSrc_(consumes<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("mcLabel")))
+   mcSrc_(consumes<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("mcLabel"))),
+  vertexLabel_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexLabel")))
 {
   produces<vector<cat::SecVertex> >("D0Cand");
   produces<vector<cat::SecVertex> >("DstarCand");
@@ -75,6 +83,18 @@ cat::CATDStarProducer::mcMatching( vector<reco::GenParticle>& aGens, VertexCompo
 cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
 
+  Handle<reco::VertexCollection> recVtxs;
+  iEvent.getByToken(vertexLabel_,recVtxs);
+
+  if ( recVtxs->empty() ) {
+    auto_ptr<vector<cat::SecVertex> >    D0_Out(new vector<cat::SecVertex>());
+    auto_ptr<vector<cat::SecVertex> > Dstar_Out(new std::vector<cat::SecVertex>());
+    iEvent.put(D0_Out   , "D0Cand");
+    iEvent.put(Dstar_Out, "DstarCand");
+    return ; 
+  }
+  reco::Vertex pv = recVtxs->at(0);
+
   Handle<edm::View<reco::GenParticle> > mcHandle;
   iEvent.getByToken(mcSrc_, mcHandle);
 
@@ -92,51 +112,127 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
   auto_ptr<vector<cat::SecVertex> >    D0_Out(new vector<cat::SecVertex>());
   auto_ptr<vector<cat::SecVertex> > Dstar_Out(new std::vector<cat::SecVertex>());
 
+  edm::ESHandle<TransientTrackBuilder> trackBuilder;
+  iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",trackBuilder);
+
+  typedef ROOT::Math::SMatrix<double, 3, 3, ROOT::Math::MatRepSym<double, 3> > SMatrixSym3D;
+  typedef ROOT::Math::SVector<double, 3> SVector3;
+
   for (const pat::Jet & aPatJet : *jetHandle){
     std::vector<const reco::Candidate*> jetDaughters;
+    std::vector<TransientTrack> tracks;
+    
     unsigned int dau_size = aPatJet.numberOfDaughters();
     if ( dau_size < 3 ) continue;
     if ( dau_size > maxNumPFCand_ ) dau_size = maxNumPFCand_;
     for ( unsigned int pion_idx = 0 ; pion_idx< dau_size ; pion_idx++) {
       for ( unsigned int kaon_idx = 0 ; kaon_idx< dau_size ; kaon_idx++) {
         if ( pion_idx == kaon_idx ) continue;
-        const reco::Candidate* pionCand = aPatJet.daughter(pion_idx);
-        const reco::Candidate* kaonCand = aPatJet.daughter(kaon_idx);
+        const pat::PackedCandidate* pionCand = dynamic_cast<const pat::PackedCandidate*>( aPatJet.daughter(pion_idx));
+        const pat::PackedCandidate* kaonCand = dynamic_cast<const pat::PackedCandidate*>( aPatJet.daughter(kaon_idx));
         if ( abs(pionCand->pdgId()) != 211 || abs( kaonCand->pdgId()) != 211) continue;
         if ( pionCand->charge() * kaonCand->charge() != -1 ) continue;
 
-        TLorentzVector pion, pion2, kaon, D0, Dstar ;
-        pion.SetPtEtaPhiM(pionCand->pt(), pionCand->eta(), pionCand->phi(),gPionMass );
-        kaon.SetPtEtaPhiM(kaonCand->pt(), kaonCand->eta(), kaonCand->phi(),gKaonMass );
-        if ( pion.DeltaR(kaon) > maxDeltaR_ ) continue;
+        if ( reco::deltaR( *pionCand, *kaonCand) > maxDeltaR_ ) continue;
 
-        D0 = pion+kaon;
+        tracks.clear();
+        reco::TransientTrack pionTrack = trackBuilder->build( pionCand->pseudoTrack());
+        reco::TransientTrack kaonTrack = trackBuilder->build( kaonCand->pseudoTrack());
+
+        KalmanVertexFitter fitter(true);
+        TransientVertex t_vertex;
+        tracks.push_back( pionTrack);
+        tracks.push_back( kaonTrack);
+      
+        try{
+          t_vertex = fitter.vertex(tracks);
+        }catch(std::exception& e) { std::cerr<<"Kalman Vertex Fitting error for D0: "<<e.what()<<std::endl; }
+
+        Point vx;
+        reco::Vertex vertex;
+        double vtxChi2=0.0;
+        int vtxNdof=0;
+        bool fit_d0 = false; 
+        if ( t_vertex.isValid() && t_vertex.totalChiSquared() > 0. )  {
+          vertex = t_vertex;
+          vx = Point(vertex.x(), vertex.y(), vertex.z());
+          vtxChi2 = vertex.chi2(); 
+          vtxNdof = (int)vertex.ndof();
+          fit_d0 = true;
+          //printf(" D0 vertex => x : %e y: %e z: %e\n",vx.x(),vx.y(),vx.z());
+        }
+        else vx = Point(0,0,0);
+
+
+        auto D0 = pionCand->p4()+ kaonCand->p4();
         if ( abs(D0.M() - gD0Mass) > d0MassCut_) continue;
+        const math::XYZTLorentzVector lv( D0.px(), D0.py(), D0.pz(), D0.E());
+        auto vc = VertexCompositeCandidate(0, lv, vx, 421) ;  // + pdgId,
+        cat::SecVertex D0Cand(vc);
+        if ( fit_d0) { 
+          D0Cand.setVProb( TMath::Prob( vtxChi2, vtxNdof));
+
+          SVector3 distanceVectorXY(vertex.x() - pv.position().x(), vertex.y() - pv.position().y(), 0.);
+          SVector3 distanceVector3D(vertex.x() - pv.position().x(), vertex.y() - pv.position().y(), vertex.z()- pv.position().z());
+          double rVtxMag = ROOT::Math::Mag(distanceVectorXY);
+          double rVtxMag3D = ROOT::Math::Mag(distanceVector3D);
+          D0Cand.setLxy(rVtxMag);
+          D0Cand.setL3D(rVtxMag3D);
+        }
  
-        const math::XYZTLorentzVector lv( D0.Px(), D0.Py(), D0.Pz(), D0.E());
-        VertexCompositeCandidate D0Cand = VertexCompositeCandidate(0, lv, Point(0,0,0), 421) ;  // + pdgId,
         D0Cand.addDaughter( *pionCand );
         D0Cand.addDaughter( *kaonCand );
         mcMatching( d0s, D0Cand);
 
-        D0_Out->push_back( cat::SecVertex(D0Cand) );
+        D0_Out->push_back( D0Cand );
         if ( abs( D0.M() - gD0Mass) < d0MassWindow_ ) {
           for( unsigned int extra_pion_idx = 0 ;  extra_pion_idx < dau_size ; extra_pion_idx++) {
             if ( extra_pion_idx== pion_idx || extra_pion_idx == kaon_idx) continue;
-            const reco::Candidate* pion2Cand = aPatJet.daughter(extra_pion_idx);
+            const pat::PackedCandidate* pion2Cand = dynamic_cast<const pat::PackedCandidate*>( aPatJet.daughter(extra_pion_idx));
             if ( abs(pion2Cand->pdgId()) != 211) continue;
-            pion2.SetPtEtaPhiM( pion2Cand->pt(), pion2Cand->eta(), pion2Cand->phi(), gPionMass);
-            if ( D0.DeltaR(pion2)> maxDeltaR_) continue;
-            Dstar = pion+kaon+pion2;
+            if ( reco::deltaR(D0Cand, *pion2Cand  )> maxDeltaR_) continue;
+            auto Dstar = D0Cand.p4() + pion2Cand->p4();
             const math::XYZTLorentzVector lv2( Dstar.Px(), Dstar.Py(), Dstar.Pz(), Dstar.E());
+            reco::TransientTrack pion2Track = trackBuilder->build( pion2Cand->pseudoTrack());
+            tracks.clear();
 
-            VertexCompositeCandidate DstarCand = VertexCompositeCandidate(pion2Cand->charge(), lv2, Point(0,0,0), pion2Cand->charge()*413) ;  // + pdgId,
+            tracks.push_back( pionTrack);
+            tracks.push_back( kaonTrack);
+            tracks.push_back( pion2Track );
+           
+            bool fit_dstar = false; 
+            try{
+              t_vertex = fitter.vertex(tracks);
+            }catch(std::exception& e) { std::cerr<<"Kalman Vertex Fitting error for D*: "<<e.what()<<std::endl; }
+            if ( t_vertex.isValid() && t_vertex.totalChiSquared() > 0. )  {
+              const reco::Vertex vertex = t_vertex; 
+              vx = Point(vertex.x(), vertex.y(), vertex.z()); 
+              vtxChi2 = vertex.chi2(); 
+              vtxNdof = vertex.ndof();
+              fit_dstar = true;
+              //printf(" D* vertex => x : %e y: %e z: %e\n",vx.x(),vx.y(),vx.z());
+            }
+            else vx = Point(0,0,0);
+            
+            auto vc2 = VertexCompositeCandidate(pion2Cand->charge(), lv2, vx, pion2Cand->charge()*413) ;  // + pdgId,
+            cat::SecVertex DstarCand(vc2);
             DstarCand.addDaughter( *pionCand );
             DstarCand.addDaughter( *kaonCand );
             DstarCand.addDaughter( *pion2Cand );
             mcMatching( dstars, DstarCand );
+            if ( fit_dstar) {
+              DstarCand.setVProb( TMath::Prob( vtxChi2, (int) vtxNdof));
 
-            Dstar_Out->push_back( cat::SecVertex(DstarCand) );
+              SVector3 distanceVectorXY(vertex.x() - pv.position().x(), vertex.y() - pv.position().y(), 0.);
+              SVector3 distanceVector3D(vertex.x() - pv.position().x(), vertex.y() - pv.position().y(), vertex.z()- pv.position().z());
+              double rVtxMag = ROOT::Math::Mag(distanceVectorXY);
+              double rVtxMag3D = ROOT::Math::Mag(distanceVector3D);
+              DstarCand.setLxy(rVtxMag);
+              DstarCand.setL3D(rVtxMag3D);
+            
+            } 
+      
+            Dstar_Out->push_back( DstarCand );
           }
         }
       }
