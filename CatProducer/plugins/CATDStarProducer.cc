@@ -18,6 +18,8 @@
 #include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
 #include "TrackingTools/IPTools/interface/IPTools.h"
 
+#include<memory>
+
 using namespace edm;
 using namespace std;
 using namespace reco;
@@ -103,8 +105,8 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
 
   for( const auto& aGenParticle : *mcHandle) {
     // If genParticle is D0,
-    if ( std::abs(aGenParticle.pdgId()) == 421 ) d0s.push_back( aGenParticle);  
-    else if ( std::abs(aGenParticle.pdgId()) ==  413 ) dstars.push_back( aGenParticle);
+    if ( std::abs(aGenParticle.pdgId()) == 421 ) d0s.push_back( aGenParticle); 
+    else if ( std::abs(aGenParticle.pdgId()) ==  413 ) dstars.push_back( aGenParticle); 
   } 
   Handle<edm::View<pat::Jet> > jetHandle;
   iEvent.getByToken(jetSrc_, jetHandle);
@@ -117,19 +119,29 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
 
   typedef ROOT::Math::SMatrix<double, 3, 3, ROOT::Math::MatRepSym<double, 3> > SMatrixSym3D;
   typedef ROOT::Math::SVector<double, 3> SVector3;
+  typedef const pat::PackedCandidate ConstPC;
+  typedef std::shared_ptr<ConstPC> Shared_PCP;
 
   for (const pat::Jet & aPatJet : *jetHandle){
-    std::vector<const reco::Candidate*> jetDaughters;
+    std::vector< Shared_PCP>  jetDaughters;
     std::vector<TransientTrack> tracks;
-    
     unsigned int dau_size = aPatJet.numberOfDaughters();
     if ( dau_size < 3 ) continue;
+    for( unsigned int idx = 0 ; idx < dau_size ; idx++) {
+      jetDaughters.push_back( Shared_PCP(dynamic_cast<ConstPC*>(aPatJet.daughter(idx) ))); 
+
+    }
+
+    sort(jetDaughters.begin(), jetDaughters.end(), [](Shared_PCP a, Shared_PCP b) {return a->pt() > b->pt(); }); 
+
     if ( dau_size > maxNumPFCand_ ) dau_size = maxNumPFCand_;
+    jetDaughters.resize( dau_size );
+
     for ( unsigned int pion_idx = 0 ; pion_idx< dau_size ; pion_idx++) {
       for ( unsigned int kaon_idx = 0 ; kaon_idx< dau_size ; kaon_idx++) {
         if ( pion_idx == kaon_idx ) continue;
-        const pat::PackedCandidate* pionCand = dynamic_cast<const pat::PackedCandidate*>( aPatJet.daughter(pion_idx));
-        const pat::PackedCandidate* kaonCand = dynamic_cast<const pat::PackedCandidate*>( aPatJet.daughter(kaon_idx));
+        Shared_PCP pionCand = jetDaughters[pion_idx];
+        Shared_PCP kaonCand = jetDaughters[kaon_idx];;
         if ( abs(pionCand->pdgId()) != 211 || abs( kaonCand->pdgId()) != 211) continue;
         if ( pionCand->charge() * kaonCand->charge() != -1 ) continue;
 
@@ -188,7 +200,7 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
         if ( abs( D0.M() - gD0Mass) < d0MassWindow_ ) {
           for( unsigned int extra_pion_idx = 0 ;  extra_pion_idx < dau_size ; extra_pion_idx++) {
             if ( extra_pion_idx== pion_idx || extra_pion_idx == kaon_idx) continue;
-            const pat::PackedCandidate* pion2Cand = dynamic_cast<const pat::PackedCandidate*>( aPatJet.daughter(extra_pion_idx));
+            Shared_PCP pion2Cand = jetDaughters[extra_pion_idx];
             if ( abs(pion2Cand->pdgId()) != 211) continue;
             if ( reco::deltaR(D0Cand, *pion2Cand  )> maxDeltaR_) continue;
             auto Dstar = D0Cand.p4() + pion2Cand->p4();
