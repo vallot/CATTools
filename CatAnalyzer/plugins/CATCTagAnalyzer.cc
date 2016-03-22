@@ -47,8 +47,8 @@ CATCTagAnalyzer::CATCTagAnalyzer(const edm::ParameterSet& iConfig)
   edm::Service<TFileService> fs;
   ttree_ = fs->make<TTree>("ctag","ctag");
   TTree* tr = ttree_;
-  tr->Branch("CVL","std::vector<float>",&b_ctag_CVL);
-  tr->Branch("CVB","std::vector<float>",&b_ctag_CVB);
+  tr->Branch("CvsL","std::vector<float>",&b_ctag_CVL);
+  tr->Branch("CvsB","std::vector<float>",&b_ctag_CVB);
 
 
 }
@@ -68,7 +68,7 @@ void CATCTagAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
     b_ctag_CVL.push_back(CVL);
     b_ctag_CVB.push_back(CVB);
   }
-
+  ttree_->Fill();
 
 }
 
