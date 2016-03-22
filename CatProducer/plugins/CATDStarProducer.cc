@@ -17,6 +17,7 @@
 #include "TrackingTools/Records/interface/TransientTrackRecord.h"
 #include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
 #include "TrackingTools/IPTools/interface/IPTools.h"
+#include "TrackingTools/PatternTools/interface/ClosestApproachInRPhi.h"
 
 #include<memory>
 
@@ -87,6 +88,7 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
 
   Handle<reco::VertexCollection> recVtxs;
   iEvent.getByToken(vertexLabel_,recVtxs);
+  float dca;
 
   if ( recVtxs->empty() ) {
     auto_ptr<vector<cat::SecVertex> >    D0_Out(new vector<cat::SecVertex>());
@@ -119,11 +121,13 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
 
   typedef ROOT::Math::SMatrix<double, 3, 3, ROOT::Math::MatRepSym<double, 3> > SMatrixSym3D;
   typedef ROOT::Math::SVector<double, 3> SVector3;
+
   typedef const pat::PackedCandidate ConstPC;
-  typedef std::shared_ptr<ConstPC> Shared_PCP;
+  //typedef std::shared_ptr<ConstPC> Shared_PCP;
+  typedef ConstPC* Shared_PCP;
 
   for (const pat::Jet & aPatJet : *jetHandle){
-    std::vector< Shared_PCP>  jetDaughters;
+    std::vector< Shared_PCP >  jetDaughters;
     std::vector<TransientTrack> tracks;
     unsigned int dau_size = aPatJet.numberOfDaughters();
     if ( dau_size < 3 ) continue;
@@ -147,9 +151,13 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
 
         if ( reco::deltaR( *pionCand, *kaonCand) > maxDeltaR_ ) continue;
 
+        auto D0 = pionCand->p4()+ kaonCand->p4();
+        if ( abs(D0.M() - gD0Mass) > d0MassCut_) continue;
+
         tracks.clear();
         reco::TransientTrack pionTrack = trackBuilder->build( pionCand->pseudoTrack());
         reco::TransientTrack kaonTrack = trackBuilder->build( kaonCand->pseudoTrack());
+
 
         KalmanVertexFitter fitter(true);
         TransientVertex t_vertex;
@@ -176,8 +184,6 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
         else vx = Point(0,0,0);
 
 
-        auto D0 = pionCand->p4()+ kaonCand->p4();
-        if ( abs(D0.M() - gD0Mass) > d0MassCut_) continue;
         const math::XYZTLorentzVector lv( D0.px(), D0.py(), D0.pz(), D0.E());
         auto vc = VertexCompositeCandidate(0, lv, vx, 421) ;  // + pdgId,
         cat::SecVertex D0Cand(vc);
@@ -191,7 +197,13 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
           D0Cand.setLxy(rVtxMag);
           D0Cand.setL3D(rVtxMag3D);
         }
- 
+        ClosestApproachInRPhi cApp;
+        auto thePionState = pionTrack.impactPointTSCP().theState();
+        auto theKaonState = kaonTrack.impactPointTSCP().theState();
+        cApp.calculate(thePionState, theKaonState);
+        dca= std::abs(cApp.distance());
+        if ( cApp.status() ) D0Cand.set_dca(dca);
+        
         D0Cand.addDaughter( *pionCand );
         D0Cand.addDaughter( *kaonCand );
         mcMatching( d0s, D0Cand);
@@ -243,6 +255,12 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
               DstarCand.setL3D(rVtxMag3D);
             
             } 
+            DstarCand.set_dca( 0, dca );
+            auto thePion2State = pion2Track.impactPointTSCP().theState();
+            cApp.calculate(thePionState, thePion2State);
+            if ( cApp.status() ) DstarCand.set_dca(1, std::abs(cApp.distance()));
+            cApp.calculate(theKaonState, thePion2State);
+            if ( cApp.status() ) DstarCand.set_dca(2, std::abs(cApp.distance()));
       
             Dstar_Out->push_back( DstarCand );
           }
