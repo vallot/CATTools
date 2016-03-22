@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Tue Mar 15 23:07:55 2016 by ROOT version 6.02/13
+// Tue Mar 22 11:57:23 2016 by ROOT version 6.02/13
 // from TTree nom/nom
 // found on file: cattree.root
 //////////////////////////////////////////////////////////
@@ -15,7 +15,6 @@
 // Header file for the classes stored in the TTree if any.
 #include "vector"
 #include "vector"
-
 using namespace std;
 class dstarAna {
 public :
@@ -144,6 +143,11 @@ public :
    vector<float>   *d0_phi;
    vector<float>   *d0_m;
    vector<bool>    *d0_true;
+   vector<bool>    *d0_fit;
+   vector<float>   *d0_L3D;
+   vector<float>   *d0_LXY;
+   vector<float>   *d0_dRTrue;
+   vector<float>   *d0_relPtTrue;
    vector<float>   *d0_dau1_pt;
    vector<float>   *d0_dau1_eta;
    vector<float>   *d0_dau1_phi;
@@ -159,6 +163,11 @@ public :
    vector<float>   *dstar_phi;
    vector<float>   *dstar_m;
    vector<bool>    *dstar_true;
+   vector<bool>    *dstar_fit;
+   vector<float>   *dstar_L3D;
+   vector<float>   *dstar_LXY;
+   vector<float>   *dstar_dRTrue;
+   vector<float>   *dstar_relPtTrue;
    vector<float>   *dstar_dau1_pt;
    vector<float>   *dstar_dau1_eta;
    vector<float>   *dstar_dau1_phi;
@@ -295,6 +304,11 @@ public :
    TBranch        *b_d0_phi;   //!
    TBranch        *b_d0_m;   //!
    TBranch        *b_d0_true;   //!
+   TBranch        *b_d0_fit;   //!
+   TBranch        *b_d0_L3D;   //!
+   TBranch        *b_d0_LXY;   //!
+   TBranch        *b_d0_dRTrue;   //!
+   TBranch        *b_d0_relPtTrue;   //!
    TBranch        *b_d0_dau1_pt;   //!
    TBranch        *b_d0_dau1_eta;   //!
    TBranch        *b_d0_dau1_phi;   //!
@@ -310,6 +324,11 @@ public :
    TBranch        *b_dstar_phi;   //!
    TBranch        *b_dstar_m;   //!
    TBranch        *b_dstar_true;   //!
+   TBranch        *b_dstar_fit;   //!
+   TBranch        *b_dstar_L3D;   //!
+   TBranch        *b_dstar_LXY;   //!
+   TBranch        *b_dstar_dRTrue;   //!
+   TBranch        *b_dstar_relPtTrue;   //!
    TBranch        *b_dstar_dau1_pt;   //!
    TBranch        *b_dstar_dau1_eta;   //!
    TBranch        *b_dstar_dau1_phi;   //!
@@ -400,6 +419,11 @@ void dstarAna::Init(TTree *tree)
    d0_phi = 0;
    d0_m = 0;
    d0_true = 0;
+   d0_fit = 0;
+   d0_L3D = 0;
+   d0_LXY = 0;
+   d0_dRTrue = 0;
+   d0_relPtTrue = 0;
    d0_dau1_pt = 0;
    d0_dau1_eta = 0;
    d0_dau1_phi = 0;
@@ -415,6 +439,11 @@ void dstarAna::Init(TTree *tree)
    dstar_phi = 0;
    dstar_m = 0;
    dstar_true = 0;
+   dstar_fit = 0;
+   dstar_L3D = 0;
+   dstar_LXY = 0;
+   dstar_dRTrue = 0;
+   dstar_relPtTrue = 0;
    dstar_dau1_pt = 0;
    dstar_dau1_eta = 0;
    dstar_dau1_phi = 0;
@@ -555,6 +584,11 @@ void dstarAna::Init(TTree *tree)
    fChain->SetBranchAddress("d0_phi", &d0_phi, &b_d0_phi);
    fChain->SetBranchAddress("d0_m", &d0_m, &b_d0_m);
    fChain->SetBranchAddress("d0_true", &d0_true, &b_d0_true);
+   fChain->SetBranchAddress("d0_fit", &d0_fit, &b_d0_fit);
+   fChain->SetBranchAddress("d0_L3D", &d0_L3D, &b_d0_L3D);
+   fChain->SetBranchAddress("d0_LXY", &d0_LXY, &b_d0_LXY);
+   fChain->SetBranchAddress("d0_dRTrue", &d0_dRTrue, &b_d0_dRTrue);
+   fChain->SetBranchAddress("d0_relPtTrue", &d0_relPtTrue, &b_d0_relPtTrue);
    fChain->SetBranchAddress("d0_dau1_pt", &d0_dau1_pt, &b_d0_dau1_pt);
    fChain->SetBranchAddress("d0_dau1_eta", &d0_dau1_eta, &b_d0_dau1_eta);
    fChain->SetBranchAddress("d0_dau1_phi", &d0_dau1_phi, &b_d0_dau1_phi);
@@ -570,6 +604,11 @@ void dstarAna::Init(TTree *tree)
    fChain->SetBranchAddress("dstar_phi", &dstar_phi, &b_dstar_phi);
    fChain->SetBranchAddress("dstar_m", &dstar_m, &b_dstar_m);
    fChain->SetBranchAddress("dstar_true", &dstar_true, &b_dstar_true);
+   fChain->SetBranchAddress("dstar_fit", &dstar_fit, &b_dstar_fit);
+   fChain->SetBranchAddress("dstar_L3D", &dstar_L3D, &b_dstar_L3D);
+   fChain->SetBranchAddress("dstar_LXY", &dstar_LXY, &b_dstar_LXY);
+   fChain->SetBranchAddress("dstar_dRTrue", &dstar_dRTrue, &b_dstar_dRTrue);
+   fChain->SetBranchAddress("dstar_relPtTrue", &dstar_relPtTrue, &b_dstar_relPtTrue);
    fChain->SetBranchAddress("dstar_dau1_pt", &dstar_dau1_pt, &b_dstar_dau1_pt);
    fChain->SetBranchAddress("dstar_dau1_eta", &dstar_dau1_eta, &b_dstar_dau1_eta);
    fChain->SetBranchAddress("dstar_dau1_phi", &dstar_dau1_phi, &b_dstar_dau1_phi);

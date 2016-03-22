@@ -22,10 +22,20 @@ public :
   DStarAnalyzer( std::string inFileURL, std::string outFileURL){
     this->inFileURL=inFileURL;
     this->outFileURL=outFileURL;
+
+    float d0_xbin, d0_xmin, d0_xmax;
+    d0_xbin = 100; 
+    d0_xmin = 1.6;
+    d0_xmax = 2.2;
+    auto title = TString::Format("D0 invariant mass ; D0 mass[GeV/c^2] ; Entries/%.1fMeV",(d0_xmax-d0_xmin)/d0_xbin*1000);
+    bookHist1D("d0_mass",title.Data(), d0_xbin, d0_xmin, d0_xmax);
+    bookHist1D("d0_mass_true",("True "+title).Data(),d0_xbin, d0_xmin, d0_xmax);
+    bookHist1D("dstar_mass","D* invariant mass",100,1.6,2.2);
+    bookHist1D("dstar_mass_true","True D* invariant mass",100,1.6,2.2);
     bookHist1D("dstar_mass_diff","Mass difference of D* and D0 meson",35,0.135,0.17);
-    bookHist1D("dstar_mass_diff_1","Mass difference of D* and D0(p+ k-) meson",35,0.135,0.17);
-    bookHist1D("dstar_mass_diff_2","Mass difference of D* and D0(p- k+) meson",35,0.135,0.17);
-    bookHist1D("dstar_mass_diff_true","Mass difference of true D* and D0 meson",35,0.135,0.17);
+    bookHist1D("dstar_mass_diff_1","Mass difference of D* and D0(p+ k-) meson",100,0.135,0.17);
+    bookHist1D("dstar_mass_diff_2","Mass difference of D* and D0(p- k+) meson",100,0.135,0.17);
+    bookHist1D("dstar_mass_diff_true","Mass difference of true D* and D0 meson",100,0.135,0.17);
     ana();
   }
 
@@ -48,11 +58,12 @@ public :
     std::cout<<totalEntries<<std::endl;
     for( int idx = 0 ; idx< totalEntries ; ++idx) {
       ntuple->GetEntry(idx);
-      /*
-      for ( auto dstar_pt : *(ntuple->dstar_pt)) {
-        std::cout<<dstar_pt<<std::endl;
+      //if ( !ntuple->step5 ) continue;
+      for ( int i=0 ; i < ntuple->d0_pt->size() ; ++i) {
+        float d0_mass = (*(ntuple->d0_m))[i];
+        hist["d0_mass"]->Fill( d0_mass);
+        if ( (*(ntuple->d0_true))[i]) hist["d0_mass_true"]->Fill( d0_mass); 
       }
-      */
       for( int i =0 ; i< ntuple->dstar_pt->size(); ++i) {
         TLorentzVector dau1, dau2, dau3;
         
@@ -61,6 +72,7 @@ public :
         dau3.SetPtEtaPhiM( (*(ntuple->dstar_dau3_pt))[i], (*(ntuple->dstar_dau3_eta))[i], (*(ntuple->dstar_dau3_phi))[i], (*(ntuple->dstar_dau3_m))[i]   );
 
         float diff = (dau1+dau2+dau3).M()-(dau1+dau2).M();
+        hist["dstar_mass"]->Fill( (*(ntuple->dstar_m))[i] );
         
         hist["dstar_mass_diff"]->Fill(diff);
         if ( (*(ntuple->dstar_dau1_q))[i] >0 && (*(ntuple->dstar_dau2_q))[i] <0 ) hist["dstar_mass_diff_1"]->Fill(diff);
