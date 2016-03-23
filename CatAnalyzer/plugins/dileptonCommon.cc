@@ -207,9 +207,9 @@ dileptonCommon::dileptonCommon(const edm::ParameterSet& iConfig)
 
 dileptonCommon::~dileptonCommon()
 {
-  cout <<"     cut flow   emu    ee    mumu"<< endl;
+  cout <<setw(10)<<"cut flow"<<setw(10)<<"no ll"<<setw(10)<<"emu"<<setw(10)<<"ee"<<setw(10)<<"mumu"<< endl;
   for ( int i=0; i<NCutflow; ++i ) {
-    cout <<"step "<< i << "    "<< cutflow_[i][0] <<  "   "<< cutflow_[i][1] << "   " << cutflow_[i][2] << "   " << cutflow_[i][3]<< endl;
+    cout <<setw(10)<<"step "<<i<< setw(10)<<cutflow_[i][0] << setw(10)<<cutflow_[i][1] << setw(10)<<cutflow_[i][2] <<setw(10)<<cutflow_[i][3]<< endl;
   }
 }
 
@@ -477,7 +477,6 @@ int dileptonCommon::eventSelection(const edm::Event& iEvent, const edm::EventSet
     if (keepTtbarSignal) ttree_[sys]->Fill();
     return -1;
   }
-  std::cout<<"selMuon.size()+selElecs.size() = "<<selMuons.size()+selElecs.size()<<std::endl;
   if (sys == sys_nom) cutflow_[3][b_channel]++;
 
   //std::vector<const cat::Lepton*> recolep;

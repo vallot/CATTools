@@ -104,10 +104,7 @@ CATDstarAnalyzer::CATDstarAnalyzer(const edm::ParameterSet& iConfig) : dileptonC
   d0Token_  = consumes<cat::SecVertexCollection>(iConfig.getParameter<edm::InputTag>("d0s"));
   dstarToken_  = consumes<cat::SecVertexCollection>(iConfig.getParameter<edm::InputTag>("dstars"));
 
-  //usesResource("TFileService");
-  //edm::Service<TFileService> fs;
   for (int sys = 0; sys < nsys_e; ++sys){
-    //ttree_.push_back(fs->make<TTree>(sys_name[sys].c_str(), sys_name[sys].c_str()));
     auto tr = ttree_[sys];
     setBranchCustom(tr, sys);
   }
@@ -115,17 +112,8 @@ CATDstarAnalyzer::CATDstarAnalyzer(const edm::ParameterSet& iConfig) : dileptonC
 
 CATDstarAnalyzer::~CATDstarAnalyzer()
 {
+
 }
-/*
-void CATDstarAnalyzer::beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&)
-{
-  if ( dynamic_cast<DESYSmearedSolver*>(solver_.get()) != 0 ) {
-    edm::Service<edm::RandomNumberGenerator> rng;
-    CLHEP::HepRandomEngine& engine = rng->getEngine(lumi.index());
-    dynamic_cast<DESYSmearedSolver*>(solver_.get())->setRandom(&engine);
-  }
-}
-*/
 void CATDstarAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   b_run = iEvent.id().run();
@@ -148,7 +136,6 @@ void CATDstarAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 
 
 void CATDstarAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventSetup& iSetup, int sys) {
-    std::cout<<"AnalyzerCustom on CATDstarAnalyzer"<<std::endl;
     edm::Handle<cat::SecVertexCollection> d0s;       iEvent.getByToken(d0Token_,d0s);
     edm::Handle<cat::SecVertexCollection> dstars;    iEvent.getByToken(dstarToken_,dstars);
 
