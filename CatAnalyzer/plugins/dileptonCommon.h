@@ -61,17 +61,16 @@ public:
   explicit dileptonCommon(const edm::ParameterSet&);
   ~dileptonCommon();
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
-  virtual void analyzeCustom(int sys ) ;
-  //void eventSelection(const edm::Event&, const edm::EventSetup&) ;
+  virtual void analyzeCustom(const edm::Event&, const edm::EventSetup&, int sys ) ;
+  int eventSelection(const edm::Event& iEvent, const edm::EventSetup& iSetup, int sys);
   void parameterInit(const edm::ParameterSet& iConfig);
-  void resetBr();
+  virtual void resetBr();
   void resetBrCommon();
   virtual void resetBrCustom();
-  void init();
 
-  void setBranch(TTree* tree, int sys);
-  void setCommonBranch(TTree* tree, int sys);
-  virtual void setCustomBranch(TTree* tree, int sys);
+  virtual void setBranch(TTree* tree, int sys);
+  void setBranchCommon(TTree* tree, int sys);
+  virtual void setBranchCustom(TTree* tree, int sys);
 
   float selectMuons(const cat::MuonCollection& muons, cat::MuonCollection& selmuons, sys_e sys) const;
   float selectElecs(const cat::ElectronCollection& elecs, cat::ElectronCollection& selelecs, sys_e sys) const;
@@ -149,9 +148,10 @@ protected :
   JetCollection selectedBJets;
   std::vector<const cat::Lepton*> recolep_;
   LV met;
+  std::unique_ptr<KinematicSolver> solver_;
 
 private:
-  void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&) override;
+  void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&) final;
   void endLuminosityBlock(const edm::LuminosityBlock&, const edm::EventSetup&) override {};
 
 
@@ -182,7 +182,6 @@ private:
   //std::unique_ptr<TtFullLepKinSolver> solver;
 
   
-  std::unique_ptr<KinematicSolver> solver_;
 
   const KinematicReconstruction* kinematicReconstruction;
 
