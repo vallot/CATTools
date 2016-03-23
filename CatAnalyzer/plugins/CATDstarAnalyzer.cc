@@ -141,6 +141,7 @@ void CATDstarAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventS
 
     for( const auto& x : *d0s) {
       b_d0_pt.push_back( x.pt());
+      std::cout<<"Run : "<<b_run<<" Event : "<<b_event<<"  d0_pt : "<<x.pt()<<std::endl;
       b_d0_eta.push_back( x.eta());
       b_d0_phi.push_back( x.phi());
       b_d0_m.push_back( x.mass());
@@ -156,6 +157,8 @@ void CATDstarAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventS
 
       else {
         b_d0_true.push_back(false);
+        b_d0_dRTrue.push_back(-9);
+        b_d0_relPtTrue.push_back(-9);
       }
 
       double d0_vProb = x.vProb();
@@ -164,7 +167,11 @@ void CATDstarAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventS
         b_d0_L3D.push_back( x.l3D());
         b_d0_LXY.push_back( x.lxy());
       }
-      else b_d0_fit.push_back(false);
+      else {
+        b_d0_fit.push_back(false);
+        b_d0_L3D.push_back( -9 );
+        b_d0_LXY.push_back( -9 );
+      }        
 
       b_d0_dau1_pt.push_back ( x.daughter(0)->pt());
       b_d0_dau1_eta.push_back( x.daughter(0)->eta());
@@ -207,8 +214,11 @@ void CATDstarAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventS
         b_dstar_L3D.push_back( x.l3D());
         b_dstar_LXY.push_back( x.lxy());
       }
-      else b_dstar_fit.push_back(false);
-
+      else {
+        b_dstar_fit.push_back(false);
+        b_dstar_L3D.push_back( -9 );
+        b_dstar_LXY.push_back( -9 );
+      }
 
       b_dstar_dau1_pt.push_back ( x.daughter(0)->pt());
       b_dstar_dau1_eta.push_back( x.daughter(0)->eta());
