@@ -41,7 +41,7 @@ namespace cat {
       const float gPionMass = 0.1396;
       const float gKaonMass = 0.4937;
       const float gD0Mass   = 1.86480;
-      float d0MassWindow_, maxDeltaR_ ,d0MassCut_, matchingDeltaR_;
+      float d0MassWindow_, maxDeltaR_ ,d0MassCut_;
       unsigned int maxNumPFCand_;
       bool applyCuts_;
 
@@ -61,7 +61,6 @@ cat::CATDStarProducer::CATDStarProducer(const edm::ParameterSet & iConfig) :
   d0MassWindow_ = iConfig.getParameter<double>("d0MassWindow");
   d0MassCut_ = iConfig.getParameter<double>("d0MassCut");
   maxDeltaR_  = iConfig.getParameter<double>("maxDeltaR");
-  matchingDeltaR_  = iConfig.getParameter<double>("matchingDeltaR");
   applyCuts_ = iConfig.getParameter<bool>("applyCut");
 }
   void
