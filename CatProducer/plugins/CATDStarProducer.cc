@@ -33,11 +33,9 @@ namespace cat {
       virtual ~CATDStarProducer() { }
 
       void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
-      void mcMatching( vector<reco::GenParticle>& aGens, VertexCompositeCandidate& aRecos);
     private:
 
       edm::EDGetTokenT<edm::View<pat::Jet> >                    jetSrc_;
-      edm::EDGetTokenT<edm::View<reco::GenParticle> >            mcSrc_;
       edm::EDGetTokenT<reco::VertexCollection>                vertexLabel_;
 
       const float gPionMass = 0.1396;
@@ -54,7 +52,6 @@ namespace cat {
 
 cat::CATDStarProducer::CATDStarProducer(const edm::ParameterSet & iConfig) :
   jetSrc_(consumes<edm::View<pat::Jet> >(iConfig.getParameter<edm::InputTag>("jetLabel"))),
-   mcSrc_(consumes<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("mcLabel"))),
   vertexLabel_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexLabel")))
 {
   produces<vector<cat::SecVertex> >("D0Cand");
@@ -66,21 +63,6 @@ cat::CATDStarProducer::CATDStarProducer(const edm::ParameterSet & iConfig) :
   maxDeltaR_  = iConfig.getParameter<double>("maxDeltaR");
   matchingDeltaR_  = iConfig.getParameter<double>("matchingDeltaR");
   applyCuts_ = iConfig.getParameter<bool>("applyCut");
-}
-
-  void
-cat::CATDStarProducer::mcMatching( vector<reco::GenParticle>& aGens, VertexCompositeCandidate& aReco) {
-  float minDR= 999.;
-  //float minRelPt = 1.0;
-  reco::GenParticle matchedGen;
-  for( const auto& aGen : aGens ) {
-      float deltaR = reco::deltaR( aGen, aReco);
-      if ( deltaR < minDR ) { matchedGen = aGen; minDR = deltaR; }
-  }
-  if ( minDR < matchingDeltaR_ ) {
-    aReco.addDaughter( matchedGen );
-  }
-  return;
 }
   void
 cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
@@ -99,17 +81,6 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
   }
   reco::Vertex pv = recVtxs->at(0);
 
-  Handle<edm::View<reco::GenParticle> > mcHandle;
-  iEvent.getByToken(mcSrc_, mcHandle);
-
-  vector<reco::GenParticle> d0s;
-  vector<reco::GenParticle> dstars;
-
-  for( const auto& aGenParticle : *mcHandle) {
-    // If genParticle is D0,
-    if ( std::abs(aGenParticle.pdgId()) == 421 ) d0s.push_back( aGenParticle); 
-    else if ( std::abs(aGenParticle.pdgId()) ==  413 ) dstars.push_back( aGenParticle); 
-  } 
   Handle<edm::View<pat::Jet> > jetHandle;
   iEvent.getByToken(jetSrc_, jetHandle);
 
@@ -145,7 +116,9 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
       for ( unsigned int kaon_idx = 0 ; kaon_idx< dau_size ; kaon_idx++) {
         if ( pion_idx == kaon_idx ) continue;
         Shared_PCP pionCand = jetDaughters[pion_idx];
-        Shared_PCP kaonCand = jetDaughters[kaon_idx];;
+        pat::PackedCandidate* kaonCand = jetDaughters[kaon_idx]->clone();
+        kaonCand->setMass(gKaonMass);
+
         if ( abs(pionCand->pdgId()) != 211 || abs( kaonCand->pdgId()) != 211) continue;
         if ( pionCand->charge() * kaonCand->charge() != -1 ) continue;
 
@@ -157,8 +130,13 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
         tracks.clear();
         reco::TransientTrack pionTrack = trackBuilder->build( pionCand->pseudoTrack());
         reco::TransientTrack kaonTrack = trackBuilder->build( kaonCand->pseudoTrack());
-
-
+        /* 
+        bool fromTrack = pionCand->pseudoTrack().quality(Track::highPurity);
+        bool fromCand  = pionCand->trackHighPurity();
+        if ( fromTrack != fromCand) std::cout<<"Diff!"<<std::endl;
+        std::cout<<"track HighPurity : "<<fromCand<<"  tight : "<<pionCand->pseudoTrack().quality(Track::tight)<<"  loose : "<<pionCand->pseudoTrack().quality(Track::loose)<<std::endl;       
+        */
+ 
         KalmanVertexFitter fitter(true);
         TransientVertex t_vertex;
         tracks.push_back( pionTrack);
@@ -203,10 +181,13 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
         cApp.calculate(thePionState, theKaonState);
         dca= std::abs(cApp.distance());
         if ( cApp.status() ) D0Cand.set_dca(dca);
-        
+        D0Cand.set_dca(1,-9); 
+        D0Cand.set_dca(2,-9);
+ 
         D0Cand.addDaughter( *pionCand );
         D0Cand.addDaughter( *kaonCand );
-        mcMatching( d0s, D0Cand);
+
+        D0Cand.setTrackQuality( (int)pionCand->trackHighPurity(), (int)kaonCand->trackHighPurity());
 
         D0_Out->push_back( D0Cand );
         if ( abs( D0.M() - gD0Mass) < d0MassWindow_ ) {
@@ -243,7 +224,7 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
             DstarCand.addDaughter( *pionCand );
             DstarCand.addDaughter( *kaonCand );
             DstarCand.addDaughter( *pion2Cand );
-            mcMatching( dstars, DstarCand );
+            DstarCand.setTrackQuality( (int)(pionCand->trackHighPurity()&kaonCand->trackHighPurity()), (int)pion2Cand->trackHighPurity());
             if ( fit_dstar) {
               DstarCand.setVProb( TMath::Prob( vtxChi2, (int) vtxNdof));
 

@@ -12,9 +12,7 @@ void dileptonCommon::parameterInit(const edm::ParameterSet& iConfig) {
   recoFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("recoFilters"));
   nGoodVertexToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("nGoodVertex"));
   lumiSelectionToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("lumiSelection"));
-  genWeightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("genweight"));
-  pdfweightToken_ = consumes<vector<float>>(iConfig.getParameter<edm::InputTag>("pdfweight"));	
-  scaleweightToken_ = consumes<vector<float>>(iConfig.getParameter<edm::InputTag>("scaleweight"));
+  genweightsToken_ = consumes<cat::GenWeights>(iConfig.getParameter<edm::InputTag>("genweight"));
   topPtWeight_ = consumes<float>(iConfig.getParameter<edm::InputTag>("topPtWeight"));
   puweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("puweight"));
   puweightToken_up_ = consumes<float>(iConfig.getParameter<edm::InputTag>("puweight_up"));
@@ -112,9 +110,8 @@ void dileptonCommon::setBranchCommon(TTree* tr, int sys) {
   if (sys == 0){
     tr->Branch("csvweights","std::vector<float>",&b_csvweights);
     tr->Branch("pdfWeights","std::vector<float>",&b_pdfWeights);
-    // tr->Branch("scaleWeights_up","std::vector<float>",&b_scaleWeights_up);
-    // tr->Branch("scaleWeights_dn","std::vector<float>",&b_scaleWeights_dn);
-    tr->Branch("scaleWeights","std::vector<float>",&b_scaleWeights);
+    tr->Branch("scaleWeights_up","std::vector<float>",&b_scaleWeights_up);
+    tr->Branch("scaleWeights_dn","std::vector<float>",&b_scaleWeights_dn);
   }
   tr->Branch("is3lep", &b_is3lep, "is3lep/I");
 
@@ -234,28 +231,18 @@ int dileptonCommon::eventSelection(const edm::Event& iEvent, const edm::EventSet
     b_topPtWeight = *topPtWeightHandle;
 
     if (sys == sys_nom){
-      edm::Handle<vector<float>> pdfweightHandle;
-      iEvent.getByToken(pdfweightToken_, pdfweightHandle);
-      for (const float & aPdfWeight : *pdfweightHandle){
+      edm::Handle<cat::GenWeights> genweightHandle;
+      iEvent.getByToken(genweightsToken_, genweightHandle);
+
+      for (const float & aPdfWeight : genweightHandle->pdfWeights() ){
         b_pdfWeights.push_back(aPdfWeight);
       }
-      edm::Handle<vector<float>> scaleweightHandle;
-      iEvent.getByToken(scaleweightToken_, scaleweightHandle);
-      for (const float & aScaleWeight : *scaleweightHandle){
-        b_scaleWeights.push_back(aScaleWeight);
-      }	
-      // edm::Handle<cat::GenWeights> genweightHandle;
-      // iEvent.getByToken(genweightsToken_, genweightHandle);
-
-      // for (const float & aPdfWeight : genweightHandle->pdfWeights() ){
-      //   b_pdfWeights.push_back(aPdfWeight);
-      // }
-      // for (const float & aScaleWeight : genweightHandle->scaleUpWeights() ){
-      //   b_scaleWeights_up.push_back(aScaleWeight);
-      // }
-      // for (const float & aScaleWeight : genweightHandle->scaleDownWeights() ){
-      //   b_scaleWeights_dn.push_back(aScaleWeight);
-      // }
+      for (const float & aScaleWeight : genweightHandle->scaleUpWeights() ){
+        b_scaleWeights_up.push_back(aScaleWeight);
+      }
+      for (const float & aScaleWeight : genweightHandle->scaleDownWeights() ){
+        b_scaleWeights_dn.push_back(aScaleWeight);
+      }
     }
 
     edm::Handle<vector<int> > partonTop_modes;
@@ -425,15 +412,10 @@ int dileptonCommon::eventSelection(const edm::Event& iEvent, const edm::EventSet
     iEvent.getByToken(puweightToken_dn_, puweightHandle_dn);
     b_puweight_dn = *puweightHandle_dn;
 
-    edm::Handle<float> genweightHandle;
-    iEvent.getByToken(genWeightToken_, genweightHandle);
-    b_genweight = (*genweightHandle);
+    edm::Handle<cat::GenWeights> genweightHandle;
+    iEvent.getByToken(genweightsToken_, genweightHandle);
+    b_genweight = genweightHandle->genWeight();
     b_weight = b_genweight*b_puweight;
-
-    // edm::Handle<cat::GenWeights> genweightHandle;
-    // iEvent.getByToken(genweightsToken_, genweightHandle);
-    // b_genweight = genweightHandle->genWeight();
-    // b_weight = b_genweight*b_puweight;
   }
 
   if (sys == sys_nom) h_nevents->Fill(0.5,b_puweight*b_genweight);
@@ -844,8 +826,7 @@ void dileptonCommon::resetBrCommon()
   b_topPtWeight = 1.;
   b_csvweights.clear();
   b_pdfWeights.clear();
-  b_scaleWeights.clear();
-  //b_scaleWeights_up.clear(); b_scaleWeights_dn.clear();
+  b_scaleWeights_up.clear(); b_scaleWeights_dn.clear();
 
   b_is3lep = -9;
 
