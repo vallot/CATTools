@@ -104,6 +104,10 @@ for opt, arg in opts:
     elif opt in ("-g", "--globalTag"):
         globalTag = arg
 
+if requestName == "" :
+    print "requestName(-n) is mandantory"
+    sys.exit(-1)
+
 if inputFile is None:
     catGetDatasetInfo = 'catGetDatasetInfo %s'%(requestName)
     os.system(catGetDatasetInfo)
