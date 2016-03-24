@@ -27,13 +27,11 @@ process.load("CATTools.CatAnalyzer.filters_cff")
 process.load("CATTools.CatAnalyzer.topPtWeightProducer_cfi")
 from CATTools.CatAnalyzer.leptonSF_cff import *
 
-process.cattree = cms.EDAnalyzer("DstarDileptonAnalyzer",
+process.cattree = cms.EDAnalyzer("CATDstarAnalyzer",
     recoFilters = cms.InputTag("filterRECO"),
     nGoodVertex = cms.InputTag("catVertex","nGoodPV"),
     lumiSelection = cms.InputTag(lumiMask),
-    genweight = cms.InputTag("genWeight","genWeight"),
-    pdfweight = cms.InputTag("genWeight","pdfWeights"),
-    scaleweight = cms.InputTag("genWeight","scaleWeights"),
+    genweight = cms.InputTag("genWeight"),
     topPtWeight = cms.InputTag("topPtWeight"),
     puweight = cms.InputTag(pileupWeight),
     puweight_up = cms.InputTag(pileupWeight,"up"),
@@ -78,8 +76,9 @@ if cms.string('DESYSmeared') == process.cattree.solver.algo:
     )
 
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string("cattree.root"
+    fileName = cms.string("cattree_CATDstar.root"
 ))
 
 process.p = cms.Path(process.cattree)
-#process.MessageLogger.cerr.FwkReport.reportEvery = 50000
+process.MessageLogger.cerr.FwkReport.reportEvery = 50000
+process.options.wantSummary = True

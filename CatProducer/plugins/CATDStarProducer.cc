@@ -116,7 +116,7 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
       for ( unsigned int kaon_idx = 0 ; kaon_idx< dau_size ; kaon_idx++) {
         if ( pion_idx == kaon_idx ) continue;
         Shared_PCP pionCand = jetDaughters[pion_idx];
-        pat::PackedCandidate* kaonCand = jetDaughters[kaon_idx]->clone();
+        std::shared_ptr<pat::PackedCandidate> kaonCand(jetDaughters[kaon_idx]->clone());
         kaonCand->setMass(gKaonMass);
 
         if ( abs(pionCand->pdgId()) != 211 || abs( kaonCand->pdgId()) != 211) continue;
@@ -130,12 +130,6 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
         tracks.clear();
         reco::TransientTrack pionTrack = trackBuilder->build( pionCand->pseudoTrack());
         reco::TransientTrack kaonTrack = trackBuilder->build( kaonCand->pseudoTrack());
-        /* 
-        bool fromTrack = pionCand->pseudoTrack().quality(Track::highPurity);
-        bool fromCand  = pionCand->trackHighPurity();
-        if ( fromTrack != fromCand) std::cout<<"Diff!"<<std::endl;
-        std::cout<<"track HighPurity : "<<fromCand<<"  tight : "<<pionCand->pseudoTrack().quality(Track::tight)<<"  loose : "<<pionCand->pseudoTrack().quality(Track::loose)<<std::endl;       
-        */
  
         KalmanVertexFitter fitter(true);
         TransientVertex t_vertex;
