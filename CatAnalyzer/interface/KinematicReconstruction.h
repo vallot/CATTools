@@ -17,9 +17,6 @@ class KinematicReconstructionSolutions;
 class KinematicReconstruction_MeanSol;
 
 
-
-
-
 struct Struct_KinematicReconstruction{
     TLorentzVector lp, lm;
     TLorentzVector jetB, jetBbar;
@@ -33,10 +30,6 @@ struct Struct_KinematicReconstruction{
     double weight;
     int ntags;
 };
-
-
-
-
 
 class KinematicReconstruction{
     
@@ -121,11 +114,6 @@ private:
 // mbl
     TH1* h_mbl_w_;
 };
-
-
-
-
-
 
 
 class KinematicReconstructionScaleFactors{

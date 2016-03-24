@@ -43,6 +43,7 @@ catEventContentTOPMC.extend([
     'keep *_catGenTops_*_*',
     'keep *_partonTop_*_*',
     'keep *_pseudoTop_*_*',
+    'keep *_genJetHadronFlavour_*_*',
     ])
 
 catEventContentSecVertexs.extend([

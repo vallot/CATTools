@@ -27,7 +27,7 @@ for channel in range(1,4):
 			if step < 5:
 				print "./topDraw.py -a %d -s %d -b %s -p %s -x '%s' -d -o > tmp &"%(channel, step, binset_l[p], plotvar, x_name_l[p])
 			else:
-				print "./topDraw.py -a %d -s %d -b %s -p %s -x '%s' -d -o -w 'genweight*puweight*lepweight*csvweights[0]' > tmp &"%(channel, step, binset_l[p], plotvar, x_name_l[p])
+				print "./topDraw.py -a %d -s %d -b %s -p %s -x '%s' -d -o -w 'genweight*puweight*mueffweight*eleffweight*tri*btagweight' > tmp &"%(channel, step, binset_l[p], plotvar, x_name_l[p])
 	print
 
 for i in range(1,4):
@@ -36,7 +36,7 @@ for i in range(1,4):
 			if step < 5:
 				print "./topDraw.py -a %d -s %d -b %s -p %s -x '%s' > tmp &"%(i, j, binset_l[4+p], plotvar, x_name_l[4+p])
 			else:
-				print "./topDraw.py -a %d -s %d -b %s -p %s -x '%s' -w 'genweight*puweight*lepweight*csvweights[0]' > tmp &"%(i, j, binset_l[4+p], plotvar, x_name_l[4+p])
+				print "./topDraw.py -a %d -s %d -b %s -p %s -x '%s' -w 'genweight*puweight*mueffweight*eleffweight*tri*btagweight' > tmp &"%(i, j, binset_l[4+p], plotvar, x_name_l[4+p])
 	print
 
 for j in range(1,6):

@@ -4,7 +4,9 @@ using namespace std;
 
 namespace cat
 {
+  TLorentzVector ToTLorentzVector(const math::XYZTLorentzVector& t) { return TLorentzVector(t.X(), t.Y(), t.Z(), t.T()); }
   TLorentzVector ToTLorentzVector(const reco::Candidate& t) { return TLorentzVector(t.px(), t.py(), t.pz(), t.energy()); }
+
   bool GtByTLVPt( TLorentzVector & t1, TLorentzVector & t2 ){ return t1.Pt() > t2.Pt();}
 
   bool AnalysisHelper::triggerNotSet()

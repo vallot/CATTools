@@ -20,22 +20,7 @@
 #include "CATTools/CatAnalyzer/interface/KinematicReconstruction_MeanSol.h"
 #include "CATTools/CatAnalyzer/interface/KinematicReconstructionSolution.h"
 
-
-
-
 constexpr double TopMASS = 172.5;
-
-
-
-
-
-
-
-
-
-
-
-
 
 // -------------------------------------- Methods for KinematicReconstruction --------------------------------------
 
@@ -145,7 +130,6 @@ void KinematicReconstruction::setRandomNumberSeeds(const LV& lepton, const LV& a
     gRandom->SetSeed(seed);
     r3_->SetSeed(seed);
 }
-
 
 
 KinematicReconstructionSolutions KinematicReconstruction::solutions(const std::vector<int>& leptonIndices, const std::vector<int>& antiLeptonIndices,
@@ -349,6 +333,8 @@ bool KinematicReconstruction::solutionSmearing(KinematicReconstruction_MeanSol& 
             TLorentzVector met_sm;
             TLorentzVector l_sm=l_temp;
             TLorentzVector al_sm=al_temp;
+//#define KINRECONOSM
+#ifndef KINRECONOSM
             //jets energy smearing
             double fB=h_jetEres_->GetRandom();//fB=1;  //sm off
             double xB=sqrt((fB*fB*b_sm.E()*b_sm.E()-b_sm.M2())/(b_sm.P()*b_sm.P()));
@@ -371,12 +357,17 @@ bool KinematicReconstruction::solutionSmearing(KinematicReconstruction_MeanSol& 
             // anti lepton angle smearing
             al_sm.SetXYZT(al_sm.Px()*xaL,al_sm.Py()*xaL,al_sm.Pz()*xaL,al_sm.E()*faL);
             angle_rot(h_lepAngleRes_->GetRandom(),0.001,al_sm,al_sm);
+#endif
             
             
             TVector3 metV3_sm= -b_sm.Vect()-bbar_sm.Vect()-l_sm.Vect()-al_sm.Vect()-vX_reco;
                 met_sm.SetXYZM(metV3_sm.Px(),metV3_sm.Py(),0,0);
             
+#ifndef KINRECONOSM
             KinematicReconstruction_LSroutines tp_sm(h_wmass_->GetRandom(),h_wmass_->GetRandom());
+#else
+            KinematicReconstruction_LSroutines tp_sm(80.4, 80.4);
+#endif
                 tp_sm.setConstraints(al_sm, l_sm, b_sm, bbar_sm, met_sm.Px(), met_sm.Py());
 
             if(tp_sm.getNsol()>0)
@@ -388,6 +379,9 @@ bool KinematicReconstruction::solutionSmearing(KinematicReconstruction_MeanSol& 
                     meanSolution.add(tp_sm.getTtSol()->at(i).top,tp_sm.getTtSol()->at(i).topbar,tp_sm.getTtSol()->at(i).neutrino,tp_sm.getTtSol()->at(i).neutrinobar,mbl_weight);
                 }
             }
+#ifdef KINRECONOSM
+            break;
+#endif
         }
 
 

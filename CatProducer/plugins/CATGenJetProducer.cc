@@ -3,20 +3,8 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "DataFormats/Common/interface/Association.h"
-#include "DataFormats/Common/interface/RefToPtr.h"
-
-#include "DataFormats/JetReco/interface/GenJetCollection.h"
-#include "DataFormats/JetReco/interface/GenJet.h"
-#include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
-#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "CATTools/DataFormats/interface/GenJet.h"
 #include "CATTools/DataFormats/interface/MCParticle.h"
-#include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
-#include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
-#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
-#include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
-#include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
 
 using namespace edm;
 using namespace std;
@@ -73,27 +61,28 @@ cat::CATGenJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
     //if B-Hadron matched, always assign B-Hadron
     for ( reco::Jet::Constituents::const_iterator itr = jc.begin(); itr != jc.end(); ++itr ){
       if (itr->isAvailable()){
-	const reco::Candidate* mcpart = dynamic_cast<const reco::Candidate*>(itr->get());
-	const reco::Candidate* lastB = lastBHadron(*mcpart);
-	if (lastB){
-	  matched = cat::MCParticle(*lastB);
-	  break;
-	}
+        const reco::Candidate* mcpart = dynamic_cast<const reco::Candidate*>(itr->get());
+        const reco::Candidate* lastB = lastBHadron(*mcpart);
+        if (lastB){
+          matched = cat::MCParticle(*lastB);
+          break;
+        }
       }
     }
     if (std::abs(matched.pdgId()) != 5){
       //if only no B-Hadron matched, assign C-Hadron
       for ( reco::Jet::Constituents::const_iterator itr = jc.begin(); itr != jc.end(); ++itr ){
-	if (itr->isAvailable()){
-	  const reco::Candidate* mcpart = dynamic_cast<const reco::Candidate*>(itr->get());
-	  const reco::Candidate* lastC = lastCHadron(*mcpart);
-	  if (lastC){
-	    matched = cat::MCParticle(*lastC);
-	    break;
-	  }
-	}
+        if (itr->isAvailable()){
+          const reco::Candidate* mcpart = dynamic_cast<const reco::Candidate*>(itr->get());
+          const reco::Candidate* lastC = lastCHadron(*mcpart);
+          if (lastC){
+            matched = cat::MCParticle(*lastC);
+            break;
+          }
+        }
       }
     }
+
     aCatGenJet.setHadron(matched);
     aCatGenJet.setPdgId(matched.pdgId());
     // int partonFlavour = aGenJet.partonFlavour();
@@ -213,7 +202,6 @@ const reco::Candidate* cat::CATGenJetProducer::lastCHadron(const reco::Candidate
 
   return out;
 }
-
 
 #include "FWCore/Framework/interface/MakerMacros.h"
 using namespace cat;

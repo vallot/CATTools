@@ -213,7 +213,7 @@ void KinematicReconstruction_LSroutines::doAll()
                 //TS_temp.weight=Landau2D(neutrino_.E(),neutrinobar_.E());
                 
                 ttSol_.push_back(TS_temp);
-                  
+
             }
         nSol_=ttSol_.size();
         if(nSol_>0) this->sortTopSol(ttSol_);
@@ -402,7 +402,7 @@ void KinematicReconstruction_LSroutines::swap(double& realone, double& realtwo)c
 
 int KinematicReconstruction_LSroutines::sign(const long double& ld)const
 {
-    if(fabs(ld)<0.0000000000001) return 0;
+    if(std::abs(ld)<0.0000000000001) return 0;
     return (ld>0)?1:-1;
 }
 

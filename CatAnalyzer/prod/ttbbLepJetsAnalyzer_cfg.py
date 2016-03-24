@@ -28,6 +28,7 @@ process.source = cms.Source("PoolSource",
         'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-6-2_RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext3-v1/160211_132614/0000/catTuple_1.root',
         )
 )
+
 # PUReWeight
 # process.load("CATTools.CatProducer.pileupWeight_cff")
 # from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
@@ -47,8 +48,7 @@ from CATTools.CatAnalyzer.leptonSF_cff import *
 process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      sampleLabel       = cms.untracked.bool(runOnMC),
                                      TTbarSampleLabel  = cms.untracked.int32(runOnTTbarMC),
-                                     genWeightLabel    = cms.InputTag("genWeight:genWeight"),
-                                     ScaleWeightLabel  = cms.InputTag("genWeight:scaleWeights"),
+                                     genWeightLabel    = cms.InputTag("genWeight"),
                                      genLabel          = cms.InputTag("prunedGenParticles"),
                                      genJetLabel       = cms.InputTag("slimmedGenJets"),
                                      genttbarCatLabel  = cms.InputTag("catGenTops"),
