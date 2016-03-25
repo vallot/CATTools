@@ -24,7 +24,13 @@ process.load("CATTools.CatAnalyzer.filters_cff")
 process.load("CATTools.CatAnalyzer.topPtWeightProducer_cfi")
 from CATTools.CatAnalyzer.leptonSF_cff import *
 
-process.cattree = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
+#process.ttbarDileptonKinAlgoPSetDESYSmeared.inputTemplatePath = cms.string("CATTools/CatAnalyzer/data/KoreaDesyKinRecoInput.root")
+process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop = process.ttbarDileptonKinAlgoPSetDESYSmeared.clone()
+process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop.inputTemplatePath = cms.string("CATTools/CatAnalyzer/data/KoreaDesyKinRecoInput.root")
+process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop.maxLBMass = cms.double(360)
+process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop.mTopInput = cms.double(172.5)
+
+process.cattree = cms.EDAnalyzer("dileptonCommon",
     recoFilters = cms.InputTag("filterRECO"),
     nGoodVertex = cms.InputTag("catVertex","nGoodPV"),
     lumiSelection = cms.InputTag(lumiMask),
@@ -59,8 +65,9 @@ process.cattree = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
 
     pseudoTop = cms.InputTag("pseudoTop"),
     
-    solver = process.ttbarDileptonKinAlgoPSetCMSKin,
-    #solver = process.ttbarDileptonKinAlgoPSetDESYSmeared,
+    #solver = process.ttbarDileptonKinAlgoPSetCMSKin,
+    solver = process.ttbarDileptonKinAlgoPSetDESYSmeared,
+    solverPseudoTop = process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop,
     #solver = process.ttbarDileptonKinAlgoPSetDESYMassLoop,
 )
 #process.cattree.solver.tMassStep = 1
