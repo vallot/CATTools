@@ -26,7 +26,9 @@ from CATTools.CatAnalyzer.leptonSF_cff import *
 
 #process.ttbarDileptonKinAlgoPSetDESYSmeared.inputTemplatePath = cms.string("CATTools/CatAnalyzer/data/KoreaDesyKinRecoInput.root")
 process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop = process.ttbarDileptonKinAlgoPSetDESYSmeared.clone()
-#process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop.inputTemplatePath = cms.string("CATTools/CatAnalyzer/data/KoreaDesyKinRecoInput.root")
+process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop.inputTemplatePath = cms.string("CATTools/CatAnalyzer/data/KoreaDesyKinRecoInput.root")
+process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop.maxLBMass = cms.double(360)
+process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop.mTopInput = cms.double(172.5)
 
 process.cattree = cms.EDAnalyzer("dileptonCommon",
     recoFilters = cms.InputTag("filterRECO"),
