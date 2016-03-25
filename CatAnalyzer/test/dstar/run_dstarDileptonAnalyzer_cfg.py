@@ -8,10 +8,11 @@ process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
 process.options.allowUnscheduled = cms.untracked.bool(True)
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
-process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-3/MuonEG_Run2015D-16Dec2015-v1.root',]
-process.source.fileNames = ['file:/xrootd/store/user/jhgoh/CATTools/sync/v7-6-3/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',]
-#process.source.fileNames = ['file:../../../catTuple.root',]
-process.source.fileNames=['file:catTuple.root']
+#process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-3/MuonEG_Run2015D-16Dec2015-v1.root',]
+#process.source.fileNames = ['file:/xrootd/store/user/jhgoh/CATTools/sync/v7-6-3/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',]
+#process.source.fileNames = ['file:../../../catdata_20160315/catTuple.root']
+process.source.fileNames = ['file:catTuple.root']
+
 useSilver = False
 catmet = 'catMETs'
 lumiMask = 'lumiMask'
@@ -81,4 +82,4 @@ process.TFileService = cms.Service("TFileService",
 ))
 
 process.p = cms.Path(process.cattree)
-process.MessageLogger.cerr.FwkReport.reportEvery = 50000
+#process.MessageLogger.cerr.FwkReport.reportEvery = 50000
