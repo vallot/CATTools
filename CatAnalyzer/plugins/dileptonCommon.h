@@ -136,6 +136,10 @@ protected :
   float b_ttbar_dphi;
   float b_jet1_CSVInclV2, b_jet2_CSVInclV2;
 
+  TLorentzVector b_PTjet1, b_PTjet2, b_PTtop1, b_PTtop2, b_PTttbar;
+  float b_PTttbar_dphi;
+  float b_PTjet1_CSVInclV2, b_PTjet2_CSVInclV2;
+
   TLorentzVector b_desyjet1, b_desyjet2, b_desytop1, b_desytop2, b_desyttbar;
   float b_desyttbar_dphi;
   float b_desyjet1_CSVInclV2, b_desyjet2_CSVInclV2;
@@ -149,6 +153,7 @@ protected :
   std::vector<const cat::Lepton*> recolep_;
   LV met;
   std::unique_ptr<KinematicSolver> solver_;
+  std::unique_ptr<KinematicSolver> solverPT_;
 
 private:
   void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&) final;

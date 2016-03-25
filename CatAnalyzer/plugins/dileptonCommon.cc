@@ -54,7 +54,7 @@ void dileptonCommon::parameterInit(const edm::ParameterSet& iConfig) {
   auto solverPSet = iConfig.getParameter<edm::ParameterSet>("solver");
   auto algoName = solverPSet.getParameter<std::string>("algo");
   std::transform(algoName.begin(), algoName.end(), algoName.begin(), ::toupper);
-  if      ( algoName == "CMSKIN" ) solver_.reset(new CMSKinSolver(solverPSet));
+  if      ( algoName == "CMSKIN" ) solverPT_.reset(new CMSKinSolver(solverPSet));
   else if ( algoName == "DESYMASSLOOP" ) solver_.reset(new DESYMassLoopSolver(solverPSet));
   else if ( algoName == "DESYSMEARED" ) solver_.reset(new DESYSmearedSolver(solverPSet));
   else if ( algoName == "MT2"    ) solver_.reset(new MT2Solver(solverPSet));
@@ -65,6 +65,22 @@ void dileptonCommon::parameterInit(const edm::ParameterSet& iConfig) {
     cerr << "Fall back to the default dummy solver\n";
     solver_.reset(new TTDileptonSolver(solverPSet)); // A dummy solver
   }
+  // PseudoTop 
+  auto solverPSetPT = iConfig.getParameter<edm::ParameterSet>("solverPseudoTop");
+  auto algoNamePT = solverPSetPT.getParameter<std::string>("algo");
+  std::transform(algoNamePT.begin(), algoNamePT.end(), algoNamePT.begin(), ::toupper);
+  if      ( algoNamePT == "CMSKIN" ) solverPT_.reset(new CMSKinSolver(solverPSetPT));
+  else if ( algoNamePT == "DESYMASSLOOP" ) solverPT_.reset(new DESYMassLoopSolver(solverPSetPT));
+  else if ( algoNamePT == "DESYSMEARED" ) solverPT_.reset(new DESYSmearedSolver(solverPSetPT));
+  else if ( algoNamePT == "MT2"    ) solverPT_.reset(new MT2Solver(solverPSetPT));
+  else if ( algoNamePT == "MAOS"   ) solverPT_.reset(new MAOSSolver(solverPSetPT));
+  else if ( algoNamePT == "DEFAULT" ) solverPT_.reset(new TTDileptonSolver(solverPSetPT));
+  else {
+    cerr << "The solver name \"" << solverPSetPT.getParameter<std::string>("algoPT") << "\" is not known please check spellings.\n";
+    cerr << "Fall back to the default dummy solver\n";
+    solverPT_.reset(new TTDileptonSolver(solverPSetPT)); // A dummy solver
+  }
+  
 }
 
 void dileptonCommon::setBranch(TTree* tree, int sys) {
@@ -170,6 +186,15 @@ void dileptonCommon::setBranchCommon(TTree* tr, int sys) {
   tr->Branch("ttbar", "TLorentzVector", &b_ttbar);
   tr->Branch("ttbar_dphi", &b_ttbar_dphi, "ttbar_dphi/F");
 
+  tr->Branch("PTjet1", "TLorentzVector", &b_PTjet1);
+  tr->Branch("PTjet1_CSVInclV2", &b_PTjet1_CSVInclV2, "PTjet1_CSVInclV2/F");
+  tr->Branch("PTjet2", "TLorentzVector", &b_PTjet2);
+  tr->Branch("PTjet2_CSVInclV2", &b_PTjet2_CSVInclV2, "PTjet2_CSVInclV2/F");
+  tr->Branch("PTtop1", "TLorentzVector", &b_PTtop1);
+  tr->Branch("PTtop2", "TLorentzVector", &b_PTtop2);
+  tr->Branch("PTttbar", "TLorentzVector", &b_PTttbar);
+  tr->Branch("PTttbar_dphi", &b_PTttbar_dphi, "PTttbar_dphi/F");
+  
   tr->Branch("desyjet1", "TLorentzVector", &b_desyjet1);
   tr->Branch("desyjet1_CSVInclV2", &b_desyjet1_CSVInclV2, "desyjet1_CSVInclV2/F");
   tr->Branch("desyjet2", "TLorentzVector", &b_desyjet2);
@@ -219,6 +244,11 @@ void dileptonCommon::beginLuminosityBlock(const edm::LuminosityBlock& lumi, cons
     edm::Service<edm::RandomNumberGenerator> rng;
     CLHEP::HepRandomEngine& engine = rng->getEngine(lumi.index());
     dynamic_cast<DESYSmearedSolver*>(solver_.get())->setRandom(&engine);
+  }
+  if ( dynamic_cast<DESYSmearedSolver*>(solverPT_.get()) != 0 ) {
+    edm::Service<edm::RandomNumberGenerator> rngPT;
+    CLHEP::HepRandomEngine& enginePT = rngPT->getEngine(lumi.index());
+    dynamic_cast<DESYSmearedSolver*>(solverPT_.get())->setRandom(&enginePT);
   }
 }
 
@@ -650,8 +680,8 @@ void dileptonCommon::analyzeCustom(const edm::Event& iEvent, const edm::EventSet
 
   const auto recolepLV1= recolep1.p4();
   const auto recolepLV2= recolep2.p4();
-  std::vector<cat::KinematicSolution> sol2Bs, sol1Bs, sol0Bs;
-  cat::KinematicSolution bestSol;
+  std::vector<cat::KinematicSolution> sol2Bs, sol1Bs, sol0Bs, sol2BsPT, sol1BsPT, sol0BsPT;
+  cat::KinematicSolution bestSol, bestSolPT;
 
   for (auto jet1 = selectedJets.begin(), end = selectedJets.end(); jet1 != end; ++jet1){
     const auto recojet1= jet1->p4();
@@ -662,12 +692,9 @@ void dileptonCommon::analyzeCustom(const edm::Event& iEvent, const edm::EventSet
 
       solver_->solve(met, recolepLV1, recolepLV2, recojet2, recojet1);
       const cat::KinematicSolution sol1 = solver_->solution();
-
+      
       solver_->solve(met, recolepLV1, recolepLV2, recojet1, recojet2);
       const cat::KinematicSolution sol2 = solver_->solution();
-
-      //if      ( sol1.quality() >= sol2.quality() and sol1.quality() > bestSol.quality() ) bestSol = sol1;
-      //else if ( sol2.quality() >= sol1.quality() and sol2.quality() > bestSol.quality() ) bestSol = sol2;
 
       if ( isBjet1 and isBjet2 ) {
         sol2Bs.push_back(sol1);
@@ -680,6 +707,25 @@ void dileptonCommon::analyzeCustom(const edm::Event& iEvent, const edm::EventSet
       else {
         sol0Bs.push_back(sol1);
         sol0Bs.push_back(sol2);
+      }
+      // pseudoTop particle level
+      solverPT_->solve(met, recolepLV1, recolepLV2, recojet2, recojet1);
+      const cat::KinematicSolution sol1PT = solverPT_->solution();
+      
+      solverPT_->solve(met, recolepLV1, recolepLV2, recojet1, recojet2);
+      const cat::KinematicSolution sol2PT = solverPT_->solution();
+
+      if ( isBjet1 and isBjet2 ) {
+        sol2BsPT.push_back(sol1PT);
+        sol2BsPT.push_back(sol2PT);
+      }
+      else if ( isBjet1 or isBjet2 ) {
+        sol1BsPT.push_back(sol1PT);
+        sol1BsPT.push_back(sol2PT);
+      }
+      else {
+        sol0BsPT.push_back(sol1PT);
+        sol0BsPT.push_back(sol2PT);
       }
     }
   }
@@ -705,7 +751,6 @@ void dileptonCommon::analyzeCustom(const edm::Event& iEvent, const edm::EventSet
 
     if (bjet1.Pt() < bjet2.Pt()) { swap(bjet1, bjet2); }
 
-
     b_jet1 = ToTLorentzVector(bjet1);
     b_jet2 = ToTLorentzVector(bjet2);
     b_top1 = ToTLorentzVector(top1);
@@ -718,6 +763,43 @@ void dileptonCommon::analyzeCustom(const edm::Event& iEvent, const edm::EventSet
       ++b_step;
       if (sys == sys_nom) cutflow_[9][b_channel]++;
     }
+  }
+  // pseudoTop particle level    
+  std::sort(sol2BsPT.begin(), sol2BsPT.end(), greaterByQuality);
+  std::sort(sol1BsPT.begin(), sol1BsPT.end(), greaterByQuality);
+  std::sort(sol0BsPT.begin(), sol0BsPT.end(), greaterByQuality);
+
+  // Prefer to select b jets
+  if      ( !sol2BsPT.empty() ) bestSolPT = sol2BsPT.front();
+  else if ( !sol1BsPT.empty() ) bestSolPT = sol1BsPT.front();
+  //else if ( !sol0BsPT.empty() ) bestSolPT = sol0BsPT.front();
+
+  //saving results
+  const double maxweightPT = bestSolPT.quality();
+  if ( maxweightPT > 0 ) {
+    math::XYZTLorentzVector top1, top2, nu1, nu2, bjet1, bjet2;
+    bjet1 = bestSolPT.j1();
+    bjet2 = bestSolPT.j2();
+    top1 = bestSolPT.t1();
+    top2 = bestSolPT.t2();
+    if (recolep1.charge() < 0) swap(top1, top2);
+
+    if (bjet1.Pt() < bjet2.Pt()) { swap(bjet1, bjet2); }
+
+    b_PTjet1 = ToTLorentzVector(bjet1);
+    b_PTjet2 = ToTLorentzVector(bjet2);
+    b_PTtop1 = ToTLorentzVector(top1);
+    b_PTtop2 = ToTLorentzVector(top2);
+    b_PTttbar = b_PTtop1 + b_PTtop2;
+    b_PTttbar_dphi = b_top1.DeltaPhi(b_top2);
+
+    // b_step6 = true;
+    // if (b_step == 5){
+    //   ++b_step;
+    //   if (sys == sys_nom) cutflow_[9][b_channel]++;
+    // }
+    
+    
   }
 }
 
@@ -874,6 +956,12 @@ void dileptonCommon::resetBrCommon()
   b_jet1_CSVInclV2 = 0; b_jet2_CSVInclV2 = 0;
   b_dilep = TLorentzVector(); b_ttbar = TLorentzVector();
   b_ttbar_dphi = 0;
+
+  b_PTjet1 = TLorentzVector(); b_PTjet2 = TLorentzVector();
+  b_PTtop1 = TLorentzVector(); b_PTtop2 = TLorentzVector();
+  b_PTjet1_CSVInclV2 = 0; b_PTjet2_CSVInclV2 = 0;
+  b_PTttbar = TLorentzVector();
+  b_PTttbar_dphi = 0;
 
   b_desyjet1 = TLorentzVector(); b_desyjet2 = TLorentzVector();
   b_desytop1 = TLorentzVector(); b_desytop2 = TLorentzVector();
