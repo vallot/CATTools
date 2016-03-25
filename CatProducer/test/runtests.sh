@@ -4,12 +4,12 @@ function die { echo $1: status $2 ;  exit $2; }
 
 cmsRun ${LOCAL_TEST_DIR}/../prod/PAT2CAT_cfg.py \
   'maxEvents=100' 'runOnMC=1' 'useMiniAOD=1' 'runOnRelVal=1' \
-  'inputFiles=/store/relval/CMSSW_7_4_15/RelValZMM_13/MINIAODSIM/PU25ns_74X_mcRun2_asymptotic_v2-v1/00000/10FF6E32-3C72-E511-87AD-0025905A60B4.root' \
+  'inputFiles=/store/relval/CMSSW_7_6_2/RelValZMM_13/MINIAODSIM/76X_mcRun2_asymptotic_v12-v1/00000/027AB257-A09C-E511-8F3D-003048FFD736.root' \
   || die 'Failure to run PAT2CAT from MiniAODSIM' $?
 
 cmsRun ${LOCAL_TEST_DIR}/../prod/PAT2CAT_cfg.py \
   'maxEvents=100' 'runOnMC=1' 'useMiniAOD=1' 'runGenTop=1' 'runOnRelVal=1' \
-  'inputFiles=/store/relval/CMSSW_7_4_15/RelValTTbar_13/MINIAODSIM/PU25ns_74X_mcRun2_asymptotic_v2-v1/00000/0253820F-4772-E511-ADD3-002618943856.root' \
+  'inputFiles=/store/relval/CMSSW_7_6_2/RelValTTbar_13/MINIAODSIM/76X_mcRun2_asymptotic_v12-v1/00000/0A10678B-8D9C-E511-8AB3-0CC47A4D75F6.root' \
   || die 'Failure to run PAT2CAT from MiniAODSIM + GenTop' $?
 
 cmsRun ${LOCAL_TEST_DIR}/../prod/PAT2CAT_cfg.py \
@@ -17,12 +17,3 @@ cmsRun ${LOCAL_TEST_DIR}/../prod/PAT2CAT_cfg.py \
   'inputFiles=/store/data/Run2015C/DoubleMuon/MINIAOD/PromptReco-v1/000/254/790/00000/22890CFA-034A-E511-A23D-02163E011EC1.root' \
   || die 'Failure to run PAT2CAT from MiniAOD real data' $?
 
-cmsRun ${LOCAL_TEST_DIR}/../prod/PAT2CAT_cfg.py \
-  'maxEvents=100' 'runOnMC=1' 'useMiniAOD=0' 'runOnRelVal=1' \
-  'inputFiles=/store/relval/CMSSW_7_4_15/RelValZMM_13/GEN-SIM-RECO/PU25ns_74X_mcRun2_asymptotic_v2-v1/00000/18B13146-3872-E511-A382-00261894394D.root' \
-  || die 'Failure to run PAT2CAT from AODSIM' $?
-
-cmsRun ${LOCAL_TEST_DIR}/../prod/PAT2CAT_cfg.py \
-  'maxEvents=100' 'runOnMC=1' 'useMiniAOD=0' 'runGenTop=1' 'runOnRelVal=1' \
-  'inputFiles=/store/relval/CMSSW_7_4_12/RelValTTbar_13/GEN-SIM-RECO/PU25ns_74X_mcRun2_asymptotic_v2_v2-v1/00000/006F3660-4B5E-E511-B8FD-0025905B8596.root' \
-  || die 'Failure to run PAT2CAT from AODSIM + GenTop' $?

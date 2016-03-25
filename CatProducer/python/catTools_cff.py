@@ -91,7 +91,7 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
             jetSource = process.catJetsPuppi.src )
         
         process.catJetsPuppi.src = cms.InputTag("patJetsPuppiUpdated")
-        process.catJetsPuppi.setGenParticle = cms.bool(False)
+        process.catJetsPuppi.setGenParticle = cms.bool(False)        
         ## #######################################################################
         ## # MET corrections from https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
         #from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
@@ -107,6 +107,24 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         #del process.slimmedMETsNoHF.caloMET        
         #######################################################################
         ## for egamma pid https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2#Recipe_for_regular_users_for_74X
+        from PhysicsTools.SelectorUtils.tools.vid_id_tools import DataFormat,switchOnVIDPhotonIdProducer,setupAllVIDIdsInModule,setupVIDPhotonSelection            
+        switchOnVIDPhotonIdProducer(process, DataFormat.MiniAOD)
+
+        #Use IDs from https://github.com/cms-sw/cmssw/blob/CMSSW_7_4_X/RecoEgamma/PhotonIdentification/python/Identification/ 
+        photon_ids = ['RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_Spring15_25ns_V1_cff',
+                      'RecoEgamma.PhotonIdentification.Identification.mvaPhotonID_Spring15_25ns_nonTrig_V2_cff']
+        
+        #add them to the VID producer
+        for idmod in photon_ids:
+            setupAllVIDIdsInModule(process,idmod,setupVIDPhotonSelection)
+
+        process.catPhotons.photonIDSources = cms.PSet( 
+            cutBasedPhotonID_Spring15_25ns_V1_standalone_loose = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-Spring15-25ns-V1-standalone-loose"),
+            cutBasedPhotonID_Spring15_25ns_V1_standalone_medium = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-Spring15-25ns-V1-standalone-medium"),
+            cutBasedPhotonID_Spring15_25ns_V1_standalone_tight = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-Spring15-25ns-V1-standalone-tight"),
+            mvaPhoID_Spring15_25ns_nonTrig_V2_wp90 =  cms.InputTag("egmPhotonIDs:mvaPhoID-Spring15-25ns-nonTrig-V2-wp90"),
+            )
+        
         ## from PhysicsTools.SelectorUtils.tools.vid_id_tools import DataFormat,switchOnVIDElectronIdProducer,setupAllVIDIdsInModule,setupVIDElectronSelection
         ## electron_ids = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_25ns_V1_cff',
         ##                 'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV60_cff',
@@ -127,6 +145,21 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         ##     mvaEleID_Spring15_25ns_Trig_V1_wp80 = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-Trig-V1-wp90"),
         ##     mvaEleID_Spring15_25ns_Trig_V1_wp90 = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-Trig-V1-wp80"),
         ## )
+
+        #######################################################################
+        ## Energy smearing and scale correction
+        ## https://twiki.cern.ch/twiki/bin/view/CMS/EGMSmearer
+        process.RandomNumberGeneratorService.calibratedPatElectrons=cms.PSet(
+            engineName = cms.untracked.string('TRandom3'),
+            initialSeed = cms.untracked.uint32(1)
+        )
+        process.load('EgammaAnalysis.ElectronTools.calibratedElectronsRun2_cfi')
+        process.calibratedPatElectrons.isMC = runOnMC
+        process.catElectrons.src = cms.InputTag("calibratedPatElectrons")    
+    
+        # photons not yet working...
+        #process.load('EgammaAnalysis.ElectronTools.calibratedPhotonsRun2_cfi')
+        
         #######################################################################    
         # adding pfMVAMet https://twiki.cern.ch/twiki/bin/viewauth/CMS/MVAMet#Spring15_samples_with_25ns_50ns
         # https://github.com/cms-sw/cmssw/blob/CMSSW_7_4_X/RecoMET/METPUSubtraction/test/mvaMETOnMiniAOD_cfg.py

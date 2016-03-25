@@ -2,8 +2,8 @@
 # catGetDatasetInfo v7-4-4 # to make dataset lists
 # sed -i 's/^\/store/root:\/\/cms-xrdr.sdfarm.kr:1094\/\/xrd\/store/g' *
 
-#analysis = 'h2muAnalyzer'
-analysis = 'TtbarDiLeptonAnalyzer'
+analysis = 'h2muAnalyzer'
+#analysis = 'TtbarDiLeptonAnalyzer'
 
 pythonCfg = 'run_'+analysis+'_cfg.py'
 #analysis=analysis+'Silver'
@@ -30,5 +30,5 @@ with open(dataset_json) as data_file:
         jobName = analysis+'_'+datasetName
         createbatch = "create-batch --cfg %s --jobName %s --fileList %s --maxFiles 10"%(pythonCfg, jobName, fileList)
         print createbatch
-        #os.system(createbatch)
+        os.system(createbatch)
         

@@ -8,9 +8,8 @@ process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
 process.options.allowUnscheduled = cms.untracked.bool(True)
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
-process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-4-6_RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/151127_200613/0000/catTuple_1.root')
-#process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/MuonEG/v7-4-6_Run2015C_25ns-05Oct2015-v1/151127_195051/0000/catTuple_1.root')
-
+process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-3/MuonEG_Run2015D-16Dec2015-v1.root',]
+process.source.fileNames = ['file:/xrootd/store/user/jhgoh/CATTools/sync/v7-6-3/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',]
 useSilver = False
 catmet = 'catMETs'
 lumiMask = 'lumiMask'
@@ -19,59 +18,21 @@ if useSilver:
     catmet = 'catMETsNoHF'
     lumiMask = 'lumiMaskSilver'
     pileupWeight = 'pileupWeightSilver'
-    
-process.filterRECO = cms.EDFilter("CATTriggerBitCombiner",
-    triggerResults = cms.InputTag("TriggerResults::PAT"),
-    secondaryTriggerResults = cms.InputTag("TriggerResults::RECO"),
-    triggerPrescales = cms.InputTag("patTrigger"),
-    combineBy = cms.string("and"),
-    triggersToMatch = cms.vstring(
-        "CSCTightHaloFilter",
-        #"EcalDeadCellTriggerPrimitiveFilter",
-        #"HBHENoiseFilter",
-        "eeBadScFilter",
-        "goodVertices",
-    ),
-    doFilter = cms.bool(False),
-)
-
-process.filterTrigMUEL = cms.EDFilter("CATTriggerBitCombiner",
-    triggerResults = cms.InputTag("TriggerResults::HLT"),
-    triggerPrescales = cms.InputTag("patTrigger"),
-    combineBy = cms.string("or"),
-    triggersToMatch = cms.vstring(
-        "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",
-        "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v",
-    ),
-    doFilter = cms.bool(False),
-)
-
-process.filterTrigELEL = process.filterTrigMUEL.clone(
-    triggersToMatch = cms.vstring(
-        "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
- ## "HLT_Ele23_WPLoose_Gsf_v",
-    ),
-)
-
-process.filterTrigMUMU = process.filterTrigMUEL.clone(
-    triggersToMatch = cms.vstring(
-        "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",
-        "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",
- ## "HLT_IsoMu20_v",
- ## "HLT_IsoTkMu20_v",
- ## "HLT_IsoMu27_v",
-    ),
-)
 
 process.load("CATTools.CatAnalyzer.ttll.ttbarDileptonKinSolutionAlgos_cff")
+process.load("CATTools.CatAnalyzer.filters_cff")
+process.load("CATTools.CatAnalyzer.topPtWeightProducer_cfi")
 from CATTools.CatAnalyzer.leptonSF_cff import *
 
 process.cattree = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     recoFilters = cms.InputTag("filterRECO"),
     nGoodVertex = cms.InputTag("catVertex","nGoodPV"),
     lumiSelection = cms.InputTag(lumiMask),
-    genweight = cms.InputTag("genWeight","genWeight"),
-    pdfweight = cms.InputTag("genWeight","pdfWeights"),
+    #genweight = cms.InputTag("genWeight"),
+    genweight = cms.InputTag("genWeight","genWeight"),    
+    pdfweight = cms.InputTag("genWeight","pdfWeights"),		
+    scaleweight = cms.InputTag("genWeight","scaleWeights"),
+    topPtWeight = cms.InputTag("topPtWeight"),
     puweight = cms.InputTag(pileupWeight),
     puweight_up = cms.InputTag(pileupWeight,"up"),
     puweight_dn = cms.InputTag(pileupWeight,"dn"),
@@ -86,7 +47,7 @@ process.cattree = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     ),
     electron = cms.PSet(
         src = cms.InputTag("catElectrons"),
-        effSF = electronSFWP90,
+        effSF = electronSFCutBasedIDMediumWP,#electronSFWP90,
     ),
     jets = cms.InputTag("catJets"),
     mets = cms.InputTag(catmet),

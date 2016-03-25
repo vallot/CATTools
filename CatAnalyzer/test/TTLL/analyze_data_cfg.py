@@ -10,7 +10,9 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 50000
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 process.source.fileNames = [
-    '/store/group/CAT/MuonEG/v7-4-6_Run2015D-PromptReco-v4/151127_195257/0000/catTuple_1.root'
+    #'/store/user/jhgoh/CATTools/sync/v7-6-3/DoubleEG_Run2015D-16Dec2015-v2.root',
+    #'/store/user/jhgoh/CATTools/sync/v7-6-3/DoubleMuon_Run2015D-16Dec2015-v1.root',
+    '/store/user/jhgoh/CATTools/sync/v7-6-3/MuonEG_Run2015D-16Dec2015-v1.root',
 ]
 
 process.load("CATTools.CatAnalyzer.filters_cff")
@@ -25,7 +27,10 @@ process.TFileService = cms.Service("TFileService",
     fileName = cms.string("hist.root"),
 )
 
-process.p = cms.Path(process.filterLumi*process.eventsTTLL*process.ttbbll)#*process.ntuple)
+process.p = cms.Path(
+    process.filterLumi
+  * process.eventsTTLL * process.ttll + process.ttbbll
+)
 
 ## Customise with cmd arguments
 import sys
