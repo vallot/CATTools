@@ -24,9 +24,11 @@ process.load("CATTools.CatAnalyzer.filters_cff")
 process.load("CATTools.CatAnalyzer.topPtWeightProducer_cfi")
 from CATTools.CatAnalyzer.leptonSF_cff import *
 
-#process.ttbarDileptonKinAlgoPSetDESYSmeared.inputTemplatePath = cms.string("CATTools/CatAnalyzer/data/KoreaDesyKinRecoInput.root")
+process.ttbarDileptonKinAlgoPSetDESYSmeared.inputTemplatePath = cms.string("CATTools/CatAnalyzer/data/desyKinRecoInput.root")
+process.ttbarDileptonKinAlgoPSetDESYSmeared.maxLBMass = cms.double(180)
+process.ttbarDileptonKinAlgoPSetDESYSmeared.mTopInput = cms.double(172.5)
 process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop = process.ttbarDileptonKinAlgoPSetDESYSmeared.clone()
-process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop.inputTemplatePath = cms.string("CATTools/CatAnalyzer/data/KoreaDesyKinRecoInput.root")
+process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop.inputTemplatePath = cms.string("CATTools/CatAnalyzer/data/KoreaKinRecoInput_pseudo.root")
 process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop.maxLBMass = cms.double(360)
 process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop.mTopInput = cms.double(172.5)
 

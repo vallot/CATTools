@@ -137,6 +137,7 @@ void dileptonCommon::setBranchCommon(TTree* tr, int sys) {
   tr->Branch("gen_partonChannel", &b_gen_partonChannel, "gen_partonChannel/I");
   tr->Branch("gen_partonMode1", &b_gen_partonMode1, "gen_partonMode1/I");    
   tr->Branch("gen_partonMode2", &b_gen_partonMode2, "gen_partonMode2/I");    
+  tr->Branch("gen_partonMode", &b_gen_partonMode, "gen_partonMode/I");
   tr->Branch("gen_partonInPhase", &b_gen_partonInPhase, "gen_partonInPhase/O");
   tr->Branch("gen_partonInPhaseLep", &b_gen_partonInPhaseLep, "gen_partonInPhaseLep/O");
   tr->Branch("gen_partonInPhaseJet", &b_gen_partonInPhaseJet, "gen_partonInPhaseJet/O");
@@ -304,6 +305,12 @@ int dileptonCommon::eventSelection(const edm::Event& iEvent, const edm::EventSet
       b_gen_partonMode2 = (*partonTop_modes)[1];
     }
     if (b_gen_partonChannel == CH_FULLLEPTON) keepTtbarSignal = true;
+  
+    if(b_gen_partonMode1==1 && b_gen_partonMode2==2)b_gen_partonMode=1;
+    if(b_gen_partonMode1==2 && b_gen_partonMode2==1)b_gen_partonMode=1;
+    if(b_gen_partonMode1==1 && b_gen_partonMode2==1)b_gen_partonMode=2;
+    if(b_gen_partonMode1==2 && b_gen_partonMode2==2)b_gen_partonMode=3;
+    if(b_gen_partonMode1>3 || b_gen_partonMode2>3)b_gen_partonMode=4;
 
     if ( !(partonTop_genParticles->empty()) ){
 
@@ -360,7 +367,7 @@ int dileptonCommon::eventSelection(const edm::Event& iEvent, const edm::EventSet
     iEvent.getByToken(pseudoTop_jets_, pseudoTopJetHandle);
     do {
       // Basic lepton, jet multiplicity
-      if ( pseudoTopLeptonHandle->size() != 2 or pseudoTopJetHandle->size() < 2 or pseudoTopNeutrinoHandle->size() < 2 ) break;
+      if ( pseudoTopLeptonHandle->size() < 2 or pseudoTopJetHandle->size() < 2 or pseudoTopNeutrinoHandle->size() < 2 ) break;
 
       std::vector<size_t> leptonIdxs, neutrinoIdxs, bjetIdxs;
       // Lepton acceptance cuts
@@ -370,7 +377,7 @@ int dileptonCommon::eventSelection(const edm::Event& iEvent, const edm::EventSet
         if ( abs(x.pdgId()) != 11 and abs(x.pdgId()) != 13 ) continue;
         leptonIdxs.push_back(i);
       }
-      if ( leptonIdxs.size() < 2 ) break;
+      if ( leptonIdxs.size() !=2 ) break;
       std::nth_element(leptonIdxs.begin(), leptonIdxs.begin()+2, leptonIdxs.end(),
           [&](size_t i, size_t j){return pseudoTopLeptonHandle->at(i).pt() > pseudoTopLeptonHandle->at(j).pt();});
       const auto lepton1 = pseudoTopLeptonHandle->at(leptonIdxs[0]).p4();
@@ -395,7 +402,9 @@ int dileptonCommon::eventSelection(const edm::Event& iEvent, const edm::EventSet
         if ( abs(x.pdgId()) != 5 ) continue;
         bjetIdxs.push_back(i);
       }
-      if ( bjetIdxs.size() < 2 ) break;
+      if ( bjetIdxs.size() > 1 )b_gen_pseudoInPhase=true;
+      if ( bjetIdxs.size() < 2 ){b_gen_pseudoChannel = CH_NOLL; break;}
+
       std::nth_element(bjetIdxs.begin(), bjetIdxs.begin()+2, bjetIdxs.end(),
           [&](size_t i, size_t j){return pseudoTopJetHandle->at(i).pt() > pseudoTopJetHandle->at(j).pt();});
       auto bjet1 = pseudoTopJetHandle->at(bjetIdxs[0]).p4(), bjet2 = pseudoTopJetHandle->at(bjetIdxs[1]).p4();
@@ -937,7 +946,7 @@ void dileptonCommon::resetBrCommon()
 
   b_is3lep = -9;
 
-  b_gen_partonChannel = 0; b_gen_partonMode1 = 0; b_gen_partonMode2 = 0;
+  b_gen_partonChannel = 0; b_gen_partonMode1 = 0; b_gen_partonMode2 = 0; b_gen_partonMode = 0;
   b_gen_partonInPhase = 0; b_gen_partonInPhaseLep = 0; b_gen_partonInPhaseJet = 0;
   b_gen_partonlep1 = TLorentzVector(); b_gen_partonlep1_pid = 0;
   b_gen_partonlep2 = TLorentzVector(); b_gen_partonlep2_pid = 0;

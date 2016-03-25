@@ -116,7 +116,7 @@ protected :
   
   int b_is3lep;
   
-  int b_gen_partonChannel, b_gen_partonMode1, b_gen_partonMode2;
+  int b_gen_partonChannel, b_gen_partonMode1, b_gen_partonMode2, b_gen_partonMode;
   bool b_gen_partonInPhase, b_gen_partonInPhaseLep, b_gen_partonInPhaseJet;
   TLorentzVector b_gen_partonlep1; int b_gen_partonlep1_pid;
   TLorentzVector b_gen_partonlep2; int b_gen_partonlep2_pid;
