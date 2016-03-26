@@ -116,26 +116,31 @@ protected :
   
   int b_is3lep;
   
-  int b_partonChannel, b_partonMode1, b_partonMode2;
-  bool b_partonInPhase, b_partonInPhaseLep, b_partonInPhaseJet;
-  TLorentzVector b_partonlep1; int b_partonlep1_pid;
-  TLorentzVector b_partonlep2; int b_partonlep2_pid;
-  TLorentzVector b_partontop1, b_partontop2, b_partonjet1, b_partonjet2, b_partondilep, b_partonttbar;
-  float b_partonttbar_dphi;
+  int b_gen_partonChannel, b_gen_partonMode1, b_gen_partonMode2, b_gen_partonMode;
+  bool b_gen_partonInPhase, b_gen_partonInPhaseLep, b_gen_partonInPhaseJet;
+  TLorentzVector b_gen_partonlep1; int b_gen_partonlep1_pid;
+  TLorentzVector b_gen_partonlep2; int b_gen_partonlep2_pid;
+  TLorentzVector b_gen_partontop1, b_gen_partontop2, b_gen_partonjet1, b_gen_partonjet2, b_gen_partondilep, b_gen_partonttbar;
+  float b_gen_partonttbar_dphi;
   
-  int b_pseudoChannel;
-  bool b_pseudoInPhase;
-  TLorentzVector b_pseudolep1; int b_pseudolep1_pid;
-  TLorentzVector b_pseudolep2; int b_pseudolep2_pid;
-  TLorentzVector b_pseudotop1, b_pseudotop2, b_pseudojet1, b_pseudojet2, b_pseudodilep, b_pseudottbar;
+  int b_gen_pseudoChannel;
+  bool b_gen_pseudoInPhase;
+  TLorentzVector b_gen_pseudolep1; int b_gen_pseudolep1_pid;
+  TLorentzVector b_gen_pseudolep2; int b_gen_pseudolep2_pid;
+  TLorentzVector b_gen_pseudotop1, b_gen_pseudotop2, b_gen_pseudojet1, b_gen_pseudojet2, b_gen_pseudodilep, b_gen_pseudottbar;
+  float b_gen_pseudottbar_dphi;
+
+  TLorentzVector b_lep1, b_lep2, b_dilep;
+  int b_lep1_pid, b_lep2_pid;
+  
+  TLorentzVector b_partonjet1, b_partonjet2, b_partontop1, b_partontop2, b_partonttbar;
+  float b_partonttbar_dphi;
+  float b_partonjet1_CSVInclV2, b_partonjet2_CSVInclV2;
+
+  TLorentzVector b_pseudojet1, b_pseudojet2, b_pseudotop1, b_pseudotop2, b_pseudottbar;
   float b_pseudottbar_dphi;
-
-  TLorentzVector b_lep1; int b_lep1_pid;
-  TLorentzVector b_lep2; int b_lep2_pid;
-  TLorentzVector b_jet1, b_jet2, b_top1, b_top2, b_dilep, b_ttbar;
-  float b_ttbar_dphi;
-  float b_jet1_CSVInclV2, b_jet2_CSVInclV2;
-
+  float b_pseudojet1_CSVInclV2, b_pseudojet2_CSVInclV2;
+  
   TLorentzVector b_desyjet1, b_desyjet2, b_desytop1, b_desytop2, b_desyttbar;
   float b_desyttbar_dphi;
   float b_desyjet1_CSVInclV2, b_desyjet2_CSVInclV2;
@@ -149,6 +154,7 @@ protected :
   std::vector<const cat::Lepton*> recolep_;
   LV met;
   std::unique_ptr<KinematicSolver> solver_;
+  std::unique_ptr<KinematicSolver> solverPT_;
 
 private:
   void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&) final;

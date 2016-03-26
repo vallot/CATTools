@@ -1,7 +1,7 @@
 from CATTools.CatProducer.catTemplate_cfg import *
 ## some options
-doSecVertex=False # for jpsi candidates
-doDstar=False      # for Dstar meson.
+doSecVertex=True # for jpsi candidates
+doDstar=True      # for Dstar meson.
     
 ## setting up arguements
 from FWCore.ParameterSet.VarParsing import VarParsing

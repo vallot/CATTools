@@ -2,14 +2,15 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("TtbarDiLeptonAnalyzer")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) )
 process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
 
 process.options.allowUnscheduled = cms.untracked.bool(True)
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
-process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-3/MuonEG_Run2015D-16Dec2015-v1.root',]
+#process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-3/MuonEG_Run2015D-16Dec2015-v1.root',]
 process.source.fileNames = ['file:/xrootd/store/user/jhgoh/CATTools/sync/v7-6-3/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',]
+#process.source.fileNames = ['file:catTuple.root']
 useSilver = False
 catmet = 'catMETs'
 lumiMask = 'lumiMask'
@@ -23,14 +24,6 @@ process.load("CATTools.CatAnalyzer.ttll.ttbarDileptonKinSolutionAlgos_cff")
 process.load("CATTools.CatAnalyzer.filters_cff")
 process.load("CATTools.CatAnalyzer.topPtWeightProducer_cfi")
 from CATTools.CatAnalyzer.leptonSF_cff import *
-
-process.ttbarDileptonKinAlgoPSetDESYSmeared.inputTemplatePath = cms.string("CATTools/CatAnalyzer/data/desyKinRecoInput.root")
-process.ttbarDileptonKinAlgoPSetDESYSmeared.maxLBMass = cms.double(180)
-process.ttbarDileptonKinAlgoPSetDESYSmeared.mTopInput = cms.double(172.5)
-process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop = process.ttbarDileptonKinAlgoPSetDESYSmeared.clone()
-process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop.inputTemplatePath = cms.string("CATTools/CatAnalyzer/data/KoreaKinRecoInput_pseudo.root")
-process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop.maxLBMass = cms.double(360)
-process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop.mTopInput = cms.double(172.5)
 
 process.cattree = cms.EDAnalyzer("dileptonCommon",
     recoFilters = cms.InputTag("filterRECO"),
@@ -67,9 +60,8 @@ process.cattree = cms.EDAnalyzer("dileptonCommon",
 
     pseudoTop = cms.InputTag("pseudoTop"),
     
-    #solver = process.ttbarDileptonKinAlgoPSetCMSKin,
-    solver = process.ttbarDileptonKinAlgoPSetDESYSmeared,
-    solverPseudoTop = process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop,
+    solver = process.ttbarDileptonKinAlgoPSetCMSKin,
+    #solver = process.ttbarDileptonKinAlgoPSetDESYSmeared,
     #solver = process.ttbarDileptonKinAlgoPSetDESYMassLoop,
 )
 #process.cattree.solver.tMassStep = 1
@@ -82,7 +74,7 @@ if cms.string('DESYSmeared') == process.cattree.solver.algo:
     )
 
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string("cattree.root"
+    fileName = cms.string("cattree_common.root"
 ))
 
 process.p = cms.Path(process.cattree)
