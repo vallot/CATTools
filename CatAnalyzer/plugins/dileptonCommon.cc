@@ -308,8 +308,8 @@ int dileptonCommon::eventSelection(const edm::Event& iEvent, const edm::EventSet
   
     if(b_gen_partonMode1==1 && b_gen_partonMode2==2)b_gen_partonMode=1;
     if(b_gen_partonMode1==2 && b_gen_partonMode2==1)b_gen_partonMode=1;
-    if(b_gen_partonMode1==1 && b_gen_partonMode2==1)b_gen_partonMode=2;
-    if(b_gen_partonMode1==2 && b_gen_partonMode2==2)b_gen_partonMode=3;
+    if(b_gen_partonMode1==1 && b_gen_partonMode2==1)b_gen_partonMode=3;
+    if(b_gen_partonMode1==2 && b_gen_partonMode2==2)b_gen_partonMode=2;
     if(b_gen_partonMode1>3 || b_gen_partonMode2>3)b_gen_partonMode=4;
 
     if ( !(partonTop_genParticles->empty()) ){
