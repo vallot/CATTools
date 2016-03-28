@@ -14,7 +14,8 @@ datalumi = datalumi*1000 # due to fb
 mcfilelist = ['TT_powheg', 'WJets', 'SingleTbar_tW', 'SingleTop_tW', 'ZZ', 'WW', 'WZ', 'DYJets', 'DYJets_10to50']
 rdfilelist = ['MuonEG_Run2015','DoubleEG_Run2015','DoubleMuon_Run2015']
 #rootfileDir = "/cms/scratch/jlee/v763desy/TtbarDiLeptonAnalyzer_"
-rootfileDir = "/xrootd/store/user/tt8888tt/v763/TtbarDiLeptonAnalyzer_"
+#rootfileDir = "/xrootd/store/user/tt8888tt/v763/TtbarDiLeptonAnalyzer_"
+rootfileDir = "/xrootd/store/user/tt8888tt/TtbarDiLeptonAnalyzer_"
 channel_name = ['MuEl', 'ElEl', 'MuMu']
 
 datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json" % os.environ['CMSSW_BASE']))
@@ -68,9 +69,9 @@ for opt, arg in opts:
 tname = "cattree/nom"
 
 #cut define
-if   channel == 1: ttother_tcut = "!(partonChannel==2 && ((partonMode1==1 && partonMode2==2) || (partonMode1==2 && partonMode2==1)))"
-elif channel == 2: ttother_tcut = "!(partonChannel==2 && (partonMode1==2 && partonMode2==2))"
-elif channel == 3: ttother_tcut = "!(partonChannel==2 && (partonMode1==1 && partonMode2==1))"
+if   channel == 1: ttother_tcut = "!(gen_partonChannel==2 && ((gen_partonMode1==1 && gen_partonMode2==2) || (gen_partonMode1==2 && gen_partonMode2==1)))"
+elif channel == 2: ttother_tcut = "!(gen_partonChannel==2 && (gen_partonMode1==2 && gen_partonMode2==2))"
+elif channel == 3: ttother_tcut = "!(gen_partonChannel==2 && (gen_partonMode1==1 && gen_partonMode2==1))"
 #stepch_tcut =  'step7&&step>=5&&channel==%i'%(channel)
 stepch_tcut =  'step>=%i&&channel==%i'%(step,channel)
 
@@ -133,14 +134,15 @@ for i, mcname in enumerate(mcfilelist):
         mchist.Add(ttothers, -1)
         ttsignal = mchist.Clone()
 
-        parton_plotvar = ','.join('parton%s'%var for var in plotvar.split(','))
-        genhist = makeTH1(rfname, tname, title+' gen', binning, parton_plotvar, gentop_tcut, scale)
-        gensignal = makeTH1(rfname, tname, title+' gensignal', binning, parton_plotvar, signal_tcut, scale)
+        if step >= 6:
+            parton_plotvar = ','.join('gen_%s'%var for var in plotvar.split(','))
+            genhist = makeTH1(rfname, tname, title+' gen', binning, parton_plotvar, gentop_tcut, scale)
+            gensignal = makeTH1(rfname, tname, title+' gensignal', binning, parton_plotvar, signal_tcut, scale)
 
-        eff_hist = ROOT.TH1D('title','name',100,-2,2)
-        residual = ['(parton%s-%s)/parton%s'%(var,var,var) for var in plotvar.split(',')]
-        for resi in residual:
-            eff_hist.Add(makeTH1(rfname, tname, title+' efficiency', [100,-2,2], resi, signal_tcut))
+            eff_hist = ROOT.TH1D('title','name',100,-2,2)
+            residual = ['(gen_%s-%s)/gen_%s'%(var,var,var) for var in plotvar.split(',')]
+            for resi in residual:
+                eff_hist.Add(makeTH1(rfname, tname, title+' efficiency', [100,-2,2], resi, signal_tcut))
 
     errList.append(err)
 
@@ -183,34 +185,35 @@ outfile = "%s_s%d_%s.png"%(channel_name[channel-1],step,var)
 drawTH1(outfile, CMS_lumi, mchistList, rdhist, x_name, y_name, dolog)
 print outfile
 
-#purity
-purity = ttsignal.Clone()
-stability = gensignal.Clone()
-purity.Divide(tthist)
-stability.Divide(genhist)
+if step >= 6:
+    #purity
+    purity = ttsignal.Clone()
+    stability = gensignal.Clone()
+    purity.Divide(tthist)
+    stability.Divide(genhist)
 
-purity.GetXaxis().SetTitle(x_name)
-purity.GetYaxis().SetTitle(y_name)
-purity.SetMaximum(1.1)
-purity.SetMinimum(0)
-purity.SetLineColor(4)
-purity.SetLineWidth(2)
-purity.SetFillColor(0)
-stability.SetLineColor(2)
-stability.SetLineWidth(2)
-stability.SetFillColor(0)
+    purity.GetXaxis().SetTitle(x_name)
+    purity.GetYaxis().SetTitle(y_name)
+    purity.SetMaximum(1.1)
+    purity.SetMinimum(0)
+    purity.SetLineColor(4)
+    purity.SetLineWidth(2)
+    purity.SetFillColor(0)
+    stability.SetLineColor(2)
+    stability.SetLineWidth(2)
+    stability.SetFillColor(0)
 
-cn=ROOT.TCanvas()
-purity.Draw('hist')
-stability.Draw('histsame')
-purity.Draw('histsame')
-outfile = "%s_s%d_%s_purity.png"%(channel_name[channel-1],step,var)
-cn.Print(outfile)
+    cn=ROOT.TCanvas()
+    purity.Draw('hist')
+    stability.Draw('histsame')
+    purity.Draw('histsame')
+    outfile = "%s_s%d_%s_purity.png"%(channel_name[channel-1],step,var)
+    cn.Print(outfile)
 
-#efficiency
-cn=ROOT.TCanvas()
-eff_hist.SetLineColor(1)
-eff_hist.SetFillColor(0)
-eff_hist.Draw('hist')
-outfile = "%s_s%d_%s_eff.png"%(channel_name[channel-1],step,var)
-cn.Print(outfile)
+    #efficiency
+    cn=ROOT.TCanvas()
+    eff_hist.SetLineColor(1)
+    eff_hist.SetFillColor(0)
+    eff_hist.Draw('hist')
+    outfile = "%s_s%d_%s_eff.png"%(channel_name[channel-1],step,var)
+    cn.Print(outfile)
