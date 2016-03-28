@@ -105,7 +105,7 @@ public:
 protected : 
   int b_run, b_lumi, b_event;
   int b_nvertex, b_step, b_channel, b_njet, b_nbjet;
-  bool b_step1, b_step2, b_step3, b_step4, b_step5, b_step6, b_step7, b_filtered;
+  bool b_step1, b_step2, b_step3, b_step4, b_step5, b_step6, b_step7, b_step8, b_filtered;
   float b_tri;
   float b_met, b_weight, b_puweight, b_puweight_up, b_puweight_dn, b_genweight,
     b_mueffweight, b_mueffweight_up, b_mueffweight_dn,
@@ -120,24 +120,24 @@ protected :
   bool b_gen_partonInPhase, b_gen_partonInPhaseLep, b_gen_partonInPhaseJet;
   TLorentzVector b_gen_partonlep1; int b_gen_partonlep1_pid;
   TLorentzVector b_gen_partonlep2; int b_gen_partonlep2_pid;
-  TLorentzVector b_gen_partontop1, b_gen_partontop2, b_gen_partonjet1, b_gen_partonjet2, b_gen_partondilep, b_gen_partonttbar;
+  TLorentzVector b_gen_partontop1, b_gen_partontop2, b_gen_partonnu1, b_gen_partonnu2, b_gen_partonjet1, b_gen_partonjet2, b_gen_partondilep, b_gen_partonttbar;
   float b_gen_partonttbar_dphi;
   
   int b_gen_pseudoChannel;
   bool b_gen_pseudoInPhase;
   TLorentzVector b_gen_pseudolep1; int b_gen_pseudolep1_pid;
   TLorentzVector b_gen_pseudolep2; int b_gen_pseudolep2_pid;
-  TLorentzVector b_gen_pseudotop1, b_gen_pseudotop2, b_gen_pseudojet1, b_gen_pseudojet2, b_gen_pseudodilep, b_gen_pseudottbar;
+  TLorentzVector b_gen_pseudotop1, b_gen_pseudotop2, b_gen_pseudonu1, b_gen_pseudonu2, b_gen_pseudojet1, b_gen_pseudojet2, b_gen_pseudodilep, b_gen_pseudottbar;
   float b_gen_pseudottbar_dphi;
 
   TLorentzVector b_lep1, b_lep2, b_dilep;
   int b_lep1_pid, b_lep2_pid;
   
-  TLorentzVector b_partonjet1, b_partonjet2, b_partontop1, b_partontop2, b_partonttbar;
+  TLorentzVector b_partonnu1, b_partonnu2, b_partonjet1, b_partonjet2, b_partontop1, b_partontop2, b_partonttbar;
   float b_partonttbar_dphi;
   float b_partonjet1_CSVInclV2, b_partonjet2_CSVInclV2;
 
-  TLorentzVector b_pseudojet1, b_pseudojet2, b_pseudotop1, b_pseudotop2, b_pseudottbar;
+  TLorentzVector b_pseudonu1, b_pseudonu2, b_pseudojet1, b_pseudojet2, b_pseudotop1, b_pseudotop2, b_pseudottbar;
   float b_pseudottbar_dphi;
   float b_pseudojet1_CSVInclV2, b_pseudojet2_CSVInclV2;
   
