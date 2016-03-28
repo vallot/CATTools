@@ -292,9 +292,6 @@ void cat::CATSecVertexProducer::fitTransientTracks(cat::SecVertexCollection* out
     if ( applyCuts_ && (dca < 0. || dca > cut_DCA_ )) return;
     GlobalPoint cxPt = cApp.crossingPoint();
     if (applyCuts_ && (std::hypot(cxPt.x(), cxPt.y()) > 120. || std::abs(cxPt.z()) > 300.)) return;
-    //TrajectoryStateClosestToPoint caState1 = leptonTRack.trajectoryStateClosestToPoint(cxPt);
-    //TrajectoryStateClosestToPoint caState2 = transTrackNeg.trajectoryStateClosestToPoint(cxPt);
-    //if ( !caState1.isValid() or !caState2.isValid() ) continue;
   } catch(std::exception& e) { std::cerr<<"closest approach"<<std::endl; return ; }
 
   // Build Vertex
@@ -305,7 +302,7 @@ void cat::CATSecVertexProducer::fitTransientTracks(cat::SecVertexCollection* out
   TransientVertex transVertex;
   try{
     transVertex = fitter.vertex(transTracks);
-  }catch(std::exception& e) { std::cerr<<"Kalman Vertex Fitting error : "<<e.what()<<std::endl; return ; }
+  }catch(std::exception& e) { std::cerr<<"Kalman Vertex Fitting error for J/psi: "<<e.what()<<std::endl; return ; }
 
   if ( !transVertex.isValid() or transVertex.totalChiSquared() < 0. ) return;
 

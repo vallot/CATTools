@@ -8,8 +8,20 @@ process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
 process.options.allowUnscheduled = cms.untracked.bool(True)
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
-process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-3/MuonEG_Run2015D-16Dec2015-v1.root',]
-process.source.fileNames = ['file:/xrootd/store/user/jhgoh/CATTools/sync/v7-6-3/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',]
+#process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-3/MuonEG_Run2015D-16Dec2015-v1.root',]
+#process.source.fileNames = ['file:/xrootd/store/user/jhgoh/CATTools/sync/v7-6-3/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',]
+process.source.fileNames = ['file:/xrootd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-6-3_RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext3-v1/160221_150606/0000/catTuple_1.root',
+'file:/xrootd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-6-3_RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext3-v1/160221_150606/0000/catTuple_2.root',
+'file:/xrootd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-6-3_RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext3-v1/160221_150606/0000/catTuple_3.root',
+'file:/xrootd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-6-3_RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext3-v1/160221_150606/0000/catTuple_4.root',
+'file:/xrootd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-6-3_RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext3-v1/160221_150606/0000/catTuple_5.root',
+'file:/xrootd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-6-3_RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext3-v1/160221_150606/0000/catTuple_6.root',
+'file:/xrootd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-6-3_RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext3-v1/160221_150606/0000/catTuple_7.root',
+'file:/xrootd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-6-3_RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext3-v1/160221_150606/0000/catTuple_8.root',
+'file:/xrootd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-6-3_RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext3-v1/160221_150606/0000/catTuple_9.root',
+'file:/xrootd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-6-3_RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext3-v1/160221_150606/0000/catTuple_10.root',
+]
+
 useSilver = False
 catmet = 'catMETs'
 lumiMask = 'lumiMask'
@@ -24,7 +36,15 @@ process.load("CATTools.CatAnalyzer.filters_cff")
 process.load("CATTools.CatAnalyzer.topPtWeightProducer_cfi")
 from CATTools.CatAnalyzer.leptonSF_cff import *
 
-process.cattree = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
+process.ttbarDileptonKinAlgoPSetDESYSmeared.inputTemplatePath = cms.string("CATTools/CatAnalyzer/data/desyKinRecoInput.root")
+process.ttbarDileptonKinAlgoPSetDESYSmeared.maxLBMass = cms.double(180)
+process.ttbarDileptonKinAlgoPSetDESYSmeared.mTopInput = cms.double(172.5)
+process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop = process.ttbarDileptonKinAlgoPSetDESYSmeared.clone()
+process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop.inputTemplatePath = cms.string("CATTools/CatAnalyzer/data/KoreaKinRecoInput_pseudo.root")
+process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop.maxLBMass = cms.double(360)
+process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop.mTopInput = cms.double(172.5)
+
+process.cattree = cms.EDAnalyzer("dileptonCommon",
     recoFilters = cms.InputTag("filterRECO"),
     nGoodVertex = cms.InputTag("catVertex","nGoodPV"),
     lumiSelection = cms.InputTag(lumiMask),
@@ -59,8 +79,9 @@ process.cattree = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
 
     pseudoTop = cms.InputTag("pseudoTop"),
     
-    solver = process.ttbarDileptonKinAlgoPSetCMSKin,
-    #solver = process.ttbarDileptonKinAlgoPSetDESYSmeared,
+    #solver = process.ttbarDileptonKinAlgoPSetCMSKin,
+    solver = process.ttbarDileptonKinAlgoPSetDESYSmeared,
+    solverPseudoTop = process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop,
     #solver = process.ttbarDileptonKinAlgoPSetDESYMassLoop,
 )
 #process.cattree.solver.tMassStep = 1
