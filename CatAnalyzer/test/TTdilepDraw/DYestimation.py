@@ -37,7 +37,7 @@ def	getDYFactor(rfname, front_rfname, scale, front_scale, rootfileDir, tname, cu
 	mc_mm_out.Add(makeTH1(front_rfname,tname,"mc_mm_in", [2,0,2], 'tri', dycut+'(%s && channel==3 && step2==1)*(%s)'%(cut,weight), front_scale))
 	
 	rfname = rootfileDir+rdfilelist[1-1]+".root"
-	rd_em_in = makeTH1(rfname, tname,'rd_em_in', [2,0,2], 'tri', dycut+'(%s && channel==1 && ((ll_m > 76) && (ll_m < 106)))'%(cut))
+	rd_em_in = makeTH1(rfname, tname,'rd_em_in', [2,0,2], 'tri', dycut+'(%s && channel==1 && ((dilep.M() > 76) && (dilep.M() < 106)))'%(cut))
 	rfname = rootfileDir + rdfilelist[2-1] +".root"
 	rd_ee_in = makeTH1(rfname, tname,'rd_ee_in', [2,0,2], 'tri', dycut+'(%s && channel==2 && step2 ==0)'%(cut))
 	rfname = rootfileDir + rdfilelist[3-1] +".root"
