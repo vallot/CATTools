@@ -224,36 +224,34 @@ def findDataSet(name, datasets):
             return data
     return None
 
+def adderrs(err1, err2, sign=1.):
+    return math.sqrt(err1**2+sign*err2**2)
 
-def table(mchistList, errorList, signal_hist, signal_error):
-    hist_inorder = []
-    errs_inorder = []
+def table(mchistList, errList, signal_hist, signal_err):
+    nums = {}
+    errs = {}
+    total = total_err = 0
+
+    titles = list(set([mc.GetTitle() for mc in mchistList]))
+    for t in titles:
+        nums[t] = 0
+        errs[t] = 0
+
     for i, mc in enumerate(mchistList):
-        if not any(mc.GetTitle() == tmp.GetTitle() for tmp in hist_inorder):
-            tmp = mc.Clone()
-            tmp.Reset()
-            hist_inorder.append(tmp)
-            errs_inorder.append(0)
+        nbins = mc.GetSize()-2
+        nums[mc.GetTitle()] += mc.Integral(0,nbins+1)
+        errs[mc.GetTitle()] = adderrs(errs[mc.GetTitle()], errList[i])
 
-    total = signal_hist.Clone()
-    total.Reset()
-    total_error = 0
-    for i, mc in enumerate(mchistList):
-        for j, tmp in enumerate(hist_inorder):
-            if mc.GetTitle() == tmp.GetTitle():
-                tmp.Add(mc)
-                errs_inorder[j] = errs_inorder[j]+errorList[i]
-        total.Add(mc)
-        total_error += errorList[i]
+        total += mc.Integral(0,nbins+1)
+        total_err = adderrs(total_err, errList[i])
+    
+    nums['total'] = total
+    errs['total'] = total_err
 
-    bkg = total.Clone()
-    bkg.Add(signal_hist, -1)
-    bkg_error = total_error - signal_error
+    bkg = total - signal_hist.Integral(0,signal_hist.GetSize()-1)
+    bkg_err = adderrs(total_err, signal_err, -1)
+    nums['bkg'] = bkg
+    errs['bkg'] = bkg_err
 
-    hist_inorder.append(bkg)
-    errs_inorder.append(bkg_error)
-    hist_inorder.append(total)
-    errs_inorder.append(total_error)
-
-    return hist_inorder, errs_inorder
+    return nums, errs
 
