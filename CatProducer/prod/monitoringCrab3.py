@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from CRABAPI.RawCommand import crabCommand
-import glob,sys,optparse,copy,time
+import glob,sys,optparse,copy,time,httplib
 
 class CrabMonitor :
   def __init__(self, argument) :
