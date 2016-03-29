@@ -172,8 +172,8 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
         auto thePionState = pionTrack.impactPointTSCP().theState();
         auto theKaonState = kaonTrack.impactPointTSCP().theState();
         cApp.calculate(thePionState, theKaonState);
-        dca= std::abs(cApp.distance());
-        if ( cApp.status() ) D0Cand.set_dca(dca);
+        if ( cApp.status() ) { dca= std::abs(cApp.distance()); D0Cand.set_dca(dca);}
+        else { dca = -9 ; D0Cand.set_dca(dca);}
         D0Cand.set_dca(1,-9); 
         D0Cand.set_dca(2,-9);
  
@@ -233,8 +233,10 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
             auto thePion2State = pion2Track.impactPointTSCP().theState();
             cApp.calculate(thePionState, thePion2State);
             if ( cApp.status() ) DstarCand.set_dca(1, std::abs(cApp.distance()));
+            else DstarCand.set_dca(1,-9);
             cApp.calculate(theKaonState, thePion2State);
             if ( cApp.status() ) DstarCand.set_dca(2, std::abs(cApp.distance()));
+            else DstarCand.set_dca(2,-9);
       
             Dstar_Out->push_back( DstarCand );
           }
