@@ -168,6 +168,11 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
           D0Cand.setLxy(rVtxMag);
           D0Cand.setL3D(rVtxMag3D);
         }
+        else {
+          D0Cand.setVProb( -9 );
+          D0Cand.setLxy(-9);
+          D0Cand.setL3D(-9);
+        }
         ClosestApproachInRPhi cApp;
         auto thePionState = pionTrack.impactPointTSCP().theState();
         auto theKaonState = kaonTrack.impactPointTSCP().theState();
@@ -229,6 +234,11 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
               DstarCand.setL3D(rVtxMag3D);
             
             } 
+            else {
+              DstarCand.setVProb( -9 );
+              DstarCand.setLxy(-9);
+              DstarCand.setL3D(-9);
+            }
             DstarCand.set_dca( 0, dca );
             auto thePion2State = pion2Track.impactPointTSCP().theState();
             cApp.calculate(thePionState, thePion2State);

@@ -27,11 +27,26 @@ process.load("CATTools.CatAnalyzer.filters_cff")
 process.load("CATTools.CatAnalyzer.topPtWeightProducer_cfi")
 from CATTools.CatAnalyzer.leptonSF_cff import *
 
+process.ttbarDileptonKinAlgoPSetDESYSmeared.inputTemplatePath = cms.string("CATTools/CatAnalyzer/data/desyKinRecoInput.root")
+process.ttbarDileptonKinAlgoPSetDESYSmeared.maxLBMass = cms.double(180)
+process.ttbarDileptonKinAlgoPSetDESYSmeared.mTopInput = cms.double(172.5)
+process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop = process.ttbarDileptonKinAlgoPSetDESYSmeared.clone()
+process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop.inputTemplatePath = cms.string("CATTools/CatAnalyzer/data/KoreaKinRecoInput_pseudo.root")
+process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop.maxLBMass = cms.double(360)
+process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop.mTopInput = cms.double(172.5)
+
 process.cattree = cms.EDAnalyzer("CATDstarAnalyzer",
+    d0s    = cms.InputTag("catDstars","D0Cand"),
+    dstars = cms.InputTag("catDstars","DstarCand"),
+    matchingDeltaR = cms.double(0.5),
+
     recoFilters = cms.InputTag("filterRECO"),
     nGoodVertex = cms.InputTag("catVertex","nGoodPV"),
     lumiSelection = cms.InputTag(lumiMask),
     genweight = cms.InputTag("genWeight"),
+    #genweight = cms.InputTag("genWeight","genWeight"),    
+    #pdfweight = cms.InputTag("genWeight","pdfWeights"),		
+    #scaleweight = cms.InputTag("genWeight","scaleWeights"),
     topPtWeight = cms.InputTag("topPtWeight"),
     puweight = cms.InputTag(pileupWeight),
     puweight_up = cms.InputTag(pileupWeight,"up"),
@@ -52,10 +67,6 @@ process.cattree = cms.EDAnalyzer("CATDstarAnalyzer",
     jets = cms.InputTag("catJets"),
     mets = cms.InputTag(catmet),
     mcLabel = cms.InputTag("prunedGenParticles"),
-    # input collection
-    d0s    = cms.InputTag("catDstars","D0Cand"),
-    dstars = cms.InputTag("catDstars","DstarCand"),
-    matchingDeltaR = cms.double(0.5),
     
     partonTop_channel = cms.InputTag("partonTop","channel"),
     partonTop_modes = cms.InputTag("partonTop", "modes"),
@@ -65,6 +76,7 @@ process.cattree = cms.EDAnalyzer("CATDstarAnalyzer",
     
     #solver = process.ttbarDileptonKinAlgoPSetCMSKin,
     solver = process.ttbarDileptonKinAlgoPSetDESYSmeared,
+    solverPseudoTop = process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop,
     #solver = process.ttbarDileptonKinAlgoPSetDESYMassLoop,
 )
 #process.cattree.solver.tMassStep = 1
