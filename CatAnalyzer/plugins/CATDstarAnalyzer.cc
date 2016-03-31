@@ -154,6 +154,7 @@ void CATDstarAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 
 
 void CATDstarAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventSetup& iSetup, int sys) {
+  const bool runOnMC = !iEvent.isRealData();
   edm::Handle<cat::SecVertexCollection> d0s;       iEvent.getByToken(d0Token_,d0s);
   edm::Handle<cat::SecVertexCollection> dstars;    iEvent.getByToken(dstarToken_,dstars);
 
@@ -162,12 +163,14 @@ void CATDstarAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventS
 
   vector<TLorentzVector> gen_d0s;
   vector<TLorentzVector> gen_dstars;
-
-  for( const auto& aGenParticle : *mcHandle) {
-    //If genParticle is D0,
-    if ( std::abs(aGenParticle.pdgId()) == 421 )       gen_d0s.push_back( ToTLorentzVector(aGenParticle));  
-    else if ( std::abs(aGenParticle.pdgId()) ==  413 ) gen_dstars.push_back( ToTLorentzVector(aGenParticle));
-  } 
+ 
+  if ( runOnMC ) { 
+    for( const auto& aGenParticle : *mcHandle) {
+      //If genParticle is D0,
+      if ( std::abs(aGenParticle.pdgId()) == 421 )       gen_d0s.push_back( ToTLorentzVector(aGenParticle));  
+      else if ( std::abs(aGenParticle.pdgId()) ==  413 ) gen_dstars.push_back( ToTLorentzVector(aGenParticle));
+    } 
+  }
 
   int d0_count=-1;
   int dstar_count=-1;
