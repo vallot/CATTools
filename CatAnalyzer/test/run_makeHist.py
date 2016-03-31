@@ -55,7 +55,7 @@ def makeHist(dset):
 
 if __name__ == '__main__':
     if not os.path.exists(outPath): os.makedirs(outPath)
-    datasets = json.load(open("%s/src/CatAnalyzer/data/dataset.json" % os.environ['CMSSW_BASE']))
+    datasets = json.load(open("%s/src/CatAnalyzer/data/dataset/dataset.json" % os.environ['CMSSW_BASE']))
 
     nCPU = cpu_count()
     p = Pool(nCPU)

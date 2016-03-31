@@ -9,7 +9,7 @@ pythonCfg = 'run_'+analysis+'_cfg.py'
 #analysis=analysis+'Silver'
 
 import os,json
-datadir = os.environ["CMSSW_BASE"]+'/src/CATTools/CatAnalyzer/data/'
+datadir = os.environ["CMSSW_BASE"]+'/src/CATTools/CatAnalyzer/data/dataset/'
 dataset_json = datadir + 'dataset.json'
 
 with open(dataset_json) as data_file:    
@@ -26,7 +26,7 @@ with open(dataset_json) as data_file:
         if "ttW" in datasetName:
             continue
 
-        fileList = datadir + 'dataset/dataset_' + datasetName + '.txt'
+        fileList = datadir + 'dataset_' + datasetName + '.txt'
         jobName = analysis+'_'+datasetName
         createbatch = "create-batch --cfg %s --jobName %s --fileList %s --maxFiles 10"%(pythonCfg, jobName, fileList)
         print createbatch

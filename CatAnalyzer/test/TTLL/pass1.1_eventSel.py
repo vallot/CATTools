@@ -13,7 +13,7 @@ os.system("ln -s ../customise_saveEvent_cfg.py %s/customise_saveEvent_cfg.py" % 
 
 ## Load JSON file and categorize datasets
 import json
-dataDir = "%s/src/CATTools/CatAnalyzer/data" % os.environ["CMSSW_BASE"]
+dataDir = "%s/src/CATTools/CatAnalyzer/data/dataset" % os.environ["CMSSW_BASE"]
 js = json.loads(open("%s/dataset.json" % dataDir).read())
 
 def isBlacklisted(name):
@@ -48,7 +48,7 @@ for d in datList:
     name = d['name']
     if isBlacklisted(name): continue
     submitCmd  = "create-batch --cfg analyze_data_cfg.py --maxFiles 100"
-    submitCmd += " --jobName %s --fileList %s/dataset/dataset_%s.txt" % (name, dataDir, name)
+    submitCmd += " --jobName %s --fileList %s/dataset_%s.txt" % (name, dataDir, name)
 
     print>>out, (submitCmd + " --jobName %s/central --customise customise_saveEvent_cfg.py" % name)
 out.close()
@@ -58,7 +58,7 @@ for d in bkgList:
     name = d['name']
     if isBlacklisted(name): continue
     submitCmd  = "create-batch --cfg analyze_bkg_cfg.py --maxFiles 100"
-    submitCmd += " --jobName %s --fileList %s/dataset/dataset_%s.txt" % (name, dataDir, name)
+    submitCmd += " --jobName %s --fileList %s/dataset_%s.txt" % (name, dataDir, name)
 
     print>>out, (submitCmd + " --jobName %s/central --customise customise_saveEvent_cfg.py" % name)
 
@@ -66,7 +66,7 @@ for d in sigList: ## TTbar others are treated as background
     name = d['name']
     if isBlacklisted(name): continue
     submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 100"
-    submitCmd += " --fileList %s/dataset/dataset_%s.txt" % (dataDir, name)
+    submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
 
     arg0 = 'filterPartonTTLL.invert=True'
     print>>out, (submitCmd + " --jobName %s_Others/central --customise customise_saveEvent_cfg.py --args '%s'" % (name, arg0))
@@ -77,7 +77,7 @@ for d in sigList:
     name = d['name']
     if isBlacklisted(name): continue
     submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 100"
-    submitCmd += " --fileList %s/dataset/dataset_%s.txt" % (dataDir, name)
+    submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
 
     arg0 = 'filterPartonTTLL.invert=False'
     print>>out, (submitCmd + " --jobName %s_LL/central --customise customise_saveEvent_cfg.py --args '%s'" % (name, arg0))
@@ -107,14 +107,14 @@ for systName in systAny:
         name = d['name']
         if isBlacklisted(name): continue
         submitCmd  = "create-batch --cfg analyze_data_cfg.py --maxFiles 100"
-        submitCmd += " --fileList %s/dataset/dataset_%s.txt" % (dataDir, name)
+        submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
         print>>out_dat, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, syst)))
 
     for d in bkgList:
         name = d['name']
         if isBlacklisted(name): continue
         submitCmd  = "create-batch --cfg analyze_bkg_cfg.py --maxFiles 100"
-        submitCmd += " --fileList %s/dataset/dataset_%s.txt" % (dataDir, name)
+        submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
         print>>out_bkg, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, syst)))
 
     for d in sigList:
@@ -122,7 +122,7 @@ for systName in systAny:
         if '_scaleup' in name or '_scaledown' in name: continue ## Skip this variations for scale up/down samples
         if isBlacklisted(name): continue
         submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 100"
-        submitCmd += " --fileList %s/dataset/dataset_%s.txt" % (dataDir, name)
+        submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
 
         print>>out_sig, (submitCmd + (" --jobName %s_LL/%s --args '%s'" % (name, systName, syst)))
         print>>out_bkg, (submitCmd + (" --jobName %s_Others/%s --args '%s filterPartonTTLL.invert=True'" % (name, systName, syst)))
@@ -145,7 +145,7 @@ for systName in systMC:
         name = d['name']
         if isBlacklisted(name): continue
         submitCmd  = "create-batch --cfg analyze_bkg_cfg.py --maxFiles 100"
-        submitCmd += " --fileList %s/dataset/dataset_%s.txt" % (dataDir, name)
+        submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
         print>>out_bkg, (submitCmd + (" --jobName %s/%s --args '%s'" % (name, systName, syst)))
 
     for d in sigList:
@@ -153,7 +153,7 @@ for systName in systMC:
         if '_scaleup' in name or '_scaledown' in name: continue ## Skip this variations for scale up/down samples
         if isBlacklisted(name): continue
         submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 100"
-        submitCmd += " --fileList %s/dataset/dataset_%s.txt" % (dataDir, name)
+        submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
 
         print>>out_sig, (submitCmd + (" --jobName %s_LL/%s --args '%s'" % (name, systName, syst)))
         print>>out_bkg, (submitCmd + (" --jobName %s_Others/%s --args '%s filterPartonTTLL.invert=True'" % (name, systName, syst)))
@@ -178,7 +178,7 @@ for d in sigList:
         syst += ' agen.weight="genWeight:scaleWeights" agen.weightIndex=%d' % i
 
         submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 100"
-        submitCmd += " --fileList %s/dataset/dataset_%s.txt" % (dataDir, name)
+        submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
 
         print>>out_sig, (submitCmd + (" --jobName %s_LL/%s --args '%s'" % (name, systName, syst)))
         print>>out_bkg, (submitCmd + (" --jobName %s_Others/%s --args '%s filterPartonTTLL.invert=True'" % (name, systName, syst)))
@@ -195,7 +195,7 @@ for d in bkgList:
     else: continue
 
     submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 100"
-    submitCmd += " --fileList %s/dataset/dataset_%s.txt" % (dataDir, name)
+    submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
 
     for i in range(weightSize):
         arg = 'eventsTTLL.genWeight.src="genWeight:pdfWeights" eventsTTLL.genWeight.index=%d' % i
@@ -209,7 +209,7 @@ for d in sigList:
     else: continue
 
     submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 100"
-    submitCmd += " --fileList %s/dataset/dataset_%s.txt" % (dataDir, name)
+    submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
 
     for i in range(weightSize):
         arg  = 'eventsTTLL.genWeight.src="genWeight:pdfWeights" eventsTTLL.genWeight.index=%d' % i
