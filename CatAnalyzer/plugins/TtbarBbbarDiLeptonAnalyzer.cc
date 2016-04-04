@@ -46,7 +46,7 @@ public:
 
   enum sys_e {sys_nom,  sys_jes_u, sys_jes_d, sys_jer_n,sys_jer_u, sys_jer_d,
      sys_mu_u, sys_mu_d, sys_el_u, sys_el_d,
-     sys_mueff_u, sys_mueff_d, sys_eleff_u, sys_eleff_d,
+//     sys_mueff_u, sys_mueff_d, sys_eleff_u, sys_eleff_d,
 //    sys_btag_u, sys_btag_d,
     nsys_e
   };
@@ -74,6 +74,31 @@ private:
   void resetBrJets();
 
   ScaleFactorEvaluator muonSF_, elecSF_;
+  float getMuEffSF(const cat::Lepton& p, int sys) const
+  {
+    const int aid = abs(p.pdgId());
+    if ( aid == 13 ) {
+      const double pt = p.pt(), aeta = std::abs(p.eta());
+      if      ( sys == +1 ) return muonSF_(pt, aeta,  1);
+      else if ( sys == -1 ) return muonSF_(pt, aeta, -1);
+      else return muonSF_(pt, aeta, 0);
+    }
+    return 1;
+  }
+  float getElEffSF(const cat::Lepton& p, int sys) const
+  { 
+    const int aid = abs(p.pdgId());
+    if ( aid == 11 ) {
+      const auto& el = dynamic_cast<const cat::Electron&>(p);
+      const double pt = p.pt(), aeta = std::abs(el.scEta());
+      if      ( sys == +1 ) return elecSF_(pt, aeta,  1);
+      else if ( sys == -1 ) return elecSF_(pt, aeta, -1);
+      else return elecSF_(pt, aeta, 0);
+    }
+    return 1;
+  }
+
+/*
   float getSF(const cat::Lepton& p, int sys) const
   {
     const int aid = abs(p.pdgId());
@@ -92,7 +117,7 @@ private:
     }
     return 1;
   }
-
+*/
   edm::EDGetTokenT<int> recoFiltersToken_, nGoodVertexToken_, lumiSelectionToken_;
   edm::EDGetTokenT<cat::GenWeights> genweightToken_;
   edm::EDGetTokenT<float> puweightToken_, puweightUpToken_, puweightDownToken_, topPtWeight_;
@@ -162,7 +187,9 @@ private:
 
   //mc
   float  b_topPtWeight;
-  float  b_lepweight;
+  ///float  b_lepweight;
+  float  b_mueffweight, b_mueffweight_up, b_mueffweight_dn;
+  float  b_eleffweight, b_eleffweight_up, b_eleffweight_dn;
 
   /////////
   float  lepton1_pt       ;//  cms.string("lepton1().Pt()"),
@@ -342,10 +369,10 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
   ttree10_ = fs->make<TTree>("nomEl_up", "nom2");
   ttree11_ = fs->make<TTree>("nomEl_dw", "nom2");
 
-  ttree12_ = fs->make<TTree>("nomMueff_up", "nom2");
-  ttree13_ = fs->make<TTree>("nomMueff_dw", "nom2");
-  ttree14_ = fs->make<TTree>("nomEleff_up", "nom2");
-  ttree15_ = fs->make<TTree>("nomEleff_dw", "nom2");
+  //ttree12_ = fs->make<TTree>("nomMueff_up", "nom2");
+  //ttree13_ = fs->make<TTree>("nomMueff_dw", "nom2");
+  //ttree14_ = fs->make<TTree>("nomEleff_up", "nom2");
+  //ttree15_ = fs->make<TTree>("nomEleff_dw", "nom2");
 
   book(ttree_);
   book(ttree2_);
@@ -360,10 +387,10 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
   book(ttree10_);
 
   book(ttree11_);
-  book(ttree12_);
-  book(ttree13_);
-  book(ttree14_);
-  book(ttree15_);
+  //book(ttree12_);
+  //book(ttree13_);
+  //book(ttree14_);
+  //book(ttree15_);
 
   for (int i = 0; i < NCutflow; i++) cutflow_.push_back({0,0,0,0});
 }
@@ -413,7 +440,15 @@ void TtbarBbbarDiLeptonAnalyzer::book(TTree* tree){
   tree->Branch("puweight", &b_puweight, "puweight/F");
   tree->Branch("puweightUp", &b_puweightUp, "puweightUp/F");
   tree->Branch("puweightDown", &b_puweightDown, "puweightDown/F");
-  tree->Branch("lepweight", &b_lepweight, "lepweight/F");
+
+  tree->Branch("mueffweight",    &b_mueffweight,    "mueffweight/F");
+  tree->Branch("mueffweight_up", &b_mueffweight_up, "mueffweight_up/F");
+  tree->Branch("mueffweight_dn", &b_mueffweight_dn, "mueffweight_dn/F");
+  tree->Branch("eleffweight",    &b_eleffweight,    "eleffweight/F");
+  tree->Branch("eleffweight_up", &b_eleffweight_up, "eleffweight_up/F");
+  tree->Branch("eleffweight_dn", &b_eleffweight_dn, "eleffweight_dn/F");
+//  tree->Branch("lepweight", &b_lepweight, "lepweight/F");
+
   tree->Branch("genTtbarId", &b_genTtbarId, "genTtbarId/I");
   tree->Branch("genTtbarId30", &b_genTtbarId30, "genTtbarId30/I");
   tree->Branch("genTtbarId40", &b_genTtbarId40, "genTtbarId40/I");
@@ -885,8 +920,15 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     if (pdgIdSum == 26) {
       b_lep1_RelIso = recolep1.relIso(0.4);  b_lep2_RelIso = recolep2.relIso(0.4);
     } // mumu
-    if(runOnMC_) b_lepweight = getSF(recolep1, sys)*getSF(recolep2, sys);
- 
+    if(runOnMC_){ //b_lepweight = getSF(recolep1, sys)*getSF(recolep2, sys);
+      b_mueffweight    = getMuEffSF(recolep1,  0)*getMuEffSF(recolep2,  0);
+      b_mueffweight_up = getMuEffSF(recolep1, +1)*getMuEffSF(recolep2, +1);
+      b_mueffweight_dn = getMuEffSF(recolep1, -1)*getMuEffSF(recolep2, -1);
+      
+      b_eleffweight    = getElEffSF(recolep1,  0)*getElEffSF(recolep2,  0);
+      b_eleffweight_up = getElEffSF(recolep1, +1)*getElEffSF(recolep2, +1);
+      b_eleffweight_dn = getElEffSF(recolep1, -1)*getElEffSF(recolep2, -1);
+    }
     
     const auto tlv_ll = recolep1.p4()+recolep2.p4();
     b_ll_pt = tlv_ll.Pt(); b_ll_eta = tlv_ll.Eta(); b_ll_phi = tlv_ll.Phi(); b_ll_m = tlv_ll.M();
@@ -1172,8 +1214,9 @@ void TtbarBbbarDiLeptonAnalyzer::resetBrReco()
   b_tri = 0;
   b_met = -9; b_metphi = -9;
 
-  b_lepweight = 1;
-  //b_pdfWeights.clear();
+  //b_lepweight = 1;
+  b_mueffweight = 1;b_mueffweight_up = 1;b_mueffweight_dn = 1;
+  b_eleffweight = 1;b_eleffweight_up = 1;b_eleffweight_dn = 1;
 
   ///////
   b_lep1_pt = -9;b_lep1_eta = -9;b_lep1_phi = -9; b_lep1_RelIso = -9; b_lep1_q=0;
@@ -1210,7 +1253,7 @@ void TtbarBbbarDiLeptonAnalyzer::resetBrGEN()
   b_scaleWeightsUp.clear();
   b_scaleWeightsDown.clear();
   b_topPtWeight = 1.;
-  b_weight = 1;
+  b_weight = 1; 
   b_puweight = 1; b_puweightUp = 1; b_puweightDown =1;
   b_nvertex = 0;
   b_filtered = 0;
