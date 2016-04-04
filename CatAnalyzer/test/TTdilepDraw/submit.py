@@ -1,10 +1,10 @@
 #./topDraw.py.py -c <cut> -w <weight> -b <binning> -p <plotvar> -x <x_name> -y <y_name> -d <dolog>
 
-plotvar_l = ["ll_m", "njet", "met", "nbjet",
-			 "lep1_pt,lep2_pt", "lep1_eta,lep2_eta",
-			 "jet1_pt,jet2_pt", "jet1_eta,jet2_eta",
-			 "top1_pt,top2_pt", "top1_rapi,top2_rapi",
-			 "ttbar_pt", "ttbar_rapi", "ttbar_m", 'ttbar_dphi']
+plotvar_l = ["dilep.M\(\)", "njet", "met", "nbjet",
+			 "lep1.Pt\(\),lep2.Pt\(\)", "lep1.Eta\(\),lep2.Eta\(\)",
+			 "partonjet1.Pt\(\),partonjet2.Pt\(\)", "partonjet1.Eta\(\),partonjet2.Eta\(\)",
+			 "partontop1.Pt\(\),partontop2.Pt\(\)", "partontop1.Rapidity\(\),partontop2.Rapidity\(\)",
+			 "partonttbar.Pt\(\)", "partonttbar.Rapidity\(\)", "partonttbar.M\(\)", "partonttbar_dphi"]
 x_name_l  = ["M(ll) [GeV/c^{2}]", "Jet Multiplicity", "Missing Et [GeV]", "b Jet Multiplicity",
 			 "lepton p_{T} [GeV/c]", "lepton #eta",
 			 "Jet p_{T} [GeV/c]", "Jet #eta",
@@ -67,3 +67,4 @@ for p, plotvar in enumerate(plotvar_l[4:]):
 	print "./topDraw_sys_combined.py -p %s -b %s > tmp &"%(plotvar, binset_l[4+p])
 print
 
+print "for i in {1..3}; do for j in {1..6}; do ./topDraw.py -a $i -s $j; done; done;"

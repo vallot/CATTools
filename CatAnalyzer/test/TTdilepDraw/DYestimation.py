@@ -37,7 +37,7 @@ def	getDYFactor(rfname, front_rfname, scale, front_scale, rootfileDir, tname, cu
 	mc_mm_out.Add(makeTH1(front_rfname,tname,"mc_mm_in", [2,0,2], 'tri', dycut+'(%s && channel==3 && step2==1)*(%s)'%(cut,weight), front_scale))
 	
 	rfname = rootfileDir+rdfilelist[1-1]+".root"
-	rd_em_in = makeTH1(rfname, tname,'rd_em_in', [2,0,2], 'tri', dycut+'(%s && channel==1 && ((ll_m > 76) && (ll_m < 106)))'%(cut))
+	rd_em_in = makeTH1(rfname, tname,'rd_em_in', [2,0,2], 'tri', dycut+'(%s && channel==1 && ((dilep.M() > 76) && (dilep.M() < 106)))'%(cut))
 	rfname = rootfileDir + rdfilelist[2-1] +".root"
 	rd_ee_in = makeTH1(rfname, tname,'rd_ee_in', [2,0,2], 'tri', dycut+'(%s && channel==2 && step2 ==0)'%(cut))
 	rfname = rootfileDir + rdfilelist[3-1] +".root"
@@ -60,8 +60,7 @@ def printDYFactor(rootfileDir, tname, datasets, datalumi, cut, weight, rdfilelis
 	front_rfname = rootfileDir + 'DYJets_10to50' +".root"
 	front_data = findDataSet('DYJets_10to50', datasets)
 	front_scale = datalumi*front_data["xsec"]
-	tfile = ROOT.TFile(front_rfname)
-	wentries = tfile.Get("cattree/nevents").Integral()
+	front_wentries = getWeightedEntries(front_rfname, tname, "tri", weight)
 	front_scale = scale/wentries
 
 	for step in range(1,7):
@@ -74,9 +73,4 @@ def printDYFactor(rootfileDir, tname, datasets, datalumi, cut, weight, rdfilelis
 	f=open('DYFactor.json','w')
 	json.dump(dyratio, f)
 	f.close()
-
-#rdfilelist = ['MuonEG_Run2015','DoubleEG_Run2015','DoubleMuon_Run2015']
-#datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json" % os.environ['CMSSW_BASE']))
-#printDYFactor('/xrootd/store/user/tt8888tt/v7-4-6/', 'cattree/nom', datasets, 2.11*1000, 'tri==1&&filtered==1', 'genweight*puweight*lepweight')
-#printDYFactor('/xrootd/store/user/tt8888tt/v7-4-6/', 'cattree/nom', datasets, 2.11*1000, 'tri==1&&filtered==1', 'genweight*puweight*lepweight*btagweight', rdfilelist)
 
