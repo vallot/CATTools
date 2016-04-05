@@ -134,8 +134,8 @@ shared_ptr<TLorentzVector> CATDstarAnalyzer::mcMatching( vector<TLorentzVector>&
 
 void CATDstarAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-  b_run = iEvent.id().run();
-  b_event = iEvent.id().event();
+  //b_run = iEvent.id().run();
+  //b_event = iEvent.id().event();
 
   const bool runOnMC = !iEvent.isRealData();
   cutflow_[0][0]++;
@@ -158,13 +158,13 @@ void CATDstarAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventS
   edm::Handle<cat::SecVertexCollection> d0s;       iEvent.getByToken(d0Token_,d0s);
   edm::Handle<cat::SecVertexCollection> dstars;    iEvent.getByToken(dstarToken_,dstars);
 
-  edm::Handle<edm::View<reco::GenParticle> > mcHandle;
-  iEvent.getByToken(mcSrc_, mcHandle);
 
   vector<TLorentzVector> gen_d0s;
   vector<TLorentzVector> gen_dstars;
+  edm::Handle<edm::View<reco::GenParticle> > mcHandle;
  
   if ( runOnMC ) { 
+    iEvent.getByToken(mcSrc_, mcHandle);
     for( const auto& aGenParticle : *mcHandle) {
       //If genParticle is D0,
       if ( std::abs(aGenParticle.pdgId()) == 421 )       gen_d0s.push_back( ToTLorentzVector(aGenParticle));  
