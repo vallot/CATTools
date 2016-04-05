@@ -148,8 +148,9 @@ private:
   TTree * ttree3_, * ttree4_,* ttree5_,* ttree6_;
 
   TTree * ttree7_, * ttree8_,* ttree9_,* ttree10_;
-  TTree * ttree11_, * ttree12_,* ttree13_,* ttree14_;
-  TTree * ttree15_;
+  TTree * ttree11_;
+  //TTree * ttree11_, * ttree12_,* ttree13_,* ttree14_;
+  //TTree * ttree15_;
   
   int b_nvertex, b_step, b_channel;
   bool b_step1, b_step2, b_step3, b_step4, b_step5, b_step6, b_filtered;
@@ -171,6 +172,10 @@ private:
   std::vector<float> b_jets_bDiscriminatorCSV;
   std::vector<int>    b_csvd_jetid;
   std::vector<float> b_jets_bDiscriminatorMVA;
+  std::vector<float> b_jets_iCSVCvsL;
+  std::vector<float> b_jets_CCvsLT;
+  std::vector<float> b_jets_CCvsBT;
+
   std::vector<int>    b_mvad_jetid;
 
   //mc
@@ -500,6 +505,10 @@ void TtbarBbbarDiLeptonAnalyzer::book(TTree* tree){
   tree->Branch("jets_bDiscriminatorCSV","std::vector<float>",&b_jets_bDiscriminatorCSV);
   tree->Branch("csvd_jetid","std::vector<int>",&b_csvd_jetid);
   tree->Branch("jets_bDiscriminatorMVA","std::vector<float>",&b_jets_bDiscriminatorMVA);
+  tree->Branch("jets_iCSVCvsL","std::vector<float>",&b_jets_iCSVCvsL);
+  tree->Branch("jets_CCvsLT","std::vector<float>",&b_jets_CCvsLT);
+  tree->Branch("jets_CCvsBT","std::vector<float>",&b_jets_CCvsBT);
+
   tree->Branch("mvad_jetid","std::vector<int>",&b_mvad_jetid);
 
 /////////////////////////////
@@ -874,8 +883,8 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     selectElecs(*electrons, selElecs, (sys_e) sys);
     
     if (selMuons.size()+selElecs.size() < 2){
-      ttree_->Fill();
-      return;
+      if(sys==0) ttree_->Fill();
+      continue;
     }
     cutflow_[3][b_channel]++;
 
@@ -942,8 +951,8 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     
     //if (b_ll_m > 20. && recolep1.charge() * recolep2.charge() < 0){
     if (b_ll_m < 20. || recolep1.charge() * recolep2.charge() > 0){
-      ttree_->Fill();
-      return;
+      if(sys==0) ttree_->Fill();
+      continue;
     }
     b_step1 = true;
     b_step = 1;
@@ -970,9 +979,18 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     int idx=0;
     std::map<int,float> mapJetBDiscriminator;
     std::map<int,float> mapJetBDiscriminatorMVA;
+
+    const std::string CTAG_iCSVCvsL = "inclusiveCandidateSecondaryVerticesCvsL";
+    const std::string CTAG_CCvsLT   = "pfCombinedCvsLJetTags";
+    const std::string CTAG_CCvsBT   = "pfCombinedCvsBJetTags";
+
     for (auto jet1 = selectedJets.begin(), end = selectedJets.end(); jet1 != end; ++jet1){
       float bDisCSV= (float) jet1->bDiscriminator(BTAG_CSVv2);
       float bDisMVA= (float) jet1->bDiscriminator(BTAG_cMVAv2);
+
+      float cDisiCSVCvsL= (float) jet1->bDiscriminator(CTAG_iCSVCvsL);
+      float cDisCCvsLT  = (float) jet1->bDiscriminator(CTAG_CCvsLT);
+      float cDisCCvsBT  = (float) jet1->bDiscriminator(CTAG_CCvsBT);
       //float bDisCSV= (float) jet1->bDiscriminator(BTAG_CSVv2+"AK4PFPuppi");
       int flavor = jet1->partonFlavour();
       mapJetBDiscriminator[idx] = bDisCSV;
@@ -984,6 +1002,10 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
       b_jets_flavor.push_back(flavor);
       b_jets_bDiscriminatorCSV.push_back(bDisCSV);
       b_jets_bDiscriminatorMVA.push_back(bDisMVA);
+      b_jets_iCSVCvsL.push_back(cDisiCSVCvsL);
+      b_jets_CCvsLT.push_back(  cDisCCvsLT);
+      b_jets_CCvsBT.push_back(  cDisCCvsBT);
+
     }
    
     if (runOnMC_){
@@ -1078,10 +1100,10 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     else if (sys==8) ttree10_->Fill();
 
     else if (sys==9) ttree11_->Fill();
-    else if (sys==10) ttree12_->Fill();
-    else if (sys==11) ttree13_->Fill();
-    else if (sys==12) ttree14_->Fill();
-    else if (sys==13) ttree15_->Fill();
+    //else if (sys==10) ttree12_->Fill();
+    //else if (sys==11) ttree13_->Fill();
+    //else if (sys==12) ttree14_->Fill();
+    //else if (sys==13) ttree15_->Fill();
 
   }
 }
@@ -1244,6 +1266,9 @@ void TtbarBbbarDiLeptonAnalyzer::resetBrJets()
   b_jets_bDiscriminatorCSV.clear();
   b_csvd_jetid.clear();
   b_jets_bDiscriminatorMVA.clear();
+  b_jets_iCSVCvsL.clear();
+  b_jets_CCvsLT.clear();
+  b_jets_CCvsBT.clear();
   b_mvad_jetid.clear();
   b_csvweights.clear();
   b_csvweights2.clear();
