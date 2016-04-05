@@ -22,7 +22,7 @@ mcfilelist = ['VBF_HToMuMu','DYJets','ZZTo4L_powheg','ZZTo2L2Q','ZZTo2L2Nu_powhe
 #mcfilelist = ['VBF_HToMuMu','WW','WZ','ZZ','TT_powheg','DYJets','DYJets_10to50']#,'WJets']
 rdfilelist = ['SingleMuon_Run2015']
 
-datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json" % os.environ['CMSSW_BASE']))
+datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset/dataset.json" % os.environ['CMSSW_BASE']))
 
 cut = 'll_m>50&&step>=5&&isTight==1&&filtered==1'
 weight = 'weight'
