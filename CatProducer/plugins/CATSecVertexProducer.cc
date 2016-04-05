@@ -196,21 +196,41 @@ cat::CATSecVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & 
 
   else if ( mode_ == 2) {
     for(VertexCompositePtrCandidateCollection::const_iterator sv = secvtxSrc->begin() ; sv != secvtxSrc->end() ; ++sv) {
+
       int pdgId = 0 ;
       // If the secvtx did not have 2 daughter(consist of 2 tracks), it must be ignored.
       if ( sv->numberOfDaughters() != 2 ) continue;
-      //make the tracks from secvtx
       const reco::Candidate *cand1, *cand2;
       cand1 = sv->daughter(0);
       cand2 = sv->daughter(1);
-      if ( std::abs(cand1->pdgId()) == 11 || std::abs(cand2->pdgId()) == 11) pdgId = 11;
-      if ( std::abs(cand1->pdgId()) == 13 || std::abs(cand2->pdgId()) == 13) pdgId = 13;
-      if ( pdgId !=11 && pdgId ==13 ) continue;
-      //const reco::TransientTrack  transTrack1, transTrack2;
-      if ( cand1->get<TrackRef>().isNull() || cand2->get<TrackRef>().isNull()) continue;
-      auto ttrack1 = trackBuilder->build(cand1->get<TrackRef>());
-      auto ttrack2 = trackBuilder->build(cand2->get<TrackRef>());
-      fitTransientTracks(out_, pv, ttrack1, ttrack2, pdgId);
+      if ( std::abs(cand1->pdgId()) == 211 && std::abs(cand2->pdgId()) == 211) continue;
+
+      VertexCompositeCandidate aVC = VertexCompositeCandidate( sv->charge(), sv->p4(), sv->vertex(), sv->vertexCovariance(), sv->vertexChi2(), sv->vertexNdof(), pdgId, 0, true);
+      cat::SecVertex aSecVtx(aVC);
+
+      aSecVtx.setVProb(TMath::Prob( aVC.vertexChi2(), (int) aVC.vertexNdof()));
+      auto vertex = aVC.vertex();
+      GlobalPoint vtxPos( vertex.x(), vertex.y(), vertex.z() );
+
+      typedef ROOT::Math::SMatrix<double, 3, 3, ROOT::Math::MatRepSym<double, 3> > SMatrixSym3D;
+      typedef ROOT::Math::SVector<double, 3> SVector3;
+
+      SMatrixSym3D totalCov = pv.covariance() + aVC.vertexCovariance();
+      SVector3 distanceVectorXY(vertex.x() - pv.position().x(), vertex.y() - pv.position().y(), 0.);
+
+      double rVtxMag = ROOT::Math::Mag(distanceVectorXY);
+      double sigmaRvtxMag = sqrt(ROOT::Math::Similarity(totalCov, distanceVectorXY)) / rVtxMag;
+
+      if(applyCuts_ && ( rVtxMag < cut_minLxy_ or rVtxMag > cut_maxLxy_ or rVtxMag / sigmaRvtxMag < cut_vtxSignif_ )) continue;
+
+      SVector3 distanceVector3D(vertex.x() - pv.position().x(), vertex.y() - pv.position().y(), vertex.z() - pv.position().z());
+      const double rVtxMag3D = ROOT::Math::Mag(distanceVector3D);
+
+      aSecVtx.setLxy(rVtxMag);
+      aSecVtx.setL3D(rVtxMag3D);
+      //aSecVtx.setLeptonID(0,0);
+      //aSecVtx.setTrackQuality(0,0);
+      out_->push_back( aSecVtx); 
     }
   }
   else if ( mode_ == 3) {
@@ -272,9 +292,6 @@ void cat::CATSecVertexProducer::fitTransientTracks(cat::SecVertexCollection* out
     if ( applyCuts_ && (dca < 0. || dca > cut_DCA_ )) return;
     GlobalPoint cxPt = cApp.crossingPoint();
     if (applyCuts_ && (std::hypot(cxPt.x(), cxPt.y()) > 120. || std::abs(cxPt.z()) > 300.)) return;
-    //TrajectoryStateClosestToPoint caState1 = leptonTRack.trajectoryStateClosestToPoint(cxPt);
-    //TrajectoryStateClosestToPoint caState2 = transTrackNeg.trajectoryStateClosestToPoint(cxPt);
-    //if ( !caState1.isValid() or !caState2.isValid() ) continue;
   } catch(std::exception& e) { std::cerr<<"closest approach"<<std::endl; return ; }
 
   // Build Vertex
@@ -285,7 +302,7 @@ void cat::CATSecVertexProducer::fitTransientTracks(cat::SecVertexCollection* out
   TransientVertex transVertex;
   try{
     transVertex = fitter.vertex(transTracks);
-  }catch(std::exception& e) { std::cerr<<"Kalman Vertex Fitting error : "<<e.what()<<std::endl; return ; }
+  }catch(std::exception& e) { std::cerr<<"Kalman Vertex Fitting error for J/psi: "<<e.what()<<std::endl; return ; }
 
   if ( !transVertex.isValid() or transVertex.totalChiSquared() < 0. ) return;
 
@@ -365,13 +382,14 @@ void cat::CATSecVertexProducer::fitTransientTracks(cat::SecVertexCollection* out
   cand->addDaughter(newLep1);
   cand->addDaughter(newLep2);
 
-  cand->setPdgId(pdgId);
+  cand->setPdgId(443);
 
   cat::SecVertex aSecVertex(*cand);
   aSecVertex.setVProb(TMath::Prob( vtxChi2, (int) vtxNdof));
   aSecVertex.setLxy(rVtxMag);
   aSecVertex.setL3D(rVtxMag3D);
-  aSecVertex.setInts(0,0);
+  //aSecVertex.setLeptonID(0,0);
+  //aSecVertex.setTrackQuality(0,0);
 
   out_->push_back(aSecVertex);
 

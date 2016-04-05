@@ -7,8 +7,10 @@
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/MET.h"
 #include "CATTools/DataFormats/interface/SecVertex.h"
+#include "CATTools/DataFormats/interface/GenWeights.h"
 
-#include "CATTools/CommonTools/interface/ScaleFactorGetter.h"
+#include "CATTools/CommonTools/interface/TTbarModeDefs.h"
+#include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
 
 #include "DataFormats/Candidate/interface/LeafCandidate.h"
 //#include "DataFormats/Candidate/interface/CompositeCandidate.h"
@@ -32,7 +34,7 @@ struct ControlPlots
   typedef TH2D* H2;
 
   H1 hCutstep, hCutstepNoweight;
-  H2 h2Cutstep;
+  H2 h2Cutstep, h2CutstepNoweight;
 
   H1 h0a_vertex_n;
 
@@ -125,6 +127,7 @@ struct ControlPlots
     hCutstep = dir.make<TH1D>("cutstep", "cutstep", nMaxCutstep, -2, nMaxCutstep-2);
     hCutstepNoweight = dir.make<TH1D>("cutstepNoweight", "cutstepNoweight", nMaxCutstep, -2, nMaxCutstep-2);
     h2Cutstep = dir.make<TH2D>("cutcorrelation", "cutcorrelation", nMaxCutstep, -2, nMaxCutstep-2, nMaxCutstep, -2, nMaxCutstep-2);
+    h2CutstepNoweight = dir.make<TH2D>("cutcorrelationNoweight", "cutcorrelationNoweight", nMaxCutstep, -2, nMaxCutstep-2, nMaxCutstep, -2, nMaxCutstep-2);
 
     hCutstep->GetXaxis()->SetBinLabel(1, "S0a all event");
     hCutstep->GetXaxis()->SetBinLabel(2, "S0b Trigger");
@@ -161,6 +164,24 @@ struct ControlPlots
     h2Cutstep->GetYaxis()->SetBinLabel(6, "S3 nJet2");
     h2Cutstep->GetYaxis()->SetBinLabel(7, "S4 MET40");
     h2Cutstep->GetYaxis()->SetBinLabel(8, "S5 nBJet1");
+
+    h2CutstepNoweight->GetXaxis()->SetBinLabel(1, "S0a all event");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel(2, "S0b Trigger");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel(3, "S0c Event filter");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel(4, "S1 Dilepton");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel(5, "S2 Z veto");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel(6, "S3 nJet2");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel(7, "S4 MET40");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel(8, "S5 nBJet1");
+
+    h2CutstepNoweight->GetYaxis()->SetBinLabel(1, "S0a all event");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel(2, "S0b Trigger");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel(3, "S0c Event filter");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel(4, "S1 Dilepton");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel(5, "S2 Z veto");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel(6, "S3 nJet2");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel(7, "S4 MET40");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel(8, "S5 nBJet1");
 
     auto subdir = dir.mkdir("step0a");
     h0a_vertex_n = subdir.make<TH1D>("vertex_n", "vertex_n", 100, 0, 100);
@@ -443,9 +464,10 @@ public:
 private:
   typedef std::vector<float> vfloat;
   typedef std::vector<double> vdouble;
-  edm::EDGetTokenT<float> genWeightToken_, pileupWeightToken_;
-  edm::EDGetTokenT<vfloat> genWeightsToken_;
+  edm::EDGetTokenT<float> pileupWeightToken_;
+  edm::EDGetTokenT<cat::GenWeights> genWeightsToken_;
   unsigned int genWeightIndex_;
+  cat::GenWeightInfo::KnownTypes genWeightType_;
 
   edm::EDGetTokenT<cat::MuonCollection> muonToken_;
   edm::EDGetTokenT<cat::ElectronCollection> electronToken_;
@@ -455,6 +477,9 @@ private:
   edm::EDGetTokenT<int> recoFilterToken_;
   edm::EDGetTokenT<int> trigElElToken_, trigMuMuToken_, trigMuElToken_;
   edm::EDGetTokenT<int> nVertexToken_;
+
+  std::vector<edm::EDGetTokenT<float> > extWeightTokensF_;
+  std::vector<edm::EDGetTokenT<double> > extWeightTokensD_;
 
 private:
   TH1D* h_weight, * h_pileupWeight, * h_genWeight;
@@ -478,7 +503,7 @@ private:
     if      ( jetScale_ == +1 ) pt *= jet.shiftedEnUp();
     else if ( jetScale_ == -1 ) pt *= jet.shiftedEnDown();
 
-    if ( isMC_ ) pt *= jet.smearedRes(jetResol_);
+    if ( isMC_ and !isSkipJER_ ) pt *= jet.smearedRes(jetResol_);
 
     return pt;
   }
@@ -497,7 +522,7 @@ private:
     if ( std::abs(el.eta()) > 2.4 ) return false;
     if ( shiftedElectronPt(el) < 20 ) return false;
 
-    if ( !el.isTrigMVAValid() ) return false;
+    if ( isMVAElectronSel_ and !el.isTrigMVAValid() ) return false;
 
     //if ( el.relIso(0.3) >= 0.11 ) return false;
     if ( !el.electronID(elIdName_) ) return false;
@@ -509,30 +534,33 @@ private:
   bool isBjet(const cat::Jet& jet)
   {
     const double bTag = jet.bDiscriminator(bTagName_);
-    if      ( bTagWP_ == BTagWP::CSVL ) return bTag > 0.605;
-    else if ( bTagWP_ == BTagWP::CSVM ) return bTag > 0.890;
-    else if ( bTagWP_ == BTagWP::CSVT ) return bTag > 0.970;
+    if      ( bTagWP_ == BTagWP::CSVL ) return bTag > WP_BTAG_CSVv2L;
+    else if ( bTagWP_ == BTagWP::CSVM ) return bTag > WP_BTAG_CSVv2M;
+    else if ( bTagWP_ == BTagWP::CSVT ) return bTag > WP_BTAG_CSVv2T;
     return false;
   }
 
 private:
   typedef reco::Candidate::LorentzVector LV;
-  enum Channel { CH_NONE=-1, CH_MUMU, CH_ELEL, CH_MUEL };
 
   // Energy scales
   int muonScale_, electronScale_, jetScale_, jetResol_;
+  bool isSkipJER_; // Do not apply JER, needed to remove randomness during the Synchronization
 
   // Efficiency SF
-  ScaleFactorGetter muonSF_, electronSF_;
+  ScaleFactorEvaluator muonSF_, electronSF_;
   double muonSFShift_, electronSFShift_;
 
   bool isMC_;
+  bool isIgnoreTrig_; // Accept event even if it does not pass HLT. Needed for synchronization
   const int applyFilterAt_;
 
   // ID variables
+  bool isMVAElectronSel_;
   std::string bTagName_;
   std::string elIdName_;
   enum class BTagWP { CSVL, CSVM, CSVT } bTagWP_;
+
 };
 
 }
@@ -550,10 +578,10 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   {
     const auto muonSFSet = muonSet.getParameter<edm::ParameterSet>("efficiencySF");
     // FIXME : for muons, eta bins are folded - always double check this with cfg
-    muonSF_.set(muonSFSet.getParameter<vdouble>("abseta_bins"),
-                   muonSFSet.getParameter<vdouble>("pt_bins"),
-                   muonSFSet.getParameter<vdouble>("values"),
-                   muonSFSet.getParameter<vdouble>("errors"));
+    muonSF_.set(muonSFSet.getParameter<vdouble>("pt_bins"),
+                muonSFSet.getParameter<vdouble>("abseta_bins"),
+                muonSFSet.getParameter<vdouble>("values"),
+                muonSFSet.getParameter<vdouble>("errors"));
     muonSFShift_ = muonSet.getParameter<int>("efficiencySFDirection");
   }
 
@@ -565,12 +593,14 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   {
     const auto electronSFSet = electronSet.getParameter<edm::ParameterSet>("efficiencySF");
     // FIXME : for electrons, eta bins are NOT folded - always double check this with cfg
-    electronSF_.set(electronSFSet.getParameter<vdouble>("eta_bins"),
-                       electronSFSet.getParameter<vdouble>("pt_bins"),
-                       electronSFSet.getParameter<vdouble>("values"),
-                       electronSFSet.getParameter<vdouble>("errors"));
+    electronSF_.set(electronSFSet.getParameter<vdouble>("pt_bins"),
+                    electronSFSet.getParameter<vdouble>("abseta_bins"),
+                    electronSFSet.getParameter<vdouble>("values"),
+                    electronSFSet.getParameter<vdouble>("errors"));
     electronSFShift_ = electronSet.getParameter<int>("efficiencySFDirection");
   }
+  isMVAElectronSel_ = false;
+  if ( elIdName_.substr(0,3) == "mva" ) isMVAElectronSel_ = true;
 
   const auto jetSet = pset.getParameter<edm::ParameterSet>("jet");
   jetToken_ = consumes<cat::JetCollection>(jetSet.getParameter<edm::InputTag>("src"));
@@ -582,6 +612,7 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   else if ( bTagWPStr == "CSVM" ) bTagWP_ = BTagWP::CSVM;
   else if ( bTagWPStr == "CSVT" ) bTagWP_ = BTagWP::CSVT;
   else edm::LogError("TTLLEventSelector") << "Wrong bTagWP parameter " << bTagWPStr;
+  isSkipJER_ = jetSet.getParameter<bool>("skipJER");
 
   const auto metSet = pset.getParameter<edm::ParameterSet>("met");
   metToken_ = consumes<cat::METCollection>(metSet.getParameter<edm::InputTag>("src"));
@@ -595,14 +626,22 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   trigElElToken_ = consumes<int>(filterSet.getParameter<edm::InputTag>("trigELEL"));
   trigMuMuToken_ = consumes<int>(filterSet.getParameter<edm::InputTag>("trigMUMU"));
   trigMuElToken_ = consumes<int>(filterSet.getParameter<edm::InputTag>("trigMUEL"));
+  isIgnoreTrig_ = filterSet.getParameter<bool>("ignoreTrig");
 
   if ( isMC_ )
   {
     const auto genWeightSet = pset.getParameter<edm::ParameterSet>("genWeight");
+    genWeightType_ = GenWeightInfo::toKnownType(genWeightSet.getParameter<string>("weightType"));
+
     genWeightIndex_ = genWeightSet.getParameter<unsigned int>("index");
-    const auto genWeightTag = genWeightSet.getParameter<edm::InputTag>("src");
-    if ( genWeightIndex_ == 0 )  genWeightToken_ = consumes<float>(genWeightTag);
-    else genWeightsToken_ = consumes<vfloat>(genWeightTag);
+    genWeightsToken_ = consumes<cat::GenWeights>(genWeightSet.getParameter<edm::InputTag>("src"));
+  }
+
+  // Other weights
+  const auto extWeightLabels = pset.getParameter<std::vector<edm::InputTag> >("extWeights");
+  for ( auto x : extWeightLabels ) {
+    extWeightTokensF_.push_back(consumes<float>(x));
+    extWeightTokensD_.push_back(consumes<double>(x));
   }
 
   // Fill histograms, etc
@@ -659,20 +698,19 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   double weight = 1.0;
   if ( isMC_ )
   {
-    edm::Handle<float> fHandle;
-
     float genWeight = 1.;
-    if ( genWeightIndex_ == 0 )
-    {
-      event.getByToken(genWeightToken_, fHandle);
-      genWeight = *fHandle;
+
+    edm::Handle<cat::GenWeights> genWeightsHandle;
+    event.getByToken(genWeightsToken_, genWeightsHandle);
+    switch ( genWeightType_ ) {
+      case GenWeightInfo::Nominal  : genWeight = genWeightsHandle->genWeight(); break;
+      case GenWeightInfo::ScaleUp  : genWeight = genWeightsHandle->scaleUpWeights().at(genWeightIndex_); break;
+      case GenWeightInfo::ScaleDown: genWeight = genWeightsHandle->scaleDownWeights().at(genWeightIndex_); break;
+      case GenWeightInfo::PDF      : genWeight = genWeightsHandle->pdfWeights().at(genWeightIndex_); break;
+      case GenWeightInfo::NONE: default: genWeight = 1;
     }
-    else
-    {
-      edm::Handle<vfloat> vfHandle;
-      event.getByToken(genWeightsToken_, vfHandle);
-      genWeight = vfHandle->at(genWeightIndex_-1);
-    }
+
+    edm::Handle<float> fHandle;
 
     event.getByToken(pileupWeightToken_, fHandle);
     const float pileupWeight = *fHandle;
@@ -681,6 +719,16 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     h_pileupWeight->Fill(pileupWeight);
     weight *= genWeight*pileupWeight;
     // NOTE: weight value to be multiplied by lepton SF, etc.
+  }
+
+  // Apply all other weights
+  for ( auto t : extWeightTokensF_ ) {
+    edm::Handle<float> h;
+    if ( event.getByToken(t, h) ) weight *= *h;
+  }
+  for ( auto t : extWeightTokensD_ ) {
+    edm::Handle<double> h;
+    if ( event.getByToken(t, h) ) weight *= *h;
   }
 
   // Get event filters and triggers
@@ -697,6 +745,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
   // Select good leptons
   double leptons_st = 0;
+  cat::MuonCollection selMuons;
   for ( int i=0, n=muonHandle->size(); i<n; ++i )
   {
     auto& p = muonHandle->at(i);
@@ -704,14 +753,15 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     const double pt = shiftedMuonPt(p);
     const double scale = pt/p.pt();
 
-    cat::Lepton lep(p);
+    cat::Muon lep(p);
     lep.setP4(p.p4()*scale);
-    out_leptons->push_back(lep);
+    selMuons.push_back(lep);
 
     leptons_st += pt;
     metDpx += lep.px()-p.px();
     metDpy += lep.py()-p.py();
   }
+  cat::ElectronCollection selElectrons;
   for ( int i=0, n=electronHandle->size(); i<n; ++i )
   {
     auto& p = electronHandle->at(i);
@@ -719,25 +769,28 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     const double pt = shiftedElectronPt(p);
     const double scale = pt/p.pt();
 
-    cat::Lepton lep(p);
+    cat::Electron lep(p);
     lep.setP4(p.p4()*scale);
-    out_leptons->push_back(lep);
+    selElectrons.push_back(lep);
 
     leptons_st += pt;
     metDpx += lep.px()-p.px();
     metDpy += lep.py()-p.py();
   }
-  const int leptons_n = out_leptons->size();
+  std::vector<const cat::Lepton*> selLeptons;
+  for ( auto& x : selMuons ) selLeptons.push_back(&x);
+  for ( auto& x : selElectrons ) selLeptons.push_back(&x);
+  std::sort(selLeptons.begin(), selLeptons.end(),
+            [&](const cat::Lepton* a, const cat::Lepton* b){return a->pt() > b->pt();});
+  // Copy selLeptons to out_leptons
+  for ( auto x : selLeptons ) out_leptons->push_back(*x);
+  const int leptons_n = selLeptons.size();
   const cat::Lepton* lepton1 = 0, * lepton2 = 0;
-  Channel channel = CH_NONE;
+  int channel = CH_NOLL;
   if ( leptons_n >= 2 ) {
-    // Partial sort to select leading 2 leptons
-    std::nth_element(out_leptons->begin(), out_leptons->begin()+2, out_leptons->end(),
-                     [&](const cat::Lepton& a, const cat::Lepton& b){return a.pt() > b.pt();});
-
     // Set lepton1 and 2
-    lepton1 = &out_leptons->at(0);
-    lepton2 = &out_leptons->at(1);
+    lepton1 = selLeptons.at(0);
+    lepton2 = selLeptons.at(1);
 
     const int pdgId1 = std::abs(lepton1->pdgId());
     const int pdgId2 = std::abs(lepton2->pdgId());
@@ -755,20 +808,23 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     // Apply lepton SF
     if ( channel == CH_ELEL )
     {
-      const double w1 = electronSF_(lepton1->eta(), lepton1->pt(), electronSFShift_);
-      const double w2 = electronSF_(lepton2->eta(), lepton2->pt(), electronSFShift_);
+      const auto e1 = dynamic_cast<const cat::Electron*>(lepton1);
+      const auto e2 = dynamic_cast<const cat::Electron*>(lepton2);
+      const double w1 = electronSF_(lepton1->pt(), std::abs(e1->scEta()), electronSFShift_);
+      const double w2 = electronSF_(lepton2->pt(), std::abs(e2->scEta()), electronSFShift_);
       weight *= w1*w2;
     }
     else if ( channel == CH_MUMU )
     {
-      const double w1 = muonSF_(std::abs(lepton1->eta()), lepton1->pt(), muonSFShift_);
-      const double w2 = muonSF_(std::abs(lepton2->eta()), lepton2->pt(), muonSFShift_);
+      const double w1 = muonSF_(lepton1->pt(), std::abs(lepton1->eta()), muonSFShift_);
+      const double w2 = muonSF_(lepton2->pt(), std::abs(lepton2->eta()), muonSFShift_);
       weight *= w1*w2;
     }
     else if ( channel == CH_MUEL )
     {
-      const double w1 = electronSF_(lepton1->eta(), lepton1->pt(), electronSFShift_);
-      const double w2 = muonSF_(std::abs(lepton2->eta()), lepton2->pt(), muonSFShift_);
+      const auto e1 = dynamic_cast<const cat::Electron*>(lepton1);
+      const double w1 = electronSF_(lepton1->pt(), std::abs(e1->scEta()), electronSFShift_);
+      const double w2 = muonSF_(lepton2->pt(), std::abs(lepton2->eta()), muonSFShift_);
       weight *= w1*w2;
     }
     else edm::LogError("TTLLEventSelector") << "Strange event with nLepton >=2 but not falling info ee,mumu,emu category";
@@ -825,7 +881,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
   // ElEl channel Cutstep 0b with trigger requirements
   int cutstep_ee = -2;
-  if ( isTrigElEl )
+  if ( isIgnoreTrig_ or isTrigElEl )
   {
     ++cutstep_ee;
     h_ee.hCutstep->Fill(-1, weight);
@@ -843,7 +899,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     }
 
     // Cutstep 0c with reco filters
-    if ( isRECOFilterOK )
+    if ( isMC_ or isRECOFilterOK )
     {
       ++cutstep_ee;
       h_ee.hCutstep->Fill(0., weight);
@@ -863,7 +919,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   }
   // MuMu channel Cutstep 0b with trigger requirements
   int cutstep_mm = -2;
-  if ( isTrigMuMu )
+  if ( isIgnoreTrig_ or isTrigMuMu )
   {
     ++cutstep_mm;
     h_mm.hCutstep->Fill(-1, weight);
@@ -881,7 +937,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     }
 
     // Cutstep 0c with reco filters
-    if ( isRECOFilterOK )
+    if ( isMC_ or isRECOFilterOK )
     {
       ++cutstep_mm;
       h_mm.hCutstep->Fill(0., weight);
@@ -901,7 +957,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   }
   // MuEl channel Cutstep 0b with trigger requirements
   int cutstep_em = -2;
-  if ( isTrigMuEl )
+  if ( isIgnoreTrig_ or isTrigMuEl )
   {
     ++cutstep_em;
     h_em.hCutstep->Fill(-1, weight);
@@ -919,7 +975,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     }
 
     // Cutstep 0c with reco filters
-    if ( isRECOFilterOK )
+    if ( isMC_ or isRECOFilterOK )
     {
       ++cutstep_em;
       h_em.hCutstep->Fill(0., weight);
@@ -1898,17 +1954,49 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   for ( int istep=1, nstep=cutstepBits.size(); istep<=nstep; ++istep )
   {
     const bool res1 = cutstepBits[istep-1];
-    for ( int jstep=1; jstep<=nstep; ++jstep )
+
+    // Fill diagonal terms
+    if      ( channel == CH_ELEL ) {
+      h_ee.h2Cutstep->Fill(istep, istep, res1*weight);
+      h_ee.h2CutstepNoweight->Fill(istep, istep, res1);
+    }
+    else if ( channel == CH_MUMU ) {
+      h_mm.h2Cutstep->Fill(istep, istep, res1*weight);
+      h_mm.h2CutstepNoweight->Fill(istep, istep, res1);
+    }
+    else if ( channel == CH_MUEL ) {
+      h_em.h2Cutstep->Fill(istep, istep, res1*weight);
+      h_em.h2CutstepNoweight->Fill(istep, istep, res1);
+    }
+
+    // Fill correlations and anti-correlations
+    for ( int jstep=1; jstep<istep; ++jstep )
     {
       const bool res2 = cutstepBits[jstep-1];
       const int result = res1 && res2;
-      if      ( channel == CH_ELEL ) h_ee.h2Cutstep->Fill(istep, jstep, result*weight);
-      else if ( channel == CH_MUMU ) h_mm.h2Cutstep->Fill(istep, jstep, result*weight);
-      else if ( channel == CH_MUEL ) h_em.h2Cutstep->Fill(istep, jstep, result*weight);
+      const int aresult = res1 && !res2;
+      if      ( channel == CH_ELEL ) {
+        h_ee.h2Cutstep->Fill(istep, jstep, result*weight);
+        h_ee.h2CutstepNoweight->Fill(istep, jstep, result);
+        h_ee.h2Cutstep->Fill(jstep, istep, aresult*weight);
+        h_ee.h2CutstepNoweight->Fill(jstep, istep, aresult);
+      }
+      else if ( channel == CH_MUMU ) {
+        h_mm.h2Cutstep->Fill(istep, jstep, result*weight);
+        h_mm.h2CutstepNoweight->Fill(istep, jstep, result);
+        h_mm.h2Cutstep->Fill(jstep, istep, aresult*weight);
+        h_mm.h2CutstepNoweight->Fill(jstep, istep, aresult);
+      }
+      else if ( channel == CH_MUEL ) {
+        h_em.h2Cutstep->Fill(istep, jstep, result*weight);
+        h_em.h2CutstepNoweight->Fill(istep, jstep, result);
+        h_em.h2Cutstep->Fill(jstep, istep, aresult*weight);
+        h_em.h2CutstepNoweight->Fill(jstep, istep, aresult);
+      }
     }
   }
 
-  event.put(std::auto_ptr<int>(new int(channel)), "channel");
+  event.put(std::auto_ptr<int>(new int((int)channel)), "channel");
   event.put(std::auto_ptr<float>(new float(weight)), "weight");
   event.put(std::auto_ptr<float>(new float(metP4.pt())), "met");
   event.put(std::auto_ptr<float>(new float(metP4.phi())), "metphi");
@@ -1928,7 +2016,7 @@ TTLLEventSelector::~TTLLEventSelector()
     cout << "---- cut flows without weight ----\n";
     cout << "Step\tee\tmumu\temu\n";
     const int n = h_em.hCutstepNoweight->GetNbinsX();
-    for ( int i=1; i<n; ++i )
+    for ( int i=1; i<=n; ++i )
     {
       const string name(h_ee.hCutstepNoweight->GetXaxis()->GetBinLabel(i));
       if ( name.empty() ) break;

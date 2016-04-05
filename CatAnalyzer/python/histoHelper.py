@@ -7,7 +7,18 @@ def getTH1(title, binning, tree, plotvar, cut, scale = 0.):
         hist = ROOT.TH1D("name", title, binning[0], binning[1], binning[2])
     else:
         hist = ROOT.TH1D("name", title, len(binning)-1, array.array('f', binning))
-    #tree.Project("name", 'min(%s,%s-0.001)'%(plotvar,binning[2]), cut)
+    tree.Project("name", plotvar, cut)
+    if hist.GetSumw2N() == 0:
+        hist.Sumw2()
+    if scale != 0:
+        hist.Scale(scale)
+    return copy.deepcopy(hist)
+
+def getTH2(title, binning, tree, plotvar, cut, scale = 0.):
+    if len(binning) == 3:
+        hist = ROOT.TH2D("name", title, binning[0], binning[1], binning[2], binning[0], binning[1], binning[2])
+    else:
+        hist = ROOT.TH2D("name", title, len(binning)-1, array.array('f', binning), len(binning)-1, array.array('f', binning))
     tree.Project("name", plotvar, cut)
     if hist.GetSumw2N() == 0:
         hist.Sumw2()
@@ -135,7 +146,6 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
             leg.AddEntry(inversed, inversed.GetTitle(), "f")
             leghist.append(inversed.GetTitle())
                         
-    #hratio.Divide(data,mclist[0],1.,1.,"B")
     hratio.Divide(data,hratio,1.,1.,"B")
 
     tdrstyle.setTDRStyle()
@@ -166,7 +176,6 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
 
     data.Draw()
     hs.Draw("same")
-    #hs.Draw("samenostack")
     data.Draw("esamex0")
     leg.Draw("same")
     pads[0].Update()
@@ -214,3 +223,35 @@ def findDataSet(name, datasets):
         if data["name"] == name:
             return data
     return None
+
+def adderrs(err1, err2, sign=1.):
+    return math.sqrt(err1**2+sign*err2**2)
+
+def table(mchistList, errList, signal_hist, signal_err):
+    nums = {}
+    errs = {}
+    total = total_err = 0
+
+    titles = list(set([mc.GetTitle() for mc in mchistList]))
+    for t in titles:
+        nums[t] = 0
+        errs[t] = 0
+
+    for i, mc in enumerate(mchistList):
+        nbins = mc.GetSize()-2
+        nums[mc.GetTitle()] += mc.Integral(0,nbins+1)
+        errs[mc.GetTitle()] = adderrs(errs[mc.GetTitle()], errList[i])
+
+        total += mc.Integral(0,nbins+1)
+        total_err = adderrs(total_err, errList[i])
+    
+    nums['total'] = total
+    errs['total'] = total_err
+
+    bkg = total - signal_hist.Integral(0,signal_hist.GetSize()-1)
+    bkg_err = adderrs(total_err, signal_err, -1)
+    nums['bkg'] = bkg
+    errs['bkg'] = bkg_err
+
+    return nums, errs
+

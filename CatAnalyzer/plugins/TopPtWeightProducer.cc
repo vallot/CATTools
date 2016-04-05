@@ -33,8 +33,12 @@ TopPtWeightProducer::TopPtWeightProducer(const edm::ParameterSet& pset)
 
 void TopPtWeightProducer::produce(edm::Event& event, const edm::EventSetup& eventSetup)
 {
+  if (event.isRealData()) return;
+  
   edm::Handle<reco::GenParticleCollection> srcHandle;
-  event.getByToken(srcToken_, srcHandle);
+  if (!event.getByToken(srcToken_, srcHandle)){
+    return;
+  }
 
   edm::Handle<vint> modes;
   event.getByToken(modesToken_, modes);
@@ -61,5 +65,7 @@ void TopPtWeightProducer::produce(edm::Event& event, const edm::EventSetup& even
     ptWeight = sqrt(exp(a+b*pt1)*exp(a+b*pt2));
   }
 
-  event.put(std::auto_ptr<float>(new float(ptWeight)), "ptWeight");
+  event.put(std::auto_ptr<float>(new float(ptWeight)));
 }
+#include "FWCore/Framework/interface/MakerMacros.h"
+DEFINE_FWK_MODULE(TopPtWeightProducer);

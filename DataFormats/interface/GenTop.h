@@ -177,23 +177,20 @@ namespace cat {
       else return NbJets40NoTop_;
     }
 
-    //int NaddcJets(int i=0) const {
-    int NaddcJets() const {
-      //if( i == 0 )
-      return NaddcJetsCHad_;
-      //else return NcJetsNoTop_;
+    int NaddcJets(int i=0) const {
+    //int NaddcJets() const {
+      if( i == 0 ) return NaddcJetsCHad_;
+      else return NaddcJets_;
     }
-    //int NaddcJets20(int i=0) const {
-    int NaddcJets20() const {
-      //if( i == 0 )
-      return NaddcJets20CHad_;
-      //else return NcJets20NoTop_;
+    int NaddcJets20(int i=0) const {
+    //int NaddcJets20() const {
+      if( i == 0 ) return NaddcJets20CHad_;
+      else return NaddcJets20_;
     }
-    //int NaddcJets40(int i=0) const {
-    int NaddcJets40() const {
-      //if( i == 0 )
-      return NaddcJets40CHad_;
-      //else return NcJets40NoTop_;
+    int NaddcJets40(int i=0) const {
+    //int NaddcJets40() const {
+      if( i == 0 ) return NaddcJets40CHad_;
+      else return NaddcJets40_;
     }
 
 

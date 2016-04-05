@@ -1,14 +1,3 @@
-#------------------------------------------------------------------
-#------------------------------------------------------------------
-# Data or MC Sample
-runOnMC      = False
-# runOnTTbarMC = 0 # No ttbar
-runOnTTbarMC = 1 # ttbar Signal
-# runOnTTbarMC = 2 # ttbar Background
-#runOnTTbarMC = 0
-#------------------------------------------------------------------
-#------------------------------------------------------------------
-
 import FWCore.ParameterSet.Config as cms
 process = cms.Process("ttbarSingleLepton")
 
@@ -64,8 +53,6 @@ process.source = cms.Source("PoolSource",
 #process.source.lumisToProcess = LumiList.LumiList(filename = 'Cert_246908-251883_13TeV_PromptReco_Collisions15_JSON_v2.txt').getVLuminosityBlockRange()
 
 process.TLPJ = cms.EDAnalyzer('TtbarSingleLeptonAnalyzer',
-                                           sampleLabel       = cms.untracked.bool(runOnMC),
-                                           TTbarSampleLabel  = cms.untracked.int32(runOnTTbarMC),
                                            genTopLabel   = cms.InputTag("catGenTops"),
                                            genLabel      = cms.InputTag("prunedGenParticles"),
                                            muonLabel     = cms.InputTag("catMuons"),
@@ -74,8 +61,6 @@ process.TLPJ = cms.EDAnalyzer('TtbarSingleLeptonAnalyzer',
                                            metLabel      = cms.InputTag("catMETs"),
                                            pvLabel       = cms.InputTag("catVertex:nGoodPV"),
                                            puWeight      = cms.InputTag("pileupWeight"),
-                                           triggerBits = cms.InputTag("TriggerResults::HLT"), # Not working yet
-                                           triggerObjects = cms.InputTag("catTrigger"), # Not working yet
                                            )
 
 process.TFileService = cms.Service("TFileService",

@@ -19,12 +19,12 @@ eventsTTLL = cms.EDFilter("TTLLEventSelector",
 
     electron = cms.PSet(
         src = cms.InputTag("catElectrons"),
-        #idName = cms.string("cutBasedElectronID-Spring15-25ns-V1-standalone-medium"),
-        idName = cms.string("mvaEleID-Spring15-25ns-Trig-V1-wp90"),
+        idName = cms.string("cutBasedElectronID-Spring15-25ns-V1-standalone-medium"),
+        #idName = cms.string("mvaEleID-Spring15-25ns-Trig-V1-wp90"),
         scaleDirection = cms.int32(0),
         #scaleDirection = cms.int32(-1),
         #scaleDirection = cms.int32(+1),
-        efficiencySF = electronSFWP90,
+        efficiencySF = electronSFCutBasedIDMediumWP,
         efficiencySFDirection = cms.int32(0),
     ),
 
@@ -38,6 +38,7 @@ eventsTTLL = cms.EDFilter("TTLLEventSelector",
         resolDirection = cms.int32(0),
         #resolDirection = cms.int32(-1),
         #resolDirection = cms.int32(+1),
+        skipJER = cms.bool(False), # Needed for synchronization
     ),
 
     met = cms.PSet(
@@ -56,12 +57,15 @@ eventsTTLL = cms.EDFilter("TTLLEventSelector",
         trigMUEL = cms.InputTag("filterTrigMUEL"),
         trigMUMU = cms.InputTag("filterTrigMUMU"),
         trigELEL = cms.InputTag("filterTrigELEL"),
+        ignoreTrig = cms.bool(False), # Accept event even if it does not pass HLT. Needed for synchronization
     ),
 
     # Event weights
     genWeight = cms.PSet(
         index = cms.uint32(0),
-        src = cms.InputTag("genWeight", "genWeight"),
+        src = cms.InputTag("genWeight"),
+        weightType = cms.string("nominal"), # can be PDF, scaleUp, scaleDown
     ),
+    extWeights = cms.VInputTag(),
 )
 

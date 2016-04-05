@@ -59,7 +59,7 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
   std::auto_ptr<reco::GenParticleCollection> partons(new reco::GenParticleCollection);
   auto partonRefHandle = event.getRefBeforePut<reco::GenParticleCollection>();
 
-  std::auto_ptr<int> channel(new int(CH_NONE));
+  std::auto_ptr<int> channel(new int(CH_NOTT));
   std::auto_ptr<std::vector<int> > modes(new std::vector<int>());
 
   std::auto_ptr<reco::GenJetCollection> qcdJets(new reco::GenJetCollection);
@@ -200,7 +200,7 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
         partons->at(wDauRef1.key()).addDaughter(lepRef);
       }
     }
-    int mode = 0;
+    int mode = CH_HADRON;
     switch ( abs(wDau1->pdgId()) )
     {
       case 11: ++nElectron; mode = CH_ELECTRON; break;
