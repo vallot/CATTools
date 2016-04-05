@@ -10,7 +10,7 @@ blacklist = [
 ]
 srcbase, outbase = "pass1", "pass2"
 
-jsdir = "%s/src/CATTools/CatAnalyzer/data" % os.environ["CMSSW_BASE"]
+jsdir = "%s/src/CATTools/CatAnalyzer/data/dataset" % os.environ["CMSSW_BASE"]
 
 ## Build (filesystem safe) title -> dataset info list mapping
 info = {}
