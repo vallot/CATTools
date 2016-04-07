@@ -21,14 +21,16 @@ class CATDstarAnalyzer : public dileptonCommon {
     //void endLuminosityBlock(const edm::LuminosityBlock&, const edm::EventSetup&) override {};
 
     std::vector<bool> b_d0_true, b_d0_fit;
+    std::vector<int> b_d0_trackQuality;
     //std::vector<float> b_d0_pt, b_d0_eta, b_d0_phi, b_d0_m;
-    std::vector<float> b_d0_LXY, b_d0_L3D, b_d0_dRTrue, b_d0_relPtTrue, b_d0_dca;
+    std::vector<float> b_d0_LXY, b_d0_L3D, b_d0_vProb, b_d0_dRTrue, b_d0_relPtTrue, b_d0_dca;
     std::vector<float> b_d0_dau1_q;
     std::vector<float> b_d0_dau2_q;
 
     std::vector<bool> b_dstar_true, b_dstar_fit;
+    std::vector<int> b_dstar_trackQuality;
     //std::vector<float> b_dstar_pt, b_dstar_eta, b_dstar_phi, b_dstar_m;
-    std::vector<float> b_dstar_q, b_dstar_LXY, b_dstar_L3D, b_dstar_dRTrue, b_dstar_relPtTrue, b_dstar_dca, b_dstar_dca2, b_dstar_dca3;
+    std::vector<float> b_dstar_q, b_dstar_LXY, b_dstar_L3D, b_dstar_vProb, b_dstar_dRTrue, b_dstar_relPtTrue, b_dstar_dca, b_dstar_dca2, b_dstar_dca3, b_dstar_diffMass;
     std::vector<float> b_dstar_dau1_q;
     std::vector<float> b_dstar_dau2_q;
     std::vector<float> b_dstar_dau3_q;
@@ -64,6 +66,9 @@ void CATDstarAnalyzer::setBranchCustom(TTree* tr, int sys) {
 
   tr->Branch("d0_L3D","std::vector<float>",&b_d0_L3D);
   tr->Branch("d0_LXY","std::vector<float>",&b_d0_LXY);
+  tr->Branch("d0_vProb","std::vector<float>",&b_d0_vProb);
+  tr->Branch("d0_trackQuality","std::vector<int>",&b_d0_trackQuality);
+
   tr->Branch("d0_dRTrue","std::vector<float>",&b_d0_dRTrue);
   tr->Branch("d0_relPtTrue","std::vector<float>",&b_d0_relPtTrue);
   tr->Branch("d0_dca","std::vector<float>",&b_d0_dca);
@@ -82,8 +87,14 @@ void CATDstarAnalyzer::setBranchCustom(TTree* tr, int sys) {
   tr->Branch("dstar_fit","std::vector<bool>",&b_dstar_fit);
   tr->Branch("dstar_L3D","std::vector<float>",&b_dstar_L3D);
   tr->Branch("dstar_LXY","std::vector<float>",&b_dstar_LXY);
+  tr->Branch("dstar_vProb","std::vector<float>",&b_dstar_vProb);
+  tr->Branch("dstar_trackQuality","std::vector<int>",&b_dstar_trackQuality);
+
+  tr->Branch("dstar_diffMass","std::vector<float>",&b_dstar_diffMass);
+
   tr->Branch("dstar_dRTrue","std::vector<float>",&b_dstar_dRTrue);
   tr->Branch("dstar_relPtTrue","std::vector<float>",&b_dstar_relPtTrue);
+
   tr->Branch("dstar_dca","std::vector<float>",&b_dstar_dca);
   tr->Branch("dstar_dca2","std::vector<float>",&b_dstar_dca2);
   tr->Branch("dstar_dca3","std::vector<float>",&b_dstar_dca3);
@@ -198,11 +209,13 @@ void CATDstarAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventS
       b_d0_fit.push_back(true);
       b_d0_L3D.push_back( x.l3D());
       b_d0_LXY.push_back( x.lxy());
+      b_d0_vProb.push_back(d0_vProb);
     }
     else {
       b_d0_fit.push_back(false);
       b_d0_L3D.push_back( -9 );
       b_d0_LXY.push_back( -9 );
+      b_d0_vProb.push_back(-9);
     }        
 
     shared_ptr<TLorentzVector> genMatched = mcMatching( gen_d0s, d0_tlv ); 
@@ -217,17 +230,20 @@ void CATDstarAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventS
       b_d0_relPtTrue.push_back(-9);
     }
     
-
+    b_d0_trackQuality.push_back( x.trackQuality1() + x.trackQuality2());
     b_d0_dau1_q.push_back  ( x.daughter(0)->charge());
     b_d0_dau2_q.push_back  ( x.daughter(1)->charge());
   }
   for( auto& x : *dstars) {
     dstar_count++;
     auto dstar_tlv = ToTLorentzVector(x);
+    TLorentzVector dstar_dau1 = ToTLorentzVector(*(x.daughter(0)));
+    TLorentzVector dstar_dau2 = ToTLorentzVector(*(x.daughter(1)));
+    TLorentzVector dstar_dau3 = ToTLorentzVector(*(x.daughter(2)));
     new( br_dstar[dstar_count]) TLorentzVector( dstar_tlv );
-    new( br_dstar_dau1[dstar_count]) TLorentzVector(ToTLorentzVector(*(x.daughter(0)))); 
-    new( br_dstar_dau2[dstar_count]) TLorentzVector(ToTLorentzVector(*(x.daughter(1))));
-    new( br_dstar_dau3[dstar_count]) TLorentzVector(ToTLorentzVector(*(x.daughter(2))));
+    new( br_dstar_dau1[dstar_count]) TLorentzVector( dstar_dau1 ); 
+    new( br_dstar_dau2[dstar_count]) TLorentzVector( dstar_dau2 );
+    new( br_dstar_dau3[dstar_count]) TLorentzVector( dstar_dau3 );
 
     b_dstar_dca.push_back( x.dca());
     b_dstar_dca2.push_back( x.dca(1));
@@ -238,11 +254,13 @@ void CATDstarAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventS
       b_dstar_fit.push_back(true);
       b_dstar_L3D.push_back( x.l3D());
       b_dstar_LXY.push_back( x.lxy());
+      b_dstar_vProb.push_back( dstar_vProb);
     }
     else {
       b_dstar_fit.push_back(false);
       b_dstar_L3D.push_back( -9 );
       b_dstar_LXY.push_back( -9 );
+      b_dstar_vProb.push_back( -9);
     }
     shared_ptr<TLorentzVector> genMatched = mcMatching( gen_dstars, dstar_tlv ); 
     if ( genMatched != nullptr) {
@@ -257,11 +275,17 @@ void CATDstarAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventS
     }
 
 
+    b_dstar_trackQuality.push_back( x.trackQuality1() + x.trackQuality2());
     b_dstar_dau1_q.push_back  ( x.daughter(0)->charge());
 
     b_dstar_dau2_q.push_back  ( x.daughter(1)->charge());
 
     b_dstar_dau3_q.push_back  ( x.daughter(2)->charge());
+    
+    float diffMass = (dstar_dau1+dstar_dau2+dstar_dau3).M() - (dstar_dau1+dstar_dau2).M();
+    
+    b_dstar_diffMass.push_back( diffMass);
+
   }
 
 }
@@ -273,9 +297,17 @@ void CATDstarAnalyzer::resetBrCustom()
 
 
   b_d0_true.clear() ; 
-  b_d0_LXY.clear(); b_d0_L3D.clear(); b_d0_fit.clear(); b_d0_dRTrue.clear(); b_d0_relPtTrue.clear(); b_d0_dca.clear();
+  b_d0_LXY.clear(); b_d0_L3D.clear(); b_d0_vProb.clear(); 
+  b_d0_fit.clear(); b_d0_dRTrue.clear(); b_d0_relPtTrue.clear(); 
+  b_d0_dca.clear();
+  b_d0_trackQuality.clear();
+
   b_dstar_true.clear(); 
-  b_dstar_LXY.clear(); b_dstar_L3D.clear(); b_dstar_fit.clear(); b_dstar_dRTrue.clear(); b_dstar_relPtTrue.clear(); b_dstar_dca.clear(); b_dstar_dca2.clear(); b_dstar_dca3.clear();
+  b_dstar_LXY.clear(); b_dstar_L3D.clear(); b_dstar_vProb.clear(); 
+  b_dstar_fit.clear(); b_dstar_dRTrue.clear(); b_dstar_relPtTrue.clear(); 
+  b_dstar_dca.clear(); b_dstar_dca2.clear(); b_dstar_dca3.clear();
+  b_dstar_diffMass.clear();
+  b_dstar_trackQuality.clear();
 
   b_d0_dau1_q.clear();
   b_d0_dau2_q.clear();
