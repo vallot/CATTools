@@ -12,28 +12,30 @@ class CATDstarAnalyzer : public dileptonCommon {
     ~CATDstarAnalyzer();
 
   private:
-    shared_ptr<TLorentzVector> mcMatching( vector<TLorentzVector>& , TLorentzVector& ) ; 
+    reco::GenParticle* mcMatching( vector<reco::GenParticle>& ,  const reco::Candidate* ) ; 
     virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
     virtual void analyzeCustom(const edm::Event& iEvent, const edm::EventSetup& iSetup, int sys) final;   // "final" keyword to prevent inherited
     virtual void setBranchCustom(TTree* tr, int sys) final;
     virtual void resetBrCustom() final;
+    virtual int isFromB(const reco::Candidate* p);
+    virtual int isFromTop(const reco::Candidate*  p);
     //void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&) override;
     //void endLuminosityBlock(const edm::LuminosityBlock&, const edm::EventSetup&) override {};
 
     std::vector<bool> b_d0_true, b_d0_fit;
-    std::vector<int> b_d0_trackQuality;
-    //std::vector<float> b_d0_pt, b_d0_eta, b_d0_phi, b_d0_m;
+    std::vector<int> b_d0_trackQuality, b_d0_isFromB, b_d0_isFromTop;
     std::vector<float> b_d0_LXY, b_d0_L3D, b_d0_vProb, b_d0_dRTrue, b_d0_relPtTrue, b_d0_dca;
     std::vector<float> b_d0_dau1_q;
     std::vector<float> b_d0_dau2_q;
 
     std::vector<bool> b_dstar_true, b_dstar_fit;
-    std::vector<int> b_dstar_trackQuality;
-    //std::vector<float> b_dstar_pt, b_dstar_eta, b_dstar_phi, b_dstar_m;
+    std::vector<int> b_dstar_trackQuality, b_dstar_isFromB, b_dstar_isFromTop;
     std::vector<float> b_dstar_q, b_dstar_LXY, b_dstar_L3D, b_dstar_vProb, b_dstar_dRTrue, b_dstar_relPtTrue, b_dstar_dca, b_dstar_dca2, b_dstar_dca3, b_dstar_diffMass;
     std::vector<float> b_dstar_dau1_q;
     std::vector<float> b_dstar_dau2_q;
     std::vector<float> b_dstar_dau3_q;
+
+    std::vector<float> b_dstar_lepSV_lowM1, b_dstar_lepSV_lowM2, b_dstar_lepSV_dRM1, b_dstar_lepSV_dRM2, b_dstar_lepSV_correctM, b_dstar_lepSV_wrongM;
 
     TClonesArray *b_d0,    *b_d0_dau1,    *b_d0_dau2; 
     TClonesArray *b_dstar, *b_dstar_dau1, *b_dstar_dau2, *b_dstar_dau3; 
@@ -57,6 +59,7 @@ void CATDstarAnalyzer::setBranchCustom(TTree* tr, int sys) {
   b_dstar_dau2   = new TClonesArray("TLorentzVector",100);
   b_dstar_dau3   = new TClonesArray("TLorentzVector",100);
 
+
   tr->Branch("d0","TClonesArray",&b_d0,32000,0);
   tr->Branch("d0_dau1","TClonesArray",&b_d0_dau1,32000,0);
   tr->Branch("d0_dau2","TClonesArray",&b_d0_dau2,32000,0);
@@ -76,6 +79,8 @@ void CATDstarAnalyzer::setBranchCustom(TTree* tr, int sys) {
   tr->Branch("d0_dau1_q","std::vector<float>",&b_d0_dau1_q);
 
   tr->Branch("d0_dau2_q","std::vector<float>",&b_d0_dau2_q);
+  tr->Branch("d0_isFromB","std::vector<int>",&b_d0_isFromB);
+  tr->Branch("d0_isFromTop","std::vector<int>",&b_d0_isFromTop);
 
 
   tr->Branch("dstar",    "TClonesArray",&b_dstar    ,32000,0);
@@ -100,10 +105,19 @@ void CATDstarAnalyzer::setBranchCustom(TTree* tr, int sys) {
   tr->Branch("dstar_dca3","std::vector<float>",&b_dstar_dca3);
 
   tr->Branch("dstar_dau1_q","std::vector<float>",&b_dstar_dau1_q);
-
   tr->Branch("dstar_dau2_q","std::vector<float>",&b_dstar_dau2_q);
-
   tr->Branch("dstar_dau3_q","std::vector<float>",&b_dstar_dau3_q);
+
+  tr->Branch("dstar_lepSV_lowM1","std::vector<float>",&b_dstar_lepSV_lowM1);
+  tr->Branch("dstar_lepSV_lowM2","std::vector<float>",&b_dstar_lepSV_lowM2);
+  tr->Branch("dstar_lepSV_dRM1","std::vector<float>",&b_dstar_lepSV_dRM1);
+  tr->Branch("dstar_lepSV_dRM2","std::vector<float>",&b_dstar_lepSV_dRM2);
+
+  tr->Branch("dstar_lepSV_correctM","std::vector<float>",&b_dstar_lepSV_correctM);
+  tr->Branch("dstar_lepSV_wrongM","std::vector<float>",&b_dstar_lepSV_wrongM);
+
+  tr->Branch("dstar_isFromB","std::vector<int>",&b_dstar_isFromB);
+  tr->Branch("dstar_isFromTop","std::vector<int>",&b_dstar_isFromTop);
 
 }
 
@@ -128,19 +142,51 @@ CATDstarAnalyzer::~CATDstarAnalyzer()
 
 }
 
-shared_ptr<TLorentzVector> CATDstarAnalyzer::mcMatching( vector<TLorentzVector>& aGens, TLorentzVector& aReco) {
+reco::GenParticle* CATDstarAnalyzer::mcMatching( vector<reco::GenParticle>& aGens, const reco::Candidate* aReco) {
   float minDR= 999.;
   //float minRelPt = 1.0;
-  shared_ptr<TLorentzVector> matchedGen;
+  reco::GenParticle* matchedGen=nullptr;
   for( auto& aGen : aGens ) {
-    float deltaR = aGen.DeltaR(aReco);
-    if ( deltaR < minDR ) { matchedGen=make_shared<TLorentzVector>(aGen); minDR = deltaR; }
+    float deltaR = reco::deltaR(aGen, *aReco );
+    if ( deltaR < minDR ) { matchedGen=&aGen; minDR = deltaR; }
   }
   if ( minDR < matchingDeltaR_ ) {
     return matchedGen;
   }
   return nullptr;
 }
+
+int CATDstarAnalyzer::isFromTop( const reco::Candidate* p)
+{
+  if ( !p ) return 0;
+
+  for ( size_t i=0, n=p->numberOfMothers(); i<n; ++i ) {
+    const auto m = p->mother(i);
+    if ( !m ) continue;
+    if ( std::abs(m->pdgId()) == 6 ) return m->pdgId();
+    int mm = isFromTop( m ) ;
+    if ( abs(mm)>0 ) return mm;
+  }
+
+  return 0;
+}
+
+int CATDstarAnalyzer::isFromB( const reco::Candidate* p)
+{
+  if ( !p ) return 0;
+
+  for ( size_t i=0, n=p->numberOfMothers(); i<n; ++i ) {
+    const auto m = p->mother(i);
+    if ( !m ) continue;
+    if ( std::abs(m->pdgId()) == 5 ) return m->pdgId();
+    int mm = isFromB( m );
+    if ( abs(mm)>0 ) return mm;
+  }
+
+  return 0;
+}
+
+
 
 
 void CATDstarAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -170,16 +216,16 @@ void CATDstarAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventS
   edm::Handle<cat::SecVertexCollection> dstars;    iEvent.getByToken(dstarToken_,dstars);
 
 
-  vector<TLorentzVector> gen_d0s;
-  vector<TLorentzVector> gen_dstars;
+  vector<reco::GenParticle> gen_d0s;
+  vector<reco::GenParticle> gen_dstars;
   edm::Handle<edm::View<reco::GenParticle> > mcHandle;
  
   if ( runOnMC ) { 
     iEvent.getByToken(mcSrc_, mcHandle);
     for( const auto& aGenParticle : *mcHandle) {
       //If genParticle is D0,
-      if ( std::abs(aGenParticle.pdgId()) == 421 )       gen_d0s.push_back( ToTLorentzVector(aGenParticle));  
-      else if ( std::abs(aGenParticle.pdgId()) ==  413 ) gen_dstars.push_back( ToTLorentzVector(aGenParticle));
+      if ( std::abs(aGenParticle.pdgId()) == 421 )       gen_d0s.push_back( aGenParticle);  
+      else if ( std::abs(aGenParticle.pdgId()) ==  413 ) gen_dstars.push_back( aGenParticle);
     } 
   }
 
@@ -197,15 +243,21 @@ void CATDstarAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventS
 
   for( auto& x : *d0s) {
     d0_count++; 
-
     auto d0_tlv = ToTLorentzVector(x);
+    bool duplicated = false;
+    for ( int i=0 ; i<d0_count ; i++) {
+      TLorentzVector* past_d0 = dynamic_cast<TLorentzVector*>(br_d0.At(i));
+      if ( past_d0->DeltaR( d0_tlv) < 0.05 && abs(past_d0->Pt() - d0_tlv.Pt())/d0_tlv.Pt()<0.05  ) duplicated = true;
+    }
+    if ( duplicated) { d0_count--; continue; }
+
     new( br_d0[d0_count]) TLorentzVector(d0_tlv);
     new( br_d0_dau1[d0_count]) TLorentzVector(ToTLorentzVector(*(x.daughter(0)))); 
     new( br_d0_dau2[d0_count]) TLorentzVector(ToTLorentzVector(*(x.daughter(1))));
     b_d0_dca.push_back( x.dca());
 
     double d0_vProb = x.vProb();
-    if ( abs( d0_vProb ) > 1e-5 ) {
+    if ( abs( d0_vProb ) > 1e-5 && abs( d0_vProb)<1e5 ) {
       b_d0_fit.push_back(true);
       b_d0_L3D.push_back( x.l3D());
       b_d0_LXY.push_back( x.lxy());
@@ -218,16 +270,20 @@ void CATDstarAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventS
       b_d0_vProb.push_back(-9);
     }        
 
-    shared_ptr<TLorentzVector> genMatched = mcMatching( gen_d0s, d0_tlv ); 
+    reco::GenParticle* genMatched = mcMatching( gen_d0s, &x ); 
     if ( genMatched != nullptr) {
       b_d0_true.push_back( true );
-      b_d0_dRTrue.push_back( genMatched->DeltaR( d0_tlv ));
-      b_d0_relPtTrue.push_back( (genMatched->Pt()- d0_tlv.Pt())/genMatched->Pt());
+      b_d0_dRTrue.push_back( reco::deltaR( *genMatched, x ) ); 
+      b_d0_relPtTrue.push_back( (genMatched->pt()- d0_tlv.Pt())/genMatched->pt());
+      b_d0_isFromB.push_back( isFromB(genMatched));
+      b_d0_isFromTop.push_back( isFromTop(genMatched));
     }
     else {
       b_d0_true.push_back( false );
       b_d0_dRTrue.push_back( -9);
       b_d0_relPtTrue.push_back(-9);
+      b_d0_isFromB.push_back( -9 );
+      b_d0_isFromTop.push_back( -9 );
     }
     
     b_d0_trackQuality.push_back( x.trackQuality1() + x.trackQuality2());
@@ -237,6 +293,16 @@ void CATDstarAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventS
   for( auto& x : *dstars) {
     dstar_count++;
     auto dstar_tlv = ToTLorentzVector(x);
+    bool duplicated = false;
+    for ( int i=0 ; i<dstar_count ; i++) {
+      TLorentzVector* past_dstar = dynamic_cast<TLorentzVector*>(br_dstar.At(i));
+      if ( past_dstar->DeltaR( dstar_tlv) < 0.05 && abs(past_dstar->Pt() - dstar_tlv.Pt())/dstar_tlv.Pt()<0.05  ) duplicated = true;
+    }
+    if ( duplicated) { dstar_count--; continue; }
+
+    auto lep1_dstar_tlv = b_lep1+dstar_tlv;
+    auto lep2_dstar_tlv = b_lep2+dstar_tlv;
+
     TLorentzVector dstar_dau1 = ToTLorentzVector(*(x.daughter(0)));
     TLorentzVector dstar_dau2 = ToTLorentzVector(*(x.daughter(1)));
     TLorentzVector dstar_dau3 = ToTLorentzVector(*(x.daughter(2)));
@@ -250,7 +316,7 @@ void CATDstarAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventS
     b_dstar_dca3.push_back( x.dca(2));
 
     double dstar_vProb = x.vProb();
-    if ( abs( dstar_vProb) > 1e-5) {
+    if ( abs( dstar_vProb) > 1e-5 && abs( dstar_vProb)<1e5 ) {
       b_dstar_fit.push_back(true);
       b_dstar_L3D.push_back( x.l3D());
       b_dstar_LXY.push_back( x.lxy());
@@ -262,16 +328,34 @@ void CATDstarAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventS
       b_dstar_LXY.push_back( -9 );
       b_dstar_vProb.push_back( -9);
     }
-    shared_ptr<TLorentzVector> genMatched = mcMatching( gen_dstars, dstar_tlv ); 
+    reco::GenParticle* genMatched = mcMatching( gen_dstars, &x ); 
     if ( genMatched != nullptr) {
       b_dstar_true.push_back( true );
-      b_dstar_dRTrue.push_back( genMatched->DeltaR( dstar_tlv));
-      b_dstar_relPtTrue.push_back( (genMatched->Pt()- dstar_tlv.Pt())/genMatched->Pt());
+      b_dstar_dRTrue.push_back( reco::deltaR( *genMatched, x ));
+      b_dstar_relPtTrue.push_back( (genMatched->pt()- dstar_tlv.Pt())/genMatched->pt());
+      b_dstar_isFromB.push_back( isFromB(genMatched) );
+      b_dstar_isFromTop.push_back( isFromTop(genMatched));
+      if ( abs(isFromTop(genMatched))==6 && isFromTop(genMatched)*b_lep1_pid<0 ) {
+        b_dstar_lepSV_correctM.push_back( lep1_dstar_tlv.M());
+        b_dstar_lepSV_wrongM.push_back( lep2_dstar_tlv.M());
+      }
+      else if( abs(isFromTop(genMatched))==6 && isFromTop(genMatched)*b_lep1_pid>0){
+        b_dstar_lepSV_correctM.push_back( lep2_dstar_tlv.M());
+        b_dstar_lepSV_wrongM.push_back( lep1_dstar_tlv.M());
+      }
+      else {
+        b_dstar_lepSV_correctM.push_back( -9 );
+        b_dstar_lepSV_wrongM.push_back( -9 );
+      }
     }
     else {
       b_dstar_true.push_back( false );
       b_dstar_dRTrue.push_back( -9);
       b_dstar_relPtTrue.push_back(-9);
+      b_dstar_isFromB.push_back( -9 );
+      b_dstar_isFromTop.push_back( -9 );
+      b_dstar_lepSV_correctM.push_back( -9 );
+      b_dstar_lepSV_wrongM.push_back( -9 );
     }
 
 
@@ -286,7 +370,28 @@ void CATDstarAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventS
     
     b_dstar_diffMass.push_back( diffMass);
 
+
+    if ( b_lep1.DeltaR( dstar_tlv)< b_lep2.DeltaR( dstar_tlv)) {
+      b_dstar_lepSV_dRM1.push_back( lep1_dstar_tlv.M());
+      b_dstar_lepSV_dRM2.push_back( lep2_dstar_tlv.M());
+    }
+    else { 
+      b_dstar_lepSV_dRM1.push_back( lep2_dstar_tlv.M());
+      b_dstar_lepSV_dRM2.push_back( lep1_dstar_tlv.M());
+    }
+  
+    if ( lep1_dstar_tlv.M()< lep2_dstar_tlv.M() ) { 
+      b_dstar_lepSV_lowM1.push_back( lep1_dstar_tlv.M());
+      b_dstar_lepSV_lowM2.push_back( lep2_dstar_tlv.M());
+    }
+    else { 
+      b_dstar_lepSV_lowM1.push_back( lep2_dstar_tlv.M());
+      b_dstar_lepSV_lowM2.push_back( lep1_dstar_tlv.M());
+    }
+      
+
   }
+  std::cout<<"d0 count : "<<d0_count<<"  dstar count : "<<dstar_count<<std::endl;
 
 }
 
@@ -300,14 +405,14 @@ void CATDstarAnalyzer::resetBrCustom()
   b_d0_LXY.clear(); b_d0_L3D.clear(); b_d0_vProb.clear(); 
   b_d0_fit.clear(); b_d0_dRTrue.clear(); b_d0_relPtTrue.clear(); 
   b_d0_dca.clear();
-  b_d0_trackQuality.clear();
+  b_d0_trackQuality.clear(); b_d0_isFromB.clear(); b_d0_isFromTop.clear();
 
   b_dstar_true.clear(); 
   b_dstar_LXY.clear(); b_dstar_L3D.clear(); b_dstar_vProb.clear(); 
   b_dstar_fit.clear(); b_dstar_dRTrue.clear(); b_dstar_relPtTrue.clear(); 
   b_dstar_dca.clear(); b_dstar_dca2.clear(); b_dstar_dca3.clear();
   b_dstar_diffMass.clear();
-  b_dstar_trackQuality.clear();
+  b_dstar_trackQuality.clear(); b_dstar_isFromB.clear(); b_dstar_isFromTop.clear();
 
   b_d0_dau1_q.clear();
   b_d0_dau2_q.clear();
@@ -316,6 +421,13 @@ void CATDstarAnalyzer::resetBrCustom()
   b_dstar_dau2_q.clear();
   b_dstar_dau3_q.clear();
 
+  b_dstar_lepSV_lowM1.clear();
+  b_dstar_lepSV_lowM2.clear();
+  b_dstar_lepSV_dRM1.clear();
+  b_dstar_lepSV_dRM2.clear();
+
+  b_dstar_lepSV_correctM.clear();
+  b_dstar_lepSV_wrongM.clear();
 
 }
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-inputfile="../cattools/cattree_TT_powheg.root"
+inputfile="../cattools/20160414/cattree_TT_powheg.root"
 
 
 
@@ -12,50 +12,63 @@ import numpy as np
 file = TFile.Open(inputfile)
 tree = file.Get("cattree/nom")
 totEvent = tree.GetEntries()
-out = TFile("d0.root","RECREATE")
+out = TFile("dstar.root","RECREATE")
 
-ntuple  = TNtuple("nt","nt",  "pt:eta:mass:vProb:LXY:L3D:DCA:trackQuality/I:lep1DR:lep2DR:lepMinDRMass/I:lepLowMass/I:correctM/I")
-ntuple2 = TNtuple("nt2","nt2","step/I:pt:eta:phi:mass:dR:relPt:vProb:LXY:L3D:DCA:isFromB:isFromTop:trackQuality")
+ntuple0  = TNtuple("nt0","nt0",  "step:pt:eta:phi:mass:dR:relPt:vProb:LXY:L3D:DCA:isFromB:isFromTop:trackQuality")
+ntuple1  = TNtuple("nt1","nt1",  "pt:eta:mass:vProb:LXY:L3D:DCA:trackQuality:lep1DR:lep2DR:lepMinDRMass:lepLowMass:correctM")
+ntuple2  = TNtuple("nt2","nt2",  "pt:eta:mass:vProb:LXY:L3D:DCA:trackQuality:lep1DR:lep2DR:lepMaxDRMass:lepHighMass:WrongM")
 
 for idx, t in enumerate(tree) :
   print idx,totEvent
   if ( t.step<5 ) : continue
-  for d0_idx, d0 in enumerate(t.d0) :
-    lepMinDRMass1 = -9
-    lepMinDRMass2 = -9
-    lepLowMass1 = -9
-    lepLowMass2 = -9
+  for dstar_idx, dstar in enumerate(t.dstar) :
+    lepMinDRMass = -9
+    lepMaxDRMass = -9
+    lepLowMass  = -9
+    lepHighMass = -9
     correctM = -9
     wrongM = -9
 
-    lep1DR = t.lep1.DeltaR(d0)
-    lep2DR = t.lep1.DeltaR(d0)
+    lep1DR = t.lep1.DeltaR(dstar)
+    lep2DR = t.lep1.DeltaR(dstar)
 
-    lep1_M = (t.lep1+d0).M()
-    lep2_M = (t.lep2+d0).M()
+    lep1_M = (t.lep1+dstar).M()
+    lep2_M = (t.lep2+dstar).M()
+    print idx,"dstar pt,eta,phi,M",dstar.Pt(),dstar.Eta,dstar.Phi,dstar.M()
     if ( lep1DR < lep2DR) :
-      lepMinDRMass = 1 
+      lepMinDRMass = lep1_M 
+      lepMaxDRMass = lep2_M 
     else :
-      lepMinDRMass = 2
+      lepMinDRMass = lep2_M
+      lepMaxDRMass = lep1_M 
 
     if ( lep1_M< lep2_M) :
-      lepLowMass = 1
+      lepLowMass  = lep1_M
+      lepHighMass = lep2_M
     else :
-      lepLowMass = 2
+      lepLowMass  = lep2_M
+      lepHighMass = lep1_M
 
-    if ( t.d0_isFromTop[d0_idx] ==6 ) :
+    if ( t.dstar_isFromTop[dstar_idx] ==6 ) :
       if ( t.lep1_pid <0 ) :
-        correctM = 1
+        correctM = lep1_M
+        wrongM = lep2_M
       else :
-        correctM = 2
-    elif (t.d0_isFromTop[d0_idx] == -6 ) :
+        correctM = lep2_M
+        wrongM = lep1_M
+    elif (t.dstar_isFromTop[dstar_idx] == -6 ) :
       if ( t.lep1_pid>0 ) :
-        correctM = 1
+        correctM = lep1_M
+        wrongM = lep2_M
       else :
-        wrongM = 2 
+        correctM = lep2_M 
+        wrongM = lep1_M
        
-    ntuple.Fill( d0.Pt(), d0.Eta(), d0.M(), t.d0_vProb[d0_idx], t.d0_LXY[d0_idx], t.d0_L3D[d0_idx], t.d0_dca[d0_idx],t.d0_trackQuality[d0_idx], lep1DR, lep2DR, lepMinDRMass, lepLowMass, correctM) 
-    ntuple2.Fill(t.step, d0.Pt(), d0.Eta(), d0.Phi(), d0.M(), t.d0_dRTrue[d0_idx], t.d0_relPtTrue[d0_idx], t.d0_vProb[d0_idx], t.d0_LXY[d0_idx], t.d0_L3D[d0_idx], t.d0_dca[d0_idx],t.d0_isFromB[d0_idx], t.d0_isFromTop[d0_idx], t.d0_trackQuality[d0_idx])
-ntuple.Write()
+    ntuple0.Fill(t.step, dstar.Pt(), dstar.Eta(), dstar.Phi(), dstar.M(), t.dstar_dRTrue[dstar_idx], t.dstar_relPtTrue[dstar_idx], t.dstar_vProb[dstar_idx], t.dstar_LXY[dstar_idx], t.dstar_L3D[dstar_idx], t.dstar_dca[dstar_idx],t.dstar_isFromB[dstar_idx], t.dstar_isFromTop[dstar_idx], t.dstar_trackQuality[dstar_idx])
+    ntuple1.Fill( dstar.Pt(), dstar.Eta(), dstar.M(), t.dstar_vProb[dstar_idx], t.dstar_LXY[dstar_idx], t.dstar_L3D[dstar_idx], t.dstar_dca[dstar_idx],t.dstar_trackQuality[dstar_idx], lep1DR, lep2DR, lepMinDRMass, lepLowMass, correctM) 
+    ntuple2.Fill( dstar.Pt(), dstar.Eta(), dstar.M(), t.dstar_vProb[dstar_idx], t.dstar_LXY[dstar_idx], t.dstar_L3D[dstar_idx], t.dstar_dca[dstar_idx],t.dstar_trackQuality[dstar_idx], lep1DR, lep2DR, lepMaxDRMass, lepHighMass, wrongM) 
+ntuple0.Write()
+ntuple1.Write()
+ntuple2.Write()
 out.Close()
 file.Close()
