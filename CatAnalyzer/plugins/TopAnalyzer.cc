@@ -62,7 +62,7 @@ class TopAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
 
       TTree * tree;
       TH1F * tmp;
- 
+
       int EVENT;
       int RUN;
       int LUMI;
@@ -227,6 +227,8 @@ TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    using namespace edm;
    using namespace reco;
    using namespace cat;
+
+   tmp->Fill(0); 
 
    clear();
  
@@ -463,13 +465,13 @@ void
 TopAnalyzer::clear(){
 
   PUWeight = 1.0;
-  NVertex = 0;
-  NMuon = 0;
-  NLooseMuon = 0;
-  NElectron = 0;
-  NLooseElectron = 0;
-  NJet = 0;
-  NBJet = 0;
+  NVertex = -1;
+  NMuon = -1;
+  NLooseMuon = -1;
+  NElectron = -1;
+  NLooseElectron = -1;
+  NJet = -1;
+  NBJet = -1;
   DiLeptonic = -1;
   SemiLeptonic = -1;
 
@@ -526,6 +528,8 @@ double TopAnalyzer::transverseMass( const reco::Candidate::LorentzVector& lepton
 void 
 TopAnalyzer::endJob() 
 {
+
+
 }
 
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
