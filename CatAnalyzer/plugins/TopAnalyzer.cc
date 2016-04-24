@@ -116,7 +116,7 @@ class TopAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
       int NJet;
      
       float Jet_Pt[100];
-      float * Jet_Eta = new float[100];
+      float Jet_Eta[100];
       float Jet_Phi[100];
       float Jet_E[100];
       float Jet_BTag[100];
@@ -188,6 +188,8 @@ TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    using namespace reco;
    using namespace cat;
 
+   tmp->Fill(0);
+
    clear();
  
    EVENT  = iEvent.id().event();
@@ -197,9 +199,11 @@ TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    edm::Handle<cat::GenTopCollection> genTops;
    iEvent.getByToken(genTopToken_, genTops);
 
-   cat::GenTop catGenTop = genTops->at(0);
-   DiLeptonic = catGenTop.diLeptonic(0);
-   SemiLeptonic = catGenTop.semiLeptonic(0);
+   if( genTops.isValid() ) {
+     cat::GenTop catGenTop = genTops->at(0);
+     DiLeptonic = catGenTop.diLeptonic(0);
+     SemiLeptonic = catGenTop.semiLeptonic(0);
+   }
 
    if(!iEvent.isRealData()) {
      edm::Handle<float> PileUpWeight;
@@ -345,8 +349,9 @@ TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    iSetup.get<SetupRecord>().get(pSetup);
 #endif
 
-
-   tree->Fill();
+   if (NMuon > 0 || NElectron > 0) {
+     tree->Fill();
+   }
 
 }
 
