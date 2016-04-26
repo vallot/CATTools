@@ -2,7 +2,28 @@ import math, array, ROOT, copy, CMS_lumi, tdrstyle
 import PhysicsTools.PythonAnalysis.rootplot.core as rootplotcore
 tdrstyle.setTDRStyle()
 
+def getTH1Bins( tree, plotvar,cut ) :
+    tree.Project("th1db_dummy",plotvar,cut)
+    h1=ROOT.gDirectory.Get("th1db_dummy")
+    axis = h1.GetXaxis()
+    bins = [axis.GetNbins(), axis.GetXmin(), axis.GetXmax()]
+    print plotvar,bins
+    ROOT.gDirectory.Delete("th1db_dummy")
+    return bins
+
+def getTH2Bins( tree, plotvar,cut ) :
+    tree.Project("th2db_dummy",plotvar,cut)
+    h1=ROOT.gDirectory.Get("th2db_dummy")
+    x_axis = h1.GetXaxis()
+    y_axis = h1.GetYaxis()
+    bins = [x_axis.GetNbins(), x_axis.GetXmin(), x_axis.GetXmax(), y_axis.GetNbins(), y_axis.GetXmin(),y_axis.GetXmax() ]
+    print plotvar,bins
+    ROOT.gDirectory.Delete("th2db_dummy")
+    return bins
+
 def getTH1(title, binning, tree, plotvar, cut, scale = 0.):
+    if len(binning) == 0:
+        binning = getTH1Bins( tree, plotvar,cut)
     if len(binning) == 3:
         hist = ROOT.TH1D("name", title, binning[0], binning[1], binning[2])
     else:
@@ -15,6 +36,8 @@ def getTH1(title, binning, tree, plotvar, cut, scale = 0.):
     return copy.deepcopy(hist)
 
 def getTH2(title, binning, tree, plotvar, cut, scale = 0.):
+    if len(binning) == 0:
+        binning = getTH2Bins( tree, plotvar,cut)
     if len(binning) == 3:
         hist = ROOT.TH2D("name", title, binning[0], binning[1], binning[2], binning[0], binning[1], binning[2])
     else:
@@ -130,7 +153,7 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
     leg.SetTextFont(42)
     leg.SetLineColor(0)
     leg.SetFillColor(0)
-    leg.AddEntry(data,"Data","lp")
+    if ( data.GetEntries() !=0 ) : leg.AddEntry(data,"Data","lp")
 
     hs = ROOT.THStack("hs_%s_mc"%(name), "hs_%s_mc"%(name))
     hratio = mclist[0].Clone("hratio")
@@ -150,7 +173,10 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
 
     tdrstyle.setTDRStyle()
 
-    setDefTH1Style(data, x_name, y_name)
+    if ( data.GetEntries()!=0 ) : setDefTH1Style(data, x_name, y_name)
+    else : 
+      hs.Draw()
+      setDefTH1Style(hs, x_name, y_name)
     data.SetMaximum(data.GetMaximum()*1.8)
     if doLog:
         #data.SetMaximum(10**7)
@@ -173,10 +199,13 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
     setMargins(pads[0],doRatio)
     if doLog:
         pads[0].SetLogy()
-
-    data.Draw()
-    hs.Draw("same")
-    data.Draw("esamex0")
+    if ( data.GetEntries() != 0 ) : 
+      data.Draw()
+      hs.Draw("same")
+      data.Draw("esamex0")
+    else :
+      hs.SetMaximum( hs.GetMaximum()*1.8 )
+      hs.Draw()
     leg.Draw("same")
     pads[0].Update()
 
