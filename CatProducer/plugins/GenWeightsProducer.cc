@@ -134,8 +134,9 @@ void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
 
       const string weightTypeStr = weightTypeObj->GetValue();
       int weightType = 0;
-      if ( weightTypeStr.substr(0, 5) == "scale" ) weightType = 1;
-      else if ( weightTypeStr.substr(0, 3) == "PDF" ) weightType = 2;
+      if ( weightTypeStr.find("scale") != string::npos ) weightType = 1;
+      //else if ( weightTypeStr.substr(0, 3) == "PDF" ) weightType = 2;
+      else weightType = 2;
       int weightSize = 0;
       vstring weightParams, weightKeys;
       for ( TXMLNode* weightNode = grpNode->GetChildren(); weightNode != 0; weightNode = weightNode->GetNextNode() )
