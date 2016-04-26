@@ -28,6 +28,8 @@ class CATDstarAnalyzer : public dileptonCommon {
     std::vector<float> b_d0_dau1_q;
     std::vector<float> b_d0_dau2_q;
 
+    std::vector<float> b_d0_lepSV_lowM1, b_d0_lepSV_dRM1, b_d0_lepSV_correctM;
+
     std::vector<bool> b_dstar_true, b_dstar_fit;
     std::vector<int> b_dstar_trackQuality, b_dstar_isFromB, b_dstar_isFromTop;
     std::vector<float> b_dstar_q, b_dstar_LXY, b_dstar_L3D, b_dstar_vProb, b_dstar_dRTrue, b_dstar_relPtTrue, b_dstar_dca, b_dstar_dca2, b_dstar_dca3, b_dstar_diffMass;
@@ -35,7 +37,7 @@ class CATDstarAnalyzer : public dileptonCommon {
     std::vector<float> b_dstar_dau2_q;
     std::vector<float> b_dstar_dau3_q;
 
-    std::vector<float> b_dstar_lepSV_lowM1, b_dstar_lepSV_lowM2, b_dstar_lepSV_dRM1, b_dstar_lepSV_dRM2, b_dstar_lepSV_correctM, b_dstar_lepSV_wrongM;
+    std::vector<float> b_dstar_lepSV_lowM1, b_dstar_lepSV_lowM2, b_dstar_lepSV_dRM1, b_dstar_lepSV_dRM2, b_dstar_lepSV_correctM, b_dstar_lepSV_wrongM, b_dstar_opCharge_M;
 
     TClonesArray *b_d0,    *b_d0_dau1,    *b_d0_dau2; 
     TClonesArray *b_dstar, *b_dstar_dau1, *b_dstar_dau2, *b_dstar_dau3; 
@@ -81,6 +83,10 @@ void CATDstarAnalyzer::setBranchCustom(TTree* tr, int sys) {
   tr->Branch("d0_dau2_q","std::vector<float>",&b_d0_dau2_q);
   tr->Branch("d0_isFromB","std::vector<int>",&b_d0_isFromB);
   tr->Branch("d0_isFromTop","std::vector<int>",&b_d0_isFromTop);
+  
+  tr->Branch("d0_lepSV_lowM1","std::vector<float>",&b_d0_lepSV_lowM1);
+  tr->Branch("d0_lepSV_dRM1","std::vector<float>",&b_d0_lepSV_dRM1);
+  tr->Branch("d0_lepSV_correctM","std::vector<float>",&b_d0_lepSV_correctM);
 
 
   tr->Branch("dstar",    "TClonesArray",&b_dstar    ,32000,0);
@@ -112,6 +118,7 @@ void CATDstarAnalyzer::setBranchCustom(TTree* tr, int sys) {
   tr->Branch("dstar_lepSV_lowM2","std::vector<float>",&b_dstar_lepSV_lowM2);
   tr->Branch("dstar_lepSV_dRM1","std::vector<float>",&b_dstar_lepSV_dRM1);
   tr->Branch("dstar_lepSV_dRM2","std::vector<float>",&b_dstar_lepSV_dRM2);
+  tr->Branch("dstar_opCharge_M","std::vector<float>",&b_dstar_opCharge_M);
 
   tr->Branch("dstar_lepSV_correctM","std::vector<float>",&b_dstar_lepSV_correctM);
   tr->Branch("dstar_lepSV_wrongM","std::vector<float>",&b_dstar_lepSV_wrongM);
@@ -241,6 +248,7 @@ void CATDstarAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventS
   TClonesArray& br_dstar_dau2 = *b_dstar_dau2;
   TClonesArray& br_dstar_dau3 = *b_dstar_dau3;
 
+  bool checkDuplicate= false;
   for( auto& x : *d0s) {
     d0_count++; 
     auto d0_tlv = ToTLorentzVector(x);
@@ -249,7 +257,29 @@ void CATDstarAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventS
       TLorentzVector* past_d0 = dynamic_cast<TLorentzVector*>(br_d0.At(i));
       if ( past_d0->DeltaR( d0_tlv) < 0.05 && abs(past_d0->Pt() - d0_tlv.Pt())/d0_tlv.Pt()<0.05  ) duplicated = true;
     }
-    if ( duplicated) { d0_count--; continue; }
+    if ( checkDuplicate && duplicated) { d0_count--; continue; }
+
+    auto lep1_d0_tlv = b_lep1+d0_tlv;
+    auto lep2_d0_tlv = b_lep2+d0_tlv;
+
+    if ( b_lep1.DeltaR( d0_tlv)< b_lep2.DeltaR( d0_tlv)) {
+      b_d0_lepSV_dRM1.push_back( lep1_d0_tlv.M());
+      //b_d0_lepSV_dRM2.push_back( lep2_d0_tlv.M());
+    }
+    else { 
+      b_d0_lepSV_dRM1.push_back( lep2_d0_tlv.M());
+      //b_d0_lepSV_dRM2.push_back( lep1_d0_tlv.M());
+    }
+  
+    if ( lep1_d0_tlv.M()< lep2_d0_tlv.M() ) { 
+      b_d0_lepSV_lowM1.push_back( lep1_d0_tlv.M());
+      //b_d0_lepSV_lowM2.push_back( lep2_d0_tlv.M());
+    }
+    else { 
+      b_d0_lepSV_lowM1.push_back( lep2_d0_tlv.M());
+      //b_d0_lepSV_lowM2.push_back( lep1_d0_tlv.M());
+    }
+    b_d0_lepSV_correctM.push_back(-9);
 
     new( br_d0[d0_count]) TLorentzVector(d0_tlv);
     new( br_d0_dau1[d0_count]) TLorentzVector(ToTLorentzVector(*(x.daughter(0)))); 
@@ -298,7 +328,7 @@ void CATDstarAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventS
       TLorentzVector* past_dstar = dynamic_cast<TLorentzVector*>(br_dstar.At(i));
       if ( past_dstar->DeltaR( dstar_tlv) < 0.05 && abs(past_dstar->Pt() - dstar_tlv.Pt())/dstar_tlv.Pt()<0.05  ) duplicated = true;
     }
-    if ( duplicated) { dstar_count--; continue; }
+    if ( checkDuplicate && duplicated) { dstar_count--; continue; }
 
     auto lep1_dstar_tlv = b_lep1+dstar_tlv;
     auto lep2_dstar_tlv = b_lep2+dstar_tlv;
@@ -370,7 +400,13 @@ void CATDstarAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventS
     
     b_dstar_diffMass.push_back( diffMass);
 
-
+    // +pid = minus charge, +pid * + charge  == opposite sign
+    if ( b_lep1_pid*x.daughter(2)->charge() > 0 ) {
+      b_dstar_opCharge_M.push_back( lep1_dstar_tlv.M());
+    }
+    else {
+      b_dstar_opCharge_M.push_back( lep2_dstar_tlv.M());
+    }
     if ( b_lep1.DeltaR( dstar_tlv)< b_lep2.DeltaR( dstar_tlv)) {
       b_dstar_lepSV_dRM1.push_back( lep1_dstar_tlv.M());
       b_dstar_lepSV_dRM2.push_back( lep2_dstar_tlv.M());
@@ -391,7 +427,7 @@ void CATDstarAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventS
       
 
   }
-  std::cout<<"d0 count : "<<d0_count<<"  dstar count : "<<dstar_count<<std::endl;
+  //std::cout<<"d0 count : "<<d0_count<<"  dstar count : "<<dstar_count<<std::endl;
 
 }
 
@@ -406,6 +442,10 @@ void CATDstarAnalyzer::resetBrCustom()
   b_d0_fit.clear(); b_d0_dRTrue.clear(); b_d0_relPtTrue.clear(); 
   b_d0_dca.clear();
   b_d0_trackQuality.clear(); b_d0_isFromB.clear(); b_d0_isFromTop.clear();
+
+  b_d0_lepSV_lowM1.clear();
+  b_d0_lepSV_dRM1.clear();
+  b_d0_lepSV_correctM.clear();
 
   b_dstar_true.clear(); 
   b_dstar_LXY.clear(); b_dstar_L3D.clear(); b_dstar_vProb.clear(); 
@@ -429,6 +469,7 @@ void CATDstarAnalyzer::resetBrCustom()
   b_dstar_lepSV_correctM.clear();
   b_dstar_lepSV_wrongM.clear();
 
+  b_dstar_opCharge_M.clear();
 }
 
 //define this as a plug-in

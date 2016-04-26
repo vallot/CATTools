@@ -23,7 +23,7 @@ datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset/dataset.json
 step = 1
 channel = 1
 cut = 'tri!=0&&filtered==1'
-weight = 'genweight*puweight*mueffweight*eleffweight*tri'
+weight = 'genweight*puweight*mueffweight*eleffweight*tri*topPtWeight'
 binning = [60, 20, 320]
 plotvar = 'll_m'
 x_name = 'mass [GeV]'
@@ -80,7 +80,7 @@ rd_tcut = '%s&&%s'%(stepch_tcut,cut)
 print "TCut =",tcut
 
 #namming
-x_name = "Dilepton channel "+x_name
+x_name = x_name
 if len(binning) <= 3:
     num = (binning[2]-binning[1])/float(binning[0])
     if num != 1:
@@ -91,75 +91,78 @@ if len(binning) <= 3:
 
 #DYestimation
 if not os.path.exists('./DYFactor.json'):
-	DYestimation.printDYFactor(rootfileDir, tname, datasets, datalumi, cut, weight, rdfilelist)# <------ This will create 'DYFactor.json' on same dir.
+  DYestimation.printDYFactor(rootfileDir, tname, datasets, datalumi, cut, weight, rdfilelist)# <------ This will create 'DYFactor.json' on same dir.
 dyratio=json.load(open('./DYFactor.json'))
 
 #saving mc histos
 mchistList = []
 for i, mcname in enumerate(mcfilelist):
-	data = findDataSet(mcname, datasets)
-	scale = datalumi*data["xsec"]
-	colour = data["colour"]
-	title = data["title"]
-	if 'DYJets' in mcname:
-		scale = scale*dyratio[channel][step]
+  data = findDataSet(mcname, datasets)
+  scale = datalumi*data["xsec"]
+  colour = data["colour"]
+  title = data["title"]
+  if 'DYJets' in mcname:
+    scale = scale*dyratio[channel][step]
 
-	rfname = rootfileDir + mcname +".root"
-	tfile = ROOT.TFile(rfname)
-	wentries = tfile.Get("cattree/nevents").Integral()
-	scale = scale/wentries
-		
-	mchist = makeTH1(rfname, tname, title, binning, plotvar, tcut, scale)
-	mchist.SetLineColor(colour)
-	mchist.SetFillColor(colour)
-	mchistList.append(mchist)
-	if 'TT' in mcname:
-		if len(binning) == 3:
-			ttothershist = ROOT.TH1D("name", title+' others', binning[0], binning[1], binning[2])
-		else:
-			ttothershist = ROOT.TH1D("name", title+' others', len(binning)-1, array.array('f', binning))
-		for channel in range(1,4):
-			if channel == 1: ttother_tcut = "!(gen_partonChannel==2 && ((gen_partonMode1==1 && gen_partonMode2==2) || (gen_partonMode1==2 && gen_partonMode2==1)))"
-			elif channel == 2: ttother_tcut = "!(gen_partonChannel==2 && (gen_partonMode1==2 && gen_partonMode2==2))"
-			elif channel == 3: ttother_tcut = "!(gen_partonChannel==2 && (gen_partonMode1==1 && gen_partonMode2==1))"
-			ttother_tcut = '(channel==%d&&%s&&%s&&%s)*%s'%(channel,stepch_tcut,cut,ttother_tcut,weight)
-			ttothers = makeTH1(rfname, tname, title+' others', binning, plotvar, ttother_tcut, scale)
-			ttothershist.Add(ttothers)
-		ttothershist.SetLineColor(906)
-		ttothershist.SetFillColor(906)
-		mchistList.append(ttothershist)
-		mchist.Add(ttothershist, -1)
+  rfname = rootfileDir + mcname +".root"
+  tfile = ROOT.TFile(rfname)
+  wentries = tfile.Get("cattree/nevents").Integral()
+  scale = scale/wentries
+    
+  mchist = makeTH1(rfname, tname, title, binning, plotvar, tcut, scale)
+  mchist.SetLineColor(colour)
+  mchist.SetFillColor(colour)
+  mchistList.append(mchist)
+  if 'TT' in mcname:
+    if len(binning) == 3:
+      ttothershist = ROOT.TH1D("name", title+' others', binning[0], binning[1], binning[2])
+    else:
+      ttothershist = ROOT.TH1D("name", title+' others', len(binning)-1, array.array('f', binning))
+    dstar_tcut = "(dstar_relPtTrue<0.1&&dstar_dRTrue<0.1&&d0_dRTrue<0.1&&d0_relPtTrue<0.1&&abs(dstar_isFromTop)==6)"
+    d0_tcut = "((d0_relPtTrue<0.1&&d0_dRTrue<0.1&&abs(d0_isFromTop)==6)&&!(dstar_relPtTrue<0.1&&dstar_dRTrue<0.1&&abs(dstar_isFromTop)==6))"
+    d0_true_hist = makeTH1(rfname, tname, title+' D0 Signal', binning, plotvar, d0_tcut, scale)
+    dstar_true_hist = makeTH1(rfname, tname, title+' D* Signal', binning, plotvar, dstar_tcut, scale)
+    #ttddothershist.Add(ttothers)
+    d0_true_hist.SetLineColor(906)
+    d0_true_hist.SetFillColor(906)
+    dstar_true_hist.SetLineColor(806)
+    dstar_true_hist.SetFillColor(806)
+
+    mchistList.append(d0_true_hist)
+    mchistList.append(dstar_true_hist)
+    mchist.Add(d0_true_hist, -1)
+    mchist.Add(dstar_true_hist, -1)
 
 #data histo
 if len(binning) == 3:
-	rdhist = ROOT.TH1D("name", title, binning[0], binning[1], binning[2])
+  rdhist = ROOT.TH1D("name", title, binning[0], binning[1], binning[2])
 else:
-	rdhist = ROOT.TH1D("name", title, len(binning)-1, array.array('f', binning))
+  rdhist = ROOT.TH1D("name", title, len(binning)-1, array.array('f', binning))
 for i, rdfile in enumerate(rdfilelist):
-	rfname = rootfileDir + rdfile +".root"
-	rdtcut = 'channel==%d&&%s&&%s'%((i+1),stepch_tcut,cut)
-	rdhist_tmp = makeTH1(rfname, tname, 'data', binning, plotvar, rdtcut)
-	rdhist.SetLineColor(1)
-	rdhist.Add(rdhist_tmp)
+  rfname = rootfileDir + rdfile +".root"
+  rdtcut = 'channel==%d&&%s&&%s'%((i+1),stepch_tcut,cut)
+  rdhist_tmp = makeTH1(rfname, tname, 'data', binning, plotvar, rdtcut)
+  rdhist.SetLineColor(1)
+  rdhist.Add(rdhist_tmp)
 
 #overflow
 if overflow:
-	if len(binning) == 3 : nbin = binning[0]
-	else : nbin = len(binnin)-1
-	for hist in mchistList:
-		hist.SetBinContent(nbin, hist.GetBinContent(nbin+1))
-	rdhist.SetBinContent(nbin, rdhist.GetBinContent(nbin+1))
+  if len(binning) == 3 : nbin = binning[0]
+  else : nbin = len(binnin)-1
+  for hist in mchistList:
+    hist.SetBinContent(nbin, hist.GetBinContent(nbin+1))
+  rdhist.SetBinContent(nbin, rdhist.GetBinContent(nbin+1))
 
 #bin normalize
 if binNormalize and len(binning)!=3:
-	for hist in mchistList:
-		for i in range(len(binning)):
-			hist.SetBinContent(i, hist.GetBinContent(i)/hist.GetBinWidth(i))
-			hist.SetBinError(i, hist.GetBinError(i)/hist.GetBinWidth(i))
-	for i in range(len(binning)):
-		rdhist.SetBinContent(i, rdhist.GetBinContent(i)/rdhist.GetBinWidth(i))
-		rdhist.SetBinError(i, rdhist.GetBinError(i)/rdhist.GetBinWidth(i))
-	y_name = y_name + "/%s"%(unit)
+  for hist in mchistList:
+    for i in range(len(binning)):
+      hist.SetBinContent(i, hist.GetBinContent(i)/hist.GetBinWidth(i))
+      hist.SetBinError(i, hist.GetBinError(i)/hist.GetBinWidth(i))
+  for i in range(len(binning)):
+    rdhist.SetBinContent(i, rdhist.GetBinContent(i)/rdhist.GetBinWidth(i))
+    rdhist.SetBinError(i, rdhist.GetBinError(i)/rdhist.GetBinWidth(i))
+  y_name = y_name + "/%s"%(unit)
 
 #Drawing plots on canvas
 var = plotvar.split(',')[0]
