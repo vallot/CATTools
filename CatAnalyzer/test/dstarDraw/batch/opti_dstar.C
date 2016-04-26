@@ -9,12 +9,11 @@ int opti_dstar(float relPt_val=0.05, float dR_val =0.15 )
 
 
   RooRealVar x("mass","dstar mass",1.6,2.2);
-  RooRealVar step("step","step",0,8);
   RooRealVar dR("dR","dR between Gen and reco",0,0.5);
   RooRealVar relPt("relPt","relPt",-1,1);
 
 
-  auto gaus_mean = RooRealVar("mean","mean",1.864, 1.6,2.2);
+  auto gaus_mean = RooRealVar("mean","mean",2.010, 1.6,2.2);
   auto gaus_sigma = RooRealVar("sigma","sigma",0,1);
   auto gaus_pdf = RooGaussian("sig","signal p.d.f",x,gaus_mean, gaus_sigma);
 
@@ -24,20 +23,20 @@ int opti_dstar(float relPt_val=0.05, float dR_val =0.15 )
 
 
   auto file = TFile::Open(inputfile);
-  TTree* tree = (TTree*)file->Get("nt");
+  TTree* tree = (TTree*)file->Get("nt0");
   TFile* out = new TFile("mcTruth.root","RECREATE");
   TH2F* h1 = new TH2F("mcTruth_sig","Significance of mc Truth;abs(relPt); dR ",20,0,1,20,0,0.5); 
   TH2F* h2 = new TH2F("ratio_sig_bkg","sig/bkg  ;abs(relPt); dR ",20,0,1,20,0,0.5); 
   TH2F* h3 = new TH2F("mcTruth_sig2","sig/bkg*signifi  ;abs(relPt); dR ",20,0,1,20,0,0.5); 
   TH2F* h4 = new TH2F("sig_bkg_event","sig/bkg*nsig;abs(relPt); dR ",20,0,1,20,0,0.5); 
 
-  RooDataSet data("data","dataset with dstar mass",RooArgSet(x,step,dR,relPt),RooFit::Import(*tree));
+  RooDataSet data("data","dataset with dstar mass",RooArgSet(x,dR,relPt),RooFit::Import(*tree));
 
   system("touch relPt_dR.png");
   //for( float rel_pt = 0.05 ; rel_pt <1.0 ; rel_pt = rel_pt+(1/20.)) { 
   //for( float dR = 0.025 ; dR <0.5 ; dR = dR+(0.5/20.)) {
   {
-      auto cut = TString::Format("step>=5 && dR<%f && abs(relPt)<%f && dR>=0.0 && abs(relPt) >=0.0",dR_val, relPt_val);
+      auto cut = TString::Format("dR<%f && abs(relPt)<%f && dR>=0.0 && abs(relPt) >=0.0",dR_val, relPt_val);
       std::cout<<cut<<std::endl;
       RooDataSet* d1 = dynamic_cast<RooDataSet*>(data.reduce(cut.Data()));
         //RooRealVar fsig("fsig","Signal fraction",0.5,0,1);
@@ -55,7 +54,7 @@ int opti_dstar(float relPt_val=0.05, float dR_val =0.15 )
         //fitResult->Print();
         std::cout<< "rel_pt : "<<relPt_val << "dR : "<<dR_val << " "<<nsig.getVal() << " "<<nsig.getError()<< "    "<<nbkg.getVal() << " "<<nbkg.getError()<<std::endl;
         if ( abs(gaus_mean.getVal() - 2.010)>0.05 ) { h1->Fill( relPt_val, dR_val, 0) ; h1->Write() ; out->Close(); return -1;}
-        if ( abs(gaus_sigma.getVal())>0.1 ) { h1->Fill( relPt_val, dR_val, 0) ; h1->Write() ; out->Close();return -1;}
+        if ( abs(gaus_sigma.getVal())>0.2 ) { h1->Fill( relPt_val, dR_val, 0) ; h1->Write() ; out->Close();return -1;}
         float significance = nsig.getVal() / TMath::Sqrt( nsig.getVal()+ nbkg.getVal());
         h1->Fill( relPt_val-0.025, dR_val-0.0125, significance);
         h2->Fill( relPt_val-0.025, dR_val-0.0125, nsig.getVal()/nbkg.getVal());

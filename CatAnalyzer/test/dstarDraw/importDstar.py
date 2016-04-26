@@ -14,7 +14,7 @@ tree = file.Get("cattree/nom")
 totEvent = tree.GetEntries()
 out = TFile("dstar.root","RECREATE")
 
-ntuple0  = TNtuple("nt0","nt0",  "step:pt:eta:phi:mass:dR:relPt:vProb:LXY:L3D:DCA:isFromB:isFromTop:trackQuality")
+ntuple0  = TNtuple("nt0","nt0",  "pt:eta:phi:mass:dR:relPt:vProb:LXY:L3D:DCA:isFromB:isFromTop:trackQuality:diffMass")
 ntuple1  = TNtuple("nt1","nt1",  "pt:eta:mass:vProb:LXY:L3D:DCA:trackQuality:lep1DR:lep2DR:lepMinDRMass:lepLowMass:correctM")
 ntuple2  = TNtuple("nt2","nt2",  "pt:eta:mass:vProb:LXY:L3D:DCA:trackQuality:lep1DR:lep2DR:lepMaxDRMass:lepHighMass:WrongM")
 
@@ -34,7 +34,7 @@ for idx, t in enumerate(tree) :
 
     lep1_M = (t.lep1+dstar).M()
     lep2_M = (t.lep2+dstar).M()
-    print idx,"dstar pt,eta,phi,M",dstar.Pt(),dstar.Eta,dstar.Phi,dstar.M()
+    print idx,"dstar pt,eta,phi,M",dstar.Pt(),dstar.Eta(),dstar.Phi,dstar.M()
     if ( lep1DR < lep2DR) :
       lepMinDRMass = lep1_M 
       lepMaxDRMass = lep2_M 
@@ -64,7 +64,7 @@ for idx, t in enumerate(tree) :
         correctM = lep2_M 
         wrongM = lep1_M
        
-    ntuple0.Fill(t.step, dstar.Pt(), dstar.Eta(), dstar.Phi(), dstar.M(), t.dstar_dRTrue[dstar_idx], t.dstar_relPtTrue[dstar_idx], t.dstar_vProb[dstar_idx], t.dstar_LXY[dstar_idx], t.dstar_L3D[dstar_idx], t.dstar_dca[dstar_idx],t.dstar_isFromB[dstar_idx], t.dstar_isFromTop[dstar_idx], t.dstar_trackQuality[dstar_idx])
+    ntuple0.Fill( dstar.Pt(), dstar.Eta(), dstar.Phi(), dstar.M(), t.dstar_dRTrue[dstar_idx], t.dstar_relPtTrue[dstar_idx], t.dstar_vProb[dstar_idx], t.dstar_LXY[dstar_idx], t.dstar_L3D[dstar_idx], t.dstar_dca[dstar_idx],t.dstar_isFromB[dstar_idx], t.dstar_isFromTop[dstar_idx], t.dstar_trackQuality[dstar_idx], t.dstar_diffMass[dstar_idx] )
     ntuple1.Fill( dstar.Pt(), dstar.Eta(), dstar.M(), t.dstar_vProb[dstar_idx], t.dstar_LXY[dstar_idx], t.dstar_L3D[dstar_idx], t.dstar_dca[dstar_idx],t.dstar_trackQuality[dstar_idx], lep1DR, lep2DR, lepMinDRMass, lepLowMass, correctM) 
     ntuple2.Fill( dstar.Pt(), dstar.Eta(), dstar.M(), t.dstar_vProb[dstar_idx], t.dstar_LXY[dstar_idx], t.dstar_L3D[dstar_idx], t.dstar_dca[dstar_idx],t.dstar_trackQuality[dstar_idx], lep1DR, lep2DR, lepMaxDRMass, lepHighMass, wrongM) 
 ntuple0.Write()

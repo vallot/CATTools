@@ -24,7 +24,7 @@ int opti_d0(float relPt_val=0.05, float dR_val =0.15 )
 
 
   auto file = TFile::Open(inputfile);
-  TTree* tree = (TTree*)file->Get("nt");
+  TTree* tree = (TTree*)file->Get("nt0");
   TFile* out = new TFile("mcTruth.root","RECREATE");
   TH2F* h1 = new TH2F("mcTruth_sig","Significance of mc Truth;abs(relPt); dR ",20,0,1,20,0,0.5); 
   TH2F* h2 = new TH2F("ratio_sig_bkg","sig/bkg  ;abs(relPt); dR ",20,0,1,20,0,0.5); 
