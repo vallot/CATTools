@@ -22,25 +22,24 @@ muonSFTight = cms.PSet(
     ),
 )
 
-## Electron SF from https://indico.cern.ch/event/491528/contribution/2/attachments/1231399/1805319/CutBasedId_EGM_19Feb.pdf
-## Actual numbers are taken from https://arun-afs.web.cern.ch/arun-afs/Fits_Data_ID_76X_AbsEta/CutBasedID_MediumWP_76X_18Feb.txt
+## Electorn SF from http://fcouderc.web.cern.ch/fcouderc/EGamma/scaleFactors/moriond2016_76X/eleCutBasedID/CutBasedID_MediumWP_76X_18Feb.txt_egammaPlots.pdf
 electronSFCutBasedIDMediumWP = cms.PSet(
     # Values of "CutBasedID_MediumWP"
     pt_bins = cms.vdouble(10, 20, 30, 40, 50, 200),
     abseta_bins = cms.vdouble(0, 0.8, 1.444, 1.566, 2, 2.5),
     values = cms.vdouble(
-        1.00726, 0.971182, 0.984906, 0.985899, 0.988597,
+        1.00726, 0.971182, 0.984906, 0.985899, 0.988598,
         1.0902, 0.983359, 0.987179, 0.98692, 0.986159,
         1.08642, 0.963054, 0.949123, 0.981612, 0.997257,
         0.984444, 0.936809, 0.975066, 0.992806, 1.00579,
         1.03557, 0.986446, 0.963351, 1.00611, 1.00949,
     ),
     errors = cms.vdouble(
-        0.0575377, 0.0863955, 0.0681855, 0.0397944, 0.0432174,
-        0.221994, 0.066815, 0.0462825, 0.037, 0.0387096,
-        0.345051, 0.119545, 0.0888143, 0.0532062, 0.0863477,
-        0.0584217, 0.142723, 0.0727665, 0.0353211, 0.0177176,
-        0.0831695, 0.0507292, 0.0270231, 0.0129103, 0.0272045,
+        0.0656124, 0.0279776, 0.0291216, 0.0175478, 0.00603364,
+        0.0391175, 0.0256741, 0.0171527, 0.0277844, 0.00540994,
+        0.0800687, 0.261884 , 0.0511487, 0.036227 , 0.113466  ,
+        0.0447765, 0.0186922, 0.0274652, 0.0404665, 0.0125727 ,
+        0.0303603, 0.0263447, 0.0445603, 0.0103732, 0.0137829 ,
     ),
 )
 
