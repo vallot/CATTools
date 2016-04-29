@@ -18,6 +18,7 @@
 #include "CATTools/DataFormats/interface/Electron.h"
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/MET.h"
+#include "CATTools/DataFormats/interface/GenWeights.h"
 
 #include "TH1.h"
 #include "TTree.h"
@@ -57,6 +58,7 @@ class TopAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
       edm::EDGetTokenT<cat::METCollection>             metToken_;
       edm::EDGetTokenT<int>                            pvToken_;
       edm::EDGetTokenT<float>                          puWeight_;
+      edm::EDGetTokenT<cat::GenWeights>                genWeightToken_;
 
       // ----------member data ---------------------------
 
@@ -68,6 +70,7 @@ class TopAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
       int LUMI;
     
       float PUWeight;
+      float GenWeight;
       int NVertex; 
 
       double MET;
@@ -149,20 +152,22 @@ TopAnalyzer::TopAnalyzer(const edm::ParameterSet& iConfig)
 
 {
    //now do what ever initialization is needed
-   genTopToken_      = consumes<cat::GenTopCollection>  (iConfig.getParameter<edm::InputTag>("genTopLabel"));
-   genToken_      = consumes<reco::GenParticleCollection>  (iConfig.getParameter<edm::InputTag>("genLabel"));
-   muonToken_     = consumes<cat::MuonCollection>          (iConfig.getParameter<edm::InputTag>("muonLabel"));
-   electronToken_ = consumes<cat::ElectronCollection>      (iConfig.getParameter<edm::InputTag>("electronLabel"));
-   jetToken_      = consumes<cat::JetCollection>           (iConfig.getParameter<edm::InputTag>("jetLabel"));
-   metToken_      = consumes<cat::METCollection>           (iConfig.getParameter<edm::InputTag>("metLabel"));
+   genTopToken_      = consumes<cat::GenTopCollection>       (iConfig.getParameter<edm::InputTag>("genTopLabel"));
+   genToken_      = consumes<reco::GenParticleCollection>    (iConfig.getParameter<edm::InputTag>("genLabel"));
+   muonToken_     = consumes<cat::MuonCollection>            (iConfig.getParameter<edm::InputTag>("muonLabel"));
+   electronToken_ = consumes<cat::ElectronCollection>        (iConfig.getParameter<edm::InputTag>("electronLabel"));
+   jetToken_      = consumes<cat::JetCollection>             (iConfig.getParameter<edm::InputTag>("jetLabel"));
+   metToken_      = consumes<cat::METCollection>             (iConfig.getParameter<edm::InputTag>("metLabel"));
    pvToken_       = consumes<int>                            (iConfig.getParameter<edm::InputTag>("pvLabel"));
    puWeight_      = consumes<float>                          (iConfig.getParameter<edm::InputTag>("puWeight"));
+   genWeightToken_  = consumes<cat::GenWeights>              (iConfig.getParameter<edm::InputTag>("genWeightLabel"));
+
 
    usesResource("TFileService");
 
    edm::Service<TFileService> fs;
    tree = fs->make<TTree>("events", "Tree for Top quark study");
-   tmp = fs->make<TH1F>("EventSummary","EventSummary",1,0,1);
+   tmp = fs->make<TH1F>("EventSummary","EventSummary",2,0,2);
  
 }
 
@@ -209,6 +214,11 @@ TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      edm::Handle<float> PileUpWeight;
      iEvent.getByToken(puWeight_, PileUpWeight);
      PUWeight = *PileUpWeight;
+
+     edm::Handle<cat::GenWeights> genWeight;
+     iEvent.getByToken(genWeightToken_, genWeight);
+     GenWeight = genWeight->genWeight();
+     tmp->Fill(1,GenWeight);
    }
 
    edm::Handle<int> pvHandle;
@@ -363,7 +373,8 @@ TopAnalyzer::beginJob()
    tree->Branch("EVENT",&EVENT,"EVENT/i");
    tree->Branch("RUN",&RUN,"RUN/i");
    tree->Branch("LUMI",&LUMI,"LUMI/i");
-   tree->Branch("PUWeight",&PUWeight,"PUWeight/i");
+   tree->Branch("PUWeight",&PUWeight,"PUWeight/F");
+   tree->Branch("GenWeight",&GenWeight,"GenWeight/F");
    tree->Branch("NVertex",&NVertex,"NVertex/i");
 
    tree->Branch("MET",&MET,"MET/d");
@@ -426,6 +437,7 @@ void
 TopAnalyzer::clear(){
 
   PUWeight = 1.0;
+  GenWeight = 1.0;
   NVertex = -1;
   NMuon = -1;
   NLooseMuon = -1;

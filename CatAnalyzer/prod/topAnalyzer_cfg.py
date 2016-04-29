@@ -65,6 +65,7 @@ process.TopTree = cms.EDAnalyzer('TopAnalyzer',
                                            metLabel      = cms.InputTag("catMETs"),
                                            pvLabel       = cms.InputTag("catVertex:nGoodPV"),
                                            puWeight      = cms.InputTag("pileupWeight"),
+                                           genWeightLabel = cms.InputTag("genWeight"),
                                            )
 
 process.TFileService = cms.Service("TFileService",
