@@ -3,9 +3,10 @@
 import sys, os
 from math import hypot
 
-uonSFBase = "%s/src/CATTools/CatAnalyzer/data/scaleFactors" % os.environ["CMSSW_BASE"]
-if not os.path.exists("%s/MuonID_Z_RunCD_Reco76_Feb15.json" % muonSFBase) or \
-   not os.path.exists("%s/MuonIso_Z_RunCD_Reco76_Feb15.json" % muonSFBase):
+#muonSFBase = "%s/src/CATTools/CatAnalyzer/data/scaleFactors" % os.environ["CMSSW_BASE"]
+muonSFBase = "/afs/cern.ch/cms/Physics/muon/ReferenceEfficiencies/Run2015/25ns"
+if not os.path.exists("%s/MuonID_Z_RunCD_Reco76X_Feb15.json" % muonSFBase) or \
+   not os.path.exists("%s/MuonIso_Z_RunCD_Reco76X_Feb15.json" % muonSFBase):
    #not os.path.exists("%s/SingleMuonTrigger_Z_RunCD_Reco76_Feb15.json" % muonSFBase):
     print "Cannot find SF json files under", muonSFBase
     print "Please download them from the official muon twiki page,"
@@ -15,8 +16,8 @@ if not os.path.exists("%s/MuonID_Z_RunCD_Reco76_Feb15.json" % muonSFBase) or \
 
 import json
 
-muonJSId = json.loads(open("%s/MuonID_Z_RunCD_Reco76_Feb15.json" % muonSFBase).read())
-muonJSIso = json.loads(open("%s/MuonIso_Z_RunCD_Reco76_Feb15.json" % muonSFBase).read())
+muonJSId = json.loads(open("%s/MuonID_Z_RunCD_Reco76X_Feb15.json" % muonSFBase).read())
+muonJSIso = json.loads(open("%s/MuonIso_Z_RunCD_Reco76X_Feb15.json" % muonSFBase).read())
 #muonJSTrg = json.loads(open("%s/SingleMuonTrigger_Z_RunCD_Reco76_Feb15.json" % muonSFBase).read())
 
 muonIdSFName = 'MC_NUM_TightIDandIPCut_DEN_genTracks_PAR_pt_spliteta_bin1'
@@ -95,7 +96,7 @@ print """    ),
 for abseta in abseta_bins_iso[:-1]:
     print "       ",
     for pt in pt_bins_iso[:-1]:
-        print "%g," % (errors_iso[(pt, abseta)]+1e-2), ## Additional 1% systematic error
+        print "%g," % (errors_iso[(pt, abseta)]+5e-3), ## Additional 0.5% systematic error
     print ""
 print"""    ),
 )"""
@@ -121,7 +122,7 @@ else:
     for abseta in abseta_bins_iso[:-1]:
         print "       ",
         for pt in pt_bins_iso[:-1]:
-            print "%g," % hypot(errors_id[(pt, abseta)]+1e-2, errors_iso[(pt, abseta)]+1e-2), ## Additional 1% systematic error
+            print "%g," % hypot(errors_id[(pt, abseta)]+1e-2, errors_iso[(pt, abseta)]+5e-3), ## Additional 1% (id) and 0.5% (iso) systematic error
         print ""
     print"""    ),
 )"""
