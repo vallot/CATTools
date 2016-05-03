@@ -246,59 +246,74 @@ TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    int nloosemuons = 0;
    for (unsigned int i = 0; i < muons->size() ; i++) {
      const cat::Muon & muon = muons->at(i);
-     bool pass = muon.pt() > 30 && fabs(muon.eta()) < 2.1;
-     if( !pass ) continue; 
-     if( muon.isTightMuon() ){
-       Muon_Pt[nmuons] = muon.pt(); 
-       Muon_Eta[nmuons] = muon.eta(); 
-       Muon_Phi[nmuons] = muon.phi(); 
-       Muon_E[nmuons] = muon.energy();
-       Muon_Iso[nmuons] = muon.relIso();
-       Muon_Charge[nmuons] = muon.charge();
 
-       WMuon_MT[nmuons] = transverseMass( muon.p4(), METHandle->begin()->p4() );
-       WMuon_Phi[nmuons] = fabs(deltaPhi( muon.phi(), METHandle->begin()->p4().phi()));
-       nmuons++;
-     }else if (muon.isLooseMuon()) {
-       LooseMuon_Pt[nmuons] = muon.pt();
-       LooseMuon_Eta[nmuons] = muon.eta();
-       LooseMuon_Phi[nmuons] = muon.phi();
-       LooseMuon_E[nmuons] = muon.energy();
-       LooseMuon_Iso[nmuons] = muon.relIso();
-       LooseMuon_Charge[nmuons] = muon.charge();
-       nloosemuons++;
-     }else{
-       continue;
-     }
+     bool passLooseMuon = muon.pt() > 15 && fabs(muon.eta()) < 2.4 && muon.isLooseMuon();  
+     //bool passID = muon.pt() > 30 && fabs(muon.eta()) < 2.1 && muon.isTightMuon(); 
+
+     if( !passLooseMuon ) continue;
+   
+     LooseMuon_Pt[nmuons] = muon.pt();
+     LooseMuon_Eta[nmuons] = muon.eta();
+     LooseMuon_Phi[nmuons] = muon.phi();
+     LooseMuon_E[nmuons] = muon.energy();
+     LooseMuon_Iso[nmuons] = muon.relIso(0.4);
+     LooseMuon_Charge[nmuons] = muon.charge();
+     nloosemuons++;
+
+     bool passTightMuon = muon.pt() > 30 && fabs(muon.eta()) < 2.1 && muon.isTightMuon();
+     //bool passIso = muon.relIso(0.4) < 0.15;
+
+     if( !passTightMuon ) continue;
+
+     Muon_Pt[nmuons] = muon.pt(); 
+     Muon_Eta[nmuons] = muon.eta(); 
+     Muon_Phi[nmuons] = muon.phi(); 
+     Muon_E[nmuons] = muon.energy();
+     Muon_Iso[nmuons] = muon.relIso(0.4);
+     Muon_Charge[nmuons] = muon.charge();
+
+     WMuon_MT[nmuons] = transverseMass( muon.p4(), METHandle->begin()->p4() );
+     WMuon_Phi[nmuons] = fabs(deltaPhi( muon.phi(), METHandle->begin()->p4().phi()));
+     nmuons++;
+
    }
+
    NMuon = nmuons;
    NLooseMuon = nloosemuons;
    int nelectrons = 0;
    int nlooseelectrons = 0;
    for (unsigned int i = 0; i < electrons->size() ; i++) {
      const cat::Electron & electron = electrons->at(i);
-     bool pass = electron.pt() > 30 && fabs(electron.eta()) < 2.1;
-     if( !pass ) continue;
-     if( electron.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-medium") > 0 ){
-       Electron_Pt[nelectrons] = electron.pt();
-       Electron_Eta[nelectrons] = electron.eta();
-       Electron_Phi[nelectrons] = electron.phi();
-       Electron_E[nelectrons] = electron.energy();
-       Electron_Iso[nelectrons] = electron.relIso();
-       Electron_Charge[nelectrons] = electron.charge();
 
-       WElectron_MT[nelectrons] = transverseMass( electron.p4(), METHandle->begin()->p4() );
-       WElectron_Phi[nelectrons] = fabs(deltaPhi( electron.phi(), METHandle->begin()->p4().phi()));
-       nelectrons++;
-     }else if( electron.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-veto") > 0  ) {
-       LooseElectron_Pt[nelectrons] = electron.pt();
-       LooseElectron_Eta[nelectrons] = electron.eta();
-       LooseElectron_Phi[nelectrons] = electron.phi();
-       LooseElectron_E[nelectrons] = electron.energy();
-       LooseElectron_Iso[nelectrons] = electron.relIso();
-       LooseElectron_Charge[nelectrons] = electron.charge();
-       nlooseelectrons++;
-     }
+     bool passLooseElectron = electron.pt() > 15 && fabs(electron.eta()) < 2.4 && electron.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-veto") > 0;
+     //bool passID = electron.pt() > 30 && fabs(electron.eta()) < 2.1 && electron.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-tight") > 0;
+
+     if ( !passLooseElectron ) continue;
+  
+     LooseElectron_Pt[nelectrons] = electron.pt();
+     LooseElectron_Eta[nelectrons] = electron.eta();
+     LooseElectron_Phi[nelectrons] = electron.phi();
+     LooseElectron_E[nelectrons] = electron.energy();
+     LooseElectron_Iso[nelectrons] = electron.relIso();
+     LooseElectron_Charge[nelectrons] = electron.charge();
+     nlooseelectrons++;
+
+     bool passMediumElectron = electron.pt() > 30 && fabs(electron.eta()) < 2.1 && electron.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-medium") > 0;
+     //bool passIso = electron.relIso() < 0.12;
+
+     if ( !passMediumElectron ) continue;
+
+     Electron_Pt[nelectrons] = electron.pt();
+     Electron_Eta[nelectrons] = electron.eta();
+     Electron_Phi[nelectrons] = electron.phi();
+     Electron_E[nelectrons] = electron.energy();
+     Electron_Iso[nelectrons] = electron.relIso();
+     Electron_Charge[nelectrons] = electron.charge();
+
+     WElectron_MT[nelectrons] = transverseMass( electron.p4(), METHandle->begin()->p4() );
+     WElectron_Phi[nelectrons] = fabs(deltaPhi( electron.phi(), METHandle->begin()->p4().phi()));
+     nelectrons++;
+
    }
 
    NElectron = nelectrons;
@@ -318,14 +333,14 @@ TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      TLorentzVector vjet(jet.px(), jet.py(), jet.pz(), jet.energy());
 
      for(int j = 0 ; j < NMuon ; j++){ 
-       if( Muon_Iso[j] < 0.12 ){
+       if( Muon_Iso[j] < 0.15 ){
          TLorentzVector vlep(Muon_Pt[j], Muon_Eta[j], Muon_Phi[j], Muon_E[j]);
          dr = vjet.DeltaR(vlep);
        }
      }
 
      for(int j = 0 ; j < NElectron ; j++){
-       if( Electron_Iso[j] < 0.12 ){
+       if( Electron_Iso[j] < 0.15 ){
          TLorentzVector vlep(Electron_Pt[j], Electron_Eta[j], Electron_Phi[j], Electron_E[j]);
          dr = vjet.DeltaR(vlep);
        }
@@ -359,7 +374,7 @@ TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    iSetup.get<SetupRecord>().get(pSetup);
 #endif
 
-   if (NMuon > 0 || NElectron > 0) {
+   if (NMuon > 0 || NElectron > 0 ) {
      tree->Fill();
    }
 
