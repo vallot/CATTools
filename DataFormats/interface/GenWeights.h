@@ -16,23 +16,28 @@ public:
   GenWeightInfo() {};
   virtual ~GenWeightInfo() {};
 
-  int nGroups() const { return typeNames_.size(); }
-  std::string typeName(int i) const { return typeNames_.at(i); }
+  typedef std::vector<float> vfloat;
+  typedef std::vector<std::string> vstring;
+  typedef std::vector<unsigned short> vushort;
+
+  int nGroups() const { return names_.size(); }
+  std::string name(int i) const { return names_.at(i); }
   std::string combineMethod(int i) const { return combineMethods_.at(i); }
-  std::vector<std::string> weightParams(int i) const { return weightParams_.at(i); }
+  vstring param(int i) const { return params_.at(i); }
+  vushort keys(int i) const { return keys_.at(i); }
 
   int print() const;
 
-  void addWeightGroup(const std::string typeName, const std::string combineBy, const std::vector<std::string> weightParams, const std::vector<std::string> weightKey);
+  void addWeightGroup(const std::string name, const std::string combineBy, const vstring params, const vushort keys);
 
   enum KnownTypes { NONE=-1, Nominal, PDF, ScaleUp, ScaleDown };
   static KnownTypes toKnownType(std::string typeName);
 
 private:
-  std::vector<std::string> typeNames_;
-  std::vector<std::string> combineMethods_;
-  std::vector<std::vector<std::string> > weightKeys_;
-  std::vector<std::vector<std::string> > weightParams_;
+  vstring names_;
+  vstring combineMethods_;
+  std::vector<vstring> params_;
+  std::vector<vushort> keys_;
 
 };
 
@@ -44,10 +49,7 @@ public:
   // Getters
   float genWeight() const { return genWeight_; }
   float lheWeight() const { return lheWeight_; }
-  std::vector<float> scaleUpWeights() const { return scaleUpWeights_; }
-  std::vector<float> scaleDownWeights() const { return scaleDownWeights_; }
-  std::vector<float> pdfWeights() const { return pdfWeights_; }
-  std::vector<float> otherWeights() const { return otherWeights_; }
+  std::vector<float> weights() const { return weights_; };
 
   int id1() const { return id1_; }
   int id2() const { return id2_; }
@@ -60,19 +62,20 @@ public:
 
   void setGenWeight(const float w) { genWeight_ = w; }
   void setLHEWeight(const float w) { lheWeight_ = w; }
-  void addScaleUpWeight(const float w) { scaleUpWeights_.push_back(w); }
-  void addScaleDownWeight(const float w) { scaleDownWeights_.push_back(w); }
-  void addPDFWeight(const float w) { pdfWeights_.push_back(w); }
-  void addOtherWeight(const float w) { otherWeights_.push_back(w); }
+  void addWeight(const float w) { weights_.push_back(w); }
+
+  // Dummies to be removed
+  std::vector<float> scaleUpWeights() const { return std::vector<float>(); };
+  std::vector<float> scaleDownWeights() const { return std::vector<float>(); };
+  std::vector<float> pdfWeights() const { return std::vector<float>(); };
+  std::vector<float> otherWeights() const { return std::vector<float>(); };
 
 private:
   int id1_, id2_;
   float x1_, x2_, qScale_;
 
   float genWeight_, lheWeight_;
-  std::vector<float> scaleUpWeights_, scaleDownWeights_;
-  std::vector<float> pdfWeights_;
-  std::vector<float> otherWeights_;
+  std::vector<float> weights_;
 
 };
 
