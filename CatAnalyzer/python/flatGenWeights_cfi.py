@@ -1,5 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
-flatGenWeights = cms.EDProducer("GenWeightsFromGenWeight",
-    src = cms.InputTag("genWeight")
+flatGenWeights = cms.EDProducer("GenWeightsToFlatWeights",
+    src = cms.InputTag("genWeight"),
+    saveOthers = cms.bool(False),
+    keepFirstOnly = cms.bool(True),
 )

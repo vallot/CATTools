@@ -29,12 +29,12 @@
 using namespace std;
 
 class GenWeightsProducer;
-class GenWeightsFromGenWeight;
+class GenWeightsToFlatWeights;
 
-class GenWeightsFromGenWeight : public edm::stream::EDProducer<>
+class GenWeightsToFlatWeights : public edm::stream::EDProducer<>
 {
 public:
-  GenWeightsFromGenWeight(const edm::ParameterSet& pset);
+  GenWeightsToFlatWeights(const edm::ParameterSet& pset);
   void beginRun(const edm::Run& run, const edm::EventSetup&) override;
   void produce(edm::Event& event, const edm::EventSetup&) override;
 
@@ -45,10 +45,10 @@ private:
   edm::EDGetTokenT<cat::GenWeights> srcToken_;
   const bool doSaveOthers_, doKeepFirstOnly_;
 
-  std::set<size_t> key_sup_, key_sdn_, key_pdf_;
+  std::set<size_t> key_sup_, key_sdn_, key_pdf_, key_oth_;
 };
 
-GenWeightsFromGenWeight::GenWeightsFromGenWeight(const edm::ParameterSet& pset):
+GenWeightsToFlatWeights::GenWeightsToFlatWeights(const edm::ParameterSet& pset):
   srcLabel_(pset.getParameter<edm::InputTag>("src")),
   doSaveOthers_(pset.getParameter<bool>("saveOthers")),
   doKeepFirstOnly_(pset.getParameter<bool>("keepFirstOnly"))
@@ -60,9 +60,10 @@ GenWeightsFromGenWeight::GenWeightsFromGenWeight(const edm::ParameterSet& pset):
   produces<vfloat>("scaleup");
   produces<vfloat>("scaledn");
   produces<vfloat>("pdf");
+  if ( doSaveOthers_ ) produces<vfloat>("others");
 }
 
-void GenWeightsFromGenWeight::beginRun(const edm::Run& run, const edm::EventSetup&)
+void GenWeightsToFlatWeights::beginRun(const edm::Run& run, const edm::EventSetup&)
 {
   edm::Handle<cat::GenWeightInfo> srcHandle;
   run.getByLabel(srcLabel_, srcHandle);
@@ -78,52 +79,35 @@ void GenWeightsFromGenWeight::beginRun(const edm::Run& run, const edm::EventSetu
         continue;
       }
       const auto& params = srcHandle->params(i);
-      for ( int j=0, m=keys.size(); j<m; ++j ) {
+      for ( int j=1, m=keys.size(); j<m; ++j ) {
         string par = params[j];
         std::transform(par.begin(), par.end(), par.begin(), ::toupper);
         // Skip unphysical combinations
         // up=(1002, 1004, 1005), down=(1003, 1007, 1009), unphysical=(1006, 1008)
-        if ( par.find("0.5") != string::npos and par.find("2.0") != string::npos ) continue;
-        if ( par.find("5E") != string::npos and par.find("2E") != string::npos ) continue;
+        if ( par.find("5") != string::npos and par.find("2") != string::npos ) continue;
 
         const size_t key = keys[j];
-        if ( par.find("2.0") != string::npos or par.find("2E") != string::npos ) key_sup_.insert(key);
-        else if ( par.find("5E") != string::npos or par.find("0.5") != string::npos ) key_sdn_.insert(key);
+        if      ( par.find("2") != string::npos ) key_sup_.insert(key);
+        else if ( par.find("5") != string::npos ) key_sdn_.insert(key);
       }
     }
-    else {
+    else if ( name.find("PDF") != string::npos ) {
       if ( doKeepFirstOnly_ and !key_pdf_.empty() ) continue;
       key_pdf_.insert(keys.begin(), keys.end());
     }
+    else if ( doSaveOthers_ ) {
+      key_oth_.insert(keys.begin(), keys.end());
+    }
   }
-/*
--          if ( weightSize == 2 or weightSize == 4 or weightSize == 5 ) {
--            weightKey = "scaleUpWeights["+std::to_string(scaleUpWeightIdxs_.size())+"]";
--            scaleUpWeightIdxs_.insert(weightTotalSize-1);
--          }
--          else if ( weightSize == 3 or weightSize == 7 or weightSize == 9 ) {
--            weightKey = "scaleDownWeights["+std::to_string(scaleUpWeightIdxs_.size())+"]";
--            scaleDownWeightIdxs_.insert(weightTotalSize-1);
--          }
--          else weightKey = "otherWeights["+std::to_string(nOtherWeights++)+"]";
--        }
--        else if ( weightType == 2 ) {
--          weightKey = "pdfWeights["+std::to_string(pdfWeightIdxs_.size())+"]";
--          pdfWeightIdxs_.insert(weightTotalSize-1);
--        }
--        else {
--          weightKey = "otherWeights["+std::to_string(nOtherWeights++)+"]";
--        }
--        weightKeys.push_back(weightKey);
-*/
 }
 
-void GenWeightsFromGenWeight::produce(edm::Event& event, const edm::EventSetup&)
+void GenWeightsToFlatWeights::produce(edm::Event& event, const edm::EventSetup&)
 {
   std::auto_ptr<float> out_weight(new float(1));
   std::auto_ptr<vfloat> out_sup(new vfloat);
   std::auto_ptr<vfloat> out_sdn(new vfloat);
   std::auto_ptr<vfloat> out_pdf(new vfloat);
+  std::auto_ptr<vfloat> out_oth(new vfloat);
 
   edm::Handle<cat::GenWeights> srcHandle;
   event.getByToken(srcToken_, srcHandle);
@@ -136,6 +120,7 @@ void GenWeightsFromGenWeight::produce(edm::Event& event, const edm::EventSetup&)
       if      ( key_sup_.find(i) != key_sup_.end() ) out_sup->push_back(w);
       else if ( key_sdn_.find(i) != key_sdn_.end() ) out_sdn->push_back(w);
       else if ( key_pdf_.find(i) != key_pdf_.end() ) out_pdf->push_back(w);
+      else if ( key_oth_.find(i) != key_oth_.end() ) out_oth->push_back(w);
     }
   }
 
@@ -143,6 +128,7 @@ void GenWeightsFromGenWeight::produce(edm::Event& event, const edm::EventSetup&)
   event.put(out_sup, "scaleup");
   event.put(out_sdn, "scaledn");
   event.put(out_pdf, "pdf");
+  if ( doSaveOthers_ ) event.put(out_oth, "others");
 }
 
 class GenWeightsProducer : public edm::one::EDProducer<edm::one::SharedResources, edm::BeginRunProducer>
@@ -357,5 +343,5 @@ void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& event
 }
 
 DEFINE_FWK_MODULE(GenWeightsProducer);
-DEFINE_FWK_MODULE(GenWeightsFromGenWeight);
+DEFINE_FWK_MODULE(GenWeightsToFlatWeights);
 
