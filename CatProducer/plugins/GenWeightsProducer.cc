@@ -14,8 +14,6 @@
 #include "DataFormats/Common/interface/View.h"
 
 #include "CATTools/DataFormats/interface/GenWeights.h"
-#include "DataFormats/Common/interface/RefToPtr.h"
-#include "DataFormats/Common/interface/Ref.h"
 
 #include <LHAPDF/LHAPDF.h>
 #include <TDOMParser.h>
