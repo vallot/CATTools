@@ -56,7 +56,7 @@ GenWeightsToFlatWeights::GenWeightsToFlatWeights(const edm::ParameterSet& pset):
 
   produces<float>();
   produces<vfloat>("scaleup");
-  produces<vfloat>("scaledn");
+  produces<vfloat>("scaledown");
   produces<vfloat>("pdf");
   if ( doSaveOthers_ ) produces<vfloat>("others");
 }
@@ -124,7 +124,7 @@ void GenWeightsToFlatWeights::produce(edm::Event& event, const edm::EventSetup&)
 
   event.put(out_weight);
   event.put(out_sup, "scaleup");
-  event.put(out_sdn, "scaledn");
+  event.put(out_sdn, "scaledown");
   event.put(out_pdf, "pdf");
   if ( doSaveOthers_ ) event.put(out_oth, "others");
 }
