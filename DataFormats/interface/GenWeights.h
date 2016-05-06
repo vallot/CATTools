@@ -23,7 +23,7 @@ public:
   int nGroups() const { return names_.size(); }
   std::string name(int i) const { return names_.at(i); }
   std::string combineMethod(int i) const { return combineMethods_.at(i); }
-  vstring param(int i) const { return params_.at(i); }
+  vstring params(int i) const { return params_.at(i); }
   vushort keys(int i) const { return keys_.at(i); }
 
   int print() const;
