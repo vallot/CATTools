@@ -64,12 +64,6 @@ public:
   void setLHEWeight(const float w) { lheWeight_ = w; }
   void addWeight(const float w) { weights_.push_back(w); }
 
-  // Dummies to be removed
-  std::vector<float> scaleUpWeights() const { return std::vector<float>(); };
-  std::vector<float> scaleDownWeights() const { return std::vector<float>(); };
-  std::vector<float> pdfWeights() const { return std::vector<float>(); };
-  std::vector<float> otherWeights() const { return std::vector<float>(); };
-
 private:
   int id1_, id2_;
   float x1_, x2_, qScale_;
