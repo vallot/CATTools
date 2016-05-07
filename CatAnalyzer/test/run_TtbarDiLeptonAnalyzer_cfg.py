@@ -34,6 +34,7 @@ if useSilver:
 process.load("CATTools.CatAnalyzer.ttll.ttbarDileptonKinSolutionAlgos_cff")
 process.load("CATTools.CatAnalyzer.filters_cff")
 process.load("CATTools.CatAnalyzer.topPtWeightProducer_cfi")
+process.load("CATTools.CatAnalyzer.flatGenWeights_cfi")
 from CATTools.CatAnalyzer.leptonSF_cff import *
 
 process.ttbarDileptonKinAlgoPSetDESYSmeared.inputTemplatePath = cms.string("CATTools/CatAnalyzer/data/desyKinRecoInput.root")
