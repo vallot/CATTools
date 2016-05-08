@@ -25,13 +25,14 @@ namespace cat {
     virtual ~MET() {};
 
     float sumEt() const { return sumEt_; }
-
+    float rawMET() const {return rawMET_;}
     float unclusteredEnPx(int dir) const { if (dir > 0) return unclusteredEnUp_px_; else return unclusteredEnDown_px_;}
     float unclusteredEnPy(int dir) const { if (dir > 0) return unclusteredEnUp_py_; else return unclusteredEnDown_py_;}
     float unclusteredEnSumEt(int dir) const { if (dir > 0) return unclusteredEnUp_sumet_; else return unclusteredEnDown_sumet_;}
     float unclusteredEnPt(int dir) const { return hypotf(unclusteredEnPx(dir), unclusteredEnPy(dir));}
     float unclusteredEnPhi(int dir) const { return std::atan2(unclusteredEnPy(dir), unclusteredEnPx(dir));}
-
+    
+    void setRawMET(float m) {rawMET_=m;}
     void setUnclusteredEnUp (float x, float y, float s) {unclusteredEnUp_px_=x; unclusteredEnUp_py_=y; unclusteredEnUp_sumet_=s;}
     void setUnclusteredEnDown (float x, float y, float s) {unclusteredEnDown_px_=x; unclusteredEnDown_py_=y; unclusteredEnDown_sumet_=s;}
     void setJetEnUp (float x, float y, float s) {jetEnUp_px_=x; jetEnUp_py_=y; jetEnUp_sumet_=s;}
@@ -41,6 +42,7 @@ namespace cat {
 
   private:
     float sumEt_;
+    float rawMET_;
     float unclusteredEnUp_px_, unclusteredEnUp_py_, unclusteredEnUp_sumet_;
     float unclusteredEnDown_px_, unclusteredEnDown_py_, unclusteredEnDown_sumet_;
     float jetEnUp_px_, jetEnUp_py_, jetEnUp_sumet_;

@@ -15,6 +15,13 @@
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/MuonReco/interface/MuonCocktails.h" // for cocktail muon
+#include "DataFormats/GeometryCommonDetAlgo/interface/Measurement1D.h"
+
+#include "TrackingTools/TransientTrack/interface/TransientTrack.h"
+#include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
+#include "TrackingTools/Records/interface/TransientTrackRecord.h"
+#include "TrackingTools/IPTools/interface/IPTools.h"
+
 
 using namespace edm;
 using namespace std;
@@ -65,6 +72,10 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
   Handle<reco::BeamSpot> beamSpotHandle;
   iEvent.getByToken(beamLineSrc_, beamSpotHandle);
 
+  ESHandle<TransientTrackBuilder> trackBuilder;
+  iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",trackBuilder);
+
+
   Handle<reco::VertexCollection> recVtxs;
   iEvent.getByToken(vertexLabel_,recVtxs);
   reco::Vertex pv;
@@ -73,6 +84,9 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
 
   reco::BeamSpot beamSpot = *beamSpotHandle;
   reco::TrackBase::Point beamPoint(beamSpot.x0(), beamSpot.y0(), beamSpot.z0());
+
+  GlobalPoint pVertex(pv.position().x(),pv.position().y(),pv.position().z());
+
 
   auto_ptr<vector<cat::Muon> >  out(new vector<cat::Muon>());
   for (const pat::Muon & aPatMuon : *src) {
@@ -116,6 +130,22 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     aMuon.setDxy( aPatMuon.muonBestTrack()->dxy(pv.position()) );
     aMuon.setDz( aPatMuon.muonBestTrack()->dz(pv.position()) );
     aMuon.setVertex(Point(aPatMuon.muonBestTrack()->vx(),aPatMuon.muonBestTrack()->vy(),aPatMuon.muonBestTrack()->vz()));
+
+    
+    reco::TrackRef  mutrack = aPatMuon.get<reco::TrackRef>();
+    if (mutrack.isNull()){
+      mutrack=aPatMuon.get<reco::TrackRef,reco::StandAloneMuonTag>();
+    }  
+    reco::TransientTrack mutranstrack = trackBuilder->build( mutrack ) ;
+
+
+    TrajectoryStateOnSurface  muTSOS = IPTools::transverseExtrapolate(mutranstrack.impactPointState(), pVertex, mutranstrack.field());
+    
+    if (muTSOS.isValid()){
+      std::pair<bool,Measurement1D> muIPpair = IPTools::signedTransverseImpactParameter(mutranstrack, muTSOS.globalDirection(),pv);
+      float muSignificanceIP = muIPpair.second.significance();
+      aMuon.setIpSignficance(muSignificanceIP);
+    }
 
     out->push_back(aMuon);
   }

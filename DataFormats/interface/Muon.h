@@ -36,6 +36,8 @@ namespace cat {
     int numberOfValidPixelHits() const { return numberOfValidPixelHits_; }
     int trackerLayersWithMeasurement() const { return trackerLayersWithMeasurement_; }
 
+    float ipsignificance() const { return ipsig_;}
+
     float shiftedEn() const { if (this->pt() < 100) return 0.002; else return 0.05; }
     float shiftedEnDown() const {return 1-shiftedEn();}
     float shiftedEnUp() const {return  1+shiftedEn();}
@@ -50,14 +52,20 @@ namespace cat {
     void setNumberOfValidPixelHits(int i) { numberOfValidPixelHits_ = i; }
     void setTackerLayersWithMeasurement(int i) { trackerLayersWithMeasurement_ = i; }
 
+    void setIpSignficance(float ipsig) {ipsig_ = ipsig;}
+
     float scaleFactor(const std::string& name, int sign = 0) const;
     
+    
+
   private:
 
     bool isGlobalMuon_;
     bool isSoftMuon_;
 
     float normalizedChi2_;
+    float ipsig_;
+
     int numberOfValidHits_;
     int numberOfValidMuonHits_;
     int numberOfMatchedStations_;
