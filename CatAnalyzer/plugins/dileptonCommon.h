@@ -112,7 +112,7 @@ protected :
     b_eleffweight, b_eleffweight_up, b_eleffweight_dn,
     b_btagweight, b_btagweight_up, b_btagweight_dn;
   float b_topPtWeight;
-  std::vector<float> b_pdfWeights, b_scaleWeights, b_csvweights;
+  std::vector<float> b_pdfWeights, b_scaleWeights_up, b_scaleWeights_dn, b_csvweights;
   
   int b_is3lep;
   
@@ -170,7 +170,7 @@ private:
 
   edm::EDGetTokenT<int> recoFiltersToken_, nGoodVertexToken_, lumiSelectionToken_;
   edm::EDGetTokenT<float> genWeightToken_;
-  edm::EDGetTokenT<vector<float>> pdfweightToken_, scaleweightToken_;
+  edm::EDGetTokenT<vector<float>> pdfweightToken_, scaleupweightsToken_, scaledownweightsToken_;
   edm::EDGetTokenT<float> puweightToken_, puweightToken_up_, puweightToken_dn_, topPtWeight_;
   edm::EDGetTokenT<int> trigTokenMUEL_, trigTokenMUMU_, trigTokenELEL_;
 

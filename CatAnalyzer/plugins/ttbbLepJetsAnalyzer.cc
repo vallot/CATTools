@@ -67,7 +67,10 @@ private:
   // TTbarMC_ == 2, ttbar Background
   int TTbarMC_;
 
-  edm::EDGetTokenT<cat::GenWeights>              genWeightToken_;
+  edm::EDGetTokenT<float>                        genWeightToken_;
+  edm::EDGetTokenT<vector<float>>                pdfWeightsToken_;
+  edm::EDGetTokenT<vector<float>>                scaleUpWeightsToken_;
+  edm::EDGetTokenT<vector<float>>                scaleDownWeightsToken_;
   edm::EDGetTokenT<reco::GenParticleCollection>  genToken_;
   edm::EDGetTokenT<reco::GenJetCollection>       genJetToken_;
   edm::EDGetTokenT<cat::GenTopCollection>        genttbarCatToken_;
@@ -190,7 +193,10 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   SF_CSV_.initCSVWeight(false, "csvv2");
 
   //now do what ever initialization is needed
-  genWeightToken_       = consumes<cat::GenWeights>(iConfig.getParameter<edm::InputTag>("genWeightLabel"));
+  genWeightToken_       = consumes<float>(iConfig.getParameter<edm::InputTag>("genWeightLabel"));
+  pdfWeightsToken_       = consumes<vector<float>>(iConfig.getParameter<edm::InputTag>("pdfWeightLabel"));
+  scaleUpWeightsToken_   = consumes<vector<float>>(iConfig.getParameter<edm::InputTag>("scaleUpWeightLabel"));
+  scaleDownWeightsToken_ = consumes<vector<float>>(iConfig.getParameter<edm::InputTag>("scaleDownWeightLabel"));
 
   genToken_             = consumes<reco::GenParticleCollection>  (iConfig.getParameter<edm::InputTag>("genLabel"));
   genJetToken_          = consumes<reco::GenJetCollection>       (iConfig.getParameter<edm::InputTag>("genJetLabel"));
@@ -423,10 +429,10 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     // Weights at Generation Level: MC@NLO
     //---------------------------------------------------------------------------
 
-    edm::Handle<cat::GenWeights> genWeight;
+    edm::Handle<float> genWeight;
 
     iEvent.getByToken(genWeightToken_, genWeight);
-    b_GenWeight = genWeight->genWeight();
+    b_GenWeight = *genWeight;
 
     EventInfo->Fill(0.5, 1.0);         // Number of Events
     EventInfo->Fill(1.5, b_GenWeight); // Sum of Weights
@@ -441,18 +447,19 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   // Weights for Syst. Scale: ttbar
   //---------------------------------------------------------------------------
   if(TTbarMC_ == 1 ) {
-    edm::Handle<cat::GenWeights> genWeightHandle;
-    iEvent.getByToken(genWeightToken_, genWeightHandle);
+    edm::Handle<vector<float>> scaleUpWeightsHandle, scaleDownWeightsHandle;
+    iEvent.getByToken(scaleUpWeightsToken_, scaleUpWeightsHandle);
+    iEvent.getByToken(scaleDownWeightsToken_, scaleDownWeightsHandle);
 
     // muR/muF Scale Weights
     // Comment from J. Goh - scale up/down are split in the new format, but I'm keeping the original index to minimize change
     // Originally, it was (Nom,Up) (Nom,Down), (Up,Nom), (Up, Up), (Down,Nom), (Down,Down)
-    b_ScaleWeight->push_back(genWeightHandle->scaleUpWeights()[0]);
-    b_ScaleWeight->push_back(genWeightHandle->scaleDownWeights()[0]);
-    b_ScaleWeight->push_back(genWeightHandle->scaleUpWeights()[1]);
-    b_ScaleWeight->push_back(genWeightHandle->scaleUpWeights()[2]);
-    b_ScaleWeight->push_back(genWeightHandle->scaleDownWeights()[1]);
-    b_ScaleWeight->push_back(genWeightHandle->scaleDownWeights()[2]);
+    b_ScaleWeight->push_back(scaleUpWeightsHandle->at(0));
+    b_ScaleWeight->push_back(scaleDownWeightsHandle->at(0));
+    b_ScaleWeight->push_back(scaleUpWeightsHandle->at(1));
+    b_ScaleWeight->push_back(scaleUpWeightsHandle->at(2));
+    b_ScaleWeight->push_back(scaleDownWeightsHandle->at(1));
+    b_ScaleWeight->push_back(scaleDownWeightsHandle->at(2));
 
     // Sum of muR/muF Scale Weights
     EventInfo->Fill(8.5,  b_ScaleWeight->at(0));

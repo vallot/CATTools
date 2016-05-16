@@ -14,7 +14,7 @@
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/MET.h"
 #include "CATTools/DataFormats/interface/GenTop.h"
-#include "CATTools/DataFormats/interface/GenWeights.h"
+//#include "CATTools/DataFormats/interface/GenWeights.h"
 
 #include "CATTools/CommonTools/interface/TTbarModeDefs.h"
 #include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
@@ -38,6 +38,7 @@ struct bigger_second
    }
 };
 typedef std::pair<int,float> data_t;
+typedef std::vector<float> vfloat;
 
 class TtbarBbbarDiLeptonAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
@@ -94,7 +95,8 @@ private:
   }
 
   edm::EDGetTokenT<int> recoFiltersToken_, nGoodVertexToken_, lumiSelectionToken_;
-  edm::EDGetTokenT<cat::GenWeights> genweightToken_;
+  edm::EDGetTokenT<float> genweightToken_;
+  edm::EDGetTokenT<vfloat> pdfweightsToken_, scaleupweightsToken_, scaledownweightsToken_;
   edm::EDGetTokenT<float> puweightToken_, puweightUpToken_, puweightDownToken_, topPtWeight_;
   edm::EDGetTokenT<int> trigTokenMUEL_, trigTokenMUMU_, trigTokenELEL_;
 
@@ -271,7 +273,10 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
   recoFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("recoFilters"));
   nGoodVertexToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("nGoodVertex"));
   lumiSelectionToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("lumiSelection"));
-  genweightToken_ = consumes<cat::GenWeights>(iConfig.getParameter<edm::InputTag>("genweight"));
+  genweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("genweight"));
+  pdfweightsToken_ = consumes<vfloat>(iConfig.getParameter<edm::InputTag>("pdfweights"));
+  scaleupweightsToken_ = consumes<vfloat>(iConfig.getParameter<edm::InputTag>("scaleupweights"));
+  scaledownweightsToken_ = consumes<vfloat>(iConfig.getParameter<edm::InputTag>("scaledownweights"));
   topPtWeight_ = consumes<float>(iConfig.getParameter<edm::InputTag>("topPtWeight"));
 
   puweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("puweight"));
@@ -657,10 +662,11 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     iEvent.getByToken(topPtWeight_, topPtWeightHandle);
     b_topPtWeight = *topPtWeightHandle;
 
-    edm::Handle<cat::GenWeights> genweightsHandle;
-    iEvent.getByToken(genweightToken_, genweightsHandle);
-    for ( auto& w : genweightsHandle->scaleUpWeights() ) b_scaleWeightsUp.push_back(w);
-    for ( auto& w : genweightsHandle->scaleDownWeights() ) b_scaleWeightsDown.push_back(w);
+    edm::Handle<vfloat> scaleupweightsHandle, scaledownweightsHandle;
+    iEvent.getByToken(scaleupweightsToken_, scaleupweightsHandle);
+    iEvent.getByToken(scaledownweightsToken_, scaledownweightsHandle);
+    for ( auto& w : *scaleupweightsHandle ) b_scaleWeightsUp.push_back(w);
+    for ( auto& w : *scaledownweightsHandle ) b_scaleWeightsDown.push_back(w);
 
     edm::Handle<vector<int> > partonTop_modes;
     edm::Handle<reco::GenParticleCollection> partonTop_genParticles;
@@ -742,11 +748,13 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     iEvent.getByToken(puweightDownToken_, puweightHandleDown);
     b_puweightDown = *puweightHandleDown;
 
-    edm::Handle<cat::GenWeights> genweightsHandle;
-    iEvent.getByToken(genweightToken_, genweightsHandle);
-    b_weight = genweightsHandle->genWeight();
+    edm::Handle<float> genweightHandle;
+    iEvent.getByToken(genweightToken_, genweightHandle);
+    b_weight = *genweightHandle;
 
-    for ( auto& w : genweightsHandle->pdfWeights() ) b_pdfWeights.push_back(w);
+    edm::Handle<vfloat> pdfweightsHandle;
+    iEvent.getByToken(pdfweightsToken_, pdfweightsHandle);
+    for ( auto& w : *pdfweightsHandle ) b_pdfWeights.push_back(w);
 
 
     //////

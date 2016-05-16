@@ -168,17 +168,18 @@ for d in sigList:
     name = d['name']
     if isBlacklisted(name): continue
 
-    idxset = ()
-    if   '_scaleup'   in name: idxset = (0, 2, 3)
-    elif '_scaledown' in name: idxset = (1, 5, 6)
+    for i in range(3):
+        for ss in ("scaleup", "scaledown"):
+            if ss == "scaleup" and "_scaledown" in name: continue
+            if ss == "scaledown" and "_scaleup" in name: continue
 
-    for i in idxset:
-        systName = "gen_scale/%d" % i
-        syst = 'eventsTTLL.genWeight.src="genWeight:scaleWeights" eventsTTLL.genWeight.index=%d ttll.doTree=False ttbbll.doTree=False' % i
-        syst += ' agen.weight="genWeight:scaleWeights" agen.weightIndex=%d' % i
+            systName = "gen_%s/%d" % (ss, i)
+            syst  = 'eventsTTLL.genWeight.src="flatGenWeights:%s"' % ss
+            syst += ' eventsTTLL.genWeight.index=%d ttll.doTree=False ttbbll.doTree=False' % i
+            syst += ' agen.weight="flatGenWeights:%s" agen.weightIndex=%d' % (ss, i)
 
-        submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 100"
-        submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
+            submitCmd  = "create-batch --cfg analyze_sig_cfg.py --maxFiles 100"
+            submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
 
         print>>out_sig, (submitCmd + (" --jobName %s_LL/%s --args '%s'" % (name, systName, syst)))
         print>>out_bkg, (submitCmd + (" --jobName %s_Others/%s --args '%s filterPartonTTLL.invert=True'" % (name, systName, syst)))
@@ -198,7 +199,7 @@ for d in bkgList:
     submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
 
     for i in range(weightSize):
-        arg = 'eventsTTLL.genWeight.src="genWeight:pdfWeights" eventsTTLL.genWeight.index=%d' % i
+        arg = 'eventsTTLL.genWeight.src="flatGenWeights:pdf" eventsTTLL.genWeight.index=%d' % i
         print>>out_bkg, (submitCmd + (" --jobName %s/gen_PDF/%d --args '%s'" % (name, i, arg)))
 
 for d in sigList:
@@ -212,8 +213,8 @@ for d in sigList:
     submitCmd += " --fileList %s/dataset_%s.txt" % (dataDir, name)
 
     for i in range(weightSize):
-        arg  = 'eventsTTLL.genWeight.src="genWeight:pdfWeights" eventsTTLL.genWeight.index=%d' % i
-        arg += ' agen.weight="genWeight:pdfWeights" agen.weightIndex=%d' % i
+        arg  = 'eventsTTLL.genWeight.src="flatGenWeights:pdf" eventsTTLL.genWeight.index=%d' % i
+        arg += ' agen.weight="flatGenWeights:pdf" agen.weightIndex=%d' % i
         print>>out_sig, (submitCmd + (" --jobName %s_LL/gen_PDF/%d --args '%s'" % (name, i, arg)))
         print>>out_bkg, (submitCmd + (" --jobName %s_Others/gen_PDF/%d --args '%s filterPartonTTLL.invert=True'" % (name, i, arg)))
 

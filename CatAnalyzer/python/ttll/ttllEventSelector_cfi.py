@@ -1,5 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 from CATTools.CatAnalyzer.leptonSF_cff import *
+from CATTools.CatAnalyzer.flatGenWeights_cfi import *
 
 eventsTTLL = cms.EDFilter("TTLLEventSelector",
     isMC = cms.bool(True),
@@ -62,9 +63,8 @@ eventsTTLL = cms.EDFilter("TTLLEventSelector",
 
     # Event weights
     genWeight = cms.PSet(
-        index = cms.uint32(0),
-        src = cms.InputTag("genWeight"),
-        weightType = cms.string("nominal"), # can be PDF, scaleUp, scaleDown
+        index = cms.int32(-1),
+        src = cms.InputTag("flatGenWeights"),
     ),
     extWeights = cms.VInputTag(),
 )

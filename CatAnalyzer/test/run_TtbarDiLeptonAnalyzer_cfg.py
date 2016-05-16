@@ -34,6 +34,7 @@ if useSilver:
 process.load("CATTools.CatAnalyzer.ttll.ttbarDileptonKinSolutionAlgos_cff")
 process.load("CATTools.CatAnalyzer.filters_cff")
 process.load("CATTools.CatAnalyzer.topPtWeightProducer_cfi")
+process.load("CATTools.CatAnalyzer.flatGenWeights_cfi")
 from CATTools.CatAnalyzer.leptonSF_cff import *
 
 process.ttbarDileptonKinAlgoPSetDESYSmeared.inputTemplatePath = cms.string("CATTools/CatAnalyzer/data/desyKinRecoInput.root")
@@ -48,10 +49,10 @@ process.cattree = cms.EDAnalyzer("dileptonCommon",
     recoFilters = cms.InputTag("filterRECO"),
     nGoodVertex = cms.InputTag("catVertex","nGoodPV"),
     lumiSelection = cms.InputTag(lumiMask),
-    #genweight = cms.InputTag("genWeight"),
-    genweight = cms.InputTag("genWeight","genWeight"),    
-    pdfweight = cms.InputTag("genWeight","pdfWeights"),		
-    scaleweight = cms.InputTag("genWeight","scaleWeights"),
+    genweight = cms.InputTag("flatGenWeights"),
+    pdfweights = cms.InputTag("flatGenWeights","pdf"),		
+    scaleupweights = cms.InputTag("flatGenWeights","scaleup"),
+    scaledownweights = cms.InputTag("flatGenWeights","scaledown"),
     topPtWeight = cms.InputTag("topPtWeight"),
     puweight = cms.InputTag(pileupWeight),
     puweight_up = cms.InputTag(pileupWeight,"up"),

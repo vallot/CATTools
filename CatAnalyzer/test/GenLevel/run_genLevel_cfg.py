@@ -22,6 +22,7 @@ process.source.fileNames = [
 
 #process.load("TopQuarkAnalysis.TopEventProducers.producers.pseudoTop_cfi")
 #process.load("CATTools.CatProducers.mcTruthTop.partonTop_cfi")
+process.load("CATTools.CatAnalyzer.flatGenWeights_cfi")
 
 process.ttbar = cms.EDAnalyzer("CATGenTopAnalysis",
     channel = cms.InputTag("partonTop","channel"),
@@ -29,8 +30,8 @@ process.ttbar = cms.EDAnalyzer("CATGenTopAnalysis",
     partonTop = cms.InputTag("partonTop"),
     pseudoTop = cms.InputTag("pseudoTop"),
     filterTaus = cms.bool(False),
-    weight = cms.InputTag("genWeight", "genWeight"),
-    weightIndex = cms.uint32(0),
+    weight = cms.InputTag("flatGenWeights"),
+    weightIndex = cms.int32(-1),
 )
 
 process.ttbarNoTau = process.ttbar.clone(filterTaus = cms.bool(True))

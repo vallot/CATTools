@@ -5,12 +5,12 @@
 using namespace std;
 using namespace cat;
 
-void GenWeightInfo::addWeightGroup(const string typeName, const string combineBy, const vector<string> weightParams, const vector<string> weightKeys)
+void GenWeightInfo::addWeightGroup(const string name, const string combineBy, const vector<string> params, const vector<unsigned short> keys)
 {
-  typeNames_.push_back(typeName);
+  names_.push_back(name);
   combineMethods_.push_back(combineBy);
-  weightParams_.push_back(weightParams);
-  weightKeys_.push_back(weightKeys);
+  params_.push_back(params);
+  keys_.push_back(keys);
 }
 
 GenWeightInfo::KnownTypes GenWeightInfo::toKnownType(string typeName)
@@ -45,10 +45,10 @@ void GenWeights::setInfo(const int id1, const int id2, const float x1, const flo
 int GenWeightInfo::print() const
 {
   cout << "------------------------------------------------\n";
-  for ( int i=0, n=typeNames_.size(); i<n; ++i ) {
-    cout << typeNames_[i] << ' ' << combineMethods_[i] << endl;
-    for ( int j=0, m=weightParams_[i].size(); j<m; ++j ) {
-      cout << "  -> " << weightParams_[i][j] << " access using " << weightKeys_[i][j] << endl;
+  for ( int i=0, n=names_.size(); i<n; ++i ) {
+    cout << names_[i] << ' ' << combineMethods_[i] << endl;
+    for ( int j=0, m=params_[i].size(); j<m; ++j ) {
+      cout << "  -> " << params_[i][j] << " access using genWeights[" << keys_[i][j] << "]" << endl;
     }
   }
   cout << "------------------------------------------------\n";
