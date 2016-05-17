@@ -100,10 +100,17 @@ if options.inputFiles:
 #pat input files are removed because it would not work if useMiniAOD is on.    
 
 ## to suppress the long output at the end of the job
-process.MessageLogger.cerr.threshold = ''
+
+
+
 if options.maxEvents < 0:
     process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.options.wantSummary = True
+
+process.MessageLogger.cerr.threshold = 'ERROR'
+process.MessageLogger.suppressWarning = cms.untracked.vstring(["JetPtMismatchAtLowPt", "NullTransverseMomentum"])
+process.MessageLogger.suppressError = cms.untracked.vstring(["MissingJetConstituent","JetPtMismatch","JetPtMismatch"])
+
 
 ## for debugging
 #process.options.wantSummary = True
