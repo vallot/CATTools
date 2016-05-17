@@ -109,7 +109,6 @@ process.options.wantSummary = True
 
 process.MessageLogger.cerr.threshold = 'ERROR'
 process.MessageLogger.suppressWarning = cms.untracked.vstring(["JetPtMismatchAtLowPt", "NullTransverseMomentum"])
-process.MessageLogger.suppressError = cms.untracked.vstring(["MissingJetConstituent","JetPtMismatch","JetPtMismatch"])
 
 
 ## for debugging
