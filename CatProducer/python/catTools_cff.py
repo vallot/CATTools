@@ -27,7 +27,8 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         jecFile = jecFile+"_DATA"
     if useJECfile:
         #from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
-        from CondCore.CondDB.CondDB_cfi.py import CondDB
+        from CondCore.CondDB.CondDB_cfi import CondDB
+        CondDB.__delattr__('connect')
         process.jec = cms.ESSource("PoolDBESSource",CondDB,
             connect = cms.string('sqlite_fip:CATTools/CatProducer/data/JEC/%s.db'%jecFile),            
             toGet = cms.VPSet(
