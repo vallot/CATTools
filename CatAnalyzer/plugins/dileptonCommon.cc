@@ -631,50 +631,6 @@ int dileptonCommon::eventSelection(const edm::Event& iEvent, const edm::EventSet
       if (sys == sys_nom) cutflow_[8][b_channel]++;
     }
   }
-  vector<int> leptonIndex, antiLeptonIndex, jetIndices, bjetIndices;
-  VLV allLeptonslv, jetslv;
-  vector<double> jetBtags;
-  //////////////////////////////////////////////////////// DESY KIN /////////////////////////////////////
-  if (selectedBJets.size() > 0){
-    LV metlv = mets->front().p4();
-
-    int ijet=0;
-    for (auto & jet : selectedJets){
-      jetslv.push_back(jet.p4());
-      jetBtags.push_back(jet.bDiscriminator(BTAG_CSVv2));
-      if (jet.bDiscriminator(BTAG_CSVv2) > WP_BTAG_CSVv2L) bjetIndices.push_back(ijet);
-      jetIndices.push_back(ijet);
-      ++ijet;
-    }
-
-    int ilep = 0;
-    for (auto & lep : recolep){
-      allLeptonslv.push_back(lep->p4());
-      if (lep->charge() > 0) antiLeptonIndex.push_back(ilep);
-      else leptonIndex.push_back(ilep);
-      ++ilep;
-    }
-    KinematicReconstructionSolutions kinematicReconstructionSolutions  =  kinematicReconstruction->solutions(leptonIndex, antiLeptonIndex, jetIndices, bjetIndices,  allLeptonslv, jetslv, jetBtags, metlv);
-
-    if (b_step == 5 and sys == sys_nom) cutflow_[10][b_channel]++;
-
-    if (kinematicReconstructionSolutions.numberOfSolutions()){
-      LV top1 = kinematicReconstructionSolutions.solution().top();
-      LV top2 = kinematicReconstructionSolutions.solution().antiTop();
-
-      b_step8 = true;
-      if (b_step == 5)
-        if (sys == sys_nom)
-          cutflow_[11][b_channel]++;
-
-      b_desytop1 = ToTLorentzVector(top1);
-      b_desytop2 = ToTLorentzVector(top2);
-
-      LV ttbar = kinematicReconstructionSolutions.solution().ttbar();
-      b_desyttbar = ToTLorentzVector(ttbar);
-      b_desyttbar_dphi = deltaPhi(top1.Phi(), top2.Phi());
-    }
-  }
   return 0;
 }
 void dileptonCommon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -697,6 +653,49 @@ void dileptonCommon::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
   }
 }
 void dileptonCommon::analyzeCustom(const edm::Event& iEvent, const edm::EventSetup& iSetup, int sys) {
+  vector<int> leptonIndex, antiLeptonIndex, jetIndices, bjetIndices;
+  VLV allLeptonslv, jetslv;
+  vector<double> jetBtags;
+  //////////////////////////////////////////////////////// DESY KIN /////////////////////////////////////
+  if ( b_step5 ){
+
+    int ijet=0;
+    for (auto & jet : selectedJets){
+      jetslv.push_back(jet.p4());
+      jetBtags.push_back(jet.bDiscriminator(BTAG_CSVv2));
+      if (jet.bDiscriminator(BTAG_CSVv2) > WP_BTAG_CSVv2L) bjetIndices.push_back(ijet);
+      jetIndices.push_back(ijet);
+      ++ijet;
+    }
+
+    int ilep = 0;
+    for (auto & lep : recolep_){
+      allLeptonslv.push_back(lep->p4());
+      if (lep->charge() > 0) antiLeptonIndex.push_back(ilep);
+      else leptonIndex.push_back(ilep);
+      ++ilep;
+    }
+    KinematicReconstructionSolutions kinematicReconstructionSolutions  =  kinematicReconstruction->solutions(leptonIndex, antiLeptonIndex, jetIndices, bjetIndices,  allLeptonslv, jetslv, jetBtags, met);
+
+    if (b_step == 5 and sys == sys_nom) cutflow_[10][b_channel]++;
+
+    if (kinematicReconstructionSolutions.numberOfSolutions()){
+      LV top1 = kinematicReconstructionSolutions.solution().top();
+      LV top2 = kinematicReconstructionSolutions.solution().antiTop();
+
+      b_step8 = true;
+      if (b_step == 5)
+        if (sys == sys_nom)
+          cutflow_[11][b_channel]++;
+
+      b_desytop1 = ToTLorentzVector(top1);
+      b_desytop2 = ToTLorentzVector(top2);
+
+      LV ttbar = kinematicReconstructionSolutions.solution().ttbar();
+      b_desyttbar = ToTLorentzVector(ttbar);
+      b_desyttbar_dphi = deltaPhi(top1.Phi(), top2.Phi());
+    }
+  }
 
   ////////////////////////////////////////////////////////  KIN  /////////////////////////////////////
   //int kin=0;
