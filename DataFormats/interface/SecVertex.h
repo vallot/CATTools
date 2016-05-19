@@ -35,6 +35,8 @@ namespace cat {
     void setLeptonID(int i, int j=-1) { leptonID1_= i; leptonID2_ = j;}
     void setTrackQuality(int i, int j=-1) { trackQuality1_= i; trackQuality2_ = j;}
     void setMCMatch(bool flag) { isMCMatch_ = flag ; }
+    void setJetDR( float dR ) { jetDR_ = dR; }
+    void setLegDR( float dR ) { legDR_ = dR; }
 
     float dca() const { return dca_;}// distance of closest approach
     float dca(int i) const { 
@@ -55,7 +57,7 @@ namespace cat {
     float cxPtAbs() const { return cxPtAbs_;}// crossing point abs
     void set_cxPtAbs(float i) { cxPtAbs_ = i; }
   private:
-    float lxy_, l3D_, vProb_, dca_,dca2_,dca3_, cxPtHypot_, cxPtAbs_;
+    float lxy_, l3D_, vProb_, dca_,dca2_,dca3_, cxPtHypot_, cxPtAbs_, jetDR_, legDR_ ;
     //int ipos_, ineg_;
     int leptonID1_, trackQuality1_;
     int leptonID2_, trackQuality2_;
