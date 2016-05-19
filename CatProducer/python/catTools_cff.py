@@ -77,6 +77,16 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         ## applying new jec on the fly
         process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
         process.patJetCorrFactors.primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices")
+        ### updating puppi jet jec
+        process.patJetPuppiCorrFactorsUpdated = process.patJetCorrFactorsUpdated.clone(
+            src = process.catJetsPuppi.src,
+            payload = cms.string('AK4PFPuppi'),
+            levels = cms.vstring('L2Relative','L3Absolute'),
+            useRho = cms.bool(False))
+        
+        process.patJetsPuppiUpdated = process.patJetsUpdated.clone(
+            jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetPuppiCorrFactorsUpdated")),
+            jetSource = process.catJetsPuppi.src )
         ### updating pile Jet.
         process.load("RecoJets.JetProducers.PileupJetID_cfi")
         process.pileupJetIdUpdated = process.pileupJetId.clone(
@@ -89,16 +99,6 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
 
         process.catJets.src = cms.InputTag("patJetsUpdated")
 
-        ### updating puppi jet jec
-        process.patJetPuppiCorrFactorsUpdated = process.patJetCorrFactorsUpdated.clone(
-            src = process.catJetsPuppi.src,
-            payload = cms.string('AK4PFPuppi'),
-            levels = cms.vstring('L2Relative','L3Absolute'),
-            useRho = cms.bool(False))
-        
-        process.patJetsPuppiUpdated = process.patJetsUpdated.clone(
-            jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetPuppiCorrFactorsUpdated")),
-            jetSource = process.catJetsPuppi.src )
         
         process.catJetsPuppi.src = cms.InputTag("patJetsPuppiUpdated")
         process.catJetsPuppi.setGenParticle = cms.bool(False)
