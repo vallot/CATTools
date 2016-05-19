@@ -128,7 +128,7 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
 
         int pdgMul = lep1Cand->pdgId() * lep2Cand->pdgId();
         if ( pdgMul != -121 && pdgMul != -169 ) flag_jpsi = false;
-        else if ( !flag_jpsi && abs( pdgMul ) !=2321 && abs( pdgMul) != 2743 ) continue;
+        if ( !flag_jpsi && abs( pdgMul ) !=2321 && abs( pdgMul) != 2743 ) continue;
 
 
         //if ( reco::deltaR( *lep1Cand, *lep2Cand) > maxDeltaR_ ) continue;
