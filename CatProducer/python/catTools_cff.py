@@ -77,6 +77,16 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         ## applying new jec on the fly
         process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
         process.patJetCorrFactors.primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices")
+        ### updating pile Jet.
+        process.load("RecoJets.JetProducers.PileupJetID_cfi")
+        process.pileupJetIdUpdated = process.pileupJetId.clone(
+          jets=cms.InputTag("slimmedJets"),
+          inputIsCorrected=True,
+          applyJec=True,
+          vertexes=cms.InputTag("offlineSlimmedPrimaryVertices")
+        )
+        process.patJetsUpdated.userData.userFloats.src +=['pileupJetIdUpdated:fullDiscriminant']
+
         process.catJets.src = cms.InputTag("patJetsUpdated")
 
         ### updating puppi jet jec
@@ -91,7 +101,7 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
             jetSource = process.catJetsPuppi.src )
         
         process.catJetsPuppi.src = cms.InputTag("patJetsPuppiUpdated")
-        process.catJetsPuppi.setGenParticle = cms.bool(False)        
+        process.catJetsPuppi.setGenParticle = cms.bool(False)
         ## #######################################################################
         ## # MET corrections from https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
         #from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
