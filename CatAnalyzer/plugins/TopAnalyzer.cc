@@ -85,7 +85,8 @@ class TopAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
       float Muon_Eta[100];
       float Muon_Phi[100];
       float Muon_E[100];
-      float Muon_Iso[100];
+      float Muon_Iso03[100];
+      float Muon_Iso04[100];
       float Muon_Charge[100];
 
       int NLooseMuon;
@@ -94,7 +95,8 @@ class TopAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
       float LooseMuon_Eta[100];
       float LooseMuon_Phi[100];
       float LooseMuon_E[100];
-      float LooseMuon_Iso[100];
+      float LooseMuon_Iso03[100];
+      float LooseMuon_Iso04[100];
       float LooseMuon_Charge[100];
 
       int NElectron;
@@ -256,7 +258,8 @@ TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      LooseMuon_Eta[nmuons] = muon.eta();
      LooseMuon_Phi[nmuons] = muon.phi();
      LooseMuon_E[nmuons] = muon.energy();
-     LooseMuon_Iso[nmuons] = muon.relIso(0.4);
+     LooseMuon_Iso03[nmuons] = muon.relIso(0.3);
+     LooseMuon_Iso04[nmuons] = muon.relIso(0.4);
      LooseMuon_Charge[nmuons] = muon.charge();
      nloosemuons++;
 
@@ -269,7 +272,8 @@ TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      Muon_Eta[nmuons] = muon.eta(); 
      Muon_Phi[nmuons] = muon.phi(); 
      Muon_E[nmuons] = muon.energy();
-     Muon_Iso[nmuons] = muon.relIso(0.4);
+     Muon_Iso03[nmuons] = muon.relIso(0.3);
+     Muon_Iso04[nmuons] = muon.relIso(0.4);
      Muon_Charge[nmuons] = muon.charge();
 
      WMuon_MT[nmuons] = transverseMass( muon.p4(), METHandle->begin()->p4() );
@@ -333,14 +337,14 @@ TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      TLorentzVector vjet(jet.px(), jet.py(), jet.pz(), jet.energy());
 
      for(int j = 0 ; j < NMuon ; j++){ 
-       if( Muon_Iso[j] < 0.15 ){
+       if( Muon_Iso03[j] < 0.15 ){
          TLorentzVector vlep(Muon_Pt[j], Muon_Eta[j], Muon_Phi[j], Muon_E[j]);
          dr = vjet.DeltaR(vlep);
        }
      }
 
      for(int j = 0 ; j < NElectron ; j++){
-       if( Electron_Iso[j] < 0.15 ){
+       if( Electron_Iso03[j] < 0.15 ){
          TLorentzVector vlep(Electron_Pt[j], Electron_Eta[j], Electron_Phi[j], Electron_E[j]);
          dr = vjet.DeltaR(vlep);
        }
@@ -401,7 +405,8 @@ TopAnalyzer::beginJob()
    tree->Branch("Muon_Eta",Muon_Eta,"Muon_Eta[NMuon]/F");
    tree->Branch("Muon_Phi",Muon_Phi,"Muon_Phi[NMuon]/F");
    tree->Branch("Muon_E",Muon_E,"Muon_E[NMuon]/F");
-   tree->Branch("Muon_Iso",Muon_Iso,"Muon_Iso[NMuon]/F");
+   tree->Branch("Muon_Iso03",Muon_Iso03,"Muon_Iso03[NMuon]/F");
+   tree->Branch("Muon_Iso04",Muon_Iso04,"Muon_Iso04[NMuon]/F");
    tree->Branch("Muon_Charge",Muon_Charge,"Muon_Charge[NMuon]/F");
 
    tree->Branch("NLooseMuon",&NLooseMuon,"NLooseMuon/I");
@@ -409,7 +414,8 @@ TopAnalyzer::beginJob()
    tree->Branch("LooseMuon_Eta",LooseMuon_Eta,"LooseMuon_Eta[NLooseMuon]/F");
    tree->Branch("LooseMuon_Phi",LooseMuon_Phi,"LooseMuon_Phi[NLooseMuon]/F");
    tree->Branch("LooseMuon_E",LooseMuon_E,"LooseMuon_E[NLooseMuon]/F");
-   tree->Branch("LooseMuon_Iso",LooseMuon_Iso,"LooseMuon_Iso[NLooseMuon]/F");
+   tree->Branch("LooseMuon_Iso03",LooseMuon_Iso03,"LooseMuon_Iso03[NLooseMuon]/F");
+   tree->Branch("LooseMuon_Iso04",LooseMuon_Iso04,"LooseMuon_Iso04[NLooseMuon]/F");
    tree->Branch("LooseMuon_Charge",LooseMuon_Charge,"LooseMuon_Charge[NLooseMuon]/F");
 
    tree->Branch("NElectron",&NElectron,"NElectron/I");
