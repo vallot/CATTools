@@ -105,7 +105,8 @@ class TopAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
       float Electron_Eta[100];
       float Electron_Phi[100];
       float Electron_E[100];
-      float Electron_Iso[100];
+      float Electron_Iso03[100];
+      float Electron_Iso04[100];
       float Electron_Charge[100];
 
       int NLooseElectron;
@@ -114,7 +115,8 @@ class TopAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
       float LooseElectron_Eta[100];
       float LooseElectron_Phi[100];
       float LooseElectron_E[100];
-      float LooseElectron_Iso[100];
+      float LooseElectron_Iso03[100];
+      float LooseElectron_Iso04[100];
       float LooseElectron_Charge[100];
 
 
@@ -126,7 +128,10 @@ class TopAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
       float Jet_E[100];
       float Jet_BTag[100];
       float Jet_bDiscriminator[100];
-  
+ 
+      float Jet_JES_Up[100];
+      float Jet_JES_Dw[100];
+ 
       int NBJet;
 
       int DiLeptonic;
@@ -298,7 +303,8 @@ TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      LooseElectron_Eta[nelectrons] = electron.eta();
      LooseElectron_Phi[nelectrons] = electron.phi();
      LooseElectron_E[nelectrons] = electron.energy();
-     LooseElectron_Iso[nelectrons] = electron.relIso();
+     LooseElectron_Iso03[nelectrons] = electron.relIso(0.3);
+     LooseElectron_Iso04[nelectrons] = electron.relIso(0.4);
      LooseElectron_Charge[nelectrons] = electron.charge();
      nlooseelectrons++;
 
@@ -311,7 +317,8 @@ TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      Electron_Eta[nelectrons] = electron.eta();
      Electron_Phi[nelectrons] = electron.phi();
      Electron_E[nelectrons] = electron.energy();
-     Electron_Iso[nelectrons] = electron.relIso();
+     Electron_Iso03[nelectrons] = electron.relIso(0.3);
+     Electron_Iso04[nelectrons] = electron.relIso(0.4);
      Electron_Charge[nelectrons] = electron.charge();
 
      WElectron_MT[nelectrons] = transverseMass( electron.p4(), METHandle->begin()->p4() );
@@ -356,6 +363,9 @@ TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      Jet_Eta[nJets] = jet.eta();
      Jet_Phi[nJets] = jet.phi();
      Jet_E[nJets] = jet.energy();
+
+     Jet_JES_Up[nJets] = jet.shiftedEnUp();
+     Jet_JES_Dw[nJets] = jet.shiftedEnDown();
 
      double bDiscriminator = jet.bDiscriminator(BTAG_CSVv2);
      Jet_bDiscriminator[nJets] = bDiscriminator;
@@ -423,7 +433,8 @@ TopAnalyzer::beginJob()
    tree->Branch("Electron_Eta",Electron_Eta,"Electron_Eta[NElectron]/F");
    tree->Branch("Electron_Phi",Electron_Phi,"Electron_Phi[NElectron]/F");
    tree->Branch("Electron_E",Electron_E,"Electron_E[NElectron]/F");
-   tree->Branch("Electron_Iso",Electron_Iso,"Electron_Iso[NElectron]/F");
+   tree->Branch("Electron_Iso03",Electron_Iso03,"Electron_Iso03[NElectron]/F");
+   tree->Branch("Electron_Iso04",Electron_Iso04,"Electron_Iso04[NElectron]/F");
    tree->Branch("Electron_Charge",Electron_Charge,"Electron_Charge[NElectron]/F");
 
    tree->Branch("NLooseElectron",&NLooseElectron,"NLooseElectron/I");
@@ -431,7 +442,8 @@ TopAnalyzer::beginJob()
    tree->Branch("LooseElectron_Eta",LooseElectron_Eta,"LooseElectron_Eta[NLooseElectron]/F");
    tree->Branch("LooseElectron_Phi",LooseElectron_Phi,"LooseElectron_Phi[NLooseElectron]/F");
    tree->Branch("LooseElectron_E",LooseElectron_E,"LooseElectron_E[NLooseElectron]/F");
-   tree->Branch("LooseElectron_Iso",LooseElectron_Iso,"LooseElectron_Iso[NLooseElectron]/F");
+   tree->Branch("LooseElectron_Iso03",LooseElectron_Iso03,"LooseElectron_Iso03[NLooseElectron]/F");
+   tree->Branch("LooseElectron_Iso04",LooseElectron_Iso04,"LooseElectron_Iso04[NLooseElectron]/F");
    tree->Branch("LooseElectron_Charge",LooseElectron_Charge,"LooseElectron_Charge[NLooseElectron]/F");
 
    tree->Branch("NJet",&NJet,"NJet/i");
@@ -441,6 +453,9 @@ TopAnalyzer::beginJob()
    tree->Branch("Jet_E",Jet_E,"Jet_E[NJet]/F");
    tree->Branch("Jet_BTag",Jet_BTag,"Jet_BTag[NJet]/F");
    tree->Branch("Jet_bDiscriminator",Jet_bDiscriminator,"Jet_bDiscriminator[NJet]/F"); 
+
+   tree->Branch("Jet_JES_Up",Jet_JES_Up,"Jet_JES_Up[NJet]/F");
+   tree->Branch("Jet_JES_Dw",Jet_JES_Dw,"Jet_JES_Dw[NJet]/F");
  
    tree->Branch("NBJet",&NBJet,"NBJet/i");
    tree->Branch("DiLeptonic",&DiLeptonic,"DiLeptonic/i");
