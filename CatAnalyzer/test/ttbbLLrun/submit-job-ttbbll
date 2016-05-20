@@ -14,8 +14,11 @@ json_ = open(cmsswpath+"dataset.json")
 dataset = json.load(json_)
 DoubleRun2015=['DoubleEG_Run2015C', 'DoubleEG_Run2015D', 'DoubleMuon_Run2015C', 'DoubleMuon_Run2015D', 'MuonEG_Run2015C', 'MuonEG_Run2015D']
 TTbarMC=['TTJets_MG5', 'TTJets_aMC', 'TTJets_scaleup', 'TTJets_scaledown', 'TT_powheg', 'TT_powheg_scaledown', 'TT_powheg_scaleup', 'TT_amcatnlo-herwigpp', 'TT_powheg-herwigpp', 'TT_powheg_pythia6', 'TTG']
-BkgMC=['WJets', 'SingleTbar_tW', 'SingleTop_tW', 'WW', 'WZ', 'ZZ', 'ttWJetsToQQ', 'ttWJetsToLN', 'ttZToLLNuN', 'ttZToQQ']
+BkgMC=['WJets', 'SingleTbar_tW', 'SingleTop_tW', 'WW', 'WZ', 'ZZ', 'ttWJetsToQQ', 'ttWJetsToLNu', 'ttZToLLNuNu', 'ttZToQQ']
 DYMC=['DYJets', 'DYJets_10to50', 'DYJets_MG', 'DYJets_MG_5to50']
+ttV=['ttWJetsToQQ', 'ttWJetsToLNu', 'ttZToLLNuNu', 'ttZToQQ']
+#etc=['ttWJetsToLNu','ttZToLLNuNu']
+etc=['MuonEG_Run2015D','DYJets']
 MC = TTbarMC+BkgMC+DYMC
 LL = DoubleRun2015+TTbarMC+BkgMC+DYMC
 
@@ -24,17 +27,18 @@ args=["--jobName","--fileList","--maxFiles","--cfg","--transferDest","--args","-
 for aa in dataset:
  isLL    = aa['name'] in LL
  isTTbar = aa['name'] in TTbarMC 
+ isTTV = aa['name'] in ttV
  isMC = aa['name'] in MC
  isDATA = aa['name'] in DoubleRun2015
-
- if ( isLL ) :
+ isEtc = aa['name'] in etc
+ if ( isEtc ) :
    #ddd = "create-batch -n "
    ddd = "create-batch "
    ddd+= args[0]+" "+aa['name']+" "
    ddd+= args[1]+" "+cmsswpath+"/dataset/dataset_"+aa['name']+".txt "
    ddd+= args[2]+" 20 "
 
-   fff = "/store/user/youngjo/Cattools/v7-6-4v1/"+aa['name']+"v1"
+   fff = "/store/user/youngjo/Cattools/v7-6-4v2/"+aa['name']+"v1"
    ddd+= args[3]+" ../run_TtbarBbbarDiLeptonAnalyzer_cfg.py "
    ddd+= args[4]+" "+fff+" "
 

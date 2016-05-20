@@ -179,7 +179,7 @@ private:
   std::vector<float> b_pdfWeights, b_scaleWeightsUp, b_scaleWeightsDown;
   std::vector<float> b_csvweights, b_btagweightsCSVL,  b_btagweightsCSVM,  b_btagweightsCSVT;
   std::vector<float> b_csvweights2;
-  //std::vector<float> b_mvaweights, b_btagweightsMVAL,  b_btagweightsMVAM,  b_btagweightsMVAT;
+//  std::vector<float> b_mvaweights, b_btagweightsMVAL,  b_btagweightsMVAM,  b_btagweightsMVAT;
 
   float b_weight, b_puweight, b_puweightUp, b_puweightDown;
   int b_partonChannel, b_partonMode1, b_partonMode2;
@@ -288,8 +288,8 @@ private:
   BTagWeightEvaluator bTagWeightCSVL;
   BTagWeightEvaluator bTagWeightCSVM;
   BTagWeightEvaluator bTagWeightCSVT;
-
-/*  BTagWeightEvaluator mvaWeight;
+/*
+  BTagWeightEvaluator mvaWeight;
   BTagWeightEvaluator bTagWeightMVAL;
   BTagWeightEvaluator bTagWeightMVAM;
   BTagWeightEvaluator bTagWeightMVAT;
@@ -354,10 +354,10 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
   bTagWeightCSVL.init(3, "csvv2", BTagEntry::OP_LOOSE , 1);
   bTagWeightCSVM.init(3, "csvv2", BTagEntry::OP_MEDIUM, 1);
   bTagWeightCSVT.init(3, "csvv2", BTagEntry::OP_TIGHT , 1);
-  /*bTagWeightMVAL.init(3, "mva", BTagEntry::OP_LOOSE , 1);
-  bTagWeightMVAM.init(3, "mva", BTagEntry::OP_MEDIUM, 1);
-  bTagWeightMVAT.init(3, "mva", BTagEntry::OP_TIGHT , 1);
-*/
+  //bTagWeightMVAL.init(3, "mva", BTagEntry::OP_LOOSE , 1);
+  //bTagWeightMVAM.init(3, "mva", BTagEntry::OP_MEDIUM, 1);
+  //bTagWeightMVAT.init(3, "mva", BTagEntry::OP_TIGHT , 1);
+
   usesResource("TFileService");
   edm::Service<TFileService> fs;
   ttree_ = fs->make<TTree>("nom", "nom");
@@ -435,11 +435,11 @@ void TtbarBbbarDiLeptonAnalyzer::book(TTree* tree){
   tree->Branch("btagweightsCSVM","std::vector<float>",&b_btagweightsCSVM);
   tree->Branch("btagweightsCSVT","std::vector<float>",&b_btagweightsCSVT);
 
-/*  tree->Branch("mvaweights","std::vector<float>",&b_mvaweights);
+  /*tree->Branch("mvaweights","std::vector<float>",&b_mvaweights);
   tree->Branch("btagweightsMVAL","std::vector<float>",&b_btagweightsMVAL);
   tree->Branch("btagweightsMVAM","std::vector<float>",&b_btagweightsMVAM);
-  tree->Branch("btagweightsMVAT","std::vector<float>",&b_btagweightsMVAT);
-*/
+  tree->Branch("btagweightsMVAT","std::vector<float>",&b_btagweightsMVAT);*/
+
   tree->Branch("topPtWeight", &b_topPtWeight, "topPtWeight/F");
 
   tree->Branch("puweight", &b_puweight, "puweight/F");
@@ -1004,21 +1004,22 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     if (runOnMC_){
       b_csvweights2.push_back(myCsvWeight->getCSVWeight(selectedJets,0));
       b_csvweights.push_back(csvWeight.eventWeight(selectedJets,0));
+      //b_mvaweights.push_back(mvaWeight.eventWeight(selectedJets,0));
       for (unsigned int iu=0; iu<18; iu++)
       {
          b_csvweights2.push_back(myCsvWeight->getCSVWeight(selectedJets,iu+7));
          b_csvweights.push_back(csvWeight.eventWeight(selectedJets,iu+1));
-         //b_mvaweights.push_back(mvaWeight.eventWeight(selectedJets,iu));
+         //b_mvaweights.push_back(mvaWeight.eventWeight(selectedJets,iu+1));
       }
       for (unsigned int iu=0; iu<3; iu++)
       {
          b_btagweightsCSVL.push_back(bTagWeightCSVL.eventWeight(selectedJets, iu));
          b_btagweightsCSVM.push_back(bTagWeightCSVM.eventWeight(selectedJets, iu));
          b_btagweightsCSVT.push_back(bTagWeightCSVT.eventWeight(selectedJets, iu));
-         /*b_btagweightsMVAL.push_back(bTagWeightMVAL.eventWeight(selectedJets, iu));
-         b_btagweightsMVAM.push_back(bTagWeightMVAM.eventWeight(selectedJets, iu));
-         b_btagweightsMVAT.push_back(bTagWeightMVAT.eventWeight(selectedJets, iu));
-         */
+         //b_btagweightsMVAL.push_back(bTagWeightMVAL.eventWeight(selectedJets, iu));
+         //b_btagweightsMVAM.push_back(bTagWeightMVAM.eventWeight(selectedJets, iu));
+         //b_btagweightsMVAT.push_back(bTagWeightMVAT.eventWeight(selectedJets, iu));
+         
       }
  
     }
