@@ -7,7 +7,7 @@ if len(sys.argv) is 1:
   sys.exit()
 
 arg = sys.argv[1]
-xrootdpath = "/xrootd/store/user//youngjo/Cattools/v7-6-4v2/"
+xrootdpath = "/xrootd/store/user//youngjo/Cattools/v7-6-4v3/"
 v = "v1" 
 
 

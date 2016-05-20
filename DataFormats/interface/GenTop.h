@@ -84,6 +84,11 @@ namespace cat {
       if( i == 0){ return dRaddbJetsHad_; }
       else return dRaddbJets_;
     }
+    float dRaddcJets(int i=0) const {
+      if( i == 0){ return dRaddcJetsHad_; }
+      else return dRaddcJets_;
+    }
+ 
     float dRcJets(int i=0) const {
       if( i == 0){ return dRcJetsHad_; }
       else return dRcJets_;

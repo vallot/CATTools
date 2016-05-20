@@ -278,6 +278,16 @@ private:
   int    NaddbQuarks40    ;//  cms.string("NaddbQuarks40"),
   int    NcQuarks         ;//  cms.string("NcQuarks"),
 
+  float dRaddJets;
+
+  float dRaddbJets;
+  float dRaddcJets;
+  float dRcJets;
+
+  float dRaddbJetsHad;
+  float dRaddcJetsHad;
+  float dRcJetsHad;
+
   int b_is3lep;
 
   const static int NCutflow = 10;
@@ -585,6 +595,16 @@ void TtbarBbbarDiLeptonAnalyzer::book(TTree* tree){
   tree->Branch("NaddbQuarks40",   &NaddbQuarks40  , "NaddbQuarks40/I");
   tree->Branch("NcQuarks",        &NcQuarks       , "NcQuarks/I");
 
+  tree->Branch("dRaddJets",       &dRaddJets  ,      "dRaddJets/I");  
+                                                                        
+  tree->Branch("dRaddbJets",      &dRaddbJets  ,     "dRaddbJets/I");    
+  tree->Branch("dRaddcJets",      &dRaddcJets  ,     "dRaddcJets/I");  
+  tree->Branch("dRcJets",         &dRcJets  ,        "dRcJets/I");  
+                                                                        
+  tree->Branch("dRaddbJetsHad",   &dRaddbJetsHad  ,  "dRaddbJetsHad/I");  
+  tree->Branch("dRaddcJetsHad",   &dRaddcJetsHad  ,  "dRaddcJetsHad/I");  
+  tree->Branch("dRcJetsHad",      &dRcJetsHad  ,     "dRcJetsHad/I");     
+
   tree->Branch("is3lep", &b_is3lep, "is3lep/I");
 }
 
@@ -694,6 +714,18 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     NaddbQuarks20    =genTop->at(0).NaddbQuarks20();
     NaddbQuarks40    =genTop->at(0).NaddbQuarks40();
     NcQuarks         =genTop->at(0).NcQuarks();
+
+   dRaddJets       =genTop->at(0).dRaddJets();
+
+   dRaddbJets     =genTop->at(0).dRaddbJets(1);
+   dRaddcJets     =genTop->at(0).dRaddcJets(1);
+   dRcJets        =genTop->at(0).dRcJets(1);
+
+   dRaddbJetsHad     =genTop->at(0).dRaddbJets(0);
+   dRaddcJetsHad     =genTop->at(0).dRaddcJets(0);
+   dRcJetsHad        =genTop->at(0).dRcJets(0);
+
+
   }
   ////////////
   if ( iEvent.getByToken(partonTop_channel_, partonTop_channel)){
