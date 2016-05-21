@@ -26,8 +26,10 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
     else:
         jecFile = jecFile+"_DATA"
     if useJECfile:
-        from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
-        process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
+        #from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
+        from CondCore.CondDB.CondDB_cfi import CondDB
+        CondDB.__delattr__('connect')
+        process.jec = cms.ESSource("PoolDBESSource",CondDB,
             connect = cms.string('sqlite_fip:CATTools/CatProducer/data/JEC/%s.db'%jecFile),            
             toGet = cms.VPSet(
                 cms.PSet(
@@ -77,14 +79,15 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         ## applying new jec on the fly
         process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
         process.patJetCorrFactors.primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices")
+        process.catJets.src = cms.InputTag("updatedPatJets")
         ### updating puppi jet jec
-        process.patJetPuppiCorrFactorsUpdated = process.patJetCorrFactorsUpdated.clone(
+        process.patJetPuppiCorrFactorsUpdated = process.updatedPatJetCorrFactors.clone(
             src = process.catJetsPuppi.src,
             payload = cms.string('AK4PFPuppi'),
             levels = cms.vstring('L2Relative','L3Absolute'),
             useRho = cms.bool(False))
         
-        process.patJetsPuppiUpdated = process.patJetsUpdated.clone(
+        process.patJetsPuppiUpdated = process.updatedPatJets.clone(
             jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetPuppiCorrFactorsUpdated")),
             jetSource = process.catJetsPuppi.src )
         ### updating pile Jet.
