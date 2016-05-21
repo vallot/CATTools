@@ -126,6 +126,8 @@ class TopAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
       float Jet_Eta[100];
       float Jet_Phi[100];
       float Jet_E[100];
+      float Jet_partonFlavour[100];
+      float Jet_hadronFlavour[100];
       float Jet_BTag[100];
       float Jet_bDiscriminator[100];
  
@@ -136,7 +138,19 @@ class TopAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
 
       int DiLeptonic;
       int SemiLeptonic;
-  
+ 
+      int GenNJet20;
+      int GenNBJet20;
+      int GenNCJet20;
+      int GenNAddJet20;
+      int GenNAddBJet20;
+      int GenNAddCJet20;
+      
+      float GenLepton1_Pt;
+      float GenLepton1_Eta;
+      float GenLepton2_Pt;
+      float GenLepton2_Eta;
+ 
       float WMuon_MT[100];
       float WMuon_Phi[100];
       float WElectron_MT[100];
@@ -215,6 +229,24 @@ TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      cat::GenTop catGenTop = genTops->at(0);
      DiLeptonic = catGenTop.diLeptonic(0);
      SemiLeptonic = catGenTop.semiLeptonic(0);
+
+     GenNJet20 = catGenTop.NJets20();
+     GenNBJet20 = catGenTop.NbJets20();
+     GenNCJet20 = catGenTop.NcJets20();
+     GenNAddJet20 = catGenTop.NaddJets20();
+     GenNAddBJet20 = catGenTop.NaddbJets20();
+     GenNAddCJet20 = catGenTop.NaddcJets20();
+
+     if( catGenTop.lepton1().pt() > 0){
+       GenLepton1_Pt = catGenTop.lepton1().pt();
+       GenLepton1_Eta = catGenTop.lepton1().eta();
+     }
+
+     if( catGenTop.lepton2().pt() > 0){
+       GenLepton2_Pt = catGenTop.lepton2().pt();
+       GenLepton2_Eta = catGenTop.lepton2().eta();
+     }
+
    }
 
    if(!iEvent.isRealData()) {
@@ -364,6 +396,9 @@ TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      Jet_Phi[nJets] = jet.phi();
      Jet_E[nJets] = jet.energy();
 
+     Jet_partonFlavour[nJets] = jet.partonFlavour();
+     Jet_hadronFlavour[nJets] = jet.hadronFlavour();
+
      Jet_JES_Up[nJets] = jet.shiftedEnUp();
      Jet_JES_Dw[nJets] = jet.shiftedEnDown();
 
@@ -451,6 +486,8 @@ TopAnalyzer::beginJob()
    tree->Branch("Jet_Eta",Jet_Eta,"Jet_Eta[NJet]/F");
    tree->Branch("Jet_Phi",Jet_Phi,"Jet_Phi[NJet]/F");
    tree->Branch("Jet_E",Jet_E,"Jet_E[NJet]/F");
+   tree->Branch("Jet_partonFlavour",Jet_partonFlavour,"Jet_partonFlavour[NJet]/F");
+   tree->Branch("Jet_hadronFlavour",Jet_hadronFlavour,"Jet_hadronFlavour[NJet]/F");
    tree->Branch("Jet_BTag",Jet_BTag,"Jet_BTag[NJet]/F");
    tree->Branch("Jet_bDiscriminator",Jet_bDiscriminator,"Jet_bDiscriminator[NJet]/F"); 
 
@@ -461,12 +498,23 @@ TopAnalyzer::beginJob()
    tree->Branch("DiLeptonic",&DiLeptonic,"DiLeptonic/i");
    tree->Branch("SemiLeptonic",&SemiLeptonic,"SemiLeptonic/i");
 
+   tree->Branch("GenNJet20",&GenNJet20, "GenNJet20/i");
+   tree->Branch("GenNBJet20",&GenNBJet20, "GenNBJet20/i");
+   tree->Branch("GenNCJet20",&GenNCJet20, "GenNCJet20/i");
+   tree->Branch("GenNAddJet20",&GenNAddJet20, "GenNAddJet20/i");
+   tree->Branch("GenNAddBJet20",&GenNAddBJet20, "GenNAddBJet20/i");
+   tree->Branch("GenNAddCJet20",&GenNAddCJet20, "GenNAddCJet20/i");   
+
+   tree->Branch("GenLepton1_Pt",&GenLepton1_Pt, "GenLepton1_Pt/f");
+   tree->Branch("GenLepton1_Eta",&GenLepton1_Eta, "GenLepton1_Eta/f");
+   tree->Branch("GenLepton2_Pt",&GenLepton2_Pt, "GenLepton2_Pt/f");
+   tree->Branch("GenLepton2_Eta",&GenLepton2_Eta, "GenLepton2_Eta/f");
+
    tree->Branch("WMuon_MT",WMuon_MT,"WMuon_MT[NMuon]/F"); 
    tree->Branch("WMuon_Phi",WMuon_Phi,"WMuon_Phi[NMuon]/F"); 
    tree->Branch("WElectron_MT",WElectron_MT,"WElectron_MT[NElectron]/F"); 
    tree->Branch("WElectron_Phi",WElectron_Phi,"WElectron_Phi[NElectron]/F"); 
  
-
 }
 
 void
@@ -483,6 +531,18 @@ TopAnalyzer::clear(){
   NBJet = -1;
   DiLeptonic = -1;
   SemiLeptonic = -1;
+  
+  GenNJet20 = -1; 
+  GenNBJet20 = -1;
+  GenNCJet20 = -1;
+  GenNAddJet20 = -1;
+  GenNAddBJet20 = -1;
+  GenNAddCJet20 = -1;
+
+  GenLepton1_Pt = -9.0;
+  GenLepton1_Eta = -9.0;
+  GenLepton2_Pt = -9.0;
+  GenLepton2_Eta = -9.0;
 
 }
 
