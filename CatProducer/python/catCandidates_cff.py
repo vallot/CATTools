@@ -83,7 +83,10 @@ catMCParticles = cms.EDProducer("CATMCParticleProducer",
 catSecVertexs = cms.EDProducer("CATSecVertexProducer",
     muonSrc = cms.InputTag("selectedPatMuonsPFlow"),
     elecSrc = cms.InputTag("selectedPatElectronsPFlow"),
+    trackSrc = cms.InputTag("generalTracks"),
     vertexLabel = cms.InputTag("goodOfflinePrimaryVertices"),
+    pfmuonSrc = cms.InputTag("pfAllMuonsPFlow"),
+    pfelecSrc = cms.InputTag("pfAllElectronsPFlow"),
     track = cms.PSet(
         minPt = cms.double(1.0),
         maxEta = cms.double(2.5),
@@ -116,9 +119,9 @@ makeCatCandidates =  cms.Sequence(
     catMuons*
     catElectrons*
     catJets*
-    catMETs*
-    catGenJets*
-    catMCParticles
+    catMETs
+#    catGenJets*
+#    catMCParticles
     #catPhotons*
     #catTaus*
     # MC information below

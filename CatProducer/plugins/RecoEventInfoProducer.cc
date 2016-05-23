@@ -16,6 +16,7 @@
 #include "FWCore/Common/interface/TriggerNames.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
+#include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 
 #include <boost/regex.hpp>
 
@@ -54,6 +55,7 @@ RecoEventInfoProducer::RecoEventInfoProducer(const edm::ParameterSet& pset)
   produces<double>("pvX");
   produces<double>("pvY");
   produces<double>("pvZ");
+  produces<double>("generatorWeight");
 
   edm::ParameterSet hltSet = pset.getParameter<edm::ParameterSet>("HLT");
   const boost::regex matchVersion("_v[0-9\\*]+$"); // regexp from HLTrigger/HLTCore/HLTConfigProvider
@@ -87,6 +89,17 @@ void RecoEventInfoProducer::beginRun(edm::Run& run, const edm::EventSetup& event
 
 void RecoEventInfoProducer::produce(edm::Event& event, const edm::EventSetup& eventSetup)
 {
+  double generatorWeight = 1.;
+  if (!event.isRealData()){
+    edm::Handle<GenEventInfoProduct> eventInfos;
+    event.getByLabel("generator", eventInfos);
+    generatorWeight = eventInfos->weight();
+    if (generatorWeight == 0.) {
+      generatorWeight = 1.;
+    }
+  }
+  event.put(std::auto_ptr<double>(new double(generatorWeight)), "generatorWeight");
+
   edm::Handle<reco::VertexCollection> vertexHandle;
   event.getByLabel(vertexToken_, vertexHandle);
 

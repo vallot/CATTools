@@ -14,6 +14,8 @@ def catPatConfig(process, runOnMC=True, postfix = "PFlow", jetAlgo="AK5", doTrig
     # met cleaning events
     process.load("RecoMET.METFilters.metFilters_cff")
     process.p += process.metFilters
+    #process.load("CATTools.CatProducer.eventCleaning.scrapingFilter_cfi")
+    #process.p += process.scrapingFilter
         
     # from https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookJetEnergyCorrections#JetEnCorPFnoPU2012
     # change pvCollection to goodOfflinePrimaryVertices
