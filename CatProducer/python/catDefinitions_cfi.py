@@ -6,6 +6,6 @@ globalTag_rd   = '80X_dataRun2_Prompt_v8'
 lumiJSON       = 'Cert_271036-273450_13TeV_PromptReco_Collisions16_JSON_NoL1T'
 pileupMCmap    = '2016_25ns_SpringMC'
 
-JetEnergyCorrection = 'Fall15_25nsV2'
+JetEnergyCorrection = 'Spring16_25nsV1'
 JECUncertaintyFile  = 'CATTools/CatProducer/data/JEC/%s_DATA_UncertaintySources_AK4PFchs.txt'%JetEnergyCorrection
 
