@@ -3,10 +3,11 @@ import ROOT,os,getopt,sys
 
 certJSON = None
 minBiasXsec = 69000.
+year = "16"
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:],"hl:c:",["lumiMask",'minBiasXsec'])
-except getopt.GetoptError:          
+    opts, args = getopt.getopt(sys.argv[1:],"hl:c:y:",["lumiMask",'minBiasXsec','year'])
+except getopt.GetoptError:
     print 'Usage : getPileUpData.py -l <lumiMask>'
     sys.exit(2)
 
@@ -18,8 +19,10 @@ for opt, arg in opts:
         certJSON = arg
     elif opt in ("-c", "--minBiasXsec"):
         minBiasXsec = eval(arg)
+    elif opt in ("-y", "--year"):
+        year = arg
 
-certURL = "https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions15/13TeV"
+certURL = "https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions%s/13TeV" % year
 from urllib import urlretrieve
 if not os.path.exists(certJSON):
     print "Downloading Lumi JSON file..."
@@ -42,7 +45,8 @@ for i, f in enumerate(syst):
     PileUpData = 'PileUpData%s.root'%(f)
     if i == 1: minBiasXsec = minBiasXsec*1.05
     if i == 2: minBiasXsec = minBiasXsec*0.95
-    command = 'pileupCalc.py -i %s --inputLumiJSON /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/PileUp/pileup_latest.txt --calcMode true --minBiasXsec %i --maxPileupBin 50 --numPileupBins 50 %s'%(certJSON,minBiasXsec,PileUpData)
+    print "!!!!!!", certJSON, minBiasXsec, PileUpData
+    command = 'pileupCalc.py -i %s --inputLumiJSON pileup_latest.txt --calcMode true --minBiasXsec %i --maxPileupBin 50 --numPileupBins 50 %s'%(certJSON,minBiasXsec,PileUpData)
     os.system(command)
     tt = ROOT.TFile(PileUpData)
     histo = tt.Get("pileup")
