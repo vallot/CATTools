@@ -20,7 +20,7 @@ def submitjob(requestName, dataset, globalTag, lumiMask, submit):
     if globalTag == None:
         globalTag = cat.globalTag_mc
     if lumiMask == None:
-        lumiMask = '../data/LumiMask/%s.txt'%cat.lumiJSONSilver
+        lumiMask = '../data/LumiMask/%s.txt'%cat.lumiJSON
         
     dataSplitting   = " Data.splitting='FileBased' "
     dataUnitsPerJob = " Data.unitsPerJob=1 "
