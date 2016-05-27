@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <cmath>
 
 // Define typedefs for convenience
 namespace cat {
@@ -47,9 +48,16 @@ public:
   virtual ~GenWeights() {};
 
   // Getters
-  float genWeight() const { return genWeight_; }
+  float genWeight() const { return genWeight_ == 0.0 ? 0.0 : genWeight_/std::abs(genWeight_); }
+  float genWeightRaw() const { return genWeight_; }
   float lheWeight() const { return lheWeight_; }
-  std::vector<float> weights() const { return weights_; };
+  std::vector<float> weights() const {
+    std::vector<float> ws;
+    const double w0 = std::abs(genWeightRaw());
+    for ( const auto wi : weights_ ) ws.push_back(wi/w0);
+    return ws;
+  }
+  std::vector<float> weightsRaw() const { return weights_; };
 
   int id1() const { return id1_; }
   int id2() const { return id2_; }
