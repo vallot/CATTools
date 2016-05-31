@@ -11,6 +11,7 @@ gen = cms.EDAnalyzer("CATGenValidation",
 )
 
 rec = cms.EDAnalyzer("CATHisAnalysis",
+    isMC = cms.untracked.bool(True),
     genJets = cms.InputTag("slimmedGenJets"),
     electrons = cms.InputTag("catElectrons"),
     muons = cms.InputTag("catMuons"),

@@ -38,6 +38,8 @@ private:
   edm::EDGetTokenT<cat::PhotonCollection> photonToken_;
   //edm::EDGetTokenT<cat::TauCollection> tauToken_;
 
+  const bool isMC_;
+
   typedef TH1D* H1;
 
   // GenJets
@@ -101,9 +103,10 @@ private:
 
 };
 
-CATHisAnalysis::CATHisAnalysis(const edm::ParameterSet& pset)
+CATHisAnalysis::CATHisAnalysis(const edm::ParameterSet& pset):
+  isMC_(pset.getUntrackedParameter<bool>("isMC"))
 {
-  genJetToken_   = consumes<reco::GenJetCollection>(pset.getParameter<edm::InputTag>("genJets"));
+  if ( isMC_ ) genJetToken_   = consumes<reco::GenJetCollection>(pset.getParameter<edm::InputTag>("genJets"));
   electronToken_ = consumes<cat::ElectronCollection>(pset.getParameter<edm::InputTag>("electrons"));
   muonToken_     = consumes<cat::MuonCollection>(pset.getParameter<edm::InputTag>("muons"));
   photonToken_   = consumes<cat::PhotonCollection>(pset.getParameter<edm::InputTag>("photons"));
@@ -228,29 +231,31 @@ CATHisAnalysis::CATHisAnalysis(const edm::ParameterSet& pset)
   hJet4_phi_   = dirJet.make<TH1D>("h4_phi","phi",100,-4,4);
   hJet4_mass_  = dirJet.make<TH1D>("h4_mass","mass",1000,0,100);
 
-  TFileDirectory dirGenJet = fs->mkdir("genJet", "genJet");
-  hGenJet_n_    = dirGenJet.make<TH1D>("h_n","n;Multiplicity",10,0,10);
-  hGenJet_pt_   = dirGenJet.make<TH1D>("h_pt","pt",500,0,500);
-  hGenJet_eta_  = dirGenJet.make<TH1D>("h_eta","eta",400,-3,3);
-  hGenJet_phi_  = dirGenJet.make<TH1D>("h_phi","phi",100,-4,4);
-  hGenJet_mass_ = dirGenJet.make<TH1D>("h_mass","mass",1000,0,100);
+  if ( isMC_ ) {
+    TFileDirectory dirGenJet = fs->mkdir("genJet", "genJet");
+    hGenJet_n_    = dirGenJet.make<TH1D>("h_n","n;Multiplicity",10,0,10);
+    hGenJet_pt_   = dirGenJet.make<TH1D>("h_pt","pt",500,0,500);
+    hGenJet_eta_  = dirGenJet.make<TH1D>("h_eta","eta",400,-3,3);
+    hGenJet_phi_  = dirGenJet.make<TH1D>("h_phi","phi",100,-4,4);
+    hGenJet_mass_ = dirGenJet.make<TH1D>("h_mass","mass",1000,0,100);
 
-  hGenJet1_pt_    = dirGenJet.make<TH1D>("h1_pt","pt",500,0,500);
-  hGenJet1_eta_   = dirGenJet.make<TH1D>("h1_eta","eta",400,-3,3);
-  hGenJet1_phi_   = dirGenJet.make<TH1D>("h1_phi","phi",100,-4,4);
-  hGenJet1_mass_  = dirGenJet.make<TH1D>("h1_mass","mass",1000,0,100);
-  hGenJet2_pt_    = dirGenJet.make<TH1D>("h2_pt","pt",500,0,500);
-  hGenJet2_eta_   = dirGenJet.make<TH1D>("h2_eta","eta",400,-3,3);
-  hGenJet2_phi_   = dirGenJet.make<TH1D>("h2_phi","phi",100,-4,4);
-  hGenJet2_mass_  = dirGenJet.make<TH1D>("h2_mass","mass",1000,0,100);
-  hGenJet3_pt_    = dirGenJet.make<TH1D>("h3_pt","pt",500,0,500);
-  hGenJet3_eta_   = dirGenJet.make<TH1D>("h3_eta","eta",400,-3,3);
-  hGenJet3_phi_   = dirGenJet.make<TH1D>("h3_phi","phi",100,-4,4);
-  hGenJet3_mass_  = dirGenJet.make<TH1D>("h3_mass","mass",1000,0,100);
-  hGenJet4_pt_    = dirGenJet.make<TH1D>("h4_pt","pt",500,0,500);
-  hGenJet4_eta_   = dirGenJet.make<TH1D>("h4_eta","eta",400,-3,3);
-  hGenJet4_phi_   = dirGenJet.make<TH1D>("h4_phi","phi",100,-4,4);
-  hGenJet4_mass_  = dirGenJet.make<TH1D>("h4_mass","mass",1000,0,100);
+    hGenJet1_pt_    = dirGenJet.make<TH1D>("h1_pt","pt",500,0,500);
+    hGenJet1_eta_   = dirGenJet.make<TH1D>("h1_eta","eta",400,-3,3);
+    hGenJet1_phi_   = dirGenJet.make<TH1D>("h1_phi","phi",100,-4,4);
+    hGenJet1_mass_  = dirGenJet.make<TH1D>("h1_mass","mass",1000,0,100);
+    hGenJet2_pt_    = dirGenJet.make<TH1D>("h2_pt","pt",500,0,500);
+    hGenJet2_eta_   = dirGenJet.make<TH1D>("h2_eta","eta",400,-3,3);
+    hGenJet2_phi_   = dirGenJet.make<TH1D>("h2_phi","phi",100,-4,4);
+    hGenJet2_mass_  = dirGenJet.make<TH1D>("h2_mass","mass",1000,0,100);
+    hGenJet3_pt_    = dirGenJet.make<TH1D>("h3_pt","pt",500,0,500);
+    hGenJet3_eta_   = dirGenJet.make<TH1D>("h3_eta","eta",400,-3,3);
+    hGenJet3_phi_   = dirGenJet.make<TH1D>("h3_phi","phi",100,-4,4);
+    hGenJet3_mass_  = dirGenJet.make<TH1D>("h3_mass","mass",1000,0,100);
+    hGenJet4_pt_    = dirGenJet.make<TH1D>("h4_pt","pt",500,0,500);
+    hGenJet4_eta_   = dirGenJet.make<TH1D>("h4_eta","eta",400,-3,3);
+    hGenJet4_phi_   = dirGenJet.make<TH1D>("h4_phi","phi",100,-4,4);
+    hGenJet4_mass_  = dirGenJet.make<TH1D>("h4_mass","mass",1000,0,100);
+  }
 
   TFileDirectory dirMET = fs->mkdir("MET", "MET");
   hMET_pt_    = dirMET.make<TH1D>("h_pt","pt",500,0,500);
@@ -439,45 +444,47 @@ void CATHisAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&)
     hJet3_mass_ ->Fill( jet.mass() );
   }
 
-  edm::Handle<reco::GenJetCollection> genJetHandle;
-  iEvent.getByToken(genJetToken_,genJetHandle);
-  const int nGenJet = genJetHandle->size();
-  hGenJet_n_->Fill(nGenJet);
-  for ( int i=0; i<nGenJet; ++i ) {
-    const auto& genJet = genJetHandle->at(i);
+  if ( isMC_ ) {
+    edm::Handle<reco::GenJetCollection> genJetHandle;
+    iEvent.getByToken(genJetToken_,genJetHandle);
+    const int nGenJet = genJetHandle->size();
+    hGenJet_n_->Fill(nGenJet);
+    for ( int i=0; i<nGenJet; ++i ) {
+      const auto& genJet = genJetHandle->at(i);
 
-    hGenJet_pt_   ->Fill( genJet.pt() );
-    hGenJet_eta_  ->Fill( genJet.eta() );
-    hGenJet_phi_  ->Fill( genJet.phi() );
-    hGenJet_mass_ ->Fill( genJet.mass() );
-  }
-  if ( nGenJet >= 1 ) {
-    const auto& genJet = genJetHandle->at(0);
-    hGenJet1_pt_   ->Fill( genJet.pt() );
-    hGenJet1_eta_  ->Fill( genJet.eta() );
-    hGenJet1_phi_  ->Fill( genJet.phi() );
-    hGenJet1_mass_ ->Fill( genJet.mass() );
-  }
-  if ( nGenJet >= 2 ) {
-    const auto& genJet = genJetHandle->at(1);
-    hGenJet2_pt_   ->Fill( genJet.pt() );
-    hGenJet2_eta_  ->Fill( genJet.eta() );
-    hGenJet2_phi_  ->Fill( genJet.phi() );
-    hGenJet2_mass_ ->Fill( genJet.mass() );
-  }
-  if ( nGenJet >= 3 ) {
-    const auto& genJet = genJetHandle->at(2);
-    hGenJet3_pt_   ->Fill( genJet.pt() );
-    hGenJet3_eta_  ->Fill( genJet.eta() );
-    hGenJet3_phi_  ->Fill( genJet.phi() );
-    hGenJet3_mass_ ->Fill( genJet.mass() );
-  }
-  if ( nGenJet >= 4 ) {
-    const auto& genJet = genJetHandle->at(3);
-    hGenJet3_pt_   ->Fill( genJet.pt() );
-    hGenJet3_eta_  ->Fill( genJet.eta() );
-    hGenJet3_phi_  ->Fill( genJet.phi() );
-    hGenJet3_mass_ ->Fill( genJet.mass() );
+      hGenJet_pt_   ->Fill( genJet.pt() );
+      hGenJet_eta_  ->Fill( genJet.eta() );
+      hGenJet_phi_  ->Fill( genJet.phi() );
+      hGenJet_mass_ ->Fill( genJet.mass() );
+    }
+    if ( nGenJet >= 1 ) {
+      const auto& genJet = genJetHandle->at(0);
+      hGenJet1_pt_   ->Fill( genJet.pt() );
+      hGenJet1_eta_  ->Fill( genJet.eta() );
+      hGenJet1_phi_  ->Fill( genJet.phi() );
+      hGenJet1_mass_ ->Fill( genJet.mass() );
+    }
+    if ( nGenJet >= 2 ) {
+      const auto& genJet = genJetHandle->at(1);
+      hGenJet2_pt_   ->Fill( genJet.pt() );
+      hGenJet2_eta_  ->Fill( genJet.eta() );
+      hGenJet2_phi_  ->Fill( genJet.phi() );
+      hGenJet2_mass_ ->Fill( genJet.mass() );
+    }
+    if ( nGenJet >= 3 ) {
+      const auto& genJet = genJetHandle->at(2);
+      hGenJet3_pt_   ->Fill( genJet.pt() );
+      hGenJet3_eta_  ->Fill( genJet.eta() );
+      hGenJet3_phi_  ->Fill( genJet.phi() );
+      hGenJet3_mass_ ->Fill( genJet.mass() );
+    }
+    if ( nGenJet >= 4 ) {
+      const auto& genJet = genJetHandle->at(3);
+      hGenJet3_pt_   ->Fill( genJet.pt() );
+      hGenJet3_eta_  ->Fill( genJet.eta() );
+      hGenJet3_phi_  ->Fill( genJet.phi() );
+      hGenJet3_mass_ ->Fill( genJet.mass() );
+    }
   }
 
   edm::Handle<cat::METCollection> metHandle;

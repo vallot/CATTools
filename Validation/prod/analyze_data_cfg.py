@@ -19,6 +19,9 @@ process.load("CATTools.CatAnalyzer.filters_cff")
 process.load("CATTools.Validation.ttllEventSelector_cfi")
 process.load("CATTools.Validation.validation_cff")
 process.eventsTTLL.isMC = False
+process.rec.isMC = False
+delattr(process.eventsTTLL, "genWeight")
+delattr(process, "flatGenWeights")
 
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string("hist.root"),
