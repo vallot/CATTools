@@ -56,6 +56,8 @@ cat::CATDStarProducer::CATDStarProducer(const edm::ParameterSet & iConfig) :
 {
   produces<vector<cat::SecVertex> >("D0Cand");
   produces<vector<cat::SecVertex> >("DstarCand");
+  produces<vector<cat::SecVertex> >("JpsiCand");
+  produces<vector<cat::SecVertex> >("JpsiMVACand");
 
   maxNumPFCand_ = iConfig.getParameter<int>("maxNumPFCand");
   d0MassWindow_ = iConfig.getParameter<double>("d0MassWindow");
@@ -74,8 +76,12 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
   if ( recVtxs->empty() ) {
     auto_ptr<vector<cat::SecVertex> >    D0_Out(new vector<cat::SecVertex>());
     auto_ptr<vector<cat::SecVertex> > Dstar_Out(new std::vector<cat::SecVertex>());
+    auto_ptr<vector<cat::SecVertex> >  Jpsi_Out(new std::vector<cat::SecVertex>());
+    auto_ptr<vector<cat::SecVertex> >  JpsiMVA_Out(new std::vector<cat::SecVertex>());
     iEvent.put(D0_Out   , "D0Cand");
     iEvent.put(Dstar_Out, "DstarCand");
+    iEvent.put(Jpsi_Out, "JpsiCand");
+    iEvent.put(JpsiMVA_Out, "JpsiMVACand");
     return ; 
   }
   reco::Vertex pv = recVtxs->at(0);
@@ -85,6 +91,8 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
 
   auto_ptr<vector<cat::SecVertex> >    D0_Out(new vector<cat::SecVertex>());
   auto_ptr<vector<cat::SecVertex> > Dstar_Out(new std::vector<cat::SecVertex>());
+  auto_ptr<vector<cat::SecVertex> >  Jpsi_Out(new std::vector<cat::SecVertex>());
+  auto_ptr<vector<cat::SecVertex> >  JpsiMVA_Out(new std::vector<cat::SecVertex>());
 
   edm::ESHandle<TransientTrackBuilder> trackBuilder;
   iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",trackBuilder);
@@ -111,6 +119,95 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
     if ( dau_size > maxNumPFCand_ ) dau_size = maxNumPFCand_;
     jetDaughters.resize( dau_size );
 
+
+    for ( unsigned int lep1_idx = 0 ; lep1_idx< dau_size-1 ; lep1_idx++) {
+      for ( unsigned int lep2_idx = lep1_idx+1 ; lep2_idx< dau_size ; lep2_idx++) {
+        bool flag_jpsi = true;
+        Shared_PCP lep1Cand = jetDaughters[lep1_idx];
+        Shared_PCP lep2Cand = jetDaughters[lep2_idx];
+
+        int pdgMul = lep1Cand->pdgId() * lep2Cand->pdgId();
+        if ( pdgMul != -121 && pdgMul != -169 ) flag_jpsi = false;
+        if ( !flag_jpsi && abs( pdgMul ) !=2321 && abs( pdgMul) != 2743 ) continue;
+
+
+        //if ( reco::deltaR( *lep1Cand, *lep2Cand) > maxDeltaR_ ) continue;
+        
+        auto Jpsi = lep1Cand->p4()+ lep2Cand->p4();
+
+        tracks.clear();
+        KalmanVertexFitter fitter(true);
+        TransientVertex t_vertex;
+        reco::TransientTrack lep1Track, lep2Track;
+
+        if ( lep1Cand->bestTrack() != nullptr && lep2Cand->bestTrack() != nullptr) {
+          lep1Track = trackBuilder->build( lep1Cand->bestTrack());
+          lep2Track = trackBuilder->build( lep2Cand->bestTrack());
+          tracks.push_back( lep1Track);
+          tracks.push_back( lep2Track);
+        }
+        else continue;
+      
+        try{
+          t_vertex = fitter.vertex(tracks);
+        }catch(std::exception& e) { std::cerr<<"Kalman Vertex Fitting error for Jpsi: "<<e.what()<<std::endl; }
+
+        Point vx;
+        reco::Vertex vertex;
+        double vtxChi2=0.0;
+        int vtxNdof=0;
+        bool fit_jpsi = false; 
+        if ( t_vertex.isValid() && t_vertex.totalChiSquared() > 0. )  {
+          vertex = t_vertex;
+          vx = Point(vertex.x(), vertex.y(), vertex.z());
+          vtxChi2 = vertex.chi2(); 
+          vtxNdof = (int)vertex.ndof();
+          fit_jpsi = true;
+        }
+        else { vx = Point(0,0,0); continue; }
+
+
+        const math::XYZTLorentzVector lv( Jpsi.px(), Jpsi.py(), Jpsi.pz(), Jpsi.E());
+        auto vc = VertexCompositeCandidate(0, lv, vx, 443) ;  // + pdgId,
+        cat::SecVertex JpsiCand(vc);
+        JpsiCand.setJetDR( reco::deltaR( JpsiCand, aPatJet) );
+        JpsiCand.setLegDR( reco::deltaR( *lep1Cand, *lep2Cand) );
+        if ( fit_jpsi ) { 
+          JpsiCand.setVProb( TMath::Prob( vtxChi2, vtxNdof));
+
+          SVector3 distanceVectorXY(vertex.x() - pv.position().x(), vertex.y() - pv.position().y(), 0.);
+          SVector3 distanceVector3D(vertex.x() - pv.position().x(), vertex.y() - pv.position().y(), vertex.z()- pv.position().z());
+          double rVtxMag = ROOT::Math::Mag(distanceVectorXY);
+          double rVtxMag3D = ROOT::Math::Mag(distanceVector3D);
+          JpsiCand.setLxy(rVtxMag);
+          JpsiCand.setL3D(rVtxMag3D);
+        }
+        ClosestApproachInRPhi cApp;
+        auto theLep1State = lep1Track.impactPointTSCP().theState();
+        auto theLep2State = lep2Track.impactPointTSCP().theState();
+        cApp.calculate(theLep1State, theLep2State);
+        if ( cApp.status() ) { dca= std::abs(cApp.distance()); JpsiCand.set_dca(dca);}
+        else { dca = -9 ; JpsiCand.set_dca(dca);}
+        JpsiCand.set_dca(1,-9); 
+        JpsiCand.set_dca(2,-9);
+ 
+        JpsiCand.addDaughter( *lep1Cand );
+        JpsiCand.addDaughter( *lep2Cand );
+
+        JpsiCand.setTrackQuality( (int)lep1Cand->trackHighPurity(), (int)lep2Cand->trackHighPurity());
+        if ( abs(lep1Cand->pdgId() ) == 13 || abs(lep2Cand->pdgId()) == 13 ) {
+          int lep1ID = (int)lep1Cand->isStandAloneMuon() + (int)lep1Cand->isGlobalMuon()*2;
+          int lep2ID = (int)lep2Cand->isStandAloneMuon() + (int)lep2Cand->isGlobalMuon()*2;
+          JpsiCand.setLeptonID( lep1ID, lep2ID );
+        }
+        else JpsiCand.setLeptonID( -1, -1 );
+
+        if( flag_jpsi ) Jpsi_Out->push_back( JpsiCand );
+        JpsiMVA_Out->push_back( JpsiCand );
+
+      }
+    }
+
     for ( unsigned int pion_idx = 0 ; pion_idx< dau_size ; pion_idx++) {
       for ( unsigned int kaon_idx = 0 ; kaon_idx< dau_size ; kaon_idx++) {
         if ( pion_idx == kaon_idx ) continue;
@@ -121,19 +218,22 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
         if ( abs(pionCand->pdgId()) != 211 || abs( kaonCand->pdgId()) != 211) continue;
         if ( pionCand->charge() * kaonCand->charge() != -1 ) continue;
 
-        if ( reco::deltaR( *pionCand, *kaonCand) > maxDeltaR_ ) continue;
+        //if ( reco::deltaR( *pionCand, *kaonCand) > maxDeltaR_ ) continue;
 
         auto D0 = pionCand->p4()+ kaonCand->p4();
         if ( abs(D0.M() - gD0Mass) > d0MassCut_) continue;
 
         tracks.clear();
-        reco::TransientTrack pionTrack = trackBuilder->build( pionCand->pseudoTrack());
-        reco::TransientTrack kaonTrack = trackBuilder->build( kaonCand->pseudoTrack());
- 
-        KalmanVertexFitter fitter(true);
         TransientVertex t_vertex;
-        tracks.push_back( pionTrack);
-        tracks.push_back( kaonTrack);
+        reco::TransientTrack pionTrack, kaonTrack;
+        KalmanVertexFitter fitter(true);
+        if ( pionCand->bestTrack() != nullptr && kaonCand->bestTrack() != nullptr) {
+          pionTrack = trackBuilder->build( pionCand->bestTrack());
+          kaonTrack = trackBuilder->build( kaonCand->bestTrack());
+          tracks.push_back( pionTrack);
+          tracks.push_back( kaonTrack);
+        }
+        else continue;
       
         try{
           t_vertex = fitter.vertex(tracks);
@@ -152,12 +252,14 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
           fit_d0 = true;
           //printf(" D0 vertex => x : %e y: %e z: %e\n",vx.x(),vx.y(),vx.z());
         }
-        else vx = Point(0,0,0);
+        else { vx = Point(0,0,0); continue; }
 
 
         const math::XYZTLorentzVector lv( D0.px(), D0.py(), D0.pz(), D0.E());
         auto vc = VertexCompositeCandidate(0, lv, vx, 421) ;  // + pdgId,
         cat::SecVertex D0Cand(vc);
+        D0Cand.setJetDR( reco::deltaR( D0Cand, aPatJet) );
+        D0Cand.setLegDR( reco::deltaR( *pionCand, *kaonCand) );
         if ( fit_d0) { 
           D0Cand.setVProb( TMath::Prob( vtxChi2, vtxNdof));
 
@@ -183,15 +285,20 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
         D0Cand.setTrackQuality( (int)pionCand->trackHighPurity(), (int)kaonCand->trackHighPurity());
 
         D0_Out->push_back( D0Cand );
+
         if ( abs( D0.M() - gD0Mass) < d0MassWindow_ ) {
           for( unsigned int extra_pion_idx = 0 ;  extra_pion_idx < dau_size ; extra_pion_idx++) {
             if ( extra_pion_idx== pion_idx || extra_pion_idx == kaon_idx) continue;
             Shared_PCP pion2Cand = jetDaughters[extra_pion_idx];
             if ( abs(pion2Cand->pdgId()) != 211) continue;
-            if ( reco::deltaR(D0Cand, *pion2Cand  )> maxDeltaR_) continue;
+            //if ( reco::deltaR(D0Cand, *pion2Cand  )> maxDeltaR_) continue;
             auto Dstar = D0Cand.p4() + pion2Cand->p4();
             const math::XYZTLorentzVector lv2( Dstar.Px(), Dstar.Py(), Dstar.Pz(), Dstar.E());
-            reco::TransientTrack pion2Track = trackBuilder->build( pion2Cand->pseudoTrack());
+            reco::TransientTrack pion2Track ; 
+            if ( pion2Cand->bestTrack() != nullptr ) { 
+              pion2Track = trackBuilder->build( pion2Cand->bestTrack());
+            }
+            else continue;
             tracks.clear();
 
             tracks.push_back( pionTrack);
@@ -210,10 +317,12 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
               fit_dstar = true;
               //printf(" D* vertex => x : %e y: %e z: %e\n",vx.x(),vx.y(),vx.z());
             }
-            else vx = Point(0,0,0);
+            else { vx = Point(0,0,0); continue; }
             
             auto vc2 = VertexCompositeCandidate(pion2Cand->charge(), lv2, vx, pion2Cand->charge()*413) ;  // + pdgId,
             cat::SecVertex DstarCand(vc2);
+            DstarCand.setJetDR( reco::deltaR( DstarCand, aPatJet) );
+            DstarCand.setLegDR( reco::deltaR(D0Cand, *pion2Cand ) );
             DstarCand.addDaughter( *pionCand );
             DstarCand.addDaughter( *kaonCand );
             DstarCand.addDaughter( *pion2Cand );
@@ -247,6 +356,8 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
   }
   iEvent.put(D0_Out   , "D0Cand");
   iEvent.put(Dstar_Out, "DstarCand");
+  iEvent.put(Jpsi_Out, "JpsiCand");
+  iEvent.put(JpsiMVA_Out, "JpsiMVACand");
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"

@@ -9,7 +9,6 @@
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
-#include "CATTools/DataFormats/interface/GenWeights.h"
 #include "CATTools/CommonTools/interface/TTbarModeDefs.h"
 
 #include "Math/GenVector/Boost.h"
@@ -28,7 +27,10 @@ public:
   void analyze(const edm::Event& event, const edm::EventSetup&) override;
 
 private:
-  edm::EDGetTokenT<cat::GenWeights> weightToken_;
+  typedef std::vector<float> vfloat;
+
+  edm::EDGetTokenT<float> weightToken_;
+  edm::EDGetTokenT<vfloat> weightsToken_;
   int weightIndex_;
 
   edm::EDGetTokenT<int> channelToken_;
@@ -70,8 +72,6 @@ private:
     END
   };
 
-  cat::GenWeightInfo::KnownTypes weightType_;
-
   // 1D histograms
   H1 hWeight_; // Weight distribution
 
@@ -107,9 +107,9 @@ CATGenTopAnalysis::CATGenTopAnalysis(const edm::ParameterSet& pset):
   channelToken_ = consumes<int>(pset.getParameter<edm::InputTag>("channel"));
   modesToken_ = consumes<std::vector<int> >(pset.getParameter<edm::InputTag>("modes"));
 
-  weightType_ = GenWeightInfo::toKnownType(pset.getParameter<string>("weightType"));
-  weightIndex_ = pset.getParameter<unsigned int>("weightIndex");
-  weightToken_ = consumes<cat::GenWeights>(pset.getParameter<edm::InputTag>("weight"));
+  weightIndex_ = pset.getParameter<int>("weightIndex");
+  if ( weightIndex_ < 0 ) weightToken_ = consumes<float>(pset.getParameter<edm::InputTag>("weight"));
+  else weightsToken_ = consumes<vfloat>(pset.getParameter<edm::InputTag>("weight"));
 
   usesResource("TFileService");
   edm::Service<TFileService> fs;
@@ -222,16 +222,15 @@ CATGenTopAnalysis::CATGenTopAnalysis(const edm::ParameterSet& pset):
 void CATGenTopAnalysis::analyze(const edm::Event& event, const edm::EventSetup&)
 {
   float weight = 1.;
-  edm::Handle<cat::GenWeights> genWeightsHandle;
-  event.getByToken(weightToken_, genWeightsHandle);
-  switch ( weightType_ ) {
-    case GenWeightInfo::Nominal  : weight = genWeightsHandle->genWeight();
-    case GenWeightInfo::PDF      : weight = genWeightsHandle->pdfWeights().at(weightIndex_);
-    case GenWeightInfo::ScaleUp  : weight = genWeightsHandle->scaleUpWeights().at(weightIndex_);
-    case GenWeightInfo::ScaleDown: weight = genWeightsHandle->scaleDownWeights().at(weightIndex_);
-    case GenWeightInfo::NONE:
-    default:
-      weight = 1;
+  if ( weightIndex_ < 0 ) {
+    edm::Handle<float> handle;
+    event.getByToken(weightToken_, handle);
+    weight = *handle;
+  }
+  else {
+    edm::Handle<vfloat> handle;
+    event.getByToken(weightsToken_, handle);
+    weight = handle->at(weightIndex_);
   }
 
   hWeight_->Fill(weight);

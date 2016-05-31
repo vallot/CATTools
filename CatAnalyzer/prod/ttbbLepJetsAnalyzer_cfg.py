@@ -45,10 +45,14 @@ process.source = cms.Source("PoolSource",
 # Lepton SF
 from CATTools.CatAnalyzer.leptonSF_cff import *
 
+process.load("CATTools.CatAnalyzer.flatGenWeights_cfi")
 process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      sampleLabel       = cms.untracked.bool(runOnMC),
                                      TTbarSampleLabel  = cms.untracked.int32(runOnTTbarMC),
-                                     genWeightLabel    = cms.InputTag("genWeight"),
+                                     genWeightLabel    = cms.InputTag("flatGenWeights"),
+                                     pdfWeightLabel    = cms.InputTag("flatGenWeights", "pdf"),
+                                     scaleupWeightLabel    = cms.InputTag("flatGenWeights", "scaleup"),
+                                     scaledownWeightLabel    = cms.InputTag("flatGenWeights", "scaledown"),
                                      genLabel          = cms.InputTag("prunedGenParticles"),
                                      genJetLabel       = cms.InputTag("slimmedGenJets"),
                                      genttbarCatLabel  = cms.InputTag("catGenTops"),

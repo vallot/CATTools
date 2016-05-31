@@ -15,6 +15,13 @@
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
 #include "FWCore/Utilities/interface/transform.h"
 
+#include "TrackingTools/TransientTrack/interface/TransientTrack.h"
+#include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
+#include "TrackingTools/Records/interface/TransientTrackRecord.h"
+#include "TrackingTools/IPTools/interface/IPTools.h"
+#include "DataFormats/GeometryCommonDetAlgo/interface/Measurement1D.h"
+
+
 #include "RecoEgamma/EgammaTools/interface/ConversionTools.h"
 #include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
 
@@ -98,9 +105,15 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
   iEvent.getByToken(rhoLabel_, rhoHandle);
   double rhoIso = std::max(*(rhoHandle.product()), 0.0);
 
+  GlobalPoint pVertex(pv.position().x(),pv.position().y(),pv.position().z());
+
   if (runOnMC_){
     iEvent.getByToken(mcLabel_,genParticles);
   }
+
+  ESHandle<TransientTrackBuilder> trackBuilder;
+  iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",trackBuilder);
+
 
   std::vector<edm::Handle<edm::ValueMap<bool> > > idhandles;
   std::vector<pat::Electron::IdPair>               ids;
@@ -178,6 +191,19 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     aElectron.setDz( theTrack->dz(pv.position()) );
     aElectron.setVertex(Point(theTrack->vx(),theTrack->vy(),theTrack->vz()));
 
+
+
+    TrajectoryStateOnSurface eleTSOS;
+    reco::TransientTrack eletranstrack = trackBuilder->build(theTrack);
+    eleTSOS = IPTools::transverseExtrapolate(eletranstrack.impactPointState(), pVertex, eletranstrack.field());
+    if (eleTSOS.isValid()) {
+      std::pair<bool, Measurement1D>     eleIPpair = IPTools::signedTransverseImpactParameter(eletranstrack, eleTSOS.globalDirection(), pv);
+      
+      float eleSignificanceIP = eleIPpair.second.significance();
+      aElectron.setIpSignficance(eleSignificanceIP);
+    }
+
+    
     float eoverp = -999.;
     // |1/E-1/p| = |1/E - EoverPinner/E| is computed below
     // The if protects against ecalEnergy == inf or zero

@@ -25,10 +25,10 @@ process.TFileService = cms.Service("TFileService",
     fileName = cms.string("hist.root"),
 )
 
+process.load("CATTools.CatAnalyzer.flatGenWeights_cfi")
 process.agen = cms.EDAnalyzer("CATGenTopAnalysis",
-    weightIndex = cms.uint32(0),
+    weightIndex = cms.int32(-1),
     weight = cms.InputTag("genWeight"),
-    weightType = cms.string("nominal"),
     channel = cms.InputTag("partonTop","channel"),
     modes = cms.InputTag("partonTop", "modes"),
     partonTop = cms.InputTag("partonTop"),

@@ -1,3 +1,6 @@
 [submodule "CommonTools/scripts"]
 	path = CommonTools/scripts
 	url = https://github.com/cms-kr/hep-tools
+[submodule "CatAnalyzer/data/dataset"]
+	path = CatAnalyzer/data/dataset
+	url = https://github.com/vallot/CATTools-dataset

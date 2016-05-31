@@ -9,7 +9,7 @@ import json
 
 #> catGetDatasetInfo v7-4-3
 
-cmsswpath=os.environ.get('SRT_CMSSW_BASE_SCRAMRTDEL')+"/src/CATTools/CatAnalyzer/data/"
+cmsswpath=os.environ.get('SRT_CMSSW_BASE_SCRAMRTDEL')+"/src/CATTools/CatAnalyzer/data/dataset/"
 json_ = open(cmsswpath+"dataset.json")
 dataset = json.load(json_)
 DoubleRun2015=['DoubleEG_Run2015C', 'DoubleEG_Run2015D', 'DoubleMuon_Run2015C', 'DoubleMuon_Run2015D', 'MuonEG_Run2015C', 'MuonEG_Run2015D']
@@ -35,7 +35,7 @@ for aa in dataset:
    #ddd = "create-batch -n "
    ddd = "create-batch "
    ddd+= args[0]+" "+aa['name']+" "
-   ddd+= args[1]+" "+cmsswpath+"/dataset/dataset_"+aa['name']+".txt "
+   ddd+= args[1]+" "+cmsswpath+"/dataset_"+aa['name']+".txt "
    ddd+= args[2]+" 20 "
 
    fff = "/store/user/youngjo/Cattools/v7-6-4v3/"+aa['name']+"v1"

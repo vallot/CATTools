@@ -20,10 +20,10 @@ muonSFTight = cms.PSet(
         0.0145121, 0.0132486, 0.0120305, 0.0116593, 0.0124603, 0.0137997,
         0.0176168, 0.0153647, 0.0131657, 0.0126734, 0.0148934, 0.0197265,
     ),
+
 )
 
-## Electron SF from https://indico.cern.ch/event/491528/contribution/2/attachments/1231399/1805319/CutBasedId_EGM_19Feb.pdf
-## Actual numbers are taken from https://arun-afs.web.cern.ch/arun-afs/Fits_Data_ID_76X_AbsEta/CutBasedID_MediumWP_76X_18Feb.txt
+## Electorn SF from http://fcouderc.web.cern.ch/fcouderc/EGamma/scaleFactors/moriond2016_76X/eleCutBasedID/CutBasedID_MediumWP_76X_18Feb.txt_egammaPlots.pdf
 electronSFCutBasedIDMediumWP = cms.PSet(
     # Values of "CutBasedID_MediumWP"
     pt_bins = cms.vdouble(10, 20, 30, 40, 50, 200),

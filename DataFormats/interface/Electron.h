@@ -38,6 +38,9 @@ namespace cat {
     bool passConversionVeto() const { return passConversionVeto_; }
     bool isGsfCtfScPixChargeConsistent() const{ return isGsfCtfScPixChargeConsistent_; }
     bool isEB() const{ return isEB_; }
+
+    float ipsignificance() const { return ipsig_;}
+
     
     float shiftedEn() const { if (this->isEB()) return 0.006; else return 0.015; }
     float shiftedEnDown() const {return 1-shiftedEn();}
@@ -62,6 +65,8 @@ namespace cat {
 
     void setSNUID(int id) {snuID_ = id;}
     void setTrigMVAValid(bool val) { isTrigMVAValid_ = val; }
+    void setIpSignficance(float ipsig) {ipsig_ = ipsig;}
+
 
     float scaleFactor(const std::string& name, int sign = 0) const;
     
@@ -71,7 +76,7 @@ namespace cat {
 
     float relIso03_;
     float relIso04_;
-
+    float ipsig_;
     float scEta_;
     bool passConversionVeto_;
     bool isGsfCtfScPixChargeConsistent_;

@@ -16,9 +16,10 @@ process.source.fileNames = [
   '/store/group/CAT/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v7-4-2_RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/150923_192710/0000/catTuple_1.root'
 ]
 
+process.load("CATTools.CatAnalyzer.flatGenWeights_cfi")
 process.z = cms.EDAnalyzer("CATGenLeptonAnalysis",
     src = cms.InputTag("prunedGenParticles"),
-    weight = cms.InputTag("genWeight", "genWeight"),
+    weight = cms.InputTag("flatGenWeight"),
 )
 
 process.p = cms.Path(process.z)
