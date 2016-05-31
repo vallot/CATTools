@@ -153,9 +153,9 @@ void CATGenValidation::analyze(const edm::Event& event, const edm::EventSetup& e
   edm::Handle<reco::GenParticleCollection> genParticlesHandle;
   event.getByToken(genParticlesToken_, genParticlesHandle);
 
-  hQscale_->Fill(genWeightsHandle->qScale());
+  hQscale_->Fill(genWeightsHandle->qScale(), weight);
   auto gluonToZero = [](const int id){ return id == 21 ? 0 : id; };
-  hPartonId_->Fill(gluonToZero(genWeightsHandle->id1()), gluonToZero(genWeightsHandle->id2()));
+  hPartonId_->Fill(gluonToZero(genWeightsHandle->id1()), gluonToZero(genWeightsHandle->id2()), weight);
 
   hWeight_->Fill(weight);
   hWeight_LHE_->Fill(genWeightsHandle->lheWeight());
@@ -166,7 +166,7 @@ void CATGenValidation::analyze(const edm::Event& event, const edm::EventSetup& e
   if ( pdfWeightsHandle.isValid() ) { for( auto w : *pdfWeightsHandle ) hWeights_pdf_->Fill(w); }
   if ( otherWeightsHandle.isValid() ) { for( auto w : *otherWeightsHandle ) hWeights_others_->Fill(w); }
 
-  hN_All_->Fill(genParticlesHandle->size());
+  hN_All_->Fill(genParticlesHandle->size(), weight);
   std::vector<const reco::GenParticle*> fsParticles, firstCopies, lastCopies;
   for ( const auto& x : *genParticlesHandle ) {
     if ( x.pt() < 1e-3 and std::abs(x.pz()) > 100 ) continue; // Rough selection to skip incident beams and partons
@@ -178,10 +178,10 @@ void CATGenValidation::analyze(const edm::Event& event, const edm::EventSetup& e
   for ( const auto x : fsParticles ) {
     if ( x->status() != 1 ) ++nUnstableFinal;
   }
-  hN_Final_->Fill(fsParticles.size());
-  hN_UnstableFinal_->Fill(nUnstableFinal);
-  hN_FirstCopy_->Fill(firstCopies.size());
-  hN_LastCopy_->Fill(lastCopies.size());
+  hN_Final_->Fill(fsParticles.size(), weight);
+  hN_UnstableFinal_->Fill(nUnstableFinal, weight);
+  hN_FirstCopy_->Fill(firstCopies.size(), weight);
+  hN_LastCopy_->Fill(lastCopies.size(), weight);
 
   int nT = 0, nW = 0, nZ = 0, nG = 0, nL = 0, nH = 0, nB = 0;
   for ( const auto x : firstCopies ) {
@@ -189,21 +189,21 @@ void CATGenValidation::analyze(const edm::Event& event, const edm::EventSetup& e
     const int aid = std::abs(pid);
     const double mass = x->mass();
 
-    if      ( aid ==  6 ) { hM_FirstT_->Fill(mass); ++nT; }
-    else if ( aid == 24 ) { hM_FirstW_->Fill(mass); ++nW; }
-    else if ( aid == 23 ) { hM_FirstZ_->Fill(mass); ++nZ; }
-    else if ( aid == 25 ) { hM_FirstH_->Fill(mass); ++nH; }
+    if      ( aid ==  6 ) { hM_FirstT_->Fill(mass, weight); ++nT; }
+    else if ( aid == 24 ) { hM_FirstW_->Fill(mass, weight); ++nW; }
+    else if ( aid == 23 ) { hM_FirstZ_->Fill(mass, weight); ++nZ; }
+    else if ( aid == 25 ) { hM_FirstH_->Fill(mass, weight); ++nH; }
     else if ( aid ==  5 ) ++nB;
     else if ( aid == 22 ) ++nG;
     else if ( aid == 11 or aid == 13 ) ++nL;
   }
-  hN_FirstT_->Fill(nT);
-  hN_FirstW_->Fill(nW);
-  hN_FirstZ_->Fill(nZ);
-  hN_FirstH_->Fill(nH);
-  hN_FirstB_->Fill(nB);
-  hN_FirstG_->Fill(nG);
-  hN_FirstL_->Fill(nL);
+  hN_FirstT_->Fill(nT, weight);
+  hN_FirstW_->Fill(nW, weight);
+  hN_FirstZ_->Fill(nZ, weight);
+  hN_FirstH_->Fill(nH, weight);
+  hN_FirstB_->Fill(nB, weight);
+  hN_FirstG_->Fill(nG, weight);
+  hN_FirstL_->Fill(nL, weight);
 
   nT = nW = nZ = nG = nL = nH = nB = 0;
   for ( const auto x : lastCopies ) {
@@ -211,21 +211,21 @@ void CATGenValidation::analyze(const edm::Event& event, const edm::EventSetup& e
     const int aid = std::abs(pid);
     const double mass = x->mass();
 
-    if      ( aid ==  6 ) { hM_LastT_->Fill(mass); ++nT; }
-    else if ( aid == 24 ) { hM_LastW_->Fill(mass); ++nW; }
-    else if ( aid == 23 ) { hM_LastZ_->Fill(mass); ++nZ; }
-    else if ( aid == 25 ) { hM_LastH_->Fill(mass); ++nH; }
+    if      ( aid ==  6 ) { hM_LastT_->Fill(mass, weight); ++nT; }
+    else if ( aid == 24 ) { hM_LastW_->Fill(mass, weight); ++nW; }
+    else if ( aid == 23 ) { hM_LastZ_->Fill(mass, weight); ++nZ; }
+    else if ( aid == 25 ) { hM_LastH_->Fill(mass, weight); ++nH; }
     else if ( aid ==  5 ) ++nB;
     else if ( aid == 22 ) ++nG;
     else if ( aid == 11 or aid == 13 ) ++nL;
   }
-  hN_LastT_->Fill(nT);
-  hN_LastW_->Fill(nW);
-  hN_LastZ_->Fill(nZ);
-  hN_LastH_->Fill(nH);
-  hN_LastB_->Fill(nB);
-  hN_LastG_->Fill(nG);
-  hN_LastL_->Fill(nL);
+  hN_LastT_->Fill(nT, weight);
+  hN_LastW_->Fill(nW, weight);
+  hN_LastZ_->Fill(nZ, weight);
+  hN_LastH_->Fill(nH, weight);
+  hN_LastB_->Fill(nB, weight);
+  hN_LastG_->Fill(nG, weight);
+  hN_LastL_->Fill(nL, weight);
 
 }
 
