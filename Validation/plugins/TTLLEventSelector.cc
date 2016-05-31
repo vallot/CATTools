@@ -701,7 +701,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     edm::Handle<vfloat> vfHandle;
 
     if ( genWeightIndex_ < 0 ) {
-      event.getByToken(genWeightToken_, vfHandle);
+      event.getByToken(genWeightToken_, fHandle);
       genWeight = *fHandle;
     }
     else {
