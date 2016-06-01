@@ -3,10 +3,17 @@
 #include "CATTools/CommonTools/interface/TTbarModeDefs.h"
 
 // Scale factors from AN2015/309
-double computeTrigSF(const int channel, const double eta1, const double eta2, int direction=0)
+double computeTrigSF(const cat::Lepton& lep1, const cat::Lepton& lep2, int direction=0)
 {
-  const double aeta1 = std::abs(eta1);
-  const double aeta2 = std::abs(eta2);
+  const int sumId = std::abs(lep1.pdgId()) + std::abs(lep2.pdgId());
+  const int channel = sumId == 11+11 ? cat::CH_ELEL : sumId == 13+13 ? cat::CH_MUMU : cat::CH_MUEL;
+
+  auto getEta = [](const cat::Lepton& lep)->double {
+    if ( std::abs(lep.pdgId()) == 11 ) return dynamic_cast<const cat::Electron&>(lep).scEta();
+    return lep.eta();
+  };
+  const double aeta1 = std::abs(getEta(lep1));
+  const double aeta2 = std::abs(getEta(lep2));
 
   if ( channel == cat::CH_ELEL ) {
     if ( aeta1 < 1.2 ) {
@@ -43,13 +50,16 @@ double computeTrigSF(const int channel, const double eta1, const double eta2, in
 };
 
 // Scale factors are from AN16-025 (v4) http://cms.cern.ch/iCMS/jsp/openfile.jsp?tp=draft&files=AN2016_025_v4.pdf
-/*
-double computeTrigSF(const int channel, const double eta1, const double eta2, int direction=0)
+double computeTrigSFInclusive(const cat::Lepton& lep1, const cat::Lepton& lep2, int direction=0)
 {
+  const int sumId = std::abs(lep1.pdgId()) + std::abs(lep2.pdgId());
+  const int channel = sumId == 11+11 ? cat::CH_ELEL : sumId == 13+13 ? cat::CH_MUMU : cat::CH_MUEL;
+
   if      ( channel == cat::CH_ELEL ) return 0.953 + direction*0.009;
   else if ( channel == cat::CH_MUMU ) return 0.948 + direction*0.002;
   else if ( channel == cat::CH_MUEL ) return 0.975 + direction*0.004;
+
+  return 1;
 }
-*/
 
 #endif
