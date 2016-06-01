@@ -59,6 +59,7 @@ eventsTTLL = cms.EDFilter("TTLLEventSelector",
         trigMUMU = cms.InputTag("filterTrigMUMU"),
         trigELEL = cms.InputTag("filterTrigELEL"),
         ignoreTrig = cms.bool(False), # Accept event even if it does not pass HLT. Needed for synchronization
+        trigSFDirection = cms.int32(0),
     ),
 
     # Event weights
