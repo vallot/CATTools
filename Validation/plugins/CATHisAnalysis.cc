@@ -7,6 +7,7 @@
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "DataFormats/Common/interface/View.h"
 
+#include "CATTools/DataFormats/interface/GenWeights.h"
 #include "CATTools/DataFormats/interface/Electron.h"
 #include "CATTools/DataFormats/interface/GenJet.h"
 #include "CATTools/DataFormats/interface/Jet.h"
@@ -29,6 +30,8 @@ public:
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
 
 private:
+  edm::EDGetTokenT<int> nPVToken_;
+  edm::EDGetTokenT<float> puWeightToken_, genWeightToken_;
   edm::EDGetTokenT<reco::GenJetCollection> genJetToken_;
 
   edm::EDGetTokenT<cat::MuonCollection> muonToken_;
@@ -41,6 +44,8 @@ private:
   const bool isMC_;
 
   typedef TH1D* H1;
+
+  H1 hNPV_, hNPVRaw_;
 
   // GenJets
   H1 hGenJet_n_;
@@ -106,7 +111,12 @@ private:
 CATHisAnalysis::CATHisAnalysis(const edm::ParameterSet& pset):
   isMC_(pset.getUntrackedParameter<bool>("isMC"))
 {
-  if ( isMC_ ) genJetToken_   = consumes<reco::GenJetCollection>(pset.getParameter<edm::InputTag>("genJets"));
+  if ( isMC_ ) {
+    genWeightToken_ = consumes<float>(pset.getParameter<edm::InputTag>("genWeight"));
+    puWeightToken_ = consumes<float>(pset.getParameter<edm::InputTag>("puWeight"));
+    genJetToken_   = consumes<reco::GenJetCollection>(pset.getParameter<edm::InputTag>("genJets"));
+  }
+  nPVToken_ = consumes<int>(pset.getParameter<edm::InputTag>("nPV"));
   electronToken_ = consumes<cat::ElectronCollection>(pset.getParameter<edm::InputTag>("electrons"));
   muonToken_     = consumes<cat::MuonCollection>(pset.getParameter<edm::InputTag>("muons"));
   photonToken_   = consumes<cat::PhotonCollection>(pset.getParameter<edm::InputTag>("photons"));
@@ -116,6 +126,9 @@ CATHisAnalysis::CATHisAnalysis(const edm::ParameterSet& pset):
 
   usesResource("TFileService");
   edm::Service<TFileService> fs;
+
+  hNPV_ = fs->make<TH1D>("hNPV", "nPV;Vertex multiplicity;Events", 50, 0, 50);
+  hNPVRaw_ = fs->make<TH1D>("hNPVRaw", "nPV no weight;Vertex multiplicity;Events", 50, 0, 50);
 
   TFileDirectory dirElectron = fs->mkdir("electron", "electron");
   hElectron_n_    = dirElectron.make<TH1D>("h_n","n;Multiplicity",10,0,10);
@@ -269,221 +282,241 @@ void CATHisAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&)
   using namespace std;
   using namespace reco;
 
+  const float genWeight = !isMC_ ? 1 : [&](){
+    edm::Handle<float> h;
+    iEvent.getByToken(genWeightToken_, h);
+    return *h;
+  }();
+  const float puWeight = !isMC_ ? 1 : [&](){
+    edm::Handle<float> h;
+    iEvent.getByToken(puWeightToken_, h);
+    return *h;
+  }();
+  const double weight = genWeight*puWeight;
+
+  const int nPV = [&](){
+    edm::Handle<int> h;
+    iEvent.getByToken(nPVToken_, h);
+    return *h;
+  }();
+  hNPV_->Fill(nPV, weight);
+  hNPVRaw_->Fill(nPV, genWeight);
+
   edm::Handle<cat::ElectronCollection> electronHandle;
   iEvent.getByToken(electronToken_,electronHandle);
   const int nElectron = electronHandle->size();
-  hElectron_n_->Fill(nElectron);
+  hElectron_n_->Fill(nElectron, weight);
   for ( int i=0; i<nElectron; ++i ) {
     const auto& electron = electronHandle->at(i);
 
-    hElectron_pt_   ->Fill( electron.pt() );
-    hElectron_eta_  ->Fill( electron.eta() );
-    hElectron_phi_  ->Fill( electron.phi() );
-    hElectron_mass_ ->Fill( electron.mass() );
-    hElectron_chIso_->Fill( electron.chargedHadronIso() );
-    hElectron_nhIso_->Fill( electron.neutralHadronIso() );
-    hElectron_phIso_->Fill( electron.photonIso() );
-    hElectron_puIso_->Fill( electron.puChargedHadronIso() );
+    hElectron_pt_   ->Fill( electron.pt() , weight);
+    hElectron_eta_  ->Fill( electron.eta() , weight);
+    hElectron_phi_  ->Fill( electron.phi() , weight);
+    hElectron_mass_ ->Fill( electron.mass() , weight);
+    hElectron_chIso_->Fill( electron.chargedHadronIso() , weight);
+    hElectron_nhIso_->Fill( electron.neutralHadronIso() , weight);
+    hElectron_phIso_->Fill( electron.photonIso() , weight);
+    hElectron_puIso_->Fill( electron.puChargedHadronIso() , weight);
   }
   if ( nElectron >= 1 ) {
     const auto& electron = electronHandle->at(0);
-    hElectron1_pt_   ->Fill( electron.pt() );
-    hElectron1_eta_  ->Fill( electron.eta() );
-    hElectron1_phi_  ->Fill( electron.phi() );
-    hElectron1_mass_ ->Fill( electron.mass() );
-    hElectron1_chIso_->Fill( electron.chargedHadronIso() );
-    hElectron1_nhIso_->Fill( electron.neutralHadronIso() );
-    hElectron1_phIso_->Fill( electron.photonIso() );
-    hElectron1_puIso_->Fill( electron.puChargedHadronIso() );
+    hElectron1_pt_   ->Fill( electron.pt() , weight);
+    hElectron1_eta_  ->Fill( electron.eta() , weight);
+    hElectron1_phi_  ->Fill( electron.phi() , weight);
+    hElectron1_mass_ ->Fill( electron.mass() , weight);
+    hElectron1_chIso_->Fill( electron.chargedHadronIso() , weight);
+    hElectron1_nhIso_->Fill( electron.neutralHadronIso() , weight);
+    hElectron1_phIso_->Fill( electron.photonIso() , weight);
+    hElectron1_puIso_->Fill( electron.puChargedHadronIso() , weight);
   }
   if ( nElectron >= 2 ) {
     const auto& electron = electronHandle->at(1);
-    hElectron2_pt_   ->Fill( electron.pt() );
-    hElectron2_eta_  ->Fill( electron.eta() );
-    hElectron2_phi_  ->Fill( electron.phi() );
-    hElectron2_mass_ ->Fill( electron.mass() );
-    hElectron2_chIso_->Fill( electron.chargedHadronIso() );
-    hElectron2_nhIso_->Fill( electron.neutralHadronIso() );
-    hElectron2_phIso_->Fill( electron.photonIso() );
-    hElectron2_puIso_->Fill( electron.puChargedHadronIso() );
+    hElectron2_pt_   ->Fill( electron.pt() , weight);
+    hElectron2_eta_  ->Fill( electron.eta() , weight);
+    hElectron2_phi_  ->Fill( electron.phi() , weight);
+    hElectron2_mass_ ->Fill( electron.mass() , weight);
+    hElectron2_chIso_->Fill( electron.chargedHadronIso() , weight);
+    hElectron2_nhIso_->Fill( electron.neutralHadronIso() , weight);
+    hElectron2_phIso_->Fill( electron.photonIso() , weight);
+    hElectron2_puIso_->Fill( electron.puChargedHadronIso() , weight);
   }
 
   edm::Handle<cat::MuonCollection> muonHandle;
   iEvent.getByToken(muonToken_,muonHandle);
   const int nMuon = muonHandle->size();
-  hMuon_n_->Fill(nMuon);
+  hMuon_n_->Fill(nMuon, weight);
   for ( int i=0; i<nMuon; ++i ) {
     const auto& muon = muonHandle->at(i);
 
-    hMuon_pt_   ->Fill( muon.pt() );
-    hMuon_eta_  ->Fill( muon.eta() );
-    hMuon_phi_  ->Fill( muon.phi() );
-    hMuon_mass_ ->Fill( muon.mass() );
-    hMuon_chIso_->Fill( muon.chargedHadronIso() );
-    hMuon_nhIso_->Fill( muon.neutralHadronIso() );
-    hMuon_phIso_->Fill( muon.photonIso() );
-    hMuon_puIso_->Fill( muon.puChargedHadronIso() );
+    hMuon_pt_   ->Fill( muon.pt() , weight);
+    hMuon_eta_  ->Fill( muon.eta() , weight);
+    hMuon_phi_  ->Fill( muon.phi() , weight);
+    hMuon_mass_ ->Fill( muon.mass() , weight);
+    hMuon_chIso_->Fill( muon.chargedHadronIso() , weight);
+    hMuon_nhIso_->Fill( muon.neutralHadronIso() , weight);
+    hMuon_phIso_->Fill( muon.photonIso() , weight);
+    hMuon_puIso_->Fill( muon.puChargedHadronIso() , weight);
   }
   if ( nMuon >= 1 ) {
     const auto& muon = muonHandle->at(0);
-    hMuon1_pt_   ->Fill( muon.pt() );
-    hMuon1_eta_  ->Fill( muon.eta() );
-    hMuon1_phi_  ->Fill( muon.phi() );
-    hMuon1_mass_ ->Fill( muon.mass() );
-    hMuon1_chIso_->Fill( muon.chargedHadronIso() );
-    hMuon1_nhIso_->Fill( muon.neutralHadronIso() );
-    hMuon1_phIso_->Fill( muon.photonIso() );
-    hMuon1_puIso_->Fill( muon.puChargedHadronIso() );
+    hMuon1_pt_   ->Fill( muon.pt() , weight);
+    hMuon1_eta_  ->Fill( muon.eta() , weight);
+    hMuon1_phi_  ->Fill( muon.phi() , weight);
+    hMuon1_mass_ ->Fill( muon.mass() , weight);
+    hMuon1_chIso_->Fill( muon.chargedHadronIso() , weight);
+    hMuon1_nhIso_->Fill( muon.neutralHadronIso() , weight);
+    hMuon1_phIso_->Fill( muon.photonIso() , weight);
+    hMuon1_puIso_->Fill( muon.puChargedHadronIso() , weight);
   }
   if ( nMuon >= 2 ) {
     const auto& muon = muonHandle->at(1);
-    hMuon2_pt_   ->Fill( muon.pt() );
-    hMuon2_eta_  ->Fill( muon.eta() );
-    hMuon2_phi_  ->Fill( muon.phi() );
-    hMuon2_mass_ ->Fill( muon.mass() );
-    hMuon2_chIso_->Fill( muon.chargedHadronIso() );
-    hMuon2_nhIso_->Fill( muon.neutralHadronIso() );
-    hMuon2_phIso_->Fill( muon.photonIso() );
-    hMuon2_puIso_->Fill( muon.puChargedHadronIso() );
+    hMuon2_pt_   ->Fill( muon.pt() , weight);
+    hMuon2_eta_  ->Fill( muon.eta() , weight);
+    hMuon2_phi_  ->Fill( muon.phi() , weight);
+    hMuon2_mass_ ->Fill( muon.mass() , weight);
+    hMuon2_chIso_->Fill( muon.chargedHadronIso() , weight);
+    hMuon2_nhIso_->Fill( muon.neutralHadronIso() , weight);
+    hMuon2_phIso_->Fill( muon.photonIso() , weight);
+    hMuon2_puIso_->Fill( muon.puChargedHadronIso() , weight);
   }
 
   edm::Handle<cat::PhotonCollection> photonHandle;
   iEvent.getByToken(photonToken_,photonHandle);
   const int nPhoton = photonHandle->size();
-  hPhoton_n_->Fill(nPhoton);
+  hPhoton_n_->Fill(nPhoton, weight);
   for ( int i=0; i<nPhoton; ++i ) {
     const auto& photon = photonHandle->at(i);
 
-    hPhoton_pt_   ->Fill( photon.pt() );
-    hPhoton_eta_  ->Fill( photon.eta() );
-    hPhoton_phi_  ->Fill( photon.phi() );
-    hPhoton_mass_ ->Fill( photon.mass() );
+    hPhoton_pt_   ->Fill( photon.pt() , weight);
+    hPhoton_eta_  ->Fill( photon.eta() , weight);
+    hPhoton_phi_  ->Fill( photon.phi() , weight);
+    hPhoton_mass_ ->Fill( photon.mass() , weight);
   }
   if ( nPhoton >= 1 ) {
     const auto& photon = photonHandle->at(0);
-    hPhoton1_pt_   ->Fill( photon.pt() );
-    hPhoton1_eta_  ->Fill( photon.eta() );
-    hPhoton1_phi_  ->Fill( photon.phi() );
-    hPhoton1_mass_ ->Fill( photon.mass() );
+    hPhoton1_pt_   ->Fill( photon.pt() , weight);
+    hPhoton1_eta_  ->Fill( photon.eta() , weight);
+    hPhoton1_phi_  ->Fill( photon.phi() , weight);
+    hPhoton1_mass_ ->Fill( photon.mass() , weight);
   }
   if ( nPhoton >= 2 ) {
     const auto& photon = photonHandle->at(1);
-    hPhoton2_pt_   ->Fill( photon.pt() );
-    hPhoton2_eta_  ->Fill( photon.eta() );
-    hPhoton2_phi_  ->Fill( photon.phi() );
-    hPhoton2_mass_ ->Fill( photon.mass() );
+    hPhoton2_pt_   ->Fill( photon.pt() , weight);
+    hPhoton2_eta_  ->Fill( photon.eta() , weight);
+    hPhoton2_phi_  ->Fill( photon.phi() , weight);
+    hPhoton2_mass_ ->Fill( photon.mass() , weight);
   }
 
 /*
   edm::Handle<cat::TauCollection> tauHandle;
   iEvent.getByToken(tauToken_,tauHandle);
   const int nTau = tauHandle->size();
-  hTau_n_->Fill(nTau);
+  hTau_n_->Fill(nTau, weight);
   for ( int i=0; i<nTau; ++i ) {
     const auto& tau = tauHandle->at(i);
 
-    hTau_pt_   ->Fill( tau.pt() );
-    hTau_eta_  ->Fill( tau.eta() );
-    hTau_phi_  ->Fill( tau.phi() );
-    hTau_mass_ ->Fill( tau.mass() );
+    hTau_pt_   ->Fill( tau.pt() , weight);
+    hTau_eta_  ->Fill( tau.eta() , weight);
+    hTau_phi_  ->Fill( tau.phi() , weight);
+    hTau_mass_ ->Fill( tau.mass() , weight);
   }
   if ( nTau >= 1 ) {
     const auto& tau = tauHandle->at(0);
-    hTau1_pt_   ->Fill( tau.pt() );
-    hTau1_eta_  ->Fill( tau.eta() );
-    hTau1_phi_  ->Fill( tau.phi() );
-    hTau1_mass_ ->Fill( tau.mass() );
+    hTau1_pt_   ->Fill( tau.pt() , weight);
+    hTau1_eta_  ->Fill( tau.eta() , weight);
+    hTau1_phi_  ->Fill( tau.phi() , weight);
+    hTau1_mass_ ->Fill( tau.mass() , weight);
   }
   if ( nTau >= 2 ) {
     const auto& tau = tauHandle->at(1);
-    hTau2_pt_   ->Fill( tau.pt() );
-    hTau2_eta_  ->Fill( tau.eta() );
-    hTau2_phi_  ->Fill( tau.phi() );
-    hTau2_mass_ ->Fill( tau.mass() );
+    hTau2_pt_   ->Fill( tau.pt() , weight);
+    hTau2_eta_  ->Fill( tau.eta() , weight);
+    hTau2_phi_  ->Fill( tau.phi() , weight);
+    hTau2_mass_ ->Fill( tau.mass() , weight);
   }
 */
 
   edm::Handle<cat::JetCollection> jetHandle;
   iEvent.getByToken(jetToken_,jetHandle);
   const int nJet = jetHandle->size();
-  hJet_n_->Fill(nJet);
+  hJet_n_->Fill(nJet, weight);
   for ( int i=0; i<nJet; ++i ) {
     const auto& jet = jetHandle->at(i);
 
-    hJet_pt_   ->Fill( jet.pt() );
-    hJet_eta_  ->Fill( jet.eta() );
-    hJet_phi_  ->Fill( jet.phi() );
-    hJet_mass_ ->Fill( jet.mass() );
+    hJet_pt_   ->Fill( jet.pt() , weight);
+    hJet_eta_  ->Fill( jet.eta() , weight);
+    hJet_phi_  ->Fill( jet.phi() , weight);
+    hJet_mass_ ->Fill( jet.mass() , weight);
   }
   if ( nJet >= 1 ) {
     const auto& jet = jetHandle->at(0);
-    hJet1_pt_   ->Fill( jet.pt() );
-    hJet1_eta_  ->Fill( jet.eta() );
-    hJet1_phi_  ->Fill( jet.phi() );
-    hJet1_mass_ ->Fill( jet.mass() );
+    hJet1_pt_   ->Fill( jet.pt() , weight);
+    hJet1_eta_  ->Fill( jet.eta() , weight);
+    hJet1_phi_  ->Fill( jet.phi() , weight);
+    hJet1_mass_ ->Fill( jet.mass() , weight);
   }
   if ( nJet >= 2 ) {
     const auto& jet = jetHandle->at(1);
-    hJet2_pt_   ->Fill( jet.pt() );
-    hJet2_eta_  ->Fill( jet.eta() );
-    hJet2_phi_  ->Fill( jet.phi() );
-    hJet2_mass_ ->Fill( jet.mass() );
+    hJet2_pt_   ->Fill( jet.pt() , weight);
+    hJet2_eta_  ->Fill( jet.eta() , weight);
+    hJet2_phi_  ->Fill( jet.phi() , weight);
+    hJet2_mass_ ->Fill( jet.mass() , weight);
   }
   if ( nJet >= 3 ) {
     const auto& jet = jetHandle->at(2);
-    hJet3_pt_   ->Fill( jet.pt() );
-    hJet3_eta_  ->Fill( jet.eta() );
-    hJet3_phi_  ->Fill( jet.phi() );
-    hJet3_mass_ ->Fill( jet.mass() );
+    hJet3_pt_   ->Fill( jet.pt() , weight);
+    hJet3_eta_  ->Fill( jet.eta() , weight);
+    hJet3_phi_  ->Fill( jet.phi() , weight);
+    hJet3_mass_ ->Fill( jet.mass() , weight);
   }
   if ( nJet >= 4 ) {
     const auto& jet = jetHandle->at(3);
-    hJet3_pt_   ->Fill( jet.pt() );
-    hJet3_eta_  ->Fill( jet.eta() );
-    hJet3_phi_  ->Fill( jet.phi() );
-    hJet3_mass_ ->Fill( jet.mass() );
+    hJet3_pt_   ->Fill( jet.pt() , weight);
+    hJet3_eta_  ->Fill( jet.eta() , weight);
+    hJet3_phi_  ->Fill( jet.phi() , weight);
+    hJet3_mass_ ->Fill( jet.mass() , weight);
   }
 
   if ( isMC_ ) {
     edm::Handle<reco::GenJetCollection> genJetHandle;
     iEvent.getByToken(genJetToken_,genJetHandle);
     const int nGenJet = genJetHandle->size();
-    hGenJet_n_->Fill(nGenJet);
+    hGenJet_n_->Fill(nGenJet, weight);
     for ( int i=0; i<nGenJet; ++i ) {
       const auto& genJet = genJetHandle->at(i);
 
-      hGenJet_pt_   ->Fill( genJet.pt() );
-      hGenJet_eta_  ->Fill( genJet.eta() );
-      hGenJet_phi_  ->Fill( genJet.phi() );
-      hGenJet_mass_ ->Fill( genJet.mass() );
+      hGenJet_pt_   ->Fill( genJet.pt() , weight);
+      hGenJet_eta_  ->Fill( genJet.eta() , weight);
+      hGenJet_phi_  ->Fill( genJet.phi() , weight);
+      hGenJet_mass_ ->Fill( genJet.mass() , weight);
     }
     if ( nGenJet >= 1 ) {
       const auto& genJet = genJetHandle->at(0);
-      hGenJet1_pt_   ->Fill( genJet.pt() );
-      hGenJet1_eta_  ->Fill( genJet.eta() );
-      hGenJet1_phi_  ->Fill( genJet.phi() );
-      hGenJet1_mass_ ->Fill( genJet.mass() );
+      hGenJet1_pt_   ->Fill( genJet.pt() , weight);
+      hGenJet1_eta_  ->Fill( genJet.eta() , weight);
+      hGenJet1_phi_  ->Fill( genJet.phi() , weight);
+      hGenJet1_mass_ ->Fill( genJet.mass() , weight);
     }
     if ( nGenJet >= 2 ) {
       const auto& genJet = genJetHandle->at(1);
-      hGenJet2_pt_   ->Fill( genJet.pt() );
-      hGenJet2_eta_  ->Fill( genJet.eta() );
-      hGenJet2_phi_  ->Fill( genJet.phi() );
-      hGenJet2_mass_ ->Fill( genJet.mass() );
+      hGenJet2_pt_   ->Fill( genJet.pt() , weight);
+      hGenJet2_eta_  ->Fill( genJet.eta() , weight);
+      hGenJet2_phi_  ->Fill( genJet.phi() , weight);
+      hGenJet2_mass_ ->Fill( genJet.mass() , weight);
     }
     if ( nGenJet >= 3 ) {
       const auto& genJet = genJetHandle->at(2);
-      hGenJet3_pt_   ->Fill( genJet.pt() );
-      hGenJet3_eta_  ->Fill( genJet.eta() );
-      hGenJet3_phi_  ->Fill( genJet.phi() );
-      hGenJet3_mass_ ->Fill( genJet.mass() );
+      hGenJet3_pt_   ->Fill( genJet.pt() , weight);
+      hGenJet3_eta_  ->Fill( genJet.eta() , weight);
+      hGenJet3_phi_  ->Fill( genJet.phi() , weight);
+      hGenJet3_mass_ ->Fill( genJet.mass() , weight);
     }
     if ( nGenJet >= 4 ) {
       const auto& genJet = genJetHandle->at(3);
-      hGenJet4_pt_   ->Fill( genJet.pt() );
-      hGenJet4_eta_  ->Fill( genJet.eta() );
-      hGenJet4_phi_  ->Fill( genJet.phi() );
-      hGenJet4_mass_ ->Fill( genJet.mass() );
+      hGenJet4_pt_   ->Fill( genJet.pt() , weight);
+      hGenJet4_eta_  ->Fill( genJet.eta() , weight);
+      hGenJet4_phi_  ->Fill( genJet.phi() , weight);
+      hGenJet4_mass_ ->Fill( genJet.mass() , weight);
     }
   }
 
@@ -491,8 +524,8 @@ void CATHisAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&)
   iEvent.getByToken(metToken_,metHandle);
   if ( !metHandle->empty() ) {
     const auto& met = metHandle->at(0);
-    hMET_pt_   ->Fill( met.pt() );
-    hMET_phi_  ->Fill( met.phi() );
+    hMET_pt_   ->Fill( met.pt() , weight);
+    hMET_phi_  ->Fill( met.phi() , weight);
   }
 
 }
