@@ -20,8 +20,8 @@ process.load("CATTools.Validation.ttllEventSelector_cfi")
 process.load("CATTools.Validation.validation_cff")
 process.eventsTTLL.isMC = False
 process.rec.isMC = False
-delattr(process.eventsTTLL, "genWeight")
-delattr(process, "flatGenWeights")
+if hasattr(process.eventsTTLL, "genWeight"): delattr(process.eventsTTLL, "genWeight")
+if hasattr(process, "flatGenWeights"): delattr(process, "flatGenWeights")
 
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string("hist.root"),

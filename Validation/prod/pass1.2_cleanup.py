@@ -53,7 +53,7 @@ if __name__ == '__main__':
         if not isdir(sample): continue
 
         pool.apply_async(hadd, [pathjoin(sample,'central')])
-        outFiles.append(sample+'.root'))
+        outFiles.append(sample+'.root')
 
     pool.close()
     pool.join()
