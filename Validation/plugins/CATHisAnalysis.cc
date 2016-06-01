@@ -480,10 +480,10 @@ void CATHisAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&)
     }
     if ( nGenJet >= 4 ) {
       const auto& genJet = genJetHandle->at(3);
-      hGenJet3_pt_   ->Fill( genJet.pt() );
-      hGenJet3_eta_  ->Fill( genJet.eta() );
-      hGenJet3_phi_  ->Fill( genJet.phi() );
-      hGenJet3_mass_ ->Fill( genJet.mass() );
+      hGenJet4_pt_   ->Fill( genJet.pt() );
+      hGenJet4_eta_  ->Fill( genJet.eta() );
+      hGenJet4_phi_  ->Fill( genJet.phi() );
+      hGenJet4_mass_ ->Fill( genJet.mass() );
     }
   }
 
