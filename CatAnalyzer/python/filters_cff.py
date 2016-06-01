@@ -44,6 +44,7 @@ filterTrigELEL = filterTrigMUEL.clone(
 filterTrigMUMU = filterTrigMUEL.clone(
     triggersToMatch = cms.vstring(
         "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",
+        "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",
     ),
 )
 
