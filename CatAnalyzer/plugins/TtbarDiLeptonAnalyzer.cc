@@ -656,9 +656,9 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     else if ( b_channel == CH_MUMU ) iEvent.getByToken(trigTokenMUMU_, trigHandle);
     else if ( b_channel == CH_MUEL ) iEvent.getByToken(trigTokenMUEL_, trigHandle);
     if ( *trigHandle != 0 ) {
-       b_tri = computeTrigSF(b_channel, recolep1.eta(), recolep2.eta());
-       b_tri_up = computeTrigSF(b_channel, recolep1.eta(), recolep2.eta(),  1);
-       b_tri_dn = computeTrigSF(b_channel, recolep1.eta(), recolep2.eta(), -1);
+       b_tri = computeTrigSF(recolep1, recolep2);
+       b_tri_up = computeTrigSF(recolep1, recolep2,  1);
+       b_tri_dn = computeTrigSF(recolep1, recolep2, -1);
     }
 
     b_lep1 = recolep1.tlv(); b_lep1_pid = recolep1.pdgId();
