@@ -603,15 +603,15 @@ void TtbarBbbarDiLeptonAnalyzer::book(TTree* tree){
   tree->Branch("NaddbQuarks40",   &NaddbQuarks40  , "NaddbQuarks40/I");
   tree->Branch("NcQuarks",        &NcQuarks       , "NcQuarks/I");
 
-  tree->Branch("dRaddJets",       &dRaddJets  ,      "dRaddJets/I");  
+  tree->Branch("dRaddJets",       &dRaddJets  ,      "dRaddJets/F");  
                                                                         
-  tree->Branch("dRaddbJets",      &dRaddbJets  ,     "dRaddbJets/I");    
-  tree->Branch("dRaddcJets",      &dRaddcJets  ,     "dRaddcJets/I");  
-  tree->Branch("dRcJets",         &dRcJets  ,        "dRcJets/I");  
+  tree->Branch("dRaddbJets",      &dRaddbJets  ,     "dRaddbJets/F");    
+  tree->Branch("dRaddcJets",      &dRaddcJets  ,     "dRaddcJets/F");  
+  tree->Branch("dRcJets",         &dRcJets  ,        "dRcJets/F");  
                                                                         
-  tree->Branch("dRaddbJetsHad",   &dRaddbJetsHad  ,  "dRaddbJetsHad/I");  
-  tree->Branch("dRaddcJetsHad",   &dRaddcJetsHad  ,  "dRaddcJetsHad/I");  
-  tree->Branch("dRcJetsHad",      &dRcJetsHad  ,     "dRcJetsHad/I");     
+  tree->Branch("dRaddbJetsHad",   &dRaddbJetsHad  ,  "dRaddbJetsHad/F");  
+  tree->Branch("dRaddcJetsHad",   &dRaddcJetsHad  ,  "dRaddcJetsHad/F");  
+  tree->Branch("dRcJetsHad",      &dRcJetsHad  ,     "dRcJetsHad/F");     
 
   tree->Branch("is3lep", &b_is3lep, "is3lep/I");
 }
