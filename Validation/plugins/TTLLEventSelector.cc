@@ -627,7 +627,7 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   trigMuMuToken_ = consumes<int>(filterSet.getParameter<edm::InputTag>("trigMUMU"));
   trigMuElToken_ = consumes<int>(filterSet.getParameter<edm::InputTag>("trigMUEL"));
   isIgnoreTrig_ = filterSet.getParameter<bool>("ignoreTrig");
-  trigSFShift_ = filterSet.getParameter<int>("trigSFDirection");
+  trigSFShift_ = filterSet.getParameter<int>("efficiencySFDirection");
 
   if ( isMC_ )
   {

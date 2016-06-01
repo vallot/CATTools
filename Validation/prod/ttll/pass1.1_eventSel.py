@@ -137,6 +137,8 @@ systMC = {
     'mu_eff/dn':'eventsTTLL.muon.efficiencySFDirection=-1 ttll.doTree=False ttbbll.doTree=False',
     'el_eff/up':'eventsTTLL.electron.efficiencySFDirection=1 ttll.doTree=False ttbbll.doTree=False',
     'el_eff/dn':'eventsTTLL.electron.efficiencySFDirection=-1 ttll.doTree=False ttbbll.doTree=False',
+    'trg_eff/up':'eventsTTLL.filter.efficiencySFDirection=1 ttll.doTree=False ttbbll.doTree=False',
+    'trg_eff/dn':'eventsTTLL.filter.efficiencySFDirection=-1 ttll.doTree=False ttbbll.doTree=False',
 }
 for systName in systMC:
     syst = systMC[systName]
