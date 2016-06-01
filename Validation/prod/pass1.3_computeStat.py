@@ -41,8 +41,9 @@ for d in sorted(os.listdir('pass1')):
         xsec = ds[d]['xsec']
         partAvgWgt = h.GetMean()
         partNEvent = h.GetEntries()
-        if abs(avgWgt-partAvgWgt) > 1e-5:
-            print "!!! Inconsistent average weight value of %s, new=%10f n=%d orig=%10f origN=%s" % (d, partAvgWgt, partNEvent, avgWgt, nEvent)
+        if partNEvent != nEvent or abs(avgWgt-partAvgWgt) > 1e-5:
+            print "!!! Inconsistent stats %s" % d
+            print "    new(%10f, %d) orig(%10f, %d)" % (partAvgWgt, partNEvent, avgWgt, nEvent)
         normFactor = h.GetEntries()*avgWgt
     ds[d]['normFactor'] = avgWgt*nEvent
     ds[d]['part_normFactor'] = normFactor
