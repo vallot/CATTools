@@ -66,35 +66,37 @@ void GenWeightsToFlatWeights::beginRun(const edm::Run& run, const edm::EventSetu
   edm::Handle<cat::GenWeightInfo> srcHandle;
   run.getByLabel(srcLabel_, srcHandle);
 
-  for ( int i=0, n=srcHandle->nGroups(); i<n; ++i ) {
-    const auto& keys = srcHandle->keys(i);
+  if ( srcHandle.isValid() ) {
+    for ( int i=0, n=srcHandle->nGroups(); i<n; ++i ) {
+      const auto& keys = srcHandle->keys(i);
 
-    string name = srcHandle->name(i);
-    std::transform(name.begin(), name.end(), name.begin(), ::toupper);
-    if ( name.find("SCALE") != string::npos ) {
-      if ( !key_sup_.empty() and !key_sdn_.empty() ) {
-        cout << "!!! Duplicated scale variation from " << name << "!!!\n";
-        continue;
-      }
-      const auto& params = srcHandle->params(i);
-      for ( int j=1, m=keys.size(); j<m; ++j ) {
-        string par = params[j];
-        std::transform(par.begin(), par.end(), par.begin(), ::toupper);
-        // Skip unphysical combinations
-        // up=(1002, 1004, 1005), down=(1003, 1007, 1009), unphysical=(1006, 1008)
-        if ( par.find("5") != string::npos and par.find("2") != string::npos ) continue;
+      string name = srcHandle->name(i);
+      std::transform(name.begin(), name.end(), name.begin(), ::toupper);
+      if ( name.find("SCALE") != string::npos ) {
+        if ( !key_sup_.empty() and !key_sdn_.empty() ) {
+          cout << "!!! Duplicated scale variation from " << name << "!!!\n";
+          continue;
+        }
+        const auto& params = srcHandle->params(i);
+        for ( int j=1, m=keys.size(); j<m; ++j ) {
+          string par = params[j];
+          std::transform(par.begin(), par.end(), par.begin(), ::toupper);
+          // Skip unphysical combinations
+          // up=(1002, 1004, 1005), down=(1003, 1007, 1009), unphysical=(1006, 1008)
+          if ( par.find("5") != string::npos and par.find("2") != string::npos ) continue;
 
-        const size_t key = keys[j];
-        if      ( par.find("2") != string::npos ) key_sup_.insert(key);
-        else if ( par.find("5") != string::npos ) key_sdn_.insert(key);
+          const size_t key = keys[j];
+          if      ( par.find("2") != string::npos ) key_sup_.insert(key);
+          else if ( par.find("5") != string::npos ) key_sdn_.insert(key);
+        }
       }
-    }
-    else if ( name.find("PDF") != string::npos ) {
-      if ( doKeepFirstOnly_ and !key_pdf_.empty() ) continue;
-      key_pdf_.insert(keys.begin(), keys.end());
-    }
-    else if ( doSaveOthers_ ) {
-      key_oth_.insert(keys.begin(), keys.end());
+      else if ( name.find("PDF") != string::npos ) {
+        if ( doKeepFirstOnly_ and !key_pdf_.empty() ) continue;
+        key_pdf_.insert(keys.begin(), keys.end());
+      }
+      else if ( doSaveOthers_ ) {
+        key_oth_.insert(keys.begin(), keys.end());
+      }
     }
   }
 }
