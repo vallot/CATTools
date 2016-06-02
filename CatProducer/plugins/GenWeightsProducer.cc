@@ -82,6 +82,7 @@ void GenWeightsToFlatWeights::beginRun(const edm::Run& run, const edm::EventSetu
         std::transform(par.begin(), par.end(), par.begin(), ::toupper);
         // Skip unphysical combinations
         // up=(1002, 1004, 1005), down=(1003, 1007, 1009), unphysical=(1006, 1008)
+cout << "ASDFSADF" << name << " " << par << endl;
         if ( par.find("5") != string::npos and par.find("2") != string::npos ) continue;
 
         const size_t key = keys[j];
@@ -110,16 +111,14 @@ void GenWeightsToFlatWeights::produce(edm::Event& event, const edm::EventSetup&)
   edm::Handle<cat::GenWeights> srcHandle;
   event.getByToken(srcToken_, srcHandle);
 
-  if ( srcHandle.isValid() ) {
-    *out_weight = srcHandle->genWeight();
-    const auto weights = srcHandle->weights();
-    for ( int i=0, n=weights.size(); i<n; ++i ) {
-      const auto& w = weights[i];
-      if      ( key_sup_.find(i) != key_sup_.end() ) out_sup->push_back(w);
-      else if ( key_sdn_.find(i) != key_sdn_.end() ) out_sdn->push_back(w);
-      else if ( key_pdf_.find(i) != key_pdf_.end() ) out_pdf->push_back(w);
-      else if ( key_oth_.find(i) != key_oth_.end() ) out_oth->push_back(w);
-    }
+  *out_weight = srcHandle->genWeight();
+  const auto weights = srcHandle->weights();
+  for ( int i=0, n=weights.size(); i<n; ++i ) {
+    const auto& w = weights[i];
+    if      ( key_sup_.find(i) != key_sup_.end() ) out_sup->push_back(w);
+    else if ( key_sdn_.find(i) != key_sdn_.end() ) out_sdn->push_back(w);
+    else if ( key_pdf_.find(i) != key_pdf_.end() ) out_pdf->push_back(w);
+    else if ( key_oth_.find(i) != key_oth_.end() ) out_oth->push_back(w);
   }
 
   event.put(out_weight);
