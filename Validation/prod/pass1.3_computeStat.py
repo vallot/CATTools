@@ -15,22 +15,22 @@ ds = {}
 for d in sorted(os.listdir('pass1')):
     if not os.path.isdir('pass1/'+d): continue
     if not os.path.exists('pass1/'+d+'/central.root'): continue
+    fName = 'pass1/'+d+'/central.root'
+    f = TFile(fName)
+    if f == None:
+        print "!!! root file under %s is invalid" % name
+        continue
 
     if d in dsIn:
         ds[d] = dsIn[d]
     elif '_' in d:
         origName = '_'.join(d.split('_')[:-1])
-        ds[d] = dsIn[origName]
+        ds[d] = dict(dsIn[origName])
     if d not in ds:
         print "Cannot find corresponding histogram for", d
 
-    fName = 'pass1/'+d+'/central.root'
-    f = TFile(fName)
-    if f == None:
-        print "!!! root file under %s is invalid" % name
-        ds.remove(d)
-        continue
     ds[d]['hist'] = fName
+
     h = f.Get("gen/hWeight_Norm")
     xsec = 1.0
     normFactor = 1.0
