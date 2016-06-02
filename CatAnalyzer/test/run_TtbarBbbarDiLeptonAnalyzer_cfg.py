@@ -12,7 +12,7 @@ process.options.allowUnscheduled = cms.untracked.bool(True)
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 #process.source.fileNames.append('/store/user/jhgoh/CATTools/sync/v7-6-1/TTbarXSecSynchronization_76X_MC_TT_powheg.root')
 
-process.source.fileNames = ['root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-6-4_RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext3-v1/160325_074050/0000/catTuple_1.root',]
+process.source.fileNames = ['root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-6-5_RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext3-v1/160524_090311/0000/catTuple_1.root',]
 
 #process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-3/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',]
 #process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-3/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8.root',]
@@ -52,16 +52,17 @@ process.load("CATTools.CatAnalyzer.filters_cff")
 
 ##for only ttbar signal mc sample
 process.load("CATTools.CatAnalyzer.topPtWeightProducer_cfi")
+process.load("CATTools.CatAnalyzer.flatGenWeights_cfi")
 
 from CATTools.CatAnalyzer.leptonSF_cff import *
 
 process.cattree = cms.EDAnalyzer("TtbarBbbarDiLeptonAnalyzer",
     recoFilters = cms.InputTag("filterRECO"),
     nGoodVertex = cms.InputTag("catVertex","nGoodPV"),
-    genweight = cms.InputTag("flatGenWeight"),
-    pdfweight = cms.InputTag("flatGenWeight", "pdf"),
-    scaleupweight = cms.InputTag("flatGenWeight", "scaleup"),
-    scaledownnweight = cms.InputTag("flatGenWeight", "scaledown"),
+    genweight = cms.InputTag("flatGenWeights"),
+    pdfweights = cms.InputTag("flatGenWeights", "pdf"),
+    scaleupweights = cms.InputTag("flatGenWeights", "scaleup"),
+    scaledownweights = cms.InputTag("flatGenWeights", "scaledown"),
     topPtWeight = cms.InputTag("topPtWeight"),
 
     lumiSelection = cms.InputTag(lumiMask),
