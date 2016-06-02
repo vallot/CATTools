@@ -64,7 +64,7 @@ GenWeightsToFlatWeights::GenWeightsToFlatWeights(const edm::ParameterSet& pset):
 void GenWeightsToFlatWeights::beginRun(const edm::Run& run, const edm::EventSetup&)
 {
   edm::Handle<cat::GenWeightInfo> srcHandle;
-  run.getByLabel(srcLabel_, srcHandle);
+  if(!run.getByLabel(srcLabel_, srcHandle)) return ;
 
   for ( int i=0, n=srcHandle->nGroups(); i<n; ++i ) {
     const auto& keys = srcHandle->keys(i);
@@ -108,18 +108,16 @@ void GenWeightsToFlatWeights::produce(edm::Event& event, const edm::EventSetup&)
   std::auto_ptr<vfloat> out_oth(new vfloat);
 
   edm::Handle<cat::GenWeights> srcHandle;
-  event.getByToken(srcToken_, srcHandle);
+  if(!event.getByToken(srcToken_, srcHandle)) return ;
 
-  if ( srcHandle.isValid() ) {
-    *out_weight = srcHandle->genWeight();
-    const auto weights = srcHandle->weights();
-    for ( int i=0, n=weights.size(); i<n; ++i ) {
-      const auto& w = weights[i];
-      if      ( key_sup_.find(i) != key_sup_.end() ) out_sup->push_back(w);
-      else if ( key_sdn_.find(i) != key_sdn_.end() ) out_sdn->push_back(w);
-      else if ( key_pdf_.find(i) != key_pdf_.end() ) out_pdf->push_back(w);
-      else if ( key_oth_.find(i) != key_oth_.end() ) out_oth->push_back(w);
-    }
+  *out_weight = srcHandle->genWeight();
+  const auto weights = srcHandle->weights();
+  for ( int i=0, n=weights.size(); i<n; ++i ) {
+    const auto& w = weights[i];
+    if      ( key_sup_.find(i) != key_sup_.end() ) out_sup->push_back(w);
+    else if ( key_sdn_.find(i) != key_sdn_.end() ) out_sdn->push_back(w);
+    else if ( key_pdf_.find(i) != key_pdf_.end() ) out_pdf->push_back(w);
+    else if ( key_oth_.find(i) != key_oth_.end() ) out_oth->push_back(w);
   }
 
   event.put(out_weight);
