@@ -66,7 +66,7 @@ GenWeightsToFlatWeights::GenWeightsToFlatWeights(const edm::ParameterSet& pset):
 void GenWeightsToFlatWeights::beginRun(const edm::Run& run, const edm::EventSetup&)
 {
   edm::Handle<cat::GenWeightInfo> srcHandle;
-  run.getByLabel(srcLabel_, srcHandle);
+  if ( !run.getByLabel(srcLabel_, srcHandle) ) return;
 
   for ( int i=0, n=srcHandle->nGroups(); i<n; ++i ) {
     const auto& keys = srcHandle->keys(i);
