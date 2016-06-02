@@ -82,7 +82,6 @@ void GenWeightsToFlatWeights::beginRun(const edm::Run& run, const edm::EventSetu
         std::transform(par.begin(), par.end(), par.begin(), ::toupper);
         // Skip unphysical combinations
         // up=(1002, 1004, 1005), down=(1003, 1007, 1009), unphysical=(1006, 1008)
-cout << "ASDFSADF" << name << " " << par << endl;
         if ( par.find("5") != string::npos and par.find("2") != string::npos ) continue;
 
         const size_t key = keys[j];
