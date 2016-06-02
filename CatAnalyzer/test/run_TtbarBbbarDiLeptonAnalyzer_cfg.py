@@ -43,6 +43,14 @@ lumiMask = 'lumiMask'
 
 #process.load("CATTools.CatAnalyzer.ttll.ttbarDileptonKinSolutionAlgos_cff")
 
+
+#import os
+#lumiFile = 'Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON_v2.txt'
+#from FWCore.PythonUtilities.LumiList import LumiList
+#lumiList = LumiList(os.environ["CMSSW_BASE"]+'/src/CATTools/CatProducer/data/LumiMask/'+lumiFile)
+#process.source.lumisToProcess = lumiList.getVLuminosityBlockRange()
+
+
 ####for running genTop on the fly. however it is running slowly.
 #process.load("CATTools.CatProducer.genTopProducer_cfi")
 #from CATTools.CatProducer.Tools.tools import genHFTool

@@ -31,7 +31,7 @@ for aa in dataset:
  isMC = aa['name'] in MC
  isDATA = aa['name'] in DoubleRun2015
  isEtc = aa['name'] in etc
- if ( isMC ) :
+ if ( isDATA ) :
    #ddd = "create-batch -n "
    ddd = "create-batch "
    ddd+= args[0]+" "+aa['name']+" "
