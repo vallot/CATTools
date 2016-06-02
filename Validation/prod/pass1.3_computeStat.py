@@ -26,6 +26,7 @@ for d in sorted(os.listdir('pass1')):
     elif '_' in d:
         origName = '_'.join(d.split('_')[:-1])
         ds[d] = dict(dsIn[origName])
+        ds[d]['title'] += ":"+d.split('_')[-1]
     if d not in ds:
         print "Cannot find corresponding histogram for", d
 
