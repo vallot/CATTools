@@ -13,6 +13,7 @@ process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 #process.source.fileNames.append('/store/user/jhgoh/CATTools/sync/v7-6-1/TTbarXSecSynchronization_76X_MC_TT_powheg.root')
 
 process.source.fileNames = ['root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-6-5_RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext3-v1/160524_090311/0000/catTuple_1.root',]
+#process.source.fileNames = ['root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/DoubleMuon/v7-6-5_Run2015D-16Dec2015-v1/160524_084241/0000/catTuple_1.root',]
 
 #process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-3/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',]
 #process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-3/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8.root',]
@@ -42,6 +43,14 @@ lumiMask = 'lumiMask'
 #    process.pileupWeight.pileupDn = pileupWeightMap["Run2015Dn_25nsV1"]
 
 #process.load("CATTools.CatAnalyzer.ttll.ttbarDileptonKinSolutionAlgos_cff")
+
+
+#import os
+#lumiFile = 'Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON_v2.txt'
+#from FWCore.PythonUtilities.LumiList import LumiList
+#lumiList = LumiList(os.environ["CMSSW_BASE"]+'/src/CATTools/CatProducer/data/LumiMask/'+lumiFile)
+#process.source.lumisToProcess = lumiList.getVLuminosityBlockRange()
+
 
 ####for running genTop on the fly. however it is running slowly.
 #process.load("CATTools.CatProducer.genTopProducer_cfi")
