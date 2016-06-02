@@ -48,7 +48,7 @@ public:
 
   enum sys_e {sys_nom,  sys_jes_u, sys_jes_d, sys_jer_n,sys_jer_u, sys_jer_d,
      sys_mu_u, sys_mu_d, sys_el_u, sys_el_d,
-     sys_mueff_u, sys_mueff_d, sys_eleff_u, sys_eleff_d,
+//     sys_mueff_u, sys_mueff_d, sys_eleff_u, sys_eleff_d,
 //    sys_btag_u, sys_btag_d,
     nsys_e
   };
@@ -76,6 +76,31 @@ private:
   void resetBrJets();
 
   ScaleFactorEvaluator muonSF_, elecSF_;
+  float getMuEffSF(const cat::Lepton& p, int sys) const
+  {
+    const int aid = abs(p.pdgId());
+    if ( aid == 13 ) {
+      const double pt = p.pt(), aeta = std::abs(p.eta());
+      if      ( sys == +1 ) return muonSF_(pt, aeta,  1);
+      else if ( sys == -1 ) return muonSF_(pt, aeta, -1);
+      else return muonSF_(pt, aeta, 0);
+    }
+    return 1;
+  }
+  float getElEffSF(const cat::Lepton& p, int sys) const
+  { 
+    const int aid = abs(p.pdgId());
+    if ( aid == 11 ) {
+      const auto& el = dynamic_cast<const cat::Electron&>(p);
+      const double pt = p.pt(), aeta = std::abs(el.scEta());
+      if      ( sys == +1 ) return elecSF_(pt, aeta,  1);
+      else if ( sys == -1 ) return elecSF_(pt, aeta, -1);
+      else return elecSF_(pt, aeta, 0);
+    }
+    return 1;
+  }
+
+/*
   float getSF(const cat::Lepton& p, int sys) const
   {
     const int aid = abs(p.pdgId());
@@ -94,7 +119,7 @@ private:
     }
     return 1;
   }
-
+*/
   edm::EDGetTokenT<int> recoFiltersToken_, nGoodVertexToken_, lumiSelectionToken_;
   edm::EDGetTokenT<float> genweightToken_;
   edm::EDGetTokenT<vfloat> pdfweightsToken_, scaleupweightsToken_, scaledownweightsToken_;
@@ -123,8 +148,9 @@ private:
   TTree * ttree3_, * ttree4_,* ttree5_,* ttree6_;
 
   TTree * ttree7_, * ttree8_,* ttree9_,* ttree10_;
-  TTree * ttree11_, * ttree12_,* ttree13_,* ttree14_;
-  TTree * ttree15_;
+  TTree * ttree11_;
+  //TTree * ttree11_, * ttree12_,* ttree13_,* ttree14_;
+  //TTree * ttree15_;
   
   int b_nvertex, b_step, b_channel;
   bool b_step1, b_step2, b_step3, b_step4, b_step5, b_step6, b_filtered;
@@ -146,13 +172,17 @@ private:
   std::vector<float> b_jets_bDiscriminatorCSV;
   std::vector<int>    b_csvd_jetid;
   std::vector<float> b_jets_bDiscriminatorMVA;
+  std::vector<float> b_jets_iCSVCvsL;
+  std::vector<float> b_jets_CCvsLT;
+  std::vector<float> b_jets_CCvsBT;
+
   std::vector<int>    b_mvad_jetid;
 
   //mc
   std::vector<float> b_pdfWeights, b_scaleWeightsUp, b_scaleWeightsDown;
   std::vector<float> b_csvweights, b_btagweightsCSVL,  b_btagweightsCSVM,  b_btagweightsCSVT;
   std::vector<float> b_csvweights2;
-  //std::vector<float> b_mvaweights, b_btagweightsMVAL,  b_btagweightsMVAM,  b_btagweightsMVAT;
+//  std::vector<float> b_mvaweights, b_btagweightsMVAL,  b_btagweightsMVAM,  b_btagweightsMVAT;
 
   float b_weight, b_puweight, b_puweightUp, b_puweightDown;
   int b_partonChannel, b_partonMode1, b_partonMode2;
@@ -165,7 +195,9 @@ private:
 
   //mc
   float  b_topPtWeight;
-  float  b_lepweight;
+  ///float  b_lepweight;
+  float  b_mueffweight, b_mueffweight_up, b_mueffweight_dn;
+  float  b_eleffweight, b_eleffweight_up, b_eleffweight_dn;
 
   /////////
   float  lepton1_pt       ;//  cms.string("lepton1().Pt()"),
@@ -249,6 +281,16 @@ private:
   int    NaddbQuarks40    ;//  cms.string("NaddbQuarks40"),
   int    NcQuarks         ;//  cms.string("NcQuarks"),
 
+  float dRaddJets;
+
+  float dRaddbJets;
+  float dRaddcJets;
+  float dRcJets;
+
+  float dRaddbJetsHad;
+  float dRaddcJetsHad;
+  float dRcJetsHad;
+
   int b_is3lep;
 
   const static int NCutflow = 10;
@@ -259,8 +301,8 @@ private:
   BTagWeightEvaluator bTagWeightCSVL;
   BTagWeightEvaluator bTagWeightCSVM;
   BTagWeightEvaluator bTagWeightCSVT;
-
-/*  BTagWeightEvaluator mvaWeight;
+/*
+  BTagWeightEvaluator mvaWeight;
   BTagWeightEvaluator bTagWeightMVAL;
   BTagWeightEvaluator bTagWeightMVAM;
   BTagWeightEvaluator bTagWeightMVAT;
@@ -328,10 +370,10 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
   bTagWeightCSVL.init(3, "csvv2", BTagEntry::OP_LOOSE , 1);
   bTagWeightCSVM.init(3, "csvv2", BTagEntry::OP_MEDIUM, 1);
   bTagWeightCSVT.init(3, "csvv2", BTagEntry::OP_TIGHT , 1);
-  /*bTagWeightMVAL.init(3, "mva", BTagEntry::OP_LOOSE , 1);
-  bTagWeightMVAM.init(3, "mva", BTagEntry::OP_MEDIUM, 1);
-  bTagWeightMVAT.init(3, "mva", BTagEntry::OP_TIGHT , 1);
-*/
+  //bTagWeightMVAL.init(3, "mva", BTagEntry::OP_LOOSE , 1);
+  //bTagWeightMVAM.init(3, "mva", BTagEntry::OP_MEDIUM, 1);
+  //bTagWeightMVAT.init(3, "mva", BTagEntry::OP_TIGHT , 1);
+
   usesResource("TFileService");
   edm::Service<TFileService> fs;
   ttree_ = fs->make<TTree>("nom", "nom");
@@ -348,10 +390,10 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
   ttree10_ = fs->make<TTree>("nomEl_up", "nom2");
   ttree11_ = fs->make<TTree>("nomEl_dw", "nom2");
 
-  ttree12_ = fs->make<TTree>("nomMueff_up", "nom2");
-  ttree13_ = fs->make<TTree>("nomMueff_dw", "nom2");
-  ttree14_ = fs->make<TTree>("nomEleff_up", "nom2");
-  ttree15_ = fs->make<TTree>("nomEleff_dw", "nom2");
+  //ttree12_ = fs->make<TTree>("nomMueff_up", "nom2");
+  //ttree13_ = fs->make<TTree>("nomMueff_dw", "nom2");
+  //ttree14_ = fs->make<TTree>("nomEleff_up", "nom2");
+  //ttree15_ = fs->make<TTree>("nomEleff_dw", "nom2");
 
   book(ttree_);
   book(ttree2_);
@@ -366,10 +408,10 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
   book(ttree10_);
 
   book(ttree11_);
-  book(ttree12_);
-  book(ttree13_);
-  book(ttree14_);
-  book(ttree15_);
+  //book(ttree12_);
+  //book(ttree13_);
+  //book(ttree14_);
+  //book(ttree15_);
 
   for (int i = 0; i < NCutflow; i++) cutflow_.push_back({0,0,0,0});
 }
@@ -411,17 +453,25 @@ void TtbarBbbarDiLeptonAnalyzer::book(TTree* tree){
   tree->Branch("btagweightsCSVM","std::vector<float>",&b_btagweightsCSVM);
   tree->Branch("btagweightsCSVT","std::vector<float>",&b_btagweightsCSVT);
 
-/*  tree->Branch("mvaweights","std::vector<float>",&b_mvaweights);
+  /*tree->Branch("mvaweights","std::vector<float>",&b_mvaweights);
   tree->Branch("btagweightsMVAL","std::vector<float>",&b_btagweightsMVAL);
   tree->Branch("btagweightsMVAM","std::vector<float>",&b_btagweightsMVAM);
-  tree->Branch("btagweightsMVAT","std::vector<float>",&b_btagweightsMVAT);
-*/
+  tree->Branch("btagweightsMVAT","std::vector<float>",&b_btagweightsMVAT);*/
+
   tree->Branch("topPtWeight", &b_topPtWeight, "topPtWeight/F");
 
   tree->Branch("puweight", &b_puweight, "puweight/F");
   tree->Branch("puweightUp", &b_puweightUp, "puweightUp/F");
   tree->Branch("puweightDown", &b_puweightDown, "puweightDown/F");
-  tree->Branch("lepweight", &b_lepweight, "lepweight/F");
+
+  tree->Branch("mueffweight",    &b_mueffweight,    "mueffweight/F");
+  tree->Branch("mueffweight_up", &b_mueffweight_up, "mueffweight_up/F");
+  tree->Branch("mueffweight_dn", &b_mueffweight_dn, "mueffweight_dn/F");
+  tree->Branch("eleffweight",    &b_eleffweight,    "eleffweight/F");
+  tree->Branch("eleffweight_up", &b_eleffweight_up, "eleffweight_up/F");
+  tree->Branch("eleffweight_dn", &b_eleffweight_dn, "eleffweight_dn/F");
+//  tree->Branch("lepweight", &b_lepweight, "lepweight/F");
+
   tree->Branch("genTtbarId", &b_genTtbarId, "genTtbarId/I");
   tree->Branch("genTtbarId30", &b_genTtbarId30, "genTtbarId30/I");
   tree->Branch("genTtbarId40", &b_genTtbarId40, "genTtbarId40/I");
@@ -465,6 +515,10 @@ void TtbarBbbarDiLeptonAnalyzer::book(TTree* tree){
   tree->Branch("jets_bDiscriminatorCSV","std::vector<float>",&b_jets_bDiscriminatorCSV);
   tree->Branch("csvd_jetid","std::vector<int>",&b_csvd_jetid);
   tree->Branch("jets_bDiscriminatorMVA","std::vector<float>",&b_jets_bDiscriminatorMVA);
+  tree->Branch("jets_iCSVCvsL","std::vector<float>",&b_jets_iCSVCvsL);
+  tree->Branch("jets_CCvsLT","std::vector<float>",&b_jets_CCvsLT);
+  tree->Branch("jets_CCvsBT","std::vector<float>",&b_jets_CCvsBT);
+
   tree->Branch("mvad_jetid","std::vector<int>",&b_mvad_jetid);
 
 /////////////////////////////
@@ -548,6 +602,16 @@ void TtbarBbbarDiLeptonAnalyzer::book(TTree* tree){
   tree->Branch("NaddbQuarks20",   &NaddbQuarks20  , "NaddbQuarks20/I");
   tree->Branch("NaddbQuarks40",   &NaddbQuarks40  , "NaddbQuarks40/I");
   tree->Branch("NcQuarks",        &NcQuarks       , "NcQuarks/I");
+
+  tree->Branch("dRaddJets",       &dRaddJets  ,      "dRaddJets/F");  
+                                                                        
+  tree->Branch("dRaddbJets",      &dRaddbJets  ,     "dRaddbJets/F");    
+  tree->Branch("dRaddcJets",      &dRaddcJets  ,     "dRaddcJets/F");  
+  tree->Branch("dRcJets",         &dRcJets  ,        "dRcJets/F");  
+                                                                        
+  tree->Branch("dRaddbJetsHad",   &dRaddbJetsHad  ,  "dRaddbJetsHad/F");  
+  tree->Branch("dRaddcJetsHad",   &dRaddcJetsHad  ,  "dRaddcJetsHad/F");  
+  tree->Branch("dRcJetsHad",      &dRcJetsHad  ,     "dRcJetsHad/F");     
 
   tree->Branch("is3lep", &b_is3lep, "is3lep/I");
 }
@@ -658,6 +722,18 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     NaddbQuarks20    =genTop->at(0).NaddbQuarks20();
     NaddbQuarks40    =genTop->at(0).NaddbQuarks40();
     NcQuarks         =genTop->at(0).NcQuarks();
+
+   dRaddJets       =genTop->at(0).dRaddJets();
+
+   dRaddbJets     =genTop->at(0).dRaddbJets(1);
+   dRaddcJets     =genTop->at(0).dRaddcJets(1);
+   dRcJets        =genTop->at(0).dRcJets(1);
+
+   dRaddbJetsHad     =genTop->at(0).dRaddbJets(0);
+   dRaddcJetsHad     =genTop->at(0).dRaddcJets(0);
+   dRcJetsHad        =genTop->at(0).dRcJets(0);
+
+
   }
   ////////////
   if ( iEvent.getByToken(partonTop_channel_, partonTop_channel)){
@@ -839,8 +915,8 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     selectElecs(*electrons, selElecs, (sys_e) sys);
     
     if (selMuons.size()+selElecs.size() < 2){
-      ttree_->Fill();
-      return;
+      if(sys==0) ttree_->Fill();
+      continue;
     }
     cutflow_[3][b_channel]++;
 
@@ -892,16 +968,23 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     if (pdgIdSum == 26) {
       b_lep1_RelIso = recolep1.relIso(0.4);  b_lep2_RelIso = recolep2.relIso(0.4);
     } // mumu
-    if(runOnMC_) b_lepweight = getSF(recolep1, sys)*getSF(recolep2, sys);
- 
+    if(runOnMC_){ //b_lepweight = getSF(recolep1, sys)*getSF(recolep2, sys);
+      b_mueffweight    = getMuEffSF(recolep1,  0)*getMuEffSF(recolep2,  0);
+      b_mueffweight_up = getMuEffSF(recolep1, +1)*getMuEffSF(recolep2, +1);
+      b_mueffweight_dn = getMuEffSF(recolep1, -1)*getMuEffSF(recolep2, -1);
+      
+      b_eleffweight    = getElEffSF(recolep1,  0)*getElEffSF(recolep2,  0);
+      b_eleffweight_up = getElEffSF(recolep1, +1)*getElEffSF(recolep2, +1);
+      b_eleffweight_dn = getElEffSF(recolep1, -1)*getElEffSF(recolep2, -1);
+    }
     
     const auto tlv_ll = recolep1.p4()+recolep2.p4();
     b_ll_pt = tlv_ll.Pt(); b_ll_eta = tlv_ll.Eta(); b_ll_phi = tlv_ll.Phi(); b_ll_m = tlv_ll.M();
     
     //if (b_ll_m > 20. && recolep1.charge() * recolep2.charge() < 0){
     if (b_ll_m < 20. || recolep1.charge() * recolep2.charge() > 0){
-      ttree_->Fill();
-      return;
+      if(sys==0) ttree_->Fill();
+      continue;
     }
     b_step1 = true;
     b_step = 1;
@@ -928,9 +1011,18 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     int idx=0;
     std::map<int,float> mapJetBDiscriminator;
     std::map<int,float> mapJetBDiscriminatorMVA;
+
+    const std::string CTAG_iCSVCvsL = "inclusiveCandidateSecondaryVerticesCvsL";
+    const std::string CTAG_CCvsLT   = "pfCombinedCvsLJetTags";
+    const std::string CTAG_CCvsBT   = "pfCombinedCvsBJetTags";
+
     for (auto jet1 = selectedJets.begin(), end = selectedJets.end(); jet1 != end; ++jet1){
       float bDisCSV= (float) jet1->bDiscriminator(BTAG_CSVv2);
       float bDisMVA= (float) jet1->bDiscriminator(BTAG_cMVAv2);
+
+      float cDisiCSVCvsL= (float) jet1->bDiscriminator(CTAG_iCSVCvsL);
+      float cDisCCvsLT  = (float) jet1->bDiscriminator(CTAG_CCvsLT);
+      float cDisCCvsBT  = (float) jet1->bDiscriminator(CTAG_CCvsBT);
       //float bDisCSV= (float) jet1->bDiscriminator(BTAG_CSVv2+"AK4PFPuppi");
       int flavor = jet1->partonFlavour();
       mapJetBDiscriminator[idx] = bDisCSV;
@@ -942,26 +1034,31 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
       b_jets_flavor.push_back(flavor);
       b_jets_bDiscriminatorCSV.push_back(bDisCSV);
       b_jets_bDiscriminatorMVA.push_back(bDisMVA);
+      b_jets_iCSVCvsL.push_back(cDisiCSVCvsL);
+      b_jets_CCvsLT.push_back(  cDisCCvsLT);
+      b_jets_CCvsBT.push_back(  cDisCCvsBT);
+
     }
    
     if (runOnMC_){
       b_csvweights2.push_back(myCsvWeight->getCSVWeight(selectedJets,0));
       b_csvweights.push_back(csvWeight.eventWeight(selectedJets,0));
+      //b_mvaweights.push_back(mvaWeight.eventWeight(selectedJets,0));
       for (unsigned int iu=0; iu<18; iu++)
       {
          b_csvweights2.push_back(myCsvWeight->getCSVWeight(selectedJets,iu+7));
          b_csvweights.push_back(csvWeight.eventWeight(selectedJets,iu+1));
-         //b_mvaweights.push_back(mvaWeight.eventWeight(selectedJets,iu));
+         //b_mvaweights.push_back(mvaWeight.eventWeight(selectedJets,iu+1));
       }
       for (unsigned int iu=0; iu<3; iu++)
       {
          b_btagweightsCSVL.push_back(bTagWeightCSVL.eventWeight(selectedJets, iu));
          b_btagweightsCSVM.push_back(bTagWeightCSVM.eventWeight(selectedJets, iu));
          b_btagweightsCSVT.push_back(bTagWeightCSVT.eventWeight(selectedJets, iu));
-         /*b_btagweightsMVAL.push_back(bTagWeightMVAL.eventWeight(selectedJets, iu));
-         b_btagweightsMVAM.push_back(bTagWeightMVAM.eventWeight(selectedJets, iu));
-         b_btagweightsMVAT.push_back(bTagWeightMVAT.eventWeight(selectedJets, iu));
-         */
+         //b_btagweightsMVAL.push_back(bTagWeightMVAL.eventWeight(selectedJets, iu));
+         //b_btagweightsMVAM.push_back(bTagWeightMVAM.eventWeight(selectedJets, iu));
+         //b_btagweightsMVAT.push_back(bTagWeightMVAT.eventWeight(selectedJets, iu));
+         
       }
  
     }
@@ -1036,10 +1133,10 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     else if (sys==8) ttree10_->Fill();
 
     else if (sys==9) ttree11_->Fill();
-    else if (sys==10) ttree12_->Fill();
-    else if (sys==11) ttree13_->Fill();
-    else if (sys==12) ttree14_->Fill();
-    else if (sys==13) ttree15_->Fill();
+    //else if (sys==10) ttree12_->Fill();
+    //else if (sys==11) ttree13_->Fill();
+    //else if (sys==12) ttree14_->Fill();
+    //else if (sys==13) ttree15_->Fill();
 
   }
 }
@@ -1179,8 +1276,9 @@ void TtbarBbbarDiLeptonAnalyzer::resetBrReco()
   b_tri = 0;
   b_met = -9; b_metphi = -9;
 
-  b_lepweight = 1;
-  //b_pdfWeights.clear();
+  //b_lepweight = 1;
+  b_mueffweight = 1;b_mueffweight_up = 1;b_mueffweight_dn = 1;
+  b_eleffweight = 1;b_eleffweight_up = 1;b_eleffweight_dn = 1;
 
   ///////
   b_lep1_pt = -9;b_lep1_eta = -9;b_lep1_phi = -9; b_lep1_RelIso = -9; b_lep1_q=0;
@@ -1201,6 +1299,9 @@ void TtbarBbbarDiLeptonAnalyzer::resetBrJets()
   b_jets_bDiscriminatorCSV.clear();
   b_csvd_jetid.clear();
   b_jets_bDiscriminatorMVA.clear();
+  b_jets_iCSVCvsL.clear();
+  b_jets_CCvsLT.clear();
+  b_jets_CCvsBT.clear();
   b_mvad_jetid.clear();
   b_csvweights.clear();
   b_csvweights2.clear();
@@ -1217,7 +1318,7 @@ void TtbarBbbarDiLeptonAnalyzer::resetBrGEN()
   b_scaleWeightsUp.clear();
   b_scaleWeightsDown.clear();
   b_topPtWeight = 1.;
-  b_weight = 1;
+  b_weight = 1; 
   b_puweight = 1; b_puweightUp = 1; b_puweightDown =1;
   b_nvertex = 0;
   b_filtered = 0;
