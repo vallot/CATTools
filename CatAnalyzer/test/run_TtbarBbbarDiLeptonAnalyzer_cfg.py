@@ -10,7 +10,6 @@ process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
 process.options.allowUnscheduled = cms.untracked.bool(True)
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
-#process.source.fileNames.append('/store/user/jhgoh/CATTools/sync/v7-6-1/TTbarXSecSynchronization_76X_MC_TT_powheg.root')
 process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-5/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',]
 #process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-5/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8.root',]
 #process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-5/DoubleEG_Run2015D-16Dec2015-v2.root',]
@@ -49,6 +48,7 @@ process.load("CATTools.CatAnalyzer.filters_cff")
 
 ##for only ttbar signal mc sample
 process.load("CATTools.CatAnalyzer.topPtWeightProducer_cfi")
+process.load("CATTools.CatAnalyzer.flatGenWeights_cfi")
 
 from CATTools.CatAnalyzer.leptonSF_cff import *
 
@@ -65,10 +65,10 @@ process.redoPileupWeight.pileupDn = pileupWeightMap["Cert_13TeV_16Dec2015ReReco_
 process.cattree = cms.EDAnalyzer("TtbarBbbarDiLeptonAnalyzer",
     recoFilters = cms.InputTag("filterRECO"),
     nGoodVertex = cms.InputTag("catVertex","nGoodPV"),
-    genweight = cms.InputTag("flatGenWeight"),
-    pdfweight = cms.InputTag("flatGenWeight", "pdf"),
-    scaleupweight = cms.InputTag("flatGenWeight", "scaleup"),
-    scaledownnweight = cms.InputTag("flatGenWeight", "scaledown"),
+    genweight = cms.InputTag("flatGenWeights"),
+    pdfweights = cms.InputTag("flatGenWeights", "pdf"),
+    scaleupweights = cms.InputTag("flatGenWeights", "scaleup"),
+    scaledownweights = cms.InputTag("flatGenWeights", "scaledown"),
     topPtWeight = cms.InputTag("topPtWeight"),
 
     lumiSelection = cms.InputTag(lumiMask),

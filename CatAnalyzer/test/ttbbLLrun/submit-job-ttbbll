@@ -31,14 +31,14 @@ for aa in dataset:
  isMC = aa['name'] in MC
  isDATA = aa['name'] in DoubleRun2015
  isEtc = aa['name'] in etc
- if ( isTTbar ) :
+ if ( isMC ) :
    #ddd = "create-batch -n "
    ddd = "create-batch "
    ddd+= args[0]+" "+aa['name']+" "
    ddd+= args[1]+" "+cmsswpath+"/dataset_"+aa['name']+".txt "
    ddd+= args[2]+" 20 "
 
-   fff = "/store/user/youngjo/Cattools/v7-6-4v3/"+aa['name']+"v1"
+   fff = "/store/user/youngjo/Cattools/v7-6-5v1/"+aa['name']+"v1"
    ddd+= args[3]+" ../run_TtbarBbbarDiLeptonAnalyzer_cfg.py "
    ddd+= args[4]+" "+fff+" "
 
