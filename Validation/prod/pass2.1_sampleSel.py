@@ -17,9 +17,10 @@ def findHists(d, hists):
             hPath = (d.GetPath().split(':')[-1])+"/"+obj.GetName()
             hists.add(hPath[1:])
 
+checkedTypes = set()
 ds = {}
 dsIn = json.loads(open("pass1/dataset.json").read())
-hists = {}
+hists = set()
 for name in dsIn:
     x = dsIn[name]
     title = x["title"]
@@ -30,10 +31,10 @@ for name in dsIn:
         ds[title] = {
             'colour':x['colour'],
             'hist':'pass2/central/%s.root' % safeTitle, ## Path to the merged histogram
-            'samples':[], ## List of input samples
+            'subsamples':[], ## List of input samples
         }
 
-    ds[title]['samples'].append({
+    ds[title]['subsamples'].append({
         'type':stype,
         'avgWgt':x['avgWgt'], 'nevt':x['nevt'],
         'xsec':x['xsec'], 'lumi':x['lumi'], 'normFactor':x['normFactor'],
@@ -41,13 +42,16 @@ for name in dsIn:
     })
 
     sstype = stype.split('/')[0]
-    if sstype not in hists or len(hists[sstype]) == 0:
+    if sstype not in checkedTypes or len(hists) == 0:
         print "Reading histogram contents of sample type", sstype
         hset = set()
         f = TFile(x['hist'])
         findHists(f, hset)
         f.Close()
-        hists[sstype] = sorted(list(hset))
+        hists = hists.union(hset)
+        checkedTypes.add(sstype)
+hists = list(hists)
+hists.sort()
 
 open("pass2/dataset.json", "w").write(json.dumps(ds, sort_keys=True, indent=4))
 open("pass2/hists.json", "w").write(json.dumps(hists, sort_keys=True, indent=4))

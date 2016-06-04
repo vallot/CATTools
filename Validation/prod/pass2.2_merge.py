@@ -3,6 +3,17 @@ import sys, os
 import json
 from ROOT import *
 
+def rootmkdirs(f, path):
+    d = f.GetDirectory(path)
+    if d != None: return d
+
+    d = f
+    for t in path.split('/'):
+        td = d.GetDirectory(t)
+        if td != None: d = td
+        else: d = d.mkdir(t)
+    return d
+
 def mergeHist(dout, din, normFactor, allHists):
     if din == None or dout == None: return allHists
 
@@ -31,14 +42,47 @@ def mergeHist(dout, din, normFactor, allHists):
             h.Add(din.Get(hName), 1./normFactor)
 
 ds = json.loads(open("pass2/dataset.json").read())
-hists = json.loads(open("pass2/hists.json").read())
+hs = json.loads(open("pass2/hists.json").read())
+
 for d in ds:
     print "Processing dataset", d
     foutName = ds[d]['hist']
     outPath = os.path.dirname(foutName)
     if not os.path.isdir(outPath): os.mkdir(outPath)
-    fout = TFile(foutName, "RECREATE")
 
+    sses = []
+    for ss in ds[d]['subsamples']:
+        fName, normFactor = ss['hist'], ss['normFactor']
+        sses.append( (TFile(fName), normFactor ) )
+
+    fout = TFile(foutName, "RECREATE")
+    for hName in hs:
+        ## Check the histogram exists in the source root file
+        if sses[0][0].Get(hName) == None: continue
+
+        ## Prepare output directory
+        p = '/'.join(hName.split('/')[:-1])
+        dout = rootmkdirs(fout, p)
+        dout.cd()
+
+        ## Prepare output histogram
+        h = sses[0][0].Get(hName).Clone()
+        h.SetDirectory(dout)
+        h.Reset()
+        ## Merge histograms
+        for ss in sses:
+            hin = ss[0].Get(hName)
+            scale = 1./ss[1]
+            h.Add(hin, scale)
+            hin.Delete()
+        dout.cd()
+        h.Write()
+
+    for ss in sses: ss[0].Close()
+    sses = None
+    fout.Close()
+
+"""
     ## Merge histograms
     allHists = {}
     for sample in ds[d]['samples']:
@@ -46,7 +90,6 @@ for d in ds:
         if not os.path.exists(fInName): continue
         fin = TFile(fInName)
         if fin == None: continue
-        print sample
 
         normFactor = sample['normFactor']
         mergeHist(fout, fin, normFactor, allHists)
@@ -56,4 +99,4 @@ for d in ds:
             fout.GetDirectory('/'.join(path.split('/')[:-1])).cd()
             allHists[path].Write()
 
-
+"""
