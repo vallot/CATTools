@@ -2,16 +2,6 @@ import FWCore.ParameterSet.Config as cms
 import catDefinitions_cfi as cat
 
 def catTool(process, runOnMC=True, useMiniAOD=True):
-    if runOnMC:
-        from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
-        process.pileupWeight.pileupMC = pileupWeightMap[cat.pileupMCmap]
-        process.pileupWeight.pileupRD = pileupWeightMap["%s"%cat.lumiJSON]
-        process.pileupWeight.pileupUp = pileupWeightMap["%s_Up"%cat.lumiJSON]
-        process.pileupWeight.pileupDn = pileupWeightMap["%s_Dn"%cat.lumiJSON]
-    else:
-        from FWCore.PythonUtilities.LumiList import LumiList
-        process.lumiMask = cms.EDProducer("LumiMaskProducer",
-            LumiSections = LumiList('../data/LumiMask/%s.txt'%cat.lumiJSON).getVLuminosityBlockRange())
     
     useJECfile = True
     jecFile = cat.JetEnergyCorrection
@@ -73,7 +63,7 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         ## applying new jec on the fly
         process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
         process.patJetCorrFactors.primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices")
-        process.catJets.src = cms.InputTag("updatedPatJets")
+        #process.catJets.src = cms.InputTag("updatedPatJets") # do we neeed to update JEC for 80x?
         ### updating puppi jet jec
         process.patJetPuppiCorrFactorsUpdated = process.updatedPatJetCorrFactors.clone(
             src = process.catJetsPuppi.src,
@@ -94,7 +84,8 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         #)
         #process.patJetsUpdated.userData.userFloats.src +=['pileupJetIdUpdated:fullDiscriminant']
 
-        process.catJets.src = cms.InputTag("patJetsUpdated")
+        #Do we need this? (TJ)
+        #process.catJets.src = cms.InputTag("patJetsUpdated")
 
         
         process.catJetsPuppi.src = cms.InputTag("patJetsPuppiUpdated")
