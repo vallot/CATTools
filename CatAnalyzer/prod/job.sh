@@ -1,0 +1,10 @@
+create-batch --jobName V7_TT_powheg --fileList dataset_TT_powheg.txt --cfg topAnalyzer_cfg.py --transferDest /store/user/tjkim/ntuples/hep/V7/TT_powheg --maxFiles 50
+create-batch --jobName V7_DYJets --fileList dataset_DYJets.txt --cfg topAnalyzer_cfg.py --transferDest /store/user/tjkim/ntuples/hep/V7/DYJets --maxFiles 50
+create-batch --jobName V7_DYJets_10to50 --fileList dataset_DYJets_10to50.txt --cfg topAnalyzer_cfg.py --transferDest /store/user/tjkim/ntuples/hep/V7/DYJets_10to50 --maxFiles 50
+create-batch --jobName V7_WJets --fileList dataset_WJets.txt --cfg topAnalyzer_cfg.py --transferDest /store/user/tjkim/ntuples/hep/V7/WJets --maxFiles 50
+create-batch --jobName V7_SingleTop_t --fileList dataset_SingleTop_t.txt --cfg topAnalyzer_cfg.py --transferDest /store/user/tjkim/ntuples/hep/V7/SingleTop_t --maxFiles 50
+create-batch --jobName V7_SingleTbar_t --fileList dataset_SingleTbar_t.txt --cfg topAnalyzer_cfg.py --transferDest /store/user/tjkim/ntuples/hep/V7/SingleTbar_t --maxFiles 50
+create-batch --jobName V7_SingleTop_tW  --fileList dataset_SingleTop_tW.txt  --cfg topAnalyzer_cfg.py --transferDest /store/user/tjkim/ntuples/hep/V7/SingleTop_tW --maxFiles 50
+create-batch --jobName V7_SingleTbar_tW  --fileList dataset_SingleTbar_tW.txt  --cfg topAnalyzer_cfg.py --transferDest /store/user/tjkim/ntuples/hep/V7/SingleTbar_tW --maxFiles 50
+create-batch --jobName V7_SingleMuon_Run2015C_JSON  --fileList dataset_SingleMuon_Run2015C.txt  --cfg topAnalyzer_RD_cfg.py --transferDest /store/user/tjkim/ntuples/hep/V7/SingleMuon_Run2015C_JSON --maxFiles 50
+create-batch --jobName V7_SingleMuon_Run2015D_JSON  --fileList dataset_SingleMuon_Run2015D.txt  --cfg topAnalyzer_RD_cfg.py --transferDest /store/user/tjkim/ntuples/hep/V7/SingleMuon_Run2015D_JSON --maxFiles 50
