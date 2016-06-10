@@ -623,8 +623,8 @@ pileupWeightMap = {
 0.0,0.0,0.0,0.0,0.0,
 0.0,0.0,0.0,0.0,0.0
 ),
-#pileupCalc.py -i Cert_271036-274240_13TeV_PromptReco_Collisions16_JSON.txt --inputLumiJSON pileup_latest.txt --calcMode true --minBiasXsec 69000 --maxPileupBin 50 --numPileupBins 50 PileUpData.root 
-"Cert_271036-274240_13TeV_PromptReco_Collisions16_JSON":cms.vdouble(
+#pileupCalc.py -i Cert_271036-274421_13TeV_PromptReco_Collisions16_JSON.txt --inputLumiJSON pileup_latest.txt --calcMode true --minBiasXsec 69000 --maxPileupBin 50 --numPileupBins 50 PileUpData.root 
+"Cert_271036-274421_13TeV_PromptReco_Collisions16_JSON":cms.vdouble(
 8.987945e+00,7.408631e+03,3.076219e+04,4.557391e+04,8.003617e+04,
 1.285681e+05,1.674622e+05,4.199577e+05,1.163235e+06,3.355248e+06,
 8.133034e+06,1.524631e+07,2.371068e+07,3.395421e+07,4.342362e+07,
@@ -636,8 +636,8 @@ pileupWeightMap = {
 5.874260e+03,5.750384e+03,5.611628e+03,5.444083e+03,5.241055e+03,
 5.001617e+03,4.728756e+03,4.427898e+03,4.105816e+03,3.769852e+03,
 ),
-#pileupCalc.py -i Cert_271036-274240_13TeV_PromptReco_Collisions16_JSON.txt --inputLumiJSON pileup_latest.txt --calcMode true --minBiasXsec 72450 --maxPileupBin 50 --numPileupBins 50 PileUpData_Up.root 
-"Cert_271036-274240_13TeV_PromptReco_Collisions16_JSON_Up":cms.vdouble(
+#pileupCalc.py -i Cert_271036-274421_13TeV_PromptReco_Collisions16_JSON.txt --inputLumiJSON pileup_latest.txt --calcMode true --minBiasXsec 72450 --maxPileupBin 50 --numPileupBins 50 PileUpData_Up.root 
+"Cert_271036-274421_13TeV_PromptReco_Collisions16_JSON_Up":cms.vdouble(
 5.770169e+00,5.557036e+03,2.572246e+04,3.976122e+04,6.811102e+04,
 1.159104e+05,1.356458e+05,2.788861e+05,7.223255e+05,1.988785e+06,
 5.121707e+06,1.060689e+07,1.761600e+07,2.587729e+07,3.543673e+07,
@@ -649,8 +649,8 @@ pileupWeightMap = {
 5.858054e+03,5.711482e+03,5.597296e+03,5.485310e+03,5.361487e+03,
 5.213819e+03,5.036009e+03,4.826540e+03,4.587247e+03,4.322140e+03,
 ),
-#pileupCalc.py -i Cert_271036-274240_13TeV_PromptReco_Collisions16_JSON.txt --inputLumiJSON pileup_latest.txt --calcMode true --minBiasXsec 68827 --maxPileupBin 50 --numPileupBins 50 PileUpData_Dn.root 
-"Cert_271036-274240_13TeV_PromptReco_Collisions16_JSON_Dn":cms.vdouble(
+#pileupCalc.py -i Cert_271036-274421_13TeV_PromptReco_Collisions16_JSON.txt --inputLumiJSON pileup_latest.txt --calcMode true --minBiasXsec 65550 --maxPileupBin 50 --numPileupBins 50 PileUpData_Dn.root 
+"Cert_271036-274421_13TeV_PromptReco_Collisions16_JSON_Dn":cms.vdouble(
 1.538369e+01,9.466380e+03,3.485618e+04,5.334530e+04,9.811604e+04,
 1.394370e+05,2.332640e+05,6.578514e+05,1.992144e+06,5.686714e+06,
 1.249547e+07,2.125879e+07,3.189867e+07,4.318053e+07,5.026118e+07,
