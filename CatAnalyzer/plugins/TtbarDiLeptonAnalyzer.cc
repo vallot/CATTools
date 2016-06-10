@@ -944,13 +944,17 @@ cat::JetCollection TtbarDiLeptonAnalyzer::selectBJets(const JetCollection& jets)
 }
 void TtbarDiLeptonAnalyzer::resetBr()
 {
-  b_nvertex = 0;b_step = -1;b_channel = 0;b_njet = 0;b_nbjet = 0;
-  b_step1 = 0;b_step2 = 0;b_step3 = 0;b_step4 = 0;b_step5 = 0;b_step6 = 0;b_step7 = 0;b_tri = 0;b_filtered = 0;
+  b_channel = 0;
+  b_nvertex = b_njet = b_nbjet = 0;
+  b_step = -1;
+  b_step1 = b_step2 = b_step3 = b_step4 = b_step5 = b_step6 = b_step7 = 0;
+  b_tri = b_tri_up = b_tri_dn = 0;
+  b_filtered = 0;
   b_met = -9;
-  b_weight = 1; b_puweight = 1; b_puweight_up = 1; b_puweight_dn = 1; b_genweight = 1;
-  b_mueffweight = 1;b_mueffweight_up = 1;b_mueffweight_dn = 1;
-  b_eleffweight = 1;b_eleffweight_up = 1;b_eleffweight_dn = 1;
-  b_btagweight = 1;b_btagweight_up = 1;b_btagweight_dn = 1;
+  b_weight = b_puweight = b_puweight_up = b_puweight_dn = b_genweight = 1;
+  b_mueffweight = b_mueffweight_up = b_mueffweight_dn = 1;
+  b_eleffweight = b_eleffweight_up = b_eleffweight_dn = 1;
+  b_btagweight = b_btagweight_up = b_btagweight_dn = 1;
   b_topPtWeight = 1.;
   b_csvweights.clear();
   b_pdfWeights.clear();
