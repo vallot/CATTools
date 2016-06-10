@@ -613,12 +613,6 @@ pileupWeightMap = {
 
 }
 
-## Put values
-pileupWeight.pileupMC = pileupWeightMap["Startup2015_25ns"]
-pileupWeight.pileupRD = pileupWeightMap["Run2015_25nsSilver"]
-pileupWeight.pileupUp = pileupWeightMap["Run2015_25nsSilverUp"]
-pileupWeight.pileupDn = pileupWeightMap["Run2015_25nsSilverDn"]
-
 #pileupWeight.reweightMethod = "NVertex"
 #pileupWeight.simpleWeights = [ # Weights starts from 1-vertex
 #    1,
