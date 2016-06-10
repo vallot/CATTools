@@ -65,6 +65,22 @@ miniAOD_customizeOutput(process.catOut)
     
 process.catOutpath = cms.EndPath(process.catOut)    
 process.schedule.append(process.catOutpath)
+
+
+#### pileup weight
+import CATTools.CatProducer.catDefinitions_cfi as cat
+lumiJSON = "Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON"
+if runOnMC:
+        from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
+        process.pileupWeight.pileupMC = pileupWeightMap[cat.pileupMCmap]
+        process.pileupWeight.pileupRD = pileupWeightMap["%s"%lumiJSON]
+        process.pileupWeight.pileupUp = pileupWeightMap["%s_Up"%lumiJSON]
+        process.pileupWeight.pileupDn = pileupWeightMap["%s_Dn"%lumiJSON]
+else:
+        from FWCore.PythonUtilities.LumiList import LumiList
+        process.lumiMask = cms.EDProducer("LumiMaskProducer",
+            LumiSections = LumiList('../data/LumiMask/%s.txt'%lumiJSON).getVLuminosityBlockRange())
+
 ####################################################################
 #### setting up cat tools
 ####################################################################
@@ -83,12 +99,10 @@ process.maxEvents.input = options.maxEvents
 # Default file here for test purpose
 if not options.inputFiles:
     if useMiniAOD:
-        if runGenTop:
-            process.source.fileNames = [
-                                      '/store/relval/CMSSW_7_4_15/RelValTTbar_13/MINIAODSIM/PU25ns_74X_mcRun2_asymptotic_v2-v1/00000/0253820F-4772-E511-ADD3-002618943856.root',
-                                      '/store/relval/CMSSW_7_4_15/RelValTTbar_13/MINIAODSIM/PU25ns_74X_mcRun2_asymptotic_v2-v1/00000/3848030E-4772-E511-AFCA-0026189438CC.root']
-        else:
-            process.source.fileNames = ['/store/relval/CMSSW_7_4_15/RelValZMM_13/MINIAODSIM/PU25ns_74X_mcRun2_asymptotic_v2-v1/00000/10FF6E32-3C72-E511-87AD-0025905A60B4.root']
+        process.source.fileNames = [
+        '/store/relval/CMSSW_8_0_5/RelValTTbarLepton_13/MINIAODSIM/80X_mcRun2_asymptotic_v12_gs7120p2-v1/00000/16CCD76F-F408-E611-BC3F-0025905B8582.root',
+        '/store/relval/CMSSW_8_0_5/RelValTTbarLepton_13/MINIAODSIM/80X_mcRun2_asymptotic_v12_gs7120p2-v1/00000/907D986F-F408-E611-84A0-0025905A60F4.root',
+        ]
     else:
         if useGenTop:
             process.source.fileNames = ['/store/relval/CMSSW_7_4_12/RelValTTbar_13/GEN-SIM-RECO/PU25ns_74X_mcRun2_asymptotic_v2_v2-v1/00000/006F3660-4B5E-E511-B8FD-0025905B8596.root']
