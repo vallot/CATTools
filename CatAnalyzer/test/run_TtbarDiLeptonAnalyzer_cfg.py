@@ -61,9 +61,9 @@ process.cattree = cms.EDAnalyzer("dileptonCommon",
     nGoodVertex = cms.InputTag("catVertex","nGoodPV"),
     lumiSelection = cms.InputTag(lumiMask),
     genweight = cms.InputTag("flatGenWeights"),
-    pdfweights = cms.InputTag("flatGenWeights","pdf"),		
-    scaleupweights = cms.InputTag("flatGenWeights","scaleup"),
-    scaledownweights = cms.InputTag("flatGenWeights","scaledown"),
+    pdfweight = cms.InputTag("flatGenWeights","pdf"),
+    scaleupweight = cms.InputTag("flatGenWeights","scaleup"),
+    scaledownweight = cms.InputTag("flatGenWeights","scaledown"),
     topPtWeight = cms.InputTag("topPtWeight"),
     puweight = cms.InputTag(pileupWeight),
     puweight_up = cms.InputTag(pileupWeight,"up"),
@@ -84,13 +84,13 @@ process.cattree = cms.EDAnalyzer("dileptonCommon",
     jets = cms.InputTag("catJets"),
     mets = cms.InputTag(catmet),
     mcLabel = cms.InputTag("prunedGenParticles"),
-    
+
     partonTop_channel = cms.InputTag("partonTop","channel"),
     partonTop_modes = cms.InputTag("partonTop", "modes"),
     partonTop_genParticles = cms.InputTag("partonTop"),
 
     pseudoTop = cms.InputTag("pseudoTop"),
-    
+
     #solver = process.ttbarDileptonKinAlgoPSetCMSKin,
     solver = process.ttbarDileptonKinAlgoPSetDESYSmeared,
     solverPseudoTop = process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop,
