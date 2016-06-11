@@ -12,7 +12,7 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         process.pileupWeight.pileupDn = pileupWeightMap["%s_Dn"%cat.lumiJSON]
     else:
         from FWCore.PythonUtilities.LumiList import LumiList
-        process.lumiMask = cms.EDProducer("LumiMaskProducer",
+        process.lumiMask = cms.EDFilter("LumiMaskFilter",
             LumiSections = LumiList('%s/src/CATTools/CatProducer/data/LumiMask/%s.txt'%(os.environ['CMSSW_BASE'], cat.lumiJSON)).getVLuminosityBlockRange())
     
     useJECfile = True
