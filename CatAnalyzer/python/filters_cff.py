@@ -48,3 +48,13 @@ filterTrigMUMU = filterTrigMUEL.clone(
     ),
 )
 
+removeLumisWithBadBS = cms.EDFilter("LumiMaskFilter",
+    LumiSections = cms.untracked.VLuminosityBlockRange(
+        "259626:83-259626:106", "259626:108-259626:111", "259626:115-259626:166", "259626:169-259626:215", "259626:218-259626:437", 
+        "259637:1-259637:221", "259681:64-259681:98", "259682:1-259682:4", "259683:3-259683:19", "259683:22-259683:23", 
+        "259683:25-259683:94", "259685:1-259685:209", "259685:213-259685:240", "259685:242-259685:290", "259685:292-259685:544", 
+        "259685:546-259685:630"),
+    acceptOnFail = cms.untracked.bool(True),
+    doFilter = cms.untracked.bool(True)
+)
+

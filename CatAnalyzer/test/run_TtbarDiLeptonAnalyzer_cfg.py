@@ -87,5 +87,5 @@ process.TFileService = cms.Service("TFileService",
     fileName = cms.string("cattree.root"
 ))
 
-process.p = cms.Path(process.cattree)
+process.p = cms.Path(process.removeLumisWithBadBS*process.cattree)
 process.MessageLogger.cerr.FwkReport.reportEvery = 50000
