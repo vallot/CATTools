@@ -37,6 +37,17 @@ process.load("CATTools.CatAnalyzer.topPtWeightProducer_cfi")
 process.load("CATTools.CatAnalyzer.flatGenWeights_cfi")
 from CATTools.CatAnalyzer.leptonSF_cff import *
 
+## Redo the pileup weight - necessary for v765 production
+process.load("CATTools.CatProducer.pileupWeight_cff")
+process.redoPileupWeight = process.pileupWeight.clone()
+from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
+process.redoPileupWeight.weightingMethod = "RedoWeight"
+process.redoPileupWeight.pileupMC = pileupWeightMap["2015_25ns_FallMC"]
+process.redoPileupWeight.pileupRD = pileupWeightMap["Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON"]
+process.redoPileupWeight.pileupUp = pileupWeightMap["Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON_Up"]
+process.redoPileupWeight.pileupDn = pileupWeightMap["Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON_Dn"]
+pileupWeight = 'redoPileupWeight'
+
 process.ttbarDileptonKinAlgoPSetDESYSmeared.inputTemplatePath = cms.string("CATTools/CatAnalyzer/data/desyKinRecoInput.root")
 process.ttbarDileptonKinAlgoPSetDESYSmeared.maxLBMass = cms.double(180)
 process.ttbarDileptonKinAlgoPSetDESYSmeared.mTopInput = cms.double(172.5)
