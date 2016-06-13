@@ -1,6 +1,6 @@
-#include"dileptonCommon.h"
+#include "CATTools/CatAnalyzer/interface/dileptonCommon.h"
 #include "CATTools/DataFormats/interface/SecVertex.h"
-#include<TClonesArray.h>
+#include <TClonesArray.h>
 
 using namespace std;
 using namespace cat;
@@ -285,4 +285,5 @@ void CATDstarAnalyzer::resetBrCustom()
 }
 
 //define this as a plug-in
+#include "FWCore/Framework/interface/MakerMacros.h"
 DEFINE_FWK_MODULE(CATDstarAnalyzer);

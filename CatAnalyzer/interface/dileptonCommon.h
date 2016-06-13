@@ -3,11 +3,8 @@
 
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
-#include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "FWCore/ServiceRegistry/interface/Service.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
-#include "CommonTools/UtilAlgos/interface/TFileService.h"
 
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 
@@ -22,11 +19,8 @@
 #include "CATTools/CatAnalyzer/interface/KinematicSolvers.h"
 
 #include "CATTools/CommonTools/interface/AnalysisHelper.h"
-#include "CATTools/CatAnalyzer/interface/KinematicReconstruction.h"
-#include "CATTools/CatAnalyzer/interface/KinematicReconstructionSolution.h"
 #include "CATTools/CatAnalyzer/interface/analysisUtils.h"
-#include "DataFormats/Math/interface/deltaR.h"
-#include "DataFormats/Math/interface/deltaPhi.h"
+#include "CATTools/CatAnalyzer/interface/KinematicReconstruction.h"
 #include "TTree.h"
 #include "TH1D.h"
 
@@ -52,10 +46,6 @@ namespace dileptonCommonGlobal {
   typedef std::vector<LV> VLV;
 }
 
-using namespace std;
-using namespace cat;
-
-using namespace dileptonCommonGlobal;
 class dileptonCommon : public edm::one::EDAnalyzer<edm::one::SharedResources,edm::one::WatchLuminosityBlocks> {
 public:
   explicit dileptonCommon(const edm::ParameterSet&);
@@ -72,9 +62,9 @@ public:
   void setBranchCommon(TTree* tree, int sys);
   virtual void setBranchCustom(TTree* tree, int sys);
 
-  float selectMuons(const cat::MuonCollection& muons, cat::MuonCollection& selmuons, sys_e sys) const;
-  float selectElecs(const cat::ElectronCollection& elecs, cat::ElectronCollection& selelecs, sys_e sys) const;
-  cat::JetCollection selectJets(const cat::JetCollection& jets, const LeptonPtrs& recolep, sys_e sys);
+  float selectMuons(const cat::MuonCollection& muons, cat::MuonCollection& selmuons, dileptonCommonGlobal::sys_e sys) const;
+  float selectElecs(const cat::ElectronCollection& elecs, cat::ElectronCollection& selelecs, dileptonCommonGlobal::sys_e sys) const;
+  cat::JetCollection selectJets(const cat::JetCollection& jets, const dileptonCommonGlobal::LeptonPtrs& recolep, dileptonCommonGlobal::sys_e sys);
   cat::JetCollection selectBJets(const cat::JetCollection& jets) const;
   const reco::Candidate* getLast(const reco::Candidate* p) const;
   float getMuEffSF(const cat::Lepton& p, int sys) const
@@ -149,28 +139,27 @@ protected :
   TH1D * h_nevents;
   // Exception for easy coding.
   std::vector<std::vector<int> > cutflow_;
-  JetCollection selectedJets ;
-  JetCollection selectedBJets;
+  cat::JetCollection selectedJets ;
+  cat::JetCollection selectedBJets;
   std::vector<const cat::Lepton*> recolep_;
-  LV met;
-  std::unique_ptr<KinematicSolver> solver_;
-  std::unique_ptr<KinematicSolver> solverPT_;
+  dileptonCommonGlobal::LV met;
+  std::unique_ptr<cat::KinematicSolver> solver_;
+  std::unique_ptr<cat::KinematicSolver> solverPT_;
 
 private:
   void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&) final;
   void endLuminosityBlock(const edm::LuminosityBlock&, const edm::EventSetup&) override {};
 
+  cat::ScaleFactorEvaluator muonSF_, elecSF_;
 
-  ScaleFactorEvaluator muonSF_, elecSF_;
-
-  BTagWeightEvaluator csvWeight;
-  BTagWeightEvaluator bTagWeightL;
-  BTagWeightEvaluator bTagWeightM;
-  BTagWeightEvaluator bTagWeightT;
+  cat::BTagWeightEvaluator csvWeight;
+  cat::BTagWeightEvaluator bTagWeightL;
+  cat::BTagWeightEvaluator bTagWeightM;
+  cat::BTagWeightEvaluator bTagWeightT;
 
   edm::EDGetTokenT<int> recoFiltersToken_, nGoodVertexToken_, lumiSelectionToken_;
   edm::EDGetTokenT<float> genWeightToken_;
-  edm::EDGetTokenT<vector<float>> pdfweightToken_, scaleupweightsToken_, scaledownweightsToken_;
+  edm::EDGetTokenT<std::vector<float>> pdfweightToken_, scaleupweightsToken_, scaledownweightsToken_;
   edm::EDGetTokenT<float> puweightToken_, puweightToken_up_, puweightToken_dn_, topPtWeight_;
   edm::EDGetTokenT<int> trigTokenMUEL_, trigTokenMUMU_, trigTokenELEL_;
 
@@ -180,16 +169,12 @@ private:
   edm::EDGetTokenT<cat::METCollection>      metToken_;
   edm::EDGetTokenT<reco::VertexCollection>   vtxToken_;
   edm::EDGetTokenT<int>          partonTop_channel_;
-  edm::EDGetTokenT<vector<int> > partonTop_modes_;
+  edm::EDGetTokenT<std::vector<int> > partonTop_modes_;
   edm::EDGetTokenT<reco::GenParticleCollection> partonTop_genParticles_;
   edm::EDGetTokenT<edm::View<reco::Candidate> > pseudoTop_leptons_, pseudoTop_neutrinos_, pseudoTop_jets_;
 
-
   //std::unique_ptr<TtFullLepKinSolver> solver;
-
-  
-
-  const KinematicReconstruction* kinematicReconstruction;
+  std::unique_ptr<KinematicReconstruction> kinematicReconstruction;
 
 
 };
