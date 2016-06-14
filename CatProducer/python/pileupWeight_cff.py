@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 #from   FWCore.PythonUtilities.LumiList import LumiList
 
-pileupWeight = cms.EDProducer("PileupWeightProducer",
+pileupWeight = cms.EDProducer("CATPileupWeightProducer",
     #weightingMethod = cms.string("NVertex"), # Simple bin-by-bin correction of nVertex distribution. Non standard
     weightingMethod = cms.string("Standard"), # The Standard method in the CMSSW
     #weightingMethod = cms.string("RedoWeight"), # this is to be used re-reweight on CATTuple
