@@ -20,11 +20,11 @@
 
 using namespace std;
 
-class PileupWeightProducer : public edm::stream::EDProducer<>
+class CATPileupWeightProducer : public edm::stream::EDProducer<>
 {
 public:
-  PileupWeightProducer(const edm::ParameterSet& pset);
-  ~PileupWeightProducer() {};
+  CATPileupWeightProducer(const edm::ParameterSet& pset);
+  ~CATPileupWeightProducer() {};
 
   void produce(edm::Event& event, const edm::EventSetup& eventSetup) override;
 
@@ -43,7 +43,7 @@ private:
   edm::EDGetTokenT<int> nTrueIntrToken_;
 };
 
-PileupWeightProducer::PileupWeightProducer(const edm::ParameterSet& pset)
+CATPileupWeightProducer::CATPileupWeightProducer(const edm::ParameterSet& pset)
 {
   const string methodName = pset.getParameter<string>("weightingMethod");
   if      ( methodName == "Standard" ) weightingMethod_ = WeightingMethod::Standard;
@@ -54,7 +54,7 @@ PileupWeightProducer::PileupWeightProducer(const edm::ParameterSet& pset)
 
   if ( weightingMethod_ == WeightingMethod::NVertex )
   {
-    std::cerr << "!!PileupWeightProducer!! We are using NON STANDARD method for the pileup reweight.\n"
+    std::cerr << "!!CATPileupWeightProducer!! We are using NON STANDARD method for the pileup reweight.\n"
               << "                         This weight values are directly from reco vertex\n";
     vertexToken_ = consumes<reco::VertexCollection>(pset.getParameter<edm::InputTag>("vertex"));
     simpleWeights_ = pset.getParameter<std::vector<double> >("simpleWeights");
@@ -103,7 +103,7 @@ PileupWeightProducer::PileupWeightProducer(const edm::ParameterSet& pset)
 
 }
 
-void PileupWeightProducer::produce(edm::Event& event, const edm::EventSetup& eventSetup)
+void CATPileupWeightProducer::produce(edm::Event& event, const edm::EventSetup& eventSetup)
 {
   std::auto_ptr<int> nTrueIntr(new int(-1));
   std::auto_ptr<float> weight(new float(1.));
@@ -157,4 +157,4 @@ void PileupWeightProducer::produce(edm::Event& event, const edm::EventSetup& eve
   event.put(weightDn, "dn");
 }
 
-DEFINE_FWK_MODULE(PileupWeightProducer);
+DEFINE_FWK_MODULE(CATPileupWeightProducer);

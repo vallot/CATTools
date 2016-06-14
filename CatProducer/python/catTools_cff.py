@@ -1,5 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 import catDefinitions_cfi as cat
+import os
+print os.environ['CMSSW_BASE']
 
 def catTool(process, runOnMC=True, useMiniAOD=True):
     if runOnMC:
@@ -8,16 +10,10 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         process.pileupWeight.pileupRD = pileupWeightMap["%s"%cat.lumiJSON]
         process.pileupWeight.pileupUp = pileupWeightMap["%s_Up"%cat.lumiJSON]
         process.pileupWeight.pileupDn = pileupWeightMap["%s_Dn"%cat.lumiJSON]
-        process.pileupWeightSilver = process.pileupWeight.clone()
-        process.pileupWeightSilver.pileupRD = pileupWeightMap["%s"%cat.lumiJSONSilver]
-        process.pileupWeightSilver.pileupUp = pileupWeightMap["%s_Up"%cat.lumiJSONSilver]
-        process.pileupWeightSilver.pileupDn = pileupWeightMap["%s_Dn"%cat.lumiJSONSilver]
     else:
         from FWCore.PythonUtilities.LumiList import LumiList
-        process.lumiMask = cms.EDProducer("LumiMaskProducer",
-            LumiSections = LumiList('../data/LumiMask/%s.txt'%cat.lumiJSON).getVLuminosityBlockRange())
-        process.lumiMaskSilver = cms.EDProducer("LumiMaskProducer",
-            LumiSections = LumiList('../data/LumiMask/%s.txt'%cat.lumiJSONSilver).getVLuminosityBlockRange())
+        process.lumiMask = cms.EDFilter("LumiMaskFilter",
+            LumiSections = LumiList('%s/src/CATTools/CatProducer/data/LumiMask/%s.txt'%(os.environ['CMSSW_BASE'], cat.lumiJSON)).getVLuminosityBlockRange())
     
     useJECfile = True
     jecFile = cat.JetEnergyCorrection
@@ -26,8 +22,10 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
     else:
         jecFile = jecFile+"_DATA"
     if useJECfile:
-        from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
-        process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
+        #from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
+        from CondCore.CondDB.CondDB_cfi import CondDB
+        CondDB.__delattr__('connect')
+        process.jec = cms.ESSource("PoolDBESSource",CondDB,
             connect = cms.string('sqlite_fip:CATTools/CatProducer/data/JEC/%s.db'%jecFile),            
             toGet = cms.VPSet(
                 cms.PSet(
@@ -77,29 +75,27 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         ## applying new jec on the fly
         process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
         process.patJetCorrFactors.primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices")
+        process.catJets.src = cms.InputTag("updatedPatJets")
         ### updating puppi jet jec
-        process.patJetPuppiCorrFactorsUpdated = process.patJetCorrFactorsUpdated.clone(
+        process.patJetPuppiCorrFactorsUpdated = process.updatedPatJetCorrFactors.clone(
             src = process.catJetsPuppi.src,
             payload = cms.string('AK4PFPuppi'),
             levels = cms.vstring('L2Relative','L3Absolute'),
             useRho = cms.bool(False))
         
-        process.patJetsPuppiUpdated = process.patJetsUpdated.clone(
+        process.patJetsPuppiUpdated = process.updatedPatJets.clone(
             jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetPuppiCorrFactorsUpdated")),
             jetSource = process.catJetsPuppi.src )
         ### updating pile Jet.
-        process.load("RecoJets.JetProducers.PileupJetID_cfi")
-        process.pileupJetIdUpdated = process.pileupJetId.clone(
-          jets=cms.InputTag("slimmedJets"),
-          inputIsCorrected=True,
-          applyJec=True,
-          vertexes=cms.InputTag("offlineSlimmedPrimaryVertices")
-        )
-        process.patJetsUpdated.userData.userFloats.src +=['pileupJetIdUpdated:fullDiscriminant']
+        #process.load("RecoJets.JetProducers.PileupJetID_cfi")
+        #process.pileupJetIdUpdated = process.pileupJetId.clone(
+        #  jets=cms.InputTag("slimmedJets"),
+        #  inputIsCorrected=True,
+        #  applyJec=True,
+        #  vertexes=cms.InputTag("offlineSlimmedPrimaryVertices")
+        #)
+        #process.patJetsUpdated.userData.userFloats.src +=['pileupJetIdUpdated:fullDiscriminant']
 
-        process.catJets.src = cms.InputTag("patJetsUpdated")
-
-        
         process.catJetsPuppi.src = cms.InputTag("patJetsPuppiUpdated")
         process.catJetsPuppi.setGenParticle = cms.bool(False)
         ## #######################################################################

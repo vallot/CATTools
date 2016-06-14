@@ -24,20 +24,18 @@ process.source.fileNames = [
 #process.load("CATTools.CatProducers.mcTruthTop.partonTop_cfi")
 process.load("CATTools.CatAnalyzer.flatGenWeights_cfi")
 
-process.ttbar = cms.EDAnalyzer("CATGenTopAnalysis",
-    channel = cms.InputTag("partonTop","channel"),
-    modes = cms.InputTag("partonTop", "modes"),
-    partonTop = cms.InputTag("partonTop"),
-    pseudoTop = cms.InputTag("pseudoTop"),
-    filterTaus = cms.bool(False),
-    weight = cms.InputTag("flatGenWeights"),
-    weightIndex = cms.int32(-1),
+process.gen = cms.EDAnalyzer("CATGenValidation",
+    weight = cms.InputTag("genWeight"),
+    scaleupWeights = cms.InputTag("flatGenWeights:scaleup"),
+    scaledownWeights = cms.InputTag("flatGenWeights:scaledown"),
+    pdfWeights = cms.InputTag("flatGenWeights:pdf"),
+    otherWeights = cms.InputTag("flatGenWeights:other"),
+    genParticles = cms.InputTag("prunedGenParticles"),
+    genJets = cms.InputTag("slimmedGenJets"),
 )
 
-process.ttbarNoTau = process.ttbar.clone(filterTaus = cms.bool(True))
-
 process.p = cms.Path(
-    process.ttbar + process.ttbarNoTau
+    process.gen
 )
 
 process.TFileService = cms.Service("TFileService",
