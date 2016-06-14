@@ -17,6 +17,7 @@
 #include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
 #include "CATTools/CatAnalyzer/interface/BTagWeightEvaluator.h"
 //#include "TopQuarkAnalysis/TopKinFitter/interface/TtFullLepKinSolver.h"
+#include "CATTools/CatAnalyzer/interface/TopTriggerSF.h"
 #include "CATTools/CatAnalyzer/interface/KinematicSolvers.h"
 
 #include "CATTools/CommonTools/interface/AnalysisHelper.h"
@@ -110,7 +111,7 @@ private:
   int b_run, b_lumi, b_event;
   int b_nvertex, b_step, b_channel, b_njet, b_nbjet;
   bool b_step1, b_step2, b_step3, b_step4, b_step5, b_step6, b_step7, b_filtered;
-  float b_tri;
+  float b_tri, b_tri_up, b_tri_dn;
   float b_met, b_weight, b_puweight, b_puweight_up, b_puweight_dn, b_genweight,
     b_mueffweight, b_mueffweight_up, b_mueffweight_dn,
     b_eleffweight, b_eleffweight_up, b_eleffweight_dn,
@@ -254,6 +255,8 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
     tr->Branch("step6", &b_step6, "step6/O");
     tr->Branch("step7", &b_step7, "step7/O");
     tr->Branch("tri", &b_tri, "tri/F");
+    tr->Branch("tri_up", &b_tri_up, "tri_up/F");
+    tr->Branch("tri_dn", &b_tri_dn, "tri_dn/F");
     tr->Branch("filtered", &b_filtered, "filtered/O");
     tr->Branch("met", &b_met, "met/F");
     tr->Branch("weight", &b_weight, "weight/F");
@@ -647,20 +650,15 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     b_eleffweight_dn = getElEffSF(recolep1, -1)*getElEffSF(recolep2, -1);
 
     // Trigger results
-    // Scale factors are from AN16-025 (v4) http://cms.cern.ch/iCMS/jsp/openfile.jsp?tp=draft&files=AN2016_025_v4.pdf
-    b_tri = 0;
+    b_tri = b_tri_up = b_tri_dn = 0;
     edm::Handle<int> trigHandle;
-    if ( b_channel == CH_ELEL ) {
-      iEvent.getByToken(trigTokenELEL_, trigHandle);
-      if ( *trigHandle != 0 ) b_tri = 0.953; // +- 0.009
-    }
-    else if ( b_channel == CH_MUMU ) {
-      iEvent.getByToken(trigTokenMUMU_, trigHandle);
-      if ( *trigHandle != 0 ) b_tri = 0.948; // +- 0.002
-    }
-    else if ( b_channel == CH_MUEL ) {
-      iEvent.getByToken(trigTokenMUEL_, trigHandle);
-      if ( *trigHandle != 0 ) b_tri = 0.975; // +- 0.004
+    if      ( b_channel == CH_ELEL ) iEvent.getByToken(trigTokenELEL_, trigHandle);
+    else if ( b_channel == CH_MUMU ) iEvent.getByToken(trigTokenMUMU_, trigHandle);
+    else if ( b_channel == CH_MUEL ) iEvent.getByToken(trigTokenMUEL_, trigHandle);
+    if ( *trigHandle != 0 ) {
+       b_tri = computeTrigSF(recolep1, recolep2);
+       b_tri_up = computeTrigSF(recolep1, recolep2,  1);
+       b_tri_dn = computeTrigSF(recolep1, recolep2, -1);
     }
 
     b_lep1 = recolep1.tlv(); b_lep1_pid = recolep1.pdgId();

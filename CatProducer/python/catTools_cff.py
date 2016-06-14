@@ -1,5 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 import catDefinitions_cfi as cat
+import os
+print os.environ['CMSSW_BASE']
 
 def catTool(process, runOnMC=True, useMiniAOD=True):
     if runOnMC:
@@ -10,8 +12,8 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         process.pileupWeight.pileupDn = pileupWeightMap["%s_Dn"%cat.lumiJSON]
     else:
         from FWCore.PythonUtilities.LumiList import LumiList
-        process.lumiMask = cms.EDProducer("LumiMaskProducer",
-            LumiSections = LumiList('../data/LumiMask/%s.txt'%cat.lumiJSON).getVLuminosityBlockRange())
+        process.lumiMask = cms.EDFilter("LumiMaskFilter",
+            LumiSections = LumiList('%s/src/CATTools/CatProducer/data/LumiMask/%s.txt'%(os.environ['CMSSW_BASE'], cat.lumiJSON)).getVLuminosityBlockRange())
     
     useJECfile = True
     jecFile = cat.JetEnergyCorrection
@@ -94,9 +96,6 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         #)
         #process.patJetsUpdated.userData.userFloats.src +=['pileupJetIdUpdated:fullDiscriminant']
 
-        process.catJets.src = cms.InputTag("patJetsUpdated")
-
-        
         process.catJetsPuppi.src = cms.InputTag("patJetsPuppiUpdated")
         process.catJetsPuppi.setGenParticle = cms.bool(False)
         ## #######################################################################
