@@ -244,16 +244,17 @@ int CATDstarLJAnalyzer::eventSelection(const edm::Event& iEvent, const edm::Even
   b_step = 1;
   if (sys == sys_nom) cutflow_[4][b_channel]++;
 
-  if ( vetoMuons.size() ==0 ) {
+  if ( b_channel == CH_MUJET && vetoMuons.size() ==0 ) {
     if ( b_step1 ) {
       b_step2 = true;
       b_step=2 ;
+      if (sys == sys_nom) cutflow_[5][b_channel]++;
     }
   }
-  if ( vetoElecs.size() ==0 ) {
-    if ( b_step2 ) {
-      b_step3 = true;
-      b_step=3 ;
+  if ( b_channel == CH_ELJET && vetoElecs.size() ==0 ) {
+    if ( b_step1 ) {
+      b_step2 = true;
+      b_step=2 ;
       if (sys == sys_nom) cutflow_[5][b_channel]++;
     }
   }
@@ -268,12 +269,13 @@ int CATDstarLJAnalyzer::eventSelection(const edm::Event& iEvent, const edm::Even
   b_nbjet = selectedBJets.size();
 
   if (selectedJets.size() >=1 ){
-    if (b_step3){
-      b_step4 = true;
+    if (b_step2){
+      b_step3 = true;
       ++b_step;
       if (sys == sys_nom) cutflow_[6][b_channel]++;
     }
   }
+  /*
   if (selectedJets.size() ==4 ){
     if (b_step4){
       b_step5 = true;
@@ -281,12 +283,12 @@ int CATDstarLJAnalyzer::eventSelection(const edm::Event& iEvent, const edm::Even
       if (sys == sys_nom) cutflow_[7][b_channel]++;
     }
   }
-
+  */
   if (selectedBJets.size() > 0){
-    if (b_step5){
-      b_step6 = true;
+    if (b_step3){
+      b_step4 = true;
       ++b_step;
-      if (sys == sys_nom) cutflow_[8][b_channel]++;
+      if (sys == sys_nom) cutflow_[7][b_channel]++;
     }
   }
   vector<int> leptonIndex, antiLeptonIndex, jetIndices, bjetIndices;
