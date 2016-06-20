@@ -2,7 +2,7 @@
 import ROOT,os,getopt,sys
 
 certJSON = None
-minBiasXsec = 69000.
+minBiasXsec = -1 ## Default value to be set after parsing arguments
 year = "16"
 
 try:
@@ -21,6 +21,10 @@ for opt, arg in opts:
         minBiasXsec = eval(arg)
     elif opt in ("-y", "--year"):
         year = arg
+
+if minBiasXsec < 0:
+    if year == "16": minBiasXsec = 71300.
+    else: minBiasXsec = 69000.
 
 certURL = "https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions%s/13TeV" % year
 from urllib import urlretrieve
