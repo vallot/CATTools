@@ -40,9 +40,9 @@ outfile.write('pileupMap = {\n')
 syst = ['', '_Up', '_Dn']
 for i, f in enumerate(syst):
     PileUpData = 'PileUpData%s.root'%(f)
-    if i == 1: minBiasXsec = minBiasXsec*1.05
-    if i == 2: minBiasXsec = minBiasXsec*0.95
-    command = 'pileupCalc.py -i %s --inputLumiJSON /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/PileUp/pileup_latest.txt --calcMode true --minBiasXsec %i --maxPileupBin 50 --numPileupBins 50 %s'%(certJSON,minBiasXsec,PileUpData)
+    xsecScales = [1, 1.05, 0.95]
+    print "!!!!!!", certJSON, minBiasXsec*xsecScales[i], PileUpData
+    command = 'pileupCalc.py -i %s --inputLumiJSON pileup_latest.txt --calcMode true --minBiasXsec %i --maxPileupBin 50 --numPileupBins 50 %s'%(certJSON,minBiasXsec*xsecScales[i],PileUpData)
     os.system(command)
     tt = ROOT.TFile(PileUpData)
     histo = tt.Get("pileup")

@@ -11,7 +11,7 @@ process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 #process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-3/MuonEG_Run2015D-16Dec2015-v1.root',]
 #process.source.fileNames = ['file:/xrootd/store/user/jhgoh/CATTools/sync/v7-6-3/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',]
 #process.source.fileNames = ['file:../../../catdata_20160315/catTuple.root']
-process.source.fileNames = ['file:catTuple.root']
+#process.source.fileNames = ['file:catTuple.root']
 
 useSilver = False
 catmet = 'catMETs'
@@ -31,7 +31,10 @@ process.cattree = cms.EDAnalyzer("CATDstarAnalyzer",
     recoFilters = cms.InputTag("filterRECO"),
     nGoodVertex = cms.InputTag("catVertex","nGoodPV"),
     lumiSelection = cms.InputTag(lumiMask),
-    genweight = cms.InputTag("genWeight"),
+    genweight = cms.InputTag("flatGenWeights"),
+    pdfweights = cms.InputTag("flatGenWeights","pdf"),		
+    scaleupweights = cms.InputTag("flatGenWeights","scaleup"),
+    scaledownweights = cms.InputTag("flatGenWeights","scaledown"),
     topPtWeight = cms.InputTag("topPtWeight"),
     puweight = cms.InputTag(pileupWeight),
     puweight_up = cms.InputTag(pileupWeight,"up"),

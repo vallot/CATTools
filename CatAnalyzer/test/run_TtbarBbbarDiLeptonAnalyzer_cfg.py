@@ -11,12 +11,11 @@ process.options.allowUnscheduled = cms.untracked.bool(True)
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 #process.source.fileNames.append('/store/user/jhgoh/CATTools/sync/v7-6-1/TTbarXSecSynchronization_76X_MC_TT_powheg.root')
-
-process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-3/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',]
-#process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-3/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8.root',]
-#process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-3/DoubleEG_Run2015D-16Dec2015-v2.root',]
-#process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-3/DoubleMuon_Run2015D-16Dec2015-v1.root',]
-#process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-3/MuonEG_Run2015D-16Dec2015-v1.root',]
+process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-5/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',]
+#process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-5/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8.root',]
+#process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-5/DoubleEG_Run2015D-16Dec2015-v2.root',]
+#process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-5/DoubleMuon_Run2015D-16Dec2015-v1.root',]
+#process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-5/MuonEG_Run2015D-16Dec2015-v1.root',]
 
 #import os
 #useGold = True
@@ -50,22 +49,34 @@ process.load("CATTools.CatAnalyzer.filters_cff")
 
 ##for only ttbar signal mc sample
 process.load("CATTools.CatAnalyzer.topPtWeightProducer_cfi")
+process.load("CATTools.CatAnalyzer.flatGenWeights_cfi")
 
 from CATTools.CatAnalyzer.leptonSF_cff import *
+
+## Redo the pileup weight - necessary for v765 production
+process.load("CATTools.CatProducer.pileupWeight_cff")
+process.redoPileupWeight = process.pileupWeight.clone()
+from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
+process.redoPileupWeight.weightingMethod = "RedoWeight"
+process.redoPileupWeight.pileupMC = pileupWeightMap["2015_25ns_FallMC"]
+process.redoPileupWeight.pileupRD = pileupWeightMap["Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON"]
+process.redoPileupWeight.pileupUp = pileupWeightMap["Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON_Up"]
+process.redoPileupWeight.pileupDn = pileupWeightMap["Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON_Dn"]
 
 process.cattree = cms.EDAnalyzer("TtbarBbbarDiLeptonAnalyzer",
     recoFilters = cms.InputTag("filterRECO"),
     nGoodVertex = cms.InputTag("catVertex","nGoodPV"),
-    genweight = cms.InputTag("flatGenWeight"),
-    pdfweight = cms.InputTag("flatGenWeight", "pdf"),
-    scaleupweight = cms.InputTag("flatGenWeight", "scaleup"),
-    scaledownnweight = cms.InputTag("flatGenWeight", "scaledown"),
+    genweight = cms.InputTag("flatGenWeights"),
+    pdfweights = cms.InputTag("flatGenWeights", "pdf"),
+    scaleupweights = cms.InputTag("flatGenWeights", "scaleup"),
+    scaledownweights = cms.InputTag("flatGenWeights", "scaledown"),
     topPtWeight = cms.InputTag("topPtWeight"),
 
     lumiSelection = cms.InputTag(lumiMask),
     puweight = cms.InputTag("pileupWeight"),
     puweightUp = cms.InputTag("pileupWeight","up"),
-    puweightDown = cms.InputTag("pileupWeight","dn"),
+    #puweightDown = cms.InputTag("pileupWeight","dn"),
+    puweightDown = cms.InputTag("redoPileupWeight","dn"), ## Redo the pileup weight for downward variation in v765 prod
     trigMUEL = cms.InputTag("filterTrigMUEL"),
     trigMUMU = cms.InputTag("filterTrigMUMU"),
     trigELEL = cms.InputTag("filterTrigELEL"),
@@ -101,7 +112,10 @@ process.TFileService = cms.Service("TFileService",
     fileName = cms.string("cattree.root"
 ))
 
-process.p = cms.Path(process.cattree)
+process.p = cms.Path(
+    process.removeUncheckedLumis765Prod2015 * process.removeLumisWithBadBS
+  * process.cattree
+)
 process.MessageLogger.cerr.FwkReport.reportEvery = 50000
 
 

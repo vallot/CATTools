@@ -14,9 +14,9 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         process.pileupWeightSilver.pileupDn = pileupWeightMap["%s_Dn"%cat.lumiJSONSilver]
     else:
         from FWCore.PythonUtilities.LumiList import LumiList
-        process.lumiMask = cms.EDProducer("LumiMaskProducer",
+        process.lumiMask = cms.EDFilter("LumiMaskFilter",
             LumiSections = LumiList('../data/LumiMask/%s.txt'%cat.lumiJSON).getVLuminosityBlockRange())
-        process.lumiMaskSilver = cms.EDProducer("LumiMaskProducer",
+        process.lumiMaskSilver = cms.EDProducer("LumiMaskFilter",
             LumiSections = LumiList('../data/LumiMask/%s.txt'%cat.lumiJSONSilver).getVLuminosityBlockRange())
     
     useJECfile = True
