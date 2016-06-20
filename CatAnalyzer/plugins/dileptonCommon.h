@@ -73,8 +73,8 @@ public:
   void setBranchCommon(TTree* tree, int sys);
   virtual void setBranchCustom(TTree* tree, int sys);
 
-  float selectMuons(const cat::MuonCollection& muons, cat::MuonCollection& selmuons, sys_e sys) const;
-  float selectElecs(const cat::ElectronCollection& elecs, cat::ElectronCollection& selelecs, sys_e sys) const;
+  virtual float selectMuons(const cat::MuonCollection& muons, cat::MuonCollection& selmuons, sys_e sys) const;
+  virtual float selectElecs(const cat::ElectronCollection& elecs, cat::ElectronCollection& selelecs, sys_e sys) const;
   cat::JetCollection selectJets(const cat::JetCollection& jets, const LeptonPtrs& recolep, sys_e sys);
   cat::JetCollection selectBJets(const cat::JetCollection& jets) const;
   const reco::Candidate* getLast(const reco::Candidate* p) const;
@@ -156,12 +156,7 @@ protected :
   LV met;
   std::unique_ptr<KinematicSolver> solver_;
   std::unique_ptr<KinematicSolver> solverPT_;
-
-private:
-  void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&) final;
-  void endLuminosityBlock(const edm::LuminosityBlock&, const edm::EventSetup&) override {};
-
-
+  const edm::ParameterSet iConfig_;
   ScaleFactorEvaluator muonSF_, elecSF_;
 
   BTagWeightEvaluator csvWeight;
@@ -180,6 +175,12 @@ private:
   edm::EDGetTokenT<cat::JetCollection>      jetToken_;
   edm::EDGetTokenT<cat::METCollection>      metToken_;
   edm::EDGetTokenT<reco::VertexCollection>   vtxToken_;
+
+private:
+  void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&) final;
+  void endLuminosityBlock(const edm::LuminosityBlock&, const edm::EventSetup&) override {};
+
+
   edm::EDGetTokenT<int>          partonTop_channel_;
   edm::EDGetTokenT<vector<int> > partonTop_modes_;
   edm::EDGetTokenT<reco::GenParticleCollection> partonTop_genParticles_;

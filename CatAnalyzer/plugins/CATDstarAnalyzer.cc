@@ -53,7 +53,7 @@ void CATDstarAnalyzer::setBranchCustom(TTree* tr, int sys) {
 
 CATDstarAnalyzer::CATDstarAnalyzer(const edm::ParameterSet& iConfig) : dileptonCommon(iConfig)
 {
-  parameterInit(iConfig);
+  //parameterInit(iConfig);
 
   d0Token_  = consumes<cat::SecVertexCollection>(iConfig.getParameter<edm::InputTag>("d0s"));
   dstarToken_  = consumes<cat::SecVertexCollection>(iConfig.getParameter<edm::InputTag>("dstars"));
