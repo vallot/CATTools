@@ -42,10 +42,14 @@ float Jet::smearedRes(int direction, int era) const {
   if (absEta >=5.0 ) return 1; // No JER
     
   //https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution#JER_Scaling_factors_and_Uncertai
-  std::vector<double> etaBins = {0.8, 1.3, 1.9, 2.5, 3.0, 3.2, 5.0};
-  std::vector<double> cJERs   = {1.061, 1.088, 1.106, 1.126, 1.343, 1.303, 1.320};
-  std::vector<double> cJERsUp = {1.084, 1.117, 1.136, 1.220, 1.466, 1.414, 1.606};
-  std::vector<double> cJERsDn = {1.038, 1.059, 1.076, 1.032, 1.220, 1.192, 1.034};
+  std::vector<double> etaBins = {0.5, 0.8, 1.1, 1.3, 1.7, 1.9, 2.1, 2.3, 2.5, 2.8, 3.0, 3.2, 5.0};
+  std::vector<double> cJERs   = {1.095, 1.120, 1.097, 1.103, 1.118, 1.100, 1.162, 1.160, 1.161, 1.209, 1.564, 1.384, 1.216};
+  std::vector<double> cJERsUp = {1.095+0.018, 1.120+0.028, 1.097+0.017, 1.103+0.033, 1.118+0.014,
+                                 1.100+0.033, 1.162+0.044, 1.160+0.048, 1.161+0.060, 1.209+0.059,
+                                 1.564+0.321, 1.384+0.033, 1.216+0.050};
+  std::vector<double> cJERsDn = {1.095-0.018, 1.120-0.028, 1.097-0.017, 1.103-0.033, 1.118-0.014,
+                                 1.100-0.033, 1.162-0.044, 1.160-0.048, 1.161-0.060, 1.209-0.059,
+                                 1.564-0.321, 1.384-0.033, 1.216-0.050};
   if (era == 2012){
     // 2012 values from https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetResolution
     etaBins = {0.5, 1.1, 1.7, 2.3, 2.8, 3.2, 5.0};
