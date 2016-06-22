@@ -191,15 +191,15 @@ void cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
       JME::JetParameters jetPars = {{JME::Binning::JetPt, jetPt},
                                     {JME::Binning::JetEta, aJet.eta()},
                                     {JME::Binning::Rho, rho}};
-      const double jetRes = jetResObj.getResolution(jetPars);
+      const double jetRes = jetResObj.getResolution(jetPars); // Note: this is relative resolution.
       const double cJER   = jetResSFObj.getScaleFactor(jetPars);
       const double cJERUp = jetResSFObj.getScaleFactor(jetPars, Variation::UP);
       const double cJERDn = jetResSFObj.getScaleFactor(jetPars, Variation::DOWN);
 
       // JER - apply scaling method if matched genJet is found,
       //       apply gaussian smearing method if unmatched
-      if ( genJet.isNonnull() and deltaR(genJet->p4(), aJet.p4()) < 0.2 
-           and std::abs(genJet->pt()-jetPt) < jetRes*3 ) {
+      if ( genJet.isNonnull() and deltaR(genJet->p4(), aJet.p4()) < 0.2
+           and std::abs(genJet->pt()-jetPt) < jetRes*3*jetPt ) {
         const double genJetPt = genJet->pt();
         const double dPt = jetPt-genJetPt;
         const double fJER   = std::max(0., (genJetPt+dPt*cJER)/jetPt);
@@ -209,11 +209,11 @@ void cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
         aJet.setJER(fJER, fJERDn, fJERUp);
       }
       else {
-        const double s = CLHEP::RandGaussQ::shoot(rng_);
+        const double smear = CLHEP::RandGaussQ::shoot(rng_);
 
-        const double fJER   = cJER   <= 1 ? 1 : s*jetRes/jetPt*sqrt(cJER*cJER-1)+1;
-        const double fJERUp = cJERUp <= 1 ? 1 : s*jetRes/jetPt*sqrt(cJERUp*cJERUp-1)+1;
-        const double fJERDn = cJERDn <= 1 ? 1 : s*jetRes/jetPt*sqrt(cJERDn*cJERDn-1)+1;
+        const double fJER   = cJER   <= 1 ? 1 : 1+smear*jetRes*sqrt(cJER*cJER-1);
+        const double fJERUp = cJERUp <= 1 ? 1 : 1+smear*jetRes*sqrt(cJERUp*cJERUp-1);
+        const double fJERDn = cJERDn <= 1 ? 1 : 1+smear*jetRes*sqrt(cJERDn*cJERDn-1);
 
         aJet.setJER(fJER, fJERDn, fJERUp);
       }
