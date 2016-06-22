@@ -1,17 +1,17 @@
-#include"CATDstarAnalyzer.h"
+#include "CATTools/CatAnalyzer/interface/CATDstarAnalyzer.h"
 
 
 class CATDstarLJAnalyzer : virtual public CATDstarAnalyzer {
   public:
     explicit CATDstarLJAnalyzer(const edm::ParameterSet& iConfig);
-    ~CATDstarLJAnalyzer(){};
+    ~CATDstarLJAnalyzer();
     virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
     virtual int eventSelection(const edm::Event& iEvent, const edm::EventSetup& iSetup, int sys) override;
     virtual float selectMuons(const cat::MuonCollection& muons, cat::MuonCollection& selmuons, sys_e sys) const override;
     virtual float selectVetoMuons(const cat::MuonCollection& muons, cat::MuonCollection& vetomuons, sys_e sys) const ;
     virtual float selectElecs(const cat::ElectronCollection& elecs, cat::ElectronCollection& selelecs, sys_e sys) const override;
     virtual float selectVetoElecs(const cat::ElectronCollection& elecs, cat::ElectronCollection& vetoelecs, sys_e sys) const;
-
+    virtual cat::JetCollection selectBJets(const JetCollection& jets) const override;
     
   protected:
     edm::EDGetTokenT<int> trigTokenMUJET_;
@@ -19,6 +19,13 @@ class CATDstarLJAnalyzer : virtual public CATDstarAnalyzer {
 
   private:
 };
+
+CATDstarLJAnalyzer::~CATDstarLJAnalyzer(){
+  cout <<setw(10)<<"cut flow"<<setw(10)<<"no Lep+Jet"<<setw(10)<<"mu+jet"<<setw(10)<<"e+jet"<< endl;
+  for ( int i=0; i<NCutflow; ++i ) {
+    cout <<setw(10)<<"step "<<i<< setw(10)<<cutflow_[i][0] << setw(10)<<cutflow_[i][1] << setw(10)<<cutflow_[i][2] << endl;
+  }
+}
 
 float CATDstarLJAnalyzer::selectVetoMuons(const cat::MuonCollection& muons, cat::MuonCollection& vetomuons, sys_e sys) const
 {
@@ -29,7 +36,7 @@ float CATDstarLJAnalyzer::selectVetoMuons(const cat::MuonCollection& muons, cat:
     if (sys == sys_mu_d) mu.setP4(m.p4() * m.shiftedEnDown());
  
     // veto Muons.
-    if (!mu.isGlobalMuon() || mu.isTightMuon() ) continue;
+    if (!mu.isLooseMuon() || mu.isTightMuon() ) continue;
     if (mu.pt() <10. || mu.pt()>26. ) continue;
     if (std::abs(mu.eta())>2.5 || std::abs(mu.eta())<2.1 ) continue;
     if (mu.relIso(0.4) > 0.25 || mu.relIso(0.4) <0.15 ) continue;
@@ -65,7 +72,7 @@ float CATDstarLJAnalyzer::selectVetoElecs(const cat::ElectronCollection& elecs, 
     if (sys == sys_el_u) el.setP4(e.p4() * e.shiftedEnUp());
     if (sys == sys_el_d) el.setP4(e.p4() * e.shiftedEnDown());
 
-    if (el.pt() < 15. || el.pt()>30.) continue;
+    if (el.pt() < 15. || el.pt() > 30. ) continue;
     if ((std::abs(el.scEta()) > 1.4442) && (std::abs(el.scEta()) < 1.566)) continue;
     if (std::abs(el.eta()) > 2.4) continue;
     if ( !el.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-medium") ) continue;
@@ -99,8 +106,8 @@ float CATDstarLJAnalyzer::selectElecs(const cat::ElectronCollection& elecs, cat:
 
 CATDstarLJAnalyzer::CATDstarLJAnalyzer(const edm::ParameterSet& iConfig) : CATDstarAnalyzer(iConfig)
 {
-  trigTokenMUJET_ = consumes<int>(iConfig_.getParameter<edm::InputTag>("trigMUJET"));
-  trigTokenELJET_ = consumes<int>(iConfig_.getParameter<edm::InputTag>("trigELJET"));
+  trigTokenMUJET_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigMUJET"));
+  trigTokenELJET_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigELJET"));
 }
 
 
@@ -110,7 +117,7 @@ void CATDstarLJAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
   b_event = iEvent.id().event();
 
   const bool runOnMC = !iEvent.isRealData();
-  cutflow_[0][0]++;
+  //cutflow_[0][0]++;
 
   for (int sys = 0; sys < nsys_e; ++sys){
     if (sys > 0 && !runOnMC) break;
@@ -147,8 +154,10 @@ int CATDstarLJAnalyzer::eventSelection(const edm::Event& iEvent, const edm::Even
     b_weight = b_genweight*b_puweight;
 
   }
+  if (sys == sys_nom) cutflow_[0][b_channel]++;
 
   if (sys == sys_nom) h_nevents->Fill(0.5,b_puweight*b_genweight);
+
 
   edm::Handle<reco::VertexCollection> vertices;
   iEvent.getByToken(vtxToken_, vertices);
@@ -187,7 +196,7 @@ int CATDstarLJAnalyzer::eventSelection(const edm::Event& iEvent, const edm::Even
   selectVetoMuons(*muons, vetoMuons, (sys_e)sys);
   selectElecs(*electrons, selElecs, (sys_e)sys);
   selectVetoElecs(*electrons, vetoElecs, (sys_e)sys);
-  if ( selMuons.size()+selElecs.size() != 1 ) {
+  if ( selMuons.size()+selElecs.size() < 1 ) {
     if (b_keepTtbarSignal) ttree_[sys]->Fill();
     return -1;
   }
@@ -219,17 +228,19 @@ int CATDstarLJAnalyzer::eventSelection(const edm::Event& iEvent, const edm::Even
   b_eleffweight_dn = getElEffSF(recolep1, -1);
 
   // Trigger results
-  // Scale factors are from AN16-025 (v4) http://cms.cern.ch/iCMS/jsp/openfile.jsp?tp=draft&files=AN2016_025_v4.pdf
+  // No information for Single lepton trigger
   b_tri = 0;
+
   edm::Handle<int> trigHandle;
-  if ( b_channel == CH_ELJET ) {
-    iEvent.getByToken(trigTokenELJET_, trigHandle);
-    if ( *trigHandle != 0 ) b_tri = 1.0; // Need to update
+  if      ( b_channel == CH_ELJET ) iEvent.getByToken(trigTokenELJET_, trigHandle);
+  else if ( b_channel == CH_MUJET ) iEvent.getByToken(trigTokenMUJET_, trigHandle);
+  if ( *trigHandle != 0 ){
+    //std::cout<<"Active trigger!"<<std::endl;
+    b_tri = 1.0; // Need to Update
+    b_tri_up = 1.0;
+    b_tri_dn = 1.0;
   }
-  else if ( b_channel == CH_MUJET ) {
-    iEvent.getByToken(trigTokenMUJET_, trigHandle);
-    if ( *trigHandle != 0 ) b_tri = 1.0; // Need to Update
-  }
+  //else  std::cout<<"No trigger!"<<std::endl;
 
   b_lep1 = recolep1.tlv(); b_lep1_pid = recolep1.pdgId();
   //b_lep2 = recolep2.tlv(); b_lep2_pid = recolep2.pdgId();
@@ -268,27 +279,25 @@ int CATDstarLJAnalyzer::eventSelection(const edm::Event& iEvent, const edm::Even
   b_njet = selectedJets.size();
   b_nbjet = selectedBJets.size();
 
-  if (selectedJets.size() >=1 ){
+  if ( b_njet >=1 ){
     if (b_step2){
       b_step3 = true;
       ++b_step;
       if (sys == sys_nom) cutflow_[6][b_channel]++;
     }
   }
-  /*
-  if (selectedJets.size() ==4 ){
-    if (b_step4){
-      b_step5 = true;
-      ++b_step;
-      if (sys == sys_nom) cutflow_[7][b_channel]++;
-    }
-  }
-  */
-  if (selectedBJets.size() > 0){
+  if ( b_njet >=4 ){
     if (b_step3){
       b_step4 = true;
       ++b_step;
       if (sys == sys_nom) cutflow_[7][b_channel]++;
+    }
+  }
+  if ( b_nbjet >= 1){
+    if (b_step4){
+      b_step5 = true;
+      ++b_step;
+      if (sys == sys_nom) cutflow_[8][b_channel]++;
     }
   }
   vector<int> leptonIndex, antiLeptonIndex, jetIndices, bjetIndices;
@@ -321,6 +330,16 @@ int CATDstarLJAnalyzer::eventSelection(const edm::Event& iEvent, const edm::Even
   return 0;
 }
 
+cat::JetCollection CATDstarLJAnalyzer::selectBJets(const JetCollection& jets) const
+{
+  cat::JetCollection selBjets;
+  for (auto& jet : jets) {
+    if (jet.bDiscriminator(BTAG_CSVv2) < WP_BTAG_CSVv2M) continue;//forsync
+      selBjets.push_back(jet);
+    }
+    return selBjets;
+}
 
 //define this as a plug-in
+#include "FWCore/Framework/interface/MakerMacros.h"
 DEFINE_FWK_MODULE(CATDstarLJAnalyzer);

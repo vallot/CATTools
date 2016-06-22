@@ -1,4 +1,4 @@
-#include"CATDstarAnalyzer.h"
+#include "CATTools/CatAnalyzer/interface/CATDstarAnalyzer.h"
 
 void CATDstarAnalyzer::setBranchCustom(TTree* tr, int sys) {
 
@@ -241,4 +241,5 @@ void CATDstarAnalyzer::resetBrCustom()
 }
 
 //define this as a plug-in
+#include "FWCore/Framework/interface/MakerMacros.h"
 DEFINE_FWK_MODULE(CATDstarAnalyzer);

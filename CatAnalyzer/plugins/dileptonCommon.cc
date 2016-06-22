@@ -1,26 +1,39 @@
-#include"dileptonCommon.h"
+#include "CATTools/CatAnalyzer/interface/dileptonCommon.h"
+
+#include "FWCore/Framework/interface/LuminosityBlock.h"
+
+#include "FWCore/ServiceRegistry/interface/Service.h"
+#include "CommonTools/UtilAlgos/interface/TFileService.h"
+
 #include "CATTools/CatAnalyzer/interface/TopTriggerSF.h"
+#include "CATTools/CatAnalyzer/interface/KinematicReconstructionSolution.h"
+
+#include "DataFormats/Math/interface/deltaR.h"
+#include "DataFormats/Math/interface/deltaPhi.h"
 
 using namespace std;
 using namespace cat;
 using namespace dileptonCommonGlobal;
 
-//
-// constructors and destructor
-//
-void dileptonCommon::parameterInit(const edm::ParameterSet& iConfig) {
+void dileptonCommon::parameterInit(const edm::ParameterSet& iConfig)
+{
   typedef std::vector<double> vdouble;
+
   recoFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("recoFilters"));
   nGoodVertexToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("nGoodVertex"));
   lumiSelectionToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("lumiSelection"));
+
   genWeightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("genweight"));
   pdfweightToken_ = consumes<vector<float>>(iConfig.getParameter<edm::InputTag>("pdfweight"));
   scaleupweightsToken_ = consumes<vector<float>>(iConfig.getParameter<edm::InputTag>("scaleupweight"));
   scaledownweightsToken_ = consumes<vector<float>>(iConfig.getParameter<edm::InputTag>("scaledownweight"));
+
   topPtWeight_ = consumes<float>(iConfig.getParameter<edm::InputTag>("topPtWeight"));
+
   puweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("puweight"));
   puweightToken_up_ = consumes<float>(iConfig.getParameter<edm::InputTag>("puweight_up"));
   puweightToken_dn_ = consumes<float>(iConfig.getParameter<edm::InputTag>("puweight_dn"));
+
   trigTokenMUEL_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigMUEL"));
   trigTokenMUMU_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigMUMU"));
   trigTokenELEL_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigELEL"));
@@ -29,26 +42,26 @@ void dileptonCommon::parameterInit(const edm::ParameterSet& iConfig) {
   metToken_  = consumes<cat::METCollection>(iConfig.getParameter<edm::InputTag>("mets"));
   vtxToken_  = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertices"));
 
-
   const auto muonSet = iConfig.getParameter<edm::ParameterSet>("muon");
   muonToken_ = consumes<cat::MuonCollection>(muonSet.getParameter<edm::InputTag>("src"));
   const auto muonSFSet = muonSet.getParameter<edm::ParameterSet>("effSF");
   muonSF_.set(muonSFSet.getParameter<vdouble>("pt_bins"),
-      muonSFSet.getParameter<vdouble>("abseta_bins"),
-      muonSFSet.getParameter<vdouble>("values"),
-      muonSFSet.getParameter<vdouble>("errors"));
+              muonSFSet.getParameter<vdouble>("abseta_bins"),
+              muonSFSet.getParameter<vdouble>("values"),
+              muonSFSet.getParameter<vdouble>("errors"));
 
   const auto elecSet = iConfig.getParameter<edm::ParameterSet>("electron");
   elecToken_ = consumes<cat::ElectronCollection>(elecSet.getParameter<edm::InputTag>("src"));
   const auto elecSFSet = elecSet.getParameter<edm::ParameterSet>("effSF");
   elecSF_.set(elecSFSet.getParameter<vdouble>("pt_bins"),
-      elecSFSet.getParameter<vdouble>("abseta_bins"),
-      elecSFSet.getParameter<vdouble>("values"),
-      elecSFSet.getParameter<vdouble>("errors"));
+              elecSFSet.getParameter<vdouble>("abseta_bins"),
+              elecSFSet.getParameter<vdouble>("values"),
+              elecSFSet.getParameter<vdouble>("errors"));
 
   partonTop_channel_ = consumes<int>(iConfig.getParameter<edm::InputTag>("partonTop_channel"));
   partonTop_modes_   = consumes<vector<int> >(iConfig.getParameter<edm::InputTag>("partonTop_modes"));
   partonTop_genParticles_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("partonTop_genParticles"));
+
   pseudoTop_leptons_   = consumes<edm::View<reco::Candidate> >(edm::InputTag("pseudoTop", "leptons"));
   pseudoTop_neutrinos_   = consumes<edm::View<reco::Candidate> >(edm::InputTag("pseudoTop", "neutrinos"));
   pseudoTop_jets_ = consumes<edm::View<reco::Candidate> >(edm::InputTag("pseudoTop", "jets"));
@@ -198,16 +211,16 @@ void dileptonCommon::setBranchCommon(TTree* tr, int sys) {
   tr->Branch("pseudottbar", "TLorentzVector", &b_pseudottbar);
   tr->Branch("pseudottbar_dphi", &b_pseudottbar_dphi, "pseudottbar_dphi/F");
 
-  tr->Branch("partonjet1", "TLorentzVector", &b_pseudojet1);
-  tr->Branch("partonjet1_CSVInclV2", &b_pseudojet1_CSVInclV2, "partonjet1_CSVInclV2/F");
-  tr->Branch("partonjet2", "TLorentzVector", &b_pseudojet2);
-  tr->Branch("partonjet2_CSVInclV2", &b_pseudojet2_CSVInclV2, "partonjet2_CSVInclV2/F");
-  tr->Branch("partontop1", "TLorentzVector", &b_pseudotop1);
-  tr->Branch("partontop2", "TLorentzVector", &b_pseudotop2);
-  tr->Branch("partonnu1", "TLorentzVector", &b_pseudonu1);
-  tr->Branch("partonnu2", "TLorentzVector", &b_pseudonu2);
-  tr->Branch("partonttbar", "TLorentzVector", &b_pseudottbar);
-  tr->Branch("partonttbar_dphi", &b_pseudottbar_dphi, "partonttbar_dphi/F");
+  tr->Branch("partonjet1", "TLorentzVector", &b_partonjet1);
+  tr->Branch("partonjet1_CSVInclV2", &b_partonjet1_CSVInclV2, "partonjet1_CSVInclV2/F");
+  tr->Branch("partonjet2", "TLorentzVector", &b_partonjet2);
+  tr->Branch("partonjet2_CSVInclV2", &b_partonjet2_CSVInclV2, "partonjet2_CSVInclV2/F");
+  tr->Branch("partontop1", "TLorentzVector", &b_partontop1);
+  tr->Branch("partontop2", "TLorentzVector", &b_partontop2);
+  tr->Branch("partonnu1", "TLorentzVector", &b_partonnu1);
+  tr->Branch("partonnu2", "TLorentzVector", &b_partonnu2);
+  tr->Branch("partonttbar", "TLorentzVector", &b_partonttbar);
+  tr->Branch("partonttbar_dphi", &b_partonttbar_dphi, "partonttbar_dphi/F");
 
   tr->Branch("desyjet1", "TLorentzVector", &b_desyjet1);
   tr->Branch("desyjet1_CSVInclV2", &b_desyjet1_CSVInclV2, "desyjet1_CSVInclV2/F");
@@ -221,7 +234,6 @@ void dileptonCommon::setBranchCommon(TTree* tr, int sys) {
 
 dileptonCommon::dileptonCommon(const edm::ParameterSet& iConfig): iConfig_(iConfig)
 {
-
   parameterInit(iConfig);
 
   csvWeight.initCSVWeight(false, "csvv2");
@@ -241,7 +253,7 @@ dileptonCommon::dileptonCommon(const edm::ParameterSet& iConfig): iConfig_(iConf
 
   for (int i = 0; i < NCutflow; i++) cutflow_.push_back({0,0,0,0});
 
-  kinematicReconstruction = new KinematicReconstruction(1, true);
+  kinematicReconstruction.reset(new KinematicReconstruction(1, true));
 }
 
 dileptonCommon::~dileptonCommon()
@@ -652,7 +664,7 @@ int dileptonCommon::eventSelection(const edm::Event& iEvent, const edm::EventSet
       else leptonIndex.push_back(ilep);
       ++ilep;
     }
-    KinematicReconstructionSolutions kinematicReconstructionSolutions  =  kinematicReconstruction->solutions(leptonIndex, antiLeptonIndex, jetIndices, bjetIndices,  allLeptonslv, jetslv, jetBtags, metlv);
+    auto kinematicReconstructionSolutions = kinematicReconstruction->solutions(leptonIndex, antiLeptonIndex, jetIndices, bjetIndices,  allLeptonslv, jetslv, jetBtags, metlv);
 
     if (b_step == 5 and sys == sys_nom) cutflow_[10][b_channel]++;
 
@@ -784,11 +796,11 @@ void dileptonCommon::analyzeCustom(const edm::Event& iEvent, const edm::EventSet
     b_partonttbar = b_partontop1 + b_partontop2;
     b_partonttbar_dphi = b_partontop1.DeltaPhi(b_partontop2);
 
-     b_step7 = true;
-     if (b_step == 5){
-       ++b_step;
-       if (sys == sys_nom) cutflow_[9][b_channel]++;
-     }
+    b_step7 = true;
+    if (b_step == 5){
+      ++b_step;
+      if (sys == sys_nom) cutflow_[9][b_channel]++;
+    }
   }
   // pseudoTop particle level
   std::sort(sol2BsPT.begin(), sol2BsPT.end(), greaterByQuality);
@@ -1009,4 +1021,5 @@ void dileptonCommon::resetBrCommon()
 }
 
 //define this as a plug-in
+#include "FWCore/Framework/interface/MakerMacros.h"
 DEFINE_FWK_MODULE(dileptonCommon);
