@@ -193,8 +193,8 @@ void cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
                                     {JME::Binning::Rho, rho}};
       const double jetRes = jetResObj.getResolution(jetPars);
       const double cJER   = jetResSFObj.getScaleFactor(jetPars);
-      const double cJERUp = jetResSFObj.getScaleFactor(jetPars);
-      const double cJERDn = jetResSFObj.getScaleFactor(jetPars);
+      const double cJERUp = jetResSFObj.getScaleFactor(jetPars, Variation::UP);
+      const double cJERDn = jetResSFObj.getScaleFactor(jetPars, Variation::DOWN);
 
       // JER - apply scaling method if matched genJet is found,
       //       apply gaussian smearing method if unmatched
