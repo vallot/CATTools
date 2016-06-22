@@ -2,6 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 catJets = cms.EDProducer('CATJetProducer',
     src = cms.InputTag('slimmedJets'),
+    rho = cms.InputTag('fixedGridRhoFastjetAll'),
     btagNames = cms.vstring('pfCombinedInclusiveSecondaryVertexV2BJetTags','pfCombinedMVAV2BJetTags',"inclusiveCandidateSecondaryVerticesCvsL","pfCombinedCvsLJetTags","pfCombinedCvsBJetTags"),
     payloadName = cms.string('AK4PFchs'),
     setGenParticle = cms.bool(True),
@@ -9,6 +10,7 @@ catJets = cms.EDProducer('CATJetProducer',
 
 catJetsPuppi = cms.EDProducer('CATJetProducer',
     src = cms.InputTag('slimmedJetsPuppi'),
+    rho = cms.InputTag('fixedGridRhoFastjetAll'),
     btagNames = cms.vstring('pfCombinedInclusiveSecondaryVertexV2BJetTagsAK4PFPuppi','pfCombinedMVAV2BJetTagsAK4PFPuppi'),
     payloadName = cms.string('AK4PFPuppi'),
     setGenParticle = cms.bool(True),

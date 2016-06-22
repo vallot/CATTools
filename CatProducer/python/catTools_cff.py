@@ -99,6 +99,16 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         process.catJetsPuppi.src = cms.InputTag("patJetsPuppiUpdated")
         process.catJetsPuppi.setGenParticle = cms.bool(False)
         ## #######################################################################
+        ## JER needs random numbers
+        process.RandomNumberGeneratorService.catJets = cms.PSet(
+            engineName = cms.untracked.string('TRandom3'),
+            initialSeed = cms.untracked.uint32(1),
+        )
+        process.RandomNumberGeneratorService.catJetsPuppi = cms.PSet(
+            engineName = cms.untracked.string('TRandom3'),
+            initialSeed = cms.untracked.uint32(1),
+        )
+        ## #######################################################################
         ## # MET corrections from https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
         #from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
         #runMetCorAndUncFromMiniAOD( process, isData= not runOnMC, jecUncFile=cat.JECUncertaintyFile, jetColl= process.catJets.src)
