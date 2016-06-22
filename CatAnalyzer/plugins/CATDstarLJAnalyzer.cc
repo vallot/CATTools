@@ -1,4 +1,4 @@
-#include"CATDstarAnalyzer.h"
+#include "CATTools/CatAnalyzer/interface/CATDstarAnalyzer.h"
 
 
 class CATDstarLJAnalyzer : virtual public CATDstarAnalyzer {
@@ -106,8 +106,8 @@ float CATDstarLJAnalyzer::selectElecs(const cat::ElectronCollection& elecs, cat:
 
 CATDstarLJAnalyzer::CATDstarLJAnalyzer(const edm::ParameterSet& iConfig) : CATDstarAnalyzer(iConfig)
 {
-  trigTokenMUJET_ = consumes<int>(iConfig_.getParameter<edm::InputTag>("trigMUJET"));
-  trigTokenELJET_ = consumes<int>(iConfig_.getParameter<edm::InputTag>("trigELJET"));
+  trigTokenMUJET_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigMUJET"));
+  trigTokenELJET_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigELJET"));
 }
 
 
@@ -341,4 +341,5 @@ cat::JetCollection CATDstarLJAnalyzer::selectBJets(const JetCollection& jets) co
 }
 
 //define this as a plug-in
+#include "FWCore/Framework/interface/MakerMacros.h"
 DEFINE_FWK_MODULE(CATDstarLJAnalyzer);
