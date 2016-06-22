@@ -232,7 +232,7 @@ void dileptonCommon::setBranchCommon(TTree* tr, int sys) {
   tr->Branch("desyttbar_dphi", &b_desyttbar_dphi, "desyttbar_dphi/F");
 }
 
-dileptonCommon::dileptonCommon(const edm::ParameterSet& iConfig): iConfig_(iConfig)
+dileptonCommon::dileptonCommon(const edm::ParameterSet& iConfig)
 {
   parameterInit(iConfig);
 

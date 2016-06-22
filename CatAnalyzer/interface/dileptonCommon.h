@@ -63,10 +63,10 @@ public:
   void setBranchCommon(TTree* tree, int sys);
   virtual void setBranchCustom(TTree* tree, int sys);
 
-  float selectMuons(const cat::MuonCollection& muons, cat::MuonCollection& selmuons, dileptonCommonGlobal::sys_e sys) const;
-  float selectElecs(const cat::ElectronCollection& elecs, cat::ElectronCollection& selelecs, dileptonCommonGlobal::sys_e sys) const;
-  cat::JetCollection selectJets(const cat::JetCollection& jets, const dileptonCommonGlobal::LeptonPtrs& recolep, dileptonCommonGlobal::sys_e sys);
-  cat::JetCollection selectBJets(const cat::JetCollection& jets) const;
+  virtual float selectMuons(const cat::MuonCollection& muons, cat::MuonCollection& selmuons, dileptonCommonGlobal::sys_e sys) const;
+  virtual float selectElecs(const cat::ElectronCollection& elecs, cat::ElectronCollection& selelecs, dileptonCommonGlobal::sys_e sys) const;
+  virtual cat::JetCollection selectJets(const cat::JetCollection& jets, const dileptonCommonGlobal::LeptonPtrs& recolep, dileptonCommonGlobal::sys_e sys);
+  virtual cat::JetCollection selectBJets(const cat::JetCollection& jets) const;
   const reco::Candidate* getLast(const reco::Candidate* p) const;
   float getMuEffSF(const cat::Lepton& p, int sys) const
   {
@@ -147,17 +147,6 @@ protected :
   std::unique_ptr<cat::KinematicSolver> solver_;
   std::unique_ptr<cat::KinematicSolver> solverPT_;
 
-private:
-  void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&) final;
-  void endLuminosityBlock(const edm::LuminosityBlock&, const edm::EventSetup&) override {};
-
-  cat::ScaleFactorEvaluator muonSF_, elecSF_;
-
-  cat::BTagWeightEvaluator csvWeight;
-  cat::BTagWeightEvaluator bTagWeightL;
-  cat::BTagWeightEvaluator bTagWeightM;
-  cat::BTagWeightEvaluator bTagWeightT;
-
   edm::EDGetTokenT<int> recoFiltersToken_, nGoodVertexToken_, lumiSelectionToken_;
   edm::EDGetTokenT<float> genWeightToken_;
   edm::EDGetTokenT<std::vector<float>> pdfweightToken_, scaleupweightsToken_, scaledownweightsToken_;
@@ -173,6 +162,17 @@ private:
   edm::EDGetTokenT<std::vector<int> > partonTop_modes_;
   edm::EDGetTokenT<reco::GenParticleCollection> partonTop_genParticles_;
   edm::EDGetTokenT<edm::View<reco::Candidate> > pseudoTop_leptons_, pseudoTop_neutrinos_, pseudoTop_jets_;
+
+private:
+  void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&) final;
+  void endLuminosityBlock(const edm::LuminosityBlock&, const edm::EventSetup&) override {};
+
+  cat::ScaleFactorEvaluator muonSF_, elecSF_;
+
+  cat::BTagWeightEvaluator csvWeight;
+  cat::BTagWeightEvaluator bTagWeightL;
+  cat::BTagWeightEvaluator bTagWeightM;
+  cat::BTagWeightEvaluator bTagWeightT;
 
   //std::unique_ptr<TtFullLepKinSolver> solver;
   std::unique_ptr<KinematicReconstruction> kinematicReconstruction;
