@@ -219,7 +219,7 @@ void dileptonCommon::setBranchCommon(TTree* tr, int sys) {
   tr->Branch("desyttbar_dphi", &b_desyttbar_dphi, "desyttbar_dphi/F");
 }
 
-dileptonCommon::dileptonCommon(const edm::ParameterSet& iConfig)
+dileptonCommon::dileptonCommon(const edm::ParameterSet& iConfig): iConfig_(iConfig)
 {
 
   parameterInit(iConfig);
@@ -266,10 +266,8 @@ void dileptonCommon::beginLuminosityBlock(const edm::LuminosityBlock& lumi, cons
   }
 }
 
-int dileptonCommon::eventSelection(const edm::Event& iEvent, const edm::EventSetup& iSetup, int sys){
-  const bool runOnMC = !iEvent.isRealData();
-  bool keepTtbarSignal = false;
-
+void dileptonCommon::genInfo(const edm::Event& iEvent, const edm::EventSetup& iSetup){
+  b_keepTtbarSignal = false;
   edm::Handle<int> partonTop_channel;
   if ( iEvent.getByToken(partonTop_channel_, partonTop_channel)){
 
@@ -277,21 +275,19 @@ int dileptonCommon::eventSelection(const edm::Event& iEvent, const edm::EventSet
     iEvent.getByToken(topPtWeight_, topPtWeightHandle);
     b_topPtWeight = *topPtWeightHandle;
 
-    if (sys == sys_nom){
-      edm::Handle<vector<float>> pdfweightHandle;
-      iEvent.getByToken(pdfweightToken_, pdfweightHandle);
-      for (const float & aPdfWeight : *pdfweightHandle){
-        b_pdfWeights.push_back(aPdfWeight);
-      }
-      edm::Handle<vector<float>> scaleupweightsHandle, scaledownweightsHandle;
-      iEvent.getByToken(scaleupweightsToken_, scaleupweightsHandle);
-      for (const float & aScaleWeight : *scaleupweightsHandle){
-        b_scaleWeights_up.push_back(aScaleWeight);
-      }
-      iEvent.getByToken(scaledownweightsToken_, scaledownweightsHandle);
-      for (const float & aScaleWeight : *scaledownweightsHandle){
-        b_scaleWeights_dn.push_back(aScaleWeight);
-      }
+    edm::Handle<vector<float>> pdfweightHandle;
+    iEvent.getByToken(pdfweightToken_, pdfweightHandle);
+    for (const float & aPdfWeight : *pdfweightHandle){
+      b_pdfWeights.push_back(aPdfWeight);
+    }
+    edm::Handle<vector<float>> scaleupweightsHandle, scaledownweightsHandle;
+    iEvent.getByToken(scaleupweightsToken_, scaleupweightsHandle);
+    for (const float & aScaleWeight : *scaleupweightsHandle){
+      b_scaleWeights_up.push_back(aScaleWeight);
+    }
+    iEvent.getByToken(scaledownweightsToken_, scaledownweightsHandle);
+    for (const float & aScaleWeight : *scaledownweightsHandle){
+      b_scaleWeights_dn.push_back(aScaleWeight);
     }
 
     edm::Handle<vector<int> > partonTop_modes;
@@ -308,7 +304,7 @@ int dileptonCommon::eventSelection(const edm::Event& iEvent, const edm::EventSet
       b_gen_partonMode1 = (*partonTop_modes)[0];
       b_gen_partonMode2 = (*partonTop_modes)[1];
     }
-    if (b_gen_partonChannel == CH_FULLLEPTON) keepTtbarSignal = true;
+    if (b_gen_partonChannel == CH_FULLLEPTON) b_keepTtbarSignal = true;
 
     if(b_gen_partonMode1==1 && b_gen_partonMode2==2)b_gen_partonMode=1;
     if(b_gen_partonMode1==2 && b_gen_partonMode2==1)b_gen_partonMode=1;
@@ -397,7 +393,7 @@ int dileptonCommon::eventSelection(const edm::Event& iEvent, const edm::EventSet
         case 24: b_gen_pseudoChannel = CH_MUEL; break;
         default: b_gen_pseudoChannel = CH_NOLL;
       }
-      if (b_gen_pseudoChannel > 0) keepTtbarSignal = true;
+      if (b_gen_pseudoChannel > 0) b_keepTtbarSignal = true;
       //std::nth_element(neutrinoIdxs.begin(), neutrinoIdxs.begin()+2, neutrinoIdxs.end(),
       //                 [&](size_t i, size_t j){return pseudoTopLeptonHandle->at(i).pt() > pseudoTopLeptonHandle->at(j).pt();});
       auto nu1 = pseudoTopNeutrinoHandle->at(0).p4(), nu2 = pseudoTopNeutrinoHandle->at(1).p4();
@@ -467,6 +463,11 @@ int dileptonCommon::eventSelection(const edm::Event& iEvent, const edm::EventSet
 
     } while ( false );
   }
+  return;
+}
+int dileptonCommon::eventSelection(const edm::Event& iEvent, const edm::EventSetup& iSetup, int sys){
+  const bool runOnMC = !iEvent.isRealData();
+
   if (runOnMC){
     edm::Handle<float> puweightHandle;
     iEvent.getByToken(puweightToken_, puweightHandle);
@@ -496,7 +497,7 @@ int dileptonCommon::eventSelection(const edm::Event& iEvent, const edm::EventSet
   edm::Handle<reco::VertexCollection> vertices;
   iEvent.getByToken(vtxToken_, vertices);
   if (vertices->empty()){ // skip the event if no PV found
-    if (keepTtbarSignal) ttree_[sys]->Fill();
+    if (b_keepTtbarSignal) ttree_[sys]->Fill();
     std::cout<<"No PV"<<std::endl;
     return -1;
   }
@@ -529,7 +530,7 @@ int dileptonCommon::eventSelection(const edm::Event& iEvent, const edm::EventSet
   selectMuons(*muons, selMuons, (sys_e)sys);
   selectElecs(*electrons, selElecs, (sys_e)sys);
   if ( selMuons.size()+selElecs.size() < 2 ) {
-    if (keepTtbarSignal) ttree_[sys]->Fill();
+    if (b_keepTtbarSignal) ttree_[sys]->Fill();
     return -1;
   }
   if (sys == sys_nom) cutflow_[3][b_channel]++;
@@ -580,7 +581,7 @@ int dileptonCommon::eventSelection(const edm::Event& iEvent, const edm::EventSet
   const auto tlv_ll = recolep1.p4()+recolep2.p4();
 
   if (tlv_ll.M() < 20. || recolep1.charge() * recolep2.charge() > 0){
-    if (keepTtbarSignal) ttree_[sys]->Fill();
+    if (b_keepTtbarSignal) ttree_[sys]->Fill();
     return -1;
   }
   b_step1 = true;
@@ -685,6 +686,7 @@ void dileptonCommon::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
   for (int sys = 0; sys < nsys_e; ++sys){
     if (sys > 0 && !runOnMC) break;
     resetBr();
+    if( sys == 0 ) genInfo(iEvent, iSetup);
     int terminate = eventSelection(iEvent, iSetup,sys);
     if ( terminate == -1 ) continue;
     else if ( terminate == -2 ) return;

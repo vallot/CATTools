@@ -62,7 +62,8 @@ public:
   ~dileptonCommon();
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
   virtual void analyzeCustom(const edm::Event&, const edm::EventSetup&, int sys ) ;
-  int eventSelection(const edm::Event& iEvent, const edm::EventSetup& iSetup, int sys);
+  void genInfo(const edm::Event& iEvent, const edm::EventSetup& iSetup);
+  virtual int eventSelection(const edm::Event& iEvent, const edm::EventSetup& iSetup, int sys);
   void parameterInit(const edm::ParameterSet& iConfig);
   virtual void resetBr();
   void resetBrCommon();
@@ -72,8 +73,8 @@ public:
   void setBranchCommon(TTree* tree, int sys);
   virtual void setBranchCustom(TTree* tree, int sys);
 
-  float selectMuons(const cat::MuonCollection& muons, cat::MuonCollection& selmuons, sys_e sys) const;
-  float selectElecs(const cat::ElectronCollection& elecs, cat::ElectronCollection& selelecs, sys_e sys) const;
+  virtual float selectMuons(const cat::MuonCollection& muons, cat::MuonCollection& selmuons, sys_e sys) const;
+  virtual float selectElecs(const cat::ElectronCollection& elecs, cat::ElectronCollection& selelecs, sys_e sys) const;
   cat::JetCollection selectJets(const cat::JetCollection& jets, const LeptonPtrs& recolep, sys_e sys);
   cat::JetCollection selectBJets(const cat::JetCollection& jets) const;
   const reco::Candidate* getLast(const reco::Candidate* p) const;
@@ -105,7 +106,7 @@ public:
 protected : 
   int b_run, b_lumi, b_event;
   int b_nvertex, b_step, b_channel, b_njet, b_nbjet;
-  bool b_step1, b_step2, b_step3, b_step4, b_step5, b_step6, b_step7, b_step8, b_filtered;
+  bool b_step1, b_step2, b_step3, b_step4, b_step5, b_step6, b_step7, b_step8, b_filtered, b_keepTtbarSignal;
   float b_tri, b_tri_up, b_tri_dn;
   float b_met, b_weight, b_puweight, b_puweight_up, b_puweight_dn, b_genweight,
     b_mueffweight, b_mueffweight_up, b_mueffweight_dn,
@@ -155,12 +156,7 @@ protected :
   LV met;
   std::unique_ptr<KinematicSolver> solver_;
   std::unique_ptr<KinematicSolver> solverPT_;
-
-private:
-  void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&) final;
-  void endLuminosityBlock(const edm::LuminosityBlock&, const edm::EventSetup&) override {};
-
-
+  const edm::ParameterSet iConfig_;
   ScaleFactorEvaluator muonSF_, elecSF_;
 
   BTagWeightEvaluator csvWeight;
@@ -179,6 +175,12 @@ private:
   edm::EDGetTokenT<cat::JetCollection>      jetToken_;
   edm::EDGetTokenT<cat::METCollection>      metToken_;
   edm::EDGetTokenT<reco::VertexCollection>   vtxToken_;
+
+private:
+  void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&) final;
+  void endLuminosityBlock(const edm::LuminosityBlock&, const edm::EventSetup&) override {};
+
+
   edm::EDGetTokenT<int>          partonTop_channel_;
   edm::EDGetTokenT<vector<int> > partonTop_modes_;
   edm::EDGetTokenT<reco::GenParticleCollection> partonTop_genParticles_;

@@ -3,6 +3,12 @@
 #include "CATTools/CommonTools/interface/TTbarModeDefs.h"
 #include <cmath>
 
+// Scale factors for Lepton + Jet channel. 
+// FIX ME!
+double computeTrigSF(const cat::Lepton& lep, int direction)
+{
+  return 1.0;
+}
 // Scale factors from AN2015/309
 double computeTrigSF(const cat::Lepton& lep1, const cat::Lepton& lep2, int direction)
 {

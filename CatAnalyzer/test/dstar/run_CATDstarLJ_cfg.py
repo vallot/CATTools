@@ -11,7 +11,8 @@ process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 #process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-3/MuonEG_Run2015D-16Dec2015-v1.root',]
 #process.source.fileNames = ['file:/xrootd/store/user/jhgoh/CATTools/sync/v7-6-3/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',]
 #process.source.fileNames = ['file:../../../catdata_20160315/catTuple.root']
-#process.source.fileNames = ['file:catTuple.root']
+process.source.fileNames = ['file:catTuple.root']
+
 
 useSilver = False
 catmet = 'catMETs'
@@ -25,20 +26,43 @@ if useSilver:
 process.load("CATTools.CatAnalyzer.ttll.ttbarDileptonKinSolutionAlgos_cff")
 process.load("CATTools.CatAnalyzer.filters_cff")
 process.load("CATTools.CatAnalyzer.topPtWeightProducer_cfi")
+process.load("CATTools.CatAnalyzer.flatGenWeights_cfi")
 from CATTools.CatAnalyzer.leptonSF_cff import *
 
-process.cattree = cms.EDAnalyzer("CATDstarAnalyzer",
+## Redo the pileup weight - necessary for v765 production
+process.load("CATTools.CatProducer.pileupWeight_cff")
+process.redoPileupWeight = process.pileupWeight.clone()
+from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
+process.redoPileupWeight.weightingMethod = "RedoWeight"
+process.redoPileupWeight.pileupMC = pileupWeightMap["2015_25ns_FallMC"]
+process.redoPileupWeight.pileupRD = pileupWeightMap["Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON"]
+process.redoPileupWeight.pileupUp = pileupWeightMap["Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON_Up"]
+process.redoPileupWeight.pileupDn = pileupWeightMap["Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON_Dn"]
+pileupWeight = 'redoPileupWeight'
+
+process.ttbarDileptonKinAlgoPSetDESYSmeared.inputTemplatePath = cms.string("CATTools/CatAnalyzer/data/desyKinRecoInput.root")
+process.ttbarDileptonKinAlgoPSetDESYSmeared.maxLBMass = cms.double(180)
+process.ttbarDileptonKinAlgoPSetDESYSmeared.mTopInput = cms.double(172.5)
+process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop = process.ttbarDileptonKinAlgoPSetDESYSmeared.clone()
+process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop.inputTemplatePath = cms.string("CATTools/CatAnalyzer/data/KoreaKinRecoInput_pseudo.root")
+process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop.maxLBMass = cms.double(360)
+process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop.mTopInput = cms.double(172.5)
+
+process.cattree = cms.EDAnalyzer("CATDstarLJAnalyzer",
     recoFilters = cms.InputTag("filterRECO"),
     nGoodVertex = cms.InputTag("catVertex","nGoodPV"),
     lumiSelection = cms.InputTag(lumiMask),
     genweight = cms.InputTag("flatGenWeights"),
-    pdfweights = cms.InputTag("flatGenWeights","pdf"),		
-    scaleupweights = cms.InputTag("flatGenWeights","scaleup"),
-    scaledownweights = cms.InputTag("flatGenWeights","scaledown"),
+    pdfweight = cms.InputTag("flatGenWeights","pdf"),		
+    scaleupweight = cms.InputTag("flatGenWeights","scaleup"),
+    scaledownweight = cms.InputTag("flatGenWeights","scaledown"),
     topPtWeight = cms.InputTag("topPtWeight"),
     puweight = cms.InputTag(pileupWeight),
     puweight_up = cms.InputTag(pileupWeight,"up"),
     puweight_dn = cms.InputTag(pileupWeight,"dn"),
+    trigMUJET = cms.InputTag("filterTrigMUJET"),
+    trigELJET = cms.InputTag("filterTrigELJET"),
+    ## Dummy trigger information.
     trigMUEL = cms.InputTag("filterTrigMUEL"),
     trigMUMU = cms.InputTag("filterTrigMUMU"),
     trigELEL = cms.InputTag("filterTrigELEL"),
@@ -68,6 +92,7 @@ process.cattree = cms.EDAnalyzer("CATDstarAnalyzer",
     
     #solver = process.ttbarDileptonKinAlgoPSetCMSKin,
     solver = process.ttbarDileptonKinAlgoPSetDESYSmeared,
+    solverPseudoTop = process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop,
     #solver = process.ttbarDileptonKinAlgoPSetDESYMassLoop,
 )
 #process.cattree.solver.tMassStep = 1
