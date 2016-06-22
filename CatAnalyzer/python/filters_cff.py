@@ -49,12 +49,12 @@ filterTrigMUMU = filterTrigMUEL.clone(
 )
 filterTrigMUJET = filterTrigMUEL.clone(
     triggersToMatch = cms.vstring(
-        "HLT_IsoMu18",
+        "HLT_IsoMu18_v",
     ),
 )
 filterTrigELJET = filterTrigMUEL.clone(
     triggersToMatch = cms.vstring(
-        "HLT_Ele23_WPLoose_Gsf",
+        "HLT_Ele23_WPLoose_Gsf_v",
     ),
 )
 
