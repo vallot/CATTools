@@ -87,13 +87,13 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
             jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetPuppiCorrFactorsUpdated")),
             jetSource = process.catJetsPuppi.src )
         ### updating pile Jet.
-        #process.load("RecoJets.JetProducers.PileupJetID_cfi")
-        #process.pileupJetIdUpdated = process.pileupJetId.clone(
-        #  jets=cms.InputTag("slimmedJets"),
-        #  inputIsCorrected=True,
-        #  applyJec=True,
-        #  vertexes=cms.InputTag("offlineSlimmedPrimaryVertices")
-        #)
+        process.load("RecoJets.JetProducers.PileupJetID_cfi")
+        process.pileupJetIdUpdated = process.pileupJetId.clone(
+          jets=cms.InputTag("slimmedJets"),
+          inputIsCorrected=True,
+          applyJec=True,
+          vertexes=cms.InputTag("offlineSlimmedPrimaryVertices")
+        )
         #process.patJetsUpdated.userData.userFloats.src +=['pileupJetIdUpdated:fullDiscriminant']
 
         process.catJetsPuppi.src = cms.InputTag("patJetsPuppiUpdated")
