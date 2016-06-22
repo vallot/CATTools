@@ -47,6 +47,17 @@ filterTrigMUMU = filterTrigMUEL.clone(
         "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",
     ),
 )
+filterTrigMUJET = filterTrigMUEL.clone(
+    triggersToMatch = cms.vstring(
+        "HLT_IsoMu18",
+    ),
+)
+filterTrigELJET = filterTrigMUEL.clone(
+    triggersToMatch = cms.vstring(
+        "HLT_Ele23_WPLoose_Gsf",
+    ),
+)
+
 
 removeLumisWithBadBS = cms.EDFilter("LumiMaskFilter",
     LumiSections = cms.untracked.VLuminosityBlockRange(
