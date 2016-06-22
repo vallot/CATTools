@@ -99,6 +99,7 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         process.catJetsPuppi.src = cms.InputTag("patJetsPuppiUpdated")
         process.catJetsPuppi.setGenParticle = cms.bool(False)
         ## #######################################################################
+        ## Setup JER
         ## JER needs random numbers
         process.RandomNumberGeneratorService.catJets = cms.PSet(
             engineName = cms.untracked.string('TRandom3'),

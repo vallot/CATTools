@@ -5,7 +5,7 @@
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "FWCore/Utilities/interface/RandomNumberGenerator.h"
 #include "CLHEP/Random/RandomEngine.h"
-#include "CLHEP/Random/RandGauss.h"
+#include "CLHEP/Random/RandGaussQ.h"
 
 #include "DataFormats/Common/interface/Association.h"
 #include "DataFormats/Common/interface/RefToPtr.h"
@@ -47,10 +47,11 @@ namespace cat {
 
   private:
     edm::EDGetTokenT<pat::JetCollection> src_;
-    edm::EDGetTokenT<float> rhoToken_;
+    edm::EDGetTokenT<double> rhoToken_;
 
     const std::vector<std::string> btagNames_;
     std::string uncertaintyTag_, payloadName_;
+    const std::string jetResFilePath_, jetResSFFilePath_;
     bool setGenParticle_;
     bool runOnMC_;
     //PFJetIDSelectionFunctor pfjetIDFunctor;
@@ -63,9 +64,11 @@ namespace cat {
 
 cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
   src_(consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("src"))),
-  rhoToken_(consumes<float>(iConfig.getParameter<edm::InputTag>("rho"))),
+  rhoToken_(consumes<double>(iConfig.getParameter<edm::InputTag>("rho"))),
   btagNames_(iConfig.getParameter<std::vector<std::string> >("btagNames")),
   payloadName_(iConfig.getParameter<std::string>("payloadName")),
+  jetResFilePath_(edm::FileInPath(iConfig.getParameter<std::string>("jetResFile")).fullPath()),
+  jetResSFFilePath_(edm::FileInPath(iConfig.getParameter<std::string>("jetResSFFile")).fullPath()),
   setGenParticle_(iConfig.getParameter<bool>("setGenParticle"))
 {
   produces<std::vector<cat::Jet> >();
@@ -96,13 +99,13 @@ void cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
   JME::JetResolution jetResObj;
   JME::JetResolutionScaleFactor jetResSFObj;
   if ( runOnMC_ ) {
-    jetResObj = JME::JetResolution::get(iSetup, payloadName_+"_pt");
-    jetResSFObj = JME::JetResolutionScaleFactor::get(iSetup, payloadName_+"_pt");
+    jetResObj = JME::JetResolution(jetResFilePath_);
+    jetResSFObj = JME::JetResolutionScaleFactor(jetResSFFilePath_);
   }
 
-  edm::Handle<float> rhoHandle;
+  edm::Handle<double> rhoHandle;
   iEvent.getByToken(rhoToken_, rhoHandle);
-  const float rho = *rhoHandle;
+  const double rho = *rhoHandle;
 
   auto_ptr<vector<cat::Jet> >  out(new vector<cat::Jet>());
   for (const pat::Jet &aPatJet : *src) {
@@ -206,8 +209,7 @@ void cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
         aJet.setJER(fJER, fJERDn, fJERUp);
       }
       else {
-        CLHEP::RandGauss gaus(rng_);
-        const double s = gaus.fire();
+        const double s = CLHEP::RandGaussQ::shoot(rng_);
 
         const double fJER   = cJER   <= 1 ? 1 : s*jetRes/jetPt*sqrt(cJER*cJER-1)+1;
         const double fJERUp = cJERUp <= 1 ? 1 : s*jetRes/jetPt*sqrt(cJERUp*cJERUp-1)+1;
