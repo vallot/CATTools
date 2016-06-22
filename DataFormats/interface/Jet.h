@@ -80,9 +80,9 @@ namespace cat {
 
     float shiftedEnDown() const {return  shiftedEnDown_;}
     float shiftedEnUp() const  {return  shiftedEnUp_;}
-    float smearedRes(int direction=0, int era = 2015) const; // 0, +1, -1 for smeared, smearedUp, smearedDown
-    float smearedResUp(int era = 2015) const { return smearedRes(+1, era); };
-    float smearedResDown(int era = 2015) const { return smearedRes(-1, era); };
+    float smearedRes(int direction=0, int era = 0) const; // 0, +1, -1 for smeared, smearedUp, smearedDown
+    float smearedResUp(int era = 0) const { return smearedRes(+1, era); };
+    float smearedResDown(int era = 0) const { return smearedRes(-1, era); };
 
     
     void setLooseJetID(bool id) { looseJetID_ = id; }
@@ -109,6 +109,10 @@ namespace cat {
 
     void setShiftedEnDown(float f) { shiftedEnDown_ = f;}
     void setShiftedEnUp(float f) { shiftedEnUp_ = f;}
+
+    void setJER(float fJER, float fJERUp, float fJERDown) {
+      fJER_ = fJER; fJERUp_ = fJERUp; fJERDown_ = fJERDown;
+    }
 
   private:
 
@@ -137,6 +141,8 @@ namespace cat {
 
     float shiftedEnDown_;
     float shiftedEnUp_;
+
+    float fJER_, fJERUp_, fJERDown_;
 
   };
 }

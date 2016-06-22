@@ -2,6 +2,10 @@
 #include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/ServiceRegistry/interface/Service.h"
+#include "FWCore/Utilities/interface/RandomNumberGenerator.h"
+#include "CLHEP/Random/RandomEngine.h"
+#include "CLHEP/Random/RandGauss.h"
 
 #include "DataFormats/Common/interface/Association.h"
 #include "DataFormats/Common/interface/RefToPtr.h"
@@ -18,6 +22,8 @@
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 #include "JetMETCorrections/Objects/interface/JetCorrectionsRecord.h"
 
+#include "JetMETCorrections/Modules/interface/JetResolution.h"
+
 using namespace edm;
 using namespace std;
 
@@ -29,6 +35,7 @@ namespace cat {
     virtual ~CATJetProducer() { }
 
     void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
+    void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&) override;
 
     std::vector<const reco::Candidate *> getAncestors(const reco::Candidate &c);
     bool hasBottom(const reco::Candidate &c);
@@ -40,6 +47,7 @@ namespace cat {
 
   private:
     edm::EDGetTokenT<pat::JetCollection> src_;
+    edm::EDGetTokenT<float> rhoToken_;
 
     const std::vector<std::string> btagNames_;
     std::string uncertaintyTag_, payloadName_;
@@ -47,12 +55,15 @@ namespace cat {
     bool runOnMC_;
     //PFJetIDSelectionFunctor pfjetIDFunctor;
     JetCorrectionUncertainty *jecUnc;
+
+    CLHEP::HepRandomEngine* rng_;
   };
 
 } // namespace
 
 cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
   src_(consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("src"))),
+  rhoToken_(consumes<float>(iConfig.getParameter<edm::InputTag>("rho"))),
   btagNames_(iConfig.getParameter<std::vector<std::string> >("btagNames")),
   payloadName_(iConfig.getParameter<std::string>("payloadName")),
   setGenParticle_(iConfig.getParameter<bool>("setGenParticle"))
@@ -61,8 +72,13 @@ cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
   ///  pfjetIDFunctor = PFJetIDSelectionFunctor(PFJetIDSelectionFunctor::FIRSTDATA,PFJetIDSelectionFunctor::LOOSE);
 }
 
-void
-cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) {
+void cat::CATJetProducer::beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&)
+{
+  edm::Service<edm::RandomNumberGenerator> rng;
+  rng_ = &rng->getEngine(lumi.index());
+}
+
+void cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) {
 
   runOnMC_ = !iEvent.isRealData();
 
@@ -76,6 +92,17 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
     JetCorrectorParameters const & JetCorPar = (*JetCorParColl)["Uncertainty"];
     jecUnc = new JetCorrectionUncertainty(JetCorPar);
   }
+
+  JME::JetResolution jetResObj;
+  JME::JetResolutionScaleFactor jetResSFObj;
+  if ( runOnMC_ ) {
+    jetResObj = JME::JetResolution::get(iSetup, payloadName_+"_pt");
+    jetResSFObj = JME::JetResolutionScaleFactor::get(iSetup, payloadName_+"_pt");
+  }
+
+  edm::Handle<float> rhoHandle;
+  iEvent.getByToken(rhoToken_, rhoHandle);
+  const float rho = *rhoHandle;
 
   auto_ptr<vector<cat::Jet> >  out(new vector<cat::Jet>());
   for (const pat::Jet &aPatJet : *src) {
@@ -151,8 +178,43 @@ cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
     }
     if (runOnMC_){
       // adding genJet
-      aJet.setGenJetRef(aPatJet.genJetFwdRef());
+      auto genJet = aPatJet.genJetFwdRef();
+      aJet.setGenJetRef(genJet);
       if (setGenParticle_) aJet.setGenParticleRef(aPatJet.genParticleRef());
+
+      const double jetPt = aJet.pt();
+
+      // Compute the JER
+      JME::JetParameters jetPars = {{JME::Binning::JetPt, jetPt},
+                                    {JME::Binning::JetEta, aJet.eta()},
+                                    {JME::Binning::Rho, rho}};
+      const double jetRes = jetResObj.getResolution(jetPars);
+      const double cJER   = jetResSFObj.getScaleFactor(jetPars);
+      const double cJERUp = jetResSFObj.getScaleFactor(jetPars);
+      const double cJERDn = jetResSFObj.getScaleFactor(jetPars);
+
+      // JER - apply scaling method if matched genJet is found,
+      //       apply gaussian smearing method if unmatched
+      if ( genJet.isNonnull() and deltaR(genJet->p4(), aJet.p4()) < 0.2 
+           and std::abs(genJet->pt()-jetPt) < jetRes*3 ) {
+        const double genJetPt = genJet->pt();
+        const double dPt = jetPt-genJetPt;
+        const double fJER   = std::max(0., (genJetPt+dPt*cJER)/jetPt);
+        const double fJERUp = std::max(0., (genJetPt+dPt*cJERUp)/jetPt);
+        const double fJERDn = std::max(0., (genJetPt+dPt*cJERDn)/jetPt);
+
+        aJet.setJER(fJER, fJERDn, fJERUp);
+      }
+      else {
+        CLHEP::RandGauss gaus(rng_);
+        const double s = gaus.fire();
+
+        const double fJER   = cJER   <= 1 ? 1 : s*jetRes/jetPt*sqrt(cJER*cJER-1)+1;
+        const double fJERUp = cJERUp <= 1 ? 1 : s*jetRes/jetPt*sqrt(cJERUp*cJERUp-1)+1;
+        const double fJERDn = cJERDn <= 1 ? 1 : s*jetRes/jetPt*sqrt(cJERDn*cJERDn-1)+1;
+
+        aJet.setJER(fJER, fJERDn, fJERUp);
+      }
     }
 
     out->push_back(aJet);
