@@ -22,6 +22,7 @@ catEventContent.extend([
     'keep edmTriggerResults_TriggerResults__*',
     'keep patPackedTriggerPrescales_patTrigger__*',
     'keep *_lumiMask*_*_*',
+    'keep *_fixedGridRhoFastjet_*_',
     ])
 
 catEventContentRD.extend([
