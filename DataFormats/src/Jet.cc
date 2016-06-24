@@ -35,6 +35,9 @@ void Jet::bDiscriminatorPrint() const {
 }
 
 float Jet::smearedRes(int direction, int era) const {
+  // The era-based JER is going to be removed
+  if ( era == 0 ) return direction == 0 ? fJER_ : direction > 0 ? fJERUp_ : fJERDown_;
+
   const auto aGenJet = this->genJet();
   if ( !aGenJet ) return 1; // No JER
 
