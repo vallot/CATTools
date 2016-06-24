@@ -15,11 +15,12 @@ filterRECO = cms.EDFilter("CATTriggerBitCombiner",
     triggerPrescales = cms.InputTag("patTrigger"),
     combineBy = cms.string("and"),
     triggersToMatch = cms.vstring(
-        "CSCTightHaloFilter",
-        #"EcalDeadCellTriggerPrimitiveFilter",
-        #"HBHENoiseFilter",
-        "eeBadScFilter",
-        "goodVertices",
+      "HBHENoiseFilter",
+      "HBHENoiseIsoFilter",
+      "CSCTightHalo2015Filter",
+      "EcalDeadCellTriggerPrimitiveFilter",
+      "goodVertices",
+      "eeBadScFilter"
     ),
     doFilter = cms.bool(False),
 )
