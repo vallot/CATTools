@@ -139,6 +139,10 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
             engineName = cms.untracked.string('TRandom3'),
             initialSeed = cms.untracked.uint32(1)
         )
+        process.RandomNumberGeneratorService.calibratedPatPhotons=cms.PSet(
+            engineName = cms.untracked.string('TRandom3'),
+            initialSeed = cms.untracked.uint32(1)
+        )
         process.load('EgammaAnalysis.ElectronTools.calibratedElectronsRun2_cfi')
         process.calibratedPatElectrons.isMC = runOnMC
         process.catElectrons.src = "calibratedPatElectrons"
