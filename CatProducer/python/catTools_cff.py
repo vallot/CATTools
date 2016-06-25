@@ -1,5 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 import catDefinitions_cfi as cat
+import os
 
 def catTool(process, runOnMC=True, useMiniAOD=True):
     if runOnMC:
@@ -14,10 +15,12 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         process.pileupWeightSilver.pileupDn = pileupWeightMap["%s_Dn"%cat.lumiJSONSilver]
     else:
         from FWCore.PythonUtilities.LumiList import LumiList
+        lumiJSON = os.environ["CMSSW_BASE"]+("/src/CATTools/CatProducer/data/LumiMask/%s.txt"%cat.lumiJSON)
+        lumiJSONSilver = os.environ["CMSSW_BASE"]+("/src/CATTools/CatProducer/data/LumiMask/%s.txt"%cat.lumiJSONSilver)
         process.lumiMask = cms.EDFilter("LumiMaskFilter",
-            LumiSections = LumiList('../data/LumiMask/%s.txt'%cat.lumiJSON).getVLuminosityBlockRange())
-        process.lumiMaskSilver = cms.EDProducer("LumiMaskFilter",
-            LumiSections = LumiList('../data/LumiMask/%s.txt'%cat.lumiJSONSilver).getVLuminosityBlockRange())
+            LumiSections = LumiList(lumiJSON).getVLuminosityBlockRange())
+        process.lumiMaskSilver = cms.EDFilter("LumiMaskFilter",
+            LumiSections = LumiList(lumiJSONSilver).getVLuminosityBlockRange())
     
     useJECfile = True
     jecFile = cat.JetEnergyCorrection
