@@ -49,8 +49,12 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         #######################################################################
         ## Event filters from MET https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2
         ## New muon filters to be run on the fly
-        process.load("RecoMET/METFilters/python/BadChargedCandidateFilter_cfi")
-        process.load("RecoMET/METFilters/python/BadPFMuonFilter_cfi")
+        process.load("RecoMET.METFilters.BadChargedCandidateFilter_cfi")
+        process.load("RecoMET.METFilters.BadPFMuonFilter_cfi")
+        process.BadChargedCandidateFilter.muons = "slimmedMuons"
+        process.BadChargedCandidateFilter.PFCandidates = "packedPFCandidates"
+        process.BadPFMuonFilter.muons = "slimmedMuons"
+        process.BadPFMuonFilter.PFCandidates = "packedPFCandidates"
         ## Existing HBHE noise filter
         process.load('CommonTools.RecoAlgos.HBHENoiseFilterResultProducer_cfi')
         process.HBHENoiseFilterResultProducer.minZeros = cms.int32(99999)
@@ -65,7 +69,8 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
     
         process.p += (process.HBHENoiseFilterResultProducer* #produces HBHE bools
                       process.ApplyBaselineHBHENoiseFilter*  #reject events based
-                      process.BadChargedCandidateFilter * process.BadPFMuonFilter*
+                      process.BadChargedCandidateFilter*
+                      process.BadPFMuonFilter*
                       process.nEventsFiltered)
         #######################################################################
         # adding puppi https://twiki.cern.ch/twiki/bin/view/CMS/PUPPI        
@@ -179,8 +184,9 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         process.calibratedPatElectrons.isMC = runOnMC
         process.catElectrons.src = cms.InputTag("calibratedPatElectrons")    
     
-        # photons not yet working...
-        #process.load('EgammaAnalysis.ElectronTools.calibratedPhotonsRun2_cfi')
+        process.load('EgammaAnalysis.ElectronTools.calibratedPhotonsRun2_cfi')
+        process.calibratedPatPhotons.isMC = runOnMC
+        process.catPhotons.src = cms.InputTag("calibratedPatPhotons")
         
         #######################################################################    
         # adding pfMVAMet https://twiki.cern.ch/twiki/bin/viewauth/CMS/MVAMet#Spring15_samples_with_25ns_50ns
