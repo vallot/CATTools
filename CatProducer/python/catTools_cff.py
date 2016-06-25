@@ -47,7 +47,11 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
     
     if useMiniAOD: ## corrections when using miniAOD
         #######################################################################
-        ## Hcal HBHE https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2
+        ## Event filters from MET https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2
+        ## New muon filters to be run on the fly
+        process.load("RecoMET/METFilters/python/BadChargedCandidateFilter_cfi")
+        process.load("RecoMET/METFilters/python/BadPFMuonFilter_cfi")
+        ## Existing HBHE noise filter
         process.load('CommonTools.RecoAlgos.HBHENoiseFilterResultProducer_cfi')
         process.HBHENoiseFilterResultProducer.minZeros = cms.int32(99999)
         process.HBHENoiseFilterResultProducer.IgnoreTS4TS5ifJetInLowBVRegion=cms.bool(False) 
@@ -61,6 +65,7 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
     
         process.p += (process.HBHENoiseFilterResultProducer* #produces HBHE bools
                       process.ApplyBaselineHBHENoiseFilter*  #reject events based
+                      process.BadChargedCandidateFilter * process.BadPFMuonFilter*
                       process.nEventsFiltered)
         #######################################################################
         # adding puppi https://twiki.cern.ch/twiki/bin/view/CMS/PUPPI        
