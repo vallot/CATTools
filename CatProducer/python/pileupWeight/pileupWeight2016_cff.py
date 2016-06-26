@@ -55,3 +55,6 @@ pileupWeightMap = {
 ),
 }
 
+pileupWeightMap["Cert_271036-275125_13TeV_PromptReco_Collisions16_Plus_DCSOnly_275282-275782_JSON"] = pileupWeightMap["Cert_271036-275125_13TeV_PromptReco_Collisions16_JSON"]
+pileupWeightMap["Cert_271036-275125_13TeV_PromptReco_Collisions16_Plus_DCSOnly_275282-275782_JSON_Up"] = pileupWeightMap["Cert_271036-275125_13TeV_PromptReco_Collisions16_JSON_Up"]
+pileupWeightMap["Cert_271036-275125_13TeV_PromptReco_Collisions16_Plus_DCSOnly_275282-275782_JSON_Dn"] = pileupWeightMap["Cert_271036-275125_13TeV_PromptReco_Collisions16_JSON_Dn"]
