@@ -111,7 +111,7 @@ if requestName == "" :
 if inputFile is None:
     catGetDatasetInfo = 'catGetDatasetInfo %s'%(requestName)
     os.system(catGetDatasetInfo)
-    datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json"%os.environ['CMSSW_BASE']))
+    datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset/dataset.json"%os.environ['CMSSW_BASE']))
     for d in datasets:
         dataset = d['DataSetName']
         if len( d['path']) == 0:
