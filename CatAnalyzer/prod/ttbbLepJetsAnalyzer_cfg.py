@@ -2,10 +2,9 @@
 #------------------------------------------------------------------
 # Data or MC Sample
 runOnMC      = True
-# runOnTTbarMC == 0, No ttbar
-# runOnTTbarMC == 1, ttbar Signal
-# runOnTTbarMC == 2, ttbar Background
-runOnTTbarMC = 1
+# ttbar Category
+runOnTTbarMC = 1 # runOnTTbarMC == 0->No ttbar, 1->ttbar Signal, 2->ttbar Background
+TTbarCatMC   = 0 # 0->All ttbar, 1->ttbb, 2->ttbj, 3->ttcc, 4->ttLF, 5->tt, 6->ttjj
 #------------------------------------------------------------------
 #------------------------------------------------------------------
 
@@ -25,7 +24,8 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.source = cms.Source("PoolSource",
      fileNames = cms.untracked.vstring(
-        'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-6-2_RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext3-v1/160211_132614/0000/catTuple_1.root',
+        'file:TT_TuneCUETP8M1_13TeV-powheg-pythia8_v8-0-0.root'
+        #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-6-2_RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext3-v1/160211_132614/0000/catTuple_1.root',
         )
 )
 
@@ -46,15 +46,18 @@ process.source = cms.Source("PoolSource",
 from CATTools.CatAnalyzer.leptonSF_cff import *
 
 process.load("CATTools.CatAnalyzer.flatGenWeights_cfi")
+
 process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      sampleLabel       = cms.untracked.bool(runOnMC),
                                      TTbarSampleLabel  = cms.untracked.int32(runOnTTbarMC),
+                                     TTbarCatLabel     = cms.untracked.int32(TTbarCatMC),
                                      genWeightLabel    = cms.InputTag("flatGenWeights"),
                                      pdfWeightLabel    = cms.InputTag("flatGenWeights", "pdf"),
-                                     scaleupWeightLabel    = cms.InputTag("flatGenWeights", "scaleup"),
-                                     scaledownWeightLabel    = cms.InputTag("flatGenWeights", "scaledown"),
+                                     scaleUpWeightLabel   = cms.InputTag("flatGenWeights","scaleup"),
+                                     scaleDownWeightLabel = cms.InputTag("flatGenWeights","scaledown"),
                                      genLabel          = cms.InputTag("prunedGenParticles"),
                                      genJetLabel       = cms.InputTag("slimmedGenJets"),
+                                     genHiggsCatLabel  = cms.InputTag("GenTtbarCategories:genTtbarId"),
                                      genttbarCatLabel  = cms.InputTag("catGenTops"),
                                      muonLabel         = cms.InputTag("catMuons"),
                                      muonSF            = muonSFTight,
@@ -68,6 +71,7 @@ process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      puDownWeightLabel = cms.InputTag("pileupWeight:dn"),
                                      triggerBits       = cms.InputTag("TriggerResults::HLT"), 
                                      triggerObjects    = cms.InputTag("catTrigger"), 
+                                     JetMother         = cms.InputTag("genJetHadronFlavour:ancestors"),
                                      )
 
 process.TFileService = cms.Service("TFileService",
@@ -80,4 +84,5 @@ process.TFileService = cms.Service("TFileService",
 # process.p = cms.Path(process.demo*process.dump)
 # process.p = cms.Path(process.pileupWeight*
 #                      process.ttbarSingleLepton)
-process.p = cms.Path(process.ttbbLepJets)
+process.p = cms.Path(process.flatGenWeights*
+                     process.ttbbLepJets)
