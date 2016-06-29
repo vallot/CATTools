@@ -7,10 +7,13 @@ class CATDstarLJAnalyzer : virtual public CATDstarAnalyzer {
     ~CATDstarLJAnalyzer();
     virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
     virtual int eventSelection(const edm::Event& iEvent, const edm::EventSetup& iSetup, int sys) override;
-    virtual float selectMuons(const cat::MuonCollection& muons, cat::MuonCollection& selmuons, sys_e sys) const override;
-    virtual float selectVetoMuons(const cat::MuonCollection& muons, cat::MuonCollection& vetomuons, sys_e sys) const ;
-    virtual float selectElecs(const cat::ElectronCollection& elecs, cat::ElectronCollection& selelecs, sys_e sys) const override;
-    virtual float selectVetoElecs(const cat::ElectronCollection& elecs, cat::ElectronCollection& vetoelecs, sys_e sys) const;
+    virtual float selectMuons(const cat::MuonCollection& muons, cat::MuonCollection& selmuons, cat::MuonCollection& vetomuons, sys_e sys) const;
+    virtual float selectElecs(const cat::ElectronCollection& elecs, cat::ElectronCollection& selelecs, cat::ElectronCollection& vetoelecs, sys_e sys) const;
+    bool isSelectMuon(cat::Muon) const ;
+    bool isVetoMuon  (cat::Muon) const ;
+    bool isSelectElec(cat::Electron) const ;
+    bool isVetoElec  (cat::Electron) const ;
+
     virtual cat::JetCollection selectBJets(const JetCollection& jets) const override;
     
   protected:
@@ -27,7 +30,24 @@ CATDstarLJAnalyzer::~CATDstarLJAnalyzer(){
   }
 }
 
-float CATDstarLJAnalyzer::selectVetoMuons(const cat::MuonCollection& muons, cat::MuonCollection& vetomuons, sys_e sys) const
+bool CATDstarLJAnalyzer::isVetoMuon(cat::Muon mu) const
+{
+  if (!mu.isLooseMuon() ) return false;
+  if (mu.pt() <10. ) return false;
+  if (std::abs(mu.eta())>2.4 ) return false;
+  if (mu.relIso(0.4) > 0.25 ) return false;
+  return true; 
+}
+bool CATDstarLJAnalyzer::isSelectMuon(cat::Muon mu) const
+{
+  if (!mu.isTightMuon() ) return false;
+  if (mu.pt() <26. ) return false;
+  if (std::abs(mu.eta())>2.1 ) return false;
+  if (mu.relIso(0.4) > 0.15 ) return false;
+  return true; 
+}
+
+float CATDstarLJAnalyzer::selectMuons(const cat::MuonCollection& muons, cat::MuonCollection& selmuons, cat::MuonCollection& vetomuons, sys_e sys ) const
 {
   float weight = 1.;
   for (auto& m : muons) {
@@ -35,54 +55,43 @@ float CATDstarLJAnalyzer::selectVetoMuons(const cat::MuonCollection& muons, cat:
     if (sys == sys_mu_u) mu.setP4(m.p4() * m.shiftedEnUp());
     if (sys == sys_mu_d) mu.setP4(m.p4() * m.shiftedEnDown());
  
-    // veto Muons.
-    if (!mu.isLooseMuon() || mu.isTightMuon() ) continue;
-    if (mu.pt() <10. || mu.pt()>26. ) continue;
-    if (std::abs(mu.eta())>2.5 || std::abs(mu.eta())<2.1 ) continue;
-    if (mu.relIso(0.4) > 0.25 || mu.relIso(0.4) <0.15 ) continue;
-    vetomuons.push_back(mu);
- 
-  }
-  return weight; 
-}
-
-float CATDstarLJAnalyzer::selectMuons(const cat::MuonCollection& muons, cat::MuonCollection& selmuons, sys_e sys ) const
-{
-  float weight = 1.;
-  for (auto& m : muons) {
-    cat::Muon mu(m);
-    if (sys == sys_mu_u) mu.setP4(m.p4() * m.shiftedEnUp());
-    if (sys == sys_mu_d) mu.setP4(m.p4() * m.shiftedEnDown());
-  
-    // Selected Muon for Lepton+ Jet channel.
-    if (mu.pt() < 26.) continue;
-    if (std::abs(mu.eta()) > 2.1) continue;
-    if (!mu.isTightMuon()) continue;
-    if (mu.relIso(0.4) > 0.15) continue;
-    selmuons.push_back(mu);
+    if ( isSelectMuon( mu) ) selmuons.push_back(mu);
+    else if( isVetoMuon(mu) ) vetomuons.push_back(mu);
   }
   return weight;
 }
 
-float CATDstarLJAnalyzer::selectVetoElecs(const cat::ElectronCollection& elecs, cat::ElectronCollection& vetoelecs, sys_e sys) const
+bool CATDstarLJAnalyzer::isVetoElec(cat::Electron el) const
 {
-  float weight = 1.;
-  for (auto& e : elecs) {
-    cat::Electron el(e);
-    if (sys == sys_el_u) el.setP4(e.p4() * e.shiftedEnUp());
-    if (sys == sys_el_d) el.setP4(e.p4() * e.shiftedEnDown());
+  if (el.pt() < 15. ) return false;
+  if (std::abs(el.eta()) > 2.4) return false;
+  if ( !el.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-medium") ) return false;
 
-    if (el.pt() < 15. || el.pt() > 30. ) continue;
-    if ((std::abs(el.scEta()) > 1.4442) && (std::abs(el.scEta()) < 1.566)) continue;
-    if (std::abs(el.eta()) > 2.4) continue;
-    if ( !el.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-medium") ) continue;
-    if (el.relIso(0.3) > 0.12) continue;
+  /*
+  if ((std::abs(el.scEta()) > 1.4442) && (std::abs(el.scEta()) < 1.566)) return false;
+  if ( std::abs(el.scEta()) <= 1.479 ) { if ( el.relIso(0.3) > 0.126) return false; }
+  else                                 { if ( el.relIso(0.3) > 0.144) return false; }
+  */
 
-    vetoelecs.push_back(el);
-  }
-  return weight;
+  return true;
 }
-float CATDstarLJAnalyzer::selectElecs(const cat::ElectronCollection& elecs, cat::ElectronCollection& selelecs, sys_e sys) const
+
+bool CATDstarLJAnalyzer::isSelectElec(cat::Electron el) const
+{
+  if (el.pt() < 30. ) return false;
+  if (std::abs(el.eta()) > 2.4) return false;
+  if ( !el.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-medium") ) return false;
+
+  /*
+  if ((std::abs(el.scEta()) > 1.4442) && (std::abs(el.scEta()) < 1.566)) return false;
+  if ( std::abs(el.scEta()) <= 1.479 ) { if ( el.relIso(0.3) > 0.0766) return false; }
+  else                                 { if ( el.relIso(0.3) > 0.0678) return false; }
+  */
+
+  return true;
+}
+
+float CATDstarLJAnalyzer::selectElecs(const cat::ElectronCollection& elecs, cat::ElectronCollection& selelecs, cat::ElectronCollection& vetoelecs, sys_e sys) const
 {
   float weight = 1.;
   for (auto& e : elecs) {
@@ -90,26 +99,17 @@ float CATDstarLJAnalyzer::selectElecs(const cat::ElectronCollection& elecs, cat:
     if (sys == sys_el_u) el.setP4(e.p4() * e.shiftedEnUp());
     if (sys == sys_el_d) el.setP4(e.p4() * e.shiftedEnDown());
 
-    if (el.pt() < 30.) continue;
-    if ((std::abs(el.scEta()) > 1.4442) && (std::abs(el.scEta()) < 1.566)) continue;
-    if (std::abs(el.eta()) > 2.4) continue;
-    if ( !el.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-medium") ) continue;
-    if (el.relIso(0.3) > 0.12) continue;
-
-    selelecs.push_back(el);
+    if ( isSelectElec(el)) selelecs.push_back(el);
+    else if ( isVetoElec(el)) vetoelecs.push_back(el);
   }
   return weight;
 }
-
-
-
 
 CATDstarLJAnalyzer::CATDstarLJAnalyzer(const edm::ParameterSet& iConfig) : CATDstarAnalyzer(iConfig)
 {
   trigTokenMUJET_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigMUJET"));
   trigTokenELJET_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigELJET"));
 }
-
 
 void CATDstarLJAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
@@ -192,11 +192,9 @@ int CATDstarLJAnalyzer::eventSelection(const edm::Event& iEvent, const edm::Even
   // Find leptons and sort by pT
   cat::MuonCollection selMuons , vetoMuons;
   cat::ElectronCollection selElecs, vetoElecs;
-  selectMuons(*muons, selMuons, (sys_e)sys);
-  selectVetoMuons(*muons, vetoMuons, (sys_e)sys);
-  selectElecs(*electrons, selElecs, (sys_e)sys);
-  selectVetoElecs(*electrons, vetoElecs, (sys_e)sys);
-  if ( selMuons.size()+selElecs.size() < 1 ) {
+  selectMuons(*muons, selMuons, vetoMuons, (sys_e)sys);
+  selectElecs(*electrons, selElecs, vetoElecs, (sys_e)sys);
+  if ( selMuons.size()+selElecs.size() ==0 ) {
     if (b_keepTtbarSignal) ttree_[sys]->Fill();
     return -1;
   }
@@ -216,8 +214,12 @@ int CATDstarLJAnalyzer::eventSelection(const edm::Event& iEvent, const edm::Even
 
   // Determine channel
   const int pdgIdSum = std::abs(recolep1.pdgId()) ;
-  if (pdgIdSum == 11) b_channel = CH_MUJET; // emu
-  if (pdgIdSum == 13) b_channel = CH_ELJET; // ee
+  if (pdgIdSum == 13) b_channel = CH_MUJET; // mu+jet
+  if (pdgIdSum == 11) b_channel = CH_ELJET; // el+jet
+  /*
+  if      ( selElecs.size() > 0)  b_channel = CH_ELJET;
+  else if ( selMuons.size() > 0 ) b_channel = CH_MUJET;
+  */
 
   b_mueffweight    = getMuEffSF(recolep1,  0);
   b_mueffweight_up = getMuEffSF(recolep1, +1);
@@ -247,10 +249,6 @@ int CATDstarLJAnalyzer::eventSelection(const edm::Event& iEvent, const edm::Even
   b_lep2 = TLorentzVector(); b_lep2_pid = 0;
   b_dilep = TLorentzVector();
 
-  if (b_is3lep != 1 ){
-    if (b_keepTtbarSignal) ttree_[sys]->Fill();
-    return -1;
-  }
   b_step1 = true;
   b_step = 1;
   if (sys == sys_nom) cutflow_[4][b_channel]++;
@@ -300,33 +298,21 @@ int CATDstarLJAnalyzer::eventSelection(const edm::Event& iEvent, const edm::Even
       if (sys == sys_nom) cutflow_[8][b_channel]++;
     }
   }
-  vector<int> leptonIndex, antiLeptonIndex, jetIndices, bjetIndices;
-  VLV allLeptonslv, jetslv;
-  vector<double> jetBtags;
-  //////////////////////////////////////////////////////// DESY KIN /////////////////////////////////////
-  if (selectedBJets.size() > 0){
-    //LV metlv = mets->front().p4();
-
-    int ijet=0;
-    for (auto & jet : selectedJets){
-      jetslv.push_back(jet.p4());
-      jetBtags.push_back(jet.bDiscriminator(BTAG_CSVv2));
-      if (jet.bDiscriminator(BTAG_CSVv2) > WP_BTAG_CSVv2L) bjetIndices.push_back(ijet);
-      jetIndices.push_back(ijet);
-      ++ijet;
+  if ( b_nbjet >= 2){
+    if (b_step5){
+      b_step6 = true;
+      ++b_step;
+      if (sys == sys_nom) cutflow_[9][b_channel]++;
     }
-
-    int ilep = 0;
-    for (auto & lep : recolep){
-      allLeptonslv.push_back(lep->p4());
-      if (lep->charge() > 0) antiLeptonIndex.push_back(ilep);
-      else leptonIndex.push_back(ilep);
-      ++ilep;
-    }
-
-    if (b_step == 6 && sys == sys_nom ) cutflow_[10][b_channel]++;
-
   }
+  if ( b_nbjet == 2){
+    if (b_step6){
+      b_step7 = true;
+      ++b_step;
+      if (sys == sys_nom) cutflow_[10][b_channel]++;
+    }
+  }
+
   return 0;
 }
 
