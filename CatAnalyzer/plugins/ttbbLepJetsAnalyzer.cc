@@ -154,7 +154,8 @@ private:
   // b-Jet discriminant
   std::vector<float> *b_Jet_CSV;
   std::vector<float> *b_Jet_SF_CSV;
-
+  // c-Jet discriminant
+  std::vector<float> *b_Jet_CvsL, *b_Jet_CvsB;
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   // Histograms
@@ -242,7 +243,9 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   b_Jet_Index= new std::vector<int>;
   b_Jet_pT   = new std::vector<float>;
   b_Jet_CSV  = new std::vector<float>;
-  b_Jet_SF_CSV  = new std::vector<float>;  
+  b_Jet_SF_CSV  = new std::vector<float>;
+  b_Jet_CvsL    = new std::vector<float>;  
+  b_Jet_CvsB    = new std::vector<float>;  
   b_Jet_partonFlavour = new std::vector<int>;
   b_Jet_hadronFlavour = new std::vector<int>;
   b_Jet_JES_Up   = new std::vector<float>;
@@ -284,6 +287,8 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("jet_pT",     "std::vector<float>", &b_Jet_pT );
   tree->Branch("jet_CSV" ,   "std::vector<float>", &b_Jet_CSV );
   tree->Branch("jet_SF_CSV", "std::vector<float>", &b_Jet_SF_CSV );
+  tree->Branch("jet_CvsL",   "std::vector<float>", &b_Jet_CvsL );
+  tree->Branch("jet_CvsB",   "std::vector<float>", &b_Jet_CvsB );
   tree->Branch("jet_Number" , &b_Jet_Number, "jet_number/I" );
 
   tree->Branch("jet_partonFlavour", "std::vector<int>", &b_Jet_partonFlavour);
@@ -389,7 +394,8 @@ ttbbLepJetsAnalyzer::~ttbbLepJetsAnalyzer()
   delete b_Jet_SF_CSV;
 
   delete b_Jet_CSV;
-
+  delete b_Jet_CvsL;
+  delete b_Jet_CvsB;
 }
 
 //
@@ -401,41 +407,42 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 {
   using namespace edm;
 
-  b_PUWeight->clear();
+  b_PUWeight   ->clear();
   b_ScaleWeight->clear();
 
   b_GenConeCatID->clear();
 
 
-  b_GenJet_px->clear();
-  b_GenJet_py->clear();
-  b_GenJet_pz->clear();
-  b_GenJet_E->clear();
-  b_GenJet_pT->clear();
+  b_GenJet_px ->clear();
+  b_GenJet_py ->clear();
+  b_GenJet_pz ->clear();
+  b_GenJet_E  ->clear();
+  b_GenJet_pT ->clear();
   b_GenJet_mom->clear();
 
   b_Lepton_SF->clear();
 
-  b_Jet_px->clear();
-  b_Jet_py->clear();
-  b_Jet_pz->clear();
-  b_Jet_E->clear();
+  b_Jet_px   ->clear();
+  b_Jet_py   ->clear();
+  b_Jet_pz   ->clear();
+  b_Jet_E    ->clear();
   b_Jet_Index->clear();
-  b_Jet_pT->clear();
+  b_Jet_pT   ->clear();
 
   b_Jet_partonFlavour->clear();
   b_Jet_hadronFlavour->clear();
 
   b_Jet_MatchedGenJetIndex->clear();
 
-  b_Jet_JES_Up->clear();
+  b_Jet_JES_Up  ->clear();
   b_Jet_JES_Down->clear();
-  b_Jet_JER_Up->clear();
-  b_Jet_JER_Nom->clear();
+  b_Jet_JER_Up  ->clear();
+  b_Jet_JER_Nom ->clear();
   b_Jet_JER_Down->clear();
 
-  b_Jet_CSV->clear();
+  b_Jet_CSV   ->clear();
   b_Jet_SF_CSV->clear();
+  b_Jet_CvsL  ->clear();
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -886,6 +893,10 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         // b-tag discriminant
         float jet_btagDis_CSV = jet.bDiscriminator(BTAG_CSVv2);
         b_Jet_CSV ->push_back(jet_btagDis_CSV);
+        float jet_btagDis_CvsL = jet.bDiscriminator("pfCombinedCvsLJetTags");
+        b_Jet_CvsL ->push_back(jet_btagDis_CvsL);
+        float jet_btagDis_CvsB = jet.bDiscriminator("pfCombinedCvsBJetTags");
+	b_Jet_CvsB ->push_back(jet_btagDis_CvsB);
 
         if(isMC_) {
           // JES
