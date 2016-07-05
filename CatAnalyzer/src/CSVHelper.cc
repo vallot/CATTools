@@ -30,8 +30,8 @@
 */
 CSVHelper::CSVHelper(std::string hf, std::string lf)
 {
-    std::string inputFileHF = hf.size() > 0 ? hf :"CATTools/CatAnalyzer/data/scaleFactors/csv_rwt_fit_hf_76x_2016_02_08.root";
-    std::string inputFileLF = lf.size() > 0 ? lf :"CATTools/CatAnalyzer/data/scaleFactors/csv_rwt_fit_lf_76x_2016_02_08.root";
+    std::string inputFileHF = hf.size() > 0 ? hf :"CATTools/CatAnalyzer/data/scaleFactors/csv_rwt_fit_hf_v2_final_2016_06_30test.root";
+    std::string inputFileLF = lf.size() > 0 ? lf :"CATTools/CatAnalyzer/data/scaleFactors/csv_rwt_fit_lf_v2_final_2016_06_30test.root";
 
     TFile *f_CSVwgt_HF = new TFile((std::string(getenv("CMSSW_BASE")) + "/src/" + inputFileHF).c_str());
     TFile *f_CSVwgt_LF = new TFile((std::string(getenv("CMSSW_BASE")) + "/src/" + inputFileLF).c_str());
