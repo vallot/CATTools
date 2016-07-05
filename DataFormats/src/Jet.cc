@@ -5,10 +5,12 @@
 using namespace cat;
 
 /// default constructor
-Jet::Jet() {
+Jet::Jet():
+  fJER_(1), fJERUp_(1), fJERDn_(1) {
 }
 
-Jet::Jet(const reco::LeafCandidate & aJet) : Particle( aJet ) {
+Jet::Jet(const reco::LeafCandidate & aJet) : Particle( aJet ),
+  fJER_(1), fJERUp_(1), fJERDn_(1) {
 }
 
 /// destructor
