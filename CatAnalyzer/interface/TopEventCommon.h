@@ -7,26 +7,10 @@
 
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
-/*
 
-#include "CATTools/DataFormats/interface/Muon.h"
-#include "CATTools/DataFormats/interface/Electron.h"
-#include "CATTools/DataFormats/interface/Jet.h"
-#include "CATTools/DataFormats/interface/MET.h"
-
-#include "CATTools/CommonTools/interface/TTbarModeDefs.h"
-#include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
-#include "CATTools/CatAnalyzer/interface/BTagWeightEvaluator.h"
-#include "CATTools/CatAnalyzer/interface/KinematicSolvers.h"
-
-#include "CATTools/CommonTools/interface/AnalysisHelper.h"
-#include "CATTools/CatAnalyzer/interface/analysisUtils.h"
-#include "CATTools/CatAnalyzer/interface/KinematicReconstruction.h"
-*/
 #include "TTree.h"
 #include "TH1D.h"
 
-#include "CATTools/CatAnalyzer/interface/TopEventInfo.h"
 #include "CATTools/CatAnalyzer/interface/TTEventSelector.h"
 
 class TopEventCommon : public edm::one::EDAnalyzer<edm::one::SharedResources,edm::one::WatchLuminosityBlocks> {
@@ -38,24 +22,21 @@ public:
   void genInfo(const edm::Event& iEvent, const edm::EventSetup& iSetup );
   void setBranch(TTree* tree, int sys);
   void setBranchCustom(TTree* tree, int sys);
-  /*
-  void runParameterInit(const edm::ParameterSet& iConfig) { 
-    eventSelect_->parameterInit(iConfig);
-  }
-  */
 
   void resetBr() {
     evInfo_.resetBr();
     resetCustomBranch();
   }
   virtual void resetCustomBranch() {}
-  int runEventSelection(const edm::Event& iEvent, const edm::EventSetup& iSetup, TTree* tree) {
-   return eventSelect_->eventSelection(iEvent, iSetup, tree);
+  int runEventSelection(const edm::Event& iEvent, const edm::EventSetup& iSetup, TTree* tree, int sys) {
+   return eventSelect_->eventSelection(iEvent, iSetup, tree, sys);
   }
-  void setEventSelection( TTEventSelector* eventSelect) {
-    eventSelect_ = eventSelect;
+  void setEventSelection( const edm::ParameterSet& iConfig, TopEventInfo& evInfo, edm::ConsumesCollector iC  ) { 
+    eventSelect_ = new TTEventSelector( iConfig, evInfo, iC);
   }
+  
   void showSummary();
+
 // Use protect keyword for branches.
 protected : 
   TopEventInfo evInfo_;
@@ -77,7 +58,6 @@ protected :
 private:
   void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&);
   void endLuminosityBlock(const edm::LuminosityBlock&, const edm::EventSetup&) override {};
-
 
 };
 

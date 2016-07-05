@@ -22,7 +22,6 @@ void TopEventInfo::resetBr(){
   pdfWeights.clear();
   scaleWeights_up.clear(); scaleWeights_dn.clear();
 
-  is3lep = -9;
 
   gen_partonChannel = 0; gen_partonMode1 = 0; gen_partonMode2 = 0; gen_partonMode = 0;
   gen_partonInPhase = 0; gen_partonInPhaseLep = 0; gen_partonInPhaseJet = 0;
@@ -61,10 +60,13 @@ void TopEventInfo::resetBr(){
   partonttbar = TLorentzVector();
   partonttbar_dphi = 0;
 
+  /*
+  is3lep = -9;
   desyjet1 = TLorentzVector(); desyjet2 = TLorentzVector();
   desytop1 = TLorentzVector(); desytop2 = TLorentzVector();
   desyjet1_CSVInclV2 = 0; desyjet2_CSVInclV2 = 0;
   desyttbar = TLorentzVector();
   desyttbar_dphi = 0;
+  */
 
 }

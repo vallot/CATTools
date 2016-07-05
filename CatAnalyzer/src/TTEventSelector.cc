@@ -5,7 +5,7 @@ using namespace cat;
 using namespace TopEventCommonGlobal;
 
 
-TTEventSelector::TTEventSelector(const edm::ParameterSet& iConfig, TopEventInfo& evInfo, edm::ConsumesCollector&& iC ):evInfo_(evInfo) {
+TTEventSelector::TTEventSelector(const edm::ParameterSet& iConfig, TopEventInfo& evInfo, edm::ConsumesCollector& iC ):evInfo_(evInfo) {
   typedef std::vector<double> vdouble;
 
   recoFiltersToken_ = iC.consumes<int>(iConfig.getParameter<edm::InputTag>("recoFilters"));
@@ -74,13 +74,13 @@ TTEventSelector::TTEventSelector(const edm::ParameterSet& iConfig, TopEventInfo&
   */
 }
 
-void setBranch(  int sys ) { 
+void setBranch(TTree* tree,  int sys ) { 
 
 }
  
 
-int TTEventSelector::eventSelection(const edm::Event& iEvent, const edm::EventSetup& iSetup, TTree* tree){
-
+int TTEventSelector::eventSelection(const edm::Event& iEvent, const edm::EventSetup& iSetup, TTree* tree, int sys){
+  const bool runOnMC = !iEvent.isRealData();
   edm::Handle<reco::VertexCollection> vertices;
   iEvent.getByToken(vtxToken_, vertices);
   if (vertices->empty()){ // skip the event if no PV found
@@ -88,7 +88,7 @@ int TTEventSelector::eventSelection(const edm::Event& iEvent, const edm::EventSe
     std::cout<<"No PV"<<std::endl;
     return -1;
   }
-  if (sys == sys_nom) cutflow_[1][evInfo_.channel]++;
+  if (sys == sys_nom) evInfo_.cutflow_[1][evInfo_.channel]++;
 
   // const reco::Vertex &PV = vertices->front();
   edm::Handle<int> nGoodVertexHandle;
@@ -104,7 +104,7 @@ int TTEventSelector::eventSelection(const edm::Event& iEvent, const edm::EventSe
   edm::Handle<int> recoFiltersHandle;
   iEvent.getByToken(recoFiltersToken_, recoFiltersHandle);
   evInfo_.filtered = *recoFiltersHandle == 0 ? false : true;
-  if (sys == sys_nom) cutflow_[2][evInfo_.channel]++;
+  if (sys == sys_nom) evInfo_.cutflow_[2][evInfo_.channel]++;
 
   edm::Handle<cat::MuonCollection> muons;          iEvent.getByToken(muonToken_, muons);
   edm::Handle<cat::ElectronCollection> electrons;  iEvent.getByToken(elecToken_, electrons);
@@ -120,16 +120,16 @@ int TTEventSelector::eventSelection(const edm::Event& iEvent, const edm::EventSe
     if (evInfo_.keepTtbarSignal) tree->Fill();
     return -1;
   }
-  if (sys == sys_nom) cutflow_[3][evInfo_.channel]++;
+  if (sys == sys_nom) evInfo_.cutflow_[3][evInfo_.channel]++;
 
   //std::vector<const cat::Lepton*> recolep;
-  auto& recolep = recolep_;
+  auto& recolep = evInfo_.recolep_;
   recolep.clear();
   for ( const auto& x : selMuons ) recolep.push_back(&x);
   for ( const auto& x : selElecs ) recolep.push_back(&x);
 
   sort(recolep.begin(), recolep.end(), [](const cat::Lepton* a, const cat::Lepton* b){return a->pt() > b->pt();});
-  evInfo_.is3lep = recolep.size();
+  //evInfo_.is3lep = recolep.size();
   recolep.erase(recolep.begin()+2,recolep.end());
   if ( recolep[0]->charge() < 0 ){
     swap(recolep[0], recolep[1]);
@@ -173,31 +173,31 @@ int TTEventSelector::eventSelection(const edm::Event& iEvent, const edm::EventSe
   }
   evInfo_.step1 = true;
   evInfo_.step = 1;
-  if (sys == sys_nom) cutflow_[4][evInfo_.channel]++;
+  if (sys == sys_nom) evInfo_.cutflow_[4][evInfo_.channel]++;
 
   if ( (evInfo_.channel == CH_MUEL) || ((tlv_ll.M() < 76) || (tlv_ll.M() > 106)) ){
     evInfo_.step2 = true;
     evInfo_.step = 2;
-    if (sys == sys_nom) cutflow_[5][evInfo_.channel]++;
+    if (sys == sys_nom) evInfo_.cutflow_[5][evInfo_.channel]++;
   }
 
-  selectedJets.clear();
-  selectedBJets.clear();
+  //selectedJets.clear();
+  //selectedBJets.clear();
 
-  selectedJets  = selectJets(*jets, recolep, (sys_e)sys);
-  selectedBJets =  selectBJets(selectedJets);
+  auto selectedJets  = selectJets(*jets, recolep, (sys_e)sys);
+  auto selectedBJets =  selectBJets(selectedJets);
 
   //met.clear();
   evInfo_.metlv  = mets->front().p4();
   evInfo_.met = evInfo_.metlv.pt();
   evInfo_.njet = selectedJets.size();
-  evInfo_.nbjet = selectedBJets.size();
+  evInfo_.nbjet = evInfo_.selectedBJets.size();
 
   if (selectedJets.size() >1 ){
     evInfo_.step3 = true;
     if (evInfo_.step == 2){
       ++evInfo_.step;
-      if (sys == sys_nom) cutflow_[6][evInfo_.channel]++;
+      if (sys == sys_nom) evInfo_.cutflow_[6][evInfo_.channel]++;
     }
   }
 
@@ -205,7 +205,7 @@ int TTEventSelector::eventSelection(const edm::Event& iEvent, const edm::EventSe
     evInfo_.step4 = true;
     if (evInfo_.step == 3){
       ++evInfo_.step;
-      if (sys == sys_nom) cutflow_[7][evInfo_.channel]++;
+      if (sys == sys_nom) evInfo_.cutflow_[7][evInfo_.channel]++;
     }
   }
 
@@ -213,9 +213,10 @@ int TTEventSelector::eventSelection(const edm::Event& iEvent, const edm::EventSe
     evInfo_.step5 = true;
     if (evInfo_.step == 4){
       ++evInfo_.step;
-      if (sys == sys_nom) cutflow_[8][evInfo_.channel]++;
+      if (sys == sys_nom) evInfo_.cutflow_[8][evInfo_.channel]++;
     }
   }
+  /*
   vector<int> leptonIndex, antiLeptonIndex, jetIndices, bjetIndices;
   VLV allLeptonslv, jetslv;
   vector<double> jetBtags;
@@ -241,7 +242,7 @@ int TTEventSelector::eventSelection(const edm::Event& iEvent, const edm::EventSe
     }
     auto kinematicReconstructionSolutions = kinematicReconstruction->solutions(leptonIndex, antiLeptonIndex, jetIndices, bjetIndices,  allLeptonslv, jetslv, jetBtags, metlv);
 
-    if (evInfo_.step == 5 and sys == sys_nom) cutflow_[10][evInfo_.channel]++;
+    if (evInfo_.step == 5 and sys == sys_nom) evInfo_.cutflow_[10][evInfo_.channel]++;
 
     if (kinematicReconstructionSolutions.numberOfSolutions()){
       LV top1 = kinematicReconstructionSolutions.solution().top();
@@ -250,16 +251,17 @@ int TTEventSelector::eventSelection(const edm::Event& iEvent, const edm::EventSe
       evInfo_.step8 = true;
       if (evInfo_.step == 5)
         if (sys == sys_nom)
-          cutflow_[11][evInfo_.channel]++;
+          evInfo_.cutflow_[11][evInfo_.channel]++;
 
-      evInfo_.desytop1 = ToTLorentzVector(top1);
-      evInfo_.desytop2 = ToTLorentzVector(top2);
+      //evInfo_.desytop1 = ToTLorentzVector(top1);
+      //evInfo_.desytop2 = ToTLorentzVector(top2);
 
       LV ttbar = kinematicReconstructionSolutions.solution().ttbar();
-      evInfo_.desyttbar = ToTLorentzVector(ttbar);
-      evInfo_.desyttbar_dphi = deltaPhi(top1.Phi(), top2.Phi());
+      //evInfo_.desyttbar = ToTLorentzVector(ttbar);
+      //evInfo_.desyttbar_dphi = deltaPhi(top1.Phi(), top2.Phi());
     }
   }
+  */
   return 0;
 }
 
@@ -316,7 +318,7 @@ float TTEventSelector::selectElecs(const cat::ElectronCollection& elecs, cat::El
   return weight;
 }
 
-cat::JetCollection TTEventSelector::selectJets(const cat::JetCollection& jets, const TTEventSelectorGlobal::LeptonPtrs& recolep, sys_e sys)
+cat::JetCollection TTEventSelector::selectJets(const cat::JetCollection& jets, const LeptonPtrs& recolep, sys_e sys)
 {
   // Initialize SF_btag
   float Jet_SF_CSV[19];

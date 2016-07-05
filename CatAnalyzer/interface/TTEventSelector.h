@@ -4,9 +4,6 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/ConsumesCollector.h"
-//#include "DataFormats/VertexReco/interface/Vertex.h"
-
-//#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 
 #include "CATTools/DataFormats/interface/Muon.h"
 #include "CATTools/DataFormats/interface/Electron.h"
@@ -21,28 +18,23 @@
 #include "CATTools/CommonTools/interface/AnalysisHelper.h"
 #include "CATTools/CatAnalyzer/interface/analysisUtils.h"
 #include "CATTools/CatAnalyzer/interface/KinematicReconstruction.h"
-#include "CATTools/CatAnalyzer/interface/TopEventInfo.h"
 #include "TTree.h"
 #include "TH1D.h"
-//#include "FWCore/Framework/interface/LuminosityBlock.h"
-
-//#include "FWCore/ServiceRegistry/interface/Service.h"
-//#include "CommonTools/UtilAlgos/interface/TFileService.h"
 
 #include "CATTools/CatAnalyzer/interface/TopTriggerSF.h"
-#include "CATTools/CatAnalyzer/interface/TopEventInfo.h"
 #include "CATTools/CatAnalyzer/interface/KinematicReconstructionSolution.h"
 
 #include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/Math/interface/deltaPhi.h"
-
+#include "CATTools/CatAnalyzer/interface/TopEventInfo.h"
+#include "CATTools/CatAnalyzer/interface/TopEventGlobalVar.h"
 
 class TTEventSelector 
 {
 public :
-  explicit TTEventSelector(const edm::ParameterSet&, TopEventInfo& evInfo, edm::ConsumesCollector&& iC );
+  explicit TTEventSelector(const edm::ParameterSet&, TopEventInfo& evInfo, edm::ConsumesCollector& iC );
   ~TTEventSelector() ;
-  virtual int eventSelection(const edm::Event& iEvent, const edm::EventSetup& iSetup, TTree* tree);
+  virtual int eventSelection(const edm::Event& iEvent, const edm::EventSetup& iSetup, TTree* tree, int sys);
   const reco::Candidate* getLast(const reco::Candidate* p) const;
   void setBranch(TTree* tree, int sys);
   void resetBranch(); 

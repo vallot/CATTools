@@ -1,5 +1,8 @@
 #include "CATTools/CatAnalyzer/interface/CATDstarAnalyzer.h"
 
+using namespace std;
+using namespace cat;
+using namespace dileptonCommonGlobal;
 
 class CATDstarLJAnalyzer : virtual public CATDstarAnalyzer {
   public:

@@ -5,6 +5,7 @@
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
 #include "CATTools/CatAnalyzer/interface/TopTriggerSF.h"
+#include "CATTools/CatAnalyzer/interface/TopEventGlobalVar.h"
 #include "CATTools/CatAnalyzer/interface/KinematicReconstructionSolution.h"
 
 #include "DataFormats/Math/interface/deltaR.h"
@@ -41,7 +42,7 @@ TopEventCommon::TopEventCommon(const edm::ParameterSet& iConfig ){
   edm::Service<TFileService> fs;
 
   h_nevents = fs->make<TH1D>("nevents","nevents",1,0,1);
-  setEventSelection( new TTEventSelection(iConfig, evInfo_, consumesCollector() ));
+  setEventSelection(iConfig, evInfo_, consumesCollector());
   for (int sys = 0; sys < nsys_e; ++sys){
     ttree_.push_back(fs->make<TTree>(sys_name[sys].c_str(), sys_name[sys].c_str()));
     auto tr = ttree_.back();
@@ -55,7 +56,7 @@ TopEventCommon::TopEventCommon(const edm::ParameterSet& iConfig ){
   evInfo_.kinematicReconstruction.reset(new KinematicReconstruction(1, true));
 
 }
-
+void TopEventCommon::setBranchCustom(TTree* tree, int sys) {}
 TopEventCommon::~TopEventCommon(){
   showSummary();
 }
@@ -455,7 +456,7 @@ void TopEventCommon::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
     if (sys > 0 && !runOnMC) break;
     resetBr();
     if( sys == 0 ) genInfo(iEvent, iSetup);
-    int terminate = runEventSelection(iEvent, iSetup, ttree_[sys] );
+    int terminate = runEventSelection(iEvent, iSetup, ttree_[sys] , sys);
     if ( terminate == -1 ) continue;
     else if ( terminate == -2 ) return;
 

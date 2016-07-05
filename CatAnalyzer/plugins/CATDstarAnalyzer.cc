@@ -1,5 +1,10 @@
 #include "CATTools/CatAnalyzer/interface/CATDstarAnalyzer.h"
 
+
+using namespace std;
+using namespace cat;
+using namespace dileptonCommonGlobal;
+
 void CATDstarAnalyzer::setBranchCustom(TTree* tr, int sys) {
 
   b_d0       = new TClonesArray("TLorentzVector",100);
