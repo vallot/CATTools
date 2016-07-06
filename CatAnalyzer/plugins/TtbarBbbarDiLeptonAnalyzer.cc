@@ -1217,17 +1217,13 @@ cat::JetCollection TtbarBbbarDiLeptonAnalyzer::selectJets(const cat::JetCollecti
   for (auto& j : jets) {
     cat::Jet jet(j);
     double scale = 1.0;
-    switch ( sys ) {
-      case sys_jes_u: scale *= j.shiftedEnUp(); break;
-      case sys_jes_d: scale *= j.shiftedEnDown(); break;
-    }
+    if      ( sys == sys_jes_u ) scale *= j.shiftedEnUp();
+    else if ( sys == sys_jes_d ) scale *= j.shiftedEnDown();
+
     if ( runOnMC_ ) {
-      scale *= j.smearedRes();
-      switch ( sys ) {
-        case sys_jer_u: scale *= j.smearedResUp(); break;
-        case sys_jer_d: scale *= j.smearedResDown(); break;
-        case sys_jer_n: scale /= j.smearedRes(); break; // Undo the smearing
-      }
+      if      ( sys == sys_jer_u ) scale *= j.smearedResUp();
+      else if ( sys == sys_jer_d ) scale *= j.smearedResDown();
+      else if ( sys != sys_jer_n ) scale *= j.smearedRes();
     }
 
     jet.setP4(j.p4()*scale);
