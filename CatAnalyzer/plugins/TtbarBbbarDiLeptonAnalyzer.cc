@@ -1221,10 +1221,9 @@ cat::JetCollection TtbarBbbarDiLeptonAnalyzer::selectJets(const cat::JetCollecti
     else if ( sys == sys_jes_d ) scale *= j.shiftedEnDown();
 
     if ( runOnMC_ ) {
-      scale *= j.smearedRes();
       if      ( sys == sys_jer_u ) scale *= j.smearedResUp();
       else if ( sys == sys_jer_d ) scale *= j.smearedResDown();
-      else if ( sys == sys_jer_n ) scale /= j.smearedRes(); // Undo the smearing
+      else if ( sys != sys_jer_n ) scale *= j.smearedRes();
     }
 
     jet.setP4(j.p4()*scale);
