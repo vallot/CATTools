@@ -1216,21 +1216,21 @@ cat::JetCollection TtbarBbbarDiLeptonAnalyzer::selectJets(const cat::JetCollecti
   cat::JetCollection seljets;
   for (auto& j : jets) {
     cat::Jet jet(j);
-    if (!runOnMC_)
-    {
-       if (sys == sys_jes_u) jet.setP4(j.p4() * j.shiftedEnUp() );
-       else if (sys == sys_jes_d) jet.setP4(j.p4() * j.shiftedEnDown() );
-       else   jet.setP4(j.p4() );
+    double scale = 1.0;
+    switch ( sys ) {
+      case sys_jes_u: scale *= j.shiftedEnUp(); break;
+      case sys_jes_d: scale *= j.shiftedEnDown(); break;
     }
-    else if (sys == sys_jes_u) jet.setP4(j.p4() * j.shiftedEnUp() * j.smearedRes());
-    else if (sys == sys_jes_d) jet.setP4(j.p4() * j.shiftedEnDown() * j.smearedRes());
-    else if (sys == sys_jes_u) jet.setP4(j.p4() * j.shiftedEnUp() * j.smearedRes());
-    else if (sys == sys_jes_d) jet.setP4(j.p4() * j.shiftedEnDown() * j.smearedRes());
-    else if (sys == sys_jer_n) jet.setP4(j.p4() );
-    else if (sys == sys_jer_u) jet.setP4(j.p4() * j.smearedResUp());
-    else if (sys == sys_jer_d) jet.setP4(j.p4() * j.smearedResDown());
-    else                       jet.setP4(j.p4() * j.smearedRes());
+    if ( runOnMC_ ) {
+      scale *= j.smearedRes();
+      switch ( sys ) {
+        case sys_jer_u: scale *= j.smearedResUp(); break;
+        case sys_jer_d: scale *= j.smearedResDown(); break;
+        case sys_jer_n: scale /= j.smearedRes(); break; // Undo the smearing
+      }
+    }
 
+    jet.setP4(j.p4()*scale);
 
     if (jet.pt() < 30.) continue;
     if (std::abs(jet.eta()) > 2.4)  continue;
