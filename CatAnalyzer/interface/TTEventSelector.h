@@ -35,7 +35,9 @@ public :
   explicit TTEventSelector(const edm::ParameterSet&, edm::ConsumesCollector&& iC );
   explicit TTEventSelector(const edm::ParameterSet&, edm::ConsumesCollector& iC );
   ~TTEventSelector() {}
-  virtual int eventSelection(const edm::Event& iEvent, const edm::EventSetup& iSetup, TTree* tree, int sys) {return 0;}
+  virtual int eventSelection(const edm::Event& iEvent, const edm::EventSetup& iSetup, TTree* tree, int sys) {
+    std::cout<<"No event selection"<<std::endl; return 0;
+  }
   const reco::Candidate* getLast(const reco::Candidate* p) const;
   virtual void setBranch(TTree* tree, int sys) {}
   virtual void resetBranch(){} 

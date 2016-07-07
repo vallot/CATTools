@@ -23,10 +23,12 @@ public:
   virtual void analyzeCustom(const edm::Event&, const edm::EventSetup&, int sys );
   void genInfo(const edm::Event& iEvent, const edm::EventSetup& iSetup );
   void setBranch(TTree* tree, int sys);
-  virtual void setBranchCustom(TTree* tree, int sys);
+  virtual void setBranchCustom(TTree* tree, int sys) {}
+  virtual void resetBranchCustom() {}
   void resetBr() {
     TopEventInfo& evInfo_ = TopEventInfo::getInstance();
     evInfo_.resetBr();
+    resetBranchCustom();
   }
   int runEventSelection(const edm::Event& iEvent, const edm::EventSetup& iSetup, TTree* tree, int sys) {
    return eventSelect_->eventSelection(iEvent, iSetup, tree, sys);

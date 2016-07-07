@@ -30,11 +30,9 @@ void TopDileptonEventCommon::showSummary() {
     cout <<setw(10)<<"step "<<i<< setw(10)<<evInfo_.cutflow_[i][0] << setw(10)<<evInfo_.cutflow_[i][1] << setw(10)<<evInfo_.cutflow_[i][2] <<setw(10)<<evInfo_.cutflow_[i][3]<< endl;
   }
 }
-
 void TopDileptonEventCommon::analyzeCustom(const edm::Event& iEvent, const edm::EventSetup& iSetup, int sys) {
   std::cout<<"Dilepton Analyzer"<<std::endl;
 }
-
 //define this as a plug-in
 #include "FWCore/Framework/interface/MakerMacros.h"
 DEFINE_FWK_MODULE(TopDileptonEventCommon);

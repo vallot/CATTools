@@ -19,6 +19,7 @@ void TTDileptonEventSelector::setBranch(TTree* tree,  int sys ) {
 void TTDileptonEventSelector::resetBranch(){}
  
 int TTDileptonEventSelector::eventSelection(const edm::Event& iEvent, const edm::EventSetup& iSetup, TTree* tree, int sys){
+  std::cout<<"Running for TTbar dilepton decay channel Reference Event Selection!"<<std::endl;
   TopEventInfo& evInfo_ = TopEventInfo::getInstance();
   const bool runOnMC = !iEvent.isRealData();
   edm::Handle<reco::VertexCollection> vertices;

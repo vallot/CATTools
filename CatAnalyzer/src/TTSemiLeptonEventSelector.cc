@@ -107,8 +107,9 @@ float TTSemiLeptonEventSelector::selectElecs(const cat::ElectronCollection& elec
  
 
 int TTSemiLeptonEventSelector::eventSelection(const edm::Event& iEvent, const edm::EventSetup& iSetup, TTree* tree, int sys){
-  const bool runOnMC = !iEvent.isRealData();
+  std::cout<<"Running for TTbar SemiLepton decay channel Reference Event Selection!"<<std::endl;
   TopEventInfo& evInfo_ = TopEventInfo::getInstance();
+  const bool runOnMC = !iEvent.isRealData();
 
   if (sys == sys_nom) evInfo_.cutflow_[0][evInfo_.channel]++;
 

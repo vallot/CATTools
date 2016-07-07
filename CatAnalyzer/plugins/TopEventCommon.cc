@@ -60,12 +60,7 @@ TopEventCommon::TopEventCommon(const edm::ParameterSet& iConfig ){
   paramInit(iConfig);
 
 }
-/*
-TopEventCommon::TopEventCommon(const edm::ParameterSet& iConfig, TTEventSelector* eventSelect ) : eventSelect_(eventSelect){
-  paramInit(iConfig);
-}
-*/
-void TopEventCommon::setBranchCustom(TTree* tree, int sys) {}
+
 TopEventCommon::~TopEventCommon(){
   showSummary();
 }
