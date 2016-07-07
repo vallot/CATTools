@@ -78,11 +78,23 @@ shared_ptr<TLorentzVector> CATDstarSemiLeptonAnalyzer::mcMatching( vector<TLoren
   }
   return nullptr;
 }
+void CATDstarSemiLeptonAnalyzer::endJob() {
+  showSummary();
+}
 
 CATDstarSemiLeptonAnalyzer::CATDstarSemiLeptonAnalyzer(const edm::ParameterSet& iConfig ) :TopEventCommon(iConfig) 
 {
   eventSelect_ = new TTSemiLeptonEventSelector(iConfig, consumesCollector()) ;
   paramInit(iConfig);
+  d0Token_  = consumes<cat::SecVertexCollection>(iConfig.getParameter<edm::InputTag>("d0s"));
+  dstarToken_  = consumes<cat::SecVertexCollection>(iConfig.getParameter<edm::InputTag>("dstars"));
+  mcSrc_ = consumes<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("mcLabel"));
+  matchingDeltaR_  = iConfig.getParameter<double>("matchingDeltaR");
+
+  for (int sys = 0; sys < nsys_e; ++sys){
+    auto tr = ttree_[sys];
+    setBranchCustom(tr, sys);
+  }
 }
 
 void CATDstarSemiLeptonAnalyzer::showSummary() {
@@ -93,7 +105,6 @@ void CATDstarSemiLeptonAnalyzer::showSummary() {
   }
 }
 void CATDstarSemiLeptonAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventSetup& iSetup, int sys) {
-  std::cout<<"CATDstar SemiLepton Analyzer"<<std::endl;
   edm::Handle<cat::SecVertexCollection> d0s;       iEvent.getByToken(d0Token_,d0s);
   edm::Handle<cat::SecVertexCollection> dstars;    iEvent.getByToken(dstarToken_,dstars);
 

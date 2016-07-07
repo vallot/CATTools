@@ -198,7 +198,6 @@ cat::JetCollection TTEventSelector::selectBJets(const JetCollection& jets) const
     else if ( bJetCSV_.compare(std::string("loose"))==0 && jet.bDiscriminator(BTAG_CSVv2) < WP_BTAG_CSVv2L) continue;
     //if (jet.bDiscriminator(BTAG_CSVv2) < WP_BTAG_CSVv2M) continue;//forsync
     //printf("b jet with pt %4.1f\n", jet.pt());
-    else { std::cout<<"No CSV tag"<<std::endl; continue; }
     selBjets.push_back(jet);
   }
   return selBjets;

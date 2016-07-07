@@ -9,17 +9,17 @@ TTSemiLeptonEventSelector::TTSemiLeptonEventSelector(const edm::ParameterSet& iC
 
   
   vetoMuonPtCut_ =  iConfig.getParameter<double>("vetoMuonPtCut");
-  vetoMuonEtaCut_ = iConfig.getParameter<double>("vetoMuonEtatCut");
+  vetoMuonEtaCut_ = iConfig.getParameter<double>("vetoMuonEtaCut");
   vetoMuonIsoCut_ = iConfig.getParameter<double>("vetoMuonIsoCut");
 
 
   vetoElectronPtCut_  = iConfig.getParameter<double>("vetoElectronPtCut");
-  vetoElectronEtaCut_ = iConfig.getParameter<double>("vetoElectronEtatCut");
+  vetoElectronEtaCut_ = iConfig.getParameter<double>("vetoElectronEtaCut");
   vetoElectronIsoCut_ = iConfig.getParameter<double>("vetoElectronIsoCut");
-  vetoElectronIDCut_  = iConfig.getParameter<double>("vetoElectronIDCut");
+  vetoElectronIDCut_  = iConfig.getParameter<string>("vetoElectronIDCut");
 
-  trigTokenMUJET_ = iC.consumes<int>(iConfig.getParameter<edm::InputTag>("trigTokenMUJET"));
-  trigTokenELJET_ = iC.consumes<int>(iConfig.getParameter<edm::InputTag>("trigTokenMUJET"));
+  trigTokenMUJET_ = iC.consumes<int>(iConfig.getParameter<edm::InputTag>("trigMUJET"));
+  trigTokenELJET_ = iC.consumes<int>(iConfig.getParameter<edm::InputTag>("trigELJET"));
 
 
 }
@@ -107,7 +107,6 @@ float TTSemiLeptonEventSelector::selectElecs(const cat::ElectronCollection& elec
  
 
 int TTSemiLeptonEventSelector::eventSelection(const edm::Event& iEvent, const edm::EventSetup& iSetup, TTree* tree, int sys){
-  std::cout<<"Running for TTbar SemiLepton decay channel Reference Event Selection!"<<std::endl;
   TopEventInfo& evInfo_ = TopEventInfo::getInstance();
   const bool runOnMC = !iEvent.isRealData();
 

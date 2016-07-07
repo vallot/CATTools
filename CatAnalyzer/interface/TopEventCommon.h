@@ -39,7 +39,7 @@ public:
   }
   */
   virtual void showSummary();
-
+  virtual void endJob();
 // Use protect keyword for branches.
 protected : 
   TTEventSelector* eventSelect_;

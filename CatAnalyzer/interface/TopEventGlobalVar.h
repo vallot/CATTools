@@ -12,7 +12,7 @@ namespace TopEventCommonGlobal {
     "jes_u", "jes_d", "jer_u", "jer_d",
     "mu_u", "mu_d", "el_u", "el_d",
   };
-  static const int NCutflow = sys_name.size();
+  static const int NCutflow = 12;
   typedef std::vector<const cat::Lepton*> LeptonPtrs;
   typedef math::XYZTLorentzVector LV;
   typedef std::vector<LV> VLV;

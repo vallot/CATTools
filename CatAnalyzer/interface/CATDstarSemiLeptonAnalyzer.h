@@ -25,7 +25,7 @@ public:
   virtual void setBranchCustom(TTree* , int );
   void resetBranchCustom();
   virtual void showSummary();
-
+  virtual void endJob();
   std::shared_ptr<TLorentzVector> mcMatching( std::vector<TLorentzVector>& aGens, TLorentzVector& aReco) ;
 // Use protect keyword for branches.
 protected : 

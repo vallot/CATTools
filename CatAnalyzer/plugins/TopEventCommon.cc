@@ -48,7 +48,6 @@ void TopEventCommon::paramInit(const edm::ParameterSet& iConfig) {
     auto tr = ttree_.back();
     setBranch(tr, sys);
     eventSelect_->setBranch(tr, sys);
-    setBranchCustom(tr, sys);
   }
   for (int i = 0; i < NCutflow; i++) evInfo_.cutflow_.push_back({0,0,0,0});
 
@@ -57,11 +56,13 @@ void TopEventCommon::paramInit(const edm::ParameterSet& iConfig) {
 
 TopEventCommon::TopEventCommon(const edm::ParameterSet& iConfig ){
   eventSelect_ = new TTEventSelector(iConfig, consumesCollector());
-  paramInit(iConfig);
+  //paramInit(iConfig);
 
 }
 
-TopEventCommon::~TopEventCommon(){
+TopEventCommon::~TopEventCommon(){}
+
+void TopEventCommon::endJob(){
   showSummary();
 }
 
@@ -291,6 +292,7 @@ void TopEventCommon::genInfo(const edm::Event& iEvent, const edm::EventSetup& iS
       evInfo_.gen_partonMode2 = (*partonTop_modes)[1];
     }
     if (evInfo_.gen_partonChannel == CH_FULLLEPTON) evInfo_.keepTtbarSignal = true;
+    if (evInfo_.gen_partonChannel == CH_SEMILEPTON) evInfo_.keepTtbarSignal = true;
 
     if(evInfo_.gen_partonMode1==1 && evInfo_.gen_partonMode2==2) evInfo_.gen_partonMode=1;
     if(evInfo_.gen_partonMode1==2 && evInfo_.gen_partonMode2==1) evInfo_.gen_partonMode=1;
@@ -458,7 +460,6 @@ void TopEventCommon::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
   evInfo_.event = iEvent.id().event();
 
   const bool runOnMC = !iEvent.isRealData();
-  evInfo_.cutflow_[0][0]++;
 
   for (int sys = 0; sys < nsys_e; ++sys){
     if (sys > 0 && !runOnMC) break;
