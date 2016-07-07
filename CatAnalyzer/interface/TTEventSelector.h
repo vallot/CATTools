@@ -32,12 +32,13 @@
 class TTEventSelector 
 {
 public :
-  explicit TTEventSelector(const edm::ParameterSet&, TopEventInfo& evInfo, edm::ConsumesCollector& iC );
-  ~TTEventSelector() ;
-  virtual int eventSelection(const edm::Event& iEvent, const edm::EventSetup& iSetup, TTree* tree, int sys);
+  explicit TTEventSelector(const edm::ParameterSet&, edm::ConsumesCollector&& iC );
+  explicit TTEventSelector(const edm::ParameterSet&, edm::ConsumesCollector& iC );
+  ~TTEventSelector() {}
+  virtual int eventSelection(const edm::Event& iEvent, const edm::EventSetup& iSetup, TTree* tree, int sys) {return 0;}
   const reco::Candidate* getLast(const reco::Candidate* p) const;
-  void setBranch(TTree* tree, int sys);
-  void resetBranch(); 
+  virtual void setBranch(TTree* tree, int sys) {}
+  virtual void resetBranch(){} 
 
   virtual float selectMuons(const cat::MuonCollection& muons, cat::MuonCollection& selmuons, TopEventCommonGlobal::sys_e sys) const;
   virtual float selectElecs(const cat::ElectronCollection& elecs, cat::ElectronCollection& selelecs, TopEventCommonGlobal::sys_e sys) const;
@@ -70,7 +71,6 @@ public :
    
 protected:
   edm::EDGetTokenT<int> recoFiltersToken_, nGoodVertexToken_, lumiSelectionToken_;
-  edm::EDGetTokenT<int> trigTokenMUEL_, trigTokenMUMU_, trigTokenELEL_;
 
   edm::EDGetTokenT<cat::MuonCollection>     muonToken_;
   edm::EDGetTokenT<cat::ElectronCollection> elecToken_;
@@ -78,12 +78,17 @@ protected:
   edm::EDGetTokenT<cat::METCollection>      metToken_;
   edm::EDGetTokenT<reco::VertexCollection>   vtxToken_;
 
+  float muonPtCut_, muonEtaCut_, muonIsoCut_;
+  float electronPtCut_, electronEtaCut_, electronIsoCut_;
+  float jetPtCut_, jetEtaCut_;
+
+  std::string muonIDCut_, electronIDCut_, bJetCSV_;
+
   cat::ScaleFactorEvaluator muonSF_, elecSF_;
 
   cat::BTagWeightEvaluator csvWeight;
   cat::BTagWeightEvaluator bTagWeightL;
   cat::BTagWeightEvaluator bTagWeightM;
   cat::BTagWeightEvaluator bTagWeightT;
-  TopEventInfo& evInfo_;
 };
 #endif

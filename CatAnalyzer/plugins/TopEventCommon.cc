@@ -10,13 +10,13 @@
 
 #include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/Math/interface/deltaPhi.h"
-
+#include "CATTools/CatAnalyzer/interface/TTDileptonEventSelector.h"
 
 using namespace std;
 using namespace cat;
 using namespace TopEventCommonGlobal;
 
-TopEventCommon::TopEventCommon(const edm::ParameterSet& iConfig ){
+void TopEventCommon::paramInit(const edm::ParameterSet& iConfig) {
   partonTop_channel_ = consumes<int>(iConfig.getParameter<edm::InputTag>("partonTop_channel"));
   topPtWeight_ = consumes<float>(iConfig.getParameter<edm::InputTag>("topPtWeight"));
 
@@ -36,13 +36,13 @@ TopEventCommon::TopEventCommon(const edm::ParameterSet& iConfig ){
   scaleupweightsToken_ = consumes<vector<float>>(iConfig.getParameter<edm::InputTag>("scaleupweight"));
   scaledownweightsToken_ = consumes<vector<float>>(iConfig.getParameter<edm::InputTag>("scaledownweight"));
 
-  evInfo_ = TopEventInfo();
+  TopEventInfo& evInfo_ = TopEventInfo::getInstance();
 
   usesResource("TFileService");
   edm::Service<TFileService> fs;
 
   h_nevents = fs->make<TH1D>("nevents","nevents",1,0,1);
-  setEventSelection(iConfig, evInfo_, consumesCollector());
+  //eventSelect_ = new T
   for (int sys = 0; sys < nsys_e; ++sys){
     ttree_.push_back(fs->make<TTree>(sys_name[sys].c_str(), sys_name[sys].c_str()));
     auto tr = ttree_.back();
@@ -50,18 +50,28 @@ TopEventCommon::TopEventCommon(const edm::ParameterSet& iConfig ){
     eventSelect_->setBranch(tr, sys);
     setBranchCustom(tr, sys);
   }
-
   for (int i = 0; i < NCutflow; i++) evInfo_.cutflow_.push_back({0,0,0,0});
 
   evInfo_.kinematicReconstruction.reset(new KinematicReconstruction(1, true));
+}
+
+TopEventCommon::TopEventCommon(const edm::ParameterSet& iConfig ){
+  eventSelect_ = new TTEventSelector(iConfig, consumesCollector());
+  paramInit(iConfig);
 
 }
+/*
+TopEventCommon::TopEventCommon(const edm::ParameterSet& iConfig, TTEventSelector* eventSelect ) : eventSelect_(eventSelect){
+  paramInit(iConfig);
+}
+*/
 void TopEventCommon::setBranchCustom(TTree* tree, int sys) {}
 TopEventCommon::~TopEventCommon(){
   showSummary();
 }
 
 void TopEventCommon::showSummary() {
+  TopEventInfo& evInfo_ = TopEventInfo::getInstance();
   cout <<setw(10)<<"cut flow"<<setw(10)<<"no ll"<<setw(10)<<"emu"<<setw(10)<<"ee"<<setw(10)<<"mumu"<< endl;
   for ( int i=0; i<NCutflow; ++i ) {
     cout <<setw(10)<<"step "<<i<< setw(10)<<evInfo_.cutflow_[i][0] << setw(10)<<evInfo_.cutflow_[i][1] << setw(10)<<evInfo_.cutflow_[i][2] <<setw(10)<<evInfo_.cutflow_[i][3]<< endl;
@@ -69,6 +79,7 @@ void TopEventCommon::showSummary() {
 }
 
 void TopEventCommon::setBranch(TTree* tr, int sys) {
+  TopEventInfo& evInfo_ = TopEventInfo::getInstance();
   tr->Branch("run",     &(evInfo_.run)    , "run/I");
   tr->Branch("event",   &(evInfo_.event)  , "event/I");
 
@@ -217,6 +228,7 @@ void TopEventCommon::beginLuminosityBlock(const edm::LuminosityBlock& lumi, cons
 }
 
 void TopEventCommon::genInfo(const edm::Event& iEvent, const edm::EventSetup& iSetup){
+  TopEventInfo& evInfo_ = TopEventInfo::getInstance();
   evInfo_.keepTtbarSignal = false;
   const bool runOnMC = !iEvent.isRealData();
 
@@ -285,11 +297,11 @@ void TopEventCommon::genInfo(const edm::Event& iEvent, const edm::EventSetup& iS
     }
     if (evInfo_.gen_partonChannel == CH_FULLLEPTON) evInfo_.keepTtbarSignal = true;
 
-    if(evInfo_.gen_partonMode1==1 && evInfo_.gen_partonMode2==2)evInfo_.gen_partonMode=1;
-    if(evInfo_.gen_partonMode1==2 && evInfo_.gen_partonMode2==1)evInfo_.gen_partonMode=1;
-    if(evInfo_.gen_partonMode1==1 && evInfo_.gen_partonMode2==1)evInfo_.gen_partonMode=3;
-    if(evInfo_.gen_partonMode1==2 && evInfo_.gen_partonMode2==2)evInfo_.gen_partonMode=2;
-    if(evInfo_.gen_partonMode1>3 || evInfo_.gen_partonMode2>3)evInfo_.gen_partonMode=4;
+    if(evInfo_.gen_partonMode1==1 && evInfo_.gen_partonMode2==2) evInfo_.gen_partonMode=1;
+    if(evInfo_.gen_partonMode1==2 && evInfo_.gen_partonMode2==1) evInfo_.gen_partonMode=1;
+    if(evInfo_.gen_partonMode1==1 && evInfo_.gen_partonMode2==1) evInfo_.gen_partonMode=3;
+    if(evInfo_.gen_partonMode1==2 && evInfo_.gen_partonMode2==2) evInfo_.gen_partonMode=2;
+    if(evInfo_.gen_partonMode1>3 || evInfo_.gen_partonMode2>3)   evInfo_.gen_partonMode=4;
 
     if ( !(partonTop_genParticles->empty()) ){
 
@@ -446,6 +458,7 @@ void TopEventCommon::genInfo(const edm::Event& iEvent, const edm::EventSetup& iS
 }
 void TopEventCommon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
+  TopEventInfo& evInfo_ = TopEventInfo::getInstance();
   evInfo_.run = iEvent.id().run();
   evInfo_.event = iEvent.id().event();
 

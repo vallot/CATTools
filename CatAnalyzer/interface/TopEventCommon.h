@@ -16,30 +16,30 @@
 class TopEventCommon : public edm::one::EDAnalyzer<edm::one::SharedResources,edm::one::WatchLuminosityBlocks> {
 public:
   explicit TopEventCommon(const edm::ParameterSet&);
-  ~TopEventCommon();
+  //explicit TopEventCommon(const edm::ParameterSet&, TTEventSelector* );
+  virtual ~TopEventCommon();
+  void paramInit(const edm::ParameterSet&); 
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
-  virtual void analyzeCustom(const edm::Event&, const edm::EventSetup&, int sys ) ;
+  virtual void analyzeCustom(const edm::Event&, const edm::EventSetup&, int sys );
   void genInfo(const edm::Event& iEvent, const edm::EventSetup& iSetup );
   void setBranch(TTree* tree, int sys);
   virtual void setBranchCustom(TTree* tree, int sys);
-
   void resetBr() {
+    TopEventInfo& evInfo_ = TopEventInfo::getInstance();
     evInfo_.resetBr();
-    resetCustomBranch();
   }
-  virtual void resetCustomBranch() {}
   int runEventSelection(const edm::Event& iEvent, const edm::EventSetup& iSetup, TTree* tree, int sys) {
    return eventSelect_->eventSelection(iEvent, iSetup, tree, sys);
   }
-  void setEventSelection( const edm::ParameterSet& iConfig, TopEventInfo& evInfo, edm::ConsumesCollector iC  ) { 
+  /*
+  void setEventSelection( const edm::ParameterSet& iConfig, TopEventInfo& evInfo, edm::ConsumesCollector iC, TTEventSelector& es  ) { 
     eventSelect_ = new TTEventSelector( iConfig, evInfo, iC);
   }
-  
-  void showSummary();
+  */
+  virtual void showSummary();
 
 // Use protect keyword for branches.
 protected : 
-  TopEventInfo evInfo_;
   TTEventSelector* eventSelect_;
   // I/O variables.
   std::vector<TTree*> ttree_;
