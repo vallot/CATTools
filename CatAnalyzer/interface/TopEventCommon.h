@@ -21,7 +21,7 @@ public:
   virtual void analyzeCustom(const edm::Event&, const edm::EventSetup&, int sys ) ;
   void genInfo(const edm::Event& iEvent, const edm::EventSetup& iSetup );
   void setBranch(TTree* tree, int sys);
-  void setBranchCustom(TTree* tree, int sys);
+  virtual void setBranchCustom(TTree* tree, int sys);
 
   void resetBr() {
     evInfo_.resetBr();

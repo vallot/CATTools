@@ -74,8 +74,8 @@ TTEventSelector::TTEventSelector(const edm::ParameterSet& iConfig, TopEventInfo&
   */
 }
 
-void setBranch(TTree* tree,  int sys ) { 
-
+void TTEventSelector::setBranch(TTree* tree,  int sys ) { 
+  return;
 }
  
 

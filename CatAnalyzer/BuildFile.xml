@@ -1,4 +1,5 @@
 <use name="CATTools/DataFormats"/>
+<use name="CATTools/CommonTools"/>
 <use name="TopQuarkAnalysis/TopKinFitter"/>
 <export>
   <lib   name="1"/>
