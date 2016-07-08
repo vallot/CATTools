@@ -42,8 +42,10 @@ public :
   virtual void setBranch(TTree* tree, int sys) {}
   virtual void resetBranch(){} 
 
-  virtual float selectMuons(const cat::MuonCollection& muons, cat::MuonCollection& selmuons, TopEventCommonGlobal::sys_e sys) const;
-  virtual float selectElecs(const cat::ElectronCollection& elecs, cat::ElectronCollection& selelecs, TopEventCommonGlobal::sys_e sys) const;
+  /*
+  virtual float selectMuons(const cat::MuonCollection& muons, cat::MuonCollection& selmuons, TopEventCommonGlobal::sys_e sys) const =0;
+  virtual float selectElecs(const cat::ElectronCollection& elecs, cat::ElectronCollection& selelecs, TopEventCommonGlobal::sys_e sys) const =0 ;
+  */
   virtual cat::JetCollection selectJets(const cat::JetCollection& jets, const TopEventCommonGlobal::LeptonPtrs& recolep, TopEventCommonGlobal::sys_e sys);
   virtual cat::JetCollection selectBJets(const cat::JetCollection& jets) const;
 

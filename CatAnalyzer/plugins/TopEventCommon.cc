@@ -10,7 +10,7 @@
 
 #include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/Math/interface/deltaPhi.h"
-#include "CATTools/CatAnalyzer/interface/TTDileptonEventSelector.h"
+#include "CATTools/CatAnalyzer/interface/TTDiLeptonEventSelector.h"
 
 using namespace std;
 using namespace cat;

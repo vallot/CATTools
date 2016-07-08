@@ -1,5 +1,5 @@
-#ifndef __CATTools_TopDileptonEventCommon__
-#define __CATTools_TopDileptonEventCommon__
+#ifndef __CATTools_TopDiLeptonEventCommon__
+#define __CATTools_TopDiLeptonEventCommon__
 
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -13,10 +13,10 @@
 
 #include "CATTools/CatAnalyzer/interface/TTEventSelector.h"
 #include "CATTools/CatAnalyzer/interface/TopEventCommon.h"
-class TopDileptonEventCommon : public TopEventCommon {
+class TopDiLeptonEventCommon : public TopEventCommon {
 public:
-  explicit TopDileptonEventCommon(const edm::ParameterSet&);
-  virtual ~TopDileptonEventCommon(){ showSummary(); }
+  explicit TopDiLeptonEventCommon(const edm::ParameterSet&);
+  virtual ~TopDiLeptonEventCommon(){ showSummary(); }
   virtual void analyzeCustom(const edm::Event&, const edm::EventSetup&, int sys );
   virtual void showSummary();
 

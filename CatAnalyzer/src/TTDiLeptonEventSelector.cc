@@ -1,24 +1,24 @@
-#include "CATTools/CatAnalyzer/interface/TTDileptonEventSelector.h"
+#include "CATTools/CatAnalyzer/interface/TTDiLeptonEventSelector.h"
 
 using namespace std;
 using namespace cat;
 using namespace TopEventCommonGlobal;
 
 class TTEventSelector;
-TTDileptonEventSelector::TTDileptonEventSelector(const edm::ParameterSet& iConfig, edm::ConsumesCollector&& iC ): TTEventSelector(iConfig, iC ) {
+TTDiLeptonEventSelector::TTDiLeptonEventSelector(const edm::ParameterSet& iConfig, edm::ConsumesCollector&& iC ): TTEventSelector(iConfig, iC ) {
   trigTokenMUEL_ = iC.consumes<int>(iConfig.getParameter<edm::InputTag>("trigMUEL"));
   trigTokenMUMU_ = iC.consumes<int>(iConfig.getParameter<edm::InputTag>("trigMUMU"));
   trigTokenELEL_ = iC.consumes<int>(iConfig.getParameter<edm::InputTag>("trigELEL"));
   muonIDCut_ = iConfig.getParameter<string>("MuonIDCut");
 }
 
-void TTDileptonEventSelector::setBranch(TTree* tree,  int sys ) { 
+void TTDiLeptonEventSelector::setBranch(TTree* tree,  int sys ) { 
   return;
 }
 
-void TTDileptonEventSelector::resetBranch(){}
+void TTDiLeptonEventSelector::resetBranch(){}
  
-int TTDileptonEventSelector::eventSelection(const edm::Event& iEvent, const edm::EventSetup& iSetup, TTree* tree, int sys){
+int TTDiLeptonEventSelector::eventSelection(const edm::Event& iEvent, const edm::EventSetup& iSetup, TTree* tree, int sys){
   std::cout<<"Running for TTbar dilepton decay channel Reference Event Selection!"<<std::endl;
   TopEventInfo& evInfo_ = TopEventInfo::getInstance();
   const bool runOnMC = !iEvent.isRealData();
@@ -159,5 +159,49 @@ int TTDileptonEventSelector::eventSelection(const edm::Event& iEvent, const edm:
   }
   return 0;
 }
+float TTDiLeptonEventSelector::selectMuons(const cat::MuonCollection& muons, cat::MuonCollection& selmuons, sys_e sys) const
+{
+  float weight = 1.;
+  for (auto& m : muons) {
+    cat::Muon mu(m);
+    if (sys == sys_mu_u) mu.setP4(m.p4() * m.shiftedEnUp());
+    if (sys == sys_mu_d) mu.setP4(m.p4() * m.shiftedEnDown());
 
+    if (mu.pt() < muonPtCut_) continue;
+    if (std::abs(mu.eta()) > std::abs(muonEtaCut_) ) continue;
+    // ID Cut for muon. muIDCut_ mus be lower characters.
+    if ( muonIDCut_.compare(string("tight"))==0 && !mu.isTightMuon()   ) continue;  
+    else if ( muonIDCut_.compare(string("loose"))==0 && !mu.isLooseMuon()   ) continue;  
+
+    if (mu.relIso(0.4) > muonIsoCut_ ) continue;
+    //printf("muon with pt %4.1f, POG loose id %d, tight id %d\n", mu.pt(), mu.isLooseMuon(), mu.isTightMuon());
+    //weight *= mu.scaleFactor("NUM_TightIDandIPCut_DEN_genTracks_PAR_pt_spliteta_bin1");
+    //weight *= mu.scaleFactor("NUM_TightRelIso_DEN_TightID_PAR_pt_spliteta_bin1");
+    selmuons.push_back(mu);
+  }
+  return weight;
+}
+
+float TTDiLeptonEventSelector::selectElecs(const cat::ElectronCollection& elecs, cat::ElectronCollection& selelecs, sys_e sys) const
+{
+  float weight = 1.;
+  for (auto& e : elecs) {
+    cat::Electron el(e);
+    if (sys == sys_el_u) el.setP4(e.p4() * e.shiftedEnUp());
+    if (sys == sys_el_d) el.setP4(e.p4() * e.shiftedEnDown());
+
+    if (el.pt() < electronPtCut_) continue;
+    if ((std::abs(el.scEta()) > 1.4442) && (std::abs(el.scEta()) < 1.566)) continue;
+    if (std::abs(el.eta()) > electronEtaCut_ ) continue;
+    if ( !el.electronID(electronIDCut_) ) continue;
+    //if ( !el.isTrigMVAValid() or !el.electronID("mvaEleID-Spring15-25ns-Trig-V1-wp90") ) continue;
+    if (el.relIso(0.3) > electronIsoCut_ ) continue;
+
+    //weight *= el.scaleFactor("mvaEleID-Spring15-25ns-Trig-V1-wp90");
+    //weight *= el.scaleFactor("cutBasedElectronID-Spring15-25ns-V1-standalone-medium");
+    //printf("electron with pt %4.1f\n", el.pt());
+    selelecs.push_back(el);
+  }
+  return weight;
+}
 

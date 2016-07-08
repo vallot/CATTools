@@ -21,11 +21,11 @@ class CATDstarSemiLeptonAnalyzer : public TopEventCommon {
 public:
   explicit CATDstarSemiLeptonAnalyzer(const edm::ParameterSet&);
   virtual ~CATDstarSemiLeptonAnalyzer() { showSummary(); }
-  virtual void analyzeCustom(const edm::Event&, const edm::EventSetup&, int sys );
-  virtual void setBranchCustom(TTree* , int );
-  void resetBranchCustom();
-  virtual void showSummary();
-  virtual void endJob();
+  void analyzeCustom(const edm::Event&, const edm::EventSetup&, int sys ) final;
+  virtual void setBranchCustom(TTree* , int ) final;
+  virtual void resetBranchCustom() final;
+  virtual void showSummary() final;
+  virtual void endJob() final;
   std::shared_ptr<TLorentzVector> mcMatching( std::vector<TLorentzVector>& aGens, TLorentzVector& aReco) ;
 // Use protect keyword for branches.
 protected : 

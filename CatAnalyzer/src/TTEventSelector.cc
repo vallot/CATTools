@@ -101,53 +101,6 @@ const reco::Candidate* TTEventSelector::getLast(const reco::Candidate* p) const
   return p;
 }
 
-float TTEventSelector::selectMuons(const cat::MuonCollection& muons, cat::MuonCollection& selmuons, sys_e sys) const
-{
-  float weight = 1.;
-  for (auto& m : muons) {
-    cat::Muon mu(m);
-    if (sys == sys_mu_u) mu.setP4(m.p4() * m.shiftedEnUp());
-    if (sys == sys_mu_d) mu.setP4(m.p4() * m.shiftedEnDown());
-
-    if (mu.pt() < muonPtCut_) continue;
-    if (std::abs(mu.eta()) > std::abs(muonEtaCut_) ) continue;
-    // ID Cut for muon. muIDCut_ mus be lower characters.
-    if ( muonIDCut_.compare(string("tight"))==0 && !mu.isTightMuon()   ) continue;  
-    else if ( muonIDCut_.compare(string("loose"))==0 && !mu.isLooseMuon()   ) continue;  
-
-    if (mu.relIso(0.4) > muonIsoCut_ ) continue;
-    //printf("muon with pt %4.1f, POG loose id %d, tight id %d\n", mu.pt(), mu.isLooseMuon(), mu.isTightMuon());
-    //weight *= mu.scaleFactor("NUM_TightIDandIPCut_DEN_genTracks_PAR_pt_spliteta_bin1");
-    //weight *= mu.scaleFactor("NUM_TightRelIso_DEN_TightID_PAR_pt_spliteta_bin1");
-    selmuons.push_back(mu);
-  }
-  return weight;
-}
-
-float TTEventSelector::selectElecs(const cat::ElectronCollection& elecs, cat::ElectronCollection& selelecs, sys_e sys) const
-{
-  float weight = 1.;
-  for (auto& e : elecs) {
-    cat::Electron el(e);
-    if (sys == sys_el_u) el.setP4(e.p4() * e.shiftedEnUp());
-    if (sys == sys_el_d) el.setP4(e.p4() * e.shiftedEnDown());
-
-    if (el.pt() < electronPtCut_) continue;
-    if ((std::abs(el.scEta()) > 1.4442) && (std::abs(el.scEta()) < 1.566)) continue;
-    if (std::abs(el.eta()) > electronEtaCut_ ) continue;
-    if ( !el.electronID(electronIDCut_) ) continue;
-    //if ( !el.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-medium") ) continue;
-    //if ( !el.isTrigMVAValid() or !el.electronID("mvaEleID-Spring15-25ns-Trig-V1-wp90") ) continue;
-    if (el.relIso(0.3) > electronIsoCut_ ) continue;
-
-    //weight *= el.scaleFactor("mvaEleID-Spring15-25ns-Trig-V1-wp90");
-    //weight *= el.scaleFactor("cutBasedElectronID-Spring15-25ns-V1-standalone-medium");
-    //printf("electron with pt %4.1f\n", el.pt());
-    selelecs.push_back(el);
-  }
-  return weight;
-}
-
 cat::JetCollection TTEventSelector::selectJets(const cat::JetCollection& jets, const LeptonPtrs& recolep, sys_e sys)
 {
   TopEventInfo& evInfo_ = TopEventInfo::getInstance();
@@ -202,5 +155,7 @@ cat::JetCollection TTEventSelector::selectBJets(const JetCollection& jets) const
   }
   return selBjets;
 }
+
+
 
  
