@@ -1,5 +1,5 @@
-#ifndef __CATTools_CATDstarSemiLeptonAnalyzer__
-#define __CATTools_CATDstarSemiLeptonAnalyzer__
+#ifndef __CATTools_CATDstarDiLeptonAnalyzer__
+#define __CATTools_CATDstarDiLeptonAnalyzer__
 
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -11,23 +11,23 @@
 #include "TTree.h"
 #include "TH1D.h"
 
-#include "CATTools/CatAnalyzer/interface/TTSemiLeptonEventSelector.h"
+#include "CATTools/CatAnalyzer/interface/TTDiLeptonEventSelector.h"
 #include "CATTools/CatAnalyzer/interface/TopEventCommon.h"
 #include "CATTools/DataFormats/interface/SecVertex.h"
 #include "TClonesArray.h"
 
 
-class CATDstarSemiLeptonAnalyzer : public TopEventCommon {
+class CATDstarDiLeptonAnalyzer : public TopEventCommon {
 public:
-  explicit CATDstarSemiLeptonAnalyzer(const edm::ParameterSet&);
-  virtual ~CATDstarSemiLeptonAnalyzer() { showSummary(); }
+  explicit CATDstarDiLeptonAnalyzer(const edm::ParameterSet&);
+  virtual ~CATDstarDiLeptonAnalyzer() { showSummary(); }
   void analyzeCustom(const edm::Event&, const edm::EventSetup&, int sys ) final;
   virtual void setBranchCustom(TTree* , int ) final;
   virtual void resetBranchCustom() final;
   virtual void showSummary() final;
   virtual void endJob() final;
   virtual void setEventSelection(const edm::ParameterSet& iConfig) override{  
-    eventSelect_ = new TTSemiLeptonEventSelector(iConfig, consumesCollector()) ;
+    eventSelect_ = new TTDiLeptonEventSelector(iConfig, consumesCollector()) ;
     for (int sys = 0; sys < TopEventCommonGlobal::nsys_e; ++sys){
       auto tr = ttree_[sys];
       eventSelect_->setBranch(tr, sys);

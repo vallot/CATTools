@@ -11,6 +11,7 @@ TTEventSelector::TTEventSelector(const edm::ParameterSet& iConfig, edm::Consumes
   TTEventSelector(iConfig, iC);
 }
 TTEventSelector::TTEventSelector(const edm::ParameterSet& iConfig, edm::ConsumesCollector& iC ) {
+  std::cout<<"Call TTEventSelector"<<std::endl;
   typedef std::vector<double> vdouble;
   recoFiltersToken_ = iC.consumes<int>(iConfig.getParameter<edm::InputTag>("recoFilters"));
   nGoodVertexToken_ = iC.consumes<int>(iConfig.getParameter<edm::InputTag>("nGoodVertex"));
@@ -124,7 +125,7 @@ cat::JetCollection TTEventSelector::selectJets(const cat::JetCollection& jets, c
     for (auto lep : recolep){
       if (deltaR(jet.p4(),lep->p4()) < 0.4) hasOverLap = true;
     }
-    if (hasOverLap) continue;
+    if ( hasOverLap) continue;
     // printf("jet with pt %4.1f\n", jet.pt());
     //if (sys == sys_btag_u) evInfo_.btagweight *= jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE, 1);
     //else if (sys == sys_btag_d) evInfo_.btagweight *= jet.scaleFactorCSVv2(cat::Jet::BTAGCSV_LOOSE, -1);

@@ -10,7 +10,6 @@
 
 #include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/Math/interface/deltaPhi.h"
-#include "CATTools/CatAnalyzer/interface/TTSemiLeptonEventSelector.h"
 
 using namespace std;
 using namespace cat;
@@ -84,8 +83,7 @@ void CATDstarSemiLeptonAnalyzer::endJob() {
 
 CATDstarSemiLeptonAnalyzer::CATDstarSemiLeptonAnalyzer(const edm::ParameterSet& iConfig ) :TopEventCommon(iConfig) 
 {
-  eventSelect_ = new TTSemiLeptonEventSelector(iConfig, consumesCollector()) ;
-  paramInit(iConfig);
+  setEventSelection(iConfig);
   d0Token_  = consumes<cat::SecVertexCollection>(iConfig.getParameter<edm::InputTag>("d0s"));
   dstarToken_  = consumes<cat::SecVertexCollection>(iConfig.getParameter<edm::InputTag>("dstars"));
   mcSrc_ = consumes<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("mcLabel"));
@@ -96,12 +94,11 @@ CATDstarSemiLeptonAnalyzer::CATDstarSemiLeptonAnalyzer(const edm::ParameterSet& 
     setBranchCustom(tr, sys);
   }
 }
-
 void CATDstarSemiLeptonAnalyzer::showSummary() {
   TopEventInfo& evInfo_ = TopEventInfo::getInstance();
   cout <<setw(10)<<"cut flow"<<setw(10)<<"no ll"<<setw(10)<<"mu Jet"<<setw(10)<<"e Jet"<<setw(10)<<"all"<< endl;
   for ( int i=0; i<NCutflow; ++i ) {
-    cout <<setw(10)<<"step "<<i<< setw(10)<<evInfo_.cutflow_[i][0] << setw(10)<<evInfo_.cutflow_[i][1] << setw(10)<<evInfo_.cutflow_[i][2] <<setw(10)<<evInfo_.cutflow_[i][3]<< endl;
+    cout <<setw(10)<<"step "<<setw(2)<<i<< setw(10)<<evInfo_.cutflow_[i][0] << setw(10)<<evInfo_.cutflow_[i][1] << setw(10)<<evInfo_.cutflow_[i][2] <<setw(10)<<evInfo_.cutflow_[i][3]<< endl;
   }
 }
 void CATDstarSemiLeptonAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventSetup& iSetup, int sys) {

@@ -85,7 +85,7 @@ protected:
   float muonPtCut_, muonEtaCut_, muonIsoCut_;
   float electronPtCut_, electronEtaCut_, electronIsoCut_;
   float jetPtCut_, jetEtaCut_;
-
+  
   std::string muonIDCut_, electronIDCut_, bJetCSV_;
 
   cat::ScaleFactorEvaluator muonSF_, elecSF_;

@@ -6,8 +6,7 @@ using namespace TopEventCommonGlobal;
 
 
 TTSemiLeptonEventSelector::TTSemiLeptonEventSelector(const edm::ParameterSet& iConfig, edm::ConsumesCollector&& iC ): TTEventSelector(iConfig, iC ) {
-
-  
+  std::cout<<"SemiLepton Event Selection"<<std::endl;
   vetoMuonPtCut_ =  iConfig.getParameter<double>("vetoMuonPtCut");
   vetoMuonEtaCut_ = iConfig.getParameter<double>("vetoMuonEtaCut");
   vetoMuonIsoCut_ = iConfig.getParameter<double>("vetoMuonIsoCut");

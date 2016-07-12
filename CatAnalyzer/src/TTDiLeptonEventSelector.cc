@@ -6,10 +6,12 @@ using namespace TopEventCommonGlobal;
 
 class TTEventSelector;
 TTDiLeptonEventSelector::TTDiLeptonEventSelector(const edm::ParameterSet& iConfig, edm::ConsumesCollector&& iC ): TTEventSelector(iConfig, iC ) {
+  std::cout<<"Running for TTbar dilepton decay channel Reference Event Selection!"<<std::endl;
   trigTokenMUEL_ = iC.consumes<int>(iConfig.getParameter<edm::InputTag>("trigMUEL"));
   trigTokenMUMU_ = iC.consumes<int>(iConfig.getParameter<edm::InputTag>("trigMUMU"));
   trigTokenELEL_ = iC.consumes<int>(iConfig.getParameter<edm::InputTag>("trigELEL"));
   muonIDCut_ = iConfig.getParameter<string>("MuonIDCut");
+  
 }
 
 void TTDiLeptonEventSelector::setBranch(TTree* tree,  int sys ) { 
@@ -19,7 +21,6 @@ void TTDiLeptonEventSelector::setBranch(TTree* tree,  int sys ) {
 void TTDiLeptonEventSelector::resetBranch(){}
  
 int TTDiLeptonEventSelector::eventSelection(const edm::Event& iEvent, const edm::EventSetup& iSetup, TTree* tree, int sys){
-  std::cout<<"Running for TTbar dilepton decay channel Reference Event Selection!"<<std::endl;
   TopEventInfo& evInfo_ = TopEventInfo::getInstance();
   const bool runOnMC = !iEvent.isRealData();
   edm::Handle<reco::VertexCollection> vertices;
@@ -134,15 +135,15 @@ int TTDiLeptonEventSelector::eventSelection(const edm::Event& iEvent, const edm:
   evInfo_.njet = selectedJets.size();
   evInfo_.nbjet = evInfo_.selectedBJets.size();
 
-  if (selectedJets.size() >1 ){
+
+  if ((evInfo_.channel == CH_MUEL) || (evInfo_.met > 40.)){
     evInfo_.step3 = true;
     if (evInfo_.step == 2){
       ++evInfo_.step;
       if (sys == sys_nom) evInfo_.cutflow_[6][evInfo_.channel]++;
     }
   }
-
-  if ((evInfo_.channel == CH_MUEL) || (evInfo_.met > 40.)){
+  if (selectedJets.size() >1 ){
     evInfo_.step4 = true;
     if (evInfo_.step == 3){
       ++evInfo_.step;

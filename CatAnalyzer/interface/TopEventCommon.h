@@ -16,7 +16,6 @@
 class TopEventCommon : public edm::one::EDAnalyzer<edm::one::SharedResources,edm::one::WatchLuminosityBlocks> {
 public:
   explicit TopEventCommon(const edm::ParameterSet&);
-  //explicit TopEventCommon(const edm::ParameterSet&, TTEventSelector* );
   virtual ~TopEventCommon();
   void paramInit(const edm::ParameterSet&); 
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
@@ -33,12 +32,11 @@ public:
   int runEventSelection(const edm::Event& iEvent, const edm::EventSetup& iSetup, TTree* tree, int sys) {
    return eventSelect_->eventSelection(iEvent, iSetup, tree, sys);
   }
-  /*
-  void setEventSelection( const edm::ParameterSet& iConfig, TopEventInfo& evInfo, edm::ConsumesCollector iC, TTEventSelector& es  ) { 
-    eventSelect_ = new TTEventSelector( iConfig, evInfo, iC);
+  virtual void setEventSelection( const edm::ParameterSet& iConfig  ) { 
+    eventSelect_ = new TTEventSelector( iConfig, consumesCollector());
   }
-  */
   virtual void showSummary();
+  virtual void beginJob();
   virtual void endJob();
 // Use protect keyword for branches.
 protected : 
@@ -46,6 +44,7 @@ protected :
   // I/O variables.
   std::vector<TTree*> ttree_;
   TH1D * h_nevents;
+  const edm::ParameterSet& iConfig_;
 
   // Token for gen Information
   edm::EDGetTokenT<float> genWeightToken_;
@@ -60,6 +59,7 @@ protected :
 private:
   void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&);
   void endLuminosityBlock(const edm::LuminosityBlock&, const edm::EventSetup&) override {};
+
 
 };
 

@@ -42,25 +42,24 @@ void TopEventCommon::paramInit(const edm::ParameterSet& iConfig) {
   edm::Service<TFileService> fs;
 
   h_nevents = fs->make<TH1D>("nevents","nevents",1,0,1);
-  //eventSelect_ = new T
   for (int sys = 0; sys < nsys_e; ++sys){
     ttree_.push_back(fs->make<TTree>(sys_name[sys].c_str(), sys_name[sys].c_str()));
     auto tr = ttree_.back();
     setBranch(tr, sys);
-    eventSelect_->setBranch(tr, sys);
   }
   for (int i = 0; i < NCutflow; i++) evInfo_.cutflow_.push_back({0,0,0,0});
 
   evInfo_.kinematicReconstruction.reset(new KinematicReconstruction(1, true));
 }
 
-TopEventCommon::TopEventCommon(const edm::ParameterSet& iConfig ){
-  eventSelect_ = new TTEventSelector(iConfig, consumesCollector());
-  //paramInit(iConfig);
-
+TopEventCommon::TopEventCommon(const edm::ParameterSet& iConfig ):iConfig_(iConfig){
+  paramInit(iConfig);
 }
 
 TopEventCommon::~TopEventCommon(){}
+
+void TopEventCommon::beginJob(){
+}
 
 void TopEventCommon::endJob(){
   showSummary();
