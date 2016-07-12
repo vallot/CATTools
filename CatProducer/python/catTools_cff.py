@@ -1,5 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 import catDefinitions_cfi as cat
+import os
 
 def catTool(process, runOnMC=True, useMiniAOD=True):
     if runOnMC:
@@ -14,10 +15,12 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         process.pileupWeightSilver.pileupDn = pileupWeightMap["%s_Dn"%cat.lumiJSONSilver]
     else:
         from FWCore.PythonUtilities.LumiList import LumiList
+        lumiJSON = os.environ["CMSSW_BASE"]+("/src/CATTools/CatProducer/data/LumiMask/%s.txt"%cat.lumiJSON)
+        lumiJSONSilver = os.environ["CMSSW_BASE"]+("/src/CATTools/CatProducer/data/LumiMask/%s.txt"%cat.lumiJSONSilver)
         process.lumiMask = cms.EDFilter("LumiMaskFilter",
-            LumiSections = LumiList('../data/LumiMask/%s.txt'%cat.lumiJSON).getVLuminosityBlockRange())
-        process.lumiMaskSilver = cms.EDProducer("LumiMaskFilter",
-            LumiSections = LumiList('../data/LumiMask/%s.txt'%cat.lumiJSONSilver).getVLuminosityBlockRange())
+            LumiSections = LumiList(lumiJSON).getVLuminosityBlockRange())
+        process.lumiMaskSilver = cms.EDFilter("LumiMaskFilter",
+            LumiSections = LumiList(lumiJSONSilver).getVLuminosityBlockRange())
     
     useJECfile = True
     jecFile = cat.JetEnergyCorrection
@@ -95,13 +98,23 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
           applyJec=True,
           vertexes=cms.InputTag("offlineSlimmedPrimaryVertices")
         )
-        process.patJetsUpdated.userData.userFloats.src +=['pileupJetIdUpdated:fullDiscriminant']
+        #process.patJetsUpdated.userData.userFloats.src +=['pileupJetIdUpdated:fullDiscriminant']
 
         process.catJets.src = cms.InputTag("patJetsUpdated")
-
         
         process.catJetsPuppi.src = cms.InputTag("patJetsPuppiUpdated")
         process.catJetsPuppi.setGenParticle = cms.bool(False)
+        ## #######################################################################
+        ## Setup JER
+        ## JER needs random numbers
+        process.RandomNumberGeneratorService.catJets = cms.PSet(
+            engineName = cms.untracked.string('TRandom3'),
+            initialSeed = cms.untracked.uint32(1),
+        )
+        process.RandomNumberGeneratorService.catJetsPuppi = cms.PSet(
+            engineName = cms.untracked.string('TRandom3'),
+            initialSeed = cms.untracked.uint32(1),
+        )
         ## #######################################################################
         ## # MET corrections from https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
         #from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD

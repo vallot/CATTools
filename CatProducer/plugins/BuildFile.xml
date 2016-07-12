@@ -16,6 +16,7 @@
   <use   name="RecoJets/JetProducers" />
   <use   name="CondFormats/JetMETObjects"/>
   <use   name="JetMETCorrections/Objects"/>
+  <use   name="JetMETCorrections/Modules"/>
   <use   name="root"/>
   <use   name="rootxml"/>
   <use   name="fastjet" />
