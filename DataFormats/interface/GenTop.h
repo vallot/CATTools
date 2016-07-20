@@ -70,6 +70,9 @@ namespace cat {
       else return addbJets_[1];
     }
 
+    const math::XYZTLorentzVector bJetsFromTop1() const { return bJetsFromTop_[0]; }
+    const math::XYZTLorentzVector bJetsFromTop2() const { return bJetsFromTop_[1]; }
+
     const math::XYZTLorentzVector addJets1() const { return addJets_[0]; }
     const math::XYZTLorentzVector addJets2() const { return addJets_[1]; }
 
@@ -84,6 +87,11 @@ namespace cat {
       if( i == 0){ return dRaddbJetsHad_; }
       else return dRaddbJets_;
     }
+    float dRaddcJets(int i=0) const {
+      if( i == 0){ return dRaddcJetsHad_; }
+      else return dRaddcJets_;
+    }
+ 
     float dRcJets(int i=0) const {
       if( i == 0){ return dRcJetsHad_; }
       else return dRcJets_;
@@ -268,6 +276,7 @@ namespace cat {
     LorentzVectors taunus_;
     LorentzVectors cJets_;
     LorentzVectors bJets_;
+    LorentzVectors bJetsFromTop_;
     LorentzVectors addbJets_;
     LorentzVectors addcJets_;
     LorentzVectors addbJetsHad_;

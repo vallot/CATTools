@@ -5,10 +5,12 @@
 using namespace cat;
 
 /// default constructor
-Jet::Jet() {
+Jet::Jet():
+  fJER_(1), fJERUp_(1), fJERDown_(1) {
 }
 
-Jet::Jet(const reco::LeafCandidate & aJet) : Particle( aJet ) {
+Jet::Jet(const reco::LeafCandidate & aJet) : Particle( aJet ),
+  fJER_(1), fJERUp_(1), fJERDown_(1) {
 }
 
 /// destructor
@@ -35,6 +37,9 @@ void Jet::bDiscriminatorPrint() const {
 }
 
 float Jet::smearedRes(int direction, int era) const {
+  // The era-based JER is going to be removed
+  if ( era == 0 ) return direction == 0 ? fJER_ : direction > 0 ? fJERUp_ : fJERDown_;
+
   const auto aGenJet = this->genJet();
   if ( !aGenJet ) return 1; // No JER
 
@@ -42,11 +47,29 @@ float Jet::smearedRes(int direction, int era) const {
   if (absEta >=5.0 ) return 1; // No JER
     
   //https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution#JER_Scaling_factors_and_Uncertai
-  std::vector<double> etaBins = {0.8, 1.3, 1.9, 2.5, 3.0, 3.2, 5.0};
-  std::vector<double> cJERs   = {1.061, 1.088, 1.106, 1.126, 1.343, 1.303, 1.320};
-  std::vector<double> cJERsUp = {1.084, 1.117, 1.136, 1.220, 1.466, 1.414, 1.606};
-  std::vector<double> cJERsDn = {1.038, 1.059, 1.076, 1.032, 1.220, 1.192, 1.034};
-  if (era == 2012){
+  std::vector<double> etaBins = {5.0};
+  std::vector<double> cJERs = {1.0};
+  std::vector<double> cJERsUp = {1.0};
+  std::vector<double> cJERsDn = {1.0};
+  if ( era == 2016 ) {
+    etaBins = {0.5, 0.8, 1.1, 1.3, 1.7, 1.9, 2.1, 2.3, 2.5, 2.8, 3.0, 3.2, 5.0};
+    cJERs   = {1.122, 1.167, 1.168, 1.029, 1.115, 1.041, 1.167, 1.094, 1.168, 1.266, 1.595, 0.998, 1.226};
+    cJERsUp = {1.122+.026, 1.167+.048, 1.168+.046, 1.029+.066, 1.115+.030, 1.041+.062, 1.167+.086, 1.094+.093, 1.168+.120, 1.266+.132, 1.595+.175, 0.998+.066, 1.226+.145};
+    cJERsDn = {1.122-.026, 1.167-.048, 1.168-.046, 1.029-.066, 1.115-.030, 1.041-.062, 1.167-.086, 1.094-.093, 1.168-.120, 1.266-.132, 1.595-.175, 0.998-.066, 1.226-.145};
+  }
+  else if ( era == 2015 ) {
+    etaBins = {0.5, 0.8, 1.1, 1.3, 1.7, 1.9, 2.1, 2.3, 2.5, 2.8, 3.0, 3.2, 5.0};
+    cJERs   = {1.095, 1.120, 1.097, 1.103, 1.118, 1.100, 1.162, 1.160, 1.161, 1.209, 1.564, 1.384, 1.216};
+    cJERsUp = {1.095+.018, 1.120+.028, 1.097+.017, 1.103+.033, 1.118+0.014, 1.100+0.033, 1.162+0.044, 1.160+0.048, 1.161+0.060, 1.209+0.059, 1.564+0.321, 1.384+0.033, 1.216+0.050};
+    cJERsDn = {1.095-.018, 1.120-.028, 1.097-.017, 1.103-.033, 1.118-0.014, 1.100-0.033, 1.162-0.044, 1.160-0.048, 1.161-0.060, 1.209-0.059, 1.564-0.321, 1.384-0.033, 1.216-0.050};
+  }
+  else if ( era == 201574 ) {
+    etaBins = {0.8, 1.3, 1.9, 2.5, 3.0, 3.2, 5.0};
+    cJERs   = {1.061, 1.088, 1.106, 1.126, 1.343, 1.303, 1.320};
+    cJERsUp = {1.084, 1.117, 1.136, 1.220, 1.466, 1.414, 1.606};
+    cJERsDn = {1.038, 1.059, 1.076, 1.032, 1.220, 1.192, 1.034};
+  }
+  else if (era == 2012){
     // 2012 values from https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetResolution
     etaBins = {0.5, 1.1, 1.7, 2.3, 2.8, 3.2, 5.0};
     cJERs   = {1.079, 1.099, 1.121, 1.208, 1.254, 1.395, 1.056};

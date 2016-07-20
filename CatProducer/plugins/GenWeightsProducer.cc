@@ -19,6 +19,8 @@
 #include <TDOMParser.h>
 #include <TXMLNode.h>
 #include <TXMLAttr.h>
+#include <regex>
+#include <boost/lexical_cast.hpp>
 
 #include <memory>
 #include <vector>
@@ -64,7 +66,7 @@ GenWeightsToFlatWeights::GenWeightsToFlatWeights(const edm::ParameterSet& pset):
 void GenWeightsToFlatWeights::beginRun(const edm::Run& run, const edm::EventSetup&)
 {
   edm::Handle<cat::GenWeightInfo> srcHandle;
-  run.getByLabel(srcLabel_, srcHandle);
+  if ( !run.getByLabel(srcLabel_, srcHandle) ) return;
 
   for ( int i=0, n=srcHandle->nGroups(); i<n; ++i ) {
     const auto& keys = srcHandle->keys(i);
@@ -79,18 +81,52 @@ void GenWeightsToFlatWeights::beginRun(const edm::Run& run, const edm::EventSetu
       const auto& params = srcHandle->params(i);
       for ( int j=1, m=keys.size(); j<m; ++j ) {
         string par = params[j];
-        std::transform(par.begin(), par.end(), par.begin(), ::toupper);
         // Skip unphysical combinations
-        // up=(1002, 1004, 1005), down=(1003, 1007, 1009), unphysical=(1006, 1008)
-        if ( par.find("5") != string::npos and par.find("2") != string::npos ) continue;
+        // By fixed index: up=(1002, 1004, 1005), down=(1003, 1007, 1009), unphysical=(1006, 1008)
+        // Or by matching to the muR and muF parameters
+        // First, cleanup the string
+        std::transform(par.begin(), par.end(), par.begin(), ::toupper);
+        par.erase(std::remove(par.begin(), par.end(), '_'), par.end());
+        std::replace(par.begin(), par.end(), '=', ' ');
+        // Then tokenize parameter string
+        std::vector<std::string> tokens;
+        std::regex ws_re("\\s+"); // whitespace
+        std::copy(std::sregex_token_iterator(par.begin(), par.end(), ws_re, -1),
+                  std::sregex_token_iterator(), std::back_inserter(tokens));
+        double muR = 0, muF = 0;
+        for ( int iToken=0, nToken=tokens.size(); iToken<nToken; ++iToken) {
+          if ( tokens[iToken] == "MUR" and iToken+1 < nToken ) {
+            const double orig = muR;
+            try { muR = boost::lexical_cast<double>(tokens[++iToken]); }
+            catch ( boost::bad_lexical_cast ) { muR = orig; }
+          }
+          if ( tokens[iToken] == "MUF" and iToken+1 < nToken ) {
+            const double orig = muF;
+            try { muF = boost::lexical_cast<double>(tokens[++iToken]); }
+            catch ( boost::bad_lexical_cast ) { muF = orig; }
+          }
+        }
+        if ( (muR == 0 or muF == 0) or (muR > 1.5 and muF < 0.7) or (muR < 0.7 and muF > 1.5 ) ) {
+          cout << "@@@ Skipping unphysical parameter" << params[j] << endl;
+          continue;
+        }
 
         const size_t key = keys[j];
-        if      ( par.find("2") != string::npos ) key_sup_.insert(key);
-        else if ( par.find("5") != string::npos ) key_sdn_.insert(key);
+        if      ( muR > 1.5 or muF > 1.5 ) {
+          cout << "@@@ Inserting into scaleup weight[" << (key_sup_.size()) << "]" << params[j] << endl;
+          key_sup_.insert(key);
+        }
+        else if ( muR < 0.7 or muF < 0.7 ) {
+          cout << "@@@ Inserting into scaledown weight[" << (key_sdn_.size()) << "]" << params[j] << endl;
+          key_sdn_.insert(key);
+        }
       }
     }
     else if ( name.find("PDF") != string::npos ) {
-      if ( doKeepFirstOnly_ and !key_pdf_.empty() ) continue;
+      if ( doKeepFirstOnly_ and !key_pdf_.empty() ) {
+        cout << "@@@ Skipping PDF weight " << name << " since the first weight group is already set " << endl;
+        continue;
+      }
       key_pdf_.insert(keys.begin(), keys.end());
     }
     else if ( doSaveOthers_ ) {

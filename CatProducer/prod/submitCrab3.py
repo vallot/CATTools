@@ -3,6 +3,7 @@ import os,json,sys,shutil,time,getopt
 import CATTools.CatProducer.catDefinitions_cfi as cat
 
 def submitjob(requestName, dataset, globalTag, lumiMask, submit):
+    print 'v'*80
     print "creating job"
     print dataset
 
@@ -20,7 +21,7 @@ def submitjob(requestName, dataset, globalTag, lumiMask, submit):
     if globalTag == None:
         globalTag = cat.globalTag_mc
     if lumiMask == None:
-        lumiMask = '../data/LumiMask/%s.txt'%cat.lumiJSONSilver
+        lumiMask = '../data/LumiMask/%s.txt'%cat.lumiJSON
         
     dataSplitting   = " Data.splitting='FileBased' "
     dataUnitsPerJob = " Data.unitsPerJob=1 "
@@ -66,6 +67,8 @@ def submitjob(requestName, dataset, globalTag, lumiMask, submit):
     #lines = open("crab.py")
     #print lines.read()
     os.remove("crab.py")
+    print '^'*80
+
     time.sleep(5)
     
 submitBlock = None
@@ -111,9 +114,12 @@ if requestName == "" :
 if inputFile is None:
     catGetDatasetInfo = 'catGetDatasetInfo %s'%(requestName)
     os.system(catGetDatasetInfo)
-    datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json"%os.environ['CMSSW_BASE']))
+    datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset/dataset.json"%os.environ['CMSSW_BASE']))
     for d in datasets:
         dataset = d['DataSetName']
+        if len( dataset ) == 0: continue
+        if os.path.exists('crab_%s_%s' % (requestName, dataset.split('/')[1])): continue
+        if os.path.exists('crab_%s_%s_%s' % (requestName, dataset.split('/')[1], dataset.split('/')[2])): continue
         if len( d['path']) == 0:
             #print d['path'], len( d['path'])
             submitjob(requestName, dataset, None,None, submit)
@@ -130,7 +136,6 @@ else:
         if dataset.startswith("#"):
             continue
         submitjob(requestName, dataset, globalTag, lumiMask, submit)
-        
 
 if not submit:
     print "Dry run, not submitting job and only printing crab3 command"
