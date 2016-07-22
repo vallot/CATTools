@@ -60,7 +60,8 @@ def printDYFactor(rootfileDir, tname, datasets, datalumi, cut, weight, rdfilelis
 	front_rfname = rootfileDir + 'DYJets_10to50' +".root"
 	front_data = findDataSet('DYJets_10to50', datasets)
 	front_scale = datalumi*front_data["xsec"]
-	front_wentries = getWeightedEntries(front_rfname, tname, "tri", weight)
+	front_tfile = ROOT.TFile(rfname)
+	front_wentries = tfile.Get("cattree/nevents").Integral()
 	front_scale = scale/wentries
 
 	for step in range(1,7):
