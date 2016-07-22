@@ -121,7 +121,7 @@ def setDefTH1Style(th1, x_name, y_name):
     ROOT.gStyle.cd()
     return th1
     
-def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=True, ratioRange=0.45, siglist=None, legx=0.68, legfontsize=0.022):
+def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=True, ratioRange=0.45, siglist=None, legx=0.68, legfontsize=0.030):
     #leg = ROOT.TLegend(0.58,0.78,0.8,0.9)
     leg = ROOT.TLegend(legx,0.68,0.88,0.91)
     leg.SetBorderSize(0)
@@ -133,10 +133,7 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
     leg.AddEntry(data,"Data","lp")
     
     leghist = []
-    
     if siglist is not None:
-        #leg.AddEntry(sig, sig.GetTitle(), "l")
-        #leghist.append(sig.GetTitle())
         for i, sig in enumerate(siglist):
             leg.AddEntry(sig, sig.GetTitle(), "l")
             leghist.append(sig.GetTitle())
@@ -163,8 +160,12 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
     data.SetMaximum(data.GetMaximum()*1.8)
     if doLog:
         #data.SetMaximum(10**7)
-        data.SetMinimum(10**-3)
+        #data.SetMinimum(10**-3)
         data.SetMaximum(data.GetMaximum()*100)
+    else:
+        data.GetYaxis().SetTitleSize(0.038)
+        data.GetYaxis().SetLabelSize(0.026)
+        data.GetYaxis().SetTitleOffset(1.5)
         
     ratio_fraction = 0
     if doRatio:
@@ -210,20 +211,23 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
         p.Update()
 
     canv.cd()
-    iPos = 11
+    iPos = 0
     if( iPos==0 ):
         cmsLumi.relPosX = 0.12
-    cmsLumi.CMS_lumi(canv, 0, iPos)
+    cmsLumi.CMS_lumi(canv, 4, iPos)
+    #cmsLumi.CMS_lumi(canv, 0, iPos)
     
+    tex = ROOT.TLatex()
+    tex.SetTextFont(42)
+    tex.SetTextSize(0.04)
+    tex.DrawLatex(canv.GetLeftMargin()*1.4, 1-canv.GetTopMargin()*2.8, name.split('_')[0])
+
     canv.Modified()
     canv.Update()
     canv.SaveAs(name)
 
 def drellYanEstimation(mc_ee_in, mc_ee_out, mc_mm_in, mc_mm_out,
                        rd_ee_in, rd_mm_in, rd_em_in, kMM, kEE):
-    #kMM = math.sqrt(rd_mm_in/rd_ee_in)/2.
-    #kEE = math.sqrt(rd_ee_in/rd_mm_in)/2.
-
     rMC_mm = mc_mm_out/mc_mm_in
     rMC_ee = mc_ee_out/mc_ee_in
     print "rMC_mm  ", rMC_mm

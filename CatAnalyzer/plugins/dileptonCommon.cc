@@ -1,5 +1,4 @@
 #include"dileptonCommon.h"
-#include "CATTools/CatAnalyzer/interface/TopTriggerSF.h"
 
 using namespace std;
 using namespace cat;
@@ -110,8 +109,6 @@ void dileptonCommon::setBranchCommon(TTree* tr, int sys) {
   tr->Branch("step7", &b_step7, "step7/O");
   tr->Branch("step8", &b_step8, "step8/O");
   tr->Branch("tri", &b_tri, "tri/F");
-  tr->Branch("tri_up", &b_tri_up, "tri_up/F");
-  tr->Branch("tri_dn", &b_tri_dn, "tri_dn/F");
   tr->Branch("filtered", &b_filtered, "filtered/O");
   tr->Branch("met", &b_met, "met/F");
   tr->Branch("weight", &b_weight, "weight/F");
@@ -346,7 +343,7 @@ int dileptonCommon::eventSelection(const edm::Event& iEvent, const edm::EventSet
           const auto partonW21 = partonW2->daughter(0);
           const auto partonW22 = partonW2->daughter(1);
           if ( (partonW11->pt() > 20 && std::abs(partonW11->eta()) < 2.4 && (std::abs(partonW11->pdgId()) == 11 || std::abs(partonW11->pdgId()) == 13) ) &&
-              (partonW21->pt() > 20 && std::abs(partonW21->eta()) < 2.4 && (std::abs(partonW11->pdgId()) == 11 || std::abs(partonW11->pdgId()) == 13) ))
+              (partonW21->pt() > 20 && std::abs(partonW21->eta()) < 2.4 && (std::abs(partonW21->pdgId()) == 11 || std::abs(partonW21->pdgId()) == 13) ))
             b_gen_partonInPhaseLep = true;
 
           // Fill lepton informations
@@ -385,6 +382,7 @@ int dileptonCommon::eventSelection(const edm::Event& iEvent, const edm::EventSet
         leptonIdxs.push_back(i);
       }
       if ( leptonIdxs.size() !=2 ) break;
+
       std::nth_element(leptonIdxs.begin(), leptonIdxs.begin()+2, leptonIdxs.end(),
           [&](size_t i, size_t j){return pseudoTopLeptonHandle->at(i).pt() > pseudoTopLeptonHandle->at(j).pt();});
       auto lepton1 = pseudoTopLeptonHandle->at(leptonIdxs[0]).p4();
@@ -564,14 +562,20 @@ int dileptonCommon::eventSelection(const edm::Event& iEvent, const edm::EventSet
   b_eleffweight_dn = getElEffSF(recolep1, -1)*getElEffSF(recolep2, -1);
 
   // Trigger results
+  // Scale factors are from AN16-025 (v4) http://cms.cern.ch/iCMS/jsp/openfile.jsp?tp=draft&files=AN2016_025_v4.pdf
+  b_tri = 0;
   edm::Handle<int> trigHandle;
-  if      ( b_channel == CH_ELEL ) iEvent.getByToken(trigTokenELEL_, trigHandle);
-  else if ( b_channel == CH_MUMU ) iEvent.getByToken(trigTokenMUMU_, trigHandle);
-  else if ( b_channel == CH_MUEL ) iEvent.getByToken(trigTokenMUEL_, trigHandle);
-  if ( *trigHandle != 0 ) {
-    b_tri = computeTrigSF(recolep1, recolep2);
-    b_tri_up = computeTrigSF(recolep1, recolep2,  1);
-    b_tri_dn = computeTrigSF(recolep1, recolep2, -1);
+  if ( b_channel == CH_ELEL ) {
+    iEvent.getByToken(trigTokenELEL_, trigHandle);
+    if ( *trigHandle != 0 ) b_tri = 0.953; // +- 0.009
+  }
+  else if ( b_channel == CH_MUMU ) {
+    iEvent.getByToken(trigTokenMUMU_, trigHandle);
+    if ( *trigHandle != 0 ) b_tri = 0.948; // +- 0.002
+  }
+  else if ( b_channel == CH_MUEL ) {
+    iEvent.getByToken(trigTokenMUEL_, trigHandle);
+    if ( *trigHandle != 0 ) b_tri = 0.975; // +- 0.004
   }
 
   b_lep1 = recolep1.tlv(); b_lep1_pid = recolep1.pdgId();
@@ -628,50 +632,6 @@ int dileptonCommon::eventSelection(const edm::Event& iEvent, const edm::EventSet
       if (sys == sys_nom) cutflow_[8][b_channel]++;
     }
   }
-  vector<int> leptonIndex, antiLeptonIndex, jetIndices, bjetIndices;
-  VLV allLeptonslv, jetslv;
-  vector<double> jetBtags;
-  //////////////////////////////////////////////////////// DESY KIN /////////////////////////////////////
-  if (selectedBJets.size() > 0){
-    LV metlv = mets->front().p4();
-
-    int ijet=0;
-    for (auto & jet : selectedJets){
-      jetslv.push_back(jet.p4());
-      jetBtags.push_back(jet.bDiscriminator(BTAG_CSVv2));
-      if (jet.bDiscriminator(BTAG_CSVv2) > WP_BTAG_CSVv2L) bjetIndices.push_back(ijet);
-      jetIndices.push_back(ijet);
-      ++ijet;
-    }
-
-    int ilep = 0;
-    for (auto & lep : recolep){
-      allLeptonslv.push_back(lep->p4());
-      if (lep->charge() > 0) antiLeptonIndex.push_back(ilep);
-      else leptonIndex.push_back(ilep);
-      ++ilep;
-    }
-    KinematicReconstructionSolutions kinematicReconstructionSolutions  =  kinematicReconstruction->solutions(leptonIndex, antiLeptonIndex, jetIndices, bjetIndices,  allLeptonslv, jetslv, jetBtags, metlv);
-
-    if (b_step == 5 and sys == sys_nom) cutflow_[10][b_channel]++;
-
-    if (kinematicReconstructionSolutions.numberOfSolutions()){
-      LV top1 = kinematicReconstructionSolutions.solution().top();
-      LV top2 = kinematicReconstructionSolutions.solution().antiTop();
-
-      b_step8 = true;
-      if (b_step == 5)
-        if (sys == sys_nom)
-          cutflow_[11][b_channel]++;
-
-      b_desytop1 = ToTLorentzVector(top1);
-      b_desytop2 = ToTLorentzVector(top2);
-
-      LV ttbar = kinematicReconstructionSolutions.solution().ttbar();
-      b_desyttbar = ToTLorentzVector(ttbar);
-      b_desyttbar_dphi = deltaPhi(top1.Phi(), top2.Phi());
-    }
-  }
   return 0;
 }
 void dileptonCommon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -694,6 +654,49 @@ void dileptonCommon::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
   }
 }
 void dileptonCommon::analyzeCustom(const edm::Event& iEvent, const edm::EventSetup& iSetup, int sys) {
+  vector<int> leptonIndex, antiLeptonIndex, jetIndices, bjetIndices;
+  VLV allLeptonslv, jetslv;
+  vector<double> jetBtags;
+  //////////////////////////////////////////////////////// DESY KIN /////////////////////////////////////
+  if ( b_step5 ){
+
+    int ijet=0;
+    for (auto & jet : selectedJets){
+      jetslv.push_back(jet.p4());
+      jetBtags.push_back(jet.bDiscriminator(BTAG_CSVv2));
+      if (jet.bDiscriminator(BTAG_CSVv2) > WP_BTAG_CSVv2L) bjetIndices.push_back(ijet);
+      jetIndices.push_back(ijet);
+      ++ijet;
+    }
+
+    int ilep = 0;
+    for (auto & lep : recolep_){
+      allLeptonslv.push_back(lep->p4());
+      if (lep->charge() > 0) antiLeptonIndex.push_back(ilep);
+      else leptonIndex.push_back(ilep);
+      ++ilep;
+    }
+    KinematicReconstructionSolutions kinematicReconstructionSolutions  =  kinematicReconstruction->solutions(leptonIndex, antiLeptonIndex, jetIndices, bjetIndices,  allLeptonslv, jetslv, jetBtags, met);
+
+    if (b_step == 5 and sys == sys_nom) cutflow_[10][b_channel]++;
+
+    if (kinematicReconstructionSolutions.numberOfSolutions()){
+      LV top1 = kinematicReconstructionSolutions.solution().top();
+      LV top2 = kinematicReconstructionSolutions.solution().antiTop();
+
+      b_step8 = true;
+      if (b_step == 5)
+        if (sys == sys_nom)
+          cutflow_[11][b_channel]++;
+
+      b_desytop1 = ToTLorentzVector(top1);
+      b_desytop2 = ToTLorentzVector(top2);
+
+      LV ttbar = kinematicReconstructionSolutions.solution().ttbar();
+      b_desyttbar = ToTLorentzVector(ttbar);
+      b_desyttbar_dphi = deltaPhi(top1.Phi(), top2.Phi());
+    }
+  }
 
   ////////////////////////////////////////////////////////  KIN  /////////////////////////////////////
   //int kin=0;
@@ -939,23 +942,14 @@ void dileptonCommon::resetBrCustom(){
 
 void dileptonCommon::resetBrCommon()
 {
-  b_filtered = 0;
-  b_tri = b_tri_up = b_tri_dn = 0;
-
-  b_channel = 0;
-  b_step = -1;
-  b_step1 = b_step2 = b_step3 = b_step4 = b_step5 = b_step6 = b_step7 = b_step8 = 0;
-
-  b_nvertex = 0;
-  b_njet = b_nbjet = 0;
+  b_nvertex = 0;b_step = -1;b_channel = 0;b_njet = 0;b_nbjet = 0;
+  b_step1 = 0;b_step2 = 0;b_step3 = 0;b_step4 = 0;b_step5 = 0;b_step6 = 0;b_step7 = 0;b_step8 = 0;b_tri = 0;b_filtered = 0;
   b_met = -9;
-
-  b_weight = b_puweight = b_puweight_up = b_puweight_dn = b_genweight = 1;
-  b_mueffweight = b_mueffweight_up = b_mueffweight_dn = 1;
-  b_eleffweight = b_eleffweight_up = b_eleffweight_dn = 1;
-  b_btagweight = b_btagweight_up = b_btagweight_dn = 1;
+  b_weight = 1; b_puweight = 1; b_puweight_up = 1; b_puweight_dn = 1; b_genweight = 1;
+  b_mueffweight = 1;b_mueffweight_up = 1;b_mueffweight_dn = 1;
+  b_eleffweight = 1;b_eleffweight_up = 1;b_eleffweight_dn = 1;
+  b_btagweight = 1;b_btagweight_up = 1;b_btagweight_dn = 1;
   b_topPtWeight = 1.;
-
   b_csvweights.clear();
   b_pdfWeights.clear();
   b_scaleWeights_up.clear(); b_scaleWeights_dn.clear();
