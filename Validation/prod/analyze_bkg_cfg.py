@@ -10,26 +10,20 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 50000
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 process.source.fileNames = [
-    #'/store/user/jhgoh/CATTools/sync/v7-6-3/DoubleEG_Run2015D-16Dec2015-v2.root',
-    #'/store/user/jhgoh/CATTools/sync/v7-6-3/DoubleMuon_Run2015D-16Dec2015-v1.root',
-    '/store/user/jhgoh/CATTools/sync/v7-6-3/MuonEG_Run2015D-16Dec2015-v1.root',
+    '/store/user/jhgoh/CATTools/sync/v7-6-5/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8.root',
 ]
 
 process.load("CATTools.CatAnalyzer.filters_cff")
-process.load("CATTools.CatAnalyzer.ttll.ttllEventSelector_cfi")
-process.load("CATTools.CatAnalyzer.ttll.ttllAnalyzers_cff")
-process.load("CATTools.CatAnalyzer.ttll.ntuple_cff")
-process.eventsTTLL.isMC = False
-if hasattr(process.ntuple.float, "weight"):
-    delattr(process.ntuple.float, "weight")
+process.load("CATTools.Validation.ttllEventSelector_cfi")
+process.load("CATTools.Validation.validation_cff")
 
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string("hist.root"),
 )
 
 process.p = cms.Path(
-    process.filterLumi
-  * process.eventsTTLL * process.ttll + process.ttbbll
+    process.gen + process.rec
+  * process.eventsTTLL
 )
 
 ## Customise with cmd arguments
