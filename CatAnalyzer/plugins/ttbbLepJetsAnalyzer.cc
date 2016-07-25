@@ -38,12 +38,16 @@
 
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
+// Kinematic Reconstruction
+#include "CATTools/CatAnalyzer/interface/LepJets_Fitter.h"
+
 #include "TH1.h"
 #include "TTree.h"
 #include "TLorentzVector.h"
 //
 // class declaration
 //
+
 
 using namespace cat;
 
@@ -945,6 +949,61 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     //---------------------------------------------------------------------------
 
     tree->Fill();
+
+    //---------------------------------------------------------------------------
+    // Kinematic Reconstruction: First Test
+    //---------------------------------------------------------------------------
+    TLorentzVector KinLep;
+    KinLep = lepton;
+
+    TLorentzVector KinMET;
+    KinMET.SetPtEtaPhiE(b_MET, 0.0, b_MET_phi, b_MET);
+
+    std::vector<ComJet> KinJets;
+    for (unsigned int kj=0; kj<b_Jet_px->size(); kj++){
+      ComJet kjet;
+      kjet.SetPxPyPzE((*b_Jet_px)[kj],(*b_Jet_py)[kj],(*b_Jet_pz)[kj],(*b_Jet_E)[kj]);
+      kjet.CSV = (*b_Jet_CSV)[kj];
+
+      KinJets.push_back(kjet);
+    }
+
+    TLorentzVector Kinnu, Kinblrefit, Kinbjrefit, Kinj1refit, Kinj2refit;
+    Kinnu.SetPxPyPzE(0,0,0,0);
+    Kinblrefit.SetPxPyPzE(0,0,0,0);
+    Kinbjrefit.SetPxPyPzE(0,0,0,0);
+    Kinj1refit.SetPxPyPzE(0,0,0,0);
+    Kinj2refit.SetPxPyPzE(0,0,0,0);
+
+    std::vector<int> KinBestIndices;
+    KinBestIndices.push_back(0);
+    KinBestIndices.push_back(0);
+    KinBestIndices.push_back(0);
+    KinBestIndices.push_back(0);
+    bool KinUsebtag = false;
+    float bestchi2 = 0;
+
+    FindHadronicTop(KinLep, KinJets, KinMET, KinUsebtag, KinBestIndices, bestchi2, Kinnu, Kinblrefit, Kinbjrefit, Kinj1refit, Kinj2refit);
+
+
+    for (unsigned int iin =0; iin<KinBestIndices.size(); iin++) std::cout << KinBestIndices.at(iin) << std::endl;
+    std::cout << "Best Chi2 = " << bestchi2 << std::endl;
+    std::cout << "Lep pT (NEW) = " << KinLep.Pt() << std::endl;
+
+    std::cout << "\nJet[0] pT = " << KinJets[0].Pt() << std::endl;
+    std::cout << "Jet[1] pT = " << KinJets[1].Pt() << std::endl;
+    std::cout << "Jet[2] pT = " << KinJets[2].Pt() << std::endl;
+    std::cout << "Jet[3] pT = " << KinJets[3].Pt() << std::endl;
+    std::cout << "Jet[4] pT = " << KinJets[4].Pt() << std::endl;
+    std::cout << "Jet[5] pT = " << KinJets[5].Pt() << std::endl;
+
+    std::cout << "\nMET = " << KinMET.Et() << std::endl;
+    std::cout << "nu pT = " << Kinnu.Pt() << std::endl;
+    std::cout << "nu ET = " << Kinnu.Et() << std::endl;
+    std::cout << "nu E = " << Kinnu.E() << std::endl;
+
+
+
 
   } // if(ch_tag)
 
