@@ -721,7 +721,8 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 	  const int id = gp.pdgId();
 
 	  // Only leptons
-	  if(abs(id) == 11 || abs(id) == 13 || abs(id) == 15){
+	  if(abs(id) == 11 || abs(id) == 13 || abs(id) == 15 ||
+	     abs(id) == 16 || abs(id) == 14 || abs(id) == 12){
 
 	    const reco::Candidate *it     = 0;
 	    const reco::Candidate *mom    = 0;
