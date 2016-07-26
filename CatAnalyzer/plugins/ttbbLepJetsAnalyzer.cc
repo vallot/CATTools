@@ -120,6 +120,16 @@ private:
   // GEN Leptons
   float b_GenLepton_pT;
   float b_GenLepton_eta;
+  float b_GenLepton_px;
+  float b_GenLepton_py;
+  float b_GenLepton_pz;
+  float b_GenLepton_E;
+  // GEN Neutrino
+  float b_GenNu_px;
+  float b_GenNu_py;
+  float b_GenNu_pz;
+  float b_GenNu_E;
+
   // Leptons
   float b_Lepton_px;
   float b_Lepton_py;
@@ -160,6 +170,24 @@ private:
   std::vector<float> *b_Jet_SF_CSV;
   // c-Jet discriminant
   std::vector<float> *b_Jet_CvsL, *b_Jet_CvsB;
+
+  // Kinematic Reconstruction
+  float b_Kin_Chi2;
+
+  // KR Leptons
+  float b_KinNu_px;
+  float b_KinNu_py;
+  float b_KinNu_pz;
+  float b_KinNu_E;
+  // KR Jets
+  std::vector<float> *b_KinJet_px;
+  std::vector<float> *b_KinJet_py;
+  std::vector<float> *b_KinJet_pz;
+  std::vector<float> *b_KinJet_E;
+
+  std::vector<int> *b_KinJet_Index;
+
+
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   // Histograms
@@ -257,7 +285,14 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   b_Jet_JER_Up   = new std::vector<float>;
   b_Jet_JER_Nom  = new std::vector<float>;
   b_Jet_JER_Down = new std::vector<float>;
-  
+  // Kinematic Reconstruction
+  b_KinJet_px = new std::vector<float>;
+  b_KinJet_py = new std::vector<float>;
+  b_KinJet_pz = new std::vector<float>;
+  b_KinJet_E  = new std::vector<float>;
+
+  b_KinJet_Index = new std::vector<int>;
+
 
   usesResource("TFileService");
   edm::Service<TFileService> fs;
@@ -308,10 +343,18 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
     tree->Branch("scaleweight",   "std::vector<float>", &b_ScaleWeight );
     tree->Branch("genhiggscatid", &b_GenHiggsCatID, "genhiggscatid/I");
     tree->Branch("genconecatid" , "std::vector<int>", &b_GenConeCatID);
-    tree->Branch("draddjets",     &b_DRAddJets,       "DRAddJets/F");
-    tree->Branch("genchannel",    &b_GenChannel,      "genchannel/I");
-    tree->Branch("genlepton_pT",  &b_GenLepton_pT,    "genlepton_pT/F");
-    tree->Branch("genlepton_eta", &b_GenLepton_eta,   "genlepton_eta/F");
+    tree->Branch("draddjets",     &b_DRAddJets,     "DRAddJets/F");
+    tree->Branch("genchannel",    &b_GenChannel,    "genchannel/I");
+    tree->Branch("genlepton_pT",  &b_GenLepton_pT,  "genlepton_pT/F");
+    tree->Branch("genlepton_eta", &b_GenLepton_eta, "genlepton_eta/F");
+    tree->Branch("genlepton_px",  &b_GenLepton_px,  "genlepton_px/F");
+    tree->Branch("genlepton_py",  &b_GenLepton_py,  "genlepton_py/F");
+    tree->Branch("genlepton_pz",  &b_GenLepton_pz,  "genlepton_pz/F");
+    tree->Branch("genlepton_E",   &b_GenLepton_E,   "genlepton_E/F");
+    tree->Branch("gennu_px",      &b_GenNu_px,      "gennu_px/F");
+    tree->Branch("gennu_py",      &b_GenNu_py,      "gennu_py/F");
+    tree->Branch("gennu_pz",      &b_GenNu_pz,      "gennu_pz/F");
+    tree->Branch("gennu_E",       &b_GenNu_E,       "gennu_E/F");
 
     tree->Branch("jet_MatchedGenJetIndex", "std::vector<int>",  &b_Jet_MatchedGenJetIndex);
 
@@ -320,6 +363,21 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
     tree->Branch("genjet_pz", "std::vector<float>", &b_GenJet_pz);
     tree->Branch("genjet_E",  "std::vector<float>", &b_GenJet_E);
     tree->Branch("genjet_mom", "std::vector<int>",  &b_GenJet_mom);
+
+    // Kinematic Reconstruction
+    tree->Branch("kin_chi2",  &b_Kin_Chi2, "kin_chi2/F");
+
+    tree->Branch("kinnu_px",  &b_KinNu_px, "kinnu_px/F");
+    tree->Branch("kinnu_py",  &b_KinNu_py, "kinnu_py/F");
+    tree->Branch("kinnu_pz",  &b_KinNu_pz, "kinnu_pz/F");
+    tree->Branch("kinnu_E",   &b_KinNu_E,  "kinnu_E/F");
+
+    tree->Branch("kinjet_px", "std::vector<float>", &b_KinJet_px);
+    tree->Branch("kinjet_py", "std::vector<float>", &b_KinJet_py);
+    tree->Branch("kinjet_pz", "std::vector<float>", &b_KinJet_pz);
+    tree->Branch("kinjet_E",  "std::vector<float>", &b_KinJet_E);
+
+    tree->Branch("kinjet_index", "std::vector<int>", &b_KinJet_Index);
 
     //GEN TREE
     gentree = fs->make<TTree>("gentree", "TopGENTree");
@@ -400,6 +458,14 @@ ttbbLepJetsAnalyzer::~ttbbLepJetsAnalyzer()
   delete b_Jet_CSV;
   delete b_Jet_CvsL;
   delete b_Jet_CvsB;
+
+  delete b_KinJet_px;
+  delete b_KinJet_py;
+  delete b_KinJet_pz;
+  delete b_KinJet_E;
+  
+  delete b_KinJet_Index;
+
 }
 
 //
@@ -447,6 +513,14 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   b_Jet_CSV   ->clear();
   b_Jet_SF_CSV->clear();
   b_Jet_CvsL  ->clear();
+  b_Jet_CvsB  ->clear();
+
+  b_KinJet_px->clear();
+  b_KinJet_py->clear();
+  b_KinJet_pz->clear();
+  b_KinJet_E->clear();
+  
+  b_KinJet_Index->clear();
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -524,6 +598,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   //---------------------------------------------------------------------------
 
   int nGenLep  = 999;
+
   bool IsCat = false;
 
   if(TTbarMC_ > 0) {
@@ -626,6 +701,91 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 	  b_GenLepton_eta = genttbarConeCat->begin()->lepton2().eta();
 	}
 
+	TLorentzVector Genlepton(0,0,0,0); 
+	TLorentzVector Gennu(0,0,0,0);
+
+	edm::Handle<reco::GenParticleCollection> genParticles;
+	iEvent.getByToken(genToken_, genParticles);
+	
+	// Gen Status: http://home.thep.lu.se/~torbjorn/pythia81html/ParticleProperties.html
+	// abs(id) == 6  // t-Quark
+	// abs(id) == 5  // b-Quark
+	// abs(id) == 24 // W-Boson
+	// abs(id) == 15 // Tau
+	// abs(id) == 11 // Electron
+	// abs(id) == 13 // Muon
+
+	for (unsigned int i = 0; i < genParticles->size(); i++){
+
+	  const reco::Candidate & gp = (*genParticles)[i];
+	  const int id = gp.pdgId();
+
+	  // Only leptons
+	  if(abs(id) == 11 || abs(id) == 13 || abs(id) == 15){
+
+	    const reco::Candidate *it     = 0;
+	    const reco::Candidate *mom    = 0;
+	    const reco::Candidate *itmom  = 0;
+	    const reco::Candidate *mommom = 0;
+
+	    int momid = id;
+	    it = (&gp);
+	    // This loop searches the particle's mother
+	    while(momid == id){
+	      if(it != 0){
+		mom = it->mother();
+		if(mom != 0) momid = mom->pdgId();
+		else momid = 0;
+		if(momid == id) it = mom;
+	      } // if(it != 0)
+	      else momid = 0;
+	    } // while(momid == id)
+
+	    int mommomid = momid;
+
+	    if(mom != 0){
+	      itmom = mom;
+	      // This loop searches the mother's mom of the particle
+	      while (mommomid == momid){
+		if(itmom !=0){
+		  mommom = itmom->mother();
+		  if(mommom != 0) mommomid = mommom->pdgId();
+		  else mommomid = 0;
+		  if(mommomid == momid) itmom = mommom->mother();
+		}
+		else mommomid = 0;
+	      } // if(mom != 0)
+	    } // while(mommomid == momid)
+
+	    if (abs(momid) == 24 && abs(mommomid) == 6){
+	      if (abs(id) == 13 || abs(id) == 11) Genlepton.SetPxPyPzE(gp.px(), gp.py(), gp.pz(), gp.energy());  
+
+	      if (abs(id) == 16 || abs(id) == 14 || abs(id) == 12) Gennu.SetPxPyPzE(gp.px(), gp.py(), gp.pz(), gp.energy());  
+	      
+	      if (abs(id) == 15){ // Taus 
+		for(unsigned int h = 0; h <  gp.numberOfDaughters(); h++) {
+		  const reco::Candidate *gd = gp.daughter(h);
+		  const int taudauid = gd->pdgId();
+		  if (abs(taudauid) == 13 || abs(taudauid) == 11) Genlepton.SetPxPyPzE(gd->px(), gd->py(), gd->pz(), gd->energy());  
+		} // for(taus' daughters)
+	      } // if(taus)
+	        
+	    } // if(t->W)
+	    
+	  }// if (mu || e || tau)
+	} // for(genParticles)
+
+	// Full lepton and neutrino information
+	b_GenNu_px = Gennu.Px();
+	b_GenNu_py = Gennu.Py();
+	b_GenNu_pz = Gennu.Pz();
+	b_GenNu_E  = Gennu.E();
+	
+	b_GenLepton_px = Genlepton.Px();
+	b_GenLepton_py = Genlepton.Py();
+	b_GenLepton_pz = Genlepton.Pz();
+	b_GenLepton_E  = Genlepton.E();
+
 	edm::Handle<reco::GenJetCollection> genJets;
 	iEvent.getByToken(genJetToken_, genJets);
 	
@@ -659,8 +819,9 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
  
 	  }// if(Good genJet)
 	}// for(genJet)	
-	
+
 	gentree->Fill();
+
       } // if(nGenLep == 1)
     }// if(GENTTbarMCTree_)
 
@@ -943,70 +1104,101 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     for (unsigned int iu=2; iu<19; iu+=2) (*b_Jet_SF_CSV)[iu] = Jet_SF_CSV[0]  - Jet_SF_CSV[iu]; // Syst. Unc. Down
 
     //---------------------------------------------------------------------------
-    //---------------------------------------------------------------------------
-    // Fill Tree with event at 1 lepton cut level
-    //---------------------------------------------------------------------------
-    //---------------------------------------------------------------------------
-
-    tree->Fill();
-
-    //---------------------------------------------------------------------------
     // Kinematic Reconstruction: First Test
     //---------------------------------------------------------------------------
-    TLorentzVector KinLep;
-    KinLep = lepton;
-
-    TLorentzVector KinMET;
-    KinMET.SetPtEtaPhiE(b_MET, 0.0, b_MET_phi, b_MET);
-
-    std::vector<ComJet> KinJets;
-    for (unsigned int kj=0; kj<b_Jet_px->size(); kj++){
-      ComJet kjet;
-      kjet.SetPxPyPzE((*b_Jet_px)[kj],(*b_Jet_py)[kj],(*b_Jet_pz)[kj],(*b_Jet_E)[kj]);
-      kjet.CSV = (*b_Jet_CSV)[kj];
-
-      KinJets.push_back(kjet);
-    }
-
     TLorentzVector Kinnu, Kinblrefit, Kinbjrefit, Kinj1refit, Kinj2refit;
     Kinnu.SetPxPyPzE(0,0,0,0);
     Kinblrefit.SetPxPyPzE(0,0,0,0);
     Kinbjrefit.SetPxPyPzE(0,0,0,0);
     Kinj1refit.SetPxPyPzE(0,0,0,0);
     Kinj2refit.SetPxPyPzE(0,0,0,0);
-
+    
     std::vector<int> KinBestIndices;
     KinBestIndices.push_back(0);
     KinBestIndices.push_back(0);
     KinBestIndices.push_back(0);
     KinBestIndices.push_back(0);
-    bool KinUsebtag = false;
     float bestchi2 = 0;
-
-    FindHadronicTop(KinLep, KinJets, KinMET, KinUsebtag, KinBestIndices, bestchi2, Kinnu, Kinblrefit, Kinbjrefit, Kinj1refit, Kinj2refit);
-
-
-    for (unsigned int iin =0; iin<KinBestIndices.size(); iin++) std::cout << KinBestIndices.at(iin) << std::endl;
-    std::cout << "Best Chi2 = " << bestchi2 << std::endl;
-    std::cout << "Lep pT (NEW) = " << KinLep.Pt() << std::endl;
-
-    std::cout << "\nJet[0] pT = " << KinJets[0].Pt() << std::endl;
-    std::cout << "Jet[1] pT = " << KinJets[1].Pt() << std::endl;
-    std::cout << "Jet[2] pT = " << KinJets[2].Pt() << std::endl;
-    std::cout << "Jet[3] pT = " << KinJets[3].Pt() << std::endl;
-    std::cout << "Jet[4] pT = " << KinJets[4].Pt() << std::endl;
-    std::cout << "Jet[5] pT = " << KinJets[5].Pt() << std::endl;
-
-    std::cout << "\nMET = " << KinMET.Et() << std::endl;
-    std::cout << "nu pT = " << Kinnu.Pt() << std::endl;
-    std::cout << "nu ET = " << Kinnu.Et() << std::endl;
-    std::cout << "nu E = " << Kinnu.E() << std::endl;
-
-
-
-
-  } // if(ch_tag)
-
+    bool KinUsebtag = true;
+    
+    if(N_GoodJets > 3){
+      
+      TLorentzVector KinLep;
+      KinLep = lepton;
+      
+      TLorentzVector KinMET;
+      KinMET.SetPtEtaPhiE(b_MET, 0.0, b_MET_phi, b_MET);
+      
+      std::vector<ComJet> KinJets;
+      for (unsigned int kj=0; kj<b_Jet_px->size(); kj++){
+	ComJet kjet;
+	kjet.SetPxPyPzE((*b_Jet_px)[kj],(*b_Jet_py)[kj],(*b_Jet_pz)[kj],(*b_Jet_E)[kj]);
+	kjet.CSV = (*b_Jet_CSV)[kj];
+	
+	KinJets.push_back(kjet);
+      }
+      
+      
+      FindHadronicTop(KinLep, KinJets, KinMET, KinUsebtag, KinBestIndices, bestchi2, Kinnu, Kinblrefit, Kinbjrefit, Kinj1refit, Kinj2refit);
+      
+      // for (unsigned int iin =0; iin<KinBestIndices.size(); iin++) std::cout << KinBestIndices.at(iin) << std::endl;
+      // std::cout << "Best Chi2 = " << bestchi2 << std::endl;
+      // std::cout << "Lep pT (NEW) = " << KinLep.Pt() << std::endl;
+      
+      // std::cout << "\nJet[0] pT = " << KinJets[0].Pt() << std::endl;
+      // std::cout << "Jet[1] pT = " << KinJets[1].Pt() << std::endl;
+      // std::cout << "Jet[2] pT = " << KinJets[2].Pt() << std::endl;
+      // std::cout << "Jet[3] pT = " << KinJets[3].Pt() << std::endl;
+      // std::cout << "Jet[4] pT = " << KinJets[4].Pt() << std::endl;
+      // std::cout << "Jet[5] pT = " << KinJets[5].Pt() << std::endl;
+      
+      // std::cout << "\nMET = " << KinMET.Et() << std::endl;
+      // std::cout << "nu pT = " << Kinnu.Pt() << std::endl;
+      // std::cout << "nu ET = " << Kinnu.Et() << std::endl;
+      // std::cout << "nu E = " << Kinnu.E() << std::endl;
+    
+    } //if(N_GoodJets > 3)   
+    
+    // LorentzVector for Jets. Same order as KinBestIndices
+    b_KinJet_px->push_back(Kinbjrefit.Px());
+    b_KinJet_px->push_back(Kinj1refit.Px());
+    b_KinJet_px->push_back(Kinj2refit.Px()); 
+    b_KinJet_px->push_back(Kinblrefit.Px());
+    
+    b_KinJet_py->push_back(Kinbjrefit.Py());
+    b_KinJet_py->push_back(Kinj1refit.Py());
+    b_KinJet_py->push_back(Kinj2refit.Py()); 
+    b_KinJet_py->push_back(Kinblrefit.Py());
+    
+    b_KinJet_pz->push_back(Kinbjrefit.Pz());
+    b_KinJet_pz->push_back(Kinj1refit.Pz());
+    b_KinJet_pz->push_back(Kinj2refit.Pz()); 
+    b_KinJet_pz->push_back(Kinblrefit.Pz());
+    
+    b_KinJet_E->push_back(Kinbjrefit.E());
+    b_KinJet_E->push_back(Kinj1refit.E());
+    b_KinJet_E->push_back(Kinj2refit.E()); 
+    b_KinJet_E->push_back(Kinblrefit.E());
+    
+    b_KinNu_px = Kinnu.Px();
+    b_KinNu_py = Kinnu.Py();
+    b_KinNu_pz = Kinnu.Pz();
+    b_KinNu_E  = Kinnu.E();
+    
+    for(unsigned int iki=0; iki<KinBestIndices.size(); iki++) b_KinJet_Index->push_back(KinBestIndices.at(iki));
+    
+    b_Kin_Chi2 = bestchi2;
+        
+    //---------------------------------------------------------------------------
+    //---------------------------------------------------------------------------
+    // Fill Tree with event at 1 lepton cut level
+    //---------------------------------------------------------------------------
+    //---------------------------------------------------------------------------
+    
+    tree->Fill();
+        
+  }// if(ch_tag)
+  
 }
 
 //------------- Good Muon Selection -----------------------
