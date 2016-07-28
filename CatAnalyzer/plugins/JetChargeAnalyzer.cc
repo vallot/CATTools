@@ -92,6 +92,7 @@ void JetChargeAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&
     data->jet_pt[i] = fromBJet[i].pt();
     data->jet_pdgId[i] = fromBJet[i].partonPdgId();
     data->jet_charge[i] = fromBJet[i].charge();
+    LogDebug("JetChargeAnalyzer")<<"Jet Charge from b quark jet : "<<fromBJet[i].charge();
   }
   ttree_->Fill();
 }

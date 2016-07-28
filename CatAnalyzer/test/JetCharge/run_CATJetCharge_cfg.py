@@ -13,6 +13,9 @@ process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 #process.source.fileNames = ['file:../../../catdata_20160315/catTuple.root']
 process.source.fileNames = ['root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TTTo2L2Nu_13TeV-powheg/v8-0-0_RunIISpring16MiniAODv2-PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0_ext1-v1/160705_215520/0000/catTuple_1.root']
 
+process.MessageLogger.debugModules = cms.untracked.vstring('cattree')
+process.MessageLogger.destinations = cms.untracked.vstring('detailInfo')
+process.MessageLogger.detailInfo = cms.untracked.PSet( threshold = cms.untracked.string('DEBUG'))
 
 from CATTools.CatAnalyzer.leptonSF_cff import *
 
@@ -33,3 +36,6 @@ process.p = cms.Path(process.cattree)
 if ( process.maxEvents.input <0 or process.maxEvents > 5000) :
   process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.options.wantSummary = True
+
+
+
