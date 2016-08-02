@@ -20,6 +20,7 @@ struct Data {
   float jet_pt[2];
   int jet_pdgId[2];
   int jet_charge[2];
+  bool jet_btag[2];
   Data(){
     reset();
   }
@@ -34,11 +35,12 @@ struct Data {
       jet_pt[i] = 0.0f;
       jet_pdgId[i]= 0;
       jet_charge[i]= 0;
+      jet_btag[i]= false;
     }
   }
 
   void bookingTree( TTree* tree) {
-    tree->Branch("data",&(this->lep_pt[0]),"lep_pt[2]/F:lep_pdgId[2]/I:jet_pt[2]/F:jet_pdgId[2]/I:jet_charge[2]/I");
+    tree->Branch("data",&(this->lep_pt[0]),"lep_pt[2]/F:lep_pdgId[2]/I:jet_pt[2]/F:jet_pdgId[2]/I:jet_charge[2]/I:jet_btag[2]/O");
   }
 };
 
@@ -59,8 +61,8 @@ protected :
   edm::EDGetTokenT<cat::MuonCollection>      muonToken_;
   edm::EDGetTokenT<cat::ElectronCollection>      elecToken_;
   TH1D* h_nevents;
-  TTree* ttree_;
-  Data* data;
+  TTree *ttree_, *rtree_;
+  Data  *data1,  *data2;
   int b_run;
   int b_event;
 

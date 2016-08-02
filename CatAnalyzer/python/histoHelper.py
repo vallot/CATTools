@@ -17,6 +17,8 @@ def getTH1(title, binning, tree, plotvar, cut, scale = 0.):
 def getTH2(title, binning, tree, plotvar, cut, scale = 0.):
     if len(binning) == 3:
         hist = ROOT.TH2D("name", title, binning[0], binning[1], binning[2], binning[0], binning[1], binning[2])
+    elif len(binning) == 2 and len(binning[0]) ==3 :
+        hist = ROOT.TH2D("name", title, binning[0][0], binning[0][1], binning[0][2], binning[1][0], binning[1][1], binning[1][2])
     else:
         hist = ROOT.TH2D("name", title, len(binning)-1, array.array('f', binning), len(binning)-1, array.array('f', binning))
     tree.Project("name", plotvar, cut)
@@ -63,7 +65,7 @@ def divide_canvas(canvas, ratio_fraction):
     pad_ratio.SetTopMargin(margins[0] + (1 - ratio_fraction) * useable_height)
     return pad, pad_ratio
 
-def makeCanvas(name, doRatio):
+def makeCanvas(name, doRatio=False):
     H_ref = 600;
     if doRatio:
         H_ref = 800;
@@ -71,7 +73,7 @@ def makeCanvas(name, doRatio):
     canvas = ROOT.TCanvas(name,name,W_ref,H_ref)    
     return canvas
 
-def setMargins(canvas, doRatio):
+def setMargins(canvas, doRatio=False):
     H_ref = 600;
     if doRatio:
         H_ref = 800;
@@ -270,3 +272,30 @@ def table(mchistList, errList, signal_hist, signal_err):
 
     return nums, errs
 
+def set_palette(name="", ncontours=999):
+    """Set a color palette from a given RGB list
+    stops, red, green and blue should all be lists of the same length
+    see set_decent_colors for an example"""
+
+    if name == "gray" or name == "grayscale":
+        stops = [0.00, 0.34, 0.61, 0.84, 1.00]
+        red   = [1.00, 0.84, 0.61, 0.34, 0.00]
+        green = [1.00, 0.84, 0.61, 0.34, 0.00]
+        blue  = [1.00, 0.84, 0.61, 0.34, 0.00]
+    # elif name == "whatever":
+        # (define more palettes)
+    else:
+        # default palette, looks cool
+        stops = [0.00, 0.34, 0.61, 0.84, 1.00]
+        red   = [0.00, 0.00, 0.87, 1.00, 0.51]
+        green = [0.00, 0.81, 1.00, 0.20, 0.00]
+        blue  = [0.51, 1.00, 0.12, 0.00, 0.00]
+
+    s = array('d', stops)
+    r = array('d', red)
+    g = array('d', green)
+    b = array('d', blue)
+
+    npoints = len(s)
+    TColor.CreateGradientColorTable(npoints, s, r, g, b, ncontours)
+    gStyle.SetNumberContours(ncontours)

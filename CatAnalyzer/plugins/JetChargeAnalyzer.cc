@@ -38,8 +38,10 @@ JetChargeAnalyzer::JetChargeAnalyzer(const edm::ParameterSet& iConfig)
   edm::Service<TFileService> fs;
 
   h_nevents = fs->make<TH1D>("nevents","nevents",1,0,1);
-  ttree_ = fs->make<TTree>("bjet_color","bjet_color");
-  data = new Data(ttree_);
+  ttree_ = fs->make<TTree>("true_bjet_charge","true_bjet_charge");
+  rtree_ = fs->make<TTree>("reco_bjet_charge","reco_bjet_charge");
+  data1 = new Data(ttree_);
+  data2 = new Data(rtree_);
 
 }
 
@@ -73,28 +75,64 @@ void JetChargeAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
   const bool runOnMC = !iEvent.isRealData();
   if ( !runOnMC  ) { std::cout<<"It is not MC samples"<<std::endl; exit(-1); }
-  cat::JetCollection fromBJet; 
+  cat::JetCollection fromTrueBJet, fromRecoBJet; 
+
+  // First b-related jets
   for( auto& j : selectedJets ) {
     if ( abs( j.partonPdgId()) != 5) continue;
-    fromBJet.push_back(j); 
+    fromTrueBJet.push_back(j); 
   }
-  while ( fromBJet.size()<2 ) {
+  for( auto& j : selectedJets ) {
+    if ( !j.CSVv2L() ) continue;
+    fromRecoBJet.push_back(j); 
+  }
+  // Second : Normal jet( no b-releated jets )
+  if ( fromTrueBJet.size()<2 ) {
+    for( auto& j : selectedJets) {
+      if ( abs(j.partonPdgId()) ==5 ) continue;
+      fromTrueBJet.push_back( j );
+    }
+  } 
+  if ( fromRecoBJet.size()<2 ) {
+    for( auto& j : selectedJets) {
+      if ( j.CSVv2L() ) continue;
+      fromRecoBJet.push_back( j );
+    }
+  } 
+  // Last : Dummy jet
+  while ( fromTrueBJet.size()<2 ) {
     auto temp_jet = cat::Jet();
     temp_jet.setPartonPdgId(0);
-
-    fromBJet.push_back( temp_jet );
-    
+    fromTrueBJet.push_back( temp_jet );
   } 
-  data->reset();
+  while ( fromRecoBJet.size()<2 ) {
+    auto temp_jet = cat::Jet();
+    temp_jet.setPartonPdgId(0);
+    fromRecoBJet.push_back( temp_jet );
+  }
+  // However, only first 2 jets wll be used. 
+  data1->reset();
   for( int i=0 ; i<2 ; ++i) {
-    data->lep_pt[i]= recolep[i]->pt();
-    data->lep_pdgId[i] = recolep[i]->pdgId();
-    data->jet_pt[i] = fromBJet[i].pt();
-    data->jet_pdgId[i] = fromBJet[i].partonPdgId();
-    data->jet_charge[i] = fromBJet[i].charge();
-    LogDebug("JetChargeAnalyzer")<<"Jet Charge from b quark jet : "<<fromBJet[i].charge();
+    data1->lep_pt[i]= recolep[i]->pt();
+    data1->lep_pdgId[i] = recolep[i]->pdgId();
+    data1->jet_pt[i] = fromTrueBJet[i].pt();
+    data1->jet_pdgId[i] = fromTrueBJet[i].partonPdgId();
+    data1->jet_charge[i] = fromTrueBJet[i].charge();
+    data1->jet_btag[i] = fromTrueBJet[i].CSVv2L();
+    LogDebug("JetChargeAnalyzer")<<"Jet Charge from true b quark jet : "<<fromTrueBJet[i].charge();
+  }
+  data2->reset();
+  for( int i=0 ; i<2 ; ++i) {
+    data2->lep_pt[i]= recolep[i]->pt();
+    data2->lep_pdgId[i] = recolep[i]->pdgId();
+    data2->jet_pt[i] = fromRecoBJet[i].pt();
+    data2->jet_pdgId[i] = fromRecoBJet[i].partonPdgId();
+    data2->jet_charge[i] = fromRecoBJet[i].charge();
+    data2->jet_btag[i] = fromRecoBJet[i].CSVv2L();
+    LogDebug("JetChargeAnalyzer")<<"Jet Charge from reco b quark jet : "<<fromRecoBJet[i].charge();
   }
   ttree_->Fill();
+  rtree_->Fill();
 }
 
 
