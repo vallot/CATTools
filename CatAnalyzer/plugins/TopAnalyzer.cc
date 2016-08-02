@@ -130,6 +130,8 @@ class TopAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
       float Jet_hadronFlavour[100];
       float Jet_BTag[100];
       float Jet_bDiscriminator[100];
+      float Jet_pfCombinedCvsLJetTags[100];
+      float Jet_pfCombinedCvsBJetTags[100];
  
       float Jet_JES_Up[100];
       float Jet_JES_Dw[100];
@@ -403,7 +405,13 @@ TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      Jet_JES_Dw[nJets] = jet.shiftedEnDown();
 
      double bDiscriminator = jet.bDiscriminator(BTAG_CSVv2);
+     double pfCombinedCvsLJetTags = jet.bDiscriminator("pfCombinedCvsLJetTags");
+     double pfCombinedCvsBJetTags = jet.bDiscriminator("pfCombinedCvsBJetTags");
+
      Jet_bDiscriminator[nJets] = bDiscriminator;
+     Jet_pfCombinedCvsLJetTags[nJets] = pfCombinedCvsLJetTags;
+     Jet_pfCombinedCvsBJetTags[nJets] = pfCombinedCvsBJetTags;
+
      if( bDiscriminator > WP_BTAG_CSVv2M) {
        nbJets++;
        Jet_BTag[nJets] = 1;
@@ -490,7 +498,9 @@ TopAnalyzer::beginJob()
    tree->Branch("Jet_hadronFlavour",Jet_hadronFlavour,"Jet_hadronFlavour[NJet]/F");
    tree->Branch("Jet_BTag",Jet_BTag,"Jet_BTag[NJet]/F");
    tree->Branch("Jet_bDiscriminator",Jet_bDiscriminator,"Jet_bDiscriminator[NJet]/F"); 
-
+   tree->Branch("Jet_pfCombinedCvsLJetTags",Jet_pfCombinedCvsLJetTags,"Jet_pfCombinedCvsLJetTags[NJet]/F"); 
+   tree->Branch("Jet_pfCombinedCvsBJetTags",Jet_pfCombinedCvsBJetTags,"Jet_pfCombinedCvsBJetTags[NJet]/F"); 
+  
    tree->Branch("Jet_JES_Up",Jet_JES_Up,"Jet_JES_Up[NJet]/F");
    tree->Branch("Jet_JES_Dw",Jet_JES_Dw,"Jet_JES_Dw[NJet]/F");
  
