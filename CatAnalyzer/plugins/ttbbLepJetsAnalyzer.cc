@@ -634,20 +634,34 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     // [7]: Number of add c-Jets
     b_GenConeCatID->push_back(genttbarConeCat->begin()-> NaddcJets20());
 
-    // DR between additional Jets
+    // additional Jets Information
+    // p4
+    math::XYZTLorentzVector AddJet1, AddJet2, JetTop1, JetTop2;
+    JetTop1 = genttbarConeCat->begin()-> bJetsFromTop1();
+    JetTop2 = genttbarConeCat->begin()-> bJetsFromTop2();
+    AddJet1 = genttbarConeCat->begin()-> addJets1();
+    AddJet2 = genttbarConeCat->begin()-> addJets2();
+
+    std::cout << "Top Jet 1: " << JetTop1.Pt() << std::endl;
+    std::cout << "Top Jet 2: " << JetTop2.Pt() << std::endl;
+    std::cout << "Add Jet 1: " << AddJet1.Pt() << std::endl;
+    std::cout << "Add Jet 2: " << AddJet2.Pt() << std::endl;
+
+    // DR 
     b_DRAddJets = genttbarConeCat->begin()->dRaddJets();
 
-      if(genttbarConeCat->begin()-> NaddbJets20() > 1){
-	EventInfo->Fill(2.5, 1.0); // Number of ttbb Events	
-	if(genttbarConeCat->begin()->semiLeptonic(-1)) EventInfo->Fill(3.5, 1.0); // Number of ttbb Events (Includes tau) 
-	if(genttbarConeCat->begin()->semiLeptonic(0))  EventInfo->Fill(4.5, 1.0); // Number of ttbb Events (Includes tau leptonic decay) 
-      }
-      if(genttbarConeCat->begin()-> NaddJets20() > 1){
-	EventInfo->Fill(5.5, 1.0); // Number of ttjj Events	
-	if(genttbarConeCat->begin()->semiLeptonic(-1)) EventInfo->Fill(6.5, 1.0); // Number of ttjj Events (Includes tau) 
-	if(genttbarConeCat->begin()->semiLeptonic(0))  EventInfo->Fill(7.5, 1.0); // Number of ttjj Events (Includes tau leptonic decay) 
-      }
-
+    if(genttbarConeCat->begin()-> NaddbJets20() > 1){
+      EventInfo->Fill(2.5, 1.0); // Number of ttbb Events	
+      if(genttbarConeCat->begin()->semiLeptonic(-1)) EventInfo->Fill(3.5, 1.0); // Number of ttbb Events (Includes tau) 
+      if(genttbarConeCat->begin()->semiLeptonic(0))  EventInfo->Fill(4.5, 1.0); // Number of ttbb Events (Includes tau leptonic decay) 
+    }
+    if(genttbarConeCat->begin()-> NaddJets20() > 1){
+      EventInfo->Fill(5.5, 1.0); // Number of ttjj Events	
+      if(genttbarConeCat->begin()->semiLeptonic(-1)) EventInfo->Fill(6.5, 1.0); // Number of ttjj Events (Includes tau) 
+      if(genttbarConeCat->begin()->semiLeptonic(0))  EventInfo->Fill(7.5, 1.0); // Number of ttjj Events (Includes tau leptonic decay) 
+    }
+    
+    
     //---------------------------------------------------------------------------
     // Using the GenChannel from GenTop categorization
     //---------------------------------------------------------------------------
@@ -686,7 +700,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     if (Isttjj && TTbarCatMC_ == 6) IsCat = true;
 
 
-    if(isMC_ && TTbarMC_==1 && IsCat){
+    if(isMC_ && TTbarMC_== 1 && IsCat){
       if(nGenLep == 1){
 
 	if (genttbarConeCat->begin()->semiLeptonicMuo())      b_GenChannel = 0;
@@ -701,12 +715,16 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 	  b_GenLepton_eta = genttbarConeCat->begin()->lepton2().eta();
 	}
 
-	TLorentzVector Genlepton(0,0,0,0); 
-	TLorentzVector Gennu(0,0,0,0);
-
+	//---------------------------------------------------------------------------
+	// Generated particles: Lepton, neutrino and jets
+	//---------------------------------------------------------------------------
+	
 	edm::Handle<reco::GenParticleCollection> genParticles;
 	iEvent.getByToken(genToken_, genParticles);
 	
+	TLorentzVector Genlepton(0,0,0,0); 
+	TLorentzVector Gennu(0,0,0,0);
+
 	// Gen Status: http://home.thep.lu.se/~torbjorn/pythia81html/ParticleProperties.html
 	// abs(id) == 6  // t-Quark
 	// abs(id) == 5  // b-Quark
@@ -795,6 +813,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 	
 	for (unsigned int j = 0; j < genJets->size(); j++){
 	  const cat::GenJet & gjet = (*genJets)[j];
+	  std::cout << "GEN-Jet " << j << " :" << gjet.pt() << std::endl; 
 	  if(std::abs(gjet.eta())< 2.5 &&
 	     gjet.pt()> 20){
 
@@ -805,17 +824,23 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
             b_GenJet_pT->push_back(gjet.pt());
 
-	    std::vector<int> moms = (*JetMom)[j];
-	    
-	    int IsWJet = 0, IsTopJet = 0; 
+	    std::vector <const reco::GenParticle*> mcparts = gjet.getGenConstituents();
+	    for (unsigned ic = 0; ic < mcparts.size (); ic++) {
+	      const GenParticle* mcpart = mcparts[ic];
+	      int constID = mcpart->pdgId();
+	      if (std::abs(constID) == 5) std::cout << "b-Jet " << j << std::endl;
+	    }
+
+	    std::vector<int> moms = (*JetMom)[j];	    
+	    int WIDJet = 0, TopIDJet = 0; 
             for(unsigned int nmom = 0; nmom < moms.size() ; nmom++){
               int momID = moms.at(nmom);
-              if(std::abs(momID) == 24) IsWJet   = 1;
-              if(std::abs(momID) == 6 ) IsTopJet = 1;
+              if(std::abs(momID) == 24) WIDJet   = momID;
+              if(std::abs(momID) == 6 ) TopIDJet = momID;
             }
 
-	    if(IsWJet == 1) (*b_GenJet_mom).push_back(24);
-	    else if (IsTopJet == 1)  (*b_GenJet_mom).push_back(6);
+	    if (WIDJet != 0) (*b_GenJet_mom).push_back(WIDJet);
+	    else if (TopIDJet != 0)  (*b_GenJet_mom).push_back(TopIDJet);
 	    else (*b_GenJet_mom).push_back(0);
  
 	  }// if(Good genJet)
