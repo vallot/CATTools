@@ -126,7 +126,13 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
       aMuon.setNumberOfValidPixelHits( aPatMuon.innerTrack()->hitPattern().numberOfValidPixelHits() );
       aMuon.setTackerLayersWithMeasurement( aPatMuon.innerTrack()->hitPattern().trackerLayersWithMeasurement() );
     }
+    else {
+    cout 
+	 << " mu.trackerLayersWithMeasurement() " << aMuon.trackerLayersWithMeasurement()
+	 << " mu.numberOfValidHits() " << aMuon.numberOfValidHits()
+	 <<endl;
 
+    }
     aMuon.setDxy( aPatMuon.muonBestTrack()->dxy(pv.position()) );
     aMuon.setDz( aPatMuon.muonBestTrack()->dz(pv.position()) );
     aMuon.setVertex(Point(aPatMuon.muonBestTrack()->vx(),aPatMuon.muonBestTrack()->vy(),aPatMuon.muonBestTrack()->vz()));

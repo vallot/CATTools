@@ -21,6 +21,8 @@
 #include "DataFormats/Math/interface/deltaPhi.h"
 #include "TTree.h"
 #include "TH1D.h"
+#include "CATTools/CatAnalyzer/src/rochcor2016.h"
+#include "CATTools/CatAnalyzer/src/RoccoR.h"
 //#include "TLorentzVector.h"
 
 using namespace std;
@@ -79,7 +81,7 @@ private:
   
   edm::EDGetTokenT<int> recoFiltersToken_, nGoodVertexToken_, lumiSelectionToken_;
   edm::EDGetTokenT<float> genweightToken_, puweightToken_, puweightToken_up_, puweightToken_dn_, topPtWeight_;
-  edm::EDGetTokenT<vector<float>> pdfweightToken_, scaleweightToken_;
+  //edm::EDGetTokenT<vector<float>> pdfweightToken_, scaleweightToken_;
   edm::EDGetTokenT<cat::MuonCollection>     muonToken_;
   edm::EDGetTokenT<cat::ElectronCollection> elecToken_;
   edm::EDGetTokenT<cat::JetCollection>      jetToken_;
@@ -89,6 +91,9 @@ private:
   edm::EDGetTokenT<edm::TriggerResults> triggerBits_;
   edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjects_;
 
+  rochcor2016 *rmcor;
+  bool runOnMC;
+  
   std::vector<TTree*> ttree_;
   TH1D * h_nevents;
   int b_run, b_lumi, b_event;
@@ -123,9 +128,9 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
   recoFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("recoFilters"));
   nGoodVertexToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("nGoodVertex"));
   lumiSelectionToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("lumiSelection"));
-  genweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("genweight"));
-  pdfweightToken_ = consumes<vector<float>>(iConfig.getParameter<edm::InputTag>("pdfweight"));
-  scaleweightToken_ = consumes<vector<float>>(iConfig.getParameter<edm::InputTag>("scaleweight"));
+  //genweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("genweight"));
+  //pdfweightToken_ = consumes<vector<float>>(iConfig.getParameter<edm::InputTag>("pdfweight"));
+  //scaleweightToken_ = consumes<vector<float>>(iConfig.getParameter<edm::InputTag>("scaleweight"));
   puweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("puweight"));
   puweightToken_up_ = consumes<float>(iConfig.getParameter<edm::InputTag>("puweight_up"));
   puweightToken_dn_ = consumes<float>(iConfig.getParameter<edm::InputTag>("puweight_dn"));
@@ -246,7 +251,9 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   b_run = iEvent.id().run();
   b_event = iEvent.id().event();
 
-  const bool runOnMC = !iEvent.isRealData();
+  rmcor = new rochcor2016();  
+  runOnMC = !iEvent.isRealData();
+  
   cutflow_[0][0]++;
 
   for (int sys = 0; sys < nsys_e; ++sys){
@@ -266,9 +273,9 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
       iEvent.getByToken(puweightToken_dn_, puweightHandle_dn);
       b_puweight_dn = *puweightHandle_dn;
 
-      edm::Handle<float> genweightHandle;
-      iEvent.getByToken(genweightToken_, genweightHandle);
-      b_genweight = (*genweightHandle);
+      // edm::Handle<float> genweightHandle;
+      // iEvent.getByToken(genweightToken_, genweightHandle);
+      // b_genweight = (*genweightHandle);
       b_weight = b_genweight*b_puweight;
 
       edm::Handle<reco::GenParticleCollection> genParticles;
@@ -431,6 +438,7 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 
     ttree_[sys]->Fill();
   }
+  delete rmcor;
 }
 
 float h2muAnalyzer::selectMuons(const cat::MuonCollection& muons, cat::MuonCollection& selmuons, sys_e sys) const
@@ -438,11 +446,43 @@ float h2muAnalyzer::selectMuons(const cat::MuonCollection& muons, cat::MuonColle
   float weight = 1.;
   for (auto& m : muons) {
     cat::Muon mu(m);
+    if (std::abs(mu.eta()) > 2.4) continue;
+    
+    float qter = 1.0;
+    TLorentzVector tmu(mu.tlv());
+
+    cout << "\n initial   " << mu.tlv().Pt()
+	 << ", " << mu.tlv().Eta()
+	 << ", " << mu.tlv().Phi()
+	 << ", " << mu.tlv().M()
+	 << " mu.trackerLayersWithMeasurement() " << mu.trackerLayersWithMeasurement()
+	 << " mu.numberOfValidHits() " << mu.numberOfValidHits()
+	 <<endl;
+    
+    if (runOnMC)
+      rmcor->momcor_mc(tmu, mu.charge(), mu.trackerLayersWithMeasurement(), qter);
+    else 
+      rmcor->momcor_data(tmu, mu.charge(), 0, qter);
+
+    mu.setP4(m.p4() * tmu.E()/mu.tlv().E());
+
+    if (tmu.Pt() != mu.tlv().Pt()){
+      cout << " corrected " << tmu.Pt()
+	   << ", " << tmu.Eta()
+	   << ", " << tmu.Phi()
+	   << ", " << tmu.M()
+	   <<endl;
+    
+      cout << " applied   " << mu.tlv().Pt()
+	   << ", " << mu.tlv().Eta()
+	   << ", " << mu.tlv().Phi()
+	   << ", " << mu.tlv().M()
+	   <<endl;
+    }
     if (sys == sys_mu_u) mu.setP4(m.p4() * m.shiftedEnUp());
     if (sys == sys_mu_d) mu.setP4(m.p4() * m.shiftedEnDown());
 
     if (mu.pt() < 10.) continue;
-    if (std::abs(mu.eta()) > 2.4) continue;
     if (!mu.isLooseMuon()) continue;
     if (mu.relIso(0.4) > 0.25) continue;
     //printf("muon with pt %4.1f, POG loose id %d, tight id %d\n", mu.pt(), mu.isLooseMuon(), mu.isTightMuon());
