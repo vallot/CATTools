@@ -149,6 +149,7 @@ void CATTriggerProducer::produce(edm::Event& event, const edm::EventSetup& event
       event.put(std::auto_ptr<int>(new int (psValue)), hltPath.second);
     }
   }
+  
   if (metFilterNames_.size()){
     // save filter info
     edm::Handle<edm::TriggerResults> metFilterBits;

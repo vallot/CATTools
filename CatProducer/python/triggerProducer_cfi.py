@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 catTrigger = cms.EDProducer("CATTriggerProducer",
-    triggerBits = cms.InputTag("TriggerResults","","HLT*"),
+    triggerBits = cms.InputTag("TriggerResults","","HLT2"),
     triggerObjects = cms.InputTag("selectedPatTrigger"),
     triggerPrescales = cms.InputTag("patTrigger"),
     selectTrigObjects = cms.vstring("HLT_Ele", "HLT_DoubleEle", "HLT_Mu", "HLT_TkMu", "HLT_IsoMu", "HLT_IsoTkMu", "HLT_DoubleIsoMu", "HLT_PFJet","HLT_DoublePhoton", "HLT_Photon"),

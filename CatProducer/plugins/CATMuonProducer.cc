@@ -115,25 +115,16 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     aMuon.setIsSoftMuon( aPatMuon.isSoftMuon(pv) );
 
     aMuon.setNumberOfMatchedStations( aPatMuon.numberOfMatchedStations() );
-
     aMuon.setNumberOfValidHits( aPatMuon.numberOfValidHits() );
     
     if ( aPatMuon.globalTrack().isNonnull() && aPatMuon.globalTrack().isAvailable() ){
       aMuon.setNormalizedChi2( aPatMuon.normChi2() );
       aMuon.setNumberOfValidMuonHits( aPatMuon.globalTrack()->hitPattern().numberOfValidMuonHits() );
     }
-    else{
-      aMuon.setNormalizedChi2( -1 );
-      aMuon.setNumberOfValidMuonHits( 0 );
-    }
 
     if ( aPatMuon.innerTrack().isNonnull() && aPatMuon.innerTrack().isAvailable() ){
       aMuon.setNumberOfValidPixelHits( aPatMuon.innerTrack()->hitPattern().numberOfValidPixelHits() );
       aMuon.setTackerLayersWithMeasurement( aPatMuon.innerTrack()->hitPattern().trackerLayersWithMeasurement() );
-    }
-    else {
-      aMuon.setNumberOfValidPixelHits( 0 );
-      aMuon.setTackerLayersWithMeasurement( 0 );
     }
     
     aMuon.setDxy( aPatMuon.muonBestTrack()->dxy(pv.position()) );
@@ -154,8 +145,6 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
       float muSignificanceIP = muIPpair.second.significance();
       aMuon.setIpSignficance(muSignificanceIP);
     }
-    else
-      aMuon.setIpSignficance(-1);
 
     out->push_back(aMuon);
   }
