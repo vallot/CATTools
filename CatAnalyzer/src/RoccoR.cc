@@ -146,9 +146,6 @@ double RocRes::kSmearDet(double pt, double eta, TYPE type, double v, double u){
 double RocRes::kExtraDet(double pt, double eta, int nlayers, double u, double w){
     int H = getBin(fabs(eta), NETA, BETA);
     int F = nlayers-NMIN;
-    cout << "F "<< F<<endl;
-    cout << "nlayers "<< nlayers<<endl;
-    cout << "NMIN "<< NMIN<<endl;
     double  v = ntrk[H][F]+(ntrk[H][F+1]-ntrk[H][F])*w;
     int     D = getBin(v, NTRK, dtrk[H]);
     double RD = kDat[H]*Sigma(pt, H, D);

@@ -116,23 +116,26 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
 
     aMuon.setNumberOfMatchedStations( aPatMuon.numberOfMatchedStations() );
 
-    if ( aPatMuon.globalTrack().isNonnull() && aPatMuon.globalTrack().isAvailable() ) {
+    aMuon.setNumberOfValidHits( aPatMuon.numberOfValidHits() );
+    
+    if ( aPatMuon.globalTrack().isNonnull() && aPatMuon.globalTrack().isAvailable() ){
       aMuon.setNormalizedChi2( aPatMuon.normChi2() );
       aMuon.setNumberOfValidMuonHits( aPatMuon.globalTrack()->hitPattern().numberOfValidMuonHits() );
     }
+    else{
+      aMuon.setNormalizedChi2( -1 );
+      aMuon.setNumberOfValidMuonHits( 0 );
+    }
 
     if ( aPatMuon.innerTrack().isNonnull() && aPatMuon.innerTrack().isAvailable() ){
-      aMuon.setNumberOfValidHits( aPatMuon.numberOfValidHits() );
       aMuon.setNumberOfValidPixelHits( aPatMuon.innerTrack()->hitPattern().numberOfValidPixelHits() );
       aMuon.setTackerLayersWithMeasurement( aPatMuon.innerTrack()->hitPattern().trackerLayersWithMeasurement() );
     }
     else {
-    cout 
-	 << " mu.trackerLayersWithMeasurement() " << aMuon.trackerLayersWithMeasurement()
-	 << " mu.numberOfValidHits() " << aMuon.numberOfValidHits()
-	 <<endl;
-
+      aMuon.setNumberOfValidPixelHits( 0 );
+      aMuon.setTackerLayersWithMeasurement( 0 );
     }
+    
     aMuon.setDxy( aPatMuon.muonBestTrack()->dxy(pv.position()) );
     aMuon.setDz( aPatMuon.muonBestTrack()->dz(pv.position()) );
     aMuon.setVertex(Point(aPatMuon.muonBestTrack()->vx(),aPatMuon.muonBestTrack()->vy(),aPatMuon.muonBestTrack()->vz()));
@@ -141,9 +144,8 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     reco::TrackRef  mutrack = aPatMuon.get<reco::TrackRef>();
     if (mutrack.isNull()){
       mutrack=aPatMuon.get<reco::TrackRef,reco::StandAloneMuonTag>();
-    }  
+    }
     reco::TransientTrack mutranstrack = trackBuilder->build( mutrack ) ;
-
 
     TrajectoryStateOnSurface  muTSOS = IPTools::transverseExtrapolate(mutranstrack.impactPointState(), pVertex, mutranstrack.field());
     
@@ -152,6 +154,8 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
       float muSignificanceIP = muIPpair.second.significance();
       aMuon.setIpSignficance(muSignificanceIP);
     }
+    else
+      aMuon.setIpSignficance(-1);
 
     out->push_back(aMuon);
   }
