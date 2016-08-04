@@ -40,6 +40,16 @@ namespace cat {
     const math::XYZTLorentzVector topquark1() const { return tops_[0]; }
     const math::XYZTLorentzVector topquark2() const { return tops_[1]; }
 
+    const math::XYZTLorentzVector Wquark1() const { return quarksfromW_[0]; }
+    const math::XYZTLorentzVector Wquark2() const { return quarksfromW_[1]; }
+    const math::XYZTLorentzVector Wquark3() const { return quarksfromW_[2]; }
+    const math::XYZTLorentzVector Wquark4() const { return quarksfromW_[3]; }
+
+    const int Wquarkflav1() const { return qflavourfromW_[0]; }
+    const int Wquarkflav2() const { return qflavourfromW_[1]; }
+    const int Wquarkflav3() const { return qflavourfromW_[2]; }
+    const int Wquarkflav4() const { return qflavourfromW_[3]; }
+ 
     const math::XYZTLorentzVector bquarks1() const { return bquarks_[0]; }
     const math::XYZTLorentzVector bquarks2() const { return bquarks_[1]; }
     const math::XYZTLorentzVector bquarks3() const { return bquarks_[2]; }
@@ -72,6 +82,16 @@ namespace cat {
 
     const math::XYZTLorentzVector bJetsFromTop1() const { return bJetsFromTop_[0]; }
     const math::XYZTLorentzVector bJetsFromTop2() const { return bJetsFromTop_[1]; }
+
+    const math::XYZTLorentzVector JetsFromW1() const { return JetsFromW_[0]; }
+    const math::XYZTLorentzVector JetsFromW2() const { return JetsFromW_[1]; }
+    const math::XYZTLorentzVector JetsFromW3() const { return JetsFromW_[2]; }
+    const math::XYZTLorentzVector JetsFromW4() const { return JetsFromW_[3]; }
+
+    const int JetsFlavourFromW1() const { return JetsFlavourFromW_[0]; }
+    const int JetsFlavourFromW2() const { return JetsFlavourFromW_[1]; }
+    const int JetsFlavourFromW3() const { return JetsFlavourFromW_[2]; }
+    const int JetsFlavourFromW4() const { return JetsFlavourFromW_[3]; }
 
     const math::XYZTLorentzVector addJets1() const { return addJets_[0]; }
     const math::XYZTLorentzVector addJets2() const { return addJets_[1]; }
@@ -250,6 +270,7 @@ namespace cat {
 
     int is2tops() const { return is2tops_; }
 
+    int NWJets() const {return NWJets_;} 
   private:
 
     std::vector<const reco::Candidate *> getAncestors(const reco::Candidate &c);
@@ -277,12 +298,15 @@ namespace cat {
     LorentzVectors cJets_;
     LorentzVectors bJets_;
     LorentzVectors bJetsFromTop_;
+    LorentzVectors JetsFromW_;
+    std::vector<int> JetsFlavourFromW_;
     LorentzVectors addbJets_;
     LorentzVectors addcJets_;
     LorentzVectors addbJetsHad_;
     LorentzVectors addcJetsHad_;
     LorentzVectors addJets_;
     LorentzVectors quarksfromW_;
+    std::vector<int> qflavourfromW_;
 
     float ttbarmass_;
 
@@ -383,6 +407,7 @@ namespace cat {
     int NaddJets20_;
     int NaddJets40_;
 
+    int NWJets_;
 
     float dRaddJets_;
 
