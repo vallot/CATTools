@@ -109,7 +109,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
       }
     }
 
-    if ( ntop == 2 ) continue; // Should it be != 2?
+    if ( ntop == 2 ) continue; 
     if ( abs(p.pdgId()) != 6 ) continue;
 
     bool isLast = isLastParton(p);
