@@ -43,6 +43,10 @@ JetChargeAnalyzer::JetChargeAnalyzer(const edm::ParameterSet& iConfig)
   data1 = new Data(ttree_);
   data2 = new Data(rtree_);
 
+  //auto solverPSet = iConfig.getParameter<edm::ParameterSet>("solver");
+  //solver_.reset( new CMSKinSolver(solverPSET));  
+
+
 }
 
 void JetChargeAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -117,7 +121,14 @@ void JetChargeAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&
     data1->lep_pdgId[i] = recolep[i]->pdgId();
     data1->jet_pt[i] = fromTrueBJet[i].pt();
     data1->jet_pdgId[i] = fromTrueBJet[i].partonPdgId();
-    data1->jet_charge[i] = fromTrueBJet[i].charge();
+    if ( data1->jet_pdgId[i] ==0 ) {
+      data1->jet_eta[i] = -999.f;
+      data1->jet_charge[i] = -999;
+    }
+    else {
+      data1->jet_eta[i] = fromTrueBJet[i].eta();
+      data1->jet_charge[i] = fromTrueBJet[i].charge();
+    }
     data1->jet_btag[i] = fromTrueBJet[i].CSVv2L();
     LogDebug("JetChargeAnalyzer")<<"Jet Charge from true b quark jet : "<<fromTrueBJet[i].charge();
   }
@@ -126,8 +137,17 @@ void JetChargeAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&
     data2->lep_pt[i]= recolep[i]->pt();
     data2->lep_pdgId[i] = recolep[i]->pdgId();
     data2->jet_pt[i] = fromRecoBJet[i].pt();
+    //data2->jet_eta[i] = fromRecoBJet[i].eta();
     data2->jet_pdgId[i] = fromRecoBJet[i].partonPdgId();
-    data2->jet_charge[i] = fromRecoBJet[i].charge();
+    if ( data2->jet_pdgId[i] ==0 ) {
+      data2->jet_eta[i] = -999.f;
+      data2->jet_charge[i] = -999;
+    }
+    else {
+      data2->jet_eta[i] = fromRecoBJet[i].eta();
+      data2->jet_charge[i] = fromRecoBJet[i].charge();
+    }
+    //data2->jet_charge[i] = fromRecoBJet[i].charge();
     data2->jet_btag[i] = fromRecoBJet[i].CSVv2L();
     LogDebug("JetChargeAnalyzer")<<"Jet Charge from reco b quark jet : "<<fromRecoBJet[i].charge();
   }

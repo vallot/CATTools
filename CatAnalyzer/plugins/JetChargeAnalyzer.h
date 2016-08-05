@@ -8,6 +8,8 @@
 #include "CATTools/DataFormats/interface/Muon.h"
 #include "CATTools/DataFormats/interface/Electron.h"
 #include "CATTools/DataFormats/interface/Jet.h"
+//#include "CATTools/CatAnalyzer/interface/KinematicSolvers.h"
+
 //#include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
 #include<TTree.h>
 #include<TNtuple.h>
@@ -18,6 +20,7 @@ struct Data {
   int lep_pdgId[2];
   
   float jet_pt[2];
+  float jet_eta[2];
   int jet_pdgId[2];
   int jet_charge[2];
   bool jet_btag[2];
@@ -33,6 +36,7 @@ struct Data {
       lep_pt[i]= 0.0f;
       lep_pdgId[i]= 0;
       jet_pt[i] = 0.0f;
+      jet_eta[i] = -999.f;
       jet_pdgId[i]= 0;
       jet_charge[i]= 0;
       jet_btag[i]= false;
@@ -40,7 +44,7 @@ struct Data {
   }
 
   void bookingTree( TTree* tree) {
-    tree->Branch("data",&(this->lep_pt[0]),"lep_pt[2]/F:lep_pdgId[2]/I:jet_pt[2]/F:jet_pdgId[2]/I:jet_charge[2]/I:jet_btag[2]/O");
+    tree->Branch("data",&(this->lep_pt[0]),"lep_pt[2]/F:lep_pdgId[2]/I:jet_pt[2]/F:jet_eta[2]/F:jet_pdgId[2]/I:jet_charge[2]/I:jet_btag[2]/O");
   }
 };
 
@@ -65,6 +69,8 @@ protected :
   Data  *data1,  *data2;
   int b_run;
   int b_event;
+
+  //std::unique_ptr<KinematicSolver> solver_;
 
 private :
   void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&) override {};

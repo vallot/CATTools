@@ -78,6 +78,7 @@ TTLLKinSolutionProducer::TTLLKinSolutionProducer(const edm::ParameterSet& pset)
   produces<floats>("mLB");
   produces<floats>("mAddJJ");
   produces<floats>("dphi");
+  produces<floats>("quality");
 }
 
 void TTLLKinSolutionProducer::beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&)
@@ -99,6 +100,7 @@ void TTLLKinSolutionProducer::produce(edm::Event& event, const edm::EventSetup&)
   std::auto_ptr<floats> out_mLB(new floats);
   std::auto_ptr<floats> out_mAddJJ(new floats);
   std::auto_ptr<floats> out_dphi(new floats);
+  std::auto_ptr<floats> out_quality(new floats);
 
   std::vector<reco::CandidatePtr> leptons;
   edm::Handle<edm::View<reco::CandidatePtr> > leptonPtrHandle;
@@ -224,6 +226,7 @@ void TTLLKinSolutionProducer::produce(edm::Event& event, const edm::EventSetup&)
     out_dphi->push_back(deltaPhi(top1.phi(), top2.phi()));
     out_mLB->push_back((solver_->l1()+solver_->j1()).mass());
     out_mLB->push_back((solver_->l2()+solver_->j2()).mass());
+    out_quality->push_back(quality);
     if ( jets.size() >= 4 )
     {
       int nUsedJet = 0;
@@ -245,6 +248,7 @@ void TTLLKinSolutionProducer::produce(edm::Event& event, const edm::EventSetup&)
   event.put(out_mLB, "mLB");
   event.put(out_mAddJJ, "mAddJJ");
   event.put(out_dphi, "dphi");
+  event.put(out_quality, "quality");
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"
