@@ -171,6 +171,7 @@ void TTLLKinSolutionProducer::produce(edm::Event& event, const edm::EventSetup&)
     // Redo the calculation with the selected ones to update internal variables
     inputLV[3] = selectedJet1->p4();
     inputLV[4] = selectedJet2->p4();
+
     solver_->solve(inputLV);
     quality = solver_->quality();
     if ( quality <= -1e9 ) break;
@@ -205,6 +206,10 @@ void TTLLKinSolutionProducer::produce(edm::Event& event, const edm::EventSetup&)
     w2.setPdgId(-24*lep2Q);
     top1.setPdgId(-6*lep1Q);
     top2.setPdgId(-6*lep2Q);
+
+    cands->push_back( Cand(selectedJet1->charge(), selectedJet1->p4()));
+    cands->push_back( Cand(selectedJet2->charge(), selectedJet2->p4()));
+
 
     // Do the basic mother-daughter associations
     /*
@@ -242,7 +247,6 @@ void TTLLKinSolutionProducer::produce(edm::Event& event, const edm::EventSetup&)
   } while (false);
 
   event.put(cands);
-
   event.put(out_aux, "aux");
   event.put(out_mLL, "mLL");
   event.put(out_mLB, "mLB");

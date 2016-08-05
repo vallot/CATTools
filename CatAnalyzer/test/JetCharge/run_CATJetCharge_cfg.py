@@ -10,6 +10,7 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
 
 process.options.allowUnscheduled = cms.untracked.bool(True)
+#process.options.allowUnscheduled = cms.untracked.bool(False)
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 #process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-3/MuonEG_Run2015D-16Dec2015-v1.root',]
@@ -38,13 +39,9 @@ process.agen = cms.EDAnalyzer("CATGenTopAnalysis",
     filterTaus = cms.bool(False),
 )
 
-
-
-
-
-
-
 process.cattree = cms.EDAnalyzer("JetChargeAnalyzer",
+    solverCands = cms.InputTag("ttbarDileptonKin"),
+    solverQuality = cms.InputTag("ttbarDileptonKin","quality"),
     muon = cms.PSet(
         src = cms.InputTag("catMuons"),
     ),
@@ -57,13 +54,26 @@ process.TFileService = cms.Service("TFileService",
     fileName = cms.string("jet_charge_tree.root"
 ))
 
-process.ttbarDileptonKinCMSKIN = process.ttbarDileptonKin.clone()
-process.ttbarDileptonKinCMSKIN.algo = process.ttbarDileptonKinAlgoPSetCMSKin
-
-process.p = cms.Path(process.eventsTTLL*process.ttbarDileptonKinCMSKIN*process.cattree)
-process.p = cms.Path(
-    process.agen + process.filterPartonTTLL* process.eventsTTLL * process.ttbarDileptonKinCMSKIN*process.cattree
+process.catOut = cms.OutputModule("PoolOutputModule",
+    fileName = cms.untracked.string('catTuple.root'),
+    outputCommands = cms.untracked.vstring(['drop *','keep *_ttbar*_*_*'])
 )
+
+process.catOutPath = cms.EndPath(process.catOut)
+
+#process.load("CATTools.CatProducer.catCandidates_cff")    
+
+process.eventsTTLL.filters.ignoreTrig = cms.bool(True)
+#process.ttbarDileptonKinCMSKIN = process.ttbarDileptonKin.clone()
+#process.ttbarDileptonKinCMSKIN.algo = process.ttbarDileptonKinAlgoPSetCMSKin
+
+process.ttbarDileptonKin.algo = process.ttbarDileptonKinAlgoPSetCMSKin
+process.p = cms.Path(
+    process.agen + process.filterPartonTTLL* process.eventsTTLL * process.ttbarDileptonKin*process.cattree
+)
+#process.p = cms.Path(     process.agen + process.filterPartonTTLL* process.eventsTTLL * process.ttbarDileptonKin)   #*process.cattree) 
+
+
 if ( process.maxEvents.input <0 or process.maxEvents > 5000) :
   process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.options.wantSummary = True

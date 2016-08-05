@@ -9,7 +9,6 @@ for filename in datasetList :
   print filename
   dataset = filename.replace("dataset_","").replace(".txt","")
   print dataset
-  cmd = "create-batch --jobName %s --fileList ../../data/dataset/%s --maxFiles 20 --cfg run_CATJetCharge_cfg.py"%(dataset,filename) 
+  cmd = "create-batch --jobName %s --fileList ../../../data/dataset/%s --maxFiles 20 --cfg run_CATJetCharge_cfg.py"%(dataset,filename) 
   print cmd
   os.system(cmd)
-#create-batch --jobName  

@@ -33,6 +33,8 @@ JetChargeAnalyzer::JetChargeAnalyzer(const edm::ParameterSet& iConfig)
   const auto elecSet = iConfig.getParameter<edm::ParameterSet>("electron");
   elecToken_ = consumes<cat::ElectronCollection>(elecSet.getParameter<edm::InputTag>("src"));
   jetToken_  = consumes<cat::JetCollection>(iConfig.getParameter<edm::InputTag>("jets"));
+  solverCandsToken_  = consumes<std::vector<reco::LeafCandidate> >(iConfig.getParameter<edm::InputTag>("solverCands"));
+  solverQualityToken_  = consumes<std::vector<float> >(iConfig.getParameter<edm::InputTag>("solverQuality"));
 
   usesResource("TFileService");
   edm::Service<TFileService> fs;
@@ -54,10 +56,11 @@ void JetChargeAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&
   b_run = iEvent.id().run();
   b_event = iEvent.id().event();
 
-  edm::Handle<cat::MuonCollection> muons;          iEvent.getByToken(muonToken_, muons);
-  edm::Handle<cat::ElectronCollection> electrons;  iEvent.getByToken(elecToken_, electrons);
-  edm::Handle<cat::JetCollection> jets;            iEvent.getByToken(jetToken_, jets);
-
+  edm::Handle<cat::MuonCollection> muons;                         iEvent.getByToken(muonToken_, muons);
+  edm::Handle<cat::ElectronCollection> electrons;                 iEvent.getByToken(elecToken_, electrons);
+  edm::Handle<cat::JetCollection> jets;                           iEvent.getByToken(jetToken_, jets);
+  edm::Handle<std::vector<reco::LeafCandidate> > solverCands;     iEvent.getByToken(solverCandsToken_, solverCands);
+  edm::Handle<std::vector<float> > qualities;                    iEvent.getByToken(solverQualityToken_, qualities);
   // Find leptons and sort by pT
   cat::MuonCollection selMuons;
   cat::ElectronCollection selElecs;
@@ -73,7 +76,7 @@ void JetChargeAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&
   for ( const auto& x : selElecs ) recolep.push_back(&x);
 
   sort(recolep.begin(), recolep.end(), [](const cat::Lepton* a, const cat::Lepton* b){return a->pt() > b->pt();});
-
+  h_nevents->Fill(1);
   auto selectedJets  = selectJets(*jets, recolep );
   auto selectedBJets =  selectBJets( selectedJets );
 
@@ -132,6 +135,17 @@ void JetChargeAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&
     data1->jet_btag[i] = fromTrueBJet[i].CSVv2L();
     LogDebug("JetChargeAnalyzer")<<"Jet Charge from true b quark jet : "<<fromTrueBJet[i].charge();
   }
+  data1->solverQuality = (float)((*qualities)[0]*1e5);
+  data1->top_mass[0] = (*solverCands)[1].mass();
+  data1->top_mass[1] = (*solverCands)[2].mass();
+  auto bjet1 = (*solverCands)[7].p4();
+  auto bjet2 = (*solverCands)[8].p4();
+
+  data1->bjet[0] = new TLorentzVector(bjet1.px(), bjet1.py(), bjet1.pz(), bjet1.energy());
+  data1->bjet[1] = new TLorentzVector(bjet2.px(), bjet2.py(), bjet2.pz(), bjet2.energy());
+  data1->bjet_charge[0] = (*solverCands)[7].charge();
+  data1->bjet_charge[1] = (*solverCands)[8].charge();
+
   data2->reset();
   for( int i=0 ; i<2 ; ++i) {
     data2->lep_pt[i]= recolep[i]->pt();
@@ -147,10 +161,18 @@ void JetChargeAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&
       data2->jet_eta[i] = fromRecoBJet[i].eta();
       data2->jet_charge[i] = fromRecoBJet[i].charge();
     }
-    //data2->jet_charge[i] = fromRecoBJet[i].charge();
     data2->jet_btag[i] = fromRecoBJet[i].CSVv2L();
     LogDebug("JetChargeAnalyzer")<<"Jet Charge from reco b quark jet : "<<fromRecoBJet[i].charge();
   }
+  data2->solverQuality = (float)((*qualities)[0]*1e5);
+  data2->top_mass[0] = (*solverCands)[1].mass();
+  data2->top_mass[1] = (*solverCands)[2].mass();
+
+  data2->bjet[0] = new TLorentzVector(bjet1.px(), bjet1.py(), bjet1.pz(), bjet1.energy());
+  data2->bjet[1] = new TLorentzVector(bjet2.px(), bjet2.py(), bjet2.pz(), bjet2.energy());
+  data2->bjet_charge[0] = (*solverCands)[7].charge();
+  data2->bjet_charge[1] = (*solverCands)[8].charge();
+
   ttree_->Fill();
   rtree_->Fill();
 }
