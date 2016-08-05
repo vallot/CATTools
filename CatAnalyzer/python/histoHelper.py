@@ -114,22 +114,21 @@ def setDefAxis(axis, title, offset):
 def setDefTH1Style(th1, x_name, y_name):
     setDefAxis(th1.GetYaxis(),y_name, 1.2)
     setDefAxis(th1.GetXaxis(),x_name, 1)
-    th1.GetYaxis().CenterTitle()
     ROOT.gStyle.SetStripDecimals(True)
     ROOT.gStyle.SetPadTickX(1)
     ROOT.gStyle.SetPadTickY(1)
     ROOT.gStyle.cd()
     return th1
     
-def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=True, ratioRange=0.45, siglist=None, legx=0.68, legfontsize=0.022):
-    #leg = ROOT.TLegend(0.58,0.78,0.8,0.9)
-    leg = ROOT.TLegend(legx,0.68,0.88,0.91)
+def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=True, ratioRange=0.45, siglist=None, legx=0.68, legfontsize=0.030):
+    leg = ROOT.TLegend(legx,0.68,legx+0.2,0.91)
     leg.SetBorderSize(0)
     #leg.SetNColumns(2)
     leg.SetTextSize(legfontsize)
     leg.SetTextFont(42)
     leg.SetLineColor(0)
     leg.SetFillColor(0)
+    leg.SetFillStyle(0)
     leg.AddEntry(data,"Data","lp")
     
     leghist = []
@@ -163,16 +162,20 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
     data.SetMaximum(data.GetMaximum()*1.8)
     if doLog:
         #data.SetMaximum(10**7)
-        data.SetMinimum(10**-3)
+        #data.SetMinimum(10**-3)
         data.SetMaximum(data.GetMaximum()*100)
+    else:
+        data.GetYaxis().SetTitleSize(0.04)
+        data.GetYaxis().SetLabelSize(0.024)
+        data.GetYaxis().SetTitleOffset(1.35)
         
     ratio_fraction = 0
     if doRatio:
         ratio_fraction = 0.3        
         data.GetXaxis().SetLabelSize(0)
         data.GetXaxis().SetTitleSize(0)
-        data.GetYaxis().CenterTitle()
         setDefTH1Style(hratio, x_name, "Data/MC")
+        hratio.GetYaxis().CenterTitle()
         hratio.GetYaxis().SetNdivisions(5)
             
     canv = makeCanvas(name, doRatio)
@@ -193,6 +196,14 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
     
     data.Draw("esamex0")
     leg.Draw("same")
+
+    tex = ROOT.TLatex()
+    tex.SetNDC()
+    tex.SetTextFont(42)
+    tex.SetTextSize(0.04)
+    tex.DrawLatex(0.25, 0.85, name.split('_')[0])
+    #tex.DrawLatex(canv.GetLeftMargin()*1.4, 1-canv.GetTopMargin()*2.8, name.split('_')[0])
+    
     pads[0].Update()
 
     if doRatio:
@@ -210,14 +221,15 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
         p.Update()
 
     canv.cd()
-    iPos = 11
+    iPos = 0
     if( iPos==0 ):
-        cmsLumi.relPosX = 0.12
-    cmsLumi.CMS_lumi(canv, 0, iPos)
-    
+        cmsLumi.relPosX = 0.1
+    cmsLumi.CMS_lumi(pads[0], 4, iPos)
+
     canv.Modified()
     canv.Update()
-    canv.SaveAs(name)
+    canv.SaveAs(name+".png")
+    canv.SaveAs(name+".pdf")
 
 def drellYanEstimation(mc_ee_in, mc_ee_out, mc_mm_in, mc_mm_out,
                        rd_ee_in, rd_mm_in, rd_em_in, kMM, kEE):
