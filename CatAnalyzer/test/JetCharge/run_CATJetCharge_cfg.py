@@ -12,6 +12,13 @@ process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
 process.options.allowUnscheduled = cms.untracked.bool(True)
 #process.options.allowUnscheduled = cms.untracked.bool(False)
 
+
+## setting up arguements
+from FWCore.ParameterSet.VarParsing import VarParsing
+options = VarParsing ('python')
+options.register('isTT',False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "isTT: 0  default")
+options.parseArguments()
+
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 #process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-3/MuonEG_Run2015D-16Dec2015-v1.root',]
 #process.source.fileNames = ['file:/xrootd/store/user/jhgoh/CATTools/sync/v7-6-3/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',]
@@ -59,7 +66,7 @@ process.catOut = cms.OutputModule("PoolOutputModule",
     outputCommands = cms.untracked.vstring(['drop *','keep *_ttbar*_*_*'])
 )
 
-process.catOutPath = cms.EndPath(process.catOut)
+#process.catOutPath = cms.EndPath(process.catOut)
 
 #process.load("CATTools.CatProducer.catCandidates_cff")    
 
@@ -68,9 +75,15 @@ process.eventsTTLL.filters.ignoreTrig = cms.bool(True)
 #process.ttbarDileptonKinCMSKIN.algo = process.ttbarDileptonKinAlgoPSetCMSKin
 
 process.ttbarDileptonKin.algo = process.ttbarDileptonKinAlgoPSetCMSKin
-process.p = cms.Path(
-    process.agen + process.filterPartonTTLL* process.eventsTTLL * process.ttbarDileptonKin*process.cattree
-)
+
+
+if ( options.isTT ) : 
+  print "This is TT Samples. Run agen and filter parto."
+  process.p = cms.Path(
+      process.agen + process.filterPartonTTLL* process.eventsTTLL * process.ttbarDileptonKin*process.cattree
+  )
+else : 
+  process.p = cms.Path( process.eventsTTLL * process.ttbarDileptonKin*process.cattree)
 #process.p = cms.Path(     process.agen + process.filterPartonTTLL* process.eventsTTLL * process.ttbarDileptonKin)   #*process.cattree) 
 
 
