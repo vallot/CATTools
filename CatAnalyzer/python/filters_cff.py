@@ -48,3 +48,12 @@ filterTrigMUMU = filterTrigMUEL.clone(
     ),
 )
 
+removeLumisWithL1TCert = cms.EDFilter("LumiMaskFilter",
+    LumiSections = cms.untracked.VLuminosityBlockRange(
+        ## LS to apply L1T certification
+        "274241:297", "274315:376", "274388:1731", "274442:257", "274969:481-274969:484",
+        "275067:234", "275375:843-275375:864",
+    ),
+    acceptOnFail = cms.untracked.bool(True),
+    doFilter = cms.untracked.bool(True)
+)
