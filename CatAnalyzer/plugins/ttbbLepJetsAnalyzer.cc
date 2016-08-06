@@ -153,14 +153,14 @@ private:
   std::vector<float> *b_GenJet_E;
   std::vector<float> *b_GenJet_pT;
   // Jet Mother (MC Studies)
-  std::vector<int> *b_GenJet_mom;
+  std::vector<int> *b_GenJet_mom, *b_GenJet_GenConeMom;
   // Jets
   int b_Jet_Number;
   std::vector<float> *b_Jet_px;
   std::vector<float> *b_Jet_py;
   std::vector<float> *b_Jet_pz;
   std::vector<float> *b_Jet_E;
-  std::vector<int>   *b_Jet_Index;
+  std::vector<int>   *b_Jet_Index, *b_Jet_GenConeMom;
   std::vector<float> *b_Jet_pT;
   std::vector<int>   *b_Jet_MatchedGenJetIndex;
   float               b_DRAddJets;
@@ -281,6 +281,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   b_GenJet_pz = new std::vector<float>;
   b_GenJet_E  = new std::vector<float>;
   b_GenJet_mom = new std::vector<int>;
+  b_GenJet_GenConeMom = new std::vector<int>;
   b_GenJet_pT = new std::vector<float>;  
   b_Jet_MatchedGenJetIndex = new std::vector<int>;
   b_Jet_px   = new std::vector<float>;
@@ -288,6 +289,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   b_Jet_pz   = new std::vector<float>;
   b_Jet_E    = new std::vector<float>;
   b_Jet_Index= new std::vector<int>;
+  b_Jet_GenConeMom=new std::vector<int>;
   b_Jet_pT   = new std::vector<float>;
   b_Jet_CSV  = new std::vector<float>;
   b_Jet_SF_CSV  = new std::vector<float>;
@@ -338,6 +340,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("jet_pz",     "std::vector<float>", &b_Jet_pz);
   tree->Branch("jet_E" ,     "std::vector<float>", &b_Jet_E );
   tree->Branch("jet_index" , "std::vector<int>", &b_Jet_Index );
+  tree->Branch("jet_gencone_mom" , "std::vector<int>", &b_Jet_GenConeMom );
   tree->Branch("jet_pT",     "std::vector<float>", &b_Jet_pT );
   tree->Branch("jet_CSV" ,   "std::vector<float>", &b_Jet_CSV );
   tree->Branch("jet_SF_CSV", "std::vector<float>", &b_Jet_SF_CSV );
@@ -355,6 +358,8 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
 
   // GEN Variables (only ttbarSignal)
   if(isMC_ && TTbarMC_==1){
+    tree->Branch("jet_MatchedGenJetIndex", "std::vector<int>",  &b_Jet_MatchedGenJetIndex);
+
     tree->Branch("scaleweight",   "std::vector<float>", &b_ScaleWeight );
 
     tree->Branch("genconecatid" ,      "std::vector<int>",   &b_GenConeCatID);
@@ -380,13 +385,12 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
     tree->Branch("gennu_pz",      &b_GenNu_pz,      "gennu_pz/F");
     tree->Branch("gennu_E",       &b_GenNu_E,       "gennu_E/F");
 
-    tree->Branch("jet_MatchedGenJetIndex", "std::vector<int>",  &b_Jet_MatchedGenJetIndex);
-
     tree->Branch("genjet_px", "std::vector<float>", &b_GenJet_px);
     tree->Branch("genjet_py", "std::vector<float>", &b_GenJet_py);
     tree->Branch("genjet_pz", "std::vector<float>", &b_GenJet_pz);
     tree->Branch("genjet_E",  "std::vector<float>", &b_GenJet_E);
     tree->Branch("genjet_mom", "std::vector<int>",  &b_GenJet_mom);
+    tree->Branch("genjet_gencone_mom", "std::vector<int>",  &b_GenJet_GenConeMom);
 
     // Kinematic Reconstruction
     tree->Branch("kin_chi2",  &b_Kin_Chi2, "kin_chi2/F");
@@ -419,6 +423,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
     gentree->Branch("genjet_E",   "std::vector<float>", &b_GenJet_E);
     gentree->Branch("genjet_pT",  "std::vector<float>", &b_GenJet_pT);
     gentree->Branch("genjet_mom", "std::vector<int>",   &b_GenJet_mom);
+    gentree->Branch("genjet_gencone_mom", "std::vector<int>",  &b_GenJet_GenConeMom);
   }
 
   EventInfo = fs->make<TH1F>("EventInfo","Event Information",8,0,8);
@@ -462,7 +467,7 @@ ttbbLepJetsAnalyzer::~ttbbLepJetsAnalyzer()
   delete b_GenJet_E;
   delete b_GenJet_pT;
   delete b_GenJet_mom;
-
+  delete b_GenJet_GenConeMom;
   delete b_Lepton_SF;
 
   delete b_Jet_px;
@@ -470,6 +475,7 @@ ttbbLepJetsAnalyzer::~ttbbLepJetsAnalyzer()
   delete b_Jet_pz;
   delete b_Jet_E;
   delete b_Jet_Index;
+  delete b_Jet_GenConeMom;
   delete b_Jet_pT;
 
   delete b_Jet_partonFlavour;
@@ -525,6 +531,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   b_GenJet_E  ->clear();
   b_GenJet_pT ->clear();
   b_GenJet_mom->clear();
+  b_GenJet_GenConeMom->clear();
 
   b_Lepton_SF->clear();
 
@@ -533,6 +540,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   b_Jet_pz   ->clear();
   b_Jet_E    ->clear();
   b_Jet_Index->clear();
+  b_Jet_GenConeMom->clear();
   b_Jet_pT   ->clear();
 
   b_Jet_partonFlavour->clear();
@@ -672,13 +680,13 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
     // additional Jets Information
     // p4
-    math::XYZTLorentzVector gJetGenTop[6];
-    gJetGenTop[0] = genttbarConeCat->begin()->bJetsFromTop1();
-    gJetGenTop[1] = genttbarConeCat->begin()->bJetsFromTop2();
-    gJetGenTop[2] = genttbarConeCat->begin()->JetsFromW1();
-    gJetGenTop[3] = genttbarConeCat->begin()->JetsFromW2();
-    gJetGenTop[4] = genttbarConeCat->begin()->addJets1();
-    gJetGenTop[5] = genttbarConeCat->begin()->addJets2();
+    math::XYZTLorentzVector gJetGenCone[6];
+    gJetGenCone[0] = genttbarConeCat->begin()->bJetsFromTop1();
+    gJetGenCone[1] = genttbarConeCat->begin()->bJetsFromTop2();
+    gJetGenCone[2] = genttbarConeCat->begin()->JetsFromW1();
+    gJetGenCone[3] = genttbarConeCat->begin()->JetsFromW2();
+    gJetGenCone[4] = genttbarConeCat->begin()->addJets1();
+    gJetGenCone[5] = genttbarConeCat->begin()->addJets2();
 
     b_GenCone_NgJetsW = genttbarConeCat->begin()-> NWJets();
     
@@ -686,10 +694,10 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     b_GenCone_gJetFlavW->push_back(genttbarConeCat->begin()-> Wquarkflav2());
 
     for (int ijGT=0; ijGT<6; ijGT++){
-      b_GenCone_gJet_pT  ->push_back(gJetGenTop[ijGT].Pt());
-      b_GenCone_gJet_eta ->push_back(gJetGenTop[ijGT].Eta());
-      b_GenCone_gJet_phi ->push_back(gJetGenTop[ijGT].Phi());
-      b_GenCone_gJet_E   ->push_back(gJetGenTop[ijGT].E());
+      b_GenCone_gJet_pT  ->push_back(gJetGenCone[ijGT].Pt());
+      b_GenCone_gJet_eta ->push_back(gJetGenCone[ijGT].Eta());
+      b_GenCone_gJet_phi ->push_back(gJetGenCone[ijGT].Phi());
+      b_GenCone_gJet_E   ->push_back(gJetGenCone[ijGT].E());
     }
 
     // DR 
@@ -876,23 +884,28 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
               if(std::abs(momID) == 6 ) TopIDJet = momID;
             }
 
-	    if (WIDJet != 0) (*b_GenJet_mom).push_back(WIDJet);
-	    else if (TopIDJet != 0)  (*b_GenJet_mom).push_back(TopIDJet);
-	    else (*b_GenJet_mom).push_back(0);
+	    if (WIDJet != 0) b_GenJet_mom->push_back(WIDJet);
+	    else if (TopIDJet != 0)  b_GenJet_mom->push_back(TopIDJet);
+	    else b_GenJet_mom->push_back(0);
  
+	    b_GenJet_GenConeMom->push_back(0);
 	  }// if(Good genJet)
 	}// for(genJet)	
 
-	gentree->Fill();
-
 	// GenTop Top, W and Add GEN-Jets 
+	int GenConeMomID[6] = {6, 6, 24, 24, 0, 0};
 	for (int ijGT=0; ijGT<6; ijGT++){
-	  int GenTopGenJetIndex = -999;
-	  float mGenTopgJet_E = (*b_GenCone_gJet_E)[ijGT];
-	  auto itGenTopGenJet = std::find((*b_GenJet_E).begin(), (*b_GenJet_E).end(), mGenTopgJet_E);
-	  if(itGenTopGenJet != (*b_GenJet_E).end()) GenTopGenJetIndex = std::distance((*b_GenJet_E).begin(), itGenTopGenJet);
-	  b_GenCone_gJetIndex->push_back(GenTopGenJetIndex);
+	  int GenConeGenJetIndex = -999;
+	  float mGenConegJet_E = (*b_GenCone_gJet_E)[ijGT];
+	  auto itGenConeGenJet = std::find((*b_GenJet_E).begin(), (*b_GenJet_E).end(), mGenConegJet_E);
+	  if(itGenConeGenJet != (*b_GenJet_E).end()) GenConeGenJetIndex = std::distance((*b_GenJet_E).begin(), itGenConeGenJet);
+	  b_GenCone_gJetIndex->push_back(GenConeGenJetIndex);
+
+	  if(GenConeGenJetIndex != -999) (*b_GenJet_GenConeMom)[GenConeGenJetIndex] = GenConeMomID[ijGT];
+
 	}// for(ijGT)
+
+	gentree->Fill();
 
       } // if(nGenLep == 1)
     }// if(GENTTbarMCTree_)
@@ -1154,12 +1167,26 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 	  // Reference to gen object
 	  if(TTbarMC_== 1){
 	    int MatchedGenJetIndex = -999;
+	    int rJetGenConeMom = -999;
 	    if(jet.genJet()){ 
-	      float mGenJet_px = jet.genJet()->px();
-	      auto itGenJet = std::find((*b_GenJet_px).begin(), (*b_GenJet_px).end(), mGenJet_px);
-	      MatchedGenJetIndex = std::distance((*b_GenJet_px).begin(), itGenJet);
+	      float mGenJet_E = jet.genJet()->energy();
+	      auto itGenJet = std::find((*b_GenJet_E).begin(), (*b_GenJet_E).end(), mGenJet_E);
+	      if(itGenJet != (*b_GenJet_E).end()) MatchedGenJetIndex = std::distance((*b_GenJet_E).begin(), itGenJet);
+
+	      if(MatchedGenJetIndex != -999){
+		if      (MatchedGenJetIndex == (*b_GenCone_gJetIndex)[0] ||
+		         MatchedGenJetIndex == (*b_GenCone_gJetIndex)[1]) rJetGenConeMom = 6;
+		else if (MatchedGenJetIndex == (*b_GenCone_gJetIndex)[2] ||
+			 MatchedGenJetIndex == (*b_GenCone_gJetIndex)[3]) rJetGenConeMom = 24;
+		else if (MatchedGenJetIndex == (*b_GenCone_gJetIndex)[4] ||
+			 MatchedGenJetIndex == (*b_GenCone_gJetIndex)[5]) rJetGenConeMom = 0;
+	      } // if(MatchedGenJetIndex != -999) 
 	    } // if(jet.genJet())
+
 	    b_Jet_MatchedGenJetIndex->push_back(MatchedGenJetIndex);
+
+	    b_Jet_GenConeMom->push_back(rJetGenConeMom);
+
 	  } // if(TTbarMC_== 1)
 	  
         } // if(isMC_)
