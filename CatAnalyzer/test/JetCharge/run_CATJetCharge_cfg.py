@@ -61,11 +61,12 @@ process.TFileService = cms.Service("TFileService",
     fileName = cms.string("jet_charge_tree.root"
 ))
 
+"""
 process.catOut = cms.OutputModule("PoolOutputModule",
     fileName = cms.untracked.string('catTuple.root'),
     outputCommands = cms.untracked.vstring(['drop *','keep *_ttbar*_*_*'])
 )
-
+"""
 #process.catOutPath = cms.EndPath(process.catOut)
 
 #process.load("CATTools.CatProducer.catCandidates_cff")    

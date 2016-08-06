@@ -10,5 +10,7 @@ for filename in datasetList :
   dataset = filename.replace("dataset_","").replace(".txt","")
   print dataset
   cmd = "create-batch --jobName %s --fileList ../../../data/dataset/%s --maxFiles 20 --cfg run_CATJetCharge_cfg.py"%(dataset,filename) 
+  if ( dataset.find("TT") != -1 ) :
+    cmd += " --args \"isTT=True\""
   print cmd
   os.system(cmd)
