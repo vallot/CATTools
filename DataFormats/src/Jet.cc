@@ -9,9 +9,24 @@ Jet::Jet():
   fJER_(1), fJERUp_(1), fJERDown_(1) {
 }
 
-Jet::Jet(const reco::LeafCandidate & aJet) : Particle( aJet ),
-  fJER_(1), fJERUp_(1), fJERDown_(1) {
-}
+Jet::Jet(const reco::LeafCandidate & aJet) :
+  Particle( aJet ),
+  looseJetID_(false),
+  tightJetID_(false),
+  tightLepVetoJetID_(false),
+  pileupJetId_(0),
+  chargedEmEnergyFraction_(0),
+  vtxMass_(0),
+  vtxNtracks_(0),
+  vtx3DVal_(0),
+  vtx3DSig_(0),
+  partonFlavour_(0),
+  hadronFlavour_(0),
+  partonPdgId_(0),
+  shiftedEnDown_(1),
+  shiftedEnUp_(1),					     
+  fJER_(1), fJERUp_(1), fJERDown_(1)
+{}
 
 /// destructor
 Jet::~Jet() {
