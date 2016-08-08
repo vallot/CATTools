@@ -22,9 +22,13 @@ for opt, arg in opts:
     elif opt in ("-y", "--year"):
         year = arg
 
+xsecScales = [1, 1.05, 0.95]
 if minBiasXsec < 0:
-    if year == "16": minBiasXsec = 71300.
-    else: minBiasXsec = 69000.
+    if year == "16":
+        minBiasXsec = 69200.
+        xsecScales = [1., 1.+0.046, 1.-0.046]
+    else:
+        minBiasXsec = 69000.
 
 certURL = "https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions%s/13TeV" % year
 from urllib import urlretrieve
@@ -47,7 +51,6 @@ outfile.write('pileupMap = {\n')
 syst = ['', '_Up', '_Dn']
 for i, f in enumerate(syst):
     PileUpData = 'PileUpData%s.root'%(f)
-    xsecScales = [1, 1.05, 0.95]
     print "!!!!!!", certJSON, minBiasXsec*xsecScales[i], PileUpData
     command = 'pileupCalc.py -i %s --inputLumiJSON pileup_latest.txt --calcMode true --minBiasXsec %i --maxPileupBin 50 --numPileupBins 50 %s'%(certJSON,minBiasXsec*xsecScales[i],PileUpData)
     os.system(command)
