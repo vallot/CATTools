@@ -85,8 +85,10 @@ if not options.inputFiles:
     if useMiniAOD:
         if runGenTop:
             process.source.fileNames = [
-                                      '/store/relval/CMSSW_7_4_15/RelValTTbar_13/MINIAODSIM/PU25ns_74X_mcRun2_asymptotic_v2-v1/00000/0253820F-4772-E511-ADD3-002618943856.root',
-                                      '/store/relval/CMSSW_7_4_15/RelValTTbar_13/MINIAODSIM/PU25ns_74X_mcRun2_asymptotic_v2-v1/00000/3848030E-4772-E511-AFCA-0026189438CC.root']
+            '/store/mc/RunIISpring16MiniAODv2/GluGlu_HToMuMu_M125_13TeV_powheg_pythia8/MINIAODSIM/PUSpring16RAWAODSIM_reHLT_80X_mcRun2_asymptotic_v14-v1/10000/12B931FE-CD3A-E611-9844-0025905C3D98.root',
+#'/store/relval/CMSSW_7_4_15/RelValTTbar_13/MINIAODSIM/PU25ns_74X_mcRun2_asymptotic_v2-v1/00000/0253820F-4772-E511-ADD3-002618943856.root',
+#'/store/relval/CMSSW_7_4_15/RelValTTbar_13/MINIAODSIM/PU25ns_74X_mcRun2_asymptotic_v2-v1/00000/3848030E-4772-E511-AFCA-0026189438CC.root'
+                ]
         else:
             process.source.fileNames = ['/store/relval/CMSSW_7_4_15/RelValZMM_13/MINIAODSIM/PU25ns_74X_mcRun2_asymptotic_v2-v1/00000/10FF6E32-3C72-E511-87AD-0025905A60B4.root']
     else:
