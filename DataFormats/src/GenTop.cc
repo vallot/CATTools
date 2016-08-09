@@ -12,10 +12,13 @@ GenTop::GenTop(){
   nus_ = {null, null};
   taunus_ = {null, null};
   quarksfromW_ = {null, null, null, null};
+  qflavourfromW_ = {0, 0, 0, 0};
 
   cJets_ = {null, null};
   bJets_ = {null, null, null, null};
   bJetsFromTop_ = {null, null};
+  JetsFromW_= {null, null, null, null};
+  JetsFlavourFromW_= {0,0,0,0};
   addbJets_ = {null, null};
   addcJets_ = {null, null};
   addbJetsHad_ = {null, null};
@@ -35,12 +38,15 @@ GenTop::GenTop(const reco::Candidate & aGenTop) : reco::LeafCandidate(aGenTop) {
   nus_ = {null, null};
   taunus_ = {null, null};
   quarksfromW_ = {null, null, null, null};
+  qflavourfromW_ = {0, 0, 0, 0};
 
   cJets_ = {null, null};
   bJets_ = {null, null, null, null};
   addbJets_ = {null, null};
   addcJets_ = {null, null};
   bJetsFromTop_ = {null, null};
+  JetsFromW_= {null, null, null, null};
+  JetsFlavourFromW_= {0,0,0,0};
   addbJetsHad_ = {null, null};
   addcJetsHad_ = {null, null};
   addJets_ = {null, null};
@@ -76,7 +82,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
 
   ttbarmass_ = 0;
   //debug
-  //cout << "EVENT= " << endl;
+  //cout << "!!!!!!!!!!! EVENT !!!!!!!!!!! " << endl;
   for ( unsigned int ip=0; ip<nParticles; ++ip ) {
     const reco::GenParticle& p = (*genParticles)[ip];
 
@@ -103,13 +109,13 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
       }
     }
 
-    if ( ntop == 2 ) continue;
+    if ( ntop == 2 ) continue; 
     if ( abs(p.pdgId()) != 6 ) continue;
 
     bool isLast = isLastParton(p);
     if(isLast != true) continue;
     //debug
-    //cout << "ntop = " << ntop << endl;
+    //cout << "ntop = " << ntop << " ID = " << p.pdgId() << endl;
     topquarks.push_back( p.p4() );
 
     ttbarGen += p.p4();
@@ -223,9 +229,12 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
             }
           }
         } else if( decayId < 6 ){
-          hadronic[ntop] = true;
+	  hadronic[ntop] = true;
+	  //debug
+	  //cout << "W daugther = " << decayId << endl;
           if(nWquarkDaughters == 2) break;
           quarksfromW_[ntop*2+nWquarkDaughters] = decay->p4();  
+	  qflavourfromW_[ntop*2+nWquarkDaughters] = decayId;
           nWquarkDaughters++;
         } else {
           continue;
@@ -235,6 +244,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     }
     ++ntop;
   }
+  
 
   //assign top quark four-momentum
   if(topquarks.size()>1){
@@ -359,6 +369,8 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
   std::vector<math::XYZTLorentzVector> bJets;
   std::vector<math::XYZTLorentzVector> bJetsBHad;
   std::vector<math::XYZTLorentzVector> bJetsFromTop;
+  std::vector<math::XYZTLorentzVector> JetsFromW;
+  std::vector<int> JetsFlavourFromW;
   std::vector<math::XYZTLorentzVector> addbJetsBHad;
   std::vector<math::XYZTLorentzVector> addbJets;
   std::vector<math::XYZTLorentzVector> cJets;
@@ -519,15 +531,30 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     //  addJets.push_back(gJet.p4());
     //}
 
+    //----------------------------------------------------------------------------------
+    //debug
+    //cout << "bJetFromTopIds = " <<  bJetFromTopIds.count(idx) << " bJetFromTopIds = " 
+    //<<  bJetFromWIds.count(idx) << " cJetFromWIds = " << cJetFromWIds.count(idx) << endl;
+
     if(bJetFromTopIds.count(idx) < 1 && bJetFromWIds.count(idx) < 1 && cJetFromWIds.count(idx) < 1) {
       double minDRWquarks = 999;
+      int FlavCand = 0;
       for(unsigned int i=0 ; i < quarksfromW_.size() ; i++){
         if( quarksfromW_[i] == null ) continue;
         double dR = reco::deltaR(gJet, quarksfromW_[i]);
-        if( dR < minDRWquarks ) minDRWquarks = dR;
+        if( dR < minDRWquarks ){
+	  minDRWquarks = dR;
+	  FlavCand = qflavourfromW_[i];
+	}
       }
       if( minDRWquarks > 0.5 ){
         addJets.push_back( gJet.p4() );
+      }
+      else if ( minDRWquarks < 0.5) { // Only for Light Quarks
+	JetsFromW.push_back( gJet.p4() );
+	JetsFlavourFromW.push_back( FlavCand );
+	//debug
+	//cout << "jet from W " << gJet.pt() << " Flavour " << FlavCand << endl; 
       }
     }
 
@@ -535,11 +562,19 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
       bJetsBHad.push_back( gJet.p4() );
       if( bJetFromTopIds.count(idx) > 0) bJetsFromTop.push_back( gJet.p4() ); 
       if( bJetAdditionalIds.count(idx) > 0 ) addbJetsBHad.push_back( gJet.p4() ); 
+      if( bJetFromWIds.count(idx) > 0 ){
+	JetsFromW.push_back( gJet.p4() );
+	JetsFlavourFromW.push_back( 5 );
+      }    
     }
     
     if(cJetIds.count(idx) > 0){
       cJetsCHad.push_back( gJet.p4() );
       if( cJetAdditionalIds.count(idx) > 0 ) addcJetsCHad.push_back( gJet.p4() ); 
+      if( cJetFromWIds.count(idx) > 0 ){
+	JetsFromW.push_back( gJet.p4() );
+	JetsFlavourFromW.push_back( 4 );
+      }
     }
 
     //Looking at Jet constituents
@@ -679,6 +714,12 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     bJetsFromTop_[i] = bJetsFromTop[i];
   }
 
+  for( unsigned int i = 0 ; i < JetsFromW.size() ; i++){
+    if (i>3) break;
+    JetsFromW_[i] = JetsFromW[i];
+    JetsFlavourFromW_[i] = JetsFlavourFromW[i];
+  }
+
   NaddcJetsCHad_ = 0;
   NaddcJets20CHad_ = 0;
   NaddcJets40CHad_ = 0;
@@ -788,6 +829,8 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     if( addJets[i].pt() > 20 && std::abs(addJets[i].eta()) < 2.5 ) NaddJets20_++;
   }
 
+  NWJets_ = JetsFromW.size();
+
   dRaddJets_ = 0;
   dRaddbJets_ = 0;
   dRaddbJetsHad_ = 0;
@@ -802,6 +845,11 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
   if( addbJets.size() >= 2) dRaddbJets_ = reco::deltaR(addbJets[0], addbJets[1]);
   if( addcJets.size() >= 2) dRaddcJets_ = reco::deltaR(addcJets[0], addcJets[1]);
   if( cJets.size() >= 2) dRcJets_ = reco::deltaR(cJets[0], cJets[1]);
+
+  //debug
+  //cout << "NJetsW = " << JetsFromW.size() << endl;
+  //for (unsigned int iW =0; iW < JetsFromW.size(); iW ++) cout << iW << " " << JetsFromW[iW].pt() << " - " << JetsFlavourFromW[iW] << endl;
+
 }
 
 std::vector<const reco::Candidate *> GenTop::getAncestors(const reco::Candidate &c)
@@ -940,6 +988,7 @@ bool GenTop::isLastParton( const reco::GenParticle& p){
 
   return out;
 }
+
 
 const reco::Candidate* GenTop::getLast( const reco::Candidate& p ){
 
