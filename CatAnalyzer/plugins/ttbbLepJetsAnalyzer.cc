@@ -1213,10 +1213,10 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     Kinj2refit.SetPxPyPzE(0,0,0,0);
     
     std::vector<int> KinBestIndices;
-    KinBestIndices.push_back(0);
-    KinBestIndices.push_back(0);
-    KinBestIndices.push_back(0);
-    KinBestIndices.push_back(0);
+    KinBestIndices.push_back(-999);
+    KinBestIndices.push_back(-999);
+    KinBestIndices.push_back(-999);
+    KinBestIndices.push_back(-999);
     float bestchi2 = 0;
     bool KinUsebtag = true;
     
