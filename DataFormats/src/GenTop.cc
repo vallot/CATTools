@@ -15,6 +15,7 @@ GenTop::GenTop(){
 
   cJets_ = {null, null};
   bJets_ = {null, null, null, null};
+  bJetsFromTop_ = {null, null};
   addbJets_ = {null, null};
   addcJets_ = {null, null};
   addbJetsHad_ = {null, null};
@@ -39,6 +40,7 @@ GenTop::GenTop(const reco::Candidate & aGenTop) : reco::LeafCandidate(aGenTop) {
   bJets_ = {null, null, null, null};
   addbJets_ = {null, null};
   addcJets_ = {null, null};
+  bJetsFromTop_ = {null, null};
   addbJetsHad_ = {null, null};
   addcJetsHad_ = {null, null};
   addJets_ = {null, null};
@@ -356,6 +358,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
 
   std::vector<math::XYZTLorentzVector> bJets;
   std::vector<math::XYZTLorentzVector> bJetsBHad;
+  std::vector<math::XYZTLorentzVector> bJetsFromTop;
   std::vector<math::XYZTLorentzVector> addbJetsBHad;
   std::vector<math::XYZTLorentzVector> addbJets;
   std::vector<math::XYZTLorentzVector> cJets;
@@ -530,7 +533,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
 
     if(bJetIds.count(idx) > 0){
       bJetsBHad.push_back( gJet.p4() );
-      //if(bJetFromTopIds.count(idx) < 1) addbJetsBHad.push_back( gJet.p4() ); 
+      if( bJetFromTopIds.count(idx) > 0) bJetsFromTop.push_back( gJet.p4() ); 
       if( bJetAdditionalIds.count(idx) > 0 ) addbJetsBHad.push_back( gJet.p4() ); 
     }
     
@@ -670,6 +673,10 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     NaddbJetsBHad_++;
     if( addbJetsBHad[i].pt() > 20 && std::abs(addbJetsBHad[i].eta()) < 2.5) NaddbJets20BHad_++;
     if( addbJetsBHad[i].pt() > 40 && std::abs(addbJetsBHad[i].eta()) < 2.5) NaddbJets40BHad_++;
+  }
+
+  for( unsigned int i = 0 ; i < bJetsFromTop.size() ; i++){
+    bJetsFromTop_[i] = bJetsFromTop[i];
   }
 
   NaddcJetsCHad_ = 0;
