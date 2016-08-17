@@ -229,7 +229,7 @@ void FindHadronicTop(TLorentzVector &lepton, std::vector<cat::ComJet> &jets, TLo
 	    for (int i4 = 0; i4 < njets; i4++){
 
 	      if (i2 != i1 && i3 != i1 && i4!=i1 && i4 != i2 && i4 != i3 &&
-		  (i1 < 2 && i4 < 2) // Jets with high CSV -> Jets from TOP  
+		  (i1 < 3 && i4 < 3) // Jets with high CSV -> Jets from TOP  
 		  ){
 		
 		//std::cout << i1 << " " << i2 << " " << i3 << " " << i4 << std::endl; 
