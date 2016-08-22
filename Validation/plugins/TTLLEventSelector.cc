@@ -599,12 +599,12 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
                     electronSFSet.getParameter<vdouble>("errors"));
     electronSFShift_ = electronSet.getParameter<int>("efficiencySFDirection");
   }
-  isMVAElectronSel_ = false;
+  isEcalCrackVeto_ = isMVAElectronSel_ = false;
   if ( elIdName_.substr(0,3) == "mva" ) {
     isMVAElectronSel_ = true;
   }
   else {
-    isEcalCrackVeto_ = electronSet.getParameter<bool>("applyECalCrackVeto");
+    isEcalCrackVeto_ = electronSet.getParameter<bool>("applyEcalCrackVeto");
   }
 
   const auto jetSet = pset.getParameter<edm::ParameterSet>("jet");
