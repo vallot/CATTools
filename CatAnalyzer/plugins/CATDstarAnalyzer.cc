@@ -154,19 +154,25 @@ void CATDstarAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 
 
 void CATDstarAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventSetup& iSetup, int sys) {
+  const bool runOnMC = !iEvent.isRealData();
   edm::Handle<cat::SecVertexCollection> d0s;       iEvent.getByToken(d0Token_,d0s);
   edm::Handle<cat::SecVertexCollection> dstars;    iEvent.getByToken(dstarToken_,dstars);
-
+  
   edm::Handle<edm::View<reco::GenParticle> > mcHandle;
-  iEvent.getByToken(mcSrc_, mcHandle);
+  
+  if ( runOnMC ) {
+    iEvent.getByToken(mcSrc_, mcHandle);
+  }
 
   vector<TLorentzVector> gen_d0s;
   vector<TLorentzVector> gen_dstars;
 
-  for( const auto& aGenParticle : *mcHandle) {
-    //If genParticle is D0,
-    if ( std::abs(aGenParticle.pdgId()) == 421 )       gen_d0s.push_back( ToTLorentzVector(aGenParticle));  
-    else if ( std::abs(aGenParticle.pdgId()) ==  413 ) gen_dstars.push_back( ToTLorentzVector(aGenParticle));
+  if ( runOnMC ) {
+    for( const auto& aGenParticle : *mcHandle) {
+	  //If genParticle is D0,
+	  if ( std::abs(aGenParticle.pdgId()) == 421 )       gen_d0s.push_back( ToTLorentzVector(aGenParticle));  
+	  else if ( std::abs(aGenParticle.pdgId()) ==  413 ) gen_dstars.push_back( ToTLorentzVector(aGenParticle));
+	}
   } 
 
   int d0_count=-1;
@@ -202,18 +208,19 @@ void CATDstarAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventS
       b_d0_LXY.push_back( -9 );
     }        
 
-    shared_ptr<TLorentzVector> genMatched = mcMatching( gen_d0s, d0_tlv ); 
-    if ( genMatched != nullptr) {
-      b_d0_true.push_back( true );
-      b_d0_dRTrue.push_back( genMatched->DeltaR( d0_tlv ));
-      b_d0_relPtTrue.push_back( (genMatched->Pt()- d0_tlv.Pt())/genMatched->Pt());
-    }
-    else {
-      b_d0_true.push_back( false );
-      b_d0_dRTrue.push_back( -9);
-      b_d0_relPtTrue.push_back(-9);
-    }
-    
+    if ( runOnMC ) {
+		shared_ptr<TLorentzVector> genMatched = mcMatching( gen_d0s, d0_tlv ); 
+		if ( genMatched != nullptr) {
+		  b_d0_true.push_back( true );
+		  b_d0_dRTrue.push_back( genMatched->DeltaR( d0_tlv ));
+		  b_d0_relPtTrue.push_back( (genMatched->Pt()- d0_tlv.Pt())/genMatched->Pt());
+		}
+		else {
+		  b_d0_true.push_back( false );
+		  b_d0_dRTrue.push_back( -9);
+		  b_d0_relPtTrue.push_back(-9);
+		}
+	}
 
     b_d0_dau1_q.push_back  ( x.daughter(0)->charge());
     b_d0_dau2_q.push_back  ( x.daughter(1)->charge());
@@ -241,17 +248,19 @@ void CATDstarAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventS
       b_dstar_L3D.push_back( -9 );
       b_dstar_LXY.push_back( -9 );
     }
-    shared_ptr<TLorentzVector> genMatched = mcMatching( gen_dstars, dstar_tlv ); 
-    if ( genMatched != nullptr) {
-      b_dstar_true.push_back( true );
-      b_dstar_dRTrue.push_back( genMatched->DeltaR( dstar_tlv));
-      b_dstar_relPtTrue.push_back( (genMatched->Pt()- dstar_tlv.Pt())/genMatched->Pt());
-    }
-    else {
-      b_dstar_true.push_back( false );
-      b_dstar_dRTrue.push_back( -9);
-      b_dstar_relPtTrue.push_back(-9);
-    }
+    if ( runOnMC ) {
+		shared_ptr<TLorentzVector> genMatched = mcMatching( gen_dstars, dstar_tlv ); 
+		if ( genMatched != nullptr) {
+		  b_dstar_true.push_back( true );
+		  b_dstar_dRTrue.push_back( genMatched->DeltaR( dstar_tlv));
+		  b_dstar_relPtTrue.push_back( (genMatched->Pt()- dstar_tlv.Pt())/genMatched->Pt());
+		}
+		else {
+		  b_dstar_true.push_back( false );
+		  b_dstar_dRTrue.push_back( -9);
+		  b_dstar_relPtTrue.push_back(-9);
+		}
+	}
 
 
     b_dstar_dau1_q.push_back  ( x.daughter(0)->charge());
