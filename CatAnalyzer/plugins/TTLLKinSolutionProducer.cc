@@ -78,6 +78,7 @@ TTLLKinSolutionProducer::TTLLKinSolutionProducer(const edm::ParameterSet& pset)
   produces<floats>("mLB");
   produces<floats>("mAddJJ");
   produces<floats>("dphi");
+  produces<floats>("quality");
 }
 
 void TTLLKinSolutionProducer::beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&)
@@ -99,6 +100,7 @@ void TTLLKinSolutionProducer::produce(edm::Event& event, const edm::EventSetup&)
   std::auto_ptr<floats> out_mLB(new floats);
   std::auto_ptr<floats> out_mAddJJ(new floats);
   std::auto_ptr<floats> out_dphi(new floats);
+  std::auto_ptr<floats> out_quality(new floats);
 
   std::vector<reco::CandidatePtr> leptons;
   edm::Handle<edm::View<reco::CandidatePtr> > leptonPtrHandle;
@@ -169,6 +171,7 @@ void TTLLKinSolutionProducer::produce(edm::Event& event, const edm::EventSetup&)
     // Redo the calculation with the selected ones to update internal variables
     inputLV[3] = selectedJet1->p4();
     inputLV[4] = selectedJet2->p4();
+
     solver_->solve(inputLV);
     quality = solver_->quality();
     if ( quality <= -1e9 ) break;
@@ -204,6 +207,10 @@ void TTLLKinSolutionProducer::produce(edm::Event& event, const edm::EventSetup&)
     top1.setPdgId(-6*lep1Q);
     top2.setPdgId(-6*lep2Q);
 
+    cands->push_back( Cand(selectedJet1->charge(), selectedJet1->p4()));
+    cands->push_back( Cand(selectedJet2->charge(), selectedJet2->p4()));
+
+
     // Do the basic mother-daughter associations
     /*
     auto prodId = candsRefProd.id();
@@ -224,6 +231,7 @@ void TTLLKinSolutionProducer::produce(edm::Event& event, const edm::EventSetup&)
     out_dphi->push_back(deltaPhi(top1.phi(), top2.phi()));
     out_mLB->push_back((solver_->l1()+solver_->j1()).mass());
     out_mLB->push_back((solver_->l2()+solver_->j2()).mass());
+    out_quality->push_back(quality);
     if ( jets.size() >= 4 )
     {
       int nUsedJet = 0;
@@ -239,12 +247,12 @@ void TTLLKinSolutionProducer::produce(edm::Event& event, const edm::EventSetup&)
   } while (false);
 
   event.put(cands);
-
   event.put(out_aux, "aux");
   event.put(out_mLL, "mLL");
   event.put(out_mLB, "mLB");
   event.put(out_mAddJJ, "mAddJJ");
   event.put(out_dphi, "dphi");
+  event.put(out_quality, "quality");
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"

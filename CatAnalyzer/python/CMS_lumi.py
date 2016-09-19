@@ -25,7 +25,7 @@ relExtraDY = 1.2
 
 extraOverCmsTextSize  = 0.76
 
-lumi_13TeV = "20.1 fb^{-1}"
+lumi_13TeV = "2.2 fb^{-1}"
 lumi_8TeV  = "19.7 fb^{-1}" 
 lumi_7TeV  = "5.1 fb^{-1}"
 lumi_sqrtS = ""
@@ -39,6 +39,7 @@ def CMS_lumi(pad,  iPeriod,  iPosX ):
     alignY_=3
     alignX_=2
     if( iPosX/10==0 ): alignX_=1
+    if( iPosX==0    ): alignX_=1
     if( iPosX==0    ): alignY_=1
     if( iPosX/10==1 ): alignX_=1
     if( iPosX/10==2 ): alignX_=2

@@ -6,8 +6,26 @@ using namespace cat;
 Photon::Photon() {
 }
 
-Photon::Photon(const reco::LeafCandidate & aPhoton) : Particle( aPhoton ) {
-}
+Photon::Photon(const reco::LeafCandidate & aPhoton) :
+  Particle( aPhoton ),
+  isPF_(false),
+  isTight_(false),
+  isMedium_(false),
+  isLoose_(false),
+  passMVA_(false),
+  passElVeto_(false),
+  hasPixSeed_(false),
+  rhoIso_(0),
+  chargedHadronIso_(0),
+  puChargedHadronIso_(0),
+  neutralHadronIso_(0),
+  photonIso_(0),
+  iEtaiEta_(0),
+  r9_(0),
+  HoverE_(0),
+  scEta_(0), scPhi_(0), scRawE_(0), scPreShE_(0),
+  mcMatched_(false)
+{}
 
 /// destructor
 Photon::~Photon() {

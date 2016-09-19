@@ -6,8 +6,18 @@ using namespace cat;
 Electron::Electron() {
 }
 
-Electron::Electron(const reco::LeafCandidate & aElectron) : Lepton( aElectron ) {
-}
+Electron::Electron(const reco::LeafCandidate & aElectron) :
+  Lepton( aElectron ),
+  relIso03_(0),
+  relIso04_(0),
+  ipsig_(0),
+  scEta_(0),
+  passConversionVeto_(false),
+  isGsfCtfScPixChargeConsistent_(false),
+  isEB_(false),
+  snuID_(0),
+  isTrigMVAValid_(false)
+{}
 
 /// destructor
 Electron::~Electron() {

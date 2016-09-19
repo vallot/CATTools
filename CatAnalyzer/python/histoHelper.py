@@ -17,6 +17,8 @@ def getTH1(title, binning, tree, plotvar, cut, scale = 0.):
 def getTH2(title, binning, tree, plotvar, cut, scale = 0.):
     if len(binning) == 3:
         hist = ROOT.TH2D("name", title, binning[0], binning[1], binning[2], binning[0], binning[1], binning[2])
+    elif len(binning) == 2 and len(binning[0]) ==3 :
+        hist = ROOT.TH2D("name", title, binning[0][0], binning[0][1], binning[0][2], binning[1][0], binning[1][1], binning[1][2])
     else:
         hist = ROOT.TH2D("name", title, len(binning)-1, array.array('f', binning), len(binning)-1, array.array('f', binning))
     tree.Project("name", plotvar, cut)
@@ -63,7 +65,7 @@ def divide_canvas(canvas, ratio_fraction):
     pad_ratio.SetTopMargin(margins[0] + (1 - ratio_fraction) * useable_height)
     return pad, pad_ratio
 
-def makeCanvas(name, doRatio):
+def makeCanvas(name, doRatio=False):
     H_ref = 600;
     if doRatio:
         H_ref = 800;
@@ -71,7 +73,7 @@ def makeCanvas(name, doRatio):
     canvas = ROOT.TCanvas(name,name,W_ref,H_ref)    
     return canvas
 
-def setMargins(canvas, doRatio):
+def setMargins(canvas, doRatio=False):
     H_ref = 600;
     if doRatio:
         H_ref = 800;
@@ -114,22 +116,21 @@ def setDefAxis(axis, title, offset):
 def setDefTH1Style(th1, x_name, y_name):
     setDefAxis(th1.GetYaxis(),y_name, 1.2)
     setDefAxis(th1.GetXaxis(),x_name, 1)
-    th1.GetYaxis().CenterTitle()
     ROOT.gStyle.SetStripDecimals(True)
     ROOT.gStyle.SetPadTickX(1)
     ROOT.gStyle.SetPadTickY(1)
     ROOT.gStyle.cd()
     return th1
     
-def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=True, ratioRange=0.45, siglist=None, legx=0.68, legfontsize=0.022):
-    #leg = ROOT.TLegend(0.58,0.78,0.8,0.9)
-    leg = ROOT.TLegend(legx,0.68,0.88,0.91)
+def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=True, ratioRange=0.45, siglist=None, legx=0.68, legfontsize=0.030):
+    leg = ROOT.TLegend(legx,0.68,legx+0.2,0.91)
     leg.SetBorderSize(0)
     #leg.SetNColumns(2)
     leg.SetTextSize(legfontsize)
     leg.SetTextFont(42)
     leg.SetLineColor(0)
     leg.SetFillColor(0)
+    leg.SetFillStyle(0)
     leg.AddEntry(data,"Data","lp")
     
     leghist = []
@@ -163,16 +164,20 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
     data.SetMaximum(data.GetMaximum()*1.8)
     if doLog:
         #data.SetMaximum(10**7)
-        data.SetMinimum(10**-3)
+        #data.SetMinimum(10**-3)
         data.SetMaximum(data.GetMaximum()*100)
+    else:
+        data.GetYaxis().SetTitleSize(0.04)
+        data.GetYaxis().SetLabelSize(0.024)
+        data.GetYaxis().SetTitleOffset(1.35)
         
     ratio_fraction = 0
     if doRatio:
         ratio_fraction = 0.3        
         data.GetXaxis().SetLabelSize(0)
         data.GetXaxis().SetTitleSize(0)
-        data.GetYaxis().CenterTitle()
         setDefTH1Style(hratio, x_name, "Data/MC")
+        hratio.GetYaxis().CenterTitle()
         hratio.GetYaxis().SetNdivisions(5)
             
     canv = makeCanvas(name, doRatio)
@@ -193,6 +198,14 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
     
     data.Draw("esamex0")
     leg.Draw("same")
+
+    tex = ROOT.TLatex()
+    tex.SetNDC()
+    tex.SetTextFont(42)
+    tex.SetTextSize(0.04)
+    tex.DrawLatex(0.25, 0.85, name.split('_')[0])
+    #tex.DrawLatex(canv.GetLeftMargin()*1.4, 1-canv.GetTopMargin()*2.8, name.split('_')[0])
+    
     pads[0].Update()
 
     if doRatio:
@@ -210,14 +223,15 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
         p.Update()
 
     canv.cd()
-    iPos = 11
+    iPos = 0
     if( iPos==0 ):
-        cmsLumi.relPosX = 0.12
-    cmsLumi.CMS_lumi(canv, 0, iPos)
-    
+        cmsLumi.relPosX = 0.1
+    cmsLumi.CMS_lumi(pads[0], 4, iPos)
+
     canv.Modified()
     canv.Update()
-    canv.SaveAs(name)
+    canv.SaveAs(name+".png")
+    canv.SaveAs(name+".pdf")
 
 def drellYanEstimation(mc_ee_in, mc_ee_out, mc_mm_in, mc_mm_out,
                        rd_ee_in, rd_mm_in, rd_em_in, kMM, kEE):
@@ -270,3 +284,30 @@ def table(mchistList, errList, signal_hist, signal_err):
 
     return nums, errs
 
+def set_palette(name="", ncontours=999):
+    """Set a color palette from a given RGB list
+    stops, red, green and blue should all be lists of the same length
+    see set_decent_colors for an example"""
+
+    if name == "gray" or name == "grayscale":
+        stops = [0.00, 0.34, 0.61, 0.84, 1.00]
+        red   = [1.00, 0.84, 0.61, 0.34, 0.00]
+        green = [1.00, 0.84, 0.61, 0.34, 0.00]
+        blue  = [1.00, 0.84, 0.61, 0.34, 0.00]
+    # elif name == "whatever":
+        # (define more palettes)
+    else:
+        # default palette, looks cool
+        stops = [0.00, 0.34, 0.61, 0.84, 1.00]
+        red   = [0.00, 0.00, 0.87, 1.00, 0.51]
+        green = [0.00, 0.81, 1.00, 0.20, 0.00]
+        blue  = [0.51, 1.00, 0.12, 0.00, 0.00]
+
+    s = array('d', stops)
+    r = array('d', red)
+    g = array('d', green)
+    b = array('d', blue)
+
+    npoints = len(s)
+    TColor.CreateGradientColorTable(npoints, s, r, g, b, ncontours)
+    gStyle.SetNumberContours(ncontours)

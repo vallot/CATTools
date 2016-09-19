@@ -1,10 +1,32 @@
 import FWCore.ParameterSet.Config as cms
 
+## Muon SF reference https://twiki.cern.ch/twiki/bin/view/CMS/MuonWorkInProgressAndPagResults
+## Retrieve data from the cmsdoc web page:
+##   https://cmsdoc.cern.ch/cms/Physics/muon/ReferenceEfficiencies/Run2016/25ns/proviSFs_2p6fb/MuonID_Z_2016runB_2p6fb.json
+##   https://cmsdoc.cern.ch/cms/Physics/muon/ReferenceEfficiencies/Run2016/25ns/proviSFs_2p6fb/MuonISO_Z_2016runB_2p6fb.json
+muonSFTight = cms.PSet(
+    # Values of "MC_NUM_TightIDandIPCut_DEN_genTracks_PAR_pt_spliteta_bin1 + MC_NUM_TightRelIso_DEN_TightID_PAR_pt_spliteta_bin1"
+    pt_bins = cms.vdouble(20, 25, 30, 40, 50, 60, 100, 200),
+    abseta_bins = cms.vdouble(0, 0.9, 1.2, 2.1, 2.4),
+    values = cms.vdouble(
+        0.941436, 0.959701, 0.968116, 0.970538, 0.968821, 0.972572, 0.987711,
+        0.955623, 0.96175, 0.969717, 0.968784, 0.970868, 0.967741, 1.02273,
+        0.97839, 0.983576, 0.987746, 0.988816, 0.990644, 0.988234, 1.01927,
+        0.968935, 0.963683, 0.967626, 0.966395, 0.979048, 0.975934, 0.916776,
+    ),
+    errors = cms.vdouble(
+        0.0155081, 0.0151449, 0.0150189, 0.0150086, 0.0150436, 0.0151513, 0.0221035,
+        0.0161243, 0.0154153, 0.0150604, 0.0150198, 0.0151218, 0.0154361, 0.0273559,
+        0.0152889, 0.0151052, 0.015018, 0.0150034, 0.015053, 0.0152429, 0.0179484,
+        0.0159104, 0.0153603, 0.0150775, 0.0150447, 0.0154516, 0.0169014, 0.0812482,
+    ),
+)
+
 ## Muon SF reference https://twiki.cern.ch/twiki/bin/viewauth/CMS/MuonReferenceEffsRun2
 ## Retrieve data from the cmsdoc web page:
 ##   https://cmsdoc.cern.ch/cms/Physics/muon/ReferenceEfficiencies/Run2015/25ns/MuonID_Z_RunCD_Reco76X_Feb15.json
 ##   https://cmsdoc.cern.ch/cms/Physics/muon/ReferenceEfficiencies/Run2015/25ns/MuonIso_Z_RunCD_Reco76X_Feb15.json
-muonSFTight = cms.PSet(
+muonSFTight76X = cms.PSet(
     # Values of "MC_NUM_TightIDandIPCut_DEN_genTracks_PAR_pt_spliteta_bin1 + MC_NUM_TightRelIso_DEN_TightID_PAR_pt_spliteta_bin1"
     pt_bins = cms.vdouble(20, 25, 30, 40, 50, 60, 120),
     abseta_bins = cms.vdouble(0, 0.9, 1.2, 2.1, 2.4),
