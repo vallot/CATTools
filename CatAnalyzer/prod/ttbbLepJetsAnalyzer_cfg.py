@@ -4,17 +4,17 @@ import FWCore.ParameterSet.Config as cms
 ## setting up arguements
 from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing ('analysis')
-# Data or MC Sample
-options.register('runOnMC', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runOnMC: True  default")
-# runOnTTbarMC == 0->No ttbar, 1->ttbar Signal, 2->ttbar Background
+# JSON
+options.register('UserJSON', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "UserJSON: Fault  default")
+# runOnTTbarMC ==> 0->No ttbar, 1->ttbar Signal, 2->ttbar Background
 options.register('runOnTTbarMC', 0, VarParsing.multiplicity.singleton, VarParsing.varType.int, "runOnTTbarMC: 0  default No ttbar sample")
-# 0->All ttbar, 1->ttbb, 2->ttbj, 3->ttcc, 4->ttLF, 5->tt, 6->ttjj
+# TTbarCatMC   ==> 0->All ttbar, 1->ttbb, 2->ttbj, 3->ttcc, 4->ttLF, 5->tt, 6->ttjj
 options.register('TTbarCatMC', 0, VarParsing.multiplicity.singleton, VarParsing.varType.int, "TTbarCatMC: 0  default All ttbar events")
 options.parseArguments()
 
-print "runOnMC: "      + str(options.runOnMC)
-print "runOnTTbarMC: " + str(options.runOnTTbarMC)
-print "TTbarCatMC: "   + str(options.TTbarCatMC)
+print "User JSON file: " + str(options.UserJSON)
+print "runOnTTbarMC: "   + str(options.runOnTTbarMC)
+print "TTbarCatMC: "     + str(options.TTbarCatMC)
 #------------------------------------------------------------------
 #------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ process.MessageLogger.cerr.INFO = cms.untracked.PSet(
 )
 process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.source = cms.Source("PoolSource",
      fileNames = cms.untracked.vstring(
@@ -47,7 +47,7 @@ process.source = cms.Source("PoolSource",
 # process.pileupWeight.pileupDn = pileupWeightMap["Run2015Dn_25nsV1"]
 
 # json file (Only Data)
-if not options.runOnMC:
+if options.UserJSON:
     # ReReco JSON file taken from: https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions15/13TeV/Reprocessing/Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON.txt
     print "Running data.... Including JSON File."
     import FWCore.PythonUtilities.LumiList as LumiList
@@ -55,11 +55,10 @@ if not options.runOnMC:
 
 # Lepton SF
 from CATTools.CatAnalyzer.leptonSF_cff import *
-
+# GEN Weights
 process.load("CATTools.CatAnalyzer.flatGenWeights_cfi")
 
 process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
-                                     sampleLabel       = cms.untracked.bool(options.runOnMC),
                                      TTbarSampleLabel  = cms.untracked.int32(options.runOnTTbarMC),
                                      TTbarCatLabel     = cms.untracked.int32(options.TTbarCatMC),
                                      genWeightLabel    = cms.InputTag("flatGenWeights"),

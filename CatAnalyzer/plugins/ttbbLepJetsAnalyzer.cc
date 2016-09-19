@@ -65,7 +65,7 @@ private:
   bool IsSelectElectron(const cat::Electron & i_electron_candidate);
   bool IsVetoElectron  (const cat::Electron & i_electron_candidate);
 
-  bool isMC_;
+  bool isMC_ ;
   int TTbarMC_; // 0->No ttbar, 1->ttbar Signal, 2->ttbar Background
   int TTbarCatMC_;
   
@@ -128,40 +128,35 @@ private:
   // GEN Leptons
   float b_GenLepton_pT;
   float b_GenLepton_eta;
-  float b_GenLepton_px;
-  float b_GenLepton_py;
-  float b_GenLepton_pz;
+  float b_GenLepton_phi;
   float b_GenLepton_E;
   // GEN Neutrino
-  float b_GenNu_px;
-  float b_GenNu_py;
-  float b_GenNu_pz;
+  float b_GenNu_pT;
+  float b_GenNu_eta;
+  float b_GenNu_phi;
   float b_GenNu_E;
 
   // Leptons
-  float b_Lepton_px;
-  float b_Lepton_py;
-  float b_Lepton_pz;
-  float b_Lepton_E;
   float b_Lepton_pT;
+  float b_Lepton_eta;
+  float b_Lepton_phi;
+  float b_Lepton_E;
   std::vector<float> *b_Lepton_SF;
   float b_Lepton_LES;
   // GEN Jets
-  std::vector<float> *b_GenJet_px;
-  std::vector<float> *b_GenJet_py;
-  std::vector<float> *b_GenJet_pz;
-  std::vector<float> *b_GenJet_E;
   std::vector<float> *b_GenJet_pT;
+  std::vector<float> *b_GenJet_eta;
+  std::vector<float> *b_GenJet_phi;
+  std::vector<float> *b_GenJet_E;
   // Jet Mother (MC Studies)
   std::vector<int> *b_GenJet_mom, *b_GenJet_GenConeMom;
   // Jets
   int b_Jet_Number;
-  std::vector<float> *b_Jet_px;
-  std::vector<float> *b_Jet_py;
-  std::vector<float> *b_Jet_pz;
+  std::vector<float> *b_Jet_pT;
+  std::vector<float> *b_Jet_eta;
+  std::vector<float> *b_Jet_phi;
   std::vector<float> *b_Jet_E;
   std::vector<int>   *b_Jet_Index, *b_Jet_GenConeMom;
-  std::vector<float> *b_Jet_pT;
   std::vector<int>   *b_Jet_MatchedGenJetIndex;
   float               b_DRAddJets;
   // Jet Flavour
@@ -183,14 +178,14 @@ private:
   float b_Kin_Chi2;
 
   // KR Leptons
-  float b_KinNu_px;
-  float b_KinNu_py;
-  float b_KinNu_pz;
+  float b_KinNu_pT;
+  float b_KinNu_eta;
+  float b_KinNu_phi;
   float b_KinNu_E;
   // KR Jets
-  std::vector<float> *b_KinJet_px;
-  std::vector<float> *b_KinJet_py;
-  std::vector<float> *b_KinJet_pz;
+  std::vector<float> *b_KinJet_pT;
+  std::vector<float> *b_KinJet_eta;
+  std::vector<float> *b_KinJet_phi;
   std::vector<float> *b_KinJet_E;
 
   std::vector<int>   *b_KinJet_Index;
@@ -222,7 +217,6 @@ private:
 // constructors and destructor
 //
 ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
-  isMC_       (iConfig.getUntrackedParameter<bool>("sampleLabel",  true)),
   TTbarMC_    (iConfig.getUntrackedParameter<int>("TTbarSampleLabel", 0)),
   TTbarCatMC_ (iConfig.getUntrackedParameter<int>("TTbarCatLabel", 0))
 {
@@ -276,21 +270,19 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   b_GenCone_gJetIndex = new std::vector<int>;
   b_GenCone_gJetFlavW = new std::vector<int>;
 
-  b_GenJet_px = new std::vector<float>;
-  b_GenJet_py = new std::vector<float>;
-  b_GenJet_pz = new std::vector<float>;
+  b_GenJet_pT = new std::vector<float>;
+  b_GenJet_eta = new std::vector<float>;
+  b_GenJet_phi = new std::vector<float>;
   b_GenJet_E  = new std::vector<float>;
   b_GenJet_mom = new std::vector<int>;
   b_GenJet_GenConeMom = new std::vector<int>;
-  b_GenJet_pT = new std::vector<float>;  
   b_Jet_MatchedGenJetIndex = new std::vector<int>;
-  b_Jet_px   = new std::vector<float>;
-  b_Jet_py   = new std::vector<float>;
-  b_Jet_pz   = new std::vector<float>;
+  b_Jet_pT   = new std::vector<float>;
+  b_Jet_eta   = new std::vector<float>;
+  b_Jet_phi   = new std::vector<float>;
   b_Jet_E    = new std::vector<float>;
   b_Jet_Index= new std::vector<int>;
   b_Jet_GenConeMom=new std::vector<int>;
-  b_Jet_pT   = new std::vector<float>;
   b_Jet_CSV  = new std::vector<float>;
   b_Jet_SF_CSV  = new std::vector<float>;
   b_Jet_CvsL    = new std::vector<float>;  
@@ -303,10 +295,10 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   b_Jet_JER_Nom  = new std::vector<float>;
   b_Jet_JER_Down = new std::vector<float>;
   // Kinematic Reconstruction
-  b_KinJet_px = new std::vector<float>;
-  b_KinJet_py = new std::vector<float>;
-  b_KinJet_pz = new std::vector<float>;
-  b_KinJet_E  = new std::vector<float>;
+  b_KinJet_pT  = new std::vector<float>;
+  b_KinJet_eta = new std::vector<float>;
+  b_KinJet_phi = new std::vector<float>;
+  b_KinJet_E   = new std::vector<float>;
 
   b_KinJet_Index = new std::vector<int>;
 
@@ -319,37 +311,37 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("run",        &b_Run,         "Run/I");
   tree->Branch("luminumber", &b_Lumi_Number, "Lumi_Number/I");
   tree->Branch("genweight",  &b_GenWeight,   "GenWeight/F");
-  tree->Branch("PUWeight",   "std::vector<float>", &b_PUWeight);
-  tree->Branch("GoodPV",     &b_nGoodPV,  "nGoodPV/I");
+  tree->Branch("GoodPV",     &b_nGoodPV,     "nGoodPV/I");
+  tree->Branch("channel",    &b_Channel,     "Channel/I");
 
-  tree->Branch("channel",  &b_Channel,  "Channel/I");
+  tree->Branch("PUWeight",   "std::vector<float>", &b_PUWeight);
 
   tree->Branch("MET",     &b_MET,     "MET/F");
   tree->Branch("MET_phi", &b_MET_phi, "MET_phi/F");
 
-  tree->Branch("lepton_px",  &b_Lepton_px, "lepton_px/F");
-  tree->Branch("lepton_py",  &b_Lepton_py, "lepton_py/F");
-  tree->Branch("lepton_pz",  &b_Lepton_pz, "lepton_pz/F");
-  tree->Branch("lepton_E" ,  &b_Lepton_E,  "lepton_E/F" );
-  tree->Branch("lepton_pT",  &b_Lepton_pT, "lepton_pT/F" );
-  tree->Branch("lepton_SF",  "std::vector<float>", &b_Lepton_SF );
+  tree->Branch("lepton_pT",  &b_Lepton_pT,  "lepton_pT/F");
+  tree->Branch("lepton_eta", &b_Lepton_eta,  "lepton_eta/F");
+  tree->Branch("lepton_phi", &b_Lepton_phi, "lepton_phi/F");
+  tree->Branch("lepton_E" ,  &b_Lepton_E,   "lepton_E/F" );
   tree->Branch("lepton_LES", &b_Lepton_LES, "lepton_LES/F" );
 
-  tree->Branch("jet_px",     "std::vector<float>", &b_Jet_px);
-  tree->Branch("jet_py",     "std::vector<float>", &b_Jet_py);
-  tree->Branch("jet_pz",     "std::vector<float>", &b_Jet_pz);
-  tree->Branch("jet_E" ,     "std::vector<float>", &b_Jet_E );
-  tree->Branch("jet_index" , "std::vector<int>", &b_Jet_Index );
-  tree->Branch("jet_gencone_mom" , "std::vector<int>", &b_Jet_GenConeMom );
-  tree->Branch("jet_pT",     "std::vector<float>", &b_Jet_pT );
-  tree->Branch("jet_CSV" ,   "std::vector<float>", &b_Jet_CSV );
-  tree->Branch("jet_SF_CSV", "std::vector<float>", &b_Jet_SF_CSV );
-  tree->Branch("jet_CvsL",   "std::vector<float>", &b_Jet_CvsL );
-  tree->Branch("jet_CvsB",   "std::vector<float>", &b_Jet_CvsB );
+  tree->Branch("lepton_SF",  "std::vector<float>", &b_Lepton_SF );
+
+  tree->Branch("jet_pT",           "std::vector<float>", &b_Jet_pT);
+  tree->Branch("jet_eta",          "std::vector<float>", &b_Jet_eta);
+  tree->Branch("jet_phi",          "std::vector<float>", &b_Jet_phi);
+  tree->Branch("jet_E" ,           "std::vector<float>", &b_Jet_E );
+  tree->Branch("jet_index" ,       "std::vector<int>",   &b_Jet_Index );
+  tree->Branch("jet_gencone_mom" , "std::vector<int>",   &b_Jet_GenConeMom );
+  tree->Branch("jet_CSV" ,         "std::vector<float>", &b_Jet_CSV );
+  tree->Branch("jet_SF_CSV",       "std::vector<float>", &b_Jet_SF_CSV );
+  tree->Branch("jet_CvsL",         "std::vector<float>", &b_Jet_CvsL );
+  tree->Branch("jet_CvsB",         "std::vector<float>", &b_Jet_CvsB );
+
   tree->Branch("jet_Number" , &b_Jet_Number, "jet_number/I" );
 
-  tree->Branch("jet_partonFlavour", "std::vector<int>", &b_Jet_partonFlavour);
-  tree->Branch("jet_hadronFlavour", "std::vector<int>", &b_Jet_hadronFlavour);
+  tree->Branch("jet_partonFlavour", "std::vector<int>",   &b_Jet_partonFlavour);
+  tree->Branch("jet_hadronFlavour", "std::vector<int>",   &b_Jet_hadronFlavour);
   tree->Branch("jet_JES_Up",        "std::vector<float>", &b_Jet_JES_Up );
   tree->Branch("jet_JES_Down",      "std::vector<float>", &b_Jet_JES_Down );
   tree->Branch("jet_JER_Up",        "std::vector<float>", &b_Jet_JER_Up );
@@ -357,10 +349,10 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("jet_JER_Down",      "std::vector<float>", &b_Jet_JER_Down );
 
   // GEN Variables (only ttbarSignal)
-  if(isMC_ && TTbarMC_==1){
-    tree->Branch("jet_MatchedGenJetIndex", "std::vector<int>",  &b_Jet_MatchedGenJetIndex);
-
+  if(TTbarMC_ == 1){
     tree->Branch("scaleweight",   "std::vector<float>", &b_ScaleWeight );
+
+    tree->Branch("jet_MatchedGenJetIndex", "std::vector<int>",  &b_Jet_MatchedGenJetIndex);
 
     tree->Branch("genconecatid" ,      "std::vector<int>",   &b_GenConeCatID);
     tree->Branch("gencone_gjet_pT" ,   "std::vector<float>", &b_GenCone_gJet_pT);
@@ -369,61 +361,59 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
     tree->Branch("gencone_gjet_E" ,    "std::vector<float>", &b_GenCone_gJet_E);
     tree->Branch("gencone_gjetIndex" , "std::vector<int>",   &b_GenCone_gJetIndex);
     tree->Branch("gencone_gJetFlavW" , "std::vector<int>",   &b_GenCone_gJetFlavW);
+
     tree->Branch("gencone_NgjetsW", &b_GenCone_NgJetsW, "b_GenCone_NgJetsW/I");
     tree->Branch("draddjets",       &b_DRAddJets,       "DRAddJets/F");
-    tree->Branch("genhiggscatid", &b_GenHiggsCatID, "genhiggscatid/I");
+    tree->Branch("genhiggscatid",   &b_GenHiggsCatID,   "genhiggscatid/I");
 
     tree->Branch("genchannel",    &b_GenChannel,    "genchannel/I");
     tree->Branch("genlepton_pT",  &b_GenLepton_pT,  "genlepton_pT/F");
     tree->Branch("genlepton_eta", &b_GenLepton_eta, "genlepton_eta/F");
-    tree->Branch("genlepton_px",  &b_GenLepton_px,  "genlepton_px/F");
-    tree->Branch("genlepton_py",  &b_GenLepton_py,  "genlepton_py/F");
-    tree->Branch("genlepton_pz",  &b_GenLepton_pz,  "genlepton_pz/F");
+    tree->Branch("genlepton_phi", &b_GenLepton_phi, "genlepton_phi/F");
     tree->Branch("genlepton_E",   &b_GenLepton_E,   "genlepton_E/F");
-    tree->Branch("gennu_px",      &b_GenNu_px,      "gennu_px/F");
-    tree->Branch("gennu_py",      &b_GenNu_py,      "gennu_py/F");
-    tree->Branch("gennu_pz",      &b_GenNu_pz,      "gennu_pz/F");
+    tree->Branch("gennu_pT",      &b_GenNu_pT,      "gennu_pT/F");
+    tree->Branch("gennu_eta",     &b_GenNu_eta,     "gennu_eta/F");
+    tree->Branch("gennu_phi",     &b_GenNu_phi,     "gennu_phi/F");
     tree->Branch("gennu_E",       &b_GenNu_E,       "gennu_E/F");
 
-    tree->Branch("genjet_px", "std::vector<float>", &b_GenJet_px);
-    tree->Branch("genjet_py", "std::vector<float>", &b_GenJet_py);
-    tree->Branch("genjet_pz", "std::vector<float>", &b_GenJet_pz);
-    tree->Branch("genjet_E",  "std::vector<float>", &b_GenJet_E);
+    tree->Branch("genjet_pT",  "std::vector<float>", &b_GenJet_pT);
+    tree->Branch("genjet_eta", "std::vector<float>", &b_GenJet_eta);
+    tree->Branch("genjet_phi", "std::vector<float>", &b_GenJet_phi);
+    tree->Branch("genjet_E",   "std::vector<float>", &b_GenJet_E);
     tree->Branch("genjet_mom", "std::vector<int>",  &b_GenJet_mom);
+
     tree->Branch("genjet_gencone_mom", "std::vector<int>",  &b_GenJet_GenConeMom);
 
     // Kinematic Reconstruction
-    tree->Branch("kin_chi2",  &b_Kin_Chi2, "kin_chi2/F");
+    tree->Branch("kin_chi2",   &b_Kin_Chi2,  "kin_chi2/F");
+    tree->Branch("kinnu_pT",   &b_KinNu_pT,  "kinnu_pT/F");
+    tree->Branch("kinnu_eta",  &b_KinNu_eta, "kinnu_eta/F");
+    tree->Branch("kinnu_phi",  &b_KinNu_phi, "kinnu_phi/F");
+    tree->Branch("kinnu_E",    &b_KinNu_E,   "kinnu_E/F");
 
-    tree->Branch("kinnu_px",  &b_KinNu_px, "kinnu_px/F");
-    tree->Branch("kinnu_py",  &b_KinNu_py, "kinnu_py/F");
-    tree->Branch("kinnu_pz",  &b_KinNu_pz, "kinnu_pz/F");
-    tree->Branch("kinnu_E",   &b_KinNu_E,  "kinnu_E/F");
-
-    tree->Branch("kinjet_px", "std::vector<float>", &b_KinJet_px);
-    tree->Branch("kinjet_py", "std::vector<float>", &b_KinJet_py);
-    tree->Branch("kinjet_pz", "std::vector<float>", &b_KinJet_pz);
-    tree->Branch("kinjet_E",  "std::vector<float>", &b_KinJet_E);
-
-    tree->Branch("kinjet_index", "std::vector<int>", &b_KinJet_Index);
+    tree->Branch("kinjet_pT",    "std::vector<float>", &b_KinJet_pT);
+    tree->Branch("kinjet_eta",   "std::vector<float>", &b_KinJet_eta);
+    tree->Branch("kinjet_phi",   "std::vector<float>", &b_KinJet_phi);
+    tree->Branch("kinjet_E",     "std::vector<float>", &b_KinJet_E);
+    tree->Branch("kinjet_index", "std::vector<int>",   &b_KinJet_Index);
 
     //GEN TREE
     gentree = fs->make<TTree>("gentree", "TopGENTree");
-    gentree->Branch("genweight",  &b_GenWeight,   "GenWeight/F");
-    gentree->Branch("scaleweight", "std::vector<float>", &b_ScaleWeight );
-    gentree->Branch("genchannel",    &b_GenChannel,        "genchannel/I");
-    gentree->Branch("genhiggscatid", &b_GenHiggsCatID,     "genhiggscatid/I");
-    gentree->Branch("genconecatid" , "std::vector<int>",   &b_GenConeCatID);
-    gentree->Branch("draddjets",     &b_DRAddJets,       "DRAddJets/F");
-    gentree->Branch("genlepton_pT",  &b_GenLepton_pT,      "genlepton_pT/F");
-    gentree->Branch("genlepton_eta", &b_GenLepton_eta,     "genlepton_eta/F");
-    gentree->Branch("genjet_px",  "std::vector<float>", &b_GenJet_px);
-    gentree->Branch("genjet_py",  "std::vector<float>", &b_GenJet_py);
-    gentree->Branch("genjet_pz",  "std::vector<float>", &b_GenJet_pz);
-    gentree->Branch("genjet_E",   "std::vector<float>", &b_GenJet_E);
-    gentree->Branch("genjet_pT",  "std::vector<float>", &b_GenJet_pT);
-    gentree->Branch("genjet_mom", "std::vector<int>",   &b_GenJet_mom);
-    gentree->Branch("genjet_gencone_mom", "std::vector<int>",  &b_GenJet_GenConeMom);
+    gentree->Branch("genweight",     &b_GenWeight,     "GenWeight/F");
+    gentree->Branch("genchannel",    &b_GenChannel,    "genchannel/I");
+    gentree->Branch("genhiggscatid", &b_GenHiggsCatID, "genhiggscatid/I");
+    gentree->Branch("draddjets",     &b_DRAddJets,     "DRAddJets/F");
+    gentree->Branch("genlepton_pT",  &b_GenLepton_pT,  "genlepton_pT/F");
+    gentree->Branch("genlepton_eta", &b_GenLepton_eta, "genlepton_eta/F");
+
+    gentree->Branch("scaleweight",        "std::vector<float>", &b_ScaleWeight );
+    gentree->Branch("genconecatid" ,      "std::vector<int>",   &b_GenConeCatID);
+    gentree->Branch("genjet_pT",          "std::vector<float>", &b_GenJet_pT);
+    gentree->Branch("genjet_eta",         "std::vector<float>", &b_GenJet_eta);
+    gentree->Branch("genjet_phi",         "std::vector<float>", &b_GenJet_phi);
+    gentree->Branch("genjet_E",           "std::vector<float>", &b_GenJet_E);
+    gentree->Branch("genjet_mom",         "std::vector<int>",   &b_GenJet_mom);
+    gentree->Branch("genjet_gencone_mom", "std::vector<int>",   &b_GenJet_GenConeMom);
   }
 
   EventInfo = fs->make<TH1F>("EventInfo","Event Information",8,0,8);
@@ -461,22 +451,20 @@ ttbbLepJetsAnalyzer::~ttbbLepJetsAnalyzer()
   delete b_GenCone_gJetIndex;
   delete b_GenCone_gJetFlavW;
 
-  delete b_GenJet_px;
-  delete b_GenJet_py;
-  delete b_GenJet_pz;
-  delete b_GenJet_E;
   delete b_GenJet_pT;
+  delete b_GenJet_eta;
+  delete b_GenJet_phi;
+  delete b_GenJet_E;
   delete b_GenJet_mom;
   delete b_GenJet_GenConeMom;
   delete b_Lepton_SF;
 
-  delete b_Jet_px;
-  delete b_Jet_py;
-  delete b_Jet_pz;
+  delete b_Jet_pT;
+  delete b_Jet_eta;
+  delete b_Jet_phi;
   delete b_Jet_E;
   delete b_Jet_Index;
   delete b_Jet_GenConeMom;
-  delete b_Jet_pT;
 
   delete b_Jet_partonFlavour;
   delete b_Jet_hadronFlavour;
@@ -495,9 +483,9 @@ ttbbLepJetsAnalyzer::~ttbbLepJetsAnalyzer()
   delete b_Jet_CvsL;
   delete b_Jet_CvsB;
 
-  delete b_KinJet_px;
-  delete b_KinJet_py;
-  delete b_KinJet_pz;
+  delete b_KinJet_pT;
+  delete b_KinJet_eta;
+  delete b_KinJet_phi;
   delete b_KinJet_E;
   
   delete b_KinJet_Index;
@@ -525,23 +513,21 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   b_GenCone_gJetFlavW->clear();
 
 
-  b_GenJet_px ->clear();
-  b_GenJet_py ->clear();
-  b_GenJet_pz ->clear();
-  b_GenJet_E  ->clear();
-  b_GenJet_pT ->clear();
+  b_GenJet_pT  ->clear();
+  b_GenJet_eta ->clear();
+  b_GenJet_phi ->clear();
+  b_GenJet_E   ->clear();
   b_GenJet_mom->clear();
   b_GenJet_GenConeMom->clear();
 
   b_Lepton_SF->clear();
 
-  b_Jet_px   ->clear();
-  b_Jet_py   ->clear();
-  b_Jet_pz   ->clear();
-  b_Jet_E    ->clear();
+  b_Jet_pT    ->clear();
+  b_Jet_eta   ->clear();
+  b_Jet_phi   ->clear();
+  b_Jet_E     ->clear();
   b_Jet_Index->clear();
   b_Jet_GenConeMom->clear();
-  b_Jet_pT   ->clear();
 
   b_Jet_partonFlavour->clear();
   b_Jet_hadronFlavour->clear();
@@ -559,10 +545,10 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   b_Jet_CvsL  ->clear();
   b_Jet_CvsB  ->clear();
 
-  b_KinJet_px->clear();
-  b_KinJet_py->clear();
-  b_KinJet_pz->clear();
-  b_KinJet_E->clear();
+  b_KinJet_pT ->clear();
+  b_KinJet_eta->clear();
+  b_KinJet_phi->clear();
+  b_KinJet_E  ->clear();
   
   b_KinJet_Index->clear();
 
@@ -571,6 +557,8 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   // Event Info
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
+
+  isMC_ = !iEvent.isRealData();
 
   b_Event        = iEvent.id().event();
   b_Run          = iEvent.id().run();
@@ -830,15 +818,15 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 	    } // while(mommomid == momid)
 
 	    if (abs(momid) == 24 && abs(mommomid) == 6){
-	      if (abs(id) == 13 || abs(id) == 11) Genlepton.SetPxPyPzE(gp.px(), gp.py(), gp.pz(), gp.energy());  
+	      if (abs(id) == 13 || abs(id) == 11) Genlepton.SetPtEtaPhiE(gp.pt(), gp.eta(), gp.phi(), gp.energy());  
 
-	      if (abs(id) == 16 || abs(id) == 14 || abs(id) == 12) Gennu.SetPxPyPzE(gp.px(), gp.py(), gp.pz(), gp.energy());  
+	      if (abs(id) == 16 || abs(id) == 14 || abs(id) == 12) Gennu.SetPtEtaPhiE(gp.pt(), gp.eta(), gp.phi(), gp.energy());  
 	      
 	      if (abs(id) == 15){ // Taus 
 		for(unsigned int h = 0; h <  gp.numberOfDaughters(); h++) {
 		  const reco::Candidate *gd = gp.daughter(h);
 		  const int taudauid = gd->pdgId();
-		  if (abs(taudauid) == 13 || abs(taudauid) == 11) Genlepton.SetPxPyPzE(gd->px(), gd->py(), gd->pz(), gd->energy());  
+		  if (abs(taudauid) == 13 || abs(taudauid) == 11) Genlepton.SetPtEtaPhiE(gd->pt(), gd->eta(), gd->phi(), gd->energy());  
 		} // for(taus' daughters)
 	      } // if(taus)
 	        
@@ -848,15 +836,15 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 	} // for(genParticles)
 
 	// Full lepton and neutrino information
-	b_GenNu_px = Gennu.Px();
-	b_GenNu_py = Gennu.Py();
-	b_GenNu_pz = Gennu.Pz();
-	b_GenNu_E  = Gennu.E();
+	b_GenNu_pT  = Gennu.Pt();
+	b_GenNu_eta = Gennu.Eta();
+	b_GenNu_phi = Gennu.Phi();
+	b_GenNu_E   = Gennu.E();
 	
-	b_GenLepton_px = Genlepton.Px();
-	b_GenLepton_py = Genlepton.Py();
-	b_GenLepton_pz = Genlepton.Pz();
-	b_GenLepton_E  = Genlepton.E();
+	b_GenLepton_pT  = Genlepton.Pt();
+	b_GenLepton_eta = Genlepton.Eta();
+	b_GenLepton_phi = Genlepton.Phi();
+	b_GenLepton_E   = Genlepton.E();
 
 	edm::Handle<reco::GenJetCollection> genJets;
 	iEvent.getByToken(genJetToken_, genJets);
@@ -869,10 +857,10 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 	  if(std::abs(gjet.eta())< 2.5 &&
 	     gjet.pt()> 20){
 	    
-            b_GenJet_px->push_back(gjet.px());
-            b_GenJet_py->push_back(gjet.py());
-            b_GenJet_pz->push_back(gjet.pz());
-            b_GenJet_E ->push_back(gjet.energy());
+            b_GenJet_pT ->push_back(gjet.pt());
+            b_GenJet_eta->push_back(gjet.eta());
+            b_GenJet_phi->push_back(gjet.phi());
+            b_GenJet_E  ->push_back(gjet.energy());
 
             b_GenJet_pT->push_back(gjet.pt());
 
@@ -994,7 +982,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
      vetoMuons.size()         == 0 &&
      selectedElectrons.size() == 0 &&
      vetoElectrons.size()     == 0){
-    lepton.SetPxPyPzE(selectedMuons[0].px(), selectedMuons[0].py(), selectedMuons[0].pz(), selectedMuons[0].energy());
+    lepton.SetPtEtaPhiE(selectedMuons[0].pt(), selectedMuons[0].eta(), selectedMuons[0].phi(), selectedMuons[0].energy());
     ch_tag = 0; //muon + jets
 
       if(isMC_) {
@@ -1012,7 +1000,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
      selectedElectrons.size() == 1 &&
      vetoElectrons.size()     == 0){
     ch_tag = 1; //electron + jets
-    lepton.SetPxPyPzE(selectedElectrons[0].px(), selectedElectrons[0].py(), selectedElectrons[0].pz(), selectedElectrons[0].energy());
+    lepton.SetPtEtaPhiE(selectedElectrons[0].pt(), selectedElectrons[0].eta(), selectedElectrons[0].phi(), selectedElectrons[0].energy());
 
      if(isMC_) {
        // Lepton SF (ID/ISO)
@@ -1038,7 +1026,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
   AnalysisHelper trigHelper = AnalysisHelper(triggerNames, triggerBits, triggerObjects);
 
-  if ( (ch_tag == 0 && (trigHelper.triggerFired("HLT_IsoMu20_v") || trigHelper.triggerFired("HLT_IsoTkMu20_v"))) ||
+  if ( (ch_tag == 0 && (trigHelper.triggerFired("HLT_IsoMu22_v") || trigHelper.triggerFired("HLT_IsoTkMu22_v"))) ||
        (ch_tag == 1 ) ) { // TO BE UPDATED: Add electron triggers
     //(ch_tag == 1 && (trigHelper.triggerFired("HLT_Ele22_eta2p1_WP75_Gsf_v") || trigHelper.triggerFired("HLT_Ele22_eta2p1_WPLoose_Gsf_v"))) ) {
     EvTrigger = true;
@@ -1068,11 +1056,10 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
     b_Channel  = ch_tag;
 
-    b_Lepton_px = lepton.Px();
-    b_Lepton_py = lepton.Py();
-    b_Lepton_pz = lepton.Pz();
-    b_Lepton_E  = lepton.E();
-    b_Lepton_pT = lepton.Pt();
+    b_Lepton_pT  = lepton.Pt();
+    b_Lepton_eta = lepton.Eta();
+    b_Lepton_phi = lepton.Phi();
+    b_Lepton_E   = lepton.E();
 
     b_Lepton_SF  = lepton_SF;
     b_Lepton_LES = lepton_LES;
@@ -1122,19 +1109,19 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       // Jet Selection (pT>15GeV to take into account SYST Variations)
       if(std::abs(jet.eta()) < 2.4 && jet.pt() > 15. && jet.LooseId()) goodJet = true;
       // Jet Cleaning
-      TLorentzVector vjet(jet.px(), jet.py(), jet.pz(), jet.energy());
+      TLorentzVector vjet;
+      vjet.SetPtEtaPhiE(jet.pt(), jet.eta(), jet.phi(), jet.energy());
       double dr_LepJet = vjet.DeltaR(lepton);
       if(dr_LepJet > 0.4) cleanJet = true;
 
       if(goodJet && cleanJet){
         // Basic variables
         N_GoodJets ++;
-        b_Jet_px->push_back(jet.px());
-        b_Jet_py->push_back(jet.py());
-        b_Jet_pz->push_back(jet.pz());
-        b_Jet_E ->push_back(jet.energy());
+        b_Jet_pT ->push_back(jet.pt());
+        b_Jet_eta->push_back(jet.eta());
+        b_Jet_phi->push_back(jet.phi());
+        b_Jet_E  ->push_back(jet.energy());
         b_Jet_Index ->push_back(JetIndex[i]);
-        b_Jet_pT->push_back(jet.pt());
 
         // Parton Flavour
         b_Jet_partonFlavour->push_back(jet.partonFlavour());
@@ -1206,11 +1193,11 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     // Kinematic Reconstruction: First Test
     //---------------------------------------------------------------------------
     TLorentzVector Kinnu, Kinblrefit, Kinbjrefit, Kinj1refit, Kinj2refit;
-    Kinnu.SetPxPyPzE(0,0,0,0);
-    Kinblrefit.SetPxPyPzE(0,0,0,0);
-    Kinbjrefit.SetPxPyPzE(0,0,0,0);
-    Kinj1refit.SetPxPyPzE(0,0,0,0);
-    Kinj2refit.SetPxPyPzE(0,0,0,0);
+    Kinnu.SetPtEtaPhiE(0,0,0,0);
+    Kinblrefit.SetPtEtaPhiE(0,0,0,0);
+    Kinbjrefit.SetPtEtaPhiE(0,0,0,0);
+    Kinj1refit.SetPtEtaPhiE(0,0,0,0);
+    Kinj2refit.SetPtEtaPhiE(0,0,0,0);
     
     std::vector<int> KinBestIndices;
     KinBestIndices.push_back(-999);
@@ -1229,14 +1216,13 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       KinMET.SetPtEtaPhiE(b_MET, 0.0, b_MET_phi, b_MET);
       
       std::vector<ComJet> KinJets;
-      for (unsigned int kj=0; kj<b_Jet_px->size(); kj++){
+      for (unsigned int kj=0; kj<b_Jet_pT->size(); kj++){
 	ComJet kjet;
-	kjet.SetPxPyPzE((*b_Jet_px)[kj],(*b_Jet_py)[kj],(*b_Jet_pz)[kj],(*b_Jet_E)[kj]);
+	kjet.SetPtEtaPhiE((*b_Jet_pT)[kj],(*b_Jet_eta)[kj],(*b_Jet_phi)[kj],(*b_Jet_E)[kj]);
 	kjet.CSV = (*b_Jet_CSV)[kj];
 	
 	KinJets.push_back(kjet);
       }
-      
       
       FindHadronicTop(KinLep, KinJets, KinMET, KinUsebtag, KinBestIndices, bestchi2, Kinnu, Kinblrefit, Kinbjrefit, Kinj1refit, Kinj2refit);
       
@@ -1259,30 +1245,30 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     } //if(N_GoodJets > 3)   
     
     // LorentzVector for Jets. Same order as KinBestIndices
-    b_KinJet_px->push_back(Kinbjrefit.Px());
-    b_KinJet_px->push_back(Kinj1refit.Px());
-    b_KinJet_px->push_back(Kinj2refit.Px()); 
-    b_KinJet_px->push_back(Kinblrefit.Px());
+    b_KinJet_pT->push_back(Kinbjrefit.Pt());
+    b_KinJet_pT->push_back(Kinj1refit.Pt());
+    b_KinJet_pT->push_back(Kinj2refit.Pt()); 
+    b_KinJet_pT->push_back(Kinblrefit.Pt());
     
-    b_KinJet_py->push_back(Kinbjrefit.Py());
-    b_KinJet_py->push_back(Kinj1refit.Py());
-    b_KinJet_py->push_back(Kinj2refit.Py()); 
-    b_KinJet_py->push_back(Kinblrefit.Py());
+    b_KinJet_eta->push_back(Kinbjrefit.Eta());
+    b_KinJet_eta->push_back(Kinj1refit.Eta());
+    b_KinJet_eta->push_back(Kinj2refit.Eta()); 
+    b_KinJet_eta->push_back(Kinblrefit.Eta());
     
-    b_KinJet_pz->push_back(Kinbjrefit.Pz());
-    b_KinJet_pz->push_back(Kinj1refit.Pz());
-    b_KinJet_pz->push_back(Kinj2refit.Pz()); 
-    b_KinJet_pz->push_back(Kinblrefit.Pz());
+    b_KinJet_phi->push_back(Kinbjrefit.Phi());
+    b_KinJet_phi->push_back(Kinj1refit.Phi());
+    b_KinJet_phi->push_back(Kinj2refit.Phi()); 
+    b_KinJet_phi->push_back(Kinblrefit.Phi());
     
     b_KinJet_E->push_back(Kinbjrefit.E());
     b_KinJet_E->push_back(Kinj1refit.E());
     b_KinJet_E->push_back(Kinj2refit.E()); 
     b_KinJet_E->push_back(Kinblrefit.E());
     
-    b_KinNu_px = Kinnu.Px();
-    b_KinNu_py = Kinnu.Py();
-    b_KinNu_pz = Kinnu.Pz();
-    b_KinNu_E  = Kinnu.E();
+    b_KinNu_pT  = Kinnu.Pt();
+    b_KinNu_eta = Kinnu.Eta();
+    b_KinNu_phi = Kinnu.Phi();
+    b_KinNu_E   = Kinnu.E();
     
     for(unsigned int iki=0; iki<KinBestIndices.size(); iki++) b_KinJet_Index->push_back(KinBestIndices.at(iki));
     
