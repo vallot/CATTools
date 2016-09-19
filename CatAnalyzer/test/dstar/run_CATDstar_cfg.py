@@ -11,7 +11,8 @@ process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 #process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-3/MuonEG_Run2015D-16Dec2015-v1.root',]
 #process.source.fileNames = ['file:/xrootd/store/user/jhgoh/CATTools/sync/v7-6-3/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',]
 #process.source.fileNames = ['file:../../../catdata_20160315/catTuple.root']
-process.source.fileNames = ['file:catTuple.root']
+#process.source.fileNames = ['root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v8-0-0_RunIISpring16MiniAODv2-PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0_ext4-v1/160705_214937/0000/catTuple_1.root', 'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/DoubleMuon/v8-0-0_Run2016B-PromptReco-v2/160705_213930/0001/catTuple_1304.root'  ]
+process.source.fileNames = ['root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/DoubleMuon/v8-0-0_Run2016B-PromptReco-v2/160705_213930/0001/catTuple_1304.root']
 
 useSilver = False
 catmet = 'catMETs'
@@ -25,17 +26,39 @@ if useSilver:
 process.load("CATTools.CatAnalyzer.ttll.ttbarDileptonKinSolutionAlgos_cff")
 process.load("CATTools.CatAnalyzer.filters_cff")
 process.load("CATTools.CatAnalyzer.topPtWeightProducer_cfi")
+process.load("CATTools.CatAnalyzer.flatGenWeights_cfi")
 from CATTools.CatAnalyzer.leptonSF_cff import *
+
+process.ttbarDileptonKinAlgoPSetDESYSmeared.inputTemplatePath = cms.string("CATTools/CatAnalyzer/data/desyKinRecoInput.root")
+process.ttbarDileptonKinAlgoPSetDESYSmeared.maxLBMass = cms.double(180)
+process.ttbarDileptonKinAlgoPSetDESYSmeared.mTopInput = cms.double(172.5)
+process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop = process.ttbarDileptonKinAlgoPSetDESYSmeared.clone()
+process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop.inputTemplatePath = cms.string("CATTools/CatAnalyzer/data/KoreaKinRecoInput_pseudo.root")
+process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop.maxLBMass = cms.double(360)
+process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop.mTopInput = cms.double(172.5)
+
+process.agen = cms.EDAnalyzer("CATGenTopAnalysis",
+    weightIndex = cms.int32(-1),
+    weight = cms.InputTag("flatGenWeights"),
+    channel = cms.InputTag("partonTop","channel"),
+    modes = cms.InputTag("partonTop", "modes"),
+    partonTop = cms.InputTag("partonTop"),
+    pseudoTop = cms.InputTag("pseudoTop"),
+    filterTaus = cms.bool(False),
+)
 
 process.cattree = cms.EDAnalyzer("CATDstarAnalyzer",
     recoFilters = cms.InputTag("filterRECO"),
     nGoodVertex = cms.InputTag("catVertex","nGoodPV"),
-    lumiSelection = cms.InputTag(lumiMask),
-    genweight = cms.InputTag("genWeight"),
+    lumiSelection = cms.InputTag("lumiMask"),
+    genweight = cms.InputTag("flatGenWeights"),
+    pdfweight = cms.InputTag("flatGenWeights","pdf"),
+    scaleupweight = cms.InputTag("flatGenWeights","scaleup"),
+    scaledownweight = cms.InputTag("flatGenWeights","scaledown"),
     topPtWeight = cms.InputTag("topPtWeight"),
-    puweight = cms.InputTag(pileupWeight),
-    puweight_up = cms.InputTag(pileupWeight,"up"),
-    puweight_dn = cms.InputTag(pileupWeight,"dn"),
+    puweight = cms.InputTag("pileupWeight"),
+    puweight_up = cms.InputTag("pileupWeight","up"),
+    puweight_dn = cms.InputTag("pileupWeight","dn"),
     trigMUEL = cms.InputTag("filterTrigMUEL"),
     trigMUMU = cms.InputTag("filterTrigMUMU"),
     trigELEL = cms.InputTag("filterTrigELEL"),
@@ -50,23 +73,24 @@ process.cattree = cms.EDAnalyzer("CATDstarAnalyzer",
         effSF = electronSFCutBasedIDMediumWP,#electronSFWP90,
     ),
     jets = cms.InputTag("catJets"),
-    mets = cms.InputTag(catmet),
+    mets = cms.InputTag("catMETs"),
     mcLabel = cms.InputTag("prunedGenParticles"),
     # input collection
     d0s    = cms.InputTag("catDstars","D0Cand"),
     dstars = cms.InputTag("catDstars","DstarCand"),
-    matchingDeltaR = cms.double(0.5),
-    
+    matchingDeltaR = cms.double(0.15),
     partonTop_channel = cms.InputTag("partonTop","channel"),
     partonTop_modes = cms.InputTag("partonTop", "modes"),
     partonTop_genParticles = cms.InputTag("partonTop"),
 
     pseudoTop = cms.InputTag("pseudoTop"),
-    
+
     #solver = process.ttbarDileptonKinAlgoPSetCMSKin,
     solver = process.ttbarDileptonKinAlgoPSetDESYSmeared,
+    solverPseudoTop = process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop,
     #solver = process.ttbarDileptonKinAlgoPSetDESYMassLoop,
 )
+
 #process.cattree.solver.tMassStep = 1
 if cms.string('DESYSmeared') == process.cattree.solver.algo:
     process.RandomNumberGeneratorService = cms.Service("RandomNumberGeneratorService",

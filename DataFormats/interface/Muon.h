@@ -56,8 +56,6 @@ namespace cat {
 
     float scaleFactor(const std::string& name, int sign = 0) const;
     
-    
-
   private:
 
     bool isGlobalMuon_;

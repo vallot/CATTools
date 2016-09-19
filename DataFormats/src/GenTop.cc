@@ -531,27 +531,26 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     //  addJets.push_back(gJet.p4());
     //}
 
+    //----------------------------------------------------------------------------------
     //debug
     //cout << "bJetFromTopIds = " <<  bJetFromTopIds.count(idx) << " bJetFromTopIds = " 
     //<<  bJetFromWIds.count(idx) << " cJetFromWIds = " << cJetFromWIds.count(idx) << endl;
 
-    if(bJetFromTopIds.count(idx) < 1 ) {
+    if(bJetFromTopIds.count(idx) < 1 && bJetFromWIds.count(idx) < 1 && cJetFromWIds.count(idx) < 1) {
       double minDRWquarks = 999;
       int FlavCand = 0;
       for(unsigned int i=0 ; i < quarksfromW_.size() ; i++){
         if( quarksfromW_[i] == null ) continue;
         double dR = reco::deltaR(gJet, quarksfromW_[i]);
-        if( dR < minDRWquarks ) {
+        if( dR < minDRWquarks ){
 	  minDRWquarks = dR;
 	  FlavCand = qflavourfromW_[i];
 	}
       }
-      //debug
-      //cout << "Min DR = " << minDRWquarks << endl;
-      if( minDRWquarks > 0.5 && bJetFromWIds.count(idx) < 1 && cJetFromWIds.count(idx) < 1){
+      if( minDRWquarks > 0.5 ){
         addJets.push_back( gJet.p4() );
       }
-      else if ( minDRWquarks < 0.5) {
+      else if ( minDRWquarks < 0.5) { // Only for Light Quarks
 	JetsFromW.push_back( gJet.p4() );
 	JetsFlavourFromW.push_back( FlavCand );
 	//debug
@@ -563,11 +562,19 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
       bJetsBHad.push_back( gJet.p4() );
       if( bJetFromTopIds.count(idx) > 0) bJetsFromTop.push_back( gJet.p4() ); 
       if( bJetAdditionalIds.count(idx) > 0 ) addbJetsBHad.push_back( gJet.p4() ); 
+      if( bJetFromWIds.count(idx) > 0 ){
+	JetsFromW.push_back( gJet.p4() );
+	JetsFlavourFromW.push_back( 5 );
+      }    
     }
     
     if(cJetIds.count(idx) > 0){
       cJetsCHad.push_back( gJet.p4() );
       if( cJetAdditionalIds.count(idx) > 0 ) addcJetsCHad.push_back( gJet.p4() ); 
+      if( cJetFromWIds.count(idx) > 0 ){
+	JetsFromW.push_back( gJet.p4() );
+	JetsFlavourFromW.push_back( 4 );
+      }
     }
 
     //Looking at Jet constituents

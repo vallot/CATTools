@@ -27,6 +27,7 @@ eventsTTLL = cms.EDFilter("TTLLEventSelector",
         #scaleDirection = cms.int32(+1),
         efficiencySF = electronSFCutBasedIDMediumWP,
         efficiencySFDirection = cms.int32(0),
+        applyEcalCrackVeto = cms.bool(False),
     ),
 
     jet = cms.PSet(

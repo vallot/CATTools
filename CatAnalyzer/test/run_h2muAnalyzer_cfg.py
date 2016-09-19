@@ -17,20 +17,16 @@ process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring(),)
 
 process.source.fileNames = []
 txtfile = '../data/dataset/dataset_SingleMuon_Run2015C.txt'
+txtfile = '../data/dataset/dataset_DYJets.txt'
 f = open(txtfile)
 for line in f:
     if '#' not in line:
         process.source.fileNames.append(line)
-print process.source.fileNames
+#print process.source.fileNames
     
-useSilver = False
 catmet = 'catMETs'
 lumiMask = 'lumiMask'
 pileupWeight = 'pileupWeight'
-if useSilver:
-    catmet = 'catMETsNoHF'
-    lumiMask = 'lumiMaskSilver'
-    pileupWeight = 'pileupWeightSilver'
 
 process.load("CATTools.CatAnalyzer.filters_cff")
 from CATTools.CatAnalyzer.leptonSF_cff import *
