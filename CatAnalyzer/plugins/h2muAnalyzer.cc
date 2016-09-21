@@ -88,7 +88,8 @@ private:
   edm::EDGetTokenT<cat::METCollection>      metToken_;
   edm::EDGetTokenT<reco::VertexCollection>   vtxToken_;
   edm::EDGetTokenT<reco::GenParticleCollection> mcLabel_;  
-  edm::EDGetTokenT<edm::TriggerResults> triggerBits_;
+  //edm::EDGetTokenT<edm::TriggerResults> triggerBits_;
+  std::vector<edm::EDGetTokenT<edm::TriggerResults>> triggerBits_;
   edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjects_;
 
   rochcor2016 *rmcor;
@@ -128,7 +129,7 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
   recoFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("recoFilters"));
   nGoodVertexToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("nGoodVertex"));
   lumiSelectionToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("lumiSelection"));
-  //genweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("genweight"));
+  genweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("genweight"));
   //pdfweightToken_ = consumes<vector<float>>(iConfig.getParameter<edm::InputTag>("pdfweight"));
   //scaleweightToken_ = consumes<vector<float>>(iConfig.getParameter<edm::InputTag>("scaleweight"));
   puweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("puweight"));
@@ -138,7 +139,10 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
   metToken_  = consumes<cat::METCollection>(iConfig.getParameter<edm::InputTag>("mets"));
   vtxToken_  = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertices"));
   mcLabel_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcLabel"));
-  triggerBits_ = consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerBits"));
+  //triggerBits_ = consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerBits"));
+  for ( auto x : iConfig.getParameter<std::vector<edm::InputTag>>("triggerBits") ) {
+    triggerBits_.push_back(consumes<edm::TriggerResults>(x));
+  }
   triggerObjects_ = consumes<pat::TriggerObjectStandAloneCollection>(iConfig.getParameter<edm::InputTag>("triggerObjects"));
 
   typedef std::vector<double> vdouble;
@@ -238,10 +242,12 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
 
 h2muAnalyzer::~h2muAnalyzer()
 {
+
   cout <<"     cut flow   emu    ee    mumu"<< endl;
   for ( int i=0; i<NCutflow; ++i ) {
     cout <<"step"<< i << "    "<< cutflow_[i][0] <<  "   "<< cutflow_[i][1] << "   " << cutflow_[i][2] << "   " << cutflow_[i][3]<< endl;
   }
+
 }
 
 void h2muAnalyzer::beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&){}
@@ -273,9 +279,9 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
       iEvent.getByToken(puweightToken_dn_, puweightHandle_dn);
       b_puweight_dn = *puweightHandle_dn;
 
-      // edm::Handle<float> genweightHandle;
-      // iEvent.getByToken(genweightToken_, genweightHandle);
-      // b_genweight = (*genweightHandle);
+      edm::Handle<float> genweightHandle;
+      iEvent.getByToken(genweightToken_, genweightHandle);
+      b_genweight = (*genweightHandle);
       b_weight = b_genweight*b_puweight;
 
       edm::Handle<reco::GenParticleCollection> genParticles;
@@ -330,8 +336,12 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
     ////////////////////////////////////////////////////////////////////////////////
     // trigger
     edm::Handle<edm::TriggerResults> triggerBits;
+    for ( auto token : triggerBits_ ) {
+        if ( iEvent.getByToken(token, triggerBits) ) break;
+    }
+    //edm::Handle<edm::TriggerResults> triggerBits;
     edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
-    iEvent.getByToken(triggerBits_, triggerBits);
+    //iEvent.getByToken(triggerBits_, triggerBits);
     iEvent.getByToken(triggerObjects_, triggerObjects);
     const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
     AnalysisHelper trigHelper = AnalysisHelper(triggerNames, triggerBits, triggerObjects);
@@ -450,7 +460,7 @@ float h2muAnalyzer::selectMuons(const cat::MuonCollection& muons, cat::MuonColle
     
     float qter = 1.0;
     TLorentzVector tmu(mu.tlv());
-
+/*
     cout << "\n initial   " << mu.tlv().Pt()
 	 << ", " << mu.tlv().Eta()
 	 << ", " << mu.tlv().Phi()
@@ -458,14 +468,14 @@ float h2muAnalyzer::selectMuons(const cat::MuonCollection& muons, cat::MuonColle
 	 << " mu.trackerLayersWithMeasurement() " << mu.trackerLayersWithMeasurement()
 	 << " mu.numberOfValidHits() " << mu.numberOfValidHits()
 	 <<endl;
-    
+*/    
     if (runOnMC)
       rmcor->momcor_mc(tmu, mu.charge(), mu.trackerLayersWithMeasurement(), qter);
     else 
       rmcor->momcor_data(tmu, mu.charge(), 0, qter);
 
     mu.setP4(m.p4() * tmu.E()/mu.tlv().E());
-
+/*
     if (tmu.Pt() != mu.tlv().Pt()){
       cout << " corrected " << tmu.Pt()
 	   << ", " << tmu.Eta()
@@ -479,6 +489,7 @@ float h2muAnalyzer::selectMuons(const cat::MuonCollection& muons, cat::MuonColle
 	   << ", " << mu.tlv().M()
 	   <<endl;
     }
+*/
     if (sys == sys_mu_u) mu.setP4(m.p4() * m.shiftedEnUp());
     if (sys == sys_mu_d) mu.setP4(m.p4() * m.shiftedEnDown());
 
@@ -546,7 +557,7 @@ void h2muAnalyzer::resetBr()
   b_nvertex = 0;b_step = 0;b_channel = 0;b_njet = 0;
   b_step1 = 0;b_step2 = 0;b_step3 = 0;b_step4 = 0;b_step5 = 0;b_step6 = 0;b_tri = 0;b_filtered = 0;
   b_met = 0;
-  b_weight = 0; b_puweight = 0; b_puweight_up = 0; b_puweight_dn = 0; b_genweight = 0;
+  b_weight = 1; b_puweight = 0; b_puweight_up = 0; b_puweight_dn = 0; b_genweight = 0;
   b_mueffweight = 0;b_mueffweight_up = 0;b_mueffweight_dn = 0;
   b_eleffweight = 0;b_eleffweight_up = 0;b_eleffweight_dn = 0;
   b_pdfWeights.clear();
