@@ -16,7 +16,7 @@ h2muDraw.py -c 'll_m>50&&step>=5&&isTight==1&&filtered==1' -b [100,-3,3] -p lep1
 '''
 
 json_used = 'Golden'
-datalumi = 2260
+datalumi = 2260 # should be chaged to new luminosity.
 version = os.environ['CMSSW_VERSION']
 
 rootfileDir = "/xrootd/store/user/pseudotop/ntuples/results_merged/%s/h2muAnalyzer_"%version
@@ -27,27 +27,28 @@ rootfileDir = "/xrootd/store/user/pseudotop/ntuples/results_merged/%s/h2muAnalyz
 
 CMS_lumi.lumi_sqrtS = "%.0f pb^{-1}, #sqrt{s} = 13 TeV 25ns "%(datalumi)
 mcfilelist = [
-             # 'GG_HToMuMu',
+              'GG_HToMuMu',
              # 'GluGluToZZTo2mu2tau',
              # 'GluGluToZZTo2e2mu',
              # 'GluGluToZZTo4mu',
              # 'ttZToLLNuNu',
-             # 'VBF_HToMuMu',
-              'ZZTo4L_powheg',
-              'ZZTo2L2Q',
-              'ZZTo2L2Nu_powheg',
-              'WWTo2L2Nu_powheg',
-              'WZTo2L2Q',
-              'WZTo3LNu_powheg',
+              'VBF_HToMuMu',
+             # 'ZZTo4L_powheg',
+             # 'ZZTo2L2Q',
+             # 'ZZTo2L2Nu_powheg',
+              'ZZ',
+             # 'WWTo2L2Nu_powheg',
+              'WW',
+             # 'WZTo2L2Q',
+             # 'WZTo3LNu_powheg',
+              'WZ',
               'TTJets_aMC',
               'DYJets',
               'DYJets_10to50',
              ]#ref : https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToMuMu
 #mcfilelist = ['VBF_HToMuMu','WW','WZ','ZZ','TT_powheg','DYJets','DYJets_10to50']#,'WJets']
 rdfilelist = [
-              'MuonEG_Run2015',#emu
-              'SingleElectron_Run2015',#ee
-              'SingleMuon_Run2015',#mumu
+              'SingleMuon_Run2016',#mumu
               #'DoubleEG_Run2015', #compare emu to mc
               #'SingleMuon_Run2015C',
               #'SingleMuon_Run2015D'

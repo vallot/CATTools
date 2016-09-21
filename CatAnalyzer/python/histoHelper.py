@@ -311,3 +311,165 @@ def set_palette(name="", ncontours=999):
     npoints = len(s)
     TColor.CreateGradientColorTable(npoints, s, r, g, b, ncontours)
     gStyle.SetNumberContours(ncontours)
+
+def fBreitWigner(x,par):
+    '''
+    par[0] = constant
+    par[1] = mean
+    par[2] = gamma
+    '''
+    pi = ROOT.TMath.Pi()
+    return par[2]/((x[0]-par[1])*(x[0]-par[1]) + par[2]*par[2]/4) * (2/pi) * par[0]
+
+def fParameterization(x,par):
+    '''
+    par[0] = constant
+    par[1] = mean
+    par[2] = gamma
+    par[3] = lambda
+    par[4] = beta
+    '''
+    return par[0] * ROOT.TMath.Exp(-par[3]*x[0]) * ( ( par[4]*par[2] / ( (x[0]-par[1])*(x[0]-par[1]) + par[2]*par[2]/4 ) ) + ( (1-par[4])/ (x[0]*x[0]) ) )
+
+
+def drawBWFit(name, data, x_min, x_max, doLog=False, draw=False):
+    c = ROOT.TCanvas(name,name,800,600)
+    hd= data.Clone("hdata")
+    hd.GetXaxis().SetRangeUser(x_min-1,x_max+1)
+    hd.SetTitle("%s;M(#mu#mu)[GeV];events"%(name))
+
+    smean = data.GetMean()
+    sgamma = data.GetRMS()
+    max = data.GetMaximum()
+    print x_min,x_max, smean, sgamma
+
+    fbw = ROOT.TF1("fbw",fBreitWigner,x_min,x_max,3)
+    #fbw = ROOT.TF1("fbw","[1]/((x-[0])*(x-[0]) + [1]*[1]/4) * (2*TMath::Pi())",x_min,x_max)
+    #fbw.SetParameters(1000,smean,sgamma)
+    fbw.SetParLimits(1,smean-10,smean+10)
+    fbw.SetParLimits(2,1,x_max-x_min)
+    hd.Fit("fbw","R")
+    hd.Draw()
+    hd.SetMaximum(max*1.1)
+    #fbw.Draw("same")
+    c.SaveAs(name)
+    gmean = fbw.GetParameter(1)
+    ggamma = fbw.GetParameter(2)
+    gmeanerr = fbw.GetParError(1)
+    ggammaerr = fbw.GetParError(2)
+    print gmean,gmeanerr,ggamma,ggammaerr
+    return gmean,gmeanerr,ggamma,ggammaerr
+
+def parameterization(name, data, mclist, x_min, x_max, mean, meanerr, gamma, gammaerr,doLog=True):
+    c = ROOT.TCanvas(name,name,800,600)
+
+    fp = ROOT.TF1("fp",fParameterization,x_min,x_max,5)
+
+    leg = ROOT.TLegend(0.71,0.60,0.90,0.80)
+    leg.SetBorderSize(0)
+    #leg.SetNColumns(2)
+    leg.SetTextSize(0.029)
+    leg.SetTextFont(42)
+    leg.SetLineColor(0)
+    leg.SetFillColor(0)
+    leg.AddEntry(data,"Data","lp")
+    hs1 = ROOT.THStack("hs_%s_mc"%(name), "hs_%s_mc"%(name))
+    hs2 = ROOT.THStack("hs_%s_mc"%(name), "hs_%s_mc"%(name))
+    hratio = mclist[0].Clone("hratio")
+    hratio.Reset()
+    leghist = []
+    for i, mc in enumerate(mclist):
+        hnew = mc.Clone("hnew"+mc.GetName())
+        print mc.GetTitle()
+        hnew.Sumw2(False)
+        if ("GG_H" in mc.GetTitle()) or ("VBF_H" in mc.GetTitle()):
+            hs2.Add(hnew)
+        else:
+            hs1.Add(hnew)
+        hratio.Add(mc)
+        inversed = mclist[len(mclist)-1-i]
+        if not any(inversed.GetTitle() == s for s in leghist):
+            #leg.AddEntry(inversed, inversed.GetTitle(), "f")
+            leghist.append(inversed.GetTitle())
+    hsum = hs1.GetStack().Last()
+    nmc = hsum.Integral(x_min,x_max)
+    print nmc
+    fp.SetLineColor(ROOT.kRed)
+    #fp.SetParLimits(0,nmc,nmc)
+    fp.SetParLimits(1,mean-meanerr,mean+meanerr)
+    fp.SetParLimits(2,gamma-gammaerr,gamma+gammaerr)
+    fp.SetLineWidth(3)
+    fp.SetParNames("N_{bg}","m_{Z}","#gamma","#Lambda","#beta")
+    from time import localtime, strftime
+    leg.SetHeader(strftime("%Y-%m-%d %H:%M", localtime()))
+    #legheader=leg.GetListOfPrimitives().First()
+    #legheader.SetTextAlign(22)
+    #legheader.SetTextSize(0.04)
+    hs2sum = hs2.GetStack().Last()
+    hs2sum.SetLineColor(ROOT.kOrange)
+    hs2sum.SetLineWidth(3)
+    hs2sum.SetFillColor(0)
+    leg.AddEntry(fp,"fit","l")
+    leg.AddEntry(hs2sum,"Higgs x 30","l")
+
+    data.Fit("fp","R")
+    data.Draw("ex0")
+    #hs1.Draw("same")
+    hs2sum.Draw("lsame")
+    #data.Draw("esamex0")
+    fp.Draw("same")
+    leg.Draw("same")
+    if doLog:
+        data.SetMinimum(10**-2)
+        c.SetLogy()
+    setNameIntoCanvas(c,name)
+    c.cd()
+    c.Update()
+   
+    c.SaveAs(name)
+
+def setNameIntoCanvas(pad,name):
+    if "." in name:
+        fname=name.split(".")[0]
+    else:
+        fname=name
+    print fname
+
+    H = pad.GetWh()
+    W = pad.GetWw() 
+    l = pad.GetLeftMargin()
+    t = pad.GetTopMargin()
+    r = pad.GetRightMargin()
+    b = pad.GetBottomMargin()
+    #pad.DrawFrame(0,0,1,1)
+
+    print "="*50
+    print H, W
+    print l, t, r, b
+    print "="*50
+
+    #need to fix the code for putting text in canvas.
+    latex=ROOT.TLatex()
+    latex.SetTextSize(0.045)
+    latex.DrawLatexNDC(r,1-t,fname)
+    #latex.DrawLatex(W/2,H/2,fname)
+    #pad.Modified()
+    pad.Update()
+    return pad
+
+def setLastHist(mclist): 
+    hs = ROOT.THStack("hs_mc", "hs_mc")
+    hratio = mclist[0].Clone("hratio")
+    hratio.Reset()
+    leghist = []
+    for i, mc in enumerate(mclist):
+        #hnew = mc.Clone("hnew"+mc.GetName())
+        #hnew.Sumw2(False)
+        #hs.Add(hnew)
+        hratio.Add(mc)
+        inversed = mclist[len(mclist)-1-i]
+        if not any(inversed.GetTitle() == s for s in leghist):
+            #leg.AddEntry(inversed, inversed.GetTitle(), "f")
+            leghist.append(inversed.GetTitle())
+    return hratio
+
