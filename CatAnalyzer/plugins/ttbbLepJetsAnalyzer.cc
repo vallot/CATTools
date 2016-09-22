@@ -90,6 +90,7 @@ private:
   edm::EDGetTokenT<std::vector<vector<int>>>     JetMotherToken_;
   // Trigger
   edm::EDGetTokenT<edm::TriggerResults> triggerBits_;
+  edm::EDGetTokenT<edm::TriggerResults> triggerBits2_;
   edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjects_;
 
 // ----------member data ---------------------------
@@ -256,6 +257,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   JetMotherToken_    = consumes<vector<vector<int>>>          (iConfig.getParameter<edm::InputTag>("JetMother"));
   // Trigger  
   triggerBits_       = consumes<edm::TriggerResults>                    (iConfig.getParameter<edm::InputTag>("triggerBits"));
+  triggerBits2_      = consumes<edm::TriggerResults>                    (iConfig.getParameter<edm::InputTag>("triggerBits2"));
   triggerObjects_    = consumes<pat::TriggerObjectStandAloneCollection> (iConfig.getParameter<edm::InputTag>("triggerObjects"));
   
   b_PUWeight     = new std::vector<float>;
@@ -1022,6 +1024,9 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   edm::Handle<edm::TriggerResults> triggerBits;
   edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
   iEvent.getByToken(triggerBits_, triggerBits);
+  if( !iEvent.getByToken(triggerBits_, triggerBits) ){
+    iEvent.getByToken(triggerBits2_, triggerBits);
+  } 
   iEvent.getByToken(triggerObjects_, triggerObjects);
   const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
   AnalysisHelper trigHelper = AnalysisHelper(triggerNames, triggerBits, triggerObjects);

@@ -80,6 +80,7 @@ process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      puUpWeightLabel   = cms.InputTag("pileupWeight:up"),
                                      puDownWeightLabel = cms.InputTag("pileupWeight:dn"),
                                      triggerBits       = cms.InputTag("TriggerResults::HLT"), 
+                                     triggerBits2      = cms.InputTag("TriggerResults::HLT2"), 
                                      triggerObjects    = cms.InputTag("catTrigger"), 
                                      JetMother         = cms.InputTag("genJetHadronFlavour:ancestors"),
                                      )
