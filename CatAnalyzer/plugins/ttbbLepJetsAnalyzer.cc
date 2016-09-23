@@ -350,6 +350,20 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("jet_JER_Nom",       "std::vector<float>", &b_Jet_JER_Nom );
   tree->Branch("jet_JER_Down",      "std::vector<float>", &b_Jet_JER_Down );
 
+  // Kinematic Reconstruction
+  tree->Branch("kin_chi2",   &b_Kin_Chi2,  "kin_chi2/F");
+  tree->Branch("kinnu_pT",   &b_KinNu_pT,  "kinnu_pT/F");
+  tree->Branch("kinnu_eta",  &b_KinNu_eta, "kinnu_eta/F");
+  tree->Branch("kinnu_phi",  &b_KinNu_phi, "kinnu_phi/F");
+  tree->Branch("kinnu_E",    &b_KinNu_E,   "kinnu_E/F");
+  
+  tree->Branch("kinjet_pT",    "std::vector<float>", &b_KinJet_pT);
+  tree->Branch("kinjet_eta",   "std::vector<float>", &b_KinJet_eta);
+  tree->Branch("kinjet_phi",   "std::vector<float>", &b_KinJet_phi);
+  tree->Branch("kinjet_E",     "std::vector<float>", &b_KinJet_E);
+  tree->Branch("kinjet_index", "std::vector<int>",   &b_KinJet_Index);
+  
+
   // GEN Variables (only ttbarSignal)
   if(TTbarMC_ == 1){
     tree->Branch("scaleweight",   "std::vector<float>", &b_ScaleWeight );
@@ -385,19 +399,6 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
     tree->Branch("genjet_mom", "std::vector<int>",  &b_GenJet_mom);
 
     tree->Branch("genjet_gencone_mom", "std::vector<int>",  &b_GenJet_GenConeMom);
-
-    // Kinematic Reconstruction
-    tree->Branch("kin_chi2",   &b_Kin_Chi2,  "kin_chi2/F");
-    tree->Branch("kinnu_pT",   &b_KinNu_pT,  "kinnu_pT/F");
-    tree->Branch("kinnu_eta",  &b_KinNu_eta, "kinnu_eta/F");
-    tree->Branch("kinnu_phi",  &b_KinNu_phi, "kinnu_phi/F");
-    tree->Branch("kinnu_E",    &b_KinNu_E,   "kinnu_E/F");
-
-    tree->Branch("kinjet_pT",    "std::vector<float>", &b_KinJet_pT);
-    tree->Branch("kinjet_eta",   "std::vector<float>", &b_KinJet_eta);
-    tree->Branch("kinjet_phi",   "std::vector<float>", &b_KinJet_phi);
-    tree->Branch("kinjet_E",     "std::vector<float>", &b_KinJet_E);
-    tree->Branch("kinjet_index", "std::vector<int>",   &b_KinJet_Index);
 
     //GEN TREE
     gentree = fs->make<TTree>("gentree", "TopGENTree");
@@ -1178,14 +1179,12 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 	    b_Jet_MatchedGenJetIndex->push_back(MatchedGenJetIndex);
 
 	    b_Jet_GenConeMom->push_back(rJetGenConeMom);
-
+	    
 	  } // if(TTbarMC_== 1)
-	  
-        } // if(isMC_)
-	
-      }
-    }
-
+        } // if(isMC_)	
+      }// if(GoodJets)
+    }// for(AllJets)
+    
     b_Jet_Number = N_GoodJets;
 
     for (unsigned int iu=0; iu<19; iu++) b_Jet_SF_CSV->push_back(1.0);
