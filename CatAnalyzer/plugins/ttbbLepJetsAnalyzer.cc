@@ -66,8 +66,12 @@ private:
   bool IsVetoElectron  (const cat::Electron & i_electron_candidate);
 
   bool isMC_ ;
+
   int TTbarMC_; // 0->No ttbar, 1->ttbar Signal, 2->ttbar Background
   int TTbarCatMC_;
+  unsigned int SkimNJets_;
+  bool KFUsebtag_;
+  bool CSVPosConKF_;
   
   // Event Weights
   edm::EDGetTokenT<float>                        genWeightToken_;
@@ -171,7 +175,10 @@ private:
   std::vector<float> *b_Jet_JER_Down;
   // b-Jet discriminant
   std::vector<float> *b_Jet_CSV;
-  std::vector<float> *b_Jet_SF_CSV;
+  std::vector<float> *b_Jet_SF_CSV_25;
+  std::vector<float> *b_Jet_SF_CSV_30;
+  std::vector<float> *b_Jet_SF_CSV_35;
+  std::vector<float> *b_Jet_SF_CSV_40;
   // c-Jet discriminant
   std::vector<float> *b_Jet_CvsL, *b_Jet_CvsB;
 
@@ -219,7 +226,10 @@ private:
 //
 ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   TTbarMC_    (iConfig.getUntrackedParameter<int>("TTbarSampleLabel", 0)),
-  TTbarCatMC_ (iConfig.getUntrackedParameter<int>("TTbarCatLabel", 0))
+  TTbarCatMC_ (iConfig.getUntrackedParameter<int>("TTbarCatLabel", 0)),
+  SkimNJets_  (iConfig.getUntrackedParameter<unsigned int>("Skim_N_Jets", 0)),
+  KFUsebtag_  (iConfig.getUntrackedParameter<bool>("KFUsebtagLabel", true)),
+  CSVPosConKF_(iConfig.getUntrackedParameter<bool>("CSVPosConKFLabel", true))
 {
   const auto elecSFSet = iConfig.getParameter<edm::ParameterSet>("elecSF");
   SF_elec_.set(elecSFSet.getParameter<std::vector<double>>("pt_bins" ),
@@ -286,7 +296,10 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   b_Jet_Index= new std::vector<int>;
   b_Jet_GenConeMom=new std::vector<int>;
   b_Jet_CSV  = new std::vector<float>;
-  b_Jet_SF_CSV  = new std::vector<float>;
+  b_Jet_SF_CSV_25  = new std::vector<float>;
+  b_Jet_SF_CSV_30  = new std::vector<float>;
+  b_Jet_SF_CSV_35  = new std::vector<float>;
+  b_Jet_SF_CSV_40  = new std::vector<float>;
   b_Jet_CvsL    = new std::vector<float>;  
   b_Jet_CvsB    = new std::vector<float>;  
   b_Jet_partonFlavour = new std::vector<int>;
@@ -336,7 +349,10 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("jet_index" ,       "std::vector<int>",   &b_Jet_Index );
   tree->Branch("jet_gencone_mom" , "std::vector<int>",   &b_Jet_GenConeMom );
   tree->Branch("jet_CSV" ,         "std::vector<float>", &b_Jet_CSV );
-  tree->Branch("jet_SF_CSV",       "std::vector<float>", &b_Jet_SF_CSV );
+  tree->Branch("jet_SF_CSV_25",    "std::vector<float>", &b_Jet_SF_CSV_25 );
+  tree->Branch("jet_SF_CSV_30",    "std::vector<float>", &b_Jet_SF_CSV_30 );
+  tree->Branch("jet_SF_CSV_35",    "std::vector<float>", &b_Jet_SF_CSV_35 );
+  tree->Branch("jet_SF_CSV_40",    "std::vector<float>", &b_Jet_SF_CSV_40 );
   tree->Branch("jet_CvsL",         "std::vector<float>", &b_Jet_CvsL );
   tree->Branch("jet_CvsB",         "std::vector<float>", &b_Jet_CvsB );
 
@@ -480,7 +496,10 @@ ttbbLepJetsAnalyzer::~ttbbLepJetsAnalyzer()
   delete b_Jet_JER_Nom;
   delete b_Jet_JER_Down;
 
-  delete b_Jet_SF_CSV;
+  delete b_Jet_SF_CSV_25;
+  delete b_Jet_SF_CSV_30;
+  delete b_Jet_SF_CSV_35;
+  delete b_Jet_SF_CSV_40;
 
   delete b_Jet_CSV;
   delete b_Jet_CvsL;
@@ -543,10 +562,13 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   b_Jet_JER_Nom ->clear();
   b_Jet_JER_Down->clear();
 
-  b_Jet_CSV   ->clear();
-  b_Jet_SF_CSV->clear();
-  b_Jet_CvsL  ->clear();
-  b_Jet_CvsB  ->clear();
+  b_Jet_CSV      ->clear();
+  b_Jet_SF_CSV_25->clear();
+  b_Jet_SF_CSV_30->clear();
+  b_Jet_SF_CSV_35->clear();
+  b_Jet_SF_CSV_40->clear();
+  b_Jet_CvsL     ->clear();
+  b_Jet_CvsB     ->clear();
 
   b_KinJet_pT ->clear();
   b_KinJet_eta->clear();
@@ -896,7 +918,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
 	}// for(ijGT)
 
-	gentree->Fill();
+	if(b_GenJet_pT->size() >= SkimNJets_) gentree->Fill();
 
       } // if(nGenLep == 1)
     }// if(GENTTbarMCTree_)
@@ -1101,9 +1123,10 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     int N_GoodJets = 0;
 
     // Initialize SF_btag
-    float Jet_SF_CSV[19];
-    for (unsigned int iu=0; iu<19; iu++) Jet_SF_CSV[iu] = 1.0;
-
+    float Jet_SF_CSV[4][19];
+    for (unsigned int iu=0; iu<19; iu++){
+      for (unsigned int ipTj=0; ipTj<4; ipTj++) Jet_SF_CSV[ipTj][iu] = 1.0;
+    }
     // Run again over all Jets (CSV order)
     for (unsigned int i = 0; i < JetIndex.size() ; i++) {
 
@@ -1154,7 +1177,13 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
           // Ref: https://twiki.cern.ch/twiki/bin/view/CMS/BTagShapeCalibration
           // Saving the central SF and the 18 syst. unc. for pT_Jets > 25 GeV
-          if(jet.pt() > 25.) for (unsigned int iu=0; iu<19; iu++) Jet_SF_CSV[iu] *= SF_CSV_.getSF(jet, iu);
+          if(jet.pt() > 25.) for (unsigned int iu=0; iu<19; iu++) Jet_SF_CSV[0][iu] *= SF_CSV_.getSF(jet, iu);
+          // Saving the central SF and the 18 syst. unc. for pT_Jets > 30 GeV
+          if(jet.pt() > 30.) for (unsigned int iu=0; iu<19; iu++) Jet_SF_CSV[1][iu] *= SF_CSV_.getSF(jet, iu);
+          // Saving the central SF and the 18 syst. unc. for pT_Jets > 35 GeV
+          if(jet.pt() > 35.) for (unsigned int iu=0; iu<19; iu++) Jet_SF_CSV[2][iu] *= SF_CSV_.getSF(jet, iu);
+          // Saving the central SF and the 18 syst. unc. for pT_Jets > 40 GeV
+          if(jet.pt() > 40.) for (unsigned int iu=0; iu<19; iu++) Jet_SF_CSV[3][iu] *= SF_CSV_.getSF(jet, iu);
 
 	  // GEN-Jets matched with RECO-Jets
 	  // Reference to gen object
@@ -1187,12 +1216,24 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     
     b_Jet_Number = N_GoodJets;
 
-    for (unsigned int iu=0; iu<19; iu++) b_Jet_SF_CSV->push_back(1.0);
-    (*b_Jet_SF_CSV)[0] = Jet_SF_CSV[0]; //Central
+    for (unsigned int iu=0; iu<19; iu++){
+      b_Jet_SF_CSV_25->push_back(1.0);
+      b_Jet_SF_CSV_30->push_back(1.0);
+      b_Jet_SF_CSV_35->push_back(1.0);
+      b_Jet_SF_CSV_40->push_back(1.0);
+    }
+    (*b_Jet_SF_CSV_25)[0] = Jet_SF_CSV[0][0]; //Central
+    (*b_Jet_SF_CSV_30)[0] = Jet_SF_CSV[1][0]; //Central
+    (*b_Jet_SF_CSV_35)[0] = Jet_SF_CSV[2][0]; //Central
+    (*b_Jet_SF_CSV_40)[0] = Jet_SF_CSV[3][0]; //Central
     // To save only the error
-    for (unsigned int iu=1; iu<19; iu+=2) (*b_Jet_SF_CSV)[iu] = Jet_SF_CSV[iu] - Jet_SF_CSV[0] ; // Syst. Unc. Up
-    for (unsigned int iu=2; iu<19; iu+=2) (*b_Jet_SF_CSV)[iu] = Jet_SF_CSV[0]  - Jet_SF_CSV[iu]; // Syst. Unc. Down
-
+    for (unsigned int iu=1; iu<19; iu++){
+      (*b_Jet_SF_CSV_25)[iu] = std::abs(Jet_SF_CSV[0][iu] - Jet_SF_CSV[0][0]) ; // Syst. Unc.
+      (*b_Jet_SF_CSV_30)[iu] = std::abs(Jet_SF_CSV[1][iu] - Jet_SF_CSV[1][0]) ; // Syst. Unc.
+      (*b_Jet_SF_CSV_35)[iu] = std::abs(Jet_SF_CSV[2][iu] - Jet_SF_CSV[2][0]) ; // Syst. Unc.
+      (*b_Jet_SF_CSV_40)[iu] = std::abs(Jet_SF_CSV[3][iu] - Jet_SF_CSV[3][0]) ; // Syst. Unc.
+    }
+    
     //---------------------------------------------------------------------------
     // Kinematic Reconstruction: First Test
     //---------------------------------------------------------------------------
@@ -1209,7 +1250,6 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     KinBestIndices.push_back(-999);
     KinBestIndices.push_back(-999);
     float bestchi2 = 0;
-    bool KinUsebtag = true;
     
     if(N_GoodJets > 3){
       
@@ -1228,7 +1268,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 	KinJets.push_back(kjet);
       }
       
-      FindHadronicTop(KinLep, KinJets, KinMET, KinUsebtag, KinBestIndices, bestchi2, Kinnu, Kinblrefit, Kinbjrefit, Kinj1refit, Kinj2refit);
+      FindHadronicTop(KinLep, KinJets, KinMET, KFUsebtag_, CSVPosConKF_, KinBestIndices, bestchi2, Kinnu, Kinblrefit, Kinbjrefit, Kinj1refit, Kinj2refit);
       
       // for (unsigned int iin =0; iin<KinBestIndices.size(); iin++) std::cout << KinBestIndices.at(iin) << std::endl;
       // std::cout << "Best Chi2 = " << bestchi2 << std::endl;
@@ -1284,7 +1324,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     
-    tree->Fill();
+    if(b_Jet_pT->size() >= SkimNJets_) tree->Fill();
         
   }// if(ch_tag)
   

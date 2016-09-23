@@ -129,7 +129,7 @@ Double_t SolvettbarLepJets(Double_t &nupz, Double_t &metscale, Double_t &blscale
 }
 
 
-void FindHadronicTop(TLorentzVector &lepton, std::vector<cat::ComJet> &jets, TLorentzVector &met, bool usebtaginfo, std::vector<int> &bestindices, float &bestchi2, TLorentzVector &nusol, TLorentzVector &blrefit, TLorentzVector &bjrefit, TLorentzVector &j1refit, TLorentzVector &j2refit){
+void FindHadronicTop(TLorentzVector &lepton, std::vector<cat::ComJet> &jets, TLorentzVector &met, bool usebtaginfo, bool useCSVOrderinfo, std::vector<int> &bestindices, float &bestchi2, TLorentzVector &nusol, TLorentzVector &blrefit, TLorentzVector &bjrefit, TLorentzVector &j1refit, TLorentzVector &j2refit){
 
   int njets = jets.size();
   
@@ -223,14 +223,17 @@ void FindHadronicTop(TLorentzVector &lepton, std::vector<cat::ComJet> &jets, TLo
 	if (jets[i1].CSV > CSVWP) nbjets++;
       }
       
-      for (int i1 = 0; i1 < njets; i1++){
+      int bjCandidateIndex = njets;
+      if (useCSVOrderinfo){
+	bjCandidateIndex = 2;
+      }  
+
+      for (int i1 = 0; i1 < bjCandidateIndex; i1++){
 	for (int i2 = 0; i2 < njets-1; i2++){
 	  for (int i3 = i2+1; i3 < njets; i3++){
-	    for (int i4 = 0; i4 < njets; i4++){
-
-	      if (i2 != i1 && i3 != i1 && i4!=i1 && i4 != i2 && i4 != i3 &&
-		  (i1 < 3 && i4 < 3) // Jets with high CSV -> Jets from TOP  
-		  ){
+	    for (int i4 = 0; i4 < bjCandidateIndex; i4++){
+	      
+	      if (i2 != i1 && i3 != i1 && i4!=i1 && i4 != i2 && i4 != i3 ){
 		
 		//std::cout << i1 << " " << i2 << " " << i3 << " " << i4 << std::endl; 
 		

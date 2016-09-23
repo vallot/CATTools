@@ -61,6 +61,11 @@ process.load("CATTools.CatAnalyzer.flatGenWeights_cfi")
 process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      TTbarSampleLabel  = cms.untracked.int32(options.runOnTTbarMC),
                                      TTbarCatLabel     = cms.untracked.int32(options.TTbarCatMC),
+                                     # Skim: Cut in number of (gen) jets 
+                                     Skim_N_Jets       = cms.untracked.int32(4),
+                                     # Constrain in Kin. Fitter using CSV position
+                                     KFUsebtag         = cms.untracked.bool(True),
+                                     CSVPosConKF       = cms.untracked.bool(True),
                                      genWeightLabel    = cms.InputTag("flatGenWeights"),
                                      pdfWeightLabel    = cms.InputTag("flatGenWeights", "pdf"),
                                      scaleUpWeightLabel   = cms.InputTag("flatGenWeights","scaleup"),
