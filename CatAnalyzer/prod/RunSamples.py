@@ -1,23 +1,24 @@
-import os, time
+import os, time, socket
 
-InputDB        = "SamplesTest.info"
-FileHeader     = "Tree_LepJets_KinReco_v8-0-0_Spring16-80X_5913pb-1"
-OutputLocation = "/xrootd/store/user/brochero/v8-0-0/"
+InputDB        = "Samples.info"
+FileHeader     = "Tree_LepJets_KinReco_v8-0-1_Spring16-80X_15920pb-1"
+OutputLocation = "/xrootd/store/user/brochero/v8-0-1/"
 
 DelayTime = 120. # Time in seconds
-
-def NumberOfCondorJobs ():
-    print "condor_q brochero > .tempCondor.info" 
-    os.system("condor_q brochero > .tempCondor.info") 
-    with open(".tempCondor.info", "rb") as fcondor:
+maxNjobs = 2000  # Maximum number of jobs running simultaneously
+def NumberOfCondorJobs (str):
+    condorNF = ".tempCondor_" + socket.gethostname() + "_" + str + "_" + time.strftime('%Hh%Mm%Ss') + ".info"
+    print "condor_q brochero > " + condorNF
+    os.system("condor_q brochero > " + condorNF)
+    with open(condorNF, "rb") as fcondor:
         fcondor.seek(-2, 2)             # Jump to the second last byte.
         while fcondor.read(1) != b"\n": # Until EOL is found...
             fcondor.seek(-2, 1)         # ...jump back the read byte plus one more.
         tempjr = []
-        tempjr = fcondor.readline().split() 
+        tempjr = fcondor.readline().split()
         condorJobsRun = int(tempjr[0])
-    print "rm -rf .tempCondor.info" 
-    os.system("rm -rf .tempCondor.info") 
+    print "rm -rf " + condorNF
+    os.system("rm -rf " + condorNF)
     return condorJobsRun;
 
 def NumberOfFiles (str):
@@ -43,6 +44,7 @@ fr.seek(0)
 
 SamNam = []
 SamLoc = []
+SamArg = []
 nfilesperjob = 0
 nJobs = 0
 isample = 0
@@ -53,25 +55,37 @@ for line in fr:
     if ".txt" in line:
         tempsn = []
         tempsn = line.rstrip().split()
-        SamNam.append(str(tempsn[0]))
-        SamLoc.append(str(tempsn[1]))
+        if len(tempsn) > 1:
+            SamNam.append(str(tempsn[0]))
+            SamLoc.append(str(tempsn[1]))
+            tSamArg = ""
+            if len(tempsn) > 2:
+                for narg in range(2, len(tempsn)):
+                    tSamArg += " " + str(tempsn[narg])
+            SamArg.append(str(tSamArg))
+        else:
+            print "There is no enough parameter!!!"
+            quit()
         del tempsn
         nfSamLoc = NumberOfFiles (SamLoc[nsrunning])
         if nfSamLoc < 1000: maxf = 1
         else:               maxf =  int(round(nfSamLoc/1000.))    
 
         print  str(nfSamLoc) + " root files. Max number of files per job " + str(maxf)  
-        print "./create-batch --jobName " + SamNam[nsrunning] + " --fileList " + SamLoc[nsrunning] + " --maxFiles " + str(maxf) + " --cfg ttbbLepJetsAnalyzer_cfg.py --queue batch6 --transferDest /xrootd/store/user/brochero/"
-        os.system("./create-batch --jobName " + SamNam[nsrunning] + " --fileList " + SamLoc[nsrunning] + " --maxFiles " + str(maxf) + " --cfg ttbbLepJetsAnalyzer_cfg.py --queue batch6 --transferDest /xrootd/store/user/brochero/")
+        CreateJob = str("./create-batch --jobName " + SamNam[nsrunning] + " --fileList " + SamLoc[nsrunning] + " --maxFiles " + str(maxf) + " --cfg ttbbLepJetsAnalyzer_cfg.py --queue batch6 --transferDest /xrootd/store/user/brochero/")
+        if SamArg[nsrunning] is not "":
+            CreateJob += " --args ' " + SamArg[nsrunning] + " ' "
+        print CreateJob
+        os.system(CreateJob)
 
         nJobs += nfSamLoc/maxf
         print "Number of jobs " + str(nJobs)
-        if nJobs > 1000:
+        if nJobs > maxNjobs:
             groupJobs = True
 
         jobsRunning = True
         while jobsRunning:
-            condorJobsRun = NumberOfCondorJobs ()    
+            condorJobsRun = NumberOfCondorJobs (SamNam[nsrunning])    
             if groupJobs:
                 print "Limit of jobs reached..."
                 print "Number of Condor Jobs = " + str(condorJobsRun)
@@ -105,6 +119,7 @@ for line in fr:
                 jobsRunning = False
                 del SamNam[:]                
                 del SamLoc[:]                
+                del SamArg[:]                
     isample += 1
 fr.close()
 print "All samples done. Output files are in " + OutputLocation
