@@ -223,69 +223,76 @@ void FindHadronicTop(TLorentzVector &lepton, std::vector<cat::ComJet> &jets, TLo
 	if (jets[i1].CSV > CSVWP) nbjets++;
       }
       
-      for (int i1=0; i1<njets; i1++){
-	for (int i2=0; i2<njets-1 ; i2++){
-	  for (int i3=i2+1; i3<njets; i3++){
-	    for (int i4=0; i4<njets; i4++){
-	      if (i2 != i1 && i3 != i1 && i4!=i1 && i4 != i2 && i4 != i3
-		  && ((lepton + jets[i4]).M() < 170.0)
-		  && ( nbjets==0 // To be checked
-		       ||  (nbjets==1 && (jets[i2].CSV < CSVWP && jets[i3].CSV < CSVWP))
-		       ||  (nbjets==2 && (jets[i2].CSV < CSVWP && jets[i3].CSV < CSVWP))
-		       ||  (nbjets==3 && (jets[i2].CSV < CSVWP || jets[i3].CSV < CSVWP))
-		       ||  (nbjets>3  && (jets[i2].CSV > CSVWP || jets[i3].CSV > CSVWP))
-		       )
+      for (int i1 = 0; i1 < njets; i1++){
+	for (int i2 = 0; i2 < njets-1; i2++){
+	  for (int i3 = i2+1; i3 < njets; i3++){
+	    for (int i4 = 0; i4 < njets; i4++){
+
+	      if (i2 != i1 && i3 != i1 && i4!=i1 && i4 != i2 && i4 != i3 &&
+		  (i1 < 3 && i4 < 3) // Jets with high CSV -> Jets from TOP  
 		  ){
 		
-		trialb            = jets[i1];
-		trialWjet1        = jets[i2];
-		trialWjet2        = jets[i3];
-		trialW            = trialWjet1 + trialWjet2;
-		trialtop          = trialb + trialW;
-		trialblepton      = jets[i4];
-		trialtoplepton    = trialwlepton + trialblepton;
+		//std::cout << i1 << " " << i2 << " " << i3 << " " << i4 << std::endl; 
 		
-		// float bjetreleres;
-		// bjetreleres= JetEResolution(trialb.E());
-		
+		if(((lepton + jets[i4]).M() < 170.0) &&
+		   ( nbjets==0 || // To be checked
+		     (nbjets==1 && (jets[i2].CSV < CSVWP && jets[i3].CSV < CSVWP)) ||
+		     (nbjets==2 && (jets[i2].CSV < CSVWP && jets[i3].CSV < CSVWP)) ||
+		     (nbjets==3 && (jets[i2].CSV < CSVWP || jets[i3].CSV < CSVWP)) ||
+		     (nbjets >3 && (jets[i2].CSV > CSVWP || jets[i3].CSV > CSVWP))
+		     )
+		   ){
+		  
+		  trialb            = jets[i1];
+		  trialWjet1        = jets[i2];
+		  trialWjet2        = jets[i3];
+		  trialW            = trialWjet1 + trialWjet2;
+		  trialtop          = trialb + trialW;
+		  trialblepton      = jets[i4];
+		  trialtoplepton    = trialwlepton + trialblepton;
+		  
+		  // float bjetreleres;
+		  // bjetreleres= JetEResolution(trialb.E());
+		  
 		// set global variables - ugly!
-		tmplep = lepton;
-		tmpnu  = nusol;
-		tmpbl  = trialblepton;
-		tmpbj  = trialb;
-		tmpj1  = trialWjet1;
-		tmpj2  = trialWjet2;
-		
-		blres  = JetEResolution(tmpbl.E());
-		bjres  = JetEResolution(tmpbj.E());
-		j1res  = JetEResolution(tmpj1.E());
-		j2res  = JetEResolution(tmpj2.E());
-		
+		  tmplep = lepton;
+		  tmpnu  = nusol;
+		  tmpbl  = trialblepton;
+		  tmpbj  = trialb;
+		  tmpj1  = trialWjet1;
+		  tmpj2  = trialWjet2;
+		  
+		  blres  = JetEResolution(tmpbl.E());
+		  bjres  = JetEResolution(tmpbj.E());
+		  j1res  = JetEResolution(tmpj1.E());
+		  j2res  = JetEResolution(tmpj2.E());
+		  
 
-		double nupz, metscale, blscale, bjscale, j1scale, j2scale;
-		
-		// dynamic resolutions
-		chi2 = SolvettbarLepJets(nupz, metscale, blscale, bjscale, j1scale, j2scale);
-		
-		if (chi2 < bestchi2){
-		  bestchi2 = chi2;
-		  nusol = tmpnu*metscale;
-		  nusol.SetPz(nupz);
-		  blrefit = tmpbl*blscale;
-		  bjrefit = tmpbj*bjscale;
-		  j1refit = tmpj1*j1scale;
-		  j2refit = tmpj2*j2scale;
-		  bestidx1 = i1;
-		  bestidx2 = i2;
-		  bestidx3 = i3;
-		  bestidx4 = i4;		  
+		  double nupz, metscale, blscale, bjscale, j1scale, j2scale;
+		  
+		  // dynamic resolutions
+		  chi2 = SolvettbarLepJets(nupz, metscale, blscale, bjscale, j1scale, j2scale);
+		  
+		  if (chi2 < bestchi2){
+		    bestchi2 = chi2;
+		    nusol = tmpnu*metscale;
+		    nusol.SetPz(nupz);
+		    blrefit = tmpbl*blscale;
+		    bjrefit = tmpbj*bjscale;
+		    j1refit = tmpj1*j1scale;
+		    j2refit = tmpj2*j2scale;
+		    bestidx1 = i1;
+		    bestidx2 = i2;
+		    bestidx3 = i3;
+		    bestidx4 = i4;		  
+		  }
 		}
 	      }
 	    }
 	  }
 	}
       }
-
+      
       bestindices[0]=bestidx1; // b for hadronic side
       bestindices[1]=bestidx2; // W jet
       bestindices[2]=bestidx3; // W jet
