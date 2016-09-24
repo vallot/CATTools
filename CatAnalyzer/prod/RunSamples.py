@@ -1,7 +1,7 @@
 import os, time, socket
 
 InputDB        = "Samples.info"
-FileHeader     = "Tree_LepJets_KinReco_v8-0-1_Spring16-80X_15920pb-1"
+FileHeader     = "Tree_LepJets_KFCSVOrder01_v8-0-1_Spring16-80X_15920pb-1"
 OutputLocation = "/xrootd/store/user/brochero/v8-0-1/"
 
 DelayTime = 120. # Time in seconds
@@ -120,6 +120,6 @@ for line in fr:
                 del SamNam[:]                
                 del SamLoc[:]                
                 del SamArg[:]                
-    isample += 1
+        isample += 1
 fr.close()
 print "All samples done. Output files are in " + OutputLocation
