@@ -25,7 +25,8 @@ filterRECO = cms.EDFilter("CATTriggerBitCombiner",
 )
 
 filterTrigMUEL = cms.EDFilter("CATTriggerBitCombiner",
-    triggerResults = cms.InputTag("TriggerResults::HLT"),
+    triggerResults = cms.InputTag("TriggerResults::HLT2"),
+	secondaryTriggerResults = cms.InputTag("TriggerResults::HLT"),
     triggerPrescales = cms.InputTag("patTrigger"),
     combineBy = cms.string("or"),
     triggersToMatch = cms.vstring(
