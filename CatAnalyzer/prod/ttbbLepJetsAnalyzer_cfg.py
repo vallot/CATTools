@@ -33,7 +33,8 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.source = cms.Source("PoolSource",
      fileNames = cms.untracked.vstring(
-        'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v8-0-1_RunIISpring16MiniAODv2-PUSpring16RAWAODSIM_reHLT_80X_mcRun2_asymptotic_v14_ext3-v1/160822_144100/0000/catTuple_1.root',
+        #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v8-0-1_RunIISpring16MiniAODv2-PUSpring16RAWAODSIM_reHLT_80X_mcRun2_asymptotic_v14_ext3-v1/160822_144100/0000/catTuple_1.root',
+        'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/QCD_Pt-120to170_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8/v7-6-6_RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12-v1/160625_141750/0000/catTuple_1.root',
         )
 )
 
@@ -61,7 +62,7 @@ process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      TTbarSampleLabel  = cms.untracked.int32(options.runOnTTbarMC),
                                      TTbarCatLabel     = cms.untracked.int32(options.TTbarCatMC),
                                      # Skim: Cut in number of (gen) jets 
-                                     Skim_N_Jets       = cms.untracked.uint32(4),
+                                     Skim_N_Jets       = cms.untracked.uint32(0),
                                      # Constrain in Kin. Fitter using CSV position
                                      KFUsebtag         = cms.untracked.bool(True),
                                      CSVPosConKF       = cms.untracked.bool(True),

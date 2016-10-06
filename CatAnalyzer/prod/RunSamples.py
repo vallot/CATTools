@@ -1,11 +1,11 @@
 import os, time, socket
 
-InputDB        = "Samples.info"
-FileHeader     = "Tree_LepJets_KFCSVOrder01_v8-0-1_Spring16-80X_15920pb-1"
+InputDB        = "SamTra.info"
+FileHeader     = "Tree_LepJets_KFCSVOrder01NoSkim_v8-0-1_Spring16-80X_15920pb-1"
 OutputLocation = "/xrootd/store/user/brochero/v8-0-1/"
 
 DelayTime = 120. # Time in seconds
-maxNjobs = 2000  # Maximum number of jobs running simultaneously
+maxNjobs = 4000  # Maximum number of jobs running simultaneously
 def NumberOfCondorJobs (str):
     condorNF = ".tempCondor_" + socket.gethostname() + "_" + str + "_" + time.strftime('%Hh%Mm%Ss') + ".info"
     print "condor_q brochero > " + condorNF
