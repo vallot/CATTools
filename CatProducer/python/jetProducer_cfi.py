@@ -6,7 +6,7 @@ catJets = cms.EDProducer('CATJetProducer',
     btagNames = cms.vstring('pfCombinedInclusiveSecondaryVertexV2BJetTags','pfCombinedMVAV2BJetTags',"inclusiveCandidateSecondaryVerticesCvsL","pfCombinedCvsLJetTags","pfCombinedCvsBJetTags"),
     payloadName = cms.string('AK4PFchs'),
     jetResFile   = cms.string("CATTools/CatProducer/data/JER/Spring16_25nsV6_MC_PtResolution_AK4PFchs.txt"),
-    jetResSFFile = cms.string("CATTools/CatProducer/data/JER/Spring16_25nsV6_MC_SF_AK4PFPuppi.txt"),
+    jetResSFFile = cms.string("CATTools/CatProducer/data/JER/Spring16_25nsV6_MC_SF_AK4PFchs.txt"),
     setGenParticle = cms.bool(True),
 )
 
