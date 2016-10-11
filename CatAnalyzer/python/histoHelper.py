@@ -360,8 +360,12 @@ def drawBWFit(name, data, x_min, x_max, doLog=False, draw=False):
     print gmean,gmeanerr,ggamma,ggammaerr
     return gmean,gmeanerr,ggamma,ggammaerr
 
-def parameterization(name, data, mclist, x_min, x_max, mean, meanerr, gamma, gammaerr,doLog=True):
-    c = ROOT.TCanvas(name,name,800,600)
+def parameterization(name, data, mclist, x_min, x_max, mean, meanerr, gamma, gammaerr,doLog=True,doRatio=True):
+    canv=makeCanvas("c",doRatio)
+    pads=[canv]
+    pads = rootplotcore.divide_canvas(canv, 0.3)
+    pads[0].cd()
+    pads[0].SetGridy()
 
     fp = ROOT.TF1("fp",fParameterization,x_min,x_max,5)
 
@@ -394,11 +398,19 @@ def parameterization(name, data, mclist, x_min, x_max, mean, meanerr, gamma, gam
     hsum = hs1.GetStack().Last()
     nmc = hsum.Integral(x_min,x_max)
     print nmc
-    fp.SetLineColor(ROOT.kRed)
+
+    # fit error
+    fp_up=ROOT.TF1("fp_up",fParameterization,x_min,x_max,5)
+    fp_dn=ROOT.TF1("fp_dn",fParameterization,x_min,x_max,5)
+    fp_up.SetObjectStat(0)
+    fp_dn.SetObjectStat(0)
+
+    fp.SetLineColor(ROOT.kAzure)
+    fp.SetFillColor(ROOT.kAzure+10)
     #fp.SetParLimits(0,nmc,nmc)
     fp.SetParLimits(1,mean-meanerr,mean+meanerr)
     fp.SetParLimits(2,gamma-gammaerr,gamma+gammaerr)
-    fp.SetLineWidth(3)
+    fp.SetLineWidth(2)
     fp.SetParNames("N_{bg}","m_{Z}","#gamma","#Lambda","#beta")
     from time import localtime, strftime
     leg.SetHeader(strftime("%Y-%m-%d %H:%M", localtime()))
@@ -409,24 +421,113 @@ def parameterization(name, data, mclist, x_min, x_max, mean, meanerr, gamma, gam
     hs2sum.SetLineColor(ROOT.kOrange)
     hs2sum.SetLineWidth(3)
     hs2sum.SetFillColor(0)
-    leg.AddEntry(fp,"fit","l")
+    leg.AddEntry(fp,"fit","lf")
     leg.AddEntry(hs2sum,"Higgs x 30","l")
 
-    data.Fit("fp","R")
+    data.Fit("fp","R0")
+    #data.Draw("AXIS")
     data.Draw("ex0")
-    #hs1.Draw("same")
+
+    par = ""
+    parerr = ""
+    for i in range(5):
+        par = fp.GetParameter(i)
+        parerr =fp.GetParError(i)
+        print "fp_up.par[%d] : %f"%(i,par+parerr)
+        print "fp_dn.par[%d] : %f"%(i,par-parerr)
+        fp_up.FixParameter(i,par+parerr)
+        fp_dn.FixParameter(i,par-parerr)
+        
+    fp_up.SetLineColor(ROOT.kOrange)
+    fp_dn.SetLineColor(ROOT.kOrange)
+    fp_up.SetFillColor(ROOT.kAzure+10)
+    fp_up.SetLineWidth(2)
+    fp_dn.SetLineWidth(2)
+
+    data.Fit("fp_up","R0+")
+    data.Fit("fp_dn","R0+")
+
+    #fp.Draw("same")
+    #fp_up.Draw("same")
+    #fp_dn.Draw("same")
     hs2sum.Draw("lsame")
-    #data.Draw("esamex0")
-    fp.Draw("same")
+    #hs1.Draw("same")
     leg.Draw("same")
+    pads[0].Update()
+
+    x, y_up, y_dn, y = shade(pads[0],fp_up,fp_dn,fp)
+    data.Draw("e same x0")
+    hs2sum.Draw("lsame")
+    #hs1.Draw("same")
+    leg.Draw("same")
+    
+
+    print "fp : %f"%fp.Integral(120,130)
+    print "fp_up : %f"%fp_up.Integral(120,130)
+    print "fp_dn : %f"%fp_dn.Integral(120,130)
+
+    print "fp : %f"%fp.Integral(120,130)
+    print "fp_up percent : %f%%"%((fp_up.Integral(120,130)-fp.Integral(120,130))/fp.Integral(120,130)*100)
+    print "fp_dn percent : %f%%"%((fp_dn.Integral(120,130)-fp.Integral(120,130))/fp.Integral(120,130)*100)
+
+    ROOT.gStyle.SetOptStat(0)
+    ROOT.gStyle.SetOptFit(0)
     if doLog:
-        data.SetMinimum(10**-2)
-        c.SetLogy()
-    setNameIntoCanvas(c,name)
-    c.cd()
-    c.Update()
-   
-    c.SaveAs(name)
+        #data.SetMinimum(10**-2)
+        pads[0].SetLogy()
+    data.GetXaxis().SetLabelSize(0)
+    data.GetYaxis().SetLabelSize(0.03)
+    data.GetYaxis().SetTitle("Events/ 1 GeV/c^{2}")
+    data.SetAxisRange(110,160,"X")
+    setNameIntoCanvas(pads[0],name)
+
+    pads[1].cd()
+    pads[1].SetGridy()
+    ratiorange=3
+    lhratio=[]
+    yratio_up=[]
+    yratio_dn=[]
+    for i in range(len(x)):
+        print i,x[i],y_dn[i],y[i],y_up[i]
+        yratio_up.append(y_up[i]/y[i])
+        yratio_dn.append(y_dn[i]/y[i])
+      
+    print len(x)
+    from array import array
+    gr=ROOT.TGraph(len(x),array('d',x),array('d',y))
+    gr_ratio_up=ROOT.TGraph(len(x),array('d',x),array('d',yratio_up))
+    gr_ratio_dn=ROOT.TGraph(len(x),array('d',x),array('d',yratio_dn))
+        
+    #lh = [ROOT.gROOT.GetFunction("fp").GetHistogram(),data,ROOT.gROOT.GetFunction("fp_up").GetHistogram(),ROOT.gROOT.GetFunction("fp_dn").GetHistogram()]
+    lh = [gr.GetHistogram(),data,gr_ratio_up.GetHistogram(),gr_ratio_dn.GetHistogram()]
+    lcolor = [2,1,ROOT.kBlue-9,ROOT.kBlue-9]
+    ldrawopt = ["","epsame","f","f"]
+    for i in range(len(lh)):
+        hratio=data.Clone("hratio_%d"%i)
+        hratio.Reset()
+        if i<2:hratio.Divide(lh[0],lh[i],1.,1.,"B")
+        else:hratio=lh[i]
+        hratio.SetLineColor(lcolor[i])
+        hratio.Draw(ldrawopt[i])
+
+    hratio.SetLabelSize(0.03,"Y")
+    #hratio.GetYaxis().SetTitle("#frac{data}{fit}")
+    hratio.GetXaxis().SetTitle("M_{#mu#mu} [GeV/c^{2}]")
+    hratio.SetAxisRange(110,160,"X")
+    hratio.SetMaximum(0.+ratiorange)
+    hratio.SetMinimum(0.-ratiorange)
+
+    for p in pads:
+        p.RedrawAxis()
+        p.SetGridx()
+        p.Modified()
+        p.Update()
+
+    canv.cd()
+    canv.Modified()
+    canv.Update()
+
+    canv.SaveAs(name)
 
 def setNameIntoCanvas(pad,name):
     if "." in name:
@@ -472,4 +573,130 @@ def setLastHist(mclist):
             #leg.AddEntry(inversed, inversed.GetTitle(), "f")
             leghist.append(inversed.GetTitle())
     return hratio
+
+def shade(canv, f1, f2, f3):
+    ## Rene's code
+    # ref : https://root.cern.ch/phpBB3/viewtopic.php?t=5520
+    # shade the area between f1 and f2 and draw f3 on top
+    # create a TGraph to store the function values
+    # shaded area is the fill/color/style of f1
+
+    gr = ROOT.TGraph()
+    gr.SetFillColor(f1.GetFillColor())
+    print gr.GetFillColor()
+    #get picture range
+    xmin = canv.GetUxmin()
+    xmax = canv.GetUxmax()
+    ymin = canv.GetUymin()
+    ymax = canv.GetUymax()
+    print xmin, xmax, ymin, ymax
+    gr.SetTitle("banded graph")
+    lx = []
+    lyf1 = []
+    lyf2 = []
+    lyf3 = []
+   
+    #process first function
+    npx = f3.GetNpx()
+    npoints=0
+    dx = (xmax-xmin)/npx
+    x = xmin+0.5*dx
+    while (x <= xmax):
+        y = f1.Eval(x)
+        if (y < ymin): y = ymin
+        if (y > ymax): y = ymax
+        gr.SetPoint(npoints,x,y)
+        lx.append(x)
+        lyf1.append(f1.Eval(x))
+        lyf2.append(f2.Eval(x))
+        lyf3.append(f3.Eval(x))
+        npoints+=1
+        x += dx
+
+    #process second function
+    x = xmax-0.5*dx
+    while (x >= xmin):
+        y = f2.Eval(x)
+        if (y < ymin): y = ymin
+        if (y > ymax): y = ymax
+        gr.SetPoint(npoints,x,y)
+        npoints+=1
+        x -= dx
+    
+    xp = ROOT.Double() 
+    yp = ROOT.Double()
+    for i in range(npoints):
+        gr.GetPoint(i,xp,yp)
+        print i,xp,yp
+    ROOT.gDirectory.Add(gr)
+    gr.Draw("cf") #draw graph with fill area option
+    f3.Draw("lsame") #superimpose function
+    canv.Update()
+    return lx, lyf1, lyf2, lyf3
+    
+def DrawErrorBand(graph):
+    isErrorBand = graph.GetErrorYhigh(0) != -1 and graph.GetErrorYlow(0) != -1
+    npoints     = graph.GetN()
+ 
+    if not isErrorBand:
+        graph.Draw("l same")
+        return
+ 
+    # Declare individual TGraph objects used in drawing error band
+    central, min, max = ROOT.TGraph(), ROOT.TGraph(), ROOT.TGraph()
+    shapes = []
+    for i in range((npoints-1)*4):
+        shapes.append(ROOT.TGraph())
+ 
+    # Set ownership of TGraph objects
+    ROOT.SetOwnership(central, False)
+    ROOT.SetOwnership(    min, False)
+    ROOT.SetOwnership(    max, False)
+    for shape in shapes:
+        ROOT.SetOwnership(shape, False)
+ 
+    # Get data points from TGraphAsymmErrors
+    x, y, ymin, ymax = [], [], [], []
+    for i in range(npoints):
+        tmpX, tmpY = ROOT.Double(0), ROOT.Double(0)
+        graph.GetPoint(i, tmpX, tmpY)
+        x.append(tmpX)
+        y.append(tmpY)
+        ymin.append(tmpY - graph.GetErrorYlow(i))
+        ymax.append(tmpY + graph.GetErrorYhigh(i))
+ 
+    # Fill central, min and max graphs
+    for i in range(npoints):
+        central.SetPoint(i, x[i], y[i])
+    min.SetPoint(i, x[i], ymin[i])
+    max.SetPoint(i, x[i], ymax[i])
+ 
+    # Fill shapes which will be shaded to create the error band
+    for i in range(npoints-1):
+        for version in range(4):
+            shapes[i+(npoints-1)*version].SetPoint((version+0)%4, x[i],   ymax[i])
+            shapes[i+(npoints-1)*version].SetPoint((version+1)%4, x[i+1], ymax[i+1])
+            shapes[i+(npoints-1)*version].SetPoint((version+2)%4, x[i+1], ymin[i+1])
+            shapes[i+(npoints-1)*version].SetPoint((version+3)%4, x[i],   ymin[i])
+ 
+    # Set attributes to those of input graph
+    central.SetLineColor(graph.GetLineColor())
+    central.SetLineStyle(graph.GetLineStyle())
+    central.SetLineWidth(graph.GetLineWidth())
+    min.SetLineColor(graph.GetLineColor())
+    min.SetLineStyle(graph.GetLineStyle())
+    max.SetLineColor(graph.GetLineColor())
+    max.SetLineStyle(graph.GetLineStyle())
+    for shape in shapes:
+        shape.SetFillColor(graph.GetFillColor())
+        shape.SetFillStyle(graph.GetFillStyle())
+ 
+    # Draw
+    for shape in shapes:
+        shape.Draw("f same")
+    min.Draw("l same")
+    max.Draw("l same")
+    central.Draw("l same")
+    ROOT.gPad.RedrawAxis()
+
 

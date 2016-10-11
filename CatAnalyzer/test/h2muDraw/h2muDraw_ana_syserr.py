@@ -34,13 +34,19 @@ class drawSysErr:
         print "=== complete plotting samples ==="
 
     def comparison(self,vs,i):
+        count=len(self.ltcut)
         if vs=="pu":
             if i<3:
                 return 1
             else:
                 return 0
         if vs=="mu":
-            if i==0 or i==3 or i==6:
+            if i==0 or i==count or i==count*2:
+                return 1
+            else:
+                return 0
+        if vs=="mueff":
+            if i>2 and i<5:
                 return 1
             else:
                 return 0
@@ -82,6 +88,7 @@ class drawSysErr:
             row += '{:>14}; {:>14}; '
             words.append("%s_up"%self.versus[i])
             words.append("%s_dn"%self.versus[i])
+
         print>>f_txt, row.format(*words)
         #initialize dictionary
         re_word = ''
@@ -170,7 +177,10 @@ class drawSysErr:
         leg.AddEntry(lh[0],self.ltname[0]+"_"+self.ltcut[0],"l")    
         entries = []
         entries.append(lh[0].GetBinContent(lh[0].FindBin(self.bin)))
-        errpercent=( 100 * lh[0].GetBinError(lh[0].FindBin(self.bin)) )/ lh[0].GetBinContent(lh[0].FindBin(self.bin))
+        if lh[0].GetBinContent(lh[0].FindBin(self.bin))==0:
+            errpercent=0.0
+        else:
+            errpercent=( 100 * lh[0].GetBinError(lh[0].FindBin(self.bin)) )/ lh[0].GetBinContent(lh[0].FindBin(self.bin))
         #errpercent=lh[0].GetBinError(lh[0].FindBin(self.bin))
         entries.append(errpercent)
         leg.AddEntry(0,"%.4f around %s GeV"%(entries[0],self.bin),"")
@@ -189,14 +199,19 @@ class drawSysErr:
         leg.Draw("same")
         pads[0].SetLogy()
 
-        self.entries.append({
-            'rfname':rfname,
-            'vs':versus,
-            'N0':entries[0],
-            'N0_stat':entries[1],
-            'N1':entries[2],
-            'N2':entries[3],
-        })     
+        tmpdic={
+                'rfname':rfname,
+                'vs':versus,
+                'N0':entries[0],
+                'N0_stat':entries[1],
+                'N1':entries[2],
+                'N2':entries[3],
+               }
+        if len(entries)>4:
+            for i in range(4,len(entries)):
+                tmpdic['N%d'%(i-1)] = entries[i]
+
+        self.entries.append(tmpdic)     
   
         pads[1].cd()
         pads[1].SetGridy()
@@ -239,24 +254,27 @@ if __name__ == "__main__":
     
 
     _rfname = [
-               "background",
+               "background_ll_m",
                #"higgsx30",
-               "higgs"
+               "higgs_ll_m"
               ]
     _versus = [
                "pu",
-               "mu"
+               "mu",
+               "mueff"
               ]
     #_ltname = ["/nom","/mu_u","/mu_d","/jes_u","/jes_d","/jer_u","/jer_d"]
     _ltname = ["/nom","/mu_u","/mu_d"]
 
     # the number of both ltcut and ltcolor has to same each other
-    _ltcut = ["weight","(genweight)*(puweight_up)","(genweight)*(puweight_dn)"]
-    _lcolor = [ROOT.kBlack,ROOT.kRed,ROOT.kBlue]
+    _ltcut = ["weight*(mueffweight)","(genweight)*(mueffweight)*(puweight_up)","(genweight)*(mueffweight)*(puweight_dn)","(genweight)*(puweight)*(mueffweight_up)","(genweight)*(puweight)*(mueffweight_dn)"]
+    #_ltcut = ["weight","(genweight)*(puweight_up)","(genweight)*(puweight_dn)","mueffweight","mueffweight_up","mueffweight_dn"]
+    _lcolor = [ROOT.kBlack,ROOT.kRed,ROOT.kBlue,ROOT.kOrange,ROOT.kViolet,ROOT.kTeal]
 
     _binning = [0,30,40,50,60,70,80,90,100,110,120,130,140,160,180,230,300]
     _bins = [115,125,135,150]
     
+    """
     outDir = "plot"
     import json,pprint
     _totrfname = []
@@ -274,16 +292,18 @@ if __name__ == "__main__":
             for j in _rfname:
                 _totrfname.append(j+"_"+i['f_name'])
     print _totrfname
-    #A = drawSysErr(_rfname,_versus)
-    #A.setlistcolor(_lcolor)
-    #A.setbinning(_binning)
-    #while A.choose():
-    #    A.exe(_ltname,_ltcut)
+    """
+    """
+    A = drawSysErr(_rfname,_versus)
+    A.setlistcolor(_lcolor)
+    A.setbinning(_binning)
+    while A.choose():
+        A.exe(_ltname,_ltcut)
     """
     for _bin in _bins:
         A = drawSysErr(_rfname,_versus)
         A.setlistcolor(_lcolor)
-        #A.setbinning(_binning)
+        A.setbinning(_binning)
         for j in range(1,len(_rfname)*len(_versus)+1):
             A.setnumber(j)
             A.exe(_ltname,_ltcut,_bin) 
@@ -297,3 +317,4 @@ if __name__ == "__main__":
             A.setnumber(j)
             A.exe(_ltname,_ltcut,_bin) 
         del A
+    """

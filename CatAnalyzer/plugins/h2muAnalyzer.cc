@@ -110,6 +110,8 @@ private:
   int b_cat_eta;
   bool b_isLoose, b_isMedium, b_isTight;
 
+  int b_bumpcat;
+
   TLorentzVector b_genlep1; int b_genlep1_pid;
   TLorentzVector b_genlep2; int b_genlep2_pid;
   TLorentzVector b_gendilep;
@@ -213,6 +215,9 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
     //Geometrical Categorization
     //only included 0jet and 1jet
     tr->Branch("cat_eta", &b_cat_eta, "cat_eta/I");
+   
+    //28GeV bump category
+    tr->Branch("bumpcat", &b_bumpcat, "bumpcat/I");
     
     if (sys == 0){
       tr->Branch("weight", &b_weight, "weight/F");
@@ -446,6 +451,10 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
     b_cat_eta = etaCategory(b_lep1.Eta(), b_lep2.Eta());
     b_cat = jetCategory(selectedJets, b_met, b_dilep.Pt());
 
+    if (b_njet > 1){
+      b_bumpcat = bumpCategory(selectedJets, selectedMuons, b_met); 
+    }
+
     ttree_[sys]->Fill();
   }
   delete rmcor;
@@ -565,6 +574,8 @@ void h2muAnalyzer::resetBr()
 
   b_cat = 0; b_cat_eta = 0;
   b_isLoose = 0; b_isMedium = 0; b_isTight = 0;
+
+  b_bumpcat = 0;
  
   b_genlep1 = TLorentzVector(); b_genlep1_pid = 0;
   b_genlep2 = TLorentzVector(); b_genlep2_pid = 0;
@@ -628,6 +639,41 @@ int h2muAnalyzer::etaCategory(float lep1_eta, float lep2_eta) const
   if (GC == 200) return 6; // EE
   
   return -1;
+}
+
+int h2muAnalyzer::bumpCategory(const cat::JetCollection& jets, const cat::MuonCollection& recolep, float met) const
+{
+  int event_cat=0;
+  const float pt_mu[2] = {recolep[0].pt(),recolep[1].pt()};
+  const float eta_mu[2] = {std::abs(recolep[0].eta()),std::abs(recolep[1].eta())}
+  const float pt_jet[2] = {jets[0].pt(),jets[1].pt()};
+  const float eta_jet[2] = {std::abs(jets[0].eta()),std::abs(jets[1].eta())}
+  TLorentzVector dilep = recolep[0].tlv() + recolep[1].tlv();
+  TLorentzVector dijet = jets[0].tlv() + jets[1].tlv();
+  double delta_phi = std::abs(dilep.Phi()-dijet.Phi());
+ 
+  // 1st event category
+  if (selmuon1.charge()*selmuon2.charge() > 0) continue;
+  if (pt_mu[0] < 25 || pt_mu[1] < 25) continue;
+  if (eta_mu[0] > 2.1 || eta_mu[1] > 2.1) continue;
+  if ((seljet1.bDicriminator(BTAG_CSVv2) > WP_BTAG_CSVv2T) and (seljet2.bDicriminator(BTAG_CSVv2) > WP_BTAG_CSVv2T)) continue;
+  if ((seljet1.bDicriminator(BTAG_CSVv2) < WP_BTAG_CSVv2T) or (seljet2.bDicriminator(BTAG_CSVv2) < WP_BTAG_CSVv2T)){
+    if ((seljet1.bDicriminator(BTAG_CSVv2) < WP_BTAG_CSVv2T) and (seljet2.bDicriminator(BTAG_CSVv2) < WP_BTAG_CSVv2T)) continue;
+  }
+  for(int i=0;i<jets.size();i++){
+    if ( jets[i].pt() < 30 || std::abs(jets[i].eta()) > 2.4 || std::abs(jets[i].eta()) > 4.7 ) continue;
+  }
+  event_cat=1;
+  //already has jet pt and eta cut in a jet selection
+
+  // 2nd event category
+  if (event_cat==1){
+    if (met>40) continue;  
+    if (delta_phi<2.5) continue;
+    event_cat=2;
+  }
+  
+  return event_cat
 }
 
 //define this as a plug-in

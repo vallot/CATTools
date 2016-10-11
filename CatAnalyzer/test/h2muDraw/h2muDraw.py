@@ -16,7 +16,7 @@ h2muDraw.py -c 'll_m>50&&step>=5&&isTight==1&&filtered==1' -b [100,-3,3] -p lep1
 '''
 
 json_used = 'Golden'
-datalumi = 15.920
+datalumi = 15920 #15.92fb-1
 version = os.environ['CMSSW_VERSION']
 
 rootfileDir = "/xrootd/store/user/pseudotop/ntuples/results_merged/%s/h2muAnalyzer_"%version
@@ -55,7 +55,7 @@ rdfilelist = [
 datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset/dataset.json" % os.environ['CMSSW_BASE']))
 
 #cut_step = "(step>=5)"
-cut = 'dilep.M()>20&&step>=5&&filtered==1'
+cut = 'dilep.M()>20&&step>=5'
 #cut = 'filtered==1&&%s&&%s'%(cut_step,emu_pid)
 #cut = 'channel==2'
 print cut
@@ -222,11 +222,12 @@ while (x_min<140):
             htmp.SetBinContent(i,entries)
             
     #after blind the signal region.
-    parameterization("fit_"+f_name+"_%d_signal_region_blinded.png"%(x_min), htmp, mchistList, x_min, binning[2], value[0], value[1], value[2], value[3])
+    parameterization("fit_"+f_name+"_%d_signal_region_blinded.png"%(x_min), htmp, mchistList, x_min, binning[2], value[0], value[1], value[2], value[3],False)
     #f_txt2.close()
     f_txt.close()
     f2_txt.close()
     x_min +=10
+    if x_min>110:break
 
 f_txt_bw.close()
 

@@ -16,7 +16,7 @@ h2muDraw.py -c 'll_m>50&&step>=5&&isTight==1&&filtered==1' -b [100,-3,3] -p lep1
 '''
 
 json_used = 'Golden'
-datalumi = 2260 # should be chaged to new luminosity.
+datalumi = 15920 # should be chaged to new luminosity.
 version = os.environ['CMSSW_VERSION']
 
 rootfileDir = "/xrootd/store/user/pseudotop/ntuples/results_merged/%s/h2muAnalyzer_"%version
@@ -26,38 +26,45 @@ rootfileDir = "/xrootd/store/user/pseudotop/ntuples/results_merged/%s/h2muAnalyz
 #rootfileDir = "%s/cattuples/20160324_163101/results_merged/h2muAnalyzer_" % os.environ['HOME_SCRATCH']
 
 CMS_lumi.lumi_sqrtS = "%.0f pb^{-1}, #sqrt{s} = 13 TeV 25ns "%(datalumi)
-mcfilelist = [
-              'GG_HToMuMu',
-             # 'GluGluToZZTo2mu2tau',
-             # 'GluGluToZZTo2e2mu',
-             # 'GluGluToZZTo4mu',
-             # 'ttZToLLNuNu',
-              'VBF_HToMuMu',
-             # 'ZZTo4L_powheg',
-             # 'ZZTo2L2Q',
-             # 'ZZTo2L2Nu_powheg',
-              'ZZ',
-             # 'WWTo2L2Nu_powheg',
-              'WW',
-             # 'WZTo2L2Q',
-             # 'WZTo3LNu_powheg',
-              'WZ',
-              'TTJets_aMC',
-              'DYJets',
-              'DYJets_10to50',
-             ]#ref : https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToMuMu
-#mcfilelist = ['VBF_HToMuMu','WW','WZ','ZZ','TT_powheg','DYJets','DYJets_10to50']#,'WJets']
-rdfilelist = [
-              'SingleMuon_Run2016',#mumu
-              #'DoubleEG_Run2015', #compare emu to mc
-              #'SingleMuon_Run2015C',
-              #'SingleMuon_Run2015D'
-             ]
+print """
+    select the samples you want to make.
+
+    1. background
+    2. higgs
+
+"""
+sel = input("select the number : ") 
+
+if sel==1:
+    mcfilelist = [
+                 # 'GG_HToMuMu',
+                 # 'GluGluToZZTo2mu2tau',
+                 # 'GluGluToZZTo2e2mu',
+                 # 'GluGluToZZTo4mu',
+                 # 'ttZToLLNuNu',
+                 # 'VBF_HToMuMu',
+                 # 'ZZTo4L_powheg',
+                 # 'ZZTo2L2Q',
+                 # 'ZZTo2L2Nu_powheg',
+                  'ZZ',
+                 # 'WWTo2L2Nu_powheg',
+                  'WW',
+                 # 'WZTo2L2Q',
+                 # 'WZTo3LNu_powheg',
+                  'WZ',
+                  'TTJets_aMC',
+                  'DYJets',
+                  'DYJets_10to50',
+                 ]#ref : https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToMuMu
+    rtname="background"
+elif sel==2:
+    mcfilelist = ['VBF_HToMuMu','GG_HToMuMu'] # signal samples
+    rtname="higgs"
 
 datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset/dataset.json" % os.environ['CMSSW_BASE']))
 
 #cut_step = "(step>=5)"
-cut = 'dilep.M()>20&&step>=5&&filtered==1'
+cut = 'dilep.M()>20&&step>=5'
 #cut = 'filtered==1&&%s&&%s'%(cut_step,emu_pid)
 #cut = 'channel==2'
 print cut
@@ -102,21 +109,16 @@ print plotvar, x_name, f_name
 
 #tname = "cattree/nom"
 ltname = ["/nom","/mu_u","/mu_d","/jes_u","/jes_d","/jer_u","/jer_d"]
-ltcut = ["weight","(genweight)*(puweight_up)","(genweight)*(puweight_dn)"]
+ltcut = ["weight*(mueffweight)","(genweight)*(mueffweight)*(puweight_up)","(genweight)*(mueffweight)*(puweight_dn)","(genweight)*(puweight)*(mueffweight_up)","(genweight)*(puweight)*(mueffweight_dn)"]
 lhsum = []
-
-dolog = True
-#tcut = '(%s)*%s'%(cut,weight)
-rdfname = rootfileDir + rdfilelist[2] +".root"
-
-sig=[0,0,0,0,0,0]
-bg=[0,0,0,0,0,0]
-#lumilist= [datalumi,300*1000,900*1000,3000*1000] 
 
 for itcut,tcut in enumerate(ltcut):
     tcut = '(%s)*%s'%(cut,tcut)
     print tcut
     for itname,tname in enumerate(ltname):
+        if tname!="/nom":
+            tcut = cut
+        print tcut, tname
         mchistList = []
         tname = "cattree"+tname
         for imc,mcname in enumerate(mcfilelist):
@@ -149,7 +151,7 @@ for itcut,tcut in enumerate(ltcut):
         lhsum.append(hsum)
 
 k=0
-rfile = ROOT.TFile("histo_background_%s.root"%(f_name),"RECREATE")
+rfile = ROOT.TFile("histo_%s_%s.root"%(rtname,f_name),"RECREATE")
 for i in range(len(ltcut)):
   for j in range(len(ltname)):
     lhsum[k].SetName(ltname[j]+"_"+ltcut[i])
