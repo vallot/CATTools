@@ -3,6 +3,8 @@ import catDefinitions_cfi as cat
 import os
 print os.environ['CMSSW_BASE']
 
+from CondCore.DBCommon.CondDBSetup_cfi import *
+
 def catTool(process, runOnMC=True, useMiniAOD=True):
     if runOnMC:
         from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
@@ -81,6 +83,32 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         ## process.particleFlowNoMuonPUPPI.candName         = 'packedPFCandidatesWoMuon'
         ## process.particleFlowNoMuonPUPPI.vertexName       = 'offlineSlimmedPrimaryVertices'
         
+        ########################################################################
+        ## Setup to acess quark/gluon likelihood value
+
+        #from JMEAnalysis.JetToolbox.jetToolbox_cff import jetToolbox
+        #jetToolbox( process, 'ak4', 'ak4JetSubs', 'out', PUMethod='CHS', updateCollection='slimmedJets',  JETCorrPayload='AK8PFchs', miniAOD=True, addQGTagger=True )   ### For example
+        #jetToolbox( process, 'ak4', 'ak4JetSubs', 'out', PUMethod='CHS', miniAOD=True, addQGTagger=True )   ### For example
+
+#process.options.allowUnscheduled = cms.untracked.bool(True)
+        qgDatabaseVersion = 'v1' # check https://twiki.cern.ch/twiki/bin/viewauth/CMS/QGDataBaseVersion
+        QGPoolDBESSource = cms.ESSource("PoolDBESSource",
+                CondDBSetup,
+                toGet = cms.VPSet(),
+                connect = cms.string('frontier://FrontierProd/CMS_COND_PAT_000')
+        )
+
+        for type in ['AK4PFchs','AK4PFchs_antib']:
+            QGPoolDBESSource.toGet.extend(cms.VPSet(cms.PSet(
+                record = cms.string('QGLikelihoodRcd'),
+                tag    = cms.string('QGLikelihoodObject_'+qgDatabaseVersion+'_'+type),
+                label  = cms.untracked.string('QGL_'+type)
+           )))
+        process.load('RecoJets.JetProducers.QGTagger_cfi')
+        process.QGTagger.srcJets    = cms.InputTag("updatedPatJets")   # Could be reco::PFJetCollection or pat::JetCollection (both AOD and miniAOD)
+        #process.QGTagger.srcJets    = cms.InputTag("slimmedJets")   # Could be reco::PFJetCollection or pat::JetCollection (both AOD and miniAOD)
+        #process.QGTagger.srcJets    = cms.InputTag("selectedPatJetsAK4PFCHS")   # Could be reco::PFJetCollection or pat::JetCollection (both AOD and miniAOD)
+        process.QGTagger.jetsLabel  = cms.string('QGL_AK4PFchs')        # Other options: see https://twiki.cern.ch/twiki/bin/viewauth/CMS/QGDataBaseVersion
         #######################################################################
         ## applying new jec on the fly
         process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
@@ -115,10 +143,15 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
             engineName = cms.untracked.string('TRandom3'),
             initialSeed = cms.untracked.uint32(1),
         )
+        process.RandomNumberGeneratorService.catFatJets = cms.PSet(
+            engineName = cms.untracked.string('TRandom3'),
+            initialSeed = cms.untracked.uint32(1),
+        )
         process.RandomNumberGeneratorService.catJetsPuppi = cms.PSet(
             engineName = cms.untracked.string('TRandom3'),
             initialSeed = cms.untracked.uint32(1),
         )
+
         ## #######################################################################
         ## # MET corrections from https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
         #from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
