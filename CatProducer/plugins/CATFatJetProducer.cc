@@ -42,14 +42,6 @@ namespace cat {
     void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
     void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&) override;
 
-    std::vector<const reco::Candidate *> getAncestors(const reco::Candidate &c);
-    bool hasBottom(const reco::Candidate &c);
-    bool hasCharm(const reco::Candidate &c);
-    bool decayFromBHadron(const reco::Candidate &c);
-    bool decayFromCHadron(const reco::Candidate &c);
-    const reco::Candidate* lastBHadron(const reco::Candidate &c);
-    const reco::Candidate* lastCHadron(const reco::Candidate &c);
-
   private:
     edm::EDGetTokenT<pat::JetCollection> src_;
     edm::EDGetTokenT<double> rhoToken_;
