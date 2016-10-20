@@ -74,7 +74,6 @@ cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
 {
     qgToken_ = consumes<edm::ValueMap<float>>(edm::InputTag("QGTagger", "qgLikelihood"));
     jetalgoName_ = iConfig.getParameter<edm::InputTag>("src").label();
-    std::cout << "Jet algo name " << jetalgoName_ << std::endl;
     produces<std::vector<cat::Jet> >();
 }
 
