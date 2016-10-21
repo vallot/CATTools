@@ -27,6 +27,7 @@ eventsTTLL = cms.EDFilter("TTLLEventSelector",
         #scaleDirection = cms.int32(+1),
         efficiencySF = electronSFCutBasedIDMediumWP,
         efficiencySFDirection = cms.int32(0),
+        applyEcalCrackVeto = cms.bool(True),
     ),
 
     jet = cms.PSet(
@@ -59,6 +60,7 @@ eventsTTLL = cms.EDFilter("TTLLEventSelector",
         trigMUMU = cms.InputTag("filterTrigMUMU"),
         trigELEL = cms.InputTag("filterTrigELEL"),
         ignoreTrig = cms.bool(False), # Accept event even if it does not pass HLT. Needed for synchronization
+        efficiencySFDirection = cms.int32(0),
     ),
 
     # Event weights
