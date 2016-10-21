@@ -44,18 +44,52 @@ def hadd(d):
         print "+"*40
         print
 
+def jobStatus(d):
+    if not os.path.exists("%s/condor.log" % d): return [], [], []
+    jobs = {}
+    lines = [x.strip() for x in open("%s/condor.log" % d).readlines()]
+    for i, l in enumerate(lines):
+        if 'Job submitted' in l:
+            section = int(l.split()[1][1:-1].split('.')[1])
+            jobs[section] = 'SUBMIT'
+        elif 'Job terminated' in l:
+            section = int(l.split()[1][1:-1].split('.')[1])
+            retVal = int(lines[i+1].split()[-1][:-1])
+            if retVal == 0: jobs[section] = 'DONE'
+            else: jobs[section] = 'ERROR %d' % retVal
+
+    jobsSub, jobsDone, jobsErr = [], [], []
+    for section in jobs:
+        if jobs[section] == 'SUBMIT': jobsSub.append(section)
+        elif jobs[section] == 'DONE': jobsDone.append(section)
+        else: jobsErr.append(section)
+    return jobsSub, jobsDone, jobsErr
+
 if __name__ == '__main__':
     pool = Pool(cpu_count())
     pass1Dir = "pass1"
-    outFiles = []
+
+    jobsFinished, jobsFailed = [], []
     for sample in os.listdir(pass1Dir):
-        sample = pathjoin(pass1Dir, sample)
+        sample = pathjoin(pass1Dir, sample, 'central')
         if not isdir(sample): continue
 
-        pool.apply_async(hadd, [pathjoin(sample,'central')])
+        stat = jobStatus(sample)
+        if len(stat[0])+len(stat[1])+len(stat[2]) == 0: continue
+        elif len(stat[0])+len(stat[2]) == 0: jobsFinished.append(sample)
+        elif len(stat[0]) == 0 and len(stat[2]) > 0: jobsFailed.append((sample, stat[2][:]))
+
+    outFiles = []
+    for sample in jobsFinished:
+        pool.apply_async(hadd, [sample])
         outFiles.append(sample+'.root')
 
     pool.close()
     pool.join()
 
-    print "@@ Done"
+    if len(jobsFailed) > 0:
+        print "@@ There are some failed jobs"
+        print "@@ Please resubmit following jobs"
+        for sample, jobs in jobsFailed: print sample, jobs
+    else:
+        print "@@ Finished"
