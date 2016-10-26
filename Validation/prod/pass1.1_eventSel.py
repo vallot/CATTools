@@ -34,12 +34,13 @@ recipes = {
 ## and combine with PS level scale variations samples
 for i in range(3):
     for ss in ("up", "dn"):
-        if ss == 'up': s  = ['eventsTTLL.genWeight.src="flatGenWeights:scaleup"']
-        else: s = ['eventsTTLL.genWeight.src="flatGenWeights:scaledown"']
+        if ss == 'up':
+            s  = ['eventsTTLL.genWeight.src="flatGenWeights:scaleup"',
+                  'agen.weight="flatGenWeights:scaleup"']
+        else: s = ['eventsTTLL.genWeight.src="flatGenWeights:scaledown"',
+                   'agen.weight="flatGenWeights:scaledown"']
 
-        s.extend(['eventsTTLL.genWeight.index=%d' % i,
-                  'agen.weight="flatGenWeights:%s"' % ss,
-                  'agen.weightIndex=%d' % i])
+        s.extend(['eventsTTLL.genWeight.index=%d' % i, 'agen.weightIndex=%d' % i])
         recipes['scale'+ss]['gen_scale/%s_%d' % (ss, i)] = s[:]
 
 ## PDF weights
