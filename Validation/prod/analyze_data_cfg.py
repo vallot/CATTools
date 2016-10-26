@@ -28,7 +28,7 @@ process.TFileService = cms.Service("TFileService",
 )
 
 process.p = cms.Path(
-    process.filterLumi * process.removeLumisWithL1TCert
+    process.filterLumi
   * process.rec
   * process.eventsTTLL
 )
