@@ -69,15 +69,30 @@ if __name__ == '__main__':
     pool = Pool(cpu_count())
     pass1Dir = "pass1"
 
+    nSub = 0
     jobsFinished, jobsFailed = [], []
     for sample in os.listdir(pass1Dir):
-        sample = pathjoin(pass1Dir, sample, 'central')
+        sample = pathjoin(pass1Dir, sample, 'nominal')
         if not isdir(sample): continue
 
         stat = jobStatus(sample)
         if len(stat[0])+len(stat[1])+len(stat[2]) == 0: continue
+
+        nSub += len(stat[0])
+        if len(stat[0])+len(stat[1])+len(stat[2]) == 0: continue
         elif len(stat[0])+len(stat[2]) == 0: jobsFinished.append(sample)
         elif len(stat[0]) == 0 and len(stat[2]) > 0: jobsFailed.append((sample, stat[2][:]))
+
+    for sample in [pathjoin(pass1Dir, x) for x in os.listdir(pass1Dir) if isdir(pathjoin(pass1Dir, x))]:
+        for subsample in [pathjoin(sample, x) for x in os.listdir(sample) if isdir(pathjoin(sample, x))]:
+            for syst in [pathjoin(subsample, x) for x in os.listdir(subsample) if isdir(pathjoin(subsample, x))]:
+                stat = jobStatus(syst)
+                if len(stat[0])+len(stat[1])+len(stat[2]) == 0: continue
+
+                nSub += len(stat[0])
+                if len(stat[0])+len(stat[1])+len(stat[2]) == 0: continue
+                elif len(stat[0])+len(stat[2]) == 0: jobsFinished.append(syst)
+                elif len(stat[0]) == 0 and len(stat[2]) > 0: jobsFailed.append((syst, stat[2][:]))
 
     outFiles = []
     for sample in jobsFinished:
@@ -91,5 +106,7 @@ if __name__ == '__main__':
         print "@@ There are some failed jobs"
         print "@@ Please resubmit following jobs"
         for sample, jobs in jobsFailed: print sample, jobs
+    elif nSub > 0:
+        print "@@ Done, wait for the %d jobs to finish" % nSub
     else:
         print "@@ Finished"
