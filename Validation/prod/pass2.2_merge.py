@@ -52,8 +52,11 @@ for d in ds:
 
     sses = []
     for ss in ds[d]['subsamples']:
-        fName, normFactor = ss['hist'], ss['normFactor']
-        sses.append( (TFile(fName), normFactor ) )
+        fName = ss['hist']
+        xsec, normFactor = ss['xsec'], ss['normFactor']
+        scale = 1
+        if ss['type'] != 'Data' and normFactor != 0: scale = xsec/normFactor
+        sses.append( (TFile(fName), scale) )
 
     fout = TFile(foutName, "RECREATE")
     for hName in hs:
@@ -72,8 +75,7 @@ for d in ds:
         ## Merge histograms
         for ss in sses:
             hin = ss[0].Get(hName)
-            scale = 1./ss[1]
-            h.Add(hin, scale)
+            h.Add(hin, ss[1])
             hin.Delete()
         dout.cd()
         h.Write()

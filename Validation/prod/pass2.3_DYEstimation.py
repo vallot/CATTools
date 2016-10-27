@@ -3,18 +3,22 @@
 from ROOT import *
 from math import sqrt
 import json
-lumi = 2.11*1000
 
-rootfileDir = "pass2/central"
+rootfileDir = "pass2/nominal"
 
 hName = "eventsTTLL/%s/step%d/z_m_noveto"
 fDY = TFile.Open(rootfileDir+"/Z__gamma_rightarrow_ll.root")
-fRD = TFile(rootfileDir+"/Data.root")
+fEE = TFile(rootfileDir+"/DoubleEG.root")
+fMM = TFile(rootfileDir+"/DoubleMuon.root")
+fEM = TFile(rootfileDir+"/MuonEG.root")
+
+dsIn = json.loads(open("pass2/dataset.json").read())
+lumi = 1000*sum(x['lumi'] for x in dsIn['DoubleMuon']['subsamples'])
 
 ## Calculate efficiency factor kMM and kEE using the step1
-hRD_ee = fRD.Get(hName % ("ee", 1))
-hRD_mm = fRD.Get(hName % ("mm", 1))
-hRD_em = fRD.Get(hName % ("em", 1))
+hRD_ee = fEE.Get(hName % ("ee", 1))
+hRD_mm = fMM.Get(hName % ("mm", 1))
+hRD_em = fEM.Get(hName % ("em", 1))
 hDY_ee = fDY.Get(hName % ("ee", 1))
 hDY_mm = fDY.Get(hName % ("mm", 1))
 
@@ -36,9 +40,9 @@ out = {
 }
 
 for step in range(1,6):
-    hRD_ee = fRD.Get(hName % ("ee", step))
-    hRD_mm = fRD.Get(hName % ("mm", step))
-    hRD_em = fRD.Get(hName % ("em", step))
+    hRD_ee = fEE.Get(hName % ("ee", step))
+    hRD_mm = fMM.Get(hName % ("mm", step))
+    hRD_em = fEM.Get(hName % ("em", step))
     hDY_ee = fDY.Get(hName % ("ee", step))
     hDY_mm = fDY.Get(hName % ("mm", step))
 
