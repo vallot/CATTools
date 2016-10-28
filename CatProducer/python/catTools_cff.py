@@ -122,21 +122,21 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         #######################################################################
         ## Energy smearing and scale correction
         ## https://twiki.cern.ch/twiki/bin/view/CMS/EGMSmearer
-        ## process.RandomNumberGeneratorService.calibratedPatElectrons=cms.PSet(
-        ##     engineName = cms.untracked.string('TRandom3'),
-        ##     initialSeed = cms.untracked.uint32(1)
-        ## )
-        ## process.RandomNumberGeneratorService.calibratedPatPhotons=cms.PSet(
-        ##     engineName = cms.untracked.string('TRandom3'),
-        ##     initialSeed = cms.untracked.uint32(1)
-        ## )
-        ## process.load('EgammaAnalysis.ElectronTools.calibratedElectronsRun2_cfi')
-        ## process.calibratedPatElectrons.isMC = runOnMC
-        ## process.catElectrons.src = "calibratedPatElectrons"
+        process.RandomNumberGeneratorService.calibratedPatElectrons = cms.PSet(
+            initialSeed = cms.untracked.uint32(81),
+            engineName = cms.untracked.string('TRandom3')
+        )
+        process.RandomNumberGeneratorService.calibratedPatPhotons = cms.PSet(
+            initialSeed = cms.untracked.uint32(81),
+            engineName = cms.untracked.string('TRandom3')
+        )
+        process.load('EgammaAnalysis.ElectronTools.calibratedElectronsRun2_cfi')
+        process.calibratedPatElectrons.isMC = runOnMC
+        process.catElectrons.src = "calibratedPatElectrons"
     
-        ## process.load('EgammaAnalysis.ElectronTools.calibratedPhotonsRun2_cfi')
-        ## process.calibratedPatPhotons.isMC = runOnMC
-        ## process.catPhotons.src = "calibratedPatPhotons"
+        process.load('EgammaAnalysis.ElectronTools.calibratedPhotonsRun2_cfi')
+        process.calibratedPatPhotons.isMC = runOnMC
+        process.catPhotons.src = "calibratedPatPhotons"
         #######################################################################
         ## for egamma pid https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2#Recipe_for_regular_users_for_74X
         ##from PhysicsTools.SelectorUtils.tools.vid_id_tools import DataFormat,switchOnVIDPhotonIdProducer,setupAllVIDIdsInModule,setupVIDPhotonSelection            
