@@ -5,7 +5,7 @@ datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset/dataset.json
 
 for d in datasets:
     dataset = d['DataSetName']
-    print "cli --query='%s' --limit=0"%(dataset)
+    #print "cli --query='%s' --limit=0"%(dataset)
     out=os.popen("cli --query='%s' --limit=0"%(dataset)).read()
     if out.rstrip() != dataset:
         print "DATASET not found", dataset,"similar types are"

@@ -22,7 +22,6 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
     else:
         jecFile = jecFile+"_DATA"
     if useJECfile:
-        #from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
         from CondCore.CondDB.CondDB_cfi import CondDB
         CondDB.__delattr__('connect')
         process.jec = cms.ESSource("PoolDBESSource",CondDB,
@@ -49,29 +48,17 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         #######################################################################
         ## Event filters from MET https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2
         ## New muon filters to be run on the fly
-        process.load("RecoMET.METFilters.BadChargedCandidateFilter_cfi")
-        process.load("RecoMET.METFilters.BadPFMuonFilter_cfi")
-        process.BadChargedCandidateFilter.muons = "slimmedMuons"
-        process.BadChargedCandidateFilter.PFCandidates = "packedPFCandidates"
-        process.BadPFMuonFilter.muons = "slimmedMuons"
-        process.BadPFMuonFilter.PFCandidates = "packedPFCandidates"
-        ## Existing HBHE noise filter
-        process.load('CommonTools.RecoAlgos.HBHENoiseFilterResultProducer_cfi')
-        process.HBHENoiseFilterResultProducer.minZeros = cms.int32(99999)
-        process.HBHENoiseFilterResultProducer.IgnoreTS4TS5ifJetInLowBVRegion=cms.bool(False) 
-        process.HBHENoiseFilterResultProducer.defaultDecision = cms.string("HBHENoiseFilterResultRun2Loose")
+        process.load('RecoMET.METFilters.BadPFMuonFilter_cfi')
+        process.BadPFMuonFilter.muons = cms.InputTag("slimmedMuons")
+        process.BadPFMuonFilter.PFCandidates = cms.InputTag("packedPFCandidates")
 
-        process.ApplyBaselineHBHENoiseFilter = cms.EDFilter('BooleanFlagFilter',
-            inputLabel = cms.InputTag('HBHENoiseFilterResultProducer','HBHENoiseFilterResult'),
-            reverseDecision = cms.bool(False))
-        
+        process.load('RecoMET.METFilters.BadChargedCandidateFilter_cfi')
+        process.BadChargedCandidateFilter.muons = cms.InputTag("slimmedMuons")
+        process.BadChargedCandidateFilter.PFCandidates = cms.InputTag("packedPFCandidates")
+            
         process.nEventsFiltered = cms.EDProducer("EventCountProducer")
     
-        process.p += (process.HBHENoiseFilterResultProducer* #produces HBHE bools
-                      process.ApplyBaselineHBHENoiseFilter*  #reject events based
-                      process.BadChargedCandidateFilter*
-                      process.BadPFMuonFilter*
-                      process.nEventsFiltered)
+        process.p += (process.BadPFMuonFilter*process.BadChargedCandidateFilter*process.nEventsFiltered)
         #######################################################################
         # adding puppi https://twiki.cern.ch/twiki/bin/view/CMS/PUPPI        
         #process.catJetsPuppi.src = cms.InputTag("slimmedJetsPuppi")
@@ -135,21 +122,21 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         #######################################################################
         ## Energy smearing and scale correction
         ## https://twiki.cern.ch/twiki/bin/view/CMS/EGMSmearer
-        process.RandomNumberGeneratorService.calibratedPatElectrons=cms.PSet(
-            engineName = cms.untracked.string('TRandom3'),
-            initialSeed = cms.untracked.uint32(1)
-        )
-        process.RandomNumberGeneratorService.calibratedPatPhotons=cms.PSet(
-            engineName = cms.untracked.string('TRandom3'),
-            initialSeed = cms.untracked.uint32(1)
-        )
-        process.load('EgammaAnalysis.ElectronTools.calibratedElectronsRun2_cfi')
-        process.calibratedPatElectrons.isMC = runOnMC
-        process.catElectrons.src = "calibratedPatElectrons"
+        ## process.RandomNumberGeneratorService.calibratedPatElectrons=cms.PSet(
+        ##     engineName = cms.untracked.string('TRandom3'),
+        ##     initialSeed = cms.untracked.uint32(1)
+        ## )
+        ## process.RandomNumberGeneratorService.calibratedPatPhotons=cms.PSet(
+        ##     engineName = cms.untracked.string('TRandom3'),
+        ##     initialSeed = cms.untracked.uint32(1)
+        ## )
+        ## process.load('EgammaAnalysis.ElectronTools.calibratedElectronsRun2_cfi')
+        ## process.calibratedPatElectrons.isMC = runOnMC
+        ## process.catElectrons.src = "calibratedPatElectrons"
     
-        process.load('EgammaAnalysis.ElectronTools.calibratedPhotonsRun2_cfi')
-        process.calibratedPatPhotons.isMC = runOnMC
-        process.catPhotons.src = "calibratedPatPhotons"
+        ## process.load('EgammaAnalysis.ElectronTools.calibratedPhotonsRun2_cfi')
+        ## process.calibratedPatPhotons.isMC = runOnMC
+        ## process.catPhotons.src = "calibratedPatPhotons"
         #######################################################################
         ## for egamma pid https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2#Recipe_for_regular_users_for_74X
         ##from PhysicsTools.SelectorUtils.tools.vid_id_tools import DataFormat,switchOnVIDPhotonIdProducer,setupAllVIDIdsInModule,setupVIDPhotonSelection            
