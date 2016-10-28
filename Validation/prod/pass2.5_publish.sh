@@ -8,7 +8,6 @@ fi
 
 VERSION=$1
 
-dumpRoot pass2/preview.root
 cp pass2/plots.json preview/
 cp pass2/cutflow.json preview/
 scp -rP8022 preview higgs.hanyang.ac.kr:/var/www/html/CATTools/preview/$VERSION

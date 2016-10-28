@@ -94,6 +94,7 @@ for iplt, pltInfo in enumerate(plts):
         h.Scale(lumi)
         if finName == "Z__gamma_rightarrow_ll" and dirName in scaleDY["scale"]:
             h.Scale(scaleDY["scale"][dirName])
+        hMC.Add(h)
         h.GetStats(stats)
         h.AddBinContent(nbinsX, h.GetBinContent(nbinsX+1))
         h.PutStats(stats)
@@ -102,7 +103,6 @@ for iplt, pltInfo in enumerate(plts):
         h.SetLineColor(color)
         #h.SetLineStyle(0)
         hsMC.Add(h)
-        hMC.Add(h)
     hRatio = hRD.Clone()
     hRatio.Reset()
     hRatio.SetTitle(";%s;Data/MC" % hRD.GetXaxis().GetTitle())
@@ -177,6 +177,11 @@ for iplt, pltInfo in enumerate(plts):
 
     fout.cd(dirName)
     c.Write()
+
+    outdirName = 'preview/'+dirName
+    if not os.path.isdir(outdirName): os.makedirs(outdirName)
+    c.Print(outdirName+'/'+c.GetName()+'.png')
+    if grpRatio.GetN() > 0: c.Print(outdirName+'/'+c.GetName()+'.C')
 
     yMax = max([hsMC.GetHistogram().GetBinContent(i) for i in range(1, nbinsX)])
     yMaxR = max([hsMC.GetHistogram().GetBinContent(i) for i in range(nbinsX/2, nbinsX)])
