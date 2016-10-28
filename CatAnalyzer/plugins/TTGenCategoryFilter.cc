@@ -11,10 +11,10 @@
 using namespace std;
 using namespace cat;
 
-class TTLLGenCategoryFilter : public edm::one::EDFilter<edm::one::SharedResources>
+class TTGenCategoryFilter : public edm::one::EDFilter<edm::one::SharedResources>
 {
 public:
-  TTLLGenCategoryFilter(const edm::ParameterSet& pset);
+  TTGenCategoryFilter(const edm::ParameterSet& pset);
   bool filter(edm::Event& event, const edm::EventSetup&) override;
 
 private:
@@ -28,45 +28,41 @@ private:
   edm::EDGetTokenT<int> parton_channelToken_;
   edm::EDGetTokenT<vint> parton_modesToken_;
   edm::EDGetTokenT<reco::GenJetCollection> parton_jetToken_;
+  const int nLepton_;
   bool vetoTau_;
 
   // FIXME : classification by pseudotop, hadrons to be added
 
 };
 
-TTLLGenCategoryFilter::TTLLGenCategoryFilter(const edm::ParameterSet& pset):
-  doInvert_(pset.getParameter<bool>("invert"))
+TTGenCategoryFilter::TTGenCategoryFilter(const edm::ParameterSet& pset):
+  doInvert_(pset.getParameter<bool>("invert")),
+  nLepton_(pset.getParameter<int>("nLepton"))
 {
   const auto inputType = pset.getParameter<string>("inputType");
   if ( inputType == "PartonTop" ) inputType_ = IN_PartonTop;
   //else if ( inputType == "PseudoTop" ) inputType_ = IN_PseudoTop;
   //else if ( inputType == "Hadron" ) inputType_ = IN_Hadron;
-  else edm::LogError("TTLLGenCategoryFilter") << "Wrong input inputType. Choose among (PartonTop,)";
+  else edm::LogError("TTGenCategoryFilter") << "Wrong input inputType. Choose among (PartonTop,)";
 
   const auto addJetType = pset.getParameter<string>("addJetType");
 
-  switch ( inputType_ )
-  {
-    case IN_PartonTop: {
-      vetoTau_ = pset.getParameter<bool>("vetoTau");
-      const auto label = pset.getParameter<edm::InputTag>("src");
-      const auto labelName = label.label();
-      parton_srcToken_ = consumes<reco::GenParticleCollection>(label);
-      parton_channelToken_ = consumes<int>(edm::InputTag(labelName, "channel"));
-      parton_modesToken_ = consumes<vint>(edm::InputTag(labelName, "modes"));
-      parton_jetToken_ = consumes<reco::GenJetCollection>(edm::InputTag(labelName, "qcdJets"));
-    } break;
-    case IN_PseudoTop: break;
-    case IN_Hadron: break;
+  if ( inputType_ == IN_PartonTop ) {
+    vetoTau_ = pset.getParameter<bool>("vetoTau");
+    const auto label = pset.getParameter<edm::InputTag>("src");
+    const auto labelName = label.label();
+    parton_srcToken_ = consumes<reco::GenParticleCollection>(label);
+    parton_channelToken_ = consumes<int>(edm::InputTag(labelName, "channel"));
+    parton_modesToken_ = consumes<vint>(edm::InputTag(labelName, "modes"));
+    parton_jetToken_ = consumes<reco::GenJetCollection>(edm::InputTag(labelName, "qcdJets"));
   }
 
 }
 
-bool TTLLGenCategoryFilter::filter(edm::Event& event, const edm::EventSetup&)
+bool TTGenCategoryFilter::filter(edm::Event& event, const edm::EventSetup&)
 {
   bool accept = false;
-  switch ( inputType_ )
-  {
+  switch ( inputType_ ) {
     case IN_PartonTop: {
       edm::Handle<reco::GenParticleCollection> srcHandle;
       edm::Handle<int> channelHandle;
@@ -82,21 +78,17 @@ bool TTLLGenCategoryFilter::filter(edm::Event& event, const edm::EventSetup&)
       const int mode1 = modesHandle->at(0);
       const int mode2 = modesHandle->at(1);
 
-      // Dilepton channel only
-      //if ( channel != 3 ) break;
-      if ( mode1 % 3 == 0 or mode2 % 3 == 0 ) break;
+      int nLepton = 0;
+      if ( mode1%3 != 0 and (!vetoTau_ or mode1 < CH_TAU_HADRON) ) ++nLepton;
+      if ( mode2%3 != 0 and (!vetoTau_ or mode2 < CH_TAU_HADRON) ) ++nLepton;
 
-      // Veto tau channel if set
-      if ( vetoTau_ )
-      {
-        if ( mode1 >= CH_TAU_HADRON ) break;
-        if ( mode2 >= CH_TAU_HADRON ) break;
-      }
+      if ( nLepton != nLepton_ ) break;
+
       accept = true;
-    } break;
-
-    case IN_PseudoTop: break;
-    case IN_Hadron: break;
+    }
+    case IN_PseudoTop:
+    case IN_Hadron:
+      break;
   }
 
   if ( doInvert_ ) return !accept;
@@ -104,4 +96,4 @@ bool TTLLGenCategoryFilter::filter(edm::Event& event, const edm::EventSetup&)
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"
-DEFINE_FWK_MODULE(TTLLGenCategoryFilter);
+DEFINE_FWK_MODULE(TTGenCategoryFilter);
