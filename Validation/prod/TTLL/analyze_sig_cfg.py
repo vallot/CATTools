@@ -10,11 +10,11 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 50000
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 process.source.fileNames = [
-    '/store/user/jhgoh/CATTools/sync/v7-6-5/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',
+    '/store/group/CAT/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v8-0-0_RunIISpring16MiniAODv2-PUSpring16RAWAODSIM_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v1/160707_125444/0000/catTuple_1.root',
 ]
 
 process.load("CATTools.CatAnalyzer.filters_cff")
-process.load("CATTools.Validation.ttllEventSelector_cfi")
+process.load("CATTools.Validation.ttEventSelector_cfi")
 process.load("CATTools.CatAnalyzer.ttll.ttllGenFilters_cff")
 process.load("CATTools.Validation.validation_cff")
 

@@ -754,12 +754,12 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   for ( int i=0, n=muonHandle->size(); i<n; ++i )
   {
     auto& p = muonHandle->at(i);
-    if ( !isGoodMuon(p) ) continue;
     const double pt = shiftedMuonPt(p);
     const double scale = pt/p.pt();
 
     cat::Muon lep(p);
     lep.setP4(p.p4()*scale);
+    if ( !isGoodMuon(lep) ) continue;
     selMuons.push_back(lep);
 
     leptons_st += pt;
@@ -770,12 +770,12 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   for ( int i=0, n=electronHandle->size(); i<n; ++i )
   {
     auto& p = electronHandle->at(i);
-    if ( !isGoodElectron(p) ) continue;
     const double pt = shiftedElectronPt(p);
     const double scale = pt/p.pt();
 
     cat::Electron lep(p);
     lep.setP4(p.p4()*scale);
+    if ( !isGoodElectron(lep) ) continue;
     selElectrons.push_back(lep);
 
     leptons_st += pt;
