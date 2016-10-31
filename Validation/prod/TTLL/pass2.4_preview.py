@@ -94,6 +94,7 @@ for iplt, pltInfo in enumerate(plts):
         h.Scale(lumi)
         if finName == "Z__gamma_rightarrow_ll" and dirName in scaleDY["scale"]:
             h.Scale(scaleDY["scale"][dirName])
+        hMC.Add(h)
         h.GetStats(stats)
         h.AddBinContent(nbinsX, h.GetBinContent(nbinsX+1))
         h.PutStats(stats)
@@ -102,7 +103,6 @@ for iplt, pltInfo in enumerate(plts):
         h.SetLineColor(color)
         #h.SetLineStyle(0)
         hsMC.Add(h)
-        hMC.Add(h)
     hRatio = hRD.Clone()
     hRatio.Reset()
     hRatio.SetTitle(";%s;Data/MC" % hRD.GetXaxis().GetTitle())
@@ -115,7 +115,8 @@ for iplt, pltInfo in enumerate(plts):
         if yMC > 0:
             r = yRD/yMC
             rMax = max(r, rMax)
-        if yMC > 0 and yRD > 0: e = r*hypot(eRD/yRD, eMC/yMC)
+        #if yMC > 0 and yRD > 0: e = r*hypot(eRD/yRD, eMC/yMC)
+        if yRD > 0: e = r*abs(eRD/yRD)
         if r == 1e9 or e == 1e9: continue
 
         x = hRD.GetXaxis().GetBinCenter(b+1)
@@ -185,6 +186,11 @@ for iplt, pltInfo in enumerate(plts):
 
     plts[iplt]['yMax'] = yMax
     plts[iplt]['yMaxR'] = yMaxR
+
+    if not os.path.exists("preview/%s" % dirName):
+        os.makedirs("preview/%s" % dirName)
+    c.Print("preview/%s/%s.png" % (dirName, c.GetName()))
+    if grpRatio.GetN() > 0: c.Print("preview/%s/%s.C" % (dirName, c.GetName()))
 
     for h in (hRD, hMC, hsMC, hRatio, grpRatio, c): del(h)
 

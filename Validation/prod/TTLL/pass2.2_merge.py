@@ -73,6 +73,7 @@ for d in ds:
         h = sses[0][0].Get(hName).Clone()
         h.SetDirectory(dout)
         h.Reset()
+        h.Sumw2()
         ## Merge histograms
         for ss in sses:
             hin = ss[0].Get(hName)
