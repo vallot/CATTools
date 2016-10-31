@@ -60,6 +60,7 @@ for d in ds:
 
     fout = TFile(foutName, "RECREATE")
     for hName in hs:
+        hName = str(hName)
         ## Check the histogram exists in the source root file
         if sses[0][0].Get(hName) == None: continue
 

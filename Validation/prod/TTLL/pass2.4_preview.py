@@ -17,10 +17,10 @@ gStyle.SetOptStat(0)
 srcMCs = [
     ["t_bar_t__Jets_rightarrow_l____l____", 632],
     ["t_bar_t__Jets_Others", 632+3],
-    ["Single_top", 800,],
+    ["SingleTop", 800,],
     ["Dibosons", 432,],
     ["Tribosons", 433],
-    ["W_Jets", 416],
+    ["W_Jets_MG", 416],
     ["Z__gamma_rightarrow_ll", 600],
 ]
 for s in srcMCs: s.append(TFile("pass2/nominal/%s.root" % s[0]))
