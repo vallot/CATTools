@@ -843,12 +843,12 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       const auto e1 = dynamic_cast<const cat::Electron*>(lepton1);
       const double w1 = electronSF_(lepton1->pt(), std::abs(e1->scEta()), electronSFShift_);
       weight *= w1;
-      if ( isIgnoreTrig_ ) weight *= isTrigEl;// * computeTrigSF(*lepton1, trigSFShift_);
+      if ( !isIgnoreTrig_ ) weight *= isTrigEl;// * computeTrigSF(*lepton1, trigSFShift_);
     }
     else if ( channel == 13 ) {
       const double w1 = muonSF_(lepton1->pt(), std::abs(lepton1->eta()), muonSFShift_);
       weight *= w1;
-      if ( isIgnoreTrig_ ) weight *= isTrigMu;// * computeTrigSF(*lepton1, trigSFShift_);
+      if ( !isIgnoreTrig_ ) weight *= isTrigMu;// * computeTrigSF(*lepton1, trigSFShift_);
     }
     else edm::LogError("TTLJEventSelector") << "Strange event with nLepton >=2 but not falling info ee,mumu,emu category";
   }

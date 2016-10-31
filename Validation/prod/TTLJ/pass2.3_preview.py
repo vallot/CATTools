@@ -7,38 +7,37 @@ sys.argv.append("-b")
 from math import hypot
 from ROOT import *
 import imp
-printCutflow = imp.load_source("printCutflow", "submacros/printCutflow.py").printCutflow
+printCutflow = imp.load_source("printCutflow", "../submacros/printCutflow.py").printCutflow
 #st = imp.load_source("st", "submacros/tdrstyle.py")
-gROOT.LoadMacro("submacros/tdrstyle.C")
+gROOT.LoadMacro("../submacros/tdrstyle.C")
 setTDRStyle()
 gStyle.SetOptTitle(0)
 gStyle.SetOptStat(0)
 
 srcMCs = [
-    ["t_bar_t__Jets_rightarrow_l____l____", 632],
+    ["t_bar_t__Jets_rightarrow_l___pm_", 632],
     ["t_bar_t__Jets_Others", 632+3],
-    ["Single_top", 800,],
+    ["SingleTop", 800,],
     ["Dibosons", 432,],
     ["Tribosons", 433],
-    ["W_Jets", 416],
+    ["W_Jets_MG", 416],
     ["Z__gamma_rightarrow_ll", 600],
 ]
 for s in srcMCs: s.append(TFile("pass2/nominal/%s.root" % s[0]))
 
 fRD = {
-    'ee':TFile("pass2/nominal/DoubleEG.root"),
-    'mm':TFile("pass2/nominal/DoubleMuon.root"),
-    'em':TFile("pass2/nominal/MuonEG.root"),
+    'el':TFile("pass2/nominal/SingleElectron.root"),
+    'mu':TFile("pass2/nominal/SingleMuon.root"),
 }
 
 ## Data driven corrections
 dataset = json.loads(open("pass2/dataset.json").read())
-scaleDY = json.loads(open("pass2/scaler_DY.json").read())
 
 ## Pick the first root file to get full list of plots
 plts = []
 f = TFile("pass2/nominal/%s.root" % srcMCs[0][0])
 moddir = f.Get("eventsTTLJ")
+print moddir
 for ch in [x.GetName() for x in moddir.GetListOfKeys()]:
     chdir = moddir.GetDirectory(ch)
     if chdir == None: continue
@@ -92,8 +91,6 @@ for iplt, pltInfo in enumerate(plts):
     for finName, color, f in srcMCs:
         h = f.Get(plt)
         h.Scale(lumi)
-        if finName == "Z__gamma_rightarrow_ll" and dirName in scaleDY["scale"]:
-            h.Scale(scaleDY["scale"][dirName])
         h.GetStats(stats)
         h.AddBinContent(nbinsX, h.GetBinContent(nbinsX+1))
         h.PutStats(stats)
@@ -190,8 +187,8 @@ for iplt, pltInfo in enumerate(plts):
 
 ## Start to print cut flow
 cutflow = {
-    "count":{"ee":{}, "mm":{}, "em":{}},
-    "error":{"ee":{}, "mm":{}, "em":{}},
+    "count":{"el":{}, "mu":{}},
+    "error":{"el":{}, "mu":{}},
     "nstep":0,
     "step":None,
 }

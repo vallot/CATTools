@@ -3,7 +3,7 @@ process = cms.Process("CATeX")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
-process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
+process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 
 process.options.allowUnscheduled = cms.untracked.bool(True)
 process.MessageLogger.cerr.FwkReport.reportEvery = 50000
@@ -14,7 +14,7 @@ process.source.fileNames = [
 ]
 
 process.load("CATTools.CatAnalyzer.filters_cff")
-process.load("CATTools.Validation.ttEventSelector_cfi")
+process.load("CATTools.Validation.ttllEventSelector_cff")
 process.load("CATTools.CatAnalyzer.ttll.ttllGenFilters_cff")
 process.load("CATTools.Validation.validation_cff")
 

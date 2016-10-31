@@ -818,14 +818,14 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       const double w1 = electronSF_(lepton1->pt(), std::abs(e1->scEta()), electronSFShift_);
       const double w2 = electronSF_(lepton2->pt(), std::abs(e2->scEta()), electronSFShift_);
       weight *= w1*w2;
-      if ( isIgnoreTrig_ ) weight *= isTrigElEl * computeTrigSF(*lepton1, *lepton2, trigSFShift_);
+      if ( !isIgnoreTrig_ ) weight *= isTrigElEl * computeTrigSF(*lepton1, *lepton2, trigSFShift_);
     }
     else if ( channel == CH_MUMU )
     {
       const double w1 = muonSF_(lepton1->pt(), std::abs(lepton1->eta()), muonSFShift_);
       const double w2 = muonSF_(lepton2->pt(), std::abs(lepton2->eta()), muonSFShift_);
       weight *= w1*w2;
-      if ( isIgnoreTrig_ ) weight *= isTrigMuMu * computeTrigSF(*lepton1, *lepton2, trigSFShift_);
+      if ( !isIgnoreTrig_ ) weight *= isTrigMuMu * computeTrigSF(*lepton1, *lepton2, trigSFShift_);
     }
     else if ( channel == CH_MUEL )
     {
@@ -833,7 +833,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       const double w1 = electronSF_(lepton1->pt(), std::abs(e1->scEta()), electronSFShift_);
       const double w2 = muonSF_(lepton2->pt(), std::abs(lepton2->eta()), muonSFShift_);
       weight *= w1*w2;
-      if ( isIgnoreTrig_ ) weight *= isTrigMuEl* computeTrigSF(*lepton1, *lepton2, trigSFShift_);
+      if ( !isIgnoreTrig_ ) weight *= isTrigMuEl* computeTrigSF(*lepton1, *lepton2, trigSFShift_);
     }
     else edm::LogError("TTLLEventSelector") << "Strange event with nLepton >=2 but not falling info ee,mumu,emu category";
   }

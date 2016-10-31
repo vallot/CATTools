@@ -4,6 +4,7 @@ import sys, os
 from os.path import isdir as isdir
 from os.path import join as pathjoin
 from multiprocessing import Pool, cpu_count
+import imp
 
 def hadd(d):
     d = d.rstrip('/')
@@ -105,7 +106,23 @@ if __name__ == '__main__':
     if len(jobsFailed) > 0:
         print "@@ There are some failed jobs"
         print "@@ Please resubmit following jobs"
-        for sample, jobs in jobsFailed: print sample, jobs
+        if not os.path.exists("pass1/resubmit"): os.makedirs("pass1/resubmit")
+        for sample, jobs in jobsFailed:
+            print sample, jobs
+            files = []
+            for job in jobs:
+                os.system("rm -f %s/hist_%03d.root" % (sample, job))
+                process = imp.load_source("process", "%s/job_%03d_cfg.py" % (sample, job)).process
+                for file in process.source.fileNames:
+                    files.append(file)
+            prefix = sample.replace("pass1/", "").replace("/", "_")
+            frerun = open("pass1/resubmit/%s.txt" % prefix, "w")
+            for f in files: print>>frerun, f
+            frerun.close()
+            frerun = open("pass1/resubmit/%s_cfg.py" % prefix, "w")
+            frerun.write(process.dumpPython())
+            frerun.close()
+
     elif nSub > 0:
         print "@@ Done, wait for the %d jobs to finish" % nSub
     else:

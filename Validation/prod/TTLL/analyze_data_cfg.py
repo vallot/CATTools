@@ -14,7 +14,7 @@ process.source.fileNames = [
 ]
 
 process.load("CATTools.CatAnalyzer.filters_cff")
-process.load("CATTools.Validation.ttEventSelector_cfi")
+process.load("CATTools.Validation.ttllEventSelector_cff")
 process.load("CATTools.Validation.validation_cff")
 process.eventsTTLL.isMC = False
 process.rec.isMC = False
@@ -25,15 +25,10 @@ process.TFileService = cms.Service("TFileService",
     fileName = cms.string("hist.root"),
 )
 
-process.p1 = cms.Path(
+process.p = cms.Path(
     process.filterLumi * process.removeLumisWithL1TCert
   * process.rec
   * process.eventsTTLL
-)
-
-process.p2 = cms.Path(
-    process.filterLumi * process.removeLumisWithL1TCert
-  * process.eventsTTLJ
 )
 
 ## Customise with cmd arguments

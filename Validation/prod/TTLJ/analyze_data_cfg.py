@@ -14,7 +14,7 @@ process.source.fileNames = [
 ]
 
 process.load("CATTools.CatAnalyzer.filters_cff")
-process.load("CATTools.Validation.ttEventSelector_cfi")
+process.load("CATTools.Validation.ttljEventSelector_cff")
 process.load("CATTools.Validation.validation_cff")
 process.eventsTTLJ.isMC = False
 process.rec.isMC = False
