@@ -9,17 +9,19 @@ filterLumi = cms.EDFilter("EventWeightThresholdFilter",
 
 filterLumiSilver = filterLumi.clone(src = cms.InputTag("lumiMaskSilver"))
 
+# https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2
 filterRECO = cms.EDFilter("CATTriggerBitCombiner",
     triggerResults = cms.InputTag("TriggerResults::PAT"),
     secondaryTriggerResults = cms.InputTag("TriggerResults::RECO"),
     triggerPrescales = cms.InputTag("patTrigger"),
     combineBy = cms.string("and"),
     triggersToMatch = cms.vstring(
-        "CSCTightHaloFilter",
-        #"EcalDeadCellTriggerPrimitiveFilter",
-        #"HBHENoiseFilter",
-        "eeBadScFilter",
+        "HBHENoiseFilter",
+        "HBHENoiseIsoFilter",
+        "EcalDeadCellTriggerPrimitiveFilter",
         "goodVertices",
+        "eeBadScFilter",
+        "globalTightHalo2016Filter",
     ),
     doFilter = cms.bool(False),
 )

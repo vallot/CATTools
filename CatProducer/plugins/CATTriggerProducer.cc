@@ -143,6 +143,7 @@ void CATTriggerProducer::produce(edm::Event& event, const edm::EventSetup& event
         for ( auto& selectTrigObject : selectTrigObjects_ ){
           if (pathNamesAll[h].find(selectTrigObject) == 0){
             if (trigObj.hasPathName( pathNamesAll[h], true, true )){
+	      //std::cout << "CATTriggerProducer::saving "<< pathNamesAll[h] << std::endl;	      
               keepTriggerObject = true;
             }
           }
