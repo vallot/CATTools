@@ -10,4 +10,5 @@ VERSION=$1
 
 cp pass2/plots.json preview/
 cp pass2/cutflow.json preview/
-scp -rP8022 preview higgs.hanyang.ac.kr:/var/www/html/CATTools/preview/$VERSION
+ssh -p8022 higgs.hanyang.ac.kr "mkdir /var/www/html/CATTools/preview/$VERSION"
+scp -rP8022 preview/* higgs.hanyang.ac.kr:/var/www/html/CATTools/preview/$VERSION

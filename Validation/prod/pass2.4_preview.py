@@ -115,7 +115,8 @@ for iplt, pltInfo in enumerate(plts):
         if yMC > 0:
             r = yRD/yMC
             rMax = max(r, rMax)
-        if yMC > 0 and yRD > 0: e = r*hypot(eRD/yRD, eMC/yMC)
+        #if yMC > 0 and yRD > 0: e = r*hypot(eRD/yRD, eMC/yMC)
+        if yRD > 0: e = r*abs(eRD/yRD)
         if r == 1e9 or e == 1e9: continue
 
         x = hRD.GetXaxis().GetBinCenter(b+1)
@@ -178,15 +179,15 @@ for iplt, pltInfo in enumerate(plts):
     fout.cd(dirName)
     c.Write()
 
-    outdirName = 'preview/'+dirName
-    if not os.path.isdir(outdirName): os.makedirs(outdirName)
-    c.Print(outdirName+'/'+c.GetName()+'.png')
-    if grpRatio.GetN() > 0: c.Print(outdirName+'/'+c.GetName()+'.C')
-
     yMax = max([hsMC.GetHistogram().GetBinContent(i) for i in range(1, nbinsX)])
     yMaxR = max([hsMC.GetHistogram().GetBinContent(i) for i in range(nbinsX/2, nbinsX)])
     yMax = max(yMax, max([hRD.GetBinContent(i) for i in range(1, nbinsX)]))
     yMaxR = max(yMaxR, max([hRD.GetBinContent(i) for i in range(nbinsX/2, nbinsX)]))
+
+    outdirName = 'preview/'+dirName
+    if not os.path.isdir(outdirName): os.makedirs(outdirName)
+    c.Print(outdirName+'/'+c.GetName()+'.png')
+    if grpRatio.GetN() > 0: c.Print(outdirName+'/'+c.GetName()+'.C')
 
     plts[iplt]['yMax'] = yMax
     plts[iplt]['yMaxR'] = yMaxR
