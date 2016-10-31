@@ -10,16 +10,13 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 50000
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 process.source.fileNames = [
-    '/store/user/jhgoh/CATTools/sync/v7-6-3/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',
+    '/store/user/jhgoh/CATTools/sync/v7-6-5/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',
 ]
 
 process.load("CATTools.CatAnalyzer.filters_cff")
-process.load("CATTools.CatAnalyzer.ttll.ttllEventSelector_cfi")
+process.load("CATTools.Validation.ttllEventSelector_cfi")
 process.load("CATTools.CatAnalyzer.ttll.ttllGenFilters_cff")
-process.load("CATTools.CatAnalyzer.ttll.ttllAnalyzers_cff")
-process.load("CATTools.CatAnalyzer.ttll.ntuple_cff")
-process.ttll.isTopMC = True
-process.ttbbll.isTopMC = True
+process.load("CATTools.Validation.validation_cff")
 
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string("hist.root"),
@@ -28,7 +25,7 @@ process.TFileService = cms.Service("TFileService",
 process.load("CATTools.CatAnalyzer.flatGenWeights_cfi")
 process.agen = cms.EDAnalyzer("CATGenTopAnalysis",
     weightIndex = cms.int32(-1),
-    weight = cms.InputTag("genWeight"),
+    weight = cms.InputTag("flatGenWeights"),
     channel = cms.InputTag("partonTop","channel"),
     modes = cms.InputTag("partonTop", "modes"),
     partonTop = cms.InputTag("partonTop"),
@@ -38,7 +35,8 @@ process.agen = cms.EDAnalyzer("CATGenTopAnalysis",
 
 process.p = cms.Path(
     process.agen + process.filterPartonTTLL
-  * process.eventsTTLL * process.ttll + process.ttbbll
+  * process.gen + process.rec
+  * process.eventsTTLL
 )
 
 ## Customise with cmd arguments

@@ -10,6 +10,7 @@
 
 #include "CATTools/CommonTools/interface/TTbarModeDefs.h"
 #include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
+#include "CATTools/CatAnalyzer/interface/TopTriggerSF.h"
 
 #include "DataFormats/Candidate/interface/LeafCandidate.h"
 //#include "DataFormats/Candidate/interface/CompositeCandidate.h"
@@ -526,7 +527,7 @@ private:
     if ( !el.electronID(elIdName_) ) return false;
     //if ( !el.isPF() or !el.passConversionVeto() ) return false;
     const double scEta = std::abs(el.scEta());
-    if ( scEta > 1.4442 and scEta < 1.566 ) return false;
+    if ( isEcalCrackVeto_ and scEta > 1.4442 and scEta < 1.566 ) return false;
     return true;
   }
   bool isBjet(const cat::Jet& jet)
@@ -548,13 +549,14 @@ private:
   // Efficiency SF
   ScaleFactorEvaluator muonSF_, electronSF_;
   double muonSFShift_, electronSFShift_;
+  double trigSFShift_;
 
   bool isMC_;
   bool isIgnoreTrig_; // Accept event even if it does not pass HLT. Needed for synchronization
   const int applyFilterAt_;
 
   // ID variables
-  bool isMVAElectronSel_;
+  bool isEcalCrackVeto_, isMVAElectronSel_;
   std::string bTagName_;
   std::string elIdName_;
   enum class BTagWP { CSVL, CSVM, CSVT } bTagWP_;
@@ -597,8 +599,13 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
                     electronSFSet.getParameter<vdouble>("errors"));
     electronSFShift_ = electronSet.getParameter<int>("efficiencySFDirection");
   }
-  isMVAElectronSel_ = false;
-  if ( elIdName_.substr(0,3) == "mva" ) isMVAElectronSel_ = true;
+  isEcalCrackVeto_ = isMVAElectronSel_ = false;
+  if ( elIdName_.substr(0,3) == "mva" ) {
+    isMVAElectronSel_ = true;
+  }
+  else {
+    isEcalCrackVeto_ = electronSet.getParameter<bool>("applyEcalCrackVeto");
+  }
 
   const auto jetSet = pset.getParameter<edm::ParameterSet>("jet");
   jetToken_ = consumes<cat::JetCollection>(jetSet.getParameter<edm::InputTag>("src"));
@@ -625,6 +632,7 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   trigMuMuToken_ = consumes<int>(filterSet.getParameter<edm::InputTag>("trigMUMU"));
   trigMuElToken_ = consumes<int>(filterSet.getParameter<edm::InputTag>("trigMUEL"));
   isIgnoreTrig_ = filterSet.getParameter<bool>("ignoreTrig");
+  trigSFShift_ = filterSet.getParameter<int>("efficiencySFDirection");
 
   if ( isMC_ )
   {
@@ -701,7 +709,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     edm::Handle<vfloat> vfHandle;
 
     if ( genWeightIndex_ < 0 ) {
-      event.getByToken(genWeightToken_, vfHandle);
+      event.getByToken(genWeightToken_, fHandle);
       genWeight = *fHandle;
     }
     else {
@@ -810,12 +818,14 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       const double w1 = electronSF_(lepton1->pt(), std::abs(e1->scEta()), electronSFShift_);
       const double w2 = electronSF_(lepton2->pt(), std::abs(e2->scEta()), electronSFShift_);
       weight *= w1*w2;
+      if ( isIgnoreTrig_ ) weight *= isTrigElEl * computeTrigSF(*lepton1, *lepton2, trigSFShift_);
     }
     else if ( channel == CH_MUMU )
     {
       const double w1 = muonSF_(lepton1->pt(), std::abs(lepton1->eta()), muonSFShift_);
       const double w2 = muonSF_(lepton2->pt(), std::abs(lepton2->eta()), muonSFShift_);
       weight *= w1*w2;
+      if ( isIgnoreTrig_ ) weight *= isTrigMuMu * computeTrigSF(*lepton1, *lepton2, trigSFShift_);
     }
     else if ( channel == CH_MUEL )
     {
@@ -823,6 +833,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       const double w1 = electronSF_(lepton1->pt(), std::abs(e1->scEta()), electronSFShift_);
       const double w2 = muonSF_(lepton2->pt(), std::abs(lepton2->eta()), muonSFShift_);
       weight *= w1*w2;
+      if ( isIgnoreTrig_ ) weight *= isTrigMuEl* computeTrigSF(*lepton1, *lepton2, trigSFShift_);
     }
     else edm::LogError("TTLLEventSelector") << "Strange event with nLepton >=2 but not falling info ee,mumu,emu category";
   }
@@ -1007,10 +1018,10 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       // Step2 Z mass veto : Step1 have to be required by construction
       if ( channel == CH_MUEL or !(76 <= z_m and z_m <= 106) ) cutstepBits[1] = true;
     }
-    // Step3 Minimal jet multiplicity
-    if ( jets_n >= 2 ) cutstepBits[2] = true;
-    // Step4 Missing transverse momentum
-    if ( channel == CH_MUEL or met_pt >= 40 ) cutstepBits[3] = true;
+    // Step3 Missing transverse momentum
+    if ( channel == CH_MUEL or met_pt >= 40 ) cutstepBits[2] = true;
+    // Step4 Minimal jet multiplicity
+    if ( jets_n >= 2 ) cutstepBits[3] = true;
     // Step5 one b jet
     if ( bjets_n >= 1 ) cutstepBits[4] = true;
 
@@ -1446,9 +1457,6 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     if ( cutstep <= 2 ) break;
     ++icutstep; // =3
 
-    const auto& jet1 = out_jets->at(0);
-    const auto& jet2 = out_jets->at(1);
-
     if ( channel == CH_ELEL )
     {
       h_ee.hCutstep->Fill(icutstep, weight);
@@ -1466,16 +1474,24 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_ee.h3_jets_pt->Fill(jet.pt(), weight);
         h_ee.h3_jets_eta->Fill(jet.eta(), weight);
       }
-      h_ee.h3_jet1_m->Fill(jet1.mass(), weight);
-      h_ee.h3_jet1_pt->Fill(jet1.pt(), weight);
-      h_ee.h3_jet1_eta->Fill(jet1.eta(), weight);
-      h_ee.h3_jet1_phi->Fill(jet1.phi(), weight);
-      h_ee.h3_jet1_btag->Fill(jet1.bDiscriminator(bTagName_), weight);
-      h_ee.h3_jet2_m->Fill(jet2.mass(), weight);
-      h_ee.h3_jet2_pt->Fill(jet2.pt(), weight);
-      h_ee.h3_jet2_eta->Fill(jet2.eta(), weight);
-      h_ee.h3_jet2_phi->Fill(jet2.phi(), weight);
-      h_ee.h3_jet2_btag->Fill(jet2.bDiscriminator(bTagName_), weight);
+      if ( jets_n >= 1 )
+      {
+        const auto& jet = out_jets->at(0);
+        h_ee.h3_jet1_m->Fill(jet.mass(), weight);
+        h_ee.h3_jet1_pt->Fill(jet.pt(), weight);
+        h_ee.h3_jet1_eta->Fill(jet.eta(), weight);
+        h_ee.h3_jet1_phi->Fill(jet.phi(), weight);
+        h_ee.h3_jet1_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      if ( jets_n >= 2 )
+      {
+        const auto& jet = out_jets->at(1);
+        h_ee.h3_jet2_m->Fill(jet.mass(), weight);
+        h_ee.h3_jet2_pt->Fill(jet.pt(), weight);
+        h_ee.h3_jet2_eta->Fill(jet.eta(), weight);
+        h_ee.h3_jet2_phi->Fill(jet.phi(), weight);
+        h_ee.h3_jet2_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
       if ( jets_n >= 3 )
       {
         const auto& jet = out_jets->at(2);
@@ -1515,16 +1531,24 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_mm.h3_jets_pt->Fill(jet.pt(), weight);
         h_mm.h3_jets_eta->Fill(jet.eta(), weight);
       }
-      h_mm.h3_jet1_m->Fill(jet1.mass(), weight);
-      h_mm.h3_jet1_pt->Fill(jet1.pt(), weight);
-      h_mm.h3_jet1_eta->Fill(jet1.eta(), weight);
-      h_mm.h3_jet1_phi->Fill(jet1.phi(), weight);
-      h_mm.h3_jet1_btag->Fill(jet1.bDiscriminator(bTagName_), weight);
-      h_mm.h3_jet2_m->Fill(jet2.mass(), weight);
-      h_mm.h3_jet2_pt->Fill(jet2.pt(), weight);
-      h_mm.h3_jet2_eta->Fill(jet2.eta(), weight);
-      h_mm.h3_jet2_phi->Fill(jet2.phi(), weight);
-      h_mm.h3_jet2_btag->Fill(jet2.bDiscriminator(bTagName_), weight);
+      if ( jets_n >= 1 )
+      {
+        const auto& jet = out_jets->at(0);
+        h_mm.h3_jet1_m->Fill(jet.mass(), weight);
+        h_mm.h3_jet1_pt->Fill(jet.pt(), weight);
+        h_mm.h3_jet1_eta->Fill(jet.eta(), weight);
+        h_mm.h3_jet1_phi->Fill(jet.phi(), weight);
+        h_mm.h3_jet1_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      if ( jets_n >= 2 )
+      {
+        const auto& jet = out_jets->at(1);
+        h_mm.h3_jet2_m->Fill(jet.mass(), weight);
+        h_mm.h3_jet2_pt->Fill(jet.pt(), weight);
+        h_mm.h3_jet2_eta->Fill(jet.eta(), weight);
+        h_mm.h3_jet2_phi->Fill(jet.phi(), weight);
+        h_mm.h3_jet2_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
       if ( jets_n >= 3 )
       {
         const auto& jet = out_jets->at(2);
@@ -1565,16 +1589,24 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_em.h3_jets_pt->Fill(jet.pt(), weight);
         h_em.h3_jets_eta->Fill(jet.eta(), weight);
       }
-      h_em.h3_jet1_m->Fill(jet1.mass(), weight);
-      h_em.h3_jet1_pt->Fill(jet1.pt(), weight);
-      h_em.h3_jet1_eta->Fill(jet1.eta(), weight);
-      h_em.h3_jet1_phi->Fill(jet1.phi(), weight);
-      h_em.h3_jet1_btag->Fill(jet1.bDiscriminator(bTagName_), weight);
-      h_em.h3_jet2_m->Fill(jet2.mass(), weight);
-      h_em.h3_jet2_pt->Fill(jet2.pt(), weight);
-      h_em.h3_jet2_eta->Fill(jet2.eta(), weight);
-      h_em.h3_jet2_phi->Fill(jet2.phi(), weight);
-      h_em.h3_jet2_btag->Fill(jet2.bDiscriminator(bTagName_), weight);
+      if ( jets_n >= 1 )
+      {
+        const auto& jet = out_jets->at(0);
+        h_em.h3_jet1_m->Fill(jet.mass(), weight);
+        h_em.h3_jet1_pt->Fill(jet.pt(), weight);
+        h_em.h3_jet1_eta->Fill(jet.eta(), weight);
+        h_em.h3_jet1_phi->Fill(jet.phi(), weight);
+        h_em.h3_jet1_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
+      if ( jets_n >= 2 )
+      {
+        const auto& jet = out_jets->at(1);
+        h_em.h3_jet2_m->Fill(jet.mass(), weight);
+        h_em.h3_jet2_pt->Fill(jet.pt(), weight);
+        h_em.h3_jet2_eta->Fill(jet.eta(), weight);
+        h_em.h3_jet2_phi->Fill(jet.phi(), weight);
+        h_em.h3_jet2_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      }
       if ( jets_n >= 3 )
       {
         const auto& jet = out_jets->at(2);
@@ -1602,6 +1634,9 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     // Finalize cut step 3 and start cut step 4
     if ( cutstep <= 3 ) break;
     ++icutstep; // =4
+
+    const auto& jet1 = out_jets->at(0);
+    const auto& jet2 = out_jets->at(1);
 
     if ( channel == CH_ELEL )
     {
