@@ -731,11 +731,6 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     }
   }
 
-  // Cutsomized cutflow without z-veto cut to be used in DY estimation and other studies
-  for ( int istep=1, nstep=cutstepBits.size(); istep<=nstep; ++istep ) {
-    if ( istep != 2 and !cutstepBits[istep-1] ) break;
-  }
-
   // Fill cut flow 2D plot
   for ( int istep=1, nstep=cutstepBits.size(); istep<=nstep; ++istep ) {
     const bool res1 = cutstepBits[istep-1];
