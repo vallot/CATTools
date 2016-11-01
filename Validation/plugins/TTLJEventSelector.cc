@@ -40,13 +40,15 @@ struct ControlPlotsTTLJ
 
   H1 h0b_vertex_n;
   H1 h0b_met_pt, h0b_met_phi;
-  H1 h0b_leptons_n, h0b_leptons_pt, h0b_leptons_eta;
+  H1 h0b_leptons_n;
+  H1 h0b_lepton1_pt, h0b_lepton1_eta, h0b_lepton1_phi, h0b_lepton1_q;
   H1 h0b_jets_n, h0b_jets_pt, h0b_jets_eta, h0b_jets_ht;
   H1 h0b_bjets_n;
 
   H1 h0c_vertex_n;
   H1 h0c_met_pt, h0c_met_phi;
   H1 h0c_leptons_n;
+  H1 h0c_lepton1_pt, h0c_lepton1_eta, h0c_lepton1_phi, h0c_lepton1_q;
   H1 h0c_jets_n, h0c_jets_pt, h0c_jets_eta, h0c_jets_ht;
   H1 h0c_bjets_n;
 
@@ -94,6 +96,7 @@ struct ControlPlotsTTLJ
 
   H1 h3_vertex_n;
   H1 h3_met_pt, h3_met_phi;
+  H1 h3_lepton1_pt, h3_lepton1_eta, h3_lepton1_phi, h3_lepton1_q;
   H1 h3_jets_n, h3_jets_pt, h3_jets_eta, h3_jets_ht;
   H1 h3_jet1_m, h3_jet1_pt, h3_jet1_eta, h3_jet1_phi, h3_jet1_btag;
   H1 h3_jet2_m, h3_jet2_pt, h3_jet2_eta, h3_jet2_phi, h3_jet2_btag;
@@ -106,6 +109,7 @@ struct ControlPlotsTTLJ
 
   H1 h4_vertex_n;
   H1 h4_met_pt, h4_met_phi;
+  H1 h4_lepton1_pt, h4_lepton1_eta, h4_lepton1_phi, h4_lepton1_q;
   H1 h4_jets_n, h4_jets_pt, h4_jets_eta, h4_jets_ht;
   H1 h4_jet1_m, h4_jet1_pt, h4_jet1_eta, h4_jet1_phi, h4_jet1_btag;
   H1 h4_jet2_m, h4_jet2_pt, h4_jet2_eta, h4_jet2_phi, h4_jet2_btag;
@@ -381,6 +385,11 @@ struct ControlPlotsTTLJ
     h3_met_pt = subdir.make<TH1D>("met_pt", "met_pt", 1000, 0, 1000);
     h3_met_phi = subdir.make<TH1D>("met_phi", "met_phi", 100, -pi, pi);
 
+    h3_lepton1_pt  = subdir.make<TH1D>("lepton1_pt", "lepton1_pt", 1000, 0, 1000);
+    h3_lepton1_eta = subdir.make<TH1D>("lepton1_eta", "lepton1_eta", 100, -maxeta, maxeta);
+    h3_lepton1_phi = subdir.make<TH1D>("lepton1_phi", "lepton1_phi", 100, -pi, pi);
+    h3_lepton1_q   = subdir.make<TH1D>("lepton1_q", "lepton1_q", 3, -1.5, 1.5);
+
     h3_jets_n = subdir.make<TH1D>("jets_n", "jets_n", 10, 0, 10);
     h3_jets_pt  = subdir.make<TH1D>("jets_pt", "jets_pt", 1000, 0, 1000);
     h3_jets_eta = subdir.make<TH1D>("jets_eta", "jets_eta", 100, -maxeta, maxeta);
@@ -430,6 +439,11 @@ struct ControlPlotsTTLJ
     h4_vertex_n = subdir.make<TH1D>("vertex_n", "vertex_n", 100, 0, 100);
     h4_met_pt = subdir.make<TH1D>("met_pt", "met_pt", 1000, 0, 1000);
     h4_met_phi = subdir.make<TH1D>("met_phi", "met_phi", 100, -pi, pi);
+
+    h4_lepton1_pt  = subdir.make<TH1D>("lepton1_pt", "lepton1_pt", 1000, 0, 1000);
+    h4_lepton1_eta = subdir.make<TH1D>("lepton1_eta", "lepton1_eta", 100, -maxeta, maxeta);
+    h4_lepton1_phi = subdir.make<TH1D>("lepton1_phi", "lepton1_phi", 100, -pi, pi);
+    h4_lepton1_q   = subdir.make<TH1D>("lepton1_q", "lepton1_q", 3, -1.5, 1.5);
 
     h4_jets_n = subdir.make<TH1D>("jets_n", "jets_n", 10, 0, 10);
     h4_jets_pt  = subdir.make<TH1D>("jets_pt", "jets_pt", 1000, 0, 1000);
@@ -566,6 +580,8 @@ private:
   }
   bool isVetoElectron(const cat::Electron& el)
   {
+    if ( std::abs(el.eta()) > 2.4 ) return false;
+    if ( el.pt() < 10 ) return false;
     if ( !el.electronID(elVetoIdName_) ) return false;
     return true;
   }
@@ -905,6 +921,13 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     h_el.h0b_met_pt->Fill(met_pt, weight);
     h_el.h0b_met_phi->Fill(met_phi, weight);
     h_el.h0b_leptons_n->Fill(leptons_n, weight);
+    if ( leptons_n >= 1 ) {
+      const auto lepton1P4 = shiftedLepPt(*lepton1)/lepton1->pt()*lepton1->p4();
+      h_el.h0b_lepton1_pt->Fill(lepton1P4.pt(), weight);
+      h_el.h0b_lepton1_eta->Fill(lepton1->eta(), weight);
+      h_el.h0b_lepton1_phi->Fill(lepton1->phi(), weight);
+      h_el.h0b_lepton1_q->Fill(lepton1->charge(), weight);
+    }
     h_el.h0b_jets_n->Fill(jets_n, weight);
     h_el.h0b_bjets_n->Fill(bjets_n, weight);
     h_el.h0b_jets_ht->Fill(jets_ht, weight);
@@ -922,6 +945,13 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       h_el.h0c_met_pt->Fill(met_pt, weight);
       h_el.h0c_met_phi->Fill(met_phi, weight);
       h_el.h0c_leptons_n->Fill(leptons_n, weight);
+      if ( leptons_n >= 1 ) {
+        const auto lepton1P4 = shiftedLepPt(*lepton1)/lepton1->pt()*lepton1->p4();
+        h_el.h0c_lepton1_pt->Fill(lepton1P4.pt(), weight);
+        h_el.h0c_lepton1_eta->Fill(lepton1->eta(), weight);
+        h_el.h0c_lepton1_phi->Fill(lepton1->phi(), weight);
+        h_el.h0c_lepton1_q->Fill(lepton1->charge(), weight);
+      }
       h_el.h0c_jets_n->Fill(jets_n, weight);
       h_el.h0c_bjets_n->Fill(bjets_n, weight);
       h_el.h0c_jets_ht->Fill(jets_ht, weight);
@@ -941,6 +971,13 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     h_mu.h0b_met_pt->Fill(met_pt, weight);
     h_mu.h0b_met_phi->Fill(met_phi, weight);
     h_mu.h0b_leptons_n->Fill(leptons_n, weight);
+    if ( leptons_n >= 1 ) {
+      const auto lepton1P4 = shiftedLepPt(*lepton1)/lepton1->pt()*lepton1->p4();
+      h_mu.h0b_lepton1_pt->Fill(lepton1P4.pt(), weight);
+      h_mu.h0b_lepton1_eta->Fill(lepton1->eta(), weight);
+      h_mu.h0b_lepton1_phi->Fill(lepton1->phi(), weight);
+      h_mu.h0b_lepton1_q->Fill(lepton1->charge(), weight);
+    }
     h_mu.h0b_jets_n->Fill(jets_n, weight);
     h_mu.h0b_bjets_n->Fill(bjets_n, weight);
     h_mu.h0b_jets_ht->Fill(jets_ht, weight);
@@ -958,6 +995,13 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       h_mu.h0c_met_pt->Fill(met_pt, weight);
       h_mu.h0c_met_phi->Fill(met_phi, weight);
       h_mu.h0c_leptons_n->Fill(leptons_n, weight);
+      if ( leptons_n >= 1 ) {
+        const auto lepton1P4 = shiftedLepPt(*lepton1)/lepton1->pt()*lepton1->p4();
+        h_mu.h0c_lepton1_pt->Fill(lepton1P4.pt(), weight);
+        h_mu.h0c_lepton1_eta->Fill(lepton1->eta(), weight);
+        h_mu.h0c_lepton1_phi->Fill(lepton1->phi(), weight);
+        h_mu.h0c_lepton1_q->Fill(lepton1->charge(), weight);
+      }
       h_mu.h0c_jets_n->Fill(jets_n, weight);
       h_mu.h0c_bjets_n->Fill(bjets_n, weight);
       h_mu.h0c_jets_ht->Fill(jets_ht, weight);
@@ -1305,6 +1349,10 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       h_el.h2b_vertex_n->Fill(nVertex, weight);
       h_el.h2b_met_pt->Fill(met_pt, weight);
       h_el.h2b_met_phi->Fill(met_phi, weight);
+      h_el.h2b_lepton1_pt->Fill(lepton1P4.pt(), weight);
+      h_el.h2b_lepton1_eta->Fill(lepton1->eta(), weight);
+      h_el.h2b_lepton1_phi->Fill(lepton1->phi(), weight);
+      h_el.h2b_lepton1_q->Fill(lepton1->charge(), weight);
       h_el.h2b_jets_n->Fill(jets_n, weight);
       h_el.h2b_jets_ht->Fill(jets_ht, weight);
       for ( auto jet : *out_jets ) {
@@ -1369,6 +1417,10 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       h_mu.h2b_vertex_n->Fill(nVertex, weight);
       h_mu.h2b_met_pt->Fill(met_pt, weight);
       h_mu.h2b_met_phi->Fill(met_phi, weight);
+      h_mu.h2b_lepton1_pt->Fill(lepton1P4.pt(), weight);
+      h_mu.h2b_lepton1_eta->Fill(lepton1->eta(), weight);
+      h_mu.h2b_lepton1_phi->Fill(lepton1->phi(), weight);
+      h_mu.h2b_lepton1_q->Fill(lepton1->charge(), weight);
       h_mu.h2b_jets_n->Fill(jets_n, weight);
       h_mu.h2b_jets_ht->Fill(jets_ht, weight);
       for ( auto jet : *out_jets ) {
@@ -1441,6 +1493,10 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       h_el.h3_vertex_n->Fill(nVertex, weight);
       h_el.h3_met_pt->Fill(met_pt, weight);
       h_el.h3_met_phi->Fill(met_phi, weight);
+      h_el.h3_lepton1_pt->Fill(lepton1P4.pt(), weight);
+      h_el.h3_lepton1_eta->Fill(lepton1->eta(), weight);
+      h_el.h3_lepton1_phi->Fill(lepton1->phi(), weight);
+      h_el.h3_lepton1_q->Fill(lepton1->charge(), weight);
       h_el.h3_jets_n->Fill(jets_n, weight);
       h_el.h3_jets_ht->Fill(jets_ht, weight);
       for ( auto jet : *out_jets ) {
@@ -1502,6 +1558,10 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       h_mu.h3_vertex_n->Fill(nVertex, weight);
       h_mu.h3_met_pt->Fill(met_pt, weight);
       h_mu.h3_met_phi->Fill(met_phi, weight);
+      h_mu.h3_lepton1_pt->Fill(lepton1P4.pt(), weight);
+      h_mu.h3_lepton1_eta->Fill(lepton1->eta(), weight);
+      h_mu.h3_lepton1_phi->Fill(lepton1->phi(), weight);
+      h_mu.h3_lepton1_q->Fill(lepton1->charge(), weight);
       h_mu.h3_jets_n->Fill(jets_n, weight);
       h_mu.h3_jets_ht->Fill(jets_ht, weight);
       for ( auto jet : *out_jets ) {
@@ -1569,6 +1629,10 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       h_el.h4_vertex_n->Fill(nVertex, weight);
       h_el.h4_met_pt->Fill(met_pt, weight);
       h_el.h4_met_phi->Fill(met_phi, weight);
+      h_el.h4_lepton1_pt->Fill(lepton1P4.pt(), weight);
+      h_el.h4_lepton1_eta->Fill(lepton1->eta(), weight);
+      h_el.h4_lepton1_phi->Fill(lepton1->phi(), weight);
+      h_el.h4_lepton1_q->Fill(lepton1->charge(), weight);
       h_el.h4_jets_n->Fill(jets_n, weight);
       h_el.h4_jets_ht->Fill(jets_ht, weight);
       for ( auto jet : *out_jets ) {
@@ -1630,6 +1694,10 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       h_mu.h4_vertex_n->Fill(nVertex, weight);
       h_mu.h4_met_pt->Fill(met_pt, weight);
       h_mu.h4_met_phi->Fill(met_phi, weight);
+      h_mu.h4_lepton1_pt->Fill(lepton1P4.pt(), weight);
+      h_mu.h4_lepton1_eta->Fill(lepton1->eta(), weight);
+      h_mu.h4_lepton1_phi->Fill(lepton1->phi(), weight);
+      h_mu.h4_lepton1_q->Fill(lepton1->charge(), weight);
       h_mu.h4_jets_n->Fill(jets_n, weight);
       h_mu.h4_jets_ht->Fill(jets_ht, weight);
       for ( auto jet : *out_jets ) {
