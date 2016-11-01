@@ -23,102 +23,35 @@
 #include "TH1D.h"
 #include "TH2F.h"
 
+#define nMaxCutstep 12
+
 using namespace std;
 
 namespace cat {
 
 struct ControlPlotsTTLJ
 {
-  const static int nMaxCutstep;
+  //const static int nMaxCutstep;
   typedef TH1D* H1;
   typedef TH2D* H2;
 
   H1 hCutstep, hCutstepNoweight;
   H2 h2Cutstep, h2CutstepNoweight;
 
-  H1 h0a_vertex_n;
+  H1 h_vertex_n[nMaxCutstep];
+  H1 h_met_pt[nMaxCutstep], h_met_phi[nMaxCutstep];
+  H1 h_leptons_n[nMaxCutstep];
+  H1 h_lepton1_pt[nMaxCutstep], h_lepton1_eta[nMaxCutstep], h_lepton1_phi[nMaxCutstep], h_lepton1_q[nMaxCutstep];
+  H1 h_jets_n[nMaxCutstep], h_jets_pt[nMaxCutstep], h_jets_eta[nMaxCutstep], h_jets_ht[nMaxCutstep];
 
-  H1 h0b_vertex_n;
-  H1 h0b_met_pt, h0b_met_phi;
-  H1 h0b_leptons_n;
-  H1 h0b_lepton1_pt, h0b_lepton1_eta, h0b_lepton1_phi, h0b_lepton1_q;
-  H1 h0b_jets_n, h0b_jets_pt, h0b_jets_eta, h0b_jets_ht;
-  H1 h0b_bjets_n;
+  H1 h_jet_m[nMaxCutstep][6]; 
+  H1 h_jet_pt[nMaxCutstep][6];
+  H1 h_jet_eta[nMaxCutstep][6];
+  H1 h_jet_phi[nMaxCutstep][6];
+  H1 h_jet_btag[nMaxCutstep][6];
 
-  H1 h0c_vertex_n;
-  H1 h0c_met_pt, h0c_met_phi;
-  H1 h0c_leptons_n;
-  H1 h0c_lepton1_pt, h0c_lepton1_eta, h0c_lepton1_phi, h0c_lepton1_q;
-  H1 h0c_jets_n, h0c_jets_pt, h0c_jets_eta, h0c_jets_ht;
-  H1 h0c_bjets_n;
-
-  H1 h1_vertex_n;
-  H1 h1_met_pt, h1_met_phi;
-  H1 h1_leptons_n;
-  H1 h1_lepton1_pt, h1_lepton1_eta, h1_lepton1_phi, h1_lepton1_q;
-  H1 h1_jets_n, h1_jets_pt, h1_jets_eta, h1_jets_ht;
-  H1 h1_jet1_m, h1_jet1_pt, h1_jet1_eta, h1_jet1_phi, h1_jet1_btag;
-  H1 h1_jet2_m, h1_jet2_pt, h1_jet2_eta, h1_jet2_phi, h1_jet2_btag;
-  H1 h1_jet3_m, h1_jet3_pt, h1_jet3_eta, h1_jet3_phi, h1_jet3_btag;
-  H1 h1_jet4_m, h1_jet4_pt, h1_jet4_eta, h1_jet4_phi, h1_jet4_btag;
-  H1 h1_jet5_m, h1_jet5_pt, h1_jet5_eta, h1_jet5_phi, h1_jet5_btag;
-  H1 h1_jet6_m, h1_jet6_pt, h1_jet6_eta, h1_jet6_phi, h1_jet6_btag;
-  H1 h1_bjets_n;
-  H1 h1_event_st;
-
-  H1 h2a_vertex_n;
-  H1 h2a_met_pt, h2a_met_phi;
-  H1 h2a_leptons_n;
-  H1 h2a_lepton1_pt, h2a_lepton1_eta, h2a_lepton1_phi, h2a_lepton1_q;
-  H1 h2a_jets_n, h2a_jets_pt, h2a_jets_eta, h2a_jets_ht;
-  H1 h2a_jet1_m, h2a_jet1_pt, h2a_jet1_eta, h2a_jet1_phi, h2a_jet1_btag;
-  H1 h2a_jet2_m, h2a_jet2_pt, h2a_jet2_eta, h2a_jet2_phi, h2a_jet2_btag;
-  H1 h2a_jet3_m, h2a_jet3_pt, h2a_jet3_eta, h2a_jet3_phi, h2a_jet3_btag;
-  H1 h2a_jet4_m, h2a_jet4_pt, h2a_jet4_eta, h2a_jet4_phi, h2a_jet4_btag;
-  H1 h2a_jet5_m, h2a_jet5_pt, h2a_jet5_eta, h2a_jet5_phi, h2a_jet5_btag;
-  H1 h2a_jet6_m, h2a_jet6_pt, h2a_jet6_eta, h2a_jet6_phi, h2a_jet6_btag;
-  H1 h2a_bjets_n;
-  H1 h2a_event_st;
-
-  H1 h2b_vertex_n;
-  H1 h2b_met_pt, h2b_met_phi;
-  H1 h2b_leptons_n;
-  H1 h2b_lepton1_pt, h2b_lepton1_eta, h2b_lepton1_phi, h2b_lepton1_q;
-  H1 h2b_jets_n, h2b_jets_pt, h2b_jets_eta, h2b_jets_ht;
-  H1 h2b_jet1_m, h2b_jet1_pt, h2b_jet1_eta, h2b_jet1_phi, h2b_jet1_btag;
-  H1 h2b_jet2_m, h2b_jet2_pt, h2b_jet2_eta, h2b_jet2_phi, h2b_jet2_btag;
-  H1 h2b_jet3_m, h2b_jet3_pt, h2b_jet3_eta, h2b_jet3_phi, h2b_jet3_btag;
-  H1 h2b_jet4_m, h2b_jet4_pt, h2b_jet4_eta, h2b_jet4_phi, h2b_jet4_btag;
-  H1 h2b_jet5_m, h2b_jet5_pt, h2b_jet5_eta, h2b_jet5_phi, h2b_jet5_btag;
-  H1 h2b_jet6_m, h2b_jet6_pt, h2b_jet6_eta, h2b_jet6_phi, h2b_jet6_btag;
-  H1 h2b_bjets_n;
-  H1 h2b_event_st;
-
-  H1 h3_vertex_n;
-  H1 h3_met_pt, h3_met_phi;
-  H1 h3_lepton1_pt, h3_lepton1_eta, h3_lepton1_phi, h3_lepton1_q;
-  H1 h3_jets_n, h3_jets_pt, h3_jets_eta, h3_jets_ht;
-  H1 h3_jet1_m, h3_jet1_pt, h3_jet1_eta, h3_jet1_phi, h3_jet1_btag;
-  H1 h3_jet2_m, h3_jet2_pt, h3_jet2_eta, h3_jet2_phi, h3_jet2_btag;
-  H1 h3_jet3_m, h3_jet3_pt, h3_jet3_eta, h3_jet3_phi, h3_jet3_btag;
-  H1 h3_jet4_m, h3_jet4_pt, h3_jet4_eta, h3_jet4_phi, h3_jet4_btag;
-  H1 h3_jet5_m, h3_jet5_pt, h3_jet5_eta, h3_jet5_phi, h3_jet5_btag;
-  H1 h3_jet6_m, h3_jet6_pt, h3_jet6_eta, h3_jet6_phi, h3_jet6_btag;
-  H1 h3_bjets_n;
-  H1 h3_event_st;
-
-  H1 h4_vertex_n;
-  H1 h4_met_pt, h4_met_phi;
-  H1 h4_lepton1_pt, h4_lepton1_eta, h4_lepton1_phi, h4_lepton1_q;
-  H1 h4_jets_n, h4_jets_pt, h4_jets_eta, h4_jets_ht;
-  H1 h4_jet1_m, h4_jet1_pt, h4_jet1_eta, h4_jet1_phi, h4_jet1_btag;
-  H1 h4_jet2_m, h4_jet2_pt, h4_jet2_eta, h4_jet2_phi, h4_jet2_btag;
-  H1 h4_jet3_m, h4_jet3_pt, h4_jet3_eta, h4_jet3_phi, h4_jet3_btag;
-  H1 h4_jet4_m, h4_jet4_pt, h4_jet4_eta, h4_jet4_phi, h4_jet4_btag;
-  H1 h4_jet5_m, h4_jet5_pt, h4_jet5_eta, h4_jet5_phi, h4_jet5_btag;
-  H1 h4_jet6_m, h4_jet6_pt, h4_jet6_eta, h4_jet6_phi, h4_jet6_btag;
-  H1 h4_bjets_n;
-  H1 h4_event_st;
+  H1 h_bjets_n[nMaxCutstep];
+  H1 h_event_st[nMaxCutstep];
 
   void book(TFileDirectory&& dir)
   {
@@ -133,365 +66,137 @@ struct ControlPlotsTTLJ
     h2Cutstep = dir.make<TH2D>("cutcorrelation", "cutcorrelation", nMaxCutstep, -2, nMaxCutstep-2, nMaxCutstep, -2, nMaxCutstep-2);
     h2CutstepNoweight = dir.make<TH2D>("cutcorrelationNoweight", "cutcorrelationNoweight", nMaxCutstep, -2, nMaxCutstep-2, nMaxCutstep, -2, nMaxCutstep-2);
 
-    hCutstep->GetXaxis()->SetBinLabel(1, "S0a all event");
-    hCutstep->GetXaxis()->SetBinLabel(2, "S0b Trigger");
-    hCutstep->GetXaxis()->SetBinLabel(3, "S0c Event filter");
-    hCutstep->GetXaxis()->SetBinLabel(4, "S1  Signal lepton");
-    hCutstep->GetXaxis()->SetBinLabel(5, "S2a Veto muon");
-    hCutstep->GetXaxis()->SetBinLabel(6, "S2b Veto electron");
-    hCutstep->GetXaxis()->SetBinLabel(7, "S3a nJet1");
-    hCutstep->GetXaxis()->SetBinLabel(8, "S4  nBJet1");
+    hCutstep->GetXaxis()->SetBinLabel( 1, "S0a all event");
+    hCutstep->GetXaxis()->SetBinLabel( 2, "S0b Trigger");
+    hCutstep->GetXaxis()->SetBinLabel( 3, "S0c Event filter");
+    hCutstep->GetXaxis()->SetBinLabel( 4, "S1  One signal lepton");
+    hCutstep->GetXaxis()->SetBinLabel( 5, "S2  Veto muon");
+    hCutstep->GetXaxis()->SetBinLabel( 6, "S3  Veto electron");
+    hCutstep->GetXaxis()->SetBinLabel( 7, "S4  Conv. veto");
+    hCutstep->GetXaxis()->SetBinLabel( 8, "S5a nJet1");
+    hCutstep->GetXaxis()->SetBinLabel( 9, "S5b nJet2");
+    hCutstep->GetXaxis()->SetBinLabel(10, "S5c nJet3");
+    hCutstep->GetXaxis()->SetBinLabel(11, "S5d nJet4");
+    hCutstep->GetXaxis()->SetBinLabel(12, "S6  nBJet1");
 
-    hCutstepNoweight->GetXaxis()->SetBinLabel(1, "S0a all event");
-    hCutstepNoweight->GetXaxis()->SetBinLabel(2, "S0b Trigger");
-    hCutstepNoweight->GetXaxis()->SetBinLabel(3, "S0c Event filter");
-    hCutstepNoweight->GetXaxis()->SetBinLabel(4, "S1  Signal lepton");
-    hCutstepNoweight->GetXaxis()->SetBinLabel(5, "S2a Veto muon");
-    hCutstepNoweight->GetXaxis()->SetBinLabel(6, "S2b Veto electron");
-    hCutstepNoweight->GetXaxis()->SetBinLabel(7, "S3a nJet1");
-    hCutstepNoweight->GetXaxis()->SetBinLabel(8, "S4  nBJet1");
+    hCutstepNoweight->GetXaxis()->SetBinLabel( 1, "S0a all event");
+    hCutstepNoweight->GetXaxis()->SetBinLabel( 2, "S0b Trigger");
+    hCutstepNoweight->GetXaxis()->SetBinLabel( 3, "S0c Event filter");
+    hCutstepNoweight->GetXaxis()->SetBinLabel( 4, "S1  One signal lepton");
+    hCutstepNoweight->GetXaxis()->SetBinLabel( 5, "S2  Veto muon");
+    hCutstepNoweight->GetXaxis()->SetBinLabel( 6, "S3  Veto electron");
+    hCutstepNoweight->GetXaxis()->SetBinLabel( 7, "S4  Conv. veto");
+    hCutstepNoweight->GetXaxis()->SetBinLabel( 8, "S5a nJet1");
+    hCutstepNoweight->GetXaxis()->SetBinLabel( 9, "S5b nJet2");
+    hCutstepNoweight->GetXaxis()->SetBinLabel(10, "S5c nJet3");
+    hCutstepNoweight->GetXaxis()->SetBinLabel(11, "S5d nJet4");
+    hCutstepNoweight->GetXaxis()->SetBinLabel(12, "S6  nBJet1");
 
-    h2Cutstep->GetXaxis()->SetBinLabel(1, "S0a all event");
-    h2Cutstep->GetXaxis()->SetBinLabel(2, "S0b Trigger");
-    h2Cutstep->GetXaxis()->SetBinLabel(3, "S0c Event filter");
-    h2Cutstep->GetXaxis()->SetBinLabel(4, "S1  Signal lepton");
-    h2Cutstep->GetXaxis()->SetBinLabel(5, "S2a Veto muon");
-    h2Cutstep->GetXaxis()->SetBinLabel(6, "S2b Veto electron");
-    h2Cutstep->GetXaxis()->SetBinLabel(7, "S3a nJet1");
-    h2Cutstep->GetXaxis()->SetBinLabel(8, "S4  nBJet1");
+    h2Cutstep->GetXaxis()->SetBinLabel( 1, "S0a all event");
+    h2Cutstep->GetXaxis()->SetBinLabel( 2, "S0b Trigger");
+    h2Cutstep->GetXaxis()->SetBinLabel( 3, "S0c Event filter");
+    h2Cutstep->GetXaxis()->SetBinLabel( 4, "S1  One signal lepton");
+    h2Cutstep->GetXaxis()->SetBinLabel( 5, "S2  Veto muon");
+    h2Cutstep->GetXaxis()->SetBinLabel( 6, "S3  Veto electron");
+    h2Cutstep->GetXaxis()->SetBinLabel( 7, "S4  Conv. veto");
+    h2Cutstep->GetXaxis()->SetBinLabel( 8, "S5a nJet1");
+    h2Cutstep->GetXaxis()->SetBinLabel( 9, "S5b nJet2");
+    h2Cutstep->GetXaxis()->SetBinLabel(10, "S5c nJet3");
+    h2Cutstep->GetXaxis()->SetBinLabel(11, "S5d nJet4");
+    h2Cutstep->GetXaxis()->SetBinLabel(12, "S6  nBJet1");
 
-    h2Cutstep->GetYaxis()->SetBinLabel(1, "S0a all event");
-    h2Cutstep->GetYaxis()->SetBinLabel(2, "S0b Trigger");
-    h2Cutstep->GetYaxis()->SetBinLabel(3, "S0c Event filter");
-    h2Cutstep->GetYaxis()->SetBinLabel(4, "S1  Signal lepton");
-    h2Cutstep->GetYaxis()->SetBinLabel(5, "S2a Veto muon");
-    h2Cutstep->GetYaxis()->SetBinLabel(6, "S2b Veto electron");
-    h2Cutstep->GetYaxis()->SetBinLabel(7, "S3a nJet1");
-    h2Cutstep->GetYaxis()->SetBinLabel(8, "S4  nBJet1");
+    h2Cutstep->GetYaxis()->SetBinLabel( 1, "S0a all event");
+    h2Cutstep->GetYaxis()->SetBinLabel( 2, "S0b Trigger");
+    h2Cutstep->GetYaxis()->SetBinLabel( 3, "S0c Event filter");
+    h2Cutstep->GetYaxis()->SetBinLabel( 4, "S1  One signal lepton");
+    h2Cutstep->GetYaxis()->SetBinLabel( 5, "S2  Veto muon");
+    h2Cutstep->GetYaxis()->SetBinLabel( 6, "S3  Veto electron");
+    h2Cutstep->GetYaxis()->SetBinLabel( 7, "S4  Conv. veto");
+    h2Cutstep->GetYaxis()->SetBinLabel( 8, "S5a nJet1");
+    h2Cutstep->GetYaxis()->SetBinLabel( 9, "S5b nJet2");
+    h2Cutstep->GetYaxis()->SetBinLabel(10, "S5c nJet3");
+    h2Cutstep->GetYaxis()->SetBinLabel(11, "S5d nJet4");
+    h2Cutstep->GetYaxis()->SetBinLabel(12, "S6  nBJet1");
 
-    h2CutstepNoweight->GetXaxis()->SetBinLabel(1, "S0a all event");
-    h2CutstepNoweight->GetXaxis()->SetBinLabel(2, "S0b Trigger");
-    h2CutstepNoweight->GetXaxis()->SetBinLabel(3, "S0c Event filter");
-    h2CutstepNoweight->GetXaxis()->SetBinLabel(4, "S1  Signal lepton");
-    h2CutstepNoweight->GetXaxis()->SetBinLabel(5, "S2a Veto muon");
-    h2CutstepNoweight->GetXaxis()->SetBinLabel(6, "S2b Veto electron");
-    h2CutstepNoweight->GetXaxis()->SetBinLabel(7, "S3a nJet1");
-    h2CutstepNoweight->GetXaxis()->SetBinLabel(8, "S4  nBJet1");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel( 1, "S0a all event");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel( 2, "S0b Trigger");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel( 3, "S0c Event filter");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel( 4, "S1  One signal lepton");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel( 5, "S2  Veto muon");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel( 6, "S3  Veto electron");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel( 7, "S4  Conv. veto");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel( 8, "S5a nJet1");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel( 9, "S5b nJet2");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel(10, "S5c nJet3");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel(11, "S5d nJet4");
+    h2CutstepNoweight->GetXaxis()->SetBinLabel(12, "S6  nBJet1");
 
-    h2CutstepNoweight->GetYaxis()->SetBinLabel(1, "S0a all event");
-    h2CutstepNoweight->GetYaxis()->SetBinLabel(2, "S0b Trigger");
-    h2CutstepNoweight->GetYaxis()->SetBinLabel(3, "S0c Event filter");
-    h2CutstepNoweight->GetYaxis()->SetBinLabel(4, "S1  Signal lepton");
-    h2CutstepNoweight->GetYaxis()->SetBinLabel(5, "S2a Veto muon");
-    h2CutstepNoweight->GetYaxis()->SetBinLabel(6, "S2b Veto electron");
-    h2CutstepNoweight->GetYaxis()->SetBinLabel(7, "S3a nJet1");
-    h2CutstepNoweight->GetYaxis()->SetBinLabel(8, "S4  nBJet1");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel( 1, "S0a all event");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel( 2, "S0b Trigger");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel( 3, "S0c Event filter");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel( 4, "S1  One signal lepton");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel( 5, "S2  Veto muon");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel( 6, "S3  Veto electron");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel( 7, "S4  Conv. veto");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel( 8, "S5a nJet1");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel( 9, "S5b nJet2");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel(10, "S5c nJet3");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel(11, "S5d nJet4");
+    h2CutstepNoweight->GetYaxis()->SetBinLabel(12, "S6  nBJet1");
 
-    auto subdir = dir.mkdir("step0a");
-    h0a_vertex_n = subdir.make<TH1D>("vertex_n", "vertex_n", 100, 0, 100);
+    const char* stepNames[nMaxCutstep] = {"step0a", "step0b", "step0c", 
+                                          "step1", "step2", "step3", "step4",
+                                          "step5a", "step5b", "step5c", "step5d",
+                                          "step6"};
+    auto subdir = dir.mkdir(stepNames[0]);
+    h_vertex_n[0] = subdir.make<TH1D>("vertex_n", "vertex_n", 100, 0, 100);
 
-    subdir = dir.mkdir("step0b");
-    h0b_vertex_n = subdir.make<TH1D>("vertex_n", "vertex_n", 100, 0, 100);
-    h0b_met_pt = subdir.make<TH1D>("met_pt", "met_pt", 1000, 0, 1000);
-    h0b_met_phi = subdir.make<TH1D>("met_phi", "met_phi", 100, -pi, pi);
-    h0b_leptons_n = subdir.make<TH1D>("leptons_n", "leptons_n", 10, 0, 10);
-    h0b_jets_n = subdir.make<TH1D>("jets_n", "jets_n", 10, 0, 10);
-    h0b_jets_pt  = subdir.make<TH1D>("jets_pt", "jets_pt", 1000, 0, 1000);
-    h0b_jets_eta = subdir.make<TH1D>("jets_eta", "jets_eta", 100, -maxeta, maxeta);
-    h0b_jets_ht = subdir.make<TH1D>("jets_ht", "jets_ht", 1000, 0, 1000);
-    h0b_bjets_n = subdir.make<TH1D>("bjets_n", "bjets_n", 10, 0, 10);
+    for ( int i=1; i<=2; ++i ) {
+      subdir = dir.mkdir(stepNames[i]);
+      h_vertex_n[i] = subdir.make<TH1D>("vertex_n", "vertex_n", 100, 0, 100);
+      h_met_pt[i] = subdir.make<TH1D>("met_pt", "met_pt", 1000, 0, 1000);
+      h_met_phi[i] = subdir.make<TH1D>("met_phi", "met_phi", 100, -pi, pi);
+      h_leptons_n[i] = subdir.make<TH1D>("leptons_n", "leptons_n", 10, 0, 10);
+      h_jets_n[i] = subdir.make<TH1D>("jets_n", "jets_n", 10, 0, 10);
+      h_jets_pt[i]  = subdir.make<TH1D>("jets_pt", "jets_pt", 1000, 0, 1000);
+      h_jets_eta[i] = subdir.make<TH1D>("jets_eta", "jets_eta", 100, -maxeta, maxeta);
+      h_jets_ht[i] = subdir.make<TH1D>("jets_ht", "jets_ht", 1000, 0, 1000);
+      h_bjets_n[i] = subdir.make<TH1D>("bjets_n", "bjets_n", 10, 0, 10);
+    }
 
-    subdir = dir.mkdir("step0c");
-    h0c_vertex_n = subdir.make<TH1D>("vertex_n", "vertex_n", 100, 0, 100);
-    h0c_met_pt = subdir.make<TH1D>("met_pt", "met_pt", 1000, 0, 1000);
-    h0c_met_phi = subdir.make<TH1D>("met_phi", "met_phi", 100, -pi, pi);
-    h0c_leptons_n = subdir.make<TH1D>("leptons_n", "leptons_n", 10, 0, 10);
-    h0c_jets_n = subdir.make<TH1D>("jets_n", "jets_n", 10, 0, 10);
-    h0c_jets_pt  = subdir.make<TH1D>("jets_pt", "jets_pt", 1000, 0, 1000);
-    h0c_jets_eta = subdir.make<TH1D>("jets_eta", "jets_eta", 100, -maxeta, maxeta);
-    h0c_jets_ht = subdir.make<TH1D>("jets_ht", "jets_ht", 1000, 0, 1000);
-    h0c_bjets_n = subdir.make<TH1D>("bjets_n", "bjets_n", 10, 0, 10);
+    for ( int i=3; i<nMaxCutstep; ++i ) {
+      subdir = dir.mkdir(stepNames[i]);
+      h_vertex_n[i] = subdir.make<TH1D>("vertex_n", "vertex_n", 100, 0, 100);
+      h_met_pt[i] = subdir.make<TH1D>("met_pt", "met_pt", 1000, 0, 1000);
+      h_met_phi[i] = subdir.make<TH1D>("met_phi", "met_phi", 100, -pi, pi);
+      h_leptons_n[i] = subdir.make<TH1D>("leptons_n", "leptons_n", 10, 0, 10);
 
-    subdir = dir.mkdir("step1");
-    h1_vertex_n = subdir.make<TH1D>("vertex_n", "vertex_n", 100, 0, 100);
-    h1_met_pt = subdir.make<TH1D>("met_pt", "met_pt", 1000, 0, 1000);
-    h1_met_phi = subdir.make<TH1D>("met_phi", "met_phi", 100, -pi, pi);
-    h1_leptons_n = subdir.make<TH1D>("leptons_n", "leptons_n", 10, 0, 10);
+      h_lepton1_pt[i]  = subdir.make<TH1D>("lepton1_pt", "lepton1_pt", 1000, 0, 1000);
+      h_lepton1_eta[i] = subdir.make<TH1D>("lepton1_eta", "lepton1_eta", 100, -maxeta, maxeta);
+      h_lepton1_phi[i] = subdir.make<TH1D>("lepton1_phi", "lepton1_phi", 100, -pi, pi);
+      h_lepton1_q[i]   = subdir.make<TH1D>("lepton1_q", "lepton1_q", 3, -1.5, 1.5);
 
-    h1_lepton1_pt  = subdir.make<TH1D>("lepton1_pt", "lepton1_pt", 1000, 0, 1000);
-    h1_lepton1_eta = subdir.make<TH1D>("lepton1_eta", "lepton1_eta", 100, -maxeta, maxeta);
-    h1_lepton1_phi = subdir.make<TH1D>("lepton1_phi", "lepton1_phi", 100, -pi, pi);
-    h1_lepton1_q   = subdir.make<TH1D>("lepton1_q", "lepton1_q", 3, -1.5, 1.5);
+      h_jets_n[i] = subdir.make<TH1D>("jets_n", "jets_n", 10, 0, 10);
+      h_jets_pt[i]  = subdir.make<TH1D>("jets_pt", "jets_pt", 1000, 0, 1000);
+      h_jets_eta[i] = subdir.make<TH1D>("jets_eta", "jets_eta", 100, -maxeta, maxeta);
+      h_jets_ht[i] = subdir.make<TH1D>("jets_ht", "jets_ht", 1000, 0, 1000);
 
-    h1_jets_n = subdir.make<TH1D>("jets_n", "jets_n", 10, 0, 10);
-    h1_jets_pt  = subdir.make<TH1D>("jets_pt", "jets_pt", 1000, 0, 1000);
-    h1_jets_eta = subdir.make<TH1D>("jets_eta", "jets_eta", 100, -maxeta, maxeta);
-    h1_jets_ht = subdir.make<TH1D>("jets_ht", "jets_ht", 1000, 0, 1000);
+      for ( int nJet=1; nJet<=4; ++nJet ) {
+        const string prefix = Form("jet%d_", nJet);
+        h_jet_m[i][nJet]   = subdir.make<TH1D>((prefix+"m").c_str(), (prefix+"m").c_str(), 500, 0, 500);
+        h_jet_pt[i][nJet]  = subdir.make<TH1D>((prefix+"pt").c_str(), (prefix+"pt").c_str(), 1000, 0, 1000);
+        h_jet_eta[i][nJet] = subdir.make<TH1D>((prefix+"eta").c_str(), (prefix+"eta").c_str(), 100, -maxeta, maxeta);
+        h_jet_phi[i][nJet] = subdir.make<TH1D>((prefix+"phi").c_str(), (prefix+"phi").c_str(), 100, -pi, pi);
+        h_jet_btag[i][nJet] = subdir.make<TH1D>((prefix+"btag").c_str(), (prefix+"btag").c_str(), 100, 0, 1);
+      }
 
-    h1_jet1_m   = subdir.make<TH1D>("jet1_m", "jet1_m", 500, 0, 500);
-    h1_jet1_pt  = subdir.make<TH1D>("jet1_pt", "jet1_pt", 1000, 0, 1000);
-    h1_jet1_eta = subdir.make<TH1D>("jet1_eta", "jet1_eta", 100, -maxeta, maxeta);
-    h1_jet1_phi = subdir.make<TH1D>("jet1_phi", "jet1_phi", 100, -pi, pi);
-    h1_jet1_btag = subdir.make<TH1D>("jet1_btag", "jet1_btag", 100, 0, 1);
+      h_bjets_n[i] = subdir.make<TH1D>("bjets_n", "bjets_n", 10, 0, 10);
 
-    h1_jet2_m   = subdir.make<TH1D>("jet2_m", "jet2_m", 500, 0, 500);
-    h1_jet2_pt  = subdir.make<TH1D>("jet2_pt", "jet2_pt", 1000, 0, 1000);
-    h1_jet2_eta = subdir.make<TH1D>("jet2_eta", "jet2_eta", 100, -maxeta, maxeta);
-    h1_jet2_phi = subdir.make<TH1D>("jet2_phi", "jet2_phi", 100, -pi, pi);
-    h1_jet2_btag = subdir.make<TH1D>("jet2_btag", "jet2_btag", 100, 0, 1);
-
-    h1_jet3_m   = subdir.make<TH1D>("jet3_m", "jet3_m", 500, 0, 500);
-    h1_jet3_pt  = subdir.make<TH1D>("jet3_pt", "jet3_pt", 1000, 0, 1000);
-    h1_jet3_eta = subdir.make<TH1D>("jet3_eta", "jet3_eta", 100, -maxeta, maxeta);
-    h1_jet3_phi = subdir.make<TH1D>("jet3_phi", "jet3_phi", 100, -pi, pi);
-    h1_jet3_btag = subdir.make<TH1D>("jet3_btag", "jet3_btag", 100, 0, 1);
-
-    h1_jet4_m   = subdir.make<TH1D>("jet4_m", "jet4_m", 500, 0, 500);
-    h1_jet4_pt  = subdir.make<TH1D>("jet4_pt", "jet4_pt", 1000, 0, 1000);
-    h1_jet4_eta = subdir.make<TH1D>("jet4_eta", "jet4_eta", 100, -maxeta, maxeta);
-    h1_jet4_phi = subdir.make<TH1D>("jet4_phi", "jet4_phi", 100, -pi, pi);
-    h1_jet4_btag = subdir.make<TH1D>("jet4_btag", "jet4_btag", 100, 0, 1);
-
-    h1_jet5_m   = subdir.make<TH1D>("jet5_m", "jet5_m", 500, 0, 500);
-    h1_jet5_pt  = subdir.make<TH1D>("jet5_pt", "jet5_pt", 1000, 0, 1000);
-    h1_jet5_eta = subdir.make<TH1D>("jet5_eta", "jet5_eta", 100, -maxeta, maxeta);
-    h1_jet5_phi = subdir.make<TH1D>("jet5_phi", "jet5_phi", 100, -pi, pi);
-    h1_jet5_btag = subdir.make<TH1D>("jet5_btag", "jet5_btag", 100, 0, 1);
-
-    h1_jet6_m   = subdir.make<TH1D>("jet6_m", "jet6_m", 500, 0, 500);
-    h1_jet6_pt  = subdir.make<TH1D>("jet6_pt", "jet6_pt", 1000, 0, 1000);
-    h1_jet6_eta = subdir.make<TH1D>("jet6_eta", "jet6_eta", 100, -maxeta, maxeta);
-    h1_jet6_phi = subdir.make<TH1D>("jet6_phi", "jet6_phi", 100, -pi, pi);
-    h1_jet6_btag = subdir.make<TH1D>("jet6_btag", "jet6_btag", 100, 0, 1);
-
-    h1_bjets_n = subdir.make<TH1D>("bjets_n", "bjets_n", 10, 0, 10);
-
-    h1_event_st = subdir.make<TH1D>("event_st", "event_st", 1000, 0, 1000);
-
-    subdir = dir.mkdir("step2a");
-    h2a_vertex_n = subdir.make<TH1D>("vertex_n", "vertex_n", 100, 0, 100);
-    h2a_met_pt = subdir.make<TH1D>("met_pt", "met_pt", 1000, 0, 1000);
-    h2a_met_phi = subdir.make<TH1D>("met_phi", "met_phi", 100, -pi, pi);
-    h2a_leptons_n = subdir.make<TH1D>("leptons_n", "leptons_n", 10, 0, 10);
-
-    h2a_lepton1_pt  = subdir.make<TH1D>("lepton1_pt", "lepton1_pt", 1000, 0, 1000);
-    h2a_lepton1_eta = subdir.make<TH1D>("lepton1_eta", "lepton1_eta", 100, -maxeta, maxeta);
-    h2a_lepton1_phi = subdir.make<TH1D>("lepton1_phi", "lepton1_phi", 100, -pi, pi);
-    h2a_lepton1_q   = subdir.make<TH1D>("lepton1_q", "lepton1_q", 3, -1.5, 1.5);
-
-    h2a_jets_n = subdir.make<TH1D>("jets_n", "jets_n", 10, 0, 10);
-    h2a_jets_pt  = subdir.make<TH1D>("jets_pt", "jets_pt", 1000, 0, 1000);
-    h2a_jets_eta = subdir.make<TH1D>("jets_eta", "jets_eta", 100, -maxeta, maxeta);
-    h2a_jets_ht = subdir.make<TH1D>("jets_ht", "jets_ht", 1000, 0, 1000);
-
-    h2a_jet1_m   = subdir.make<TH1D>("jet1_m", "jet1_m", 500, 0, 500);
-    h2a_jet1_pt  = subdir.make<TH1D>("jet1_pt", "jet1_pt", 1000, 0, 1000);
-    h2a_jet1_eta = subdir.make<TH1D>("jet1_eta", "jet1_eta", 100, -maxeta, maxeta);
-    h2a_jet1_phi = subdir.make<TH1D>("jet1_phi", "jet1_phi", 100, -pi, pi);
-    h2a_jet1_btag = subdir.make<TH1D>("jet1_btag", "jet1_btag", 100, 0, 1);
-
-    h2a_jet2_m   = subdir.make<TH1D>("jet2_m", "jet2_m", 500, 0, 500);
-    h2a_jet2_pt  = subdir.make<TH1D>("jet2_pt", "jet2_pt", 1000, 0, 1000);
-    h2a_jet2_eta = subdir.make<TH1D>("jet2_eta", "jet2_eta", 100, -maxeta, maxeta);
-    h2a_jet2_phi = subdir.make<TH1D>("jet2_phi", "jet2_phi", 100, -pi, pi);
-    h2a_jet2_btag = subdir.make<TH1D>("jet2_btag", "jet2_btag", 100, 0, 1);
-
-    h2a_jet3_m   = subdir.make<TH1D>("jet3_m", "jet3_m", 500, 0, 500);
-    h2a_jet3_pt  = subdir.make<TH1D>("jet3_pt", "jet3_pt", 1000, 0, 1000);
-    h2a_jet3_eta = subdir.make<TH1D>("jet3_eta", "jet3_eta", 100, -maxeta, maxeta);
-    h2a_jet3_phi = subdir.make<TH1D>("jet3_phi", "jet3_phi", 100, -pi, pi);
-    h2a_jet3_btag = subdir.make<TH1D>("jet3_btag", "jet3_btag", 100, 0, 1);
-
-    h2a_jet4_m   = subdir.make<TH1D>("jet4_m", "jet4_m", 500, 0, 500);
-    h2a_jet4_pt  = subdir.make<TH1D>("jet4_pt", "jet4_pt", 1000, 0, 1000);
-    h2a_jet4_eta = subdir.make<TH1D>("jet4_eta", "jet4_eta", 100, -maxeta, maxeta);
-    h2a_jet4_phi = subdir.make<TH1D>("jet4_phi", "jet4_phi", 100, -pi, pi);
-    h2a_jet4_btag = subdir.make<TH1D>("jet4_btag", "jet4_btag", 100, 0, 1);
-
-    h2a_jet5_m   = subdir.make<TH1D>("jet5_m", "jet5_m", 500, 0, 500);
-    h2a_jet5_pt  = subdir.make<TH1D>("jet5_pt", "jet5_pt", 1000, 0, 1000);
-    h2a_jet5_eta = subdir.make<TH1D>("jet5_eta", "jet5_eta", 100, -maxeta, maxeta);
-    h2a_jet5_phi = subdir.make<TH1D>("jet5_phi", "jet5_phi", 100, -pi, pi);
-    h2a_jet5_btag = subdir.make<TH1D>("jet5_btag", "jet5_btag", 100, 0, 1);
-
-    h2a_jet6_m   = subdir.make<TH1D>("jet6_m", "jet6_m", 500, 0, 500);
-    h2a_jet6_pt  = subdir.make<TH1D>("jet6_pt", "jet6_pt", 1000, 0, 1000);
-    h2a_jet6_eta = subdir.make<TH1D>("jet6_eta", "jet6_eta", 100, -maxeta, maxeta);
-    h2a_jet6_phi = subdir.make<TH1D>("jet6_phi", "jet6_phi", 100, -pi, pi);
-    h2a_jet6_btag = subdir.make<TH1D>("jet6_btag", "jet6_btag", 100, 0, 1);
-
-    h2a_bjets_n = subdir.make<TH1D>("bjets_n", "bjets_n", 10, 0, 10);
-
-    h2a_event_st = subdir.make<TH1D>("event_st", "event_st", 1000, 0, 1000);
-
-    subdir = dir.mkdir("step2b");
-    h2b_vertex_n = subdir.make<TH1D>("vertex_n", "vertex_n", 100, 0, 100);
-    h2b_met_pt = subdir.make<TH1D>("met_pt", "met_pt", 1000, 0, 1000);
-    h2b_met_phi = subdir.make<TH1D>("met_phi", "met_phi", 100, -pi, pi);
-    h2b_leptons_n = subdir.make<TH1D>("leptons_n", "leptons_n", 10, 0, 10);
-
-    h2b_lepton1_pt  = subdir.make<TH1D>("lepton1_pt", "lepton1_pt", 1000, 0, 1000);
-    h2b_lepton1_eta = subdir.make<TH1D>("lepton1_eta", "lepton1_eta", 100, -maxeta, maxeta);
-    h2b_lepton1_phi = subdir.make<TH1D>("lepton1_phi", "lepton1_phi", 100, -pi, pi);
-    h2b_lepton1_q   = subdir.make<TH1D>("lepton1_q", "lepton1_q", 3, -1.5, 1.5);
-
-    h2b_jets_n = subdir.make<TH1D>("jets_n", "jets_n", 10, 0, 10);
-    h2b_jets_pt  = subdir.make<TH1D>("jets_pt", "jets_pt", 1000, 0, 1000);
-    h2b_jets_eta = subdir.make<TH1D>("jets_eta", "jets_eta", 100, -maxeta, maxeta);
-    h2b_jets_ht = subdir.make<TH1D>("jets_ht", "jets_ht", 1000, 0, 1000);
-
-    h2b_jet1_m   = subdir.make<TH1D>("jet1_m", "jet1_m", 500, 0, 500);
-    h2b_jet1_pt  = subdir.make<TH1D>("jet1_pt", "jet1_pt", 1000, 0, 1000);
-    h2b_jet1_eta = subdir.make<TH1D>("jet1_eta", "jet1_eta", 100, -maxeta, maxeta);
-    h2b_jet1_phi = subdir.make<TH1D>("jet1_phi", "jet1_phi", 100, -pi, pi);
-    h2b_jet1_btag = subdir.make<TH1D>("jet1_btag", "jet1_btag", 100, 0, 1);
-
-    h2b_jet2_m   = subdir.make<TH1D>("jet2_m", "jet2_m", 500, 0, 500);
-    h2b_jet2_pt  = subdir.make<TH1D>("jet2_pt", "jet2_pt", 1000, 0, 1000);
-    h2b_jet2_eta = subdir.make<TH1D>("jet2_eta", "jet2_eta", 100, -maxeta, maxeta);
-    h2b_jet2_phi = subdir.make<TH1D>("jet2_phi", "jet2_phi", 100, -pi, pi);
-    h2b_jet2_btag = subdir.make<TH1D>("jet2_btag", "jet2_btag", 100, 0, 1);
-
-    h2b_jet3_m   = subdir.make<TH1D>("jet3_m", "jet3_m", 500, 0, 500);
-    h2b_jet3_pt  = subdir.make<TH1D>("jet3_pt", "jet3_pt", 1000, 0, 1000);
-    h2b_jet3_eta = subdir.make<TH1D>("jet3_eta", "jet3_eta", 100, -maxeta, maxeta);
-    h2b_jet3_phi = subdir.make<TH1D>("jet3_phi", "jet3_phi", 100, -pi, pi);
-    h2b_jet3_btag = subdir.make<TH1D>("jet3_btag", "jet3_btag", 100, 0, 1);
-
-    h2b_jet4_m   = subdir.make<TH1D>("jet4_m", "jet4_m", 500, 0, 500);
-    h2b_jet4_pt  = subdir.make<TH1D>("jet4_pt", "jet4_pt", 1000, 0, 1000);
-    h2b_jet4_eta = subdir.make<TH1D>("jet4_eta", "jet4_eta", 100, -maxeta, maxeta);
-    h2b_jet4_phi = subdir.make<TH1D>("jet4_phi", "jet4_phi", 100, -pi, pi);
-    h2b_jet4_btag = subdir.make<TH1D>("jet4_btag", "jet4_btag", 100, 0, 1);
-
-    h2b_jet5_m   = subdir.make<TH1D>("jet5_m", "jet5_m", 500, 0, 500);
-    h2b_jet5_pt  = subdir.make<TH1D>("jet5_pt", "jet5_pt", 1000, 0, 1000);
-    h2b_jet5_eta = subdir.make<TH1D>("jet5_eta", "jet5_eta", 100, -maxeta, maxeta);
-    h2b_jet5_phi = subdir.make<TH1D>("jet5_phi", "jet5_phi", 100, -pi, pi);
-    h2b_jet5_btag = subdir.make<TH1D>("jet5_btag", "jet5_btag", 100, 0, 1);
-
-    h2b_jet6_m   = subdir.make<TH1D>("jet6_m", "jet6_m", 500, 0, 500);
-    h2b_jet6_pt  = subdir.make<TH1D>("jet6_pt", "jet6_pt", 1000, 0, 1000);
-    h2b_jet6_eta = subdir.make<TH1D>("jet6_eta", "jet6_eta", 100, -maxeta, maxeta);
-    h2b_jet6_phi = subdir.make<TH1D>("jet6_phi", "jet6_phi", 100, -pi, pi);
-    h2b_jet6_btag = subdir.make<TH1D>("jet6_btag", "jet6_btag", 100, 0, 1);
-
-    h2b_bjets_n = subdir.make<TH1D>("bjets_n", "bjets_n", 10, 0, 10);
-
-    h2b_event_st = subdir.make<TH1D>("event_st", "event_st", 1000, 0, 1000);
-
-    subdir = dir.mkdir("step3");
-    h3_vertex_n = subdir.make<TH1D>("vertex_n", "vertex_n", 100, 0, 100);
-    h3_met_pt = subdir.make<TH1D>("met_pt", "met_pt", 1000, 0, 1000);
-    h3_met_phi = subdir.make<TH1D>("met_phi", "met_phi", 100, -pi, pi);
-
-    h3_lepton1_pt  = subdir.make<TH1D>("lepton1_pt", "lepton1_pt", 1000, 0, 1000);
-    h3_lepton1_eta = subdir.make<TH1D>("lepton1_eta", "lepton1_eta", 100, -maxeta, maxeta);
-    h3_lepton1_phi = subdir.make<TH1D>("lepton1_phi", "lepton1_phi", 100, -pi, pi);
-    h3_lepton1_q   = subdir.make<TH1D>("lepton1_q", "lepton1_q", 3, -1.5, 1.5);
-
-    h3_jets_n = subdir.make<TH1D>("jets_n", "jets_n", 10, 0, 10);
-    h3_jets_pt  = subdir.make<TH1D>("jets_pt", "jets_pt", 1000, 0, 1000);
-    h3_jets_eta = subdir.make<TH1D>("jets_eta", "jets_eta", 100, -maxeta, maxeta);
-    h3_jets_ht = subdir.make<TH1D>("jets_ht", "jets_ht", 1000, 0, 1000);
-
-    h3_jet1_m   = subdir.make<TH1D>("jet1_m", "jet1_m", 500, 0, 500);
-    h3_jet1_pt  = subdir.make<TH1D>("jet1_pt", "jet1_pt", 1000, 0, 1000);
-    h3_jet1_eta = subdir.make<TH1D>("jet1_eta", "jet1_eta", 100, -maxeta, maxeta);
-    h3_jet1_phi = subdir.make<TH1D>("jet1_phi", "jet1_phi", 100, -pi, pi);
-    h3_jet1_btag = subdir.make<TH1D>("jet1_btag", "jet1_btag", 100, 0, 1);
-
-    h3_jet2_m   = subdir.make<TH1D>("jet2_m", "jet2_m", 500, 0, 500);
-    h3_jet2_pt  = subdir.make<TH1D>("jet2_pt", "jet2_pt", 1000, 0, 1000);
-    h3_jet2_eta = subdir.make<TH1D>("jet2_eta", "jet2_eta", 100, -maxeta, maxeta);
-    h3_jet2_phi = subdir.make<TH1D>("jet2_phi", "jet2_phi", 100, -pi, pi);
-    h3_jet2_btag = subdir.make<TH1D>("jet2_btag", "jet2_btag", 100, 0, 1);
-
-    h3_jet3_m   = subdir.make<TH1D>("jet3_m", "jet3_m", 500, 0, 500);
-    h3_jet3_pt  = subdir.make<TH1D>("jet3_pt", "jet3_pt", 1000, 0, 1000);
-    h3_jet3_eta = subdir.make<TH1D>("jet3_eta", "jet3_eta", 100, -maxeta, maxeta);
-    h3_jet3_phi = subdir.make<TH1D>("jet3_phi", "jet3_phi", 100, -pi, pi);
-    h3_jet3_btag = subdir.make<TH1D>("jet3_btag", "jet3_btag", 100, 0, 1);
-
-    h3_jet4_m   = subdir.make<TH1D>("jet4_m", "jet4_m", 500, 0, 500);
-    h3_jet4_pt  = subdir.make<TH1D>("jet4_pt", "jet4_pt", 1000, 0, 1000);
-    h3_jet4_eta = subdir.make<TH1D>("jet4_eta", "jet4_eta", 100, -maxeta, maxeta);
-    h3_jet4_phi = subdir.make<TH1D>("jet4_phi", "jet4_phi", 100, -pi, pi);
-    h3_jet4_btag = subdir.make<TH1D>("jet4_btag", "jet4_btag", 100, 0, 1);
-
-    h3_jet5_m   = subdir.make<TH1D>("jet5_m", "jet5_m", 500, 0, 500);
-    h3_jet5_pt  = subdir.make<TH1D>("jet5_pt", "jet5_pt", 1000, 0, 1000);
-    h3_jet5_eta = subdir.make<TH1D>("jet5_eta", "jet5_eta", 100, -maxeta, maxeta);
-    h3_jet5_phi = subdir.make<TH1D>("jet5_phi", "jet5_phi", 100, -pi, pi);
-    h3_jet5_btag = subdir.make<TH1D>("jet5_btag", "jet5_btag", 100, 0, 1);
-
-    h3_jet6_m   = subdir.make<TH1D>("jet6_m", "jet6_m", 500, 0, 500);
-    h3_jet6_pt  = subdir.make<TH1D>("jet6_pt", "jet6_pt", 1000, 0, 1000);
-    h3_jet6_eta = subdir.make<TH1D>("jet6_eta", "jet6_eta", 100, -maxeta, maxeta);
-    h3_jet6_phi = subdir.make<TH1D>("jet6_phi", "jet6_phi", 100, -pi, pi);
-    h3_jet6_btag = subdir.make<TH1D>("jet6_btag", "jet6_btag", 100, 0, 1);
-
-    h3_bjets_n = subdir.make<TH1D>("bjets_n", "bjets_n", 10, 0, 10);
-
-    h3_event_st = subdir.make<TH1D>("event_st", "event_st", 1000, 0, 1000);
-
-    subdir = dir.mkdir("step4");
-    h4_vertex_n = subdir.make<TH1D>("vertex_n", "vertex_n", 100, 0, 100);
-    h4_met_pt = subdir.make<TH1D>("met_pt", "met_pt", 1000, 0, 1000);
-    h4_met_phi = subdir.make<TH1D>("met_phi", "met_phi", 100, -pi, pi);
-
-    h4_lepton1_pt  = subdir.make<TH1D>("lepton1_pt", "lepton1_pt", 1000, 0, 1000);
-    h4_lepton1_eta = subdir.make<TH1D>("lepton1_eta", "lepton1_eta", 100, -maxeta, maxeta);
-    h4_lepton1_phi = subdir.make<TH1D>("lepton1_phi", "lepton1_phi", 100, -pi, pi);
-    h4_lepton1_q   = subdir.make<TH1D>("lepton1_q", "lepton1_q", 3, -1.5, 1.5);
-
-    h4_jets_n = subdir.make<TH1D>("jets_n", "jets_n", 10, 0, 10);
-    h4_jets_pt  = subdir.make<TH1D>("jets_pt", "jets_pt", 1000, 0, 1000);
-    h4_jets_eta = subdir.make<TH1D>("jets_eta", "jets_eta", 100, -maxeta, maxeta);
-    h4_jets_ht = subdir.make<TH1D>("jets_ht", "jets_ht", 1000, 0, 1000);
-
-    h4_jet1_m   = subdir.make<TH1D>("jet1_m", "jet1_m", 500, 0, 500);
-    h4_jet1_pt  = subdir.make<TH1D>("jet1_pt", "jet1_pt", 1000, 0, 1000);
-    h4_jet1_eta = subdir.make<TH1D>("jet1_eta", "jet1_eta", 100, -maxeta, maxeta);
-    h4_jet1_phi = subdir.make<TH1D>("jet1_phi", "jet1_phi", 100, -pi, pi);
-    h4_jet1_btag = subdir.make<TH1D>("jet1_btag", "jet1_btag", 100, 0, 1);
-
-    h4_jet2_m   = subdir.make<TH1D>("jet2_m", "jet2_m", 500, 0, 500);
-    h4_jet2_pt  = subdir.make<TH1D>("jet2_pt", "jet2_pt", 1000, 0, 1000);
-    h4_jet2_eta = subdir.make<TH1D>("jet2_eta", "jet2_eta", 100, -maxeta, maxeta);
-    h4_jet2_phi = subdir.make<TH1D>("jet2_phi", "jet2_phi", 100, -pi, pi);
-    h4_jet2_btag = subdir.make<TH1D>("jet2_btag", "jet2_btag", 100, 0, 1);
-
-    h4_jet3_m   = subdir.make<TH1D>("jet3_m", "jet3_m", 500, 0, 500);
-    h4_jet3_pt  = subdir.make<TH1D>("jet3_pt", "jet3_pt", 1000, 0, 1000);
-    h4_jet3_eta = subdir.make<TH1D>("jet3_eta", "jet3_eta", 100, -maxeta, maxeta);
-    h4_jet3_phi = subdir.make<TH1D>("jet3_phi", "jet3_phi", 100, -pi, pi);
-    h4_jet3_btag = subdir.make<TH1D>("jet3_btag", "jet3_btag", 100, 0, 1);
-
-    h4_jet4_m   = subdir.make<TH1D>("jet4_m", "jet4_m", 500, 0, 500);
-    h4_jet4_pt  = subdir.make<TH1D>("jet4_pt", "jet4_pt", 1000, 0, 1000);
-    h4_jet4_eta = subdir.make<TH1D>("jet4_eta", "jet4_eta", 100, -maxeta, maxeta);
-    h4_jet4_phi = subdir.make<TH1D>("jet4_phi", "jet4_phi", 100, -pi, pi);
-    h4_jet4_btag = subdir.make<TH1D>("jet4_btag", "jet4_btag", 100, 0, 1);
-
-    h4_jet5_m   = subdir.make<TH1D>("jet5_m", "jet5_m", 500, 0, 500);
-    h4_jet5_pt  = subdir.make<TH1D>("jet5_pt", "jet5_pt", 1000, 0, 1000);
-    h4_jet5_eta = subdir.make<TH1D>("jet5_eta", "jet5_eta", 100, -maxeta, maxeta);
-    h4_jet5_phi = subdir.make<TH1D>("jet5_phi", "jet5_phi", 100, -pi, pi);
-    h4_jet5_btag = subdir.make<TH1D>("jet5_btag", "jet5_btag", 100, 0, 1);
-
-    h4_jet6_m   = subdir.make<TH1D>("jet6_m", "jet6_m", 500, 0, 500);
-    h4_jet6_pt  = subdir.make<TH1D>("jet6_pt", "jet6_pt", 1000, 0, 1000);
-    h4_jet6_eta = subdir.make<TH1D>("jet6_eta", "jet6_eta", 100, -maxeta, maxeta);
-    h4_jet6_phi = subdir.make<TH1D>("jet6_phi", "jet6_phi", 100, -pi, pi);
-    h4_jet6_btag = subdir.make<TH1D>("jet6_btag", "jet6_btag", 100, 0, 1);
-
-    h4_bjets_n = subdir.make<TH1D>("bjets_n", "bjets_n", 10, 0, 10);
-
-    h4_event_st = subdir.make<TH1D>("event_st", "event_st", 1000, 0, 1000);
+      h_event_st[i] = subdir.make<TH1D>("event_st", "event_st", 1000, 0, 1000);
+    }
   };
 };
-const int ControlPlotsTTLJ::nMaxCutstep = 8; // 5+3
+//const static int ControlPlotsTTLJ::nMaxCutstep = 12;
 
 class TTLJEventSelector : public edm::one::EDFilter<edm::one::SharedResources>
 {
@@ -905,11 +610,11 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
   h_el.hCutstep->Fill(-2, weight);
   h_el.hCutstepNoweight->Fill(-2);
-  h_el.h0a_vertex_n->Fill(nVertex, weight);
+  h_el.h_vertex_n[0]->Fill(nVertex, weight);
 
   h_mu.hCutstep->Fill(-2, weight);
   h_mu.hCutstepNoweight->Fill(-2);
-  h_mu.h0a_vertex_n->Fill(nVertex, weight);
+  h_mu.h_vertex_n[0]->Fill(nVertex, weight);
 
   // El channel Cutstep 0b with trigger requirements
   int cutstep_el = -2;
@@ -917,23 +622,23 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     ++cutstep_el;
     h_el.hCutstep->Fill(-1, weight);
     h_el.hCutstepNoweight->Fill(-1);
-    h_el.h0b_vertex_n->Fill(nVertex, weight);
-    h_el.h0b_met_pt->Fill(met_pt, weight);
-    h_el.h0b_met_phi->Fill(met_phi, weight);
-    h_el.h0b_leptons_n->Fill(leptons_n, weight);
+    h_el.h_vertex_n[1]->Fill(nVertex, weight);
+    h_el.h_met_pt[1]->Fill(met_pt, weight);
+    h_el.h_met_phi[1]->Fill(met_phi, weight);
+    h_el.h_leptons_n[1]->Fill(leptons_n, weight);
     if ( leptons_n >= 1 ) {
       const auto lepton1P4 = shiftedLepPt(*lepton1)/lepton1->pt()*lepton1->p4();
-      h_el.h0b_lepton1_pt->Fill(lepton1P4.pt(), weight);
-      h_el.h0b_lepton1_eta->Fill(lepton1->eta(), weight);
-      h_el.h0b_lepton1_phi->Fill(lepton1->phi(), weight);
-      h_el.h0b_lepton1_q->Fill(lepton1->charge(), weight);
+      h_el.h_lepton1_pt[1]->Fill(lepton1P4.pt(), weight);
+      h_el.h_lepton1_eta[1]->Fill(lepton1->eta(), weight);
+      h_el.h_lepton1_phi[1]->Fill(lepton1->phi(), weight);
+      h_el.h_lepton1_q[1]->Fill(lepton1->charge(), weight);
     }
-    h_el.h0b_jets_n->Fill(jets_n, weight);
-    h_el.h0b_bjets_n->Fill(bjets_n, weight);
-    h_el.h0b_jets_ht->Fill(jets_ht, weight);
+    h_el.h_jets_n[1]->Fill(jets_n, weight);
+    h_el.h_bjets_n[1]->Fill(bjets_n, weight);
+    h_el.h_jets_ht[1]->Fill(jets_ht, weight);
     for ( auto jet : *out_jets ) {
-      h_el.h0b_jets_pt->Fill(jet.pt(), weight);
-      h_el.h0b_jets_eta->Fill(jet.eta(), weight);
+      h_el.h_jets_pt[1]->Fill(jet.pt(), weight);
+      h_el.h_jets_eta[1]->Fill(jet.eta(), weight);
     }
 
     // Cutstep 0c with reco filters
@@ -941,23 +646,23 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       ++cutstep_el;
       h_el.hCutstep->Fill(0., weight);
       h_el.hCutstepNoweight->Fill(0.);
-      h_el.h0c_vertex_n->Fill(nVertex, weight);
-      h_el.h0c_met_pt->Fill(met_pt, weight);
-      h_el.h0c_met_phi->Fill(met_phi, weight);
-      h_el.h0c_leptons_n->Fill(leptons_n, weight);
+      h_el.h_vertex_n[2]->Fill(nVertex, weight);
+      h_el.h_met_pt[2]->Fill(met_pt, weight);
+      h_el.h_met_phi[2]->Fill(met_phi, weight);
+      h_el.h_leptons_n[2]->Fill(leptons_n, weight);
       if ( leptons_n >= 1 ) {
         const auto lepton1P4 = shiftedLepPt(*lepton1)/lepton1->pt()*lepton1->p4();
-        h_el.h0c_lepton1_pt->Fill(lepton1P4.pt(), weight);
-        h_el.h0c_lepton1_eta->Fill(lepton1->eta(), weight);
-        h_el.h0c_lepton1_phi->Fill(lepton1->phi(), weight);
-        h_el.h0c_lepton1_q->Fill(lepton1->charge(), weight);
+        h_el.h_lepton1_pt[2]->Fill(lepton1P4.pt(), weight);
+        h_el.h_lepton1_eta[2]->Fill(lepton1->eta(), weight);
+        h_el.h_lepton1_phi[2]->Fill(lepton1->phi(), weight);
+        h_el.h_lepton1_q[2]->Fill(lepton1->charge(), weight);
       }
-      h_el.h0c_jets_n->Fill(jets_n, weight);
-      h_el.h0c_bjets_n->Fill(bjets_n, weight);
-      h_el.h0c_jets_ht->Fill(jets_ht, weight);
+      h_el.h_jets_n[2]->Fill(jets_n, weight);
+      h_el.h_bjets_n[2]->Fill(bjets_n, weight);
+      h_el.h_jets_ht[2]->Fill(jets_ht, weight);
       for ( auto jet : *out_jets ) {
-        h_el.h0c_jets_pt->Fill(jet.pt(), weight);
-        h_el.h0c_jets_eta->Fill(jet.eta(), weight);
+        h_el.h_jets_pt[2]->Fill(jet.pt(), weight);
+        h_el.h_jets_eta[2]->Fill(jet.eta(), weight);
       }
     }
   }
@@ -967,23 +672,23 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     ++cutstep_mu;
     h_mu.hCutstep->Fill(-1, weight);
     h_mu.hCutstepNoweight->Fill(-1);
-    h_mu.h0b_vertex_n->Fill(nVertex, weight);
-    h_mu.h0b_met_pt->Fill(met_pt, weight);
-    h_mu.h0b_met_phi->Fill(met_phi, weight);
-    h_mu.h0b_leptons_n->Fill(leptons_n, weight);
+    h_mu.h_vertex_n[1]->Fill(nVertex, weight);
+    h_mu.h_met_pt[1]->Fill(met_pt, weight);
+    h_mu.h_met_phi[1]->Fill(met_phi, weight);
+    h_mu.h_leptons_n[1]->Fill(leptons_n, weight);
     if ( leptons_n >= 1 ) {
       const auto lepton1P4 = shiftedLepPt(*lepton1)/lepton1->pt()*lepton1->p4();
-      h_mu.h0b_lepton1_pt->Fill(lepton1P4.pt(), weight);
-      h_mu.h0b_lepton1_eta->Fill(lepton1->eta(), weight);
-      h_mu.h0b_lepton1_phi->Fill(lepton1->phi(), weight);
-      h_mu.h0b_lepton1_q->Fill(lepton1->charge(), weight);
+      h_mu.h_lepton1_pt[1]->Fill(lepton1P4.pt(), weight);
+      h_mu.h_lepton1_eta[1]->Fill(lepton1->eta(), weight);
+      h_mu.h_lepton1_phi[1]->Fill(lepton1->phi(), weight);
+      h_mu.h_lepton1_q[1]->Fill(lepton1->charge(), weight);
     }
-    h_mu.h0b_jets_n->Fill(jets_n, weight);
-    h_mu.h0b_bjets_n->Fill(bjets_n, weight);
-    h_mu.h0b_jets_ht->Fill(jets_ht, weight);
+    h_mu.h_jets_n[1]->Fill(jets_n, weight);
+    h_mu.h_bjets_n[1]->Fill(bjets_n, weight);
+    h_mu.h_jets_ht[1]->Fill(jets_ht, weight);
     for ( auto jet : *out_jets ) {
-      h_mu.h0b_jets_pt->Fill(jet.pt(), weight);
-      h_mu.h0b_jets_eta->Fill(jet.eta(), weight);
+      h_mu.h_jets_pt[1]->Fill(jet.pt(), weight);
+      h_mu.h_jets_eta[1]->Fill(jet.eta(), weight);
     }
 
     // Cutstep 0c with reco filters
@@ -991,23 +696,23 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       ++cutstep_mu;
       h_mu.hCutstep->Fill(0., weight);
       h_mu.hCutstepNoweight->Fill(0.);
-      h_mu.h0c_vertex_n->Fill(nVertex, weight);
-      h_mu.h0c_met_pt->Fill(met_pt, weight);
-      h_mu.h0c_met_phi->Fill(met_phi, weight);
-      h_mu.h0c_leptons_n->Fill(leptons_n, weight);
+      h_mu.h_vertex_n[2]->Fill(nVertex, weight);
+      h_mu.h_met_pt[2]->Fill(met_pt, weight);
+      h_mu.h_met_phi[2]->Fill(met_phi, weight);
+      h_mu.h_leptons_n[2]->Fill(leptons_n, weight);
       if ( leptons_n >= 1 ) {
         const auto lepton1P4 = shiftedLepPt(*lepton1)/lepton1->pt()*lepton1->p4();
-        h_mu.h0c_lepton1_pt->Fill(lepton1P4.pt(), weight);
-        h_mu.h0c_lepton1_eta->Fill(lepton1->eta(), weight);
-        h_mu.h0c_lepton1_phi->Fill(lepton1->phi(), weight);
-        h_mu.h0c_lepton1_q->Fill(lepton1->charge(), weight);
+        h_mu.h_lepton1_pt[2]->Fill(lepton1P4.pt(), weight);
+        h_mu.h_lepton1_eta[2]->Fill(lepton1->eta(), weight);
+        h_mu.h_lepton1_phi[2]->Fill(lepton1->phi(), weight);
+        h_mu.h_lepton1_q[2]->Fill(lepton1->charge(), weight);
       }
-      h_mu.h0c_jets_n->Fill(jets_n, weight);
-      h_mu.h0c_bjets_n->Fill(bjets_n, weight);
-      h_mu.h0c_jets_ht->Fill(jets_ht, weight);
+      h_mu.h_jets_n[2]->Fill(jets_n, weight);
+      h_mu.h_bjets_n[2]->Fill(bjets_n, weight);
+      h_mu.h_jets_ht[2]->Fill(jets_ht, weight);
       for ( auto jet : *out_jets ) {
-        h_mu.h0c_jets_pt->Fill(jet.pt(), weight);
-        h_mu.h0c_jets_eta->Fill(jet.eta(), weight);
+        h_mu.h_jets_pt[2]->Fill(jet.pt(), weight);
+        h_mu.h_jets_eta[2]->Fill(jet.eta(), weight);
       }
     }
   }
@@ -1015,27 +720,32 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   // Check each cut steps
   int cutstep = -1;
   // bitset for the cut steps, fill the results only for events that pass step0a,0b,0c
-  std::bitset<ControlPlotsTTLJ::nMaxCutstep-2> cutstepBits(0);
+  std::bitset<nMaxCutstep-2> cutstepBits(0);
   //for ( auto x : cutstepBits ) x = false;
   if ( (channel == 11 and cutstep_el == 0) or
        (channel == 13 and cutstep_mu == 0) ) {
-    // Step1 at least one signal lepton
-    if ( leptons_n > 0 ) cutstepBits[0] = true;
+    // Step1 exactly one signal lepton
+    if ( leptons_n == 1 ) cutstepBits[0] = true;
 
-    // Step 2a veto any additional muon
-    if ( vetoMuons.empty() and (
-         (channel == 11 and selMuons.empty()) or
-         (channel == 13 and selMuons.size() == 1)) ) cutstepBits[1] = true;
+    // Step2 veto any additional muon
+    if ( vetoMuons.empty() ) cutstepBits[1] = true;
 
-    // Step 2b veto any additional electron
-    if ( vetoElectrons.empty() and (
-         (channel == 11 and selElectrons.size() == 1) or
-         (channel == 13 and selElectrons.empty())) ) cutstepBits[2] = true;
+    // Step3 veto any additional electron
+    if ( vetoElectrons.empty() ) cutstepBits[2] = true;
 
-    // Step3a Minimal jet multiplicity
-    if ( jets_n >= 1 ) cutstepBits[3] = true;
-    // Step4 one b jet
-    if ( bjets_n >= 1 ) cutstepBits[4] = true;
+    // Step 4 conversion veto only for electron channel
+    if ( channel == 13 ) cutstepBits[3] = true;
+    else if ( channel == 11 ) {
+      const auto el = dynamic_cast<const cat::Electron*>(lepton1);
+      if ( el->passConversionVeto() ) cutstepBits[3] = true;
+    }
+
+    // Step5a-5d Minimal jet multiplicity
+    for ( int nJet=0; nJet<4; ++nJet ) {
+      if ( jets_n > nJet ) cutstepBits[4+nJet] = true;
+    }
+    // Step6 one b jet
+    if ( bjets_n >= 1 ) cutstepBits[8] = true;
 
     // Set the cut step of this event
     const int nstep = cutstepBits.size();
@@ -1043,730 +753,57 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       if ( !cutstepBits[cutstep] ) break;
     }
   }
-  else
-  {
+  else {
     cutstep = std::max(cutstep_el, cutstep_mu); // reset the cut step
   }
 
-  // Cut step is ready. Now proceed to fill histograms
-  switch (1) default: {
-    int icutstep = 0;
-
-    if ( cutstep <= 0 ) break;
-    ++icutstep; // =1
-
+  // Cut step is ready. Now proceed to fill histograms from step 1
+  if ( cutstep > 0 ) {
+    // Start from the step1 (is [3] in the array)
+    // lepton1 should exist from step1
     const auto lepton1P4 = shiftedLepPt(*lepton1)/lepton1->pt()*lepton1->p4();
+    auto& hs = channel == 11 ? h_el : h_mu;
 
-    if ( channel == 11 ) {
-      h_el.hCutstep->Fill(icutstep, weight);
-      h_el.hCutstepNoweight->Fill(icutstep);
-      h_el.h1_vertex_n->Fill(nVertex, weight);
-      h_el.h1_met_pt->Fill(met_pt, weight);
-      h_el.h1_met_phi->Fill(met_phi, weight);
-      h_el.h1_leptons_n->Fill(leptons_n, weight);
-      h_el.h1_lepton1_pt->Fill(lepton1P4.pt(), weight);
-      h_el.h1_lepton1_eta->Fill(lepton1->eta(), weight);
-      h_el.h1_lepton1_phi->Fill(lepton1->phi(), weight);
-      h_el.h1_lepton1_q->Fill(lepton1->charge(), weight);
-      h_el.h1_jets_n->Fill(jets_n, weight);
-      h_el.h1_jets_ht->Fill(jets_ht, weight);
+    for ( int i=3; i<nMaxCutstep; ++i ) {
+      const int icutstep = i-2; // icutstep starts from step 1
+      if ( cutstep < icutstep ) break;
+
+      hs.hCutstep->Fill(icutstep, weight);
+      hs.hCutstepNoweight->Fill(icutstep);
+      hs.h_vertex_n[i]->Fill(nVertex, weight);
+      hs.h_met_pt[i]->Fill(met_pt, weight);
+      hs.h_met_phi[i]->Fill(met_phi, weight);
+      hs.h_leptons_n[i]->Fill(leptons_n, weight);
+      hs.h_lepton1_pt[i]->Fill(lepton1P4.pt(), weight);
+      hs.h_lepton1_eta[i]->Fill(lepton1->eta(), weight);
+      hs.h_lepton1_phi[i]->Fill(lepton1->phi(), weight);
+      hs.h_lepton1_q[i]->Fill(lepton1->charge(), weight);
+      hs.h_jets_n[i]->Fill(jets_n, weight);
+      hs.h_jets_ht[i]->Fill(jets_ht, weight);
       for ( auto jet : *out_jets ) {
-        h_el.h1_jets_pt->Fill(jet.pt(), weight);
-        h_el.h1_jets_eta->Fill(jet.eta(), weight);
+        hs.h_jets_pt[i]->Fill(jet.pt(), weight);
+        hs.h_jets_eta[i]->Fill(jet.eta(), weight);
       }
-      if ( jets_n >= 1 ) {
-        const auto& jet = out_jets->at(0);
-        h_el.h1_jet1_m->Fill(jet.mass(), weight);
-        h_el.h1_jet1_pt->Fill(jet.pt(), weight);
-        h_el.h1_jet1_eta->Fill(jet.eta(), weight);
-        h_el.h1_jet1_phi->Fill(jet.phi(), weight);
-        h_el.h1_jet1_btag->Fill(jet.bDiscriminator(bTagName_), weight);
+      for ( int j=0, n=std::min(6, jets_n); j<n; ++j ) {
+        const auto& jet = out_jets->at(i);
+        hs.h_jet_m[i][j]->Fill(jet.mass(), weight);
+        hs.h_jet_pt[i][j]->Fill(jet.pt(), weight);
+        hs.h_jet_eta[i][j]->Fill(jet.eta(), weight);
+        hs.h_jet_phi[i][j]->Fill(jet.phi(), weight);
+        hs.h_jet_btag[i][j]->Fill(jet.bDiscriminator(bTagName_), weight);
       }
-      if ( jets_n >= 2 ) {
-        const auto& jet = out_jets->at(1);
-        h_el.h1_jet2_m->Fill(jet.mass(), weight);
-        h_el.h1_jet2_pt->Fill(jet.pt(), weight);
-        h_el.h1_jet2_eta->Fill(jet.eta(), weight);
-        h_el.h1_jet2_phi->Fill(jet.phi(), weight);
-        h_el.h1_jet2_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 3 ) {
-        const auto& jet = out_jets->at(2);
-        h_el.h1_jet3_m->Fill(jet.mass(), weight);
-        h_el.h1_jet3_pt->Fill(jet.pt(), weight);
-        h_el.h1_jet3_eta->Fill(jet.eta(), weight);
-        h_el.h1_jet3_phi->Fill(jet.phi(), weight);
-        h_el.h1_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 4 ) {
-        const auto& jet = out_jets->at(3);
-        h_el.h1_jet4_m->Fill(jet.mass(), weight);
-        h_el.h1_jet4_pt->Fill(jet.pt(), weight);
-        h_el.h1_jet4_eta->Fill(jet.eta(), weight);
-        h_el.h1_jet4_phi->Fill(jet.phi(), weight);
-        h_el.h1_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 5 ) {
-        const auto& jet = out_jets->at(4);
-        h_el.h1_jet5_m->Fill(jet.mass(), weight);
-        h_el.h1_jet5_pt->Fill(jet.pt(), weight);
-        h_el.h1_jet5_eta->Fill(jet.eta(), weight);
-        h_el.h1_jet5_phi->Fill(jet.phi(), weight);
-        h_el.h1_jet5_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 6 ) {
-        const auto& jet = out_jets->at(5);
-        h_el.h1_jet6_m->Fill(jet.mass(), weight);
-        h_el.h1_jet6_pt->Fill(jet.pt(), weight);
-        h_el.h1_jet6_eta->Fill(jet.eta(), weight);
-        h_el.h1_jet6_phi->Fill(jet.phi(), weight);
-        h_el.h1_jet6_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      h_el.h1_bjets_n->Fill(bjets_n, weight);
-
-      h_el.h1_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
+      hs.h_bjets_n[i]->Fill(bjets_n, weight);
+      hs.h_event_st[i]->Fill(leptons_st+jets_ht+met_pt, weight);
     }
-    else if ( channel == 13 ) {
-      h_mu.hCutstep->Fill(icutstep, weight);
-      h_mu.hCutstepNoweight->Fill(icutstep);
-      h_mu.h1_vertex_n->Fill(nVertex, weight);
-      h_mu.h1_met_pt->Fill(met_pt, weight);
-      h_mu.h1_met_phi->Fill(met_phi, weight);
-      h_mu.h1_leptons_n->Fill(leptons_n, weight);
-      h_mu.h1_lepton1_pt->Fill(lepton1P4.pt(), weight);
-      h_mu.h1_lepton1_eta->Fill(lepton1->eta(), weight);
-      h_mu.h1_lepton1_phi->Fill(lepton1->phi(), weight);
-      h_mu.h1_lepton1_q->Fill(lepton1->charge(), weight);
-      h_mu.h1_jets_n->Fill(jets_n, weight);
-      h_mu.h1_jets_ht->Fill(jets_ht, weight);
-      for ( auto jet : *out_jets ) {
-        h_mu.h1_jets_pt->Fill(jet.pt(), weight);
-        h_mu.h1_jets_eta->Fill(jet.eta(), weight);
-      }
-      if ( jets_n >= 1 ) {
-        const auto& jet = out_jets->at(0);
-        h_mu.h1_jet1_m->Fill(jet.mass(), weight);
-        h_mu.h1_jet1_pt->Fill(jet.pt(), weight);
-        h_mu.h1_jet1_eta->Fill(jet.eta(), weight);
-        h_mu.h1_jet1_phi->Fill(jet.phi(), weight);
-        h_mu.h1_jet1_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 2 ) {
-        const auto& jet = out_jets->at(1);
-        h_mu.h1_jet2_m->Fill(jet.mass(), weight);
-        h_mu.h1_jet2_pt->Fill(jet.pt(), weight);
-        h_mu.h1_jet2_eta->Fill(jet.eta(), weight);
-        h_mu.h1_jet2_phi->Fill(jet.phi(), weight);
-        h_mu.h1_jet2_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 3 ) {
-        const auto& jet = out_jets->at(2);
-        h_mu.h1_jet3_m->Fill(jet.mass(), weight);
-        h_mu.h1_jet3_pt->Fill(jet.pt(), weight);
-        h_mu.h1_jet3_eta->Fill(jet.eta(), weight);
-        h_mu.h1_jet3_phi->Fill(jet.phi(), weight);
-        h_mu.h1_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 4 ) {
-        const auto& jet = out_jets->at(3);
-        h_mu.h1_jet4_m->Fill(jet.mass(), weight);
-        h_mu.h1_jet4_pt->Fill(jet.pt(), weight);
-        h_mu.h1_jet4_eta->Fill(jet.eta(), weight);
-        h_mu.h1_jet4_phi->Fill(jet.phi(), weight);
-        h_mu.h1_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 5 ) {
-        const auto& jet = out_jets->at(4);
-        h_mu.h1_jet5_m->Fill(jet.mass(), weight);
-        h_mu.h1_jet5_pt->Fill(jet.pt(), weight);
-        h_mu.h1_jet5_eta->Fill(jet.eta(), weight);
-        h_mu.h1_jet5_phi->Fill(jet.phi(), weight);
-        h_mu.h1_jet5_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 6 ) {
-        const auto& jet = out_jets->at(5);
-        h_mu.h1_jet6_m->Fill(jet.mass(), weight);
-        h_mu.h1_jet6_pt->Fill(jet.pt(), weight);
-        h_mu.h1_jet6_eta->Fill(jet.eta(), weight);
-        h_mu.h1_jet6_phi->Fill(jet.phi(), weight);
-        h_mu.h1_jet6_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      h_mu.h1_bjets_n->Fill(bjets_n, weight);
-
-      h_mu.h1_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
-    }
-
-    // Finalize cut step 1 and start cut step2
-    if ( cutstep <= 1 ) break;
-    ++icutstep; // =2
-
-    if ( channel == 11 ) {
-      h_el.hCutstep->Fill(icutstep, weight);
-      h_el.hCutstepNoweight->Fill(icutstep);
-      h_el.h2a_vertex_n->Fill(nVertex, weight);
-      h_el.h2a_met_pt->Fill(met_pt, weight);
-      h_el.h2a_met_phi->Fill(met_phi, weight);
-      h_el.h2a_leptons_n->Fill(leptons_n, weight);
-      h_el.h2a_lepton1_pt->Fill(lepton1P4.pt(), weight);
-      h_el.h2a_lepton1_eta->Fill(lepton1->eta(), weight);
-      h_el.h2a_lepton1_phi->Fill(lepton1->phi(), weight);
-      h_el.h2a_lepton1_q->Fill(lepton1->charge(), weight);
-      h_el.h2a_jets_n->Fill(jets_n, weight);
-      h_el.h2a_jets_ht->Fill(jets_ht, weight);
-      for ( auto jet : *out_jets ) {
-        h_el.h2a_jets_pt->Fill(jet.pt(), weight);
-        h_el.h2a_jets_eta->Fill(jet.eta(), weight);
-      }
-      if ( jets_n >= 1 ) {
-        const auto& jet = out_jets->at(0);
-        h_el.h2a_jet1_m->Fill(jet.mass(), weight);
-        h_el.h2a_jet1_pt->Fill(jet.pt(), weight);
-        h_el.h2a_jet1_eta->Fill(jet.eta(), weight);
-        h_el.h2a_jet1_phi->Fill(jet.phi(), weight);
-        h_el.h2a_jet1_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 2 ) {
-        const auto& jet = out_jets->at(1);
-        h_el.h2a_jet2_m->Fill(jet.mass(), weight);
-        h_el.h2a_jet2_pt->Fill(jet.pt(), weight);
-        h_el.h2a_jet2_eta->Fill(jet.eta(), weight);
-        h_el.h2a_jet2_phi->Fill(jet.phi(), weight);
-        h_el.h2a_jet2_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 3 ) {
-        const auto& jet = out_jets->at(2);
-        h_el.h2a_jet3_m->Fill(jet.mass(), weight);
-        h_el.h2a_jet3_pt->Fill(jet.pt(), weight);
-        h_el.h2a_jet3_eta->Fill(jet.eta(), weight);
-        h_el.h2a_jet3_phi->Fill(jet.phi(), weight);
-        h_el.h2a_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 4 ) {
-        const auto& jet = out_jets->at(3);
-        h_el.h2a_jet4_m->Fill(jet.mass(), weight);
-        h_el.h2a_jet4_pt->Fill(jet.pt(), weight);
-        h_el.h2a_jet4_eta->Fill(jet.eta(), weight);
-        h_el.h2a_jet4_phi->Fill(jet.phi(), weight);
-        h_el.h2a_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 5 ) {
-        const auto& jet = out_jets->at(4);
-        h_el.h2a_jet5_m->Fill(jet.mass(), weight);
-        h_el.h2a_jet5_pt->Fill(jet.pt(), weight);
-        h_el.h2a_jet5_eta->Fill(jet.eta(), weight);
-        h_el.h2a_jet5_phi->Fill(jet.phi(), weight);
-        h_el.h2a_jet5_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 6 ) {
-        const auto& jet = out_jets->at(5);
-        h_el.h2a_jet6_m->Fill(jet.mass(), weight);
-        h_el.h2a_jet6_pt->Fill(jet.pt(), weight);
-        h_el.h2a_jet6_eta->Fill(jet.eta(), weight);
-        h_el.h2a_jet6_phi->Fill(jet.phi(), weight);
-        h_el.h2a_jet6_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      h_el.h2a_bjets_n->Fill(bjets_n, weight);
-
-      h_el.h2a_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
-    }
-    else if ( channel == 13 ) {
-      h_mu.hCutstep->Fill(icutstep, weight);
-      h_mu.hCutstepNoweight->Fill(icutstep);
-      h_mu.h2a_vertex_n->Fill(nVertex, weight);
-      h_mu.h2a_met_pt->Fill(met_pt, weight);
-      h_mu.h2a_met_phi->Fill(met_phi, weight);
-      h_mu.h2a_leptons_n->Fill(leptons_n, weight);
-      h_mu.h2a_lepton1_pt->Fill(lepton1P4.pt(), weight);
-      h_mu.h2a_lepton1_eta->Fill(lepton1->eta(), weight);
-      h_mu.h2a_lepton1_phi->Fill(lepton1->phi(), weight);
-      h_mu.h2a_lepton1_q->Fill(lepton1->charge(), weight);
-      h_mu.h2a_jets_n->Fill(jets_n, weight);
-      h_mu.h2a_jets_ht->Fill(jets_ht, weight);
-      for ( auto jet : *out_jets ) {
-        h_mu.h2a_jets_pt->Fill(jet.pt(), weight);
-        h_mu.h2a_jets_eta->Fill(jet.eta(), weight);
-      }
-      if ( jets_n >= 1 ) {
-        const auto& jet = out_jets->at(0);
-        h_mu.h2a_jet1_m->Fill(jet.mass(), weight);
-        h_mu.h2a_jet1_pt->Fill(jet.pt(), weight);
-        h_mu.h2a_jet1_eta->Fill(jet.eta(), weight);
-        h_mu.h2a_jet1_phi->Fill(jet.phi(), weight);
-        h_mu.h2a_jet1_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 2 ) {
-        const auto& jet = out_jets->at(1);
-        h_mu.h2a_jet2_m->Fill(jet.mass(), weight);
-        h_mu.h2a_jet2_pt->Fill(jet.pt(), weight);
-        h_mu.h2a_jet2_eta->Fill(jet.eta(), weight);
-        h_mu.h2a_jet2_phi->Fill(jet.phi(), weight);
-        h_mu.h2a_jet2_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 3 ) {
-        const auto& jet = out_jets->at(2);
-        h_mu.h2a_jet3_m->Fill(jet.mass(), weight);
-        h_mu.h2a_jet3_pt->Fill(jet.pt(), weight);
-        h_mu.h2a_jet3_eta->Fill(jet.eta(), weight);
-        h_mu.h2a_jet3_phi->Fill(jet.phi(), weight);
-        h_mu.h2a_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 4 ) {
-        const auto& jet = out_jets->at(3);
-        h_mu.h2a_jet4_m->Fill(jet.mass(), weight);
-        h_mu.h2a_jet4_pt->Fill(jet.pt(), weight);
-        h_mu.h2a_jet4_eta->Fill(jet.eta(), weight);
-        h_mu.h2a_jet4_phi->Fill(jet.phi(), weight);
-        h_mu.h2a_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 5 ) {
-        const auto& jet = out_jets->at(4);
-        h_mu.h2a_jet5_m->Fill(jet.mass(), weight);
-        h_mu.h2a_jet5_pt->Fill(jet.pt(), weight);
-        h_mu.h2a_jet5_eta->Fill(jet.eta(), weight);
-        h_mu.h2a_jet5_phi->Fill(jet.phi(), weight);
-        h_mu.h2a_jet5_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 6 ) {
-        const auto& jet = out_jets->at(5);
-        h_mu.h2a_jet6_m->Fill(jet.mass(), weight);
-        h_mu.h2a_jet6_pt->Fill(jet.pt(), weight);
-        h_mu.h2a_jet6_eta->Fill(jet.eta(), weight);
-        h_mu.h2a_jet6_phi->Fill(jet.phi(), weight);
-        h_mu.h2a_jet6_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      h_mu.h2a_bjets_n->Fill(bjets_n, weight);
-
-      h_mu.h2a_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
-    }
-
-    // Finalize cut step 2 and start cut step3
-    if ( cutstep <= 2 ) break;
-    ++icutstep; // =3
-
-    if ( channel == 11 ) {
-      h_el.hCutstep->Fill(icutstep, weight);
-      h_el.hCutstepNoweight->Fill(icutstep);
-      h_el.h2b_vertex_n->Fill(nVertex, weight);
-      h_el.h2b_met_pt->Fill(met_pt, weight);
-      h_el.h2b_met_phi->Fill(met_phi, weight);
-      h_el.h2b_lepton1_pt->Fill(lepton1P4.pt(), weight);
-      h_el.h2b_lepton1_eta->Fill(lepton1->eta(), weight);
-      h_el.h2b_lepton1_phi->Fill(lepton1->phi(), weight);
-      h_el.h2b_lepton1_q->Fill(lepton1->charge(), weight);
-      h_el.h2b_jets_n->Fill(jets_n, weight);
-      h_el.h2b_jets_ht->Fill(jets_ht, weight);
-      for ( auto jet : *out_jets ) {
-        h_el.h2b_jets_pt->Fill(jet.pt(), weight);
-        h_el.h2b_jets_eta->Fill(jet.eta(), weight);
-      }
-      if ( jets_n >= 1 ) {
-        const auto& jet = out_jets->at(0);
-        h_el.h2b_jet1_m->Fill(jet.mass(), weight);
-        h_el.h2b_jet1_pt->Fill(jet.pt(), weight);
-        h_el.h2b_jet1_eta->Fill(jet.eta(), weight);
-        h_el.h2b_jet1_phi->Fill(jet.phi(), weight);
-        h_el.h2b_jet1_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 2 ) {
-        const auto& jet = out_jets->at(1);
-        h_el.h2b_jet2_m->Fill(jet.mass(), weight);
-        h_el.h2b_jet2_pt->Fill(jet.pt(), weight);
-        h_el.h2b_jet2_eta->Fill(jet.eta(), weight);
-        h_el.h2b_jet2_phi->Fill(jet.phi(), weight);
-        h_el.h2b_jet2_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 3 ) {
-        const auto& jet = out_jets->at(2);
-        h_el.h2b_jet3_m->Fill(jet.mass(), weight);
-        h_el.h2b_jet3_pt->Fill(jet.pt(), weight);
-        h_el.h2b_jet3_eta->Fill(jet.eta(), weight);
-        h_el.h2b_jet3_phi->Fill(jet.phi(), weight);
-        h_el.h2b_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 4 ) {
-        const auto& jet = out_jets->at(3);
-        h_el.h2b_jet4_m->Fill(jet.mass(), weight);
-        h_el.h2b_jet4_pt->Fill(jet.pt(), weight);
-        h_el.h2b_jet4_eta->Fill(jet.eta(), weight);
-        h_el.h2b_jet4_phi->Fill(jet.phi(), weight);
-        h_el.h2b_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 5 ) {
-        const auto& jet = out_jets->at(4);
-        h_el.h2b_jet5_m->Fill(jet.mass(), weight);
-        h_el.h2b_jet5_pt->Fill(jet.pt(), weight);
-        h_el.h2b_jet5_eta->Fill(jet.eta(), weight);
-        h_el.h2b_jet5_phi->Fill(jet.phi(), weight);
-        h_el.h2b_jet5_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 6 ) {
-        const auto& jet = out_jets->at(5);
-        h_el.h2b_jet6_m->Fill(jet.mass(), weight);
-        h_el.h2b_jet6_pt->Fill(jet.pt(), weight);
-        h_el.h2b_jet6_eta->Fill(jet.eta(), weight);
-        h_el.h2b_jet6_phi->Fill(jet.phi(), weight);
-        h_el.h2b_jet6_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      h_el.h2b_bjets_n->Fill(bjets_n, weight);
-
-      h_el.h2b_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
-    }
-    else if ( channel == 13 ) {
-      h_mu.hCutstep->Fill(icutstep, weight);
-      h_mu.hCutstepNoweight->Fill(icutstep);
-      h_mu.h2b_vertex_n->Fill(nVertex, weight);
-      h_mu.h2b_met_pt->Fill(met_pt, weight);
-      h_mu.h2b_met_phi->Fill(met_phi, weight);
-      h_mu.h2b_lepton1_pt->Fill(lepton1P4.pt(), weight);
-      h_mu.h2b_lepton1_eta->Fill(lepton1->eta(), weight);
-      h_mu.h2b_lepton1_phi->Fill(lepton1->phi(), weight);
-      h_mu.h2b_lepton1_q->Fill(lepton1->charge(), weight);
-      h_mu.h2b_jets_n->Fill(jets_n, weight);
-      h_mu.h2b_jets_ht->Fill(jets_ht, weight);
-      for ( auto jet : *out_jets ) {
-        h_mu.h2b_jets_pt->Fill(jet.pt(), weight);
-        h_mu.h2b_jets_eta->Fill(jet.eta(), weight);
-      }
-      if ( jets_n >= 1 ) {
-        const auto& jet = out_jets->at(0);
-        h_mu.h2b_jet1_m->Fill(jet.mass(), weight);
-        h_mu.h2b_jet1_pt->Fill(jet.pt(), weight);
-        h_mu.h2b_jet1_eta->Fill(jet.eta(), weight);
-        h_mu.h2b_jet1_phi->Fill(jet.phi(), weight);
-        h_mu.h2b_jet1_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 2 ) {
-        const auto& jet = out_jets->at(1);
-        h_mu.h2b_jet2_m->Fill(jet.mass(), weight);
-        h_mu.h2b_jet2_pt->Fill(jet.pt(), weight);
-        h_mu.h2b_jet2_eta->Fill(jet.eta(), weight);
-        h_mu.h2b_jet2_phi->Fill(jet.phi(), weight);
-        h_mu.h2b_jet2_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 3 ) {
-        const auto& jet = out_jets->at(2);
-        h_mu.h2b_jet3_m->Fill(jet.mass(), weight);
-        h_mu.h2b_jet3_pt->Fill(jet.pt(), weight);
-        h_mu.h2b_jet3_eta->Fill(jet.eta(), weight);
-        h_mu.h2b_jet3_phi->Fill(jet.phi(), weight);
-        h_mu.h2b_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 4 ) {
-        const auto& jet = out_jets->at(3);
-        h_mu.h2b_jet4_m->Fill(jet.mass(), weight);
-        h_mu.h2b_jet4_pt->Fill(jet.pt(), weight);
-        h_mu.h2b_jet4_eta->Fill(jet.eta(), weight);
-        h_mu.h2b_jet4_phi->Fill(jet.phi(), weight);
-        h_mu.h2b_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 5 ) {
-        const auto& jet = out_jets->at(4);
-        h_mu.h2b_jet5_m->Fill(jet.mass(), weight);
-        h_mu.h2b_jet5_pt->Fill(jet.pt(), weight);
-        h_mu.h2b_jet5_eta->Fill(jet.eta(), weight);
-        h_mu.h2b_jet5_phi->Fill(jet.phi(), weight);
-        h_mu.h2b_jet5_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 6 ) {
-        const auto& jet = out_jets->at(5);
-        h_mu.h2b_jet6_m->Fill(jet.mass(), weight);
-        h_mu.h2b_jet6_pt->Fill(jet.pt(), weight);
-        h_mu.h2b_jet6_eta->Fill(jet.eta(), weight);
-        h_mu.h2b_jet6_phi->Fill(jet.phi(), weight);
-        h_mu.h2b_jet6_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      h_mu.h2b_bjets_n->Fill(bjets_n, weight);
-
-      h_mu.h2b_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
-
-    }
-
-    // Finalize cut step 3 and start cut step 4
-    if ( cutstep <= 3 ) break;
-    ++icutstep; // =4
-
-    const auto& jet1 = out_jets->at(0);
-
-    if ( channel == 11 ) {
-      h_el.hCutstep->Fill(icutstep, weight);
-      h_el.hCutstepNoweight->Fill(icutstep);
-      h_el.h3_vertex_n->Fill(nVertex, weight);
-      h_el.h3_met_pt->Fill(met_pt, weight);
-      h_el.h3_met_phi->Fill(met_phi, weight);
-      h_el.h3_lepton1_pt->Fill(lepton1P4.pt(), weight);
-      h_el.h3_lepton1_eta->Fill(lepton1->eta(), weight);
-      h_el.h3_lepton1_phi->Fill(lepton1->phi(), weight);
-      h_el.h3_lepton1_q->Fill(lepton1->charge(), weight);
-      h_el.h3_jets_n->Fill(jets_n, weight);
-      h_el.h3_jets_ht->Fill(jets_ht, weight);
-      for ( auto jet : *out_jets ) {
-        h_el.h3_jets_pt->Fill(jet.pt(), weight);
-        h_el.h3_jets_eta->Fill(jet.eta(), weight);
-      }
-      h_el.h3_jet1_m->Fill(jet1.mass(), weight);
-      h_el.h3_jet1_pt->Fill(jet1.pt(), weight);
-      h_el.h3_jet1_eta->Fill(jet1.eta(), weight);
-      h_el.h3_jet1_phi->Fill(jet1.phi(), weight);
-      h_el.h3_jet1_btag->Fill(jet1.bDiscriminator(bTagName_), weight);
-      if ( jets_n >= 2 ) {
-        const auto& jet = out_jets->at(1);
-        h_el.h3_jet2_m->Fill(jet.mass(), weight);
-        h_el.h3_jet2_pt->Fill(jet.pt(), weight);
-        h_el.h3_jet2_eta->Fill(jet.eta(), weight);
-        h_el.h3_jet2_phi->Fill(jet.phi(), weight);
-        h_el.h3_jet2_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 3 ) {
-        const auto& jet = out_jets->at(2);
-        h_el.h3_jet3_m->Fill(jet.mass(), weight);
-        h_el.h3_jet3_pt->Fill(jet.pt(), weight);
-        h_el.h3_jet3_eta->Fill(jet.eta(), weight);
-        h_el.h3_jet3_phi->Fill(jet.phi(), weight);
-        h_el.h3_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 4 ) {
-        const auto& jet = out_jets->at(3);
-        h_el.h3_jet4_m->Fill(jet.mass(), weight);
-        h_el.h3_jet4_pt->Fill(jet.pt(), weight);
-        h_el.h3_jet4_eta->Fill(jet.eta(), weight);
-        h_el.h3_jet4_phi->Fill(jet.phi(), weight);
-        h_el.h3_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 5 ) {
-        const auto& jet = out_jets->at(4);
-        h_el.h3_jet5_m->Fill(jet.mass(), weight);
-        h_el.h3_jet5_pt->Fill(jet.pt(), weight);
-        h_el.h3_jet5_eta->Fill(jet.eta(), weight);
-        h_el.h3_jet5_phi->Fill(jet.phi(), weight);
-        h_el.h3_jet5_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 6 ) {
-        const auto& jet = out_jets->at(5);
-        h_el.h3_jet6_m->Fill(jet.mass(), weight);
-        h_el.h3_jet6_pt->Fill(jet.pt(), weight);
-        h_el.h3_jet6_eta->Fill(jet.eta(), weight);
-        h_el.h3_jet6_phi->Fill(jet.phi(), weight);
-        h_el.h3_jet6_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      h_el.h3_bjets_n->Fill(bjets_n, weight);
-
-      h_el.h3_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
-    }
-    else if ( channel == 13 ) {
-      h_mu.hCutstep->Fill(icutstep, weight);
-      h_mu.hCutstepNoweight->Fill(icutstep);
-      h_mu.h3_vertex_n->Fill(nVertex, weight);
-      h_mu.h3_met_pt->Fill(met_pt, weight);
-      h_mu.h3_met_phi->Fill(met_phi, weight);
-      h_mu.h3_lepton1_pt->Fill(lepton1P4.pt(), weight);
-      h_mu.h3_lepton1_eta->Fill(lepton1->eta(), weight);
-      h_mu.h3_lepton1_phi->Fill(lepton1->phi(), weight);
-      h_mu.h3_lepton1_q->Fill(lepton1->charge(), weight);
-      h_mu.h3_jets_n->Fill(jets_n, weight);
-      h_mu.h3_jets_ht->Fill(jets_ht, weight);
-      for ( auto jet : *out_jets ) {
-        h_mu.h3_jets_pt->Fill(jet.pt(), weight);
-        h_mu.h3_jets_eta->Fill(jet.eta(), weight);
-      }
-      h_mu.h3_jet1_m->Fill(jet1.mass(), weight);
-      h_mu.h3_jet1_pt->Fill(jet1.pt(), weight);
-      h_mu.h3_jet1_eta->Fill(jet1.eta(), weight);
-      h_mu.h3_jet1_phi->Fill(jet1.phi(), weight);
-      h_mu.h3_jet1_btag->Fill(jet1.bDiscriminator(bTagName_), weight);
-      if ( jets_n >= 2 ) {
-        const auto& jet = out_jets->at(1);
-        h_mu.h3_jet2_m->Fill(jet.mass(), weight);
-        h_mu.h3_jet2_pt->Fill(jet.pt(), weight);
-        h_mu.h3_jet2_eta->Fill(jet.eta(), weight);
-        h_mu.h3_jet2_phi->Fill(jet.phi(), weight);
-        h_mu.h3_jet2_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 3 ) {
-        const auto& jet = out_jets->at(2);
-        h_mu.h3_jet3_m->Fill(jet.mass(), weight);
-        h_mu.h3_jet3_pt->Fill(jet.pt(), weight);
-        h_mu.h3_jet3_eta->Fill(jet.eta(), weight);
-        h_mu.h3_jet3_phi->Fill(jet.phi(), weight);
-        h_mu.h3_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 4 ) {
-        const auto& jet = out_jets->at(3);
-        h_mu.h3_jet4_m->Fill(jet.mass(), weight);
-        h_mu.h3_jet4_pt->Fill(jet.pt(), weight);
-        h_mu.h3_jet4_eta->Fill(jet.eta(), weight);
-        h_mu.h3_jet4_phi->Fill(jet.phi(), weight);
-        h_mu.h3_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 5 ) {
-        const auto& jet = out_jets->at(4);
-        h_mu.h3_jet5_m->Fill(jet.mass(), weight);
-        h_mu.h3_jet5_pt->Fill(jet.pt(), weight);
-        h_mu.h3_jet5_eta->Fill(jet.eta(), weight);
-        h_mu.h3_jet5_phi->Fill(jet.phi(), weight);
-        h_mu.h3_jet5_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 6 ) {
-        const auto& jet = out_jets->at(5);
-        h_mu.h3_jet6_m->Fill(jet.mass(), weight);
-        h_mu.h3_jet6_pt->Fill(jet.pt(), weight);
-        h_mu.h3_jet6_eta->Fill(jet.eta(), weight);
-        h_mu.h3_jet6_phi->Fill(jet.phi(), weight);
-        h_mu.h3_jet6_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      h_mu.h3_bjets_n->Fill(bjets_n, weight);
-
-      h_mu.h3_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
-
-    }
-
-    // Finalize cut step 4 and start next cut step
-    if ( cutstep <= 4 ) break;
-    ++icutstep; // =5
-
-    if ( channel == 11 ) {
-      h_el.hCutstep->Fill(icutstep, weight);
-      h_el.hCutstepNoweight->Fill(icutstep);
-      h_el.h4_vertex_n->Fill(nVertex, weight);
-      h_el.h4_met_pt->Fill(met_pt, weight);
-      h_el.h4_met_phi->Fill(met_phi, weight);
-      h_el.h4_lepton1_pt->Fill(lepton1P4.pt(), weight);
-      h_el.h4_lepton1_eta->Fill(lepton1->eta(), weight);
-      h_el.h4_lepton1_phi->Fill(lepton1->phi(), weight);
-      h_el.h4_lepton1_q->Fill(lepton1->charge(), weight);
-      h_el.h4_jets_n->Fill(jets_n, weight);
-      h_el.h4_jets_ht->Fill(jets_ht, weight);
-      for ( auto jet : *out_jets ) {
-        h_el.h4_jets_pt->Fill(jet.pt(), weight);
-        h_el.h4_jets_eta->Fill(jet.eta(), weight);
-      }
-      h_el.h4_jet1_m->Fill(jet1.mass(), weight);
-      h_el.h4_jet1_pt->Fill(jet1.pt(), weight);
-      h_el.h4_jet1_eta->Fill(jet1.eta(), weight);
-      h_el.h4_jet1_phi->Fill(jet1.phi(), weight);
-      h_el.h4_jet1_btag->Fill(jet1.bDiscriminator(bTagName_), weight);
-      if ( jets_n >= 2 ) {
-        const auto& jet = out_jets->at(1);
-        h_el.h4_jet2_m->Fill(jet.mass(), weight);
-        h_el.h4_jet2_pt->Fill(jet.pt(), weight);
-        h_el.h4_jet2_eta->Fill(jet.eta(), weight);
-        h_el.h4_jet2_phi->Fill(jet.phi(), weight);
-        h_el.h4_jet2_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 3 ) {
-        const auto& jet = out_jets->at(2);
-        h_el.h4_jet3_m->Fill(jet.mass(), weight);
-        h_el.h4_jet3_pt->Fill(jet.pt(), weight);
-        h_el.h4_jet3_eta->Fill(jet.eta(), weight);
-        h_el.h4_jet3_phi->Fill(jet.phi(), weight);
-        h_el.h4_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 4 ) {
-        const auto& jet = out_jets->at(3);
-        h_el.h4_jet4_m->Fill(jet.mass(), weight);
-        h_el.h4_jet4_pt->Fill(jet.pt(), weight);
-        h_el.h4_jet4_eta->Fill(jet.eta(), weight);
-        h_el.h4_jet4_phi->Fill(jet.phi(), weight);
-        h_el.h4_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 5 ) {
-        const auto& jet = out_jets->at(4);
-        h_el.h4_jet5_m->Fill(jet.mass(), weight);
-        h_el.h4_jet5_pt->Fill(jet.pt(), weight);
-        h_el.h4_jet5_eta->Fill(jet.eta(), weight);
-        h_el.h4_jet5_phi->Fill(jet.phi(), weight);
-        h_el.h4_jet5_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 6 ) {
-        const auto& jet = out_jets->at(5);
-        h_el.h4_jet6_m->Fill(jet.mass(), weight);
-        h_el.h4_jet6_pt->Fill(jet.pt(), weight);
-        h_el.h4_jet6_eta->Fill(jet.eta(), weight);
-        h_el.h4_jet6_phi->Fill(jet.phi(), weight);
-        h_el.h4_jet6_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      h_el.h4_bjets_n->Fill(bjets_n, weight);
-
-      h_el.h4_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
-    }
-    else if ( channel == 13 ) {
-      h_mu.hCutstep->Fill(icutstep, weight);
-      h_mu.hCutstepNoweight->Fill(icutstep);
-      h_mu.h4_vertex_n->Fill(nVertex, weight);
-      h_mu.h4_met_pt->Fill(met_pt, weight);
-      h_mu.h4_met_phi->Fill(met_phi, weight);
-      h_mu.h4_lepton1_pt->Fill(lepton1P4.pt(), weight);
-      h_mu.h4_lepton1_eta->Fill(lepton1->eta(), weight);
-      h_mu.h4_lepton1_phi->Fill(lepton1->phi(), weight);
-      h_mu.h4_lepton1_q->Fill(lepton1->charge(), weight);
-      h_mu.h4_jets_n->Fill(jets_n, weight);
-      h_mu.h4_jets_ht->Fill(jets_ht, weight);
-      for ( auto jet : *out_jets ) {
-        h_mu.h4_jets_pt->Fill(jet.pt(), weight);
-        h_mu.h4_jets_eta->Fill(jet.eta(), weight);
-      }
-      h_mu.h4_jet1_m->Fill(jet1.mass(), weight);
-      h_mu.h4_jet1_pt->Fill(jet1.pt(), weight);
-      h_mu.h4_jet1_eta->Fill(jet1.eta(), weight);
-      h_mu.h4_jet1_phi->Fill(jet1.phi(), weight);
-      h_mu.h4_jet1_btag->Fill(jet1.bDiscriminator(bTagName_), weight);
-      if ( jets_n >= 2 ) {
-        const auto& jet = out_jets->at(1);
-        h_mu.h4_jet2_m->Fill(jet.mass(), weight);
-        h_mu.h4_jet2_pt->Fill(jet.pt(), weight);
-        h_mu.h4_jet2_eta->Fill(jet.eta(), weight);
-        h_mu.h4_jet2_phi->Fill(jet.phi(), weight);
-        h_mu.h4_jet2_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 3 ) {
-        const auto& jet = out_jets->at(2);
-        h_mu.h4_jet3_m->Fill(jet.mass(), weight);
-        h_mu.h4_jet3_pt->Fill(jet.pt(), weight);
-        h_mu.h4_jet3_eta->Fill(jet.eta(), weight);
-        h_mu.h4_jet3_phi->Fill(jet.phi(), weight);
-        h_mu.h4_jet3_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 4 ) {
-        const auto& jet = out_jets->at(3);
-        h_mu.h4_jet4_m->Fill(jet.mass(), weight);
-        h_mu.h4_jet4_pt->Fill(jet.pt(), weight);
-        h_mu.h4_jet4_eta->Fill(jet.eta(), weight);
-        h_mu.h4_jet4_phi->Fill(jet.phi(), weight);
-        h_mu.h4_jet4_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 5 ) {
-        const auto& jet = out_jets->at(4);
-        h_mu.h4_jet5_m->Fill(jet.mass(), weight);
-        h_mu.h4_jet5_pt->Fill(jet.pt(), weight);
-        h_mu.h4_jet5_eta->Fill(jet.eta(), weight);
-        h_mu.h4_jet5_phi->Fill(jet.phi(), weight);
-        h_mu.h4_jet5_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      if ( jets_n >= 6 ) {
-        const auto& jet = out_jets->at(5);
-        h_mu.h4_jet6_m->Fill(jet.mass(), weight);
-        h_mu.h4_jet6_pt->Fill(jet.pt(), weight);
-        h_mu.h4_jet6_eta->Fill(jet.eta(), weight);
-        h_mu.h4_jet6_phi->Fill(jet.phi(), weight);
-        h_mu.h4_jet6_btag->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      h_mu.h4_bjets_n->Fill(bjets_n, weight);
-
-      h_mu.h4_event_st->Fill(leptons_st+jets_ht+met_pt, weight);
-
-    }
-
-
-  } // switch(1)
+  }
 
   // Cutsomized cutflow without z-veto cut to be used in DY estimation and other studies
-  for ( int istep=1, nstep=cutstepBits.size(); istep<=nstep; ++istep )
-  {
+  for ( int istep=1, nstep=cutstepBits.size(); istep<=nstep; ++istep ) {
     if ( istep != 2 and !cutstepBits[istep-1] ) break;
   }
 
   // Fill cut flow 2D plot
-  for ( int istep=1, nstep=cutstepBits.size(); istep<=nstep; ++istep )
-  {
+  for ( int istep=1, nstep=cutstepBits.size(); istep<=nstep; ++istep ) {
     const bool res1 = cutstepBits[istep-1];
 
     // Fill diagonal terms
