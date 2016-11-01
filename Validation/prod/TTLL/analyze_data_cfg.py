@@ -10,32 +10,26 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 50000
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 process.source.fileNames = [
-    '/store/user/jhgoh/CATTools/sync/v7-6-5/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',
+    #'/store/user/jhgoh/CATTools/sync/v7-6-3/DoubleEG_Run2015D-16Dec2015-v2.root',
+    #'/store/user/jhgoh/CATTools/sync/v7-6-3/DoubleMuon_Run2015D-16Dec2015-v1.root',
+    '/store/user/jhgoh/CATTools/sync/v7-6-5/MuonEG_Run2015D-16Dec2015-v1.root',
 ]
 
 process.load("CATTools.CatAnalyzer.filters_cff")
-process.load("CATTools.Validation.ttllEventSelector_cfi")
-process.load("CATTools.CatAnalyzer.ttll.ttllGenFilters_cff")
+process.load("CATTools.Validation.ttllEventSelector_cff")
 process.load("CATTools.Validation.validation_cff")
+process.eventsTTLL.isMC = False
+process.rec.isMC = False
+if hasattr(process.eventsTTLL, "genWeight"): delattr(process.eventsTTLL, "genWeight")
+if hasattr(process, "flatGenWeights"): delattr(process, "flatGenWeights")
 
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string("hist.root"),
 )
 
-process.load("CATTools.CatAnalyzer.flatGenWeights_cfi")
-process.agen = cms.EDAnalyzer("CATGenTopAnalysis",
-    weightIndex = cms.int32(-1),
-    weight = cms.InputTag("flatGenWeights"),
-    channel = cms.InputTag("partonTop","channel"),
-    modes = cms.InputTag("partonTop", "modes"),
-    partonTop = cms.InputTag("partonTop"),
-    pseudoTop = cms.InputTag("pseudoTop"),
-    filterTaus = cms.bool(False),
-)
-
 process.p = cms.Path(
-    process.agen + process.filterPartonTTLL
-  * process.gen + process.rec
+    process.filterLumi
+  * process.rec
   * process.eventsTTLL
 )
 

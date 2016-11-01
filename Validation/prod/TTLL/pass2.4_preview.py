@@ -7,9 +7,9 @@ sys.argv.append("-b")
 from math import hypot
 from ROOT import *
 import imp
-printCutflow = imp.load_source("printCutflow", "submacros/printCutflow.py").printCutflow
-#st = imp.load_source("st", "submacros/tdrstyle.py")
-gROOT.LoadMacro("submacros/tdrstyle.C")
+printCutflow = imp.load_source("printCutflow", "../submacros/printCutflow.py").printCutflow
+#st = imp.load_source("st", "../submacros/tdrstyle.py")
+gROOT.LoadMacro("../submacros/tdrstyle.C")
 setTDRStyle()
 gStyle.SetOptTitle(0)
 gStyle.SetOptStat(0)

@@ -10,19 +10,32 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 50000
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 process.source.fileNames = [
-    '/store/user/jhgoh/CATTools/sync/v7-6-5/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8.root',
+    '/store/user/jhgoh/CATTools/sync/v7-6-5/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',
 ]
 
 process.load("CATTools.CatAnalyzer.filters_cff")
-process.load("CATTools.Validation.ttllEventSelector_cfi")
+process.load("CATTools.Validation.ttllEventSelector_cff")
+process.load("CATTools.CatAnalyzer.ttll.ttllGenFilters_cff")
 process.load("CATTools.Validation.validation_cff")
 
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string("hist.root"),
 )
 
+process.load("CATTools.CatAnalyzer.flatGenWeights_cfi")
+process.agen = cms.EDAnalyzer("CATGenTopAnalysis",
+    weightIndex = cms.int32(-1),
+    weight = cms.InputTag("flatGenWeights"),
+    channel = cms.InputTag("partonTop","channel"),
+    modes = cms.InputTag("partonTop", "modes"),
+    partonTop = cms.InputTag("partonTop"),
+    pseudoTop = cms.InputTag("pseudoTop"),
+    filterTaus = cms.bool(False),
+)
+
 process.p = cms.Path(
-    process.gen + process.rec
+    process.agen + process.filterPartonTTLL
+  * process.gen + process.rec
   * process.eventsTTLL
 )
 
