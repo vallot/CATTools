@@ -23,7 +23,7 @@
 #include "TH1D.h"
 #include "TH2F.h"
 
-#define nMaxCutstep 12
+#define nCutstep 12
 
 using namespace std;
 
@@ -31,27 +31,27 @@ namespace cat {
 
 struct ControlPlotsTTLJ
 {
-  //const static int nMaxCutstep;
+  //const static int nCutstep;
   typedef TH1D* H1;
   typedef TH2D* H2;
 
   H1 hCutstep, hCutstepNoweight;
   H2 h2Cutstep, h2CutstepNoweight;
 
-  H1 h_vertex_n[nMaxCutstep];
-  H1 h_met_pt[nMaxCutstep], h_met_phi[nMaxCutstep];
-  H1 h_leptons_n[nMaxCutstep];
-  H1 h_lepton1_pt[nMaxCutstep], h_lepton1_eta[nMaxCutstep], h_lepton1_phi[nMaxCutstep], h_lepton1_q[nMaxCutstep];
-  H1 h_jets_n[nMaxCutstep], h_jets_pt[nMaxCutstep], h_jets_eta[nMaxCutstep], h_jets_ht[nMaxCutstep];
+  H1 h_vertex_n[nCutstep];
+  H1 h_met_pt[nCutstep], h_met_phi[nCutstep];
+  H1 h_leptons_n[nCutstep];
+  H1 h_lepton1_pt[nCutstep], h_lepton1_eta[nCutstep], h_lepton1_phi[nCutstep], h_lepton1_q[nCutstep];
+  H1 h_jets_n[nCutstep], h_jets_pt[nCutstep], h_jets_eta[nCutstep], h_jets_ht[nCutstep];
 
-  H1 h_jet_m[nMaxCutstep][6]; 
-  H1 h_jet_pt[nMaxCutstep][6];
-  H1 h_jet_eta[nMaxCutstep][6];
-  H1 h_jet_phi[nMaxCutstep][6];
-  H1 h_jet_btag[nMaxCutstep][6];
+  H1 h_jet_m[nCutstep][6]; 
+  H1 h_jet_pt[nCutstep][6];
+  H1 h_jet_eta[nCutstep][6];
+  H1 h_jet_phi[nCutstep][6];
+  H1 h_jet_btag[nCutstep][6];
 
-  H1 h_bjets_n[nMaxCutstep];
-  H1 h_event_st[nMaxCutstep];
+  H1 h_bjets_n[nCutstep];
+  H1 h_event_st[nCutstep];
 
   void book(TFileDirectory&& dir)
   {
@@ -61,93 +61,29 @@ struct ControlPlotsTTLJ
     // There are step0a, step0b and step0c cut steps
     // By putting step0a to underflow bin and step0b to -1, step0c to 0,
     // We can start cut steps from 1.
-    hCutstep = dir.make<TH1D>("cutstep", "cutstep", nMaxCutstep, -2, nMaxCutstep-2);
-    hCutstepNoweight = dir.make<TH1D>("cutstepNoweight", "cutstepNoweight", nMaxCutstep, -2, nMaxCutstep-2);
-    h2Cutstep = dir.make<TH2D>("cutcorrelation", "cutcorrelation", nMaxCutstep, -2, nMaxCutstep-2, nMaxCutstep, -2, nMaxCutstep-2);
-    h2CutstepNoweight = dir.make<TH2D>("cutcorrelationNoweight", "cutcorrelationNoweight", nMaxCutstep, -2, nMaxCutstep-2, nMaxCutstep, -2, nMaxCutstep-2);
+    hCutstep = dir.make<TH1D>("cutstep", "cutstep", nCutstep, -2, nCutstep-2);
+    hCutstepNoweight = dir.make<TH1D>("cutstepNoweight", "cutstepNoweight", nCutstep, -2, nCutstep-2);
+    h2Cutstep = dir.make<TH2D>("cutcorrelation", "cutcorrelation", nCutstep, -2, nCutstep-2, nCutstep, -2, nCutstep-2);
+    h2CutstepNoweight = dir.make<TH2D>("cutcorrelationNoweight", "cutcorrelationNoweight", nCutstep, -2, nCutstep-2, nCutstep, -2, nCutstep-2);
 
-    hCutstep->GetXaxis()->SetBinLabel( 1, "S0a all event");
-    hCutstep->GetXaxis()->SetBinLabel( 2, "S0b Trigger");
-    hCutstep->GetXaxis()->SetBinLabel( 3, "S0c Event filter");
-    hCutstep->GetXaxis()->SetBinLabel( 4, "S1  One signal lepton");
-    hCutstep->GetXaxis()->SetBinLabel( 5, "S2  Veto muon");
-    hCutstep->GetXaxis()->SetBinLabel( 6, "S3  Veto electron");
-    hCutstep->GetXaxis()->SetBinLabel( 7, "S4  Conv. veto");
-    hCutstep->GetXaxis()->SetBinLabel( 8, "S5a nJet1");
-    hCutstep->GetXaxis()->SetBinLabel( 9, "S5b nJet2");
-    hCutstep->GetXaxis()->SetBinLabel(10, "S5c nJet3");
-    hCutstep->GetXaxis()->SetBinLabel(11, "S5d nJet4");
-    hCutstep->GetXaxis()->SetBinLabel(12, "S6  nBJet1");
+    const char* stepLabels[] = {
+      "S0a all event", "S0b Trigger", "S0c Event filter",
+      "S1  One signal lepton", "S2  Veto muon", "S3  Veto electron", "S4  Conv. veto",
+      "S5a nJet1", "S5b nJet2", "S5c nJet3", "S5d nJet4", "S6  nBJet1"
+    };
+    const char* stepNames[nCutstep] = {"step0a", "step0b", "step0c", 
+                                       "step1", "step2", "step3", "step4",
+                                       "step5a", "step5b", "step5c", "step5d", "step6"};
 
-    hCutstepNoweight->GetXaxis()->SetBinLabel( 1, "S0a all event");
-    hCutstepNoweight->GetXaxis()->SetBinLabel( 2, "S0b Trigger");
-    hCutstepNoweight->GetXaxis()->SetBinLabel( 3, "S0c Event filter");
-    hCutstepNoweight->GetXaxis()->SetBinLabel( 4, "S1  One signal lepton");
-    hCutstepNoweight->GetXaxis()->SetBinLabel( 5, "S2  Veto muon");
-    hCutstepNoweight->GetXaxis()->SetBinLabel( 6, "S3  Veto electron");
-    hCutstepNoweight->GetXaxis()->SetBinLabel( 7, "S4  Conv. veto");
-    hCutstepNoweight->GetXaxis()->SetBinLabel( 8, "S5a nJet1");
-    hCutstepNoweight->GetXaxis()->SetBinLabel( 9, "S5b nJet2");
-    hCutstepNoweight->GetXaxis()->SetBinLabel(10, "S5c nJet3");
-    hCutstepNoweight->GetXaxis()->SetBinLabel(11, "S5d nJet4");
-    hCutstepNoweight->GetXaxis()->SetBinLabel(12, "S6  nBJet1");
+    for ( int i=0; i<nCutstep; ++i ) {
+      hCutstep->GetXaxis()->SetBinLabel(i+1, stepLabels[i]);
+      hCutstepNoweight->GetXaxis()->SetBinLabel(i+1, stepLabels[i]);
+      h2Cutstep->GetXaxis()->SetBinLabel(i+1, stepLabels[i]);
+      h2Cutstep->GetYaxis()->SetBinLabel(i+1, stepLabels[i]);
+      h2CutstepNoweight->GetXaxis()->SetBinLabel(i+1, stepLabels[i]);
+      h2CutstepNoweight->GetYaxis()->SetBinLabel(i+1, stepLabels[i]);
+    }
 
-    h2Cutstep->GetXaxis()->SetBinLabel( 1, "S0a all event");
-    h2Cutstep->GetXaxis()->SetBinLabel( 2, "S0b Trigger");
-    h2Cutstep->GetXaxis()->SetBinLabel( 3, "S0c Event filter");
-    h2Cutstep->GetXaxis()->SetBinLabel( 4, "S1  One signal lepton");
-    h2Cutstep->GetXaxis()->SetBinLabel( 5, "S2  Veto muon");
-    h2Cutstep->GetXaxis()->SetBinLabel( 6, "S3  Veto electron");
-    h2Cutstep->GetXaxis()->SetBinLabel( 7, "S4  Conv. veto");
-    h2Cutstep->GetXaxis()->SetBinLabel( 8, "S5a nJet1");
-    h2Cutstep->GetXaxis()->SetBinLabel( 9, "S5b nJet2");
-    h2Cutstep->GetXaxis()->SetBinLabel(10, "S5c nJet3");
-    h2Cutstep->GetXaxis()->SetBinLabel(11, "S5d nJet4");
-    h2Cutstep->GetXaxis()->SetBinLabel(12, "S6  nBJet1");
-
-    h2Cutstep->GetYaxis()->SetBinLabel( 1, "S0a all event");
-    h2Cutstep->GetYaxis()->SetBinLabel( 2, "S0b Trigger");
-    h2Cutstep->GetYaxis()->SetBinLabel( 3, "S0c Event filter");
-    h2Cutstep->GetYaxis()->SetBinLabel( 4, "S1  One signal lepton");
-    h2Cutstep->GetYaxis()->SetBinLabel( 5, "S2  Veto muon");
-    h2Cutstep->GetYaxis()->SetBinLabel( 6, "S3  Veto electron");
-    h2Cutstep->GetYaxis()->SetBinLabel( 7, "S4  Conv. veto");
-    h2Cutstep->GetYaxis()->SetBinLabel( 8, "S5a nJet1");
-    h2Cutstep->GetYaxis()->SetBinLabel( 9, "S5b nJet2");
-    h2Cutstep->GetYaxis()->SetBinLabel(10, "S5c nJet3");
-    h2Cutstep->GetYaxis()->SetBinLabel(11, "S5d nJet4");
-    h2Cutstep->GetYaxis()->SetBinLabel(12, "S6  nBJet1");
-
-    h2CutstepNoweight->GetXaxis()->SetBinLabel( 1, "S0a all event");
-    h2CutstepNoweight->GetXaxis()->SetBinLabel( 2, "S0b Trigger");
-    h2CutstepNoweight->GetXaxis()->SetBinLabel( 3, "S0c Event filter");
-    h2CutstepNoweight->GetXaxis()->SetBinLabel( 4, "S1  One signal lepton");
-    h2CutstepNoweight->GetXaxis()->SetBinLabel( 5, "S2  Veto muon");
-    h2CutstepNoweight->GetXaxis()->SetBinLabel( 6, "S3  Veto electron");
-    h2CutstepNoweight->GetXaxis()->SetBinLabel( 7, "S4  Conv. veto");
-    h2CutstepNoweight->GetXaxis()->SetBinLabel( 8, "S5a nJet1");
-    h2CutstepNoweight->GetXaxis()->SetBinLabel( 9, "S5b nJet2");
-    h2CutstepNoweight->GetXaxis()->SetBinLabel(10, "S5c nJet3");
-    h2CutstepNoweight->GetXaxis()->SetBinLabel(11, "S5d nJet4");
-    h2CutstepNoweight->GetXaxis()->SetBinLabel(12, "S6  nBJet1");
-
-    h2CutstepNoweight->GetYaxis()->SetBinLabel( 1, "S0a all event");
-    h2CutstepNoweight->GetYaxis()->SetBinLabel( 2, "S0b Trigger");
-    h2CutstepNoweight->GetYaxis()->SetBinLabel( 3, "S0c Event filter");
-    h2CutstepNoweight->GetYaxis()->SetBinLabel( 4, "S1  One signal lepton");
-    h2CutstepNoweight->GetYaxis()->SetBinLabel( 5, "S2  Veto muon");
-    h2CutstepNoweight->GetYaxis()->SetBinLabel( 6, "S3  Veto electron");
-    h2CutstepNoweight->GetYaxis()->SetBinLabel( 7, "S4  Conv. veto");
-    h2CutstepNoweight->GetYaxis()->SetBinLabel( 8, "S5a nJet1");
-    h2CutstepNoweight->GetYaxis()->SetBinLabel( 9, "S5b nJet2");
-    h2CutstepNoweight->GetYaxis()->SetBinLabel(10, "S5c nJet3");
-    h2CutstepNoweight->GetYaxis()->SetBinLabel(11, "S5d nJet4");
-    h2CutstepNoweight->GetYaxis()->SetBinLabel(12, "S6  nBJet1");
-
-    const char* stepNames[nMaxCutstep] = {"step0a", "step0b", "step0c", 
-                                          "step1", "step2", "step3", "step4",
-                                          "step5a", "step5b", "step5c", "step5d",
-                                          "step6"};
     auto subdir = dir.mkdir(stepNames[0]);
     h_vertex_n[0] = subdir.make<TH1D>("vertex_n", "vertex_n", 100, 0, 100);
 
@@ -164,7 +100,7 @@ struct ControlPlotsTTLJ
       h_bjets_n[i] = subdir.make<TH1D>("bjets_n", "bjets_n", 10, 0, 10);
     }
 
-    for ( int i=3; i<nMaxCutstep; ++i ) {
+    for ( int i=3; i<nCutstep; ++i ) {
       subdir = dir.mkdir(stepNames[i]);
       h_vertex_n[i] = subdir.make<TH1D>("vertex_n", "vertex_n", 100, 0, 100);
       h_met_pt[i] = subdir.make<TH1D>("met_pt", "met_pt", 1000, 0, 1000);
@@ -196,7 +132,7 @@ struct ControlPlotsTTLJ
     }
   };
 };
-//const static int ControlPlotsTTLJ::nMaxCutstep = 12;
+//const static int ControlPlotsTTLJ::nCutstep = 12;
 
 class TTLJEventSelector : public edm::one::EDFilter<edm::one::SharedResources>
 {
@@ -510,16 +446,15 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
     cat::Muon lep(p);
     lep.setP4(p.p4()*scale);
-    const bool isGood = isGoodMuon(lep);
-    const bool isVeto = isVetoMuon(lep);
+    const bool isGood = isGoodMuon(p); // note: pt scale is done in the function
+    const bool isVeto = isVetoMuon(p); // note: pt scale is done in the function
     if ( isGood ) selMuons.push_back(lep);
     else if ( isVeto ) vetoMuons.push_back(lep);
+    else continue;
 
-    if ( isGood or isVeto ) {
-      leptons_st += pt;
-      metDpx += lep.px()-p.px();
-      metDpy += lep.py()-p.py();
-    }
+    leptons_st += pt;
+    metDpx += lep.px()-p.px();
+    metDpy += lep.py()-p.py();
   }
   cat::ElectronCollection selElectrons, vetoElectrons;
   for ( int i=0, n=electronHandle->size(); i<n; ++i ) {
@@ -530,16 +465,15 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     cat::Electron lep(p);
     lep.setP4(p.p4()*scale);
     selElectrons.push_back(lep);
-    const bool isGood = isGoodElectron(lep);
-    const bool isVeto = isVetoElectron(lep);
+    const bool isGood = isGoodElectron(p); // note: pt scale is done in the function
+    const bool isVeto = isVetoElectron(p); // note: pt scale is done in the function
     if ( isGood ) selElectrons.push_back(lep);
     else if ( isVeto ) vetoElectrons.push_back(lep);
+    else continue;
 
-    if ( isGood or isVeto ) {
-      leptons_st += pt;
-      metDpx += lep.px()-p.px();
-      metDpy += lep.py()-p.py();
-    }
+    leptons_st += pt;
+    metDpx += lep.px()-p.px();
+    metDpy += lep.py()-p.py();
   }
   std::vector<const cat::Lepton*> selLeptons;
   for ( auto& x : selMuons ) selLeptons.push_back(&x);
@@ -720,7 +654,7 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   // Check each cut steps
   int cutstep = -1;
   // bitset for the cut steps, fill the results only for events that pass step0a,0b,0c
-  std::bitset<nMaxCutstep-2> cutstepBits(0);
+  std::bitset<nCutstep-2> cutstepBits(0);
   //for ( auto x : cutstepBits ) x = false;
   if ( (channel == 11 and cutstep_el == 0) or
        (channel == 13 and cutstep_mu == 0) ) {
@@ -758,48 +692,43 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   }
 
   // Cut step is ready. Now proceed to fill histograms from step 1
+  auto& h = channel == 11 ? h_el : h_mu;
   if ( cutstep > 0 ) {
     // Start from the step1 (is [3] in the array)
     // lepton1 should exist from step1
     const auto lepton1P4 = shiftedLepPt(*lepton1)/lepton1->pt()*lepton1->p4();
-    auto& hs = channel == 11 ? h_el : h_mu;
 
-    for ( int i=3; i<nMaxCutstep; ++i ) {
+    for ( int i=3; i<nCutstep; ++i ) {
       const int icutstep = i-2; // icutstep starts from step 1
       if ( cutstep < icutstep ) break;
 
-      hs.hCutstep->Fill(icutstep, weight);
-      hs.hCutstepNoweight->Fill(icutstep);
-      hs.h_vertex_n[i]->Fill(nVertex, weight);
-      hs.h_met_pt[i]->Fill(met_pt, weight);
-      hs.h_met_phi[i]->Fill(met_phi, weight);
-      hs.h_leptons_n[i]->Fill(leptons_n, weight);
-      hs.h_lepton1_pt[i]->Fill(lepton1P4.pt(), weight);
-      hs.h_lepton1_eta[i]->Fill(lepton1->eta(), weight);
-      hs.h_lepton1_phi[i]->Fill(lepton1->phi(), weight);
-      hs.h_lepton1_q[i]->Fill(lepton1->charge(), weight);
-      hs.h_jets_n[i]->Fill(jets_n, weight);
-      hs.h_jets_ht[i]->Fill(jets_ht, weight);
+      h.hCutstep->Fill(icutstep, weight);
+      h.hCutstepNoweight->Fill(icutstep);
+      h.h_vertex_n[i]->Fill(nVertex, weight);
+      h.h_met_pt[i]->Fill(met_pt, weight);
+      h.h_met_phi[i]->Fill(met_phi, weight);
+      h.h_leptons_n[i]->Fill(leptons_n, weight);
+      h.h_lepton1_pt[i]->Fill(lepton1P4.pt(), weight);
+      h.h_lepton1_eta[i]->Fill(lepton1->eta(), weight);
+      h.h_lepton1_phi[i]->Fill(lepton1->phi(), weight);
+      h.h_lepton1_q[i]->Fill(lepton1->charge(), weight);
+      h.h_jets_n[i]->Fill(jets_n, weight);
+      h.h_jets_ht[i]->Fill(jets_ht, weight);
       for ( auto jet : *out_jets ) {
-        hs.h_jets_pt[i]->Fill(jet.pt(), weight);
-        hs.h_jets_eta[i]->Fill(jet.eta(), weight);
+        h.h_jets_pt[i]->Fill(jet.pt(), weight);
+        h.h_jets_eta[i]->Fill(jet.eta(), weight);
       }
       for ( int j=0, n=std::min(6, jets_n); j<n; ++j ) {
         const auto& jet = out_jets->at(i);
-        hs.h_jet_m[i][j]->Fill(jet.mass(), weight);
-        hs.h_jet_pt[i][j]->Fill(jet.pt(), weight);
-        hs.h_jet_eta[i][j]->Fill(jet.eta(), weight);
-        hs.h_jet_phi[i][j]->Fill(jet.phi(), weight);
-        hs.h_jet_btag[i][j]->Fill(jet.bDiscriminator(bTagName_), weight);
+        h.h_jet_m[i][j]->Fill(jet.mass(), weight);
+        h.h_jet_pt[i][j]->Fill(jet.pt(), weight);
+        h.h_jet_eta[i][j]->Fill(jet.eta(), weight);
+        h.h_jet_phi[i][j]->Fill(jet.phi(), weight);
+        h.h_jet_btag[i][j]->Fill(jet.bDiscriminator(bTagName_), weight);
       }
-      hs.h_bjets_n[i]->Fill(bjets_n, weight);
-      hs.h_event_st[i]->Fill(leptons_st+jets_ht+met_pt, weight);
+      h.h_bjets_n[i]->Fill(bjets_n, weight);
+      h.h_event_st[i]->Fill(leptons_st+jets_ht+met_pt, weight);
     }
-  }
-
-  // Cutsomized cutflow without z-veto cut to be used in DY estimation and other studies
-  for ( int istep=1, nstep=cutstepBits.size(); istep<=nstep; ++istep ) {
-    if ( istep != 2 and !cutstepBits[istep-1] ) break;
   }
 
   // Fill cut flow 2D plot
@@ -807,32 +736,18 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     const bool res1 = cutstepBits[istep-1];
 
     // Fill diagonal terms
-    if      ( channel == 11 ) {
-      h_el.h2Cutstep->Fill(istep, istep, res1*weight);
-      h_el.h2CutstepNoweight->Fill(istep, istep, res1);
-    }
-    else if ( channel == 13 ) {
-      h_mu.h2Cutstep->Fill(istep, istep, res1*weight);
-      h_mu.h2CutstepNoweight->Fill(istep, istep, res1);
-    }
+    h.h2Cutstep->Fill(istep, istep, res1*weight);
+    h.h2CutstepNoweight->Fill(istep, istep, res1);
 
     // Fill correlations and anti-correlations
     for ( int jstep=1; jstep<istep; ++jstep ) {
       const bool res2 = cutstepBits[jstep-1];
       const int result = res1 && res2;
       const int aresult = res1 && !res2;
-      if      ( channel == 11 ) {
-        h_el.h2Cutstep->Fill(istep, jstep, result*weight);
-        h_el.h2CutstepNoweight->Fill(istep, jstep, result);
-        h_el.h2Cutstep->Fill(jstep, istep, aresult*weight);
-        h_el.h2CutstepNoweight->Fill(jstep, istep, aresult);
-      }
-      else if ( channel == 13 ) {
-        h_mu.h2Cutstep->Fill(istep, jstep, result*weight);
-        h_mu.h2CutstepNoweight->Fill(istep, jstep, result);
-        h_mu.h2Cutstep->Fill(jstep, istep, aresult*weight);
-        h_mu.h2CutstepNoweight->Fill(jstep, istep, aresult);
-      }
+      h.h2Cutstep->Fill(istep, jstep, result*weight);
+      h.h2CutstepNoweight->Fill(istep, jstep, result);
+      h.h2Cutstep->Fill(jstep, istep, aresult*weight);
+      h.h2CutstepNoweight->Fill(jstep, istep, aresult);
     }
   }
 
