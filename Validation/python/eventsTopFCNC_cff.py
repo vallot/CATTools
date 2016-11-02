@@ -42,7 +42,7 @@ eventsTopFCNC = cms.EDFilter("TopFCNCEventSelector",
         resolDirection = cms.int32(0),
         #resolDirection = cms.int32(-1),
         #resolDirection = cms.int32(+1),
-        skipJER = cms.bool(False), # Needed for synchronization
+        skipJER = cms.bool(True), # Needed for synchronization
     ),
 
     met = cms.PSet(
