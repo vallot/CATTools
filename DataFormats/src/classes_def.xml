@@ -58,6 +58,12 @@
   <class name="edm::Wrapper<std::vector<cat::MCParticle> >"/>
   <class name="edm::Ptr<cat::MCParticle>"/>
 
+  <class name="cat::FatJet"/>
+  <class name="std::vector<cat::FatJet>"/>
+  <class name="edm::Wrapper<cat::FatJet>"/>
+  <class name="edm::Wrapper<std::vector<cat::FatJet> >"/>
+  <class name="edm::Ptr<cat::FatJet>"/>
+
   <class name="cat::GenJet"/>
   <class name="std::vector<cat::GenJet>"/>
   <class name="edm::Wrapper<cat::GenJet>"/>
