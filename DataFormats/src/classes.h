@@ -8,6 +8,7 @@
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/Tau.h"
 #include "CATTools/DataFormats/interface/MET.h"
+#include "CATTools/DataFormats/interface/FatJet.h"
 #include "CATTools/DataFormats/interface/GenJet.h"
 #include "CATTools/DataFormats/interface/GenTop.h"
 #include "CATTools/DataFormats/interface/MCParticle.h"
@@ -80,6 +81,12 @@ namespace {
     edm::Wrapper<cat::MET> metw;
     edm::Wrapper<std::vector<cat::MET> > metvw;
     edm::Ptr<cat::MET> metPtr;
+
+    cat::FatJet fj_;
+    std::vector<cat::FatJet> fjv;
+    edm::Wrapper<cat::FatJet> fjw;
+    edm::Wrapper<std::vector<cat::FatJet> > fjvw;
+    edm::Ptr<cat::FatJet> fjPtr;
 
     cat::MCParticle ma_;
     std::vector<cat::MCParticle> mav;
