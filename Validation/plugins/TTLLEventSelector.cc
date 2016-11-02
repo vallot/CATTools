@@ -610,6 +610,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       }
     }
   }
+
   // MuMu channel Cutstep 0b with trigger requirements
   int cutstep_mm = -2;
   if ( isIgnoreTrig_ or isTrigMuMu )
@@ -766,13 +767,13 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       h.h_bjets_n[i]->Fill(bjets_n, weight);
       h.h_event_st[i]->Fill(leptons_st+jets_ht+met_pt, weight);
     }
-  } // switch(1)
+  }
 
   // Cutsomized cutflow without z-veto cut to be used in DY estimation and other studies
-  for ( int istep=1, nstep=cutstepBits.size(); istep<=nstep; ++istep ) {
-    if ( istep != 2 and !cutstepBits[istep-1] ) break;
+  for ( int i=0, nstep=cutstepBits.size(); i<nstep; ++i ) {
+    if ( i != 1 and !cutstepBits[i] ) break; // cutstepBits[1] is zVeto
 
-    h.h_z_m_noveto[istep]->Fill(z_m, weight);
+    h.h_z_m_noveto[i+3]->Fill(z_m, weight);
   }
 
   // Fill cut flow 2D plot
