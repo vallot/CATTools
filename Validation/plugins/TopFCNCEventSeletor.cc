@@ -57,10 +57,10 @@ struct ControlPlotsTopFCNC
     const double maxeta = 3;
     const double pi = 3.141592;
 
-    hCutstep = dir.make<TH1D>("cutstep", "cutstep", nCutstep, 0, nCutstep);
-    hCutstepNoweight = dir.make<TH1D>("cutstepNoweight", "cutstepNoweight", nCutstep, 0, nCutstep);
-    h2Cutstep = dir.make<TH2D>("cutcorrelation", "cutcorrelation", nCutstep, 0, nCutstep, nCutstep, 0, nCutstep);
-    h2CutstepNoweight = dir.make<TH2D>("cutcorrelationNoweight", "cutcorrelationNoweight", nCutstep, 0, nCutstep, nCutstep, 0, nCutstep);
+    hCutstep = dir.make<TH1D>("cutstep", "cutstep", nCutstep, -2, nCutstep-2);
+    hCutstepNoweight = dir.make<TH1D>("cutstepNoweight", "cutstepNoweight", nCutstep, -2, nCutstep-2);
+    h2Cutstep = dir.make<TH2D>("cutcorrelation", "cutcorrelation", nCutstep, -2, nCutstep-2, nCutstep, -2, nCutstep-2);
+    h2CutstepNoweight = dir.make<TH2D>("cutcorrelationNoweight", "cutcorrelationNoweight", nCutstep, -2, nCutstep-2, nCutstep, -2, nCutstep-2);
 
     const char* stepLabels[nCutstep] = {
       "S1 All event", "S2 Trigger", "S3 Good PV",
@@ -539,20 +539,20 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   // Check cut steps and fill histograms
   h_weight->Fill(weight);
 
-  h_el.hCutstep->Fill(0., weight);
-  h_el.hCutstepNoweight->Fill(0.);
+  h_el.hCutstep->Fill(-2, weight);
+  h_el.hCutstepNoweight->Fill(-2);
   h_el.h_vertex_n[0]->Fill(nVertex, weight);
 
-  h_mu.hCutstep->Fill(0., weight);
-  h_mu.hCutstepNoweight->Fill(0.);
+  h_mu.hCutstep->Fill(-2, weight);
+  h_mu.hCutstepNoweight->Fill(-2);
   h_mu.h_vertex_n[0]->Fill(nVertex, weight);
 
   // El channel Cutstep 0b with trigger requirements
   int cutstep_el = -2;
   if ( isIgnoreTrig_ or isTrigEl ) {
     ++cutstep_el;
-    h_el.hCutstep->Fill(1., weight);
-    h_el.hCutstepNoweight->Fill(1.);
+    h_el.hCutstep->Fill(-1., weight);
+    h_el.hCutstepNoweight->Fill(-1.);
     h_el.h_vertex_n[1]->Fill(nVertex, weight);
     h_el.h_met_pt[1]->Fill(met_pt, weight);
     h_el.h_met_phi[1]->Fill(met_phi, weight);
@@ -577,8 +577,8 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     // Cutstep 0c with reco filters
     if ( isMC_ or nVertex > 0 ) { //isRECOFilterOK ) {
       ++cutstep_el;
-      h_el.hCutstep->Fill(2, weight);
-      h_el.hCutstepNoweight->Fill(2);
+      h_el.hCutstep->Fill(0., weight);
+      h_el.hCutstepNoweight->Fill(0.);
       h_el.h_vertex_n[2]->Fill(nVertex, weight);
       h_el.h_met_pt[2]->Fill(met_pt, weight);
       h_el.h_met_phi[2]->Fill(met_phi, weight);
@@ -603,8 +603,8 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   int cutstep_mu = -2;
   if ( isIgnoreTrig_ or isTrigMu ) {
     ++cutstep_mu;
-    h_mu.hCutstep->Fill(1., weight);
-    h_mu.hCutstepNoweight->Fill(1.);
+    h_mu.hCutstep->Fill(-1., weight);
+    h_mu.hCutstepNoweight->Fill(-1.);
     h_mu.h_vertex_n[1]->Fill(nVertex, weight);
     h_mu.h_met_pt[1]->Fill(met_pt, weight);
     h_mu.h_met_phi[1]->Fill(met_phi, weight);
@@ -626,8 +626,8 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     // Cutstep 0c with reco filters
     if ( isMC_ or nVertex > 0 ) { //isRECOFilterOK ) {
       ++cutstep_mu;
-      h_mu.hCutstep->Fill(2., weight);
-      h_mu.hCutstepNoweight->Fill(2.);
+      h_mu.hCutstep->Fill(0., weight);
+      h_mu.hCutstepNoweight->Fill(0.);
       h_mu.h_vertex_n[2]->Fill(nVertex, weight);
       h_mu.h_met_pt[2]->Fill(met_pt, weight);
       h_mu.h_met_phi[2]->Fill(met_phi, weight);
