@@ -115,8 +115,8 @@ struct ControlPlotsTopFCNC
       h_jets_eta[i] = subdir.make<TH1D>("jets_eta", "jets_eta", 100, -maxeta, maxeta);
       h_jets_ht[i] = subdir.make<TH1D>("jets_ht", "jets_ht", 1000, 0, 1000);
 
-      for ( int nJet=1; nJet<=4; ++nJet ) {
-        const string prefix = Form("jet%d_", nJet);
+      for ( int nJet=0; nJet<6; ++nJet ) {
+        const string prefix = Form("jet%d_", nJet+1);
         h_jet_m[i][nJet]   = subdir.make<TH1D>((prefix+"m").c_str(), (prefix+"m").c_str(), 500, 0, 500);
         h_jet_pt[i][nJet]  = subdir.make<TH1D>((prefix+"pt").c_str(), (prefix+"pt").c_str(), 1000, 0, 1000);
         h_jet_eta[i][nJet] = subdir.make<TH1D>((prefix+"eta").c_str(), (prefix+"eta").c_str(), 100, -maxeta, maxeta);
@@ -652,7 +652,7 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   // Check each cut steps
   int cutstep = -1;
   // bitset for the cut steps, fill the results only for events that pass step0a,0b,0c
-  std::bitset<nCutstep-3> cutstepBits(0);
+  std::bitset<nCutstep-2> cutstepBits(0);
   //for ( auto x : cutstepBits ) x = false;
   if ( (channel == 11 and cutstep_el == 0) or
        (channel == 13 and cutstep_mu == 0) ) {
@@ -708,7 +708,7 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h.h_jets_eta[i]->Fill(jet.eta(), weight);
       }
       for ( int j=0, n=std::min(6, jets_n); j<n; ++j ) {
-        const auto& jet = out_jets->at(i);
+        const auto& jet = out_jets->at(j);
         h.h_jet_m[i][j]->Fill(jet.mass(), weight);
         h.h_jet_pt[i][j]->Fill(jet.pt(), weight);
         h.h_jet_eta[i][j]->Fill(jet.eta(), weight);
