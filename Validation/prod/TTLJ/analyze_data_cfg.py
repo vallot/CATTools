@@ -10,17 +10,15 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 50000
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 process.source.fileNames = [
-    #'/store/user/jhgoh/CATTools/sync/v7-6-3/DoubleEG_Run2015D-16Dec2015-v2.root',
-    #'/store/user/jhgoh/CATTools/sync/v7-6-3/DoubleMuon_Run2015D-16Dec2015-v1.root',
-    '/store/user/jhgoh/CATTools/sync/v7-6-5/MuonEG_Run2015D-16Dec2015-v1.root',
+    '/store/group/CAT/SingleMuon/v8-0-0_Run2016B-PromptReco-v2/160705_213508/0000/catTuple_1.root',
 ]
 
 process.load("CATTools.CatAnalyzer.filters_cff")
-process.load("CATTools.Validation.ttllEventSelector_cfi")
+process.load("CATTools.Validation.ttljEventSelector_cff")
 process.load("CATTools.Validation.validation_cff")
-process.eventsTTLL.isMC = False
+process.eventsTTLJ.isMC = False
 process.rec.isMC = False
-if hasattr(process.eventsTTLL, "genWeight"): delattr(process.eventsTTLL, "genWeight")
+if hasattr(process.eventsTTLJ, "genWeight"): delattr(process.eventsTTLJ, "genWeight")
 if hasattr(process, "flatGenWeights"): delattr(process, "flatGenWeights")
 
 process.TFileService = cms.Service("TFileService",
@@ -30,7 +28,7 @@ process.TFileService = cms.Service("TFileService",
 process.p = cms.Path(
     process.filterLumi * process.removeLumisWithL1TCert
   * process.rec
-  * process.eventsTTLL
+  * process.eventsTTLJ
 )
 
 ## Customise with cmd arguments
