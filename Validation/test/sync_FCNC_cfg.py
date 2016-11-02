@@ -14,7 +14,7 @@ process.source.fileNames = [
     'file:/state/partition1/store/user/jhgoh/FCNC/Synchronization/201610/v801/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',
 ]
 
-#process.load("CATTools.CatAnalyzer.filters_cff")
+process.load("CATTools.CatAnalyzer.filters_cff")
 #process.load("CATTools.Validation.ttllEventSelector_cfi")
 #process.load("CATTools.Validation.validation_cff")
 process.load("CATTools.Validation.eventsTopFCNC_cff")

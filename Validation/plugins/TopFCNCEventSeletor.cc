@@ -62,7 +62,7 @@ struct ControlPlotsTopFCNC
     h2Cutstep = dir.make<TH2D>("cutcorrelation", "cutcorrelation", nCutstep, 0, nCutstep, nCutstep, 0, nCutstep);
     h2CutstepNoweight = dir.make<TH2D>("cutcorrelationNoweight", "cutcorrelationNoweight", nCutstep, 0, nCutstep, nCutstep, 0, nCutstep);
 
-    const char* stepLabels[] = {
+    const char* stepLabels[nCutstep] = {
       "S1 All event", "S2 Trigger", "S3 Good PV",
       "S4 One signal lepton", "S5 Veto other lep", "S6 Veto same lep",
       "S7 nJet3",
@@ -87,6 +87,10 @@ struct ControlPlotsTopFCNC
       h_met_pt[i] = subdir.make<TH1D>("met_pt", "met_pt", 1000, 0, 1000);
       h_met_phi[i] = subdir.make<TH1D>("met_phi", "met_phi", 100, -pi, pi);
       h_leptons_n[i] = subdir.make<TH1D>("leptons_n", "leptons_n", 10, 0, 10);
+      h_lepton1_pt[i]  = subdir.make<TH1D>("lepton1_pt", "lepton1_pt", 1000, 0, 1000);
+      h_lepton1_eta[i] = subdir.make<TH1D>("lepton1_eta", "lepton1_eta", 100, -maxeta, maxeta);
+      h_lepton1_phi[i] = subdir.make<TH1D>("lepton1_phi", "lepton1_phi", 100, -pi, pi);
+      h_lepton1_q[i]   = subdir.make<TH1D>("lepton1_q", "lepton1_q", 3, -1.5, 1.5);
       h_jets_n[i] = subdir.make<TH1D>("jets_n", "jets_n", 10, 0, 10);
       h_jets_pt[i]  = subdir.make<TH1D>("jets_pt", "jets_pt", 1000, 0, 1000);
       h_jets_eta[i] = subdir.make<TH1D>("jets_eta", "jets_eta", 100, -maxeta, maxeta);
@@ -126,7 +130,6 @@ struct ControlPlotsTopFCNC
     }
   };
 };
-//const static int ControlPlotsTopFCNC::nCutstep = 12;
 
 class TopFCNCEventSelector : public edm::one::EDFilter<edm::one::SharedResources>
 {
@@ -554,6 +557,7 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     h_el.h_met_pt[1]->Fill(met_pt, weight);
     h_el.h_met_phi[1]->Fill(met_phi, weight);
     h_el.h_leptons_n[1]->Fill(leptons_n, weight);
+
     if ( leptons_n >= 1 ) {
       const auto lepton1P4 = shiftedLepPt(*lepton1)/lepton1->pt()*lepton1->p4();
       h_el.h_lepton1_pt[1]->Fill(lepton1P4.pt(), weight);
@@ -561,6 +565,7 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       h_el.h_lepton1_phi[1]->Fill(lepton1->phi(), weight);
       h_el.h_lepton1_q[1]->Fill(lepton1->charge(), weight);
     }
+
     h_el.h_jets_n[1]->Fill(jets_n, weight);
     h_el.h_bjets_n[1]->Fill(bjets_n, weight);
     h_el.h_jets_ht[1]->Fill(jets_ht, weight);
@@ -618,12 +623,11 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       h_mu.h_jets_pt[1]->Fill(jet.pt(), weight);
       h_mu.h_jets_eta[1]->Fill(jet.eta(), weight);
     }
-
     // Cutstep 0c with reco filters
     if ( isMC_ or nVertex > 0 ) { //isRECOFilterOK ) {
       ++cutstep_mu;
-      h_mu.hCutstep->Fill(2, weight);
-      h_mu.hCutstepNoweight->Fill(2);
+      h_mu.hCutstep->Fill(2., weight);
+      h_mu.hCutstepNoweight->Fill(2.);
       h_mu.h_vertex_n[2]->Fill(nVertex, weight);
       h_mu.h_met_pt[2]->Fill(met_pt, weight);
       h_mu.h_met_phi[2]->Fill(met_phi, weight);
@@ -648,32 +652,23 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   // Check each cut steps
   int cutstep = -1;
   // bitset for the cut steps, fill the results only for events that pass step0a,0b,0c
-  std::bitset<nCutstep-2> cutstepBits(0);
+  std::bitset<nCutstep-3> cutstepBits(0);
   //for ( auto x : cutstepBits ) x = false;
   if ( (channel == 11 and cutstep_el == 0) or
        (channel == 13 and cutstep_mu == 0) ) {
-    // Step1 exactly one signal lepton
+    // Step4 exactly one signal lepton
     if ( leptons_n == 1 ) cutstepBits[0] = true;
 
-    // Step2 veto any additional muon
-    if ( vetoMuons.empty() ) cutstepBits[1] = true;
+    // Step5 veto any additional lepton in different flavour
+    if ( (channel == 11 and vetoMuons.empty()) or
+         (channel == 13 and vetoElectrons.empty()) ) cutstepBits[1] = true;
 
-    // Step3 veto any additional electron
-    if ( vetoElectrons.empty() ) cutstepBits[2] = true;
+    // Step6 veto any additional lepton in same flavour
+    if ( (channel == 11 and vetoElectrons.empty()) or
+         (channel == 13 and vetoMuons.empty()) ) cutstepBits[2] = true;
 
-    // Step 4 conversion veto only for electron channel
-    if ( channel == 13 ) cutstepBits[3] = true;
-    else if ( channel == 11 ) {
-      const auto el = dynamic_cast<const cat::Electron*>(lepton1);
-      if ( el->passConversionVeto() ) cutstepBits[3] = true;
-    }
-
-    // Step5a-5d Minimal jet multiplicity
-    for ( int nJet=0; nJet<4; ++nJet ) {
-      if ( jets_n > nJet ) cutstepBits[4+nJet] = true;
-    }
-    // Step6 one b jet
-    if ( bjets_n >= 1 ) cutstepBits[8] = true;
+    // Step7 Minimal jet multiplicity
+    if ( jets_n >= 3 ) cutstepBits[3] = true;
 
     // Set the cut step of this event
     const int nstep = cutstepBits.size();
