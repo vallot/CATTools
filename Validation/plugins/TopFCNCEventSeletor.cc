@@ -202,7 +202,7 @@ private:
 
     //if ( el.relIso(0.3) >= 0.11 ) return false;
     if ( !el.electronID(elIdName_) ) return false;
-    //if ( !el.isPF() or !el.passConversionVeto() ) return false;
+    if ( !el.isPF() or !el.passConversionVeto() ) return false;
     const double scEta = std::abs(el.scEta());
     if ( isEcalCrackVeto_ and scEta > 1.4442 and scEta < 1.566 ) return false;
     return true;

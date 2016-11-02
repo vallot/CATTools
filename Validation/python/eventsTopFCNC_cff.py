@@ -60,7 +60,7 @@ eventsTopFCNC = cms.EDFilter("TopFCNCEventSelector",
         filterRECO = cms.InputTag("filterRECO"),
         trigMU = cms.InputTag("filterTrigMU"),
         trigEL = cms.InputTag("filterTrigEL"),
-        ignoreTrig = cms.bool(True), # Accept event even if it does not pass HLT. Needed for synchronization
+        ignoreTrig = cms.bool(False), # Accept event even if it does not pass HLT. Needed for synchronization
         efficiencySFDirection = cms.int32(0),
     ),
 
