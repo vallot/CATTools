@@ -215,7 +215,7 @@ private:
   bool isGoodMuon(const cat::Muon& mu)
   {
     if ( std::abs(mu.eta()) > 2.1 ) return false;
-    if ( shiftedMuonPt(mu) < 25 ) return false;
+    if ( std::isnan(mu.pt()) or shiftedMuonPt(mu) < 25 ) return false;
 
     if ( mu.relIso(0.4) > 0.15 ) return false;
     if ( !mu.isTightMuon() ) return false;
@@ -224,7 +224,7 @@ private:
   bool isGoodElectron(const cat::Electron& el)
   {
     if ( std::abs(el.eta()) > 2.4 ) return false;
-    if ( shiftedElectronPt(el) < 30 ) return false;
+    if ( std::isnan(el.pt()) or shiftedElectronPt(el) < 30 ) return false;
 
     if ( isMVAElectronSel_ and !el.isTrigMVAValid() ) return false;
 
@@ -233,15 +233,15 @@ private:
     //if ( !el.isPF() or !el.passConversionVeto() ) return false;
     const double scEta = std::abs(el.scEta());
     if ( isEcalCrackVeto_ and scEta > 1.4442 and scEta < 1.566 ) return false;
-    const double d0 = std::abs(el.dxy()), dz = std::abs(el.vz());
-    if      ( scEta <= 1.479 and (d0 > 0.05 or dz > 0.1) ) return false;
-    else if ( scEta >  1.479 and (d0 > 0.10 or dz > 0.2) ) return false;
+    //const double d0 = std::abs(el.dxy()), dz = std::abs(el.vz());
+    //if      ( scEta <= 1.479 and (d0 > 0.05 or dz > 0.1) ) return false;
+    //else if ( scEta >  1.479 and (d0 > 0.10 or dz > 0.2) ) return false;
     return true;
   }
   bool isVetoMuon(const cat::Muon& mu)
   {
     if ( std::abs(mu.eta()) > 2.4 ) return false;
-    if ( mu.pt() < 10 ) return false;
+    if ( std::isnan(mu.pt()) or mu.pt() < 10 ) return false;
 
     if ( !mu.isLooseMuon() ) return false;
     if ( mu.relIso(0.4) > 0.25 ) return false;
@@ -250,12 +250,12 @@ private:
   bool isVetoElectron(const cat::Electron& el)
   {
     if ( std::abs(el.eta()) > 2.4 ) return false;
-    if ( el.pt() < 10 ) return false;
+    if ( std::isnan(el.pt()) or el.pt() < 10 ) return false;
     if ( !el.electronID(elVetoIdName_) ) return false;
-    const double scEta = std::abs(el.scEta());
-    const double d0 = std::abs(el.dxy()), dz = std::abs(el.vz());
-    if      ( scEta <= 1.479 and (d0 > 0.05 or dz > 0.1) ) return false;
-    else if ( scEta >  1.479 and (d0 > 0.10 or dz > 0.2) ) return false;
+    //const double scEta = std::abs(el.scEta());
+    //const double d0 = std::abs(el.dxy()), dz = std::abs(el.vz());
+    //if      ( scEta <= 1.479 and (d0 > 0.05 or dz > 0.1) ) return false;
+    //else if ( scEta >  1.479 and (d0 > 0.10 or dz > 0.2) ) return false;
     return true;
   }
   bool isBjet(const cat::Jet& jet)
@@ -496,7 +496,6 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
     cat::Electron lep(p);
     lep.setP4(p.p4()*scale);
-    selElectrons.push_back(lep);
     const bool isGood = isGoodElectron(p); // note: pt scale is done in the function
     const bool isVeto = isVetoElectron(p); // note: pt scale is done in the function
     if ( isGood ) selElectrons.push_back(lep);
