@@ -16,8 +16,13 @@ process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring(),)
 #process.source.fileNames = ['file:%s/src/CATTools/CatProducer/prod/catTuple.root'%os.environ["CMSSW_BASE"]]
 
 process.source.fileNames = []
+for i in range(1):
+  process.source.fileNames.append('root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/SingleMuon/v8-0-1_Run2016D-PromptReco-v2/160810_112606/0000/catTuple_%s.root'%(i+1))
+#process.source.fileNames=['root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/SingleMuon/v8-0-1_Run2016D-PromptReco-v2/160810_112606/0000/catTuple_1.root']
+
+
 #process.source.fileNames = ['root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/VBF_HToMuMu_M125_13TeV_powheg_pythia8/v8-0-1_RunIISpring16MiniAODv2-PUSpring16RAWAODSIM_reHLT_80X_mcRun2_asymptotic_v14-v2/160810_125753/0000/catTuple_1.root']
-process.source.fileNames = ['root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v8-0-1_RunIISpring16MiniAODv2-PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v1/160810_120220/0000/catTuple_324.root',]
+#process.source.fileNames = ['root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v8-0-1_RunIISpring16MiniAODv2-PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v1/160810_120220/0000/catTuple_324.root',]
 #txtfile = '../data/dataset/dataset_SingleMuon_Run2016E.txt'
 #txtfile = '../data/dataset/dataset_DYJets.txt'
 #f = open(txtfile)
@@ -73,3 +78,14 @@ process.TFileService = cms.Service("TFileService",
 
 process.p = cms.Path(process.cattree)
 process.MessageLogger.cerr.FwkReport.reportEvery = 50000
+"""
+process.MessageLogger = cms.Service("MessageLogger",
+    destinations   = cms.untracked.vstring(
+        'detailedInfo' 
+    ),
+    detailedInfo   = cms.untracked.PSet(
+        #reportEvery = cms.untracked.int32(50000),
+        extension = cms.untracked.string('.txt') 
+    )
+)
+"""

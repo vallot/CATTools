@@ -26,6 +26,7 @@ class drawSysErr:
             self.entries=[]
             self.ofname=""
             self.bin=0
+            self.ratiorange=1
 
     def __del__(self):
         self.getresult()
@@ -67,6 +68,8 @@ class drawSysErr:
         else:
             self.number = number
             return 1
+    def setcmsLumi(self,_cmsLumi):
+        self.cmsLumi = _cmsLumi
 
     def setnumber(self,_number):
         self.number = _number
@@ -76,6 +79,8 @@ class drawSysErr:
 
     def setbinning(self,_binning):
         self.binning = _binning
+    def setratiorange(self,_ratiorange):
+        self.ratiorange = _ratiorange
 
     def getresult(self):
         self.txt = "sys_err_%d.txt"%(self.bin)
@@ -132,7 +137,7 @@ class drawSysErr:
         self.bin = _bin
         tr_min=1
         tr_max=len(self.ltname)*len(self.ltcut)
-        ratiorange=1
+        ratiorange=self.ratiorange
 
         lh=[]
         lhratio=[]
@@ -145,12 +150,13 @@ class drawSysErr:
                 h.SetLineColor(lcolor[j]+i)
                 h.SetMarkerColor(lcolor[j]+i)
                 h.SetMarkerSize(0.5)
-                if len(binning) == 3:
-                    hnew = h.Clone()
-                    hnew.SetBins(binning[0], binning[1], binning[2])
+                if len(binning) == 1:
+                    #hnew = h.Clone()
+                    hnew = h.Rebin(binning[0],"hnew")
                 else:
                     hnew = h.Rebin(len(binning)-1,"hnew",array.array('d',binning))
-                hnew.SetName(self.ltname[i]+"_"+self.ltcut[j])
+                rename = self.ltname[i]+"_"+self.ltcut[j]
+                hnew.SetName(rename.split("*")[-1])
                 lh.append(copy.deepcopy(hnew))
              
                 hratio=hnew.Clone(self.ltname[i]+"_"+self.ltcut[j])
@@ -168,13 +174,18 @@ class drawSysErr:
         pads[0].cd()
         h1=lh[0].Clone("h1")
         h1.GetXaxis().SetLabelSize(0)
-        h1.GetYaxis().SetTitle("entries")
+        if len(binning)>1:
+            h1.GetYaxis().SetTitle("entries")
+        else:
+            h1.GetYaxis().SetTitle("entries/%d GeV"%binning[0])
 
         #f_txt = open("%s.txt"%(ofname),"w")
         leg=ROOT.TLegend(0.6,0.7,0.9,0.9)
         h1.Draw("hist e")
         leg.SetHeader(rfname)
-        leg.AddEntry(lh[0],self.ltname[0]+"_"+self.ltcut[0],"l")    
+        rename0=self.ltname[0]+"_"+self.ltcut[0]
+        #leg.AddEntry(lh[0],rename0.split("*")[0],"l")    
+        leg.AddEntry(lh[0],"normal_weight","l")    
         entries = []
         entries.append(lh[0].GetBinContent(lh[0].FindBin(self.bin)))
         if lh[0].GetBinContent(lh[0].FindBin(self.bin))==0:
@@ -242,6 +253,10 @@ class drawSysErr:
             p.SetGridx()
             p.Modified()
             p.Update()
+        iPos = 0
+        if( iPos==0 ):
+            self.cmsLumi.relPosX = 0.1
+        self.cmsLumi.CMS_lumi(pads[0], 0, iPos)
 
         canv.cd()
         canv.Modified()
@@ -252,7 +267,10 @@ class drawSysErr:
     
 if __name__ == "__main__":
     
+    datalumi = 15920
 
+    CMS_lumi.lumi_sqrtS = "%.2f fb^{-1}, #sqrt{s} = 13 TeV 25ns "%(float(datalumi)/1000)
+   
     _rfname = [
                "background_ll_m",
                #"higgsx30",
@@ -271,8 +289,10 @@ if __name__ == "__main__":
     #_ltcut = ["weight","(genweight)*(puweight_up)","(genweight)*(puweight_dn)","mueffweight","mueffweight_up","mueffweight_dn"]
     _lcolor = [ROOT.kBlack,ROOT.kRed,ROOT.kBlue,ROOT.kOrange,ROOT.kViolet,ROOT.kTeal]
 
-    _binning = [0,30,40,50,60,70,80,90,100,110,120,130,140,160,180,230,300]
+    #_binning = [0,30,40,50,60,70,80,90,100,110,120,130,140,160,180,230,300]
+    _binning = [10]
     _bins = [115,125,135,150]
+    _ratiorange = 0.3
     
     """
     outDir = "plot"
@@ -302,8 +322,10 @@ if __name__ == "__main__":
     """
     for _bin in _bins:
         A = drawSysErr(_rfname,_versus)
+        A.setcmsLumi(CMS_lumi)
         A.setlistcolor(_lcolor)
         A.setbinning(_binning)
+        A.setratiorange(_ratiorange)
         for j in range(1,len(_rfname)*len(_versus)+1):
             A.setnumber(j)
             A.exe(_ltname,_ltcut,_bin) 

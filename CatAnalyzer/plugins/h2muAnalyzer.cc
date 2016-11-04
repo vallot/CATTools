@@ -53,6 +53,9 @@ private:
   int preSelect(const cat::JetCollection& seljets, float MET) const;
   int jetCategory(const cat::JetCollection& seljets, float MET, float ll_pt) const;
   int etaCategory(float lep1_eta, float lep2_eta) const;
+  bool bumpCategory(const cat::JetCollection& jets, const cat::MuonCollection& recolep);
+  bool bumpCat1(const cat::JetCollection& jets, const cat::MuonCollection& recolep);
+  bool bumpCat2(const cat::JetCollection& jets, const cat::MuonCollection& recolep, float met);
 
   ScaleFactorEvaluator muonSF_, elecSF_;
   float getMuEffSF(const cat::Lepton& p, int sys) const
@@ -110,7 +113,7 @@ private:
   int b_cat_eta;
   bool b_isLoose, b_isMedium, b_isTight;
 
-  int b_bumpcat;
+  bool b_bumpcat1, b_bumpcat2;
 
   TLorentzVector b_genlep1; int b_genlep1_pid;
   TLorentzVector b_genlep2; int b_genlep2_pid;
@@ -122,6 +125,7 @@ private:
   
   const static int NCutflow = 7;
   std::vector<std::vector<int> > cutflow_;
+  int bumpcut[7]={0,0,0,0,0,0,0};
 };
 //
 // constructors and destructor
@@ -217,7 +221,8 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
     tr->Branch("cat_eta", &b_cat_eta, "cat_eta/I");
    
     //28GeV bump category
-    tr->Branch("bumpcat", &b_bumpcat, "bumpcat/I");
+    tr->Branch("bumpcat1", &b_bumpcat1, "bumpcat1/O");
+    tr->Branch("bumpcat2", &b_bumpcat2, "bumpcat2/O");
     
     if (sys == 0){
       tr->Branch("weight", &b_weight, "weight/F");
@@ -241,7 +246,6 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
       tr->Branch("gendilep", "TLorentzVector", &b_gendilep);
     }
   }
- 
   for (int i = 0; i < NCutflow; i++) cutflow_.push_back({0,0,0,0});
 }
 
@@ -252,7 +256,13 @@ h2muAnalyzer::~h2muAnalyzer()
   for ( int i=0; i<NCutflow; ++i ) {
     cout <<"step"<< i << "    "<< cutflow_[i][0] <<  "   "<< cutflow_[i][1] << "   " << cutflow_[i][2] << "   " << cutflow_[i][3]<< endl;
   }
-
+  cout <<setw(15)<<"nocut"<<setw(15)<<"cut_charge"<<setw(15)<<"cut_pt"<<setw(15)<<"cut_eta"<<setw(15)<<"cut_nopassbtag"<<setw(15)<<"pass_bumpcat1"<<setw(15)<<"pass_bumpcat2"<<endl;
+  int bumpcutsize = int(sizeof(bumpcut)/sizeof(bumpcut[0]));
+  
+  for (int i=0;i<bumpcutsize;i++){
+    cout <<setw(15)<<bumpcut[i];
+  }
+  cout<<endl;
 }
 
 void h2muAnalyzer::beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&){}
@@ -452,7 +462,8 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
     b_cat = jetCategory(selectedJets, b_met, b_dilep.Pt());
 
     if (b_njet > 1){
-      b_bumpcat = bumpCategory(selectedJets, selectedMuons, b_met); 
+      b_bumpcat1 = bumpCat1(selectedJets, selectedMuons);
+      b_bumpcat2 = bumpCat2(selectedJets, selectedMuons, b_met); 
     }
 
     ttree_[sys]->Fill();
@@ -548,7 +559,7 @@ cat::JetCollection h2muAnalyzer::selectJets(const cat::JetCollection& jets, cat:
 
     if (jet.pt() < 30.) continue;
     if (std::abs(jet.eta()) > 4.7)  continue;
-    //if (!jet.LooseId()) continue;
+    if (!jet.LooseId()) continue;
 
     bool hasOverLap = false;
     for (auto lep : recolep){
@@ -575,7 +586,7 @@ void h2muAnalyzer::resetBr()
   b_cat = 0; b_cat_eta = 0;
   b_isLoose = 0; b_isMedium = 0; b_isTight = 0;
 
-  b_bumpcat = 0;
+  b_bumpcat1 = 0; b_bumpcat2 = 0;
  
   b_genlep1 = TLorentzVector(); b_genlep1_pid = 0;
   b_genlep2 = TLorentzVector(); b_genlep2_pid = 0;
@@ -641,39 +652,91 @@ int h2muAnalyzer::etaCategory(float lep1_eta, float lep2_eta) const
   return -1;
 }
 
-int h2muAnalyzer::bumpCategory(const cat::JetCollection& jets, const cat::MuonCollection& recolep, float met) const
+bool h2muAnalyzer::bumpCategory(const cat::JetCollection& jets,const cat::MuonCollection& recolep)
 {
-  int event_cat=0;
-  const float pt_mu[2] = {recolep[0].pt(),recolep[1].pt()};
-  const float eta_mu[2] = {std::abs(recolep[0].eta()),std::abs(recolep[1].eta())}
-  const float pt_jet[2] = {jets[0].pt(),jets[1].pt()};
-  const float eta_jet[2] = {std::abs(jets[0].eta()),std::abs(jets[1].eta())}
-  TLorentzVector dilep = recolep[0].tlv() + recolep[1].tlv();
-  TLorentzVector dijet = jets[0].tlv() + jets[1].tlv();
-  double delta_phi = std::abs(dilep.Phi()-dijet.Phi());
- 
-  // 1st event category
-  if (selmuon1.charge()*selmuon2.charge() > 0) continue;
-  if (pt_mu[0] < 25 || pt_mu[1] < 25) continue;
-  if (eta_mu[0] > 2.1 || eta_mu[1] > 2.1) continue;
-  if ((seljet1.bDicriminator(BTAG_CSVv2) > WP_BTAG_CSVv2T) and (seljet2.bDicriminator(BTAG_CSVv2) > WP_BTAG_CSVv2T)) continue;
-  if ((seljet1.bDicriminator(BTAG_CSVv2) < WP_BTAG_CSVv2T) or (seljet2.bDicriminator(BTAG_CSVv2) < WP_BTAG_CSVv2T)){
-    if ((seljet1.bDicriminator(BTAG_CSVv2) < WP_BTAG_CSVv2T) and (seljet2.bDicriminator(BTAG_CSVv2) < WP_BTAG_CSVv2T)) continue;
+  /*
+  for(int i=0;i<int(jets.size());i++){
+      std::vector<double> row;
+      row.push_back(jets[i].pt());
+      row.push_back(std::abs(jets[i].eta()));
+      row.push_back(jets[i].phi());
+      row.push_back(jets[i].bDiscriminator(BTAG_CSVv2));
+      jet2d.push_back(row);
   }
-  for(int i=0;i<jets.size();i++){
-    if ( jets[i].pt() < 30 || std::abs(jets[i].eta()) > 2.4 || std::abs(jets[i].eta()) > 4.7 ) continue;
-  }
-  event_cat=1;
-  //already has jet pt and eta cut in a jet selection
+  sort(jet2d.begin(),jet2d.end(), [](std::vector<double> a, std::vector<double> b){return a[0] > b[0];});//sort by jet pt()
+  */
+  bumpcut[0]+=1;
+  if (recolep[0].charge() * recolep[1].charge() > 0) return false;
+  bumpcut[1]+=1;
+  if (recolep[0].pt() < 25 || recolep[1].pt() < 25) return false;
+  bumpcut[2]+=1;
+  if (recolep[0].eta() > 2.1 || recolep[1].eta() > 2.1) return false;
+  bumpcut[3]+=1;
+  return true;
+} 
 
-  // 2nd event category
-  if (event_cat==1){
-    if (met>40) continue;  
-    if (delta_phi<2.5) continue;
-    event_cat=2;
+bool h2muAnalyzer::bumpCat1(const cat::JetCollection& jets,const cat::MuonCollection& recolep)
+{
+  bool event_cat=false;
+  if (!bumpCategory(jets,recolep)){return event_cat;}
+  int btagpass=0;
+  for(auto& j:jets){
+      cat::Jet jet(j);
+      if (jet.bDiscriminator(BTAG_CSVv2) > WP_BTAG_CSVv2T) {
+          //cout<<(*a)[0]<<", "<<(*a)[1]<<", "<<(*a)[2]<<", "<<WP_BTAG_CSVv2T<<endl;
+          if ( jet.pt() > 30. && jet.eta() < 2.4 ) btagpass++;
+      }
+      else {
+          if( jet.pt() > 30. && jet.eta() < 2.4 ) return false;
+          if( jet.pt() > 30. && jet.eta() > 2.4 && jet.eta() < 4.7){
+            event_cat=true;
+            bumpcut[4]+=1;
+          }
+      }
   }
-  
-  return event_cat
+  if (btagpass==0){
+      return false;
+  }
+  else {
+      bumpcut[5]+=1;
+      return event_cat;
+  }
+}
+
+bool h2muAnalyzer::bumpCat2(const cat::JetCollection& jets,const cat::MuonCollection& recolep, float met)
+{
+  bool event_cat=false;
+  if (!bumpCategory(jets,recolep)){return event_cat;}
+  int btag=0;
+  int cond=0;
+  TLorentzVector dilep = recolep[0].tlv() + recolep[1].tlv();
+  TLorentzVector dijet(0,0,0,0);
+  for(auto& j:jets){
+      cat::Jet jet(j);
+      if ( jet.pt() > 30. && jet.eta() > 2.4 && jet.eta() < 4.7 ) continue;
+      if ( jet.pt() < 30. || jet.eta() > 2.4 ) continue;
+      cond+=1;
+      if ( jet.bDiscriminator(BTAG_CSVv2) > WP_BTAG_CSVv2T ){
+          btag+=1;
+          dijet+=jet.tlv();
+      }
+      else if ( jet.bDiscriminator(BTAG_CSVv2) < WP_BTAG_CSVv2T ){
+          dijet+=jet.tlv();
+      }
+  }
+  //cout<<dijet.Phi()<<endl;
+  // dilep and dijet passed the previous cut
+  double delta_phi = std::abs(dilep.Phi()-dijet.Phi());
+  // 2nd event category
+  if ( (btag > 0) && (cond == 2) ){
+      //printf("no error\n");
+      if (met<40 && delta_phi>2.5){
+          event_cat=true;
+          //cout<<delta_phi<<endl;
+          bumpcut[6]+=1;
+      }
+  }
+  return event_cat; 
 }
 
 //define this as a plug-in

@@ -226,7 +226,7 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
     iPos = 0
     if( iPos==0 ):
         cmsLumi.relPosX = 0.1
-    cmsLumi.CMS_lumi(pads[0], 4, iPos)
+    cmsLumi.CMS_lumi(pads[0], 0, iPos)
 
     canv.Modified()
     canv.Update()
@@ -360,7 +360,7 @@ def drawBWFit(name, data, x_min, x_max, doLog=False, draw=False):
     print gmean,gmeanerr,ggamma,ggammaerr
     return gmean,gmeanerr,ggamma,ggammaerr
 
-def parameterization(name, data, mclist, x_min, x_max, mean, meanerr, gamma, gammaerr,doLog=True,doRatio=True):
+def parameterization(name,cmsLumi,data, mclist, x_min, x_max, mean, meanerr, gamma, gammaerr,doLog=True,doRatio=True):
     canv=makeCanvas("c",doRatio)
     pads=[canv]
     pads = rootplotcore.divide_canvas(canv, 0.3)
@@ -368,6 +368,7 @@ def parameterization(name, data, mclist, x_min, x_max, mean, meanerr, gamma, gam
     pads[0].SetGridy()
 
     fp = ROOT.TF1("fp",fParameterization,x_min,x_max,5)
+    fp.SetNpx(x_max-x_min)
 
     leg = ROOT.TLegend(0.71,0.60,0.90,0.80)
     leg.SetBorderSize(0)
@@ -379,8 +380,6 @@ def parameterization(name, data, mclist, x_min, x_max, mean, meanerr, gamma, gam
     leg.AddEntry(data,"Data","lp")
     hs1 = ROOT.THStack("hs_%s_mc"%(name), "hs_%s_mc"%(name))
     hs2 = ROOT.THStack("hs_%s_mc"%(name), "hs_%s_mc"%(name))
-    hratio = mclist[0].Clone("hratio")
-    hratio.Reset()
     leghist = []
     for i, mc in enumerate(mclist):
         hnew = mc.Clone("hnew"+mc.GetName())
@@ -390,7 +389,6 @@ def parameterization(name, data, mclist, x_min, x_max, mean, meanerr, gamma, gam
             hs2.Add(hnew)
         else:
             hs1.Add(hnew)
-        hratio.Add(mc)
         inversed = mclist[len(mclist)-1-i]
         if not any(inversed.GetTitle() == s for s in leghist):
             #leg.AddEntry(inversed, inversed.GetTitle(), "f")
@@ -404,6 +402,8 @@ def parameterization(name, data, mclist, x_min, x_max, mean, meanerr, gamma, gam
     fp_dn=ROOT.TF1("fp_dn",fParameterization,x_min,x_max,5)
     fp_up.SetObjectStat(0)
     fp_dn.SetObjectStat(0)
+    fp_up.SetNpx(x_max-x_min)
+    fp_dn.SetNpx(x_max-x_min)
 
     fp.SetLineColor(ROOT.kAzure)
     fp.SetFillColor(ROOT.kAzure+10)
@@ -413,7 +413,7 @@ def parameterization(name, data, mclist, x_min, x_max, mean, meanerr, gamma, gam
     fp.SetLineWidth(2)
     fp.SetParNames("N_{bg}","m_{Z}","#gamma","#Lambda","#beta")
     from time import localtime, strftime
-    leg.SetHeader(strftime("%Y-%m-%d %H:%M", localtime()))
+    #leg.SetHeader(strftime("%Y-%m-%d %H:%M", localtime()))
     #legheader=leg.GetListOfPrimitives().First()
     #legheader.SetTextAlign(22)
     #legheader.SetTextSize(0.04)
@@ -424,8 +424,8 @@ def parameterization(name, data, mclist, x_min, x_max, mean, meanerr, gamma, gam
     leg.AddEntry(fp,"fit","lf")
     leg.AddEntry(hs2sum,"Higgs x 30","l")
 
-    data.Fit("fp","R0")
     #data.Draw("AXIS")
+    data.Fit("fp","R0+")
     data.Draw("ex0")
 
     par = ""
@@ -479,49 +479,180 @@ def parameterization(name, data, mclist, x_min, x_max, mean, meanerr, gamma, gam
     data.GetYaxis().SetLabelSize(0.03)
     data.GetYaxis().SetTitle("Events/ 1 GeV/c^{2}")
     data.SetAxisRange(110,160,"X")
-    setNameIntoCanvas(pads[0],name)
+    
+    #pads[0].Modified()
+    #setNameIntoCanvas(pads[0],name)
 
     pads[1].cd()
     pads[1].SetGridy()
-    ratiorange=3
+    ratiorange=0.3
     lhratio=[]
     yratio_up=[]
     yratio_dn=[]
     for i in range(len(x)):
-        print i,x[i],y_dn[i],y[i],y_up[i]
+        #print i,x[i],y_dn[i],y[i],y_up[i]
         yratio_up.append(y_up[i]/y[i])
         yratio_dn.append(y_dn[i]/y[i])
       
-    print len(x)
+    #print len(x)
     from array import array
     gr=ROOT.TGraph(len(x),array('d',x),array('d',y))
     gr_ratio_up=ROOT.TGraph(len(x),array('d',x),array('d',yratio_up))
     gr_ratio_dn=ROOT.TGraph(len(x),array('d',x),array('d',yratio_dn))
-        
-    #lh = [ROOT.gROOT.GetFunction("fp").GetHistogram(),data,ROOT.gROOT.GetFunction("fp_up").GetHistogram(),ROOT.gROOT.GetFunction("fp_dn").GetHistogram()]
-    lh = [gr.GetHistogram(),data,gr_ratio_up.GetHistogram(),gr_ratio_dn.GetHistogram()]
-    lcolor = [2,1,ROOT.kBlue-9,ROOT.kBlue-9]
-    ldrawopt = ["","epsame","f","f"]
+    hfit=copy.deepcopy(fp.GetHistogram())
+    #if hfit.GetSumw2N() == 0:
+    #    hfit.Sumw2()
+    hfit_up=copy.deepcopy(fp_up.GetHistogram())
+    hfit_dn=copy.deepcopy(fp_dn.GetHistogram())
+
+    lh = [hfit,copy.deepcopy(data),hfit_up,hfit_dn]
+    lh[1].GetXaxis().SetLabelSize(0.03)
+    if lh[0].GetSumw2N() == 0:
+        print "lh0 has no sumw2!!!"
+        lh[0].Sumw2(1)
+    #lh[0].GetXaxis().SetLimits(110,160)
+    #for i in range(len(lh)):
+        #lh[i].SetAxisRange(110,160,"X")
+        #lh[1].GetXaxis().SetLimits(lh[1].FindBin(110),lh[1].FindBin(300))
+        #lh[i]=lh[i].Clone()
+        #lh[i].SetBins(50, 110, 160)
+    htmp = ROOT.TH1F("tmp","tmp",50,110,160)
+    k=0
+    for i in range(110,300):
+        k+=1
+        if i>120 and i<130:continue
+        htmp.SetBinContent(k,lh[1].GetBinContent(lh[1].FindBin(i)))
+        print k,lh[1].GetBinContent(lh[1].FindBin(i))
+    x,y,exl,eyl,exh,eyh=[],[],[],[],[],[]
+    for i in range(110,300):
+        y1,y2,y3,y4,y5 = lh[0].GetBinContent(lh[0].FindBin(i)), lh[1].GetBinContent(lh[1].FindBin(i)), lh[2].GetBinContent(lh[2].FindBin(i)), lh[3].GetBinContent(lh[3].FindBin(i)), htmp.GetBinContent(htmp.FindBin(i))
+        print """ 
+    lh[0].FindBin(i) = %d, lh[1].FindBin(i) = %d, lh[2].FindBin(i) = %d, lh[3].FindBin(i) = %d, htmp.FindBin(i) = %d
+        """%(lh[0].FindBin(i), lh[1].FindBin(i), lh[2].FindBin(i), lh[3].FindBin(i),htmp.FindBin(i))
+        print """ 
+    lh[0].GetBinContent(lh[0].FindBin(i)) = %d, lh[1].GetBinContent(lh[1].FindBin(i)) = %d, lh[2].GetBinContent(lh[2].FindBin(i)) = %d, lh[3].GetBinContent(lh[3].FindBin(i)) = %d,  htmp.GetBinContent(htmp.FindBin(i)) = %d
+        """%(y1,y2,y3,y4,y5)
+        x.append(ROOT.Double(i))
+        y.append(ROOT.Double(1))
+        exl.append(ROOT.Double(0))
+        exh.append(ROOT.Double(0))
+        eyl.append(ROOT.Double(abs((y1-y4)/y1)))
+        eyh.append(ROOT.Double(abs((y1-y3)/y1)))        
+        #eyl.append(ROOT.Double(y4/y1))
+        #eyh.append(ROOT.Double(y3/y1))        
+    print x,y,exl,exh,eyl,eyh
+    print len(x),len(y),len(exl),len(exh),len(eyl),len(eyh)
+    band = ROOT.TGraphAsymmErrors(len(x),array('d',x),array('d',y),array('d',exl),array('d',exh),array('d',eyl),array('d',eyh))
+    xline = ROOT.TGraph(len(x),array('d',x),array('d',y))
+    band.SetFillColor(fp.GetFillColor())
+    band.SetLineColor(fp.GetLineColor())
+    band.SetLineWidth(fp.GetLineWidth()) 
+    xline.SetLineColor(fp.GetLineColor())
+    xline.SetLineWidth(fp.GetLineWidth()) 
+    #band.SetFillColor(fp_up.GetFillColor())
+    lh[1] = htmp.Clone()    
+    lh[1].Sumw2(1)
     for i in range(len(lh)):
-        hratio=data.Clone("hratio_%d"%i)
+        lh[i].SetAxisRange(110,160,"X")
+    #lh = [gr.GetHistogram(),data,gr_ratio_up.GetHistogram(),gr_ratio_dn.GetHistogram()]
+    lcolor = [2,1,ROOT.kBlue-9,ROOT.kBlue-9]
+    #lfcolor = [0,0,ROOT.kBlue-9,ROOT.kBlue-9]
+    lfcolor = [0,0,ROOT.kAzure+10,0]
+    ldrawopt = ["","pesame","hist same","hist same"]
+    lhratio=[]
+    dataratio=False
+    for i in range(len(lh)):
+        hratio=lh[1].Clone("hratio_%d"%i)
         hratio.Reset()
-        if i<2:hratio.Divide(lh[0],lh[i],1.,1.,"B")
-        else:hratio=lh[i]
+        if i == 1:
+            dataratio=True
+            hratio.Sumw2(0)
+            pratio=ROOT.TH1F("tempratio","tempratio",300,0,300)
+        else:
+            dataratio=False
+        htmp1=lh[1].Clone("htmp1_%d"%i)
+        htmp2=lh[1].Clone("htmp2_%d"%i)
+        htmp1.Reset()
+        htmp2.Reset()
+        #hratio.Sumw2(1)
+        #hratio.Divide(lh[0],lh[i],1.,1.,"B")
+        for j in range(110,161):
+            valtmp1=lh[0].GetBinContent(lh[0].FindBin(j))
+            valtmp2=lh[i].GetBinContent(lh[i].FindBin(j))
+            htmp1.Fill(j,valtmp1)
+            htmp2.Fill(j,valtmp2)
+            errtmp1=lh[0].GetBinError(lh[0].FindBin(j))
+            errtmp2=lh[i].GetBinError(lh[0].FindBin(j))
+            reerrtmp1=errtmp1/valtmp1
+            if valtmp2==0:
+                reerrtmp2=0
+            else:
+                reerrtmp2=errtmp2/valtmp2
+            print "mass : %d , htmp1 : %d , htmp2 : %d , errtmp1 : %.4f, errtmp2 : %.4f, reerrtmp1 : %.4f, reerrtmp2 : %.4f"%(j,lh[0].GetBinContent(lh[0].FindBin(j)),lh[1].GetBinContent(lh[1].FindBin(j)),errtmp1,errtmp2,reerrtmp1,reerrtmp2)
+            print "valtmp2/valtmp1 = %.4f , errtmp2/valtmp1 = %.4f"%(valtmp2/valtmp1,errtmp2/valtmp1)
+            if dataratio:
+                hratio.SetBinContent(j,float(valtmp2/valtmp1))
+                hratio.SetBinError(j,float(errtmp2/valtmp1))
+                pratio.SetBinContent(j,float(valtmp2/valtmp1))
+                pratio.SetBinError(j,float(errtmp2/valtmp1))
+            else:
+                dataratio=False
+
+        if dataratio:dataratio=True
+        else:
+            hratio.Divide(htmp1,htmp2,1.,1.,"B")
+            
         hratio.SetLineColor(lcolor[i])
-        hratio.Draw(ldrawopt[i])
+        hratio.SetFillColor(lfcolor[i])
+        lhratio.append(copy.deepcopy(hratio))
+    pads[1].cd()
+    hratio.Reset()
+    hratio.Draw("")
+    ROOT.gDirectory.Add(band)
+    band.Draw("4")
+    xline.Draw("l")
+    #lhratio[1].Draw("%s"%ldrawopt[1])
+    pratio.Draw("epsame")
+    for i in range(len(lh)+2):
+        canvas=ROOT.TCanvas()
+        canvas.cd()
+        if i<len(lh):lh[i].Draw()
+        elif i==len(lh):
+            band.Draw("a4")
+            xline.Draw("l")
+            #band.Draw("L")
+        elif i==len(lh)+1:
+            lhratio[1].Draw()
+        canvas.SaveAs("hratio_%d.png"%i)
+        pads[1].cd()
+        
+    print """
+    data.GetNbinsX() = %d
+    hfit.GetNbinsX() = %d
+    hfit_up.GetNbinsX() = %d
+    hfit_dn.GetNbinsX() = %d
+    hratio.GetNbinsX() = %d
+    """%(lh[1].GetNbinsX(),lh[0].GetNbinsX(),lh[2].GetNbinsX(),lh[3].GetNbinsX(),hratio.GetNbinsX()) 
 
     hratio.SetLabelSize(0.03,"Y")
-    #hratio.GetYaxis().SetTitle("#frac{data}{fit}")
+    hratio.SetLabelSize(0.04,"X")
+    hratio.GetYaxis().SetTitle("#frac{data}{fit}")
+    hratio.GetYaxis().SetNdivisions(9)
     hratio.GetXaxis().SetTitle("M_{#mu#mu} [GeV/c^{2}]")
-    hratio.SetAxisRange(110,160,"X")
-    hratio.SetMaximum(0.+ratiorange)
-    hratio.SetMinimum(0.-ratiorange)
+    #hratio[0].SetAxisRange(110,160,"X")
+    hratio.SetMaximum(1.+ratiorange)
+    hratio.SetMinimum(1.-ratiorange)
 
     for p in pads:
         p.RedrawAxis()
         p.SetGridx()
         p.Modified()
         p.Update()
+
+    iPos = 0
+    if( iPos==0 ):
+        cmsLumi.relPosX = 0.1
+    cmsLumi.CMS_lumi(pads[0], 0, iPos)
 
     canv.cd()
     canv.Modified()
@@ -581,9 +712,14 @@ def shade(canv, f1, f2, f3):
     # create a TGraph to store the function values
     # shaded area is the fill/color/style of f1
 
+    mg = ROOT.TMultiGraph()
     gr = ROOT.TGraph()
+    gr0 = ROOT.TGraph()
     gr.SetFillColor(f1.GetFillColor())
-    print gr.GetFillColor()
+    gr0.SetFillColor(f3.GetFillColor())
+    gr0.SetLineColor(f3.GetLineColor())
+    gr0.SetLineWidth(f3.GetLineWidth()) 
+
     #get picture range
     xmin = canv.GetUxmin()
     xmax = canv.GetUxmax()
@@ -597,15 +733,21 @@ def shade(canv, f1, f2, f3):
     lyf3 = []
    
     #process first function
-    npx = f3.GetNpx()
+    print f3.ClassName()
+    if "TF" in f3.ClassName():
+        npx = f3.GetNpx()
+    else:
+        npx = f3.GetN()
     npoints=0
     dx = (xmax-xmin)/npx
     x = xmin+0.5*dx
     while (x <= xmax):
         y = f1.Eval(x)
+        y0 = f3.Eval(x)
         if (y < ymin): y = ymin
         if (y > ymax): y = ymax
         gr.SetPoint(npoints,x,y)
+        gr0.SetPoint(npoints,x,y0)
         lx.append(x)
         lyf1.append(f1.Eval(x))
         lyf2.append(f2.Eval(x))
@@ -627,10 +769,16 @@ def shade(canv, f1, f2, f3):
     yp = ROOT.Double()
     for i in range(npoints):
         gr.GetPoint(i,xp,yp)
-        print i,xp,yp
-    ROOT.gDirectory.Add(gr)
-    gr.Draw("cf") #draw graph with fill area option
-    f3.Draw("lsame") #superimpose function
+        #print i,xp,yp
+    #ROOT.gDirectory.Add(gr)
+    #ROOT.gDirectory.Add(gr0)
+    ROOT.gDirectory.Add(mg)
+    #gr.Draw("cf") #draw graph with fill area option
+    #gr0.Draw("l")
+    #f3.Draw("lsame") #superimpose function
+    mg.Add(gr,"cf")
+    mg.Add(gr0,"cl")
+    mg.Draw("")
     canv.Update()
     return lx, lyf1, lyf2, lyf3
     

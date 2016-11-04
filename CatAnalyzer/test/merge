@@ -14,7 +14,7 @@ if "results_merged" not in os.listdir(os.getcwd()):
     print "'results_merged' has been created."
 """
 #version="v7-6-6/"
-version=os.environ["CMSSW_VERSION"]
+version="%s_bump2"%os.environ["CMSSW_VERSION"]
 pstored="/xrootd/store/user/pseudotop/ntuples/"
 pstored2=pstored+"%s/"%version
 pmerged=pstored+"results_merged/" 

@@ -24,7 +24,7 @@ rootfileDir = "/xrootd/store/user/pseudotop/ntuples/results_merged/%s/h2muAnalyz
 #rootfileDir = "%s/src/CATTools/CatAnalyzer/test/results_merged/h2muAnalyzer_" % os.environ['CMSSW_BASE']
 #rootfileDir = "%s/cattuples/20160324_163101/results_merged/h2muAnalyzer_" % os.environ['HOME_SCRATCH']
 
-CMS_lumi.lumi_sqrtS = "%.0f pb^{-1}, #sqrt{s} = 13 TeV 25ns "%(datalumi)
+CMS_lumi.lumi_sqrtS = "%.2f fb^{-1}, #sqrt{s} = 13 TeV 25ns "%(float(datalumi)/1000)
 mcfilelist = [
               'GG_HToMuMu',
              # 'GluGluToZZTo2mu2tau',
@@ -60,7 +60,7 @@ cut = 'dilep.M()>20&&step>=5'
 #cut = 'channel==2'
 print cut
 #weight = 'genweight*puweight*mueffweight*eleffweight*tri'
-weight = 'weight'
+weight = 'weight*(mueffweight)'
 plotvar = 'dilep.M()'
 binning = [300, 0, 300]
 x_name = 'mass [GeV]'
@@ -188,7 +188,7 @@ for imc,mcname in enumerate(mcfilelist):
 '''        
 print "rdfname: %s\n tname: %s\n binning: %s\n plotvar: %s\n tcut: %s\n"%(rdfname, tname, binning, plotvar, tcut)
 rdhist = makeTH1(rdfname, tname, 'data', binning, plotvar, tcut)
-#drawTH1(f_name+".png", CMS_lumi, mchistList, rdhist, x_name, y_name,dolog)
+#drawTH1(f_name, CMS_lumi, mchistList, rdhist, x_name, y_name,dolog)
 
 print "="*50
 print rfname
@@ -210,7 +210,7 @@ while (x_min<140):
  #       print>>f2_txt, "*"*(50)
  #       print>>f2_txt, " datalumi : %s\n sig : %s\n bg : %s\n significance : %s\n"%(lumilist[j],sig[j],bg[j],(sig[j]/math.sqrt(sig[j]+bg[j])))
    
-    parameterization("fit_"+f_name+"_%d.png"%(x_min), rdhist, mchistList, x_min, binning[2], value[0], value[1], value[2], value[3])
+    parameterization("fit_"+f_name+"_%d.png"%(x_min),CMS_lumi,rdhist, mchistList, x_min, binning[2], value[0], value[1], value[2], value[3])
     if 'SingleMuon' in rdfname:
         if len(binning) == 3:
             htmp = ROOT.TH1D("tmp", "tmp", binning[0], binning[1], binning[2])
@@ -222,7 +222,7 @@ while (x_min<140):
             htmp.SetBinContent(i,entries)
             
     #after blind the signal region.
-    parameterization("fit_"+f_name+"_%d_signal_region_blinded.png"%(x_min), htmp, mchistList, x_min, binning[2], value[0], value[1], value[2], value[3],False)
+    parameterization("fit_"+f_name+"_%d_signal_region_blinded.png"%(x_min), CMS_lumi,htmp, mchistList, x_min, binning[2], value[0], value[1], value[2], value[3],False,True)
     #f_txt2.close()
     f_txt.close()
     f2_txt.close()
