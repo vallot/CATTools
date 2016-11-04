@@ -753,8 +753,8 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       h.h_jets_n[i]->Fill(jets_n, weight);
       h.h_jets_ht[i]->Fill(jets_ht, weight);
       for ( auto jet : *out_jets ) {
-        h_ee.h_jets_pt[i]->Fill(jet.pt(), weight);
-        h_ee.h_jets_eta[i]->Fill(jet.eta(), weight);
+        h.h_jets_pt[i]->Fill(jet.pt(), weight);
+        h.h_jets_eta[i]->Fill(jet.eta(), weight);
       }
       for ( int j=0, n=std::min(jets_n, 4); j<n; ++j ) {
         const auto& jet = out_jets->at(j);
