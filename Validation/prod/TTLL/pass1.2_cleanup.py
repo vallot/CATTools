@@ -129,7 +129,7 @@ if __name__ == '__main__':
 
         fsubmit.close()
 
-    elif nSub > 0:
+    if nSub > 0:
         print "@@ Done, wait for the %d jobs to finish" % nSub
-    else:
+    if nSub == 0 and len(jobsFailed) == 0:
         print "@@ Finished"
