@@ -194,7 +194,7 @@ private:
   bool isGoodMuon(const cat::Muon& mu)
   {
     if ( std::abs(mu.eta()) > 2.1 ) return false;
-    if ( shiftedMuonPt(mu) < 26 ) return false;
+    if ( std::isnan(mu.pt()) or shiftedMuonPt(mu) < 26 ) return false;
 
     if ( mu.relIso(0.4) > 0.15 ) return false;
     if ( !mu.isTightMuon() ) return false;
@@ -202,8 +202,8 @@ private:
   }
   bool isGoodElectron(const cat::Electron& el)
   {
-    if ( std::abs(el.eta()) > 2.4 ) return false;
-    if ( shiftedElectronPt(el) < 30 ) return false;
+    if ( std::abs(el.eta()) > 2.1 ) return false;
+    if ( std::isnan(el.pt()) or shiftedElectronPt(el) < 35 ) return false;
 
     if ( isMVAElectronSel_ and !el.isTrigMVAValid() ) return false;
 
@@ -468,7 +468,6 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
     cat::Electron lep(p);
     lep.setP4(p.p4()*scale);
-    selElectrons.push_back(lep);
     const bool isGood = isGoodElectron(p); // note: pt scale is done in the function
     const bool isVeto = isVetoElectron(p); // note: pt scale is done in the function
     if ( isGood ) selElectrons.push_back(lep);

@@ -728,12 +728,10 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
     const auto zP4 = lepton1P4+lepton2P4;
 
-    for ( int icutstep=1; icutstep<nCutstep; ++icutstep ) {
-      h.hCutstep->Fill(icutstep, weight);
-      h.hCutstepNoweight->Fill(icutstep);
-    }
-
     for ( int i=3; i<nCutstep; ++i ) {
+      h.hCutstep->Fill(i-2, weight);
+      h.hCutstepNoweight->Fill(i-2);
+
       h.h_vertex_n[i]->Fill(nVertex, weight);
       h.h_met_pt[i]->Fill(met_pt, weight);
       h.h_met_phi[i]->Fill(met_phi, weight);
@@ -753,8 +751,8 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       h.h_jets_n[i]->Fill(jets_n, weight);
       h.h_jets_ht[i]->Fill(jets_ht, weight);
       for ( auto jet : *out_jets ) {
-        h_ee.h_jets_pt[i]->Fill(jet.pt(), weight);
-        h_ee.h_jets_eta[i]->Fill(jet.eta(), weight);
+        h.h_jets_pt[i]->Fill(jet.pt(), weight);
+        h.h_jets_eta[i]->Fill(jet.eta(), weight);
       }
       for ( int j=0, n=std::min(jets_n, 4); j<n; ++j ) {
         const auto& jet = out_jets->at(j);
