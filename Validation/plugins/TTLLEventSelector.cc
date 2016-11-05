@@ -729,8 +729,11 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     const auto zP4 = lepton1P4+lepton2P4;
 
     for ( int i=3; i<nCutstep; ++i ) {
-      h.hCutstep->Fill(i-2, weight);
-      h.hCutstepNoweight->Fill(i-2);
+      const int icutstep = i-2;
+      if ( cutstep < icutstep ) break;
+
+      h.hCutstep->Fill(icutstep, weight);
+      h.hCutstepNoweight->Fill(icutstep);
 
       h.h_vertex_n[i]->Fill(nVertex, weight);
       h.h_met_pt[i]->Fill(met_pt, weight);

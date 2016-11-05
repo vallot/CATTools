@@ -707,6 +707,7 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
       h.hCutstep->Fill(icutstep, weight);
       h.hCutstepNoweight->Fill(icutstep);
+
       h.h_vertex_n[i]->Fill(nVertex, weight);
       h.h_met_pt[i]->Fill(met_pt, weight);
       h.h_met_phi[i]->Fill(met_phi, weight);
