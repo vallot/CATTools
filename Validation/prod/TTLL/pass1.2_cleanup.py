@@ -106,8 +106,8 @@ if __name__ == '__main__':
     if len(jobsFailed) > 0:
         print "@@ There are some failed jobs"
         print "@@ Please resubmit following jobs"
-        if os.path.exists("pass1/resubmit"): os.system("rm -rf pass1/resubmit")
-        os.makedirs("pass1/resubmit")
+        #if os.path.exists("pass1/resubmit"): os.system("rm -rf pass1/resubmit")
+        if not os.path.exists("pass1/resubmit"): os.makedirs("pass1/resubmit")
         fsubmit = open("pass1/resubmit/submit.sh", "w")
         for sample, jobs in jobsFailed:
             print sample, jobs
