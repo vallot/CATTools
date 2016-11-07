@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import ROOT, CATTools.CatAnalyzer.CMS_lumi, json, os, getopt, sys
 from CATTools.CatAnalyzer.histoHelper import *
+from CATTools.CatAnalyzer.histoHelper_h2mu import *
 from ROOT import TLorentzVector
 #import DYestimation
 ROOT.gROOT.SetBatch(True)
