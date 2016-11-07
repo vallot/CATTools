@@ -19,6 +19,7 @@ def findHists(d, hists):
 
 checkedTypes = set()
 ds = {}
+dsSyst = {}
 dsIn = json.loads(open("pass1/dataset.json").read())
 hists = set()
 for name in dsIn:
@@ -30,14 +31,17 @@ for name in dsIn:
     if title not in ds:
         ds[title] = {
             'colour':x['colour'],
-            'hist':'pass2/central/%s.root' % safeTitle, ## Path to the merged histogram
+            'hist':'pass2/nominal/%s.root' % safeTitle, ## Path to the merged histogram
             'subsamples':[], ## List of input samples
         }
+    normFactor = 1
+    if stype != 'Data': normFactor = x['normFactor']
+    if normFactor == 0: normFactor = 1
 
     ds[title]['subsamples'].append({
         'type':stype,
         'avgWgt':x['avgWgt'], 'nevt':x['nevt'],
-        'xsec':x['xsec'], 'lumi':x['lumi'], 'normFactor':x['normFactor'],
+        'xsec':x['xsec'], 'lumi':x['lumi'], 'normFactor':normFactor,
         'hist':x['hist'],
     })
 
@@ -50,6 +54,7 @@ for name in dsIn:
         f.Close()
         hists = hists.union(hset)
         checkedTypes.add(sstype)
+
 hists = list(hists)
 hists.sort()
 
