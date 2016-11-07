@@ -7,15 +7,15 @@ sys.argv.append("-b")
 from math import hypot
 from ROOT import *
 import imp
-printCutflow = imp.load_source("printCutflow", "submacros/printCutflow.py").printCutflow
+printCutflow = imp.load_source("printCutflow", "../submacros/printCutflow.py").printCutflow
 #st = imp.load_source("st", "submacros/tdrstyle.py")
-gROOT.LoadMacro("submacros/tdrstyle.C")
+gROOT.LoadMacro("../submacros/tdrstyle.C")
 setTDRStyle()
 gStyle.SetOptTitle(0)
 gStyle.SetOptStat(0)
 
 srcMCs = [
-    ["t_bar_t__Jets_rightarrow_l____l____", 632],
+    ["t_bar_t__Jets_rightarrow_l___pm_", 632],
     ["t_bar_t__Jets_Others", 632+3],
     ["Single_top", 800,],
     ["Dibosons", 432,],
@@ -26,19 +26,18 @@ srcMCs = [
 for s in srcMCs: s.append(TFile("pass2/nominal/%s.root" % s[0]))
 
 fRD = {
-    'ee':TFile("pass2/nominal/DoubleEG.root"),
-    'mm':TFile("pass2/nominal/DoubleMuon.root"),
-    'em':TFile("pass2/nominal/MuonEG.root"),
+    'el':TFile("pass2/nominal/SingleElectron.root"),
+    'mu':TFile("pass2/nominal/SingleMuon.root"),
 }
 
 ## Data driven corrections
 dataset = json.loads(open("pass2/dataset.json").read())
-scaleDY = json.loads(open("pass2/scaler_DY.json").read())
 
 ## Pick the first root file to get full list of plots
 plts = []
 f = TFile("pass2/nominal/%s.root" % srcMCs[0][0])
-moddir = f.Get("eventsTTLL")
+moddir = f.Get("eventsTTLJ")
+print moddir
 for ch in [x.GetName() for x in moddir.GetListOfKeys()]:
     chdir = moddir.GetDirectory(ch)
     if chdir == None: continue
@@ -48,11 +47,11 @@ for ch in [x.GetName() for x in moddir.GetListOfKeys()]:
         if stepobj == None: continue
 
         if stepobj.IsA().GetName() in ("TH1D", "TH1F"):
-            plts.append({'name':"eventsTTLL/%s/%s" % (ch, step)})
+            plts.append({'name':"eventsTTLJ/%s/%s" % (ch, step)})
         elif stepobj.IsA().InheritsFrom("TDirectory"):
             for plt in [x.GetName() for x in stepobj.GetListOfKeys()]:
                 if stepobj.Get(plt) == None: continue
-                plts.append({'name':"eventsTTLL/%s/%s/%s" % (ch, step, plt)})
+                plts.append({'name':"eventsTTLJ/%s/%s/%s" % (ch, step, plt)})
 
 ## Start loop
 fout = TFile("pass2/preview.root", "recreate")
@@ -92,8 +91,6 @@ for iplt, pltInfo in enumerate(plts):
     for finName, color, f in srcMCs:
         h = f.Get(plt)
         h.Scale(lumi)
-        if finName == "Z__gamma_rightarrow_ll" and dirName in scaleDY["scale"]:
-            h.Scale(scaleDY["scale"][dirName])
         hMC.Add(h)
         h.GetStats(stats)
         h.AddBinContent(nbinsX, h.GetBinContent(nbinsX+1))
@@ -184,26 +181,26 @@ for iplt, pltInfo in enumerate(plts):
     yMax = max(yMax, max([hRD.GetBinContent(i) for i in range(1, nbinsX)]))
     yMaxR = max(yMaxR, max([hRD.GetBinContent(i) for i in range(nbinsX/2, nbinsX)]))
 
-    outdirName = 'preview/'+dirName
-    if not os.path.isdir(outdirName): os.makedirs(outdirName)
-    c.Print(outdirName+'/'+c.GetName()+'.png')
-    if grpRatio.GetN() > 0: c.Print(outdirName+'/'+c.GetName()+'.C')
-
     plts[iplt]['yMax'] = yMax
     plts[iplt]['yMaxR'] = yMaxR
+
+    if not os.path.exists("preview/%s" % dirName):
+        os.makedirs("preview/%s" % dirName)
+    c.Print("preview/%s/%s.png" % (dirName, c.GetName()))
+    if grpRatio.GetN() > 0: c.Print("preview/%s/%s.C" % (dirName, c.GetName()))
 
     for h in (hRD, hMC, hsMC, hRatio, grpRatio, c): del(h)
 
 ## Start to print cut flow
 cutflow = {
-    "count":{"ee":{}, "mm":{}, "em":{}},
-    "error":{"ee":{}, "mm":{}, "em":{}},
+    "count":{"el":{}, "mu":{}},
+    "error":{"el":{}, "mu":{}},
     "nstep":0,
     "step":None,
 }
 nstep = 0
 for mode in cutflow["count"].keys():
-    h = fRD[mode].Get("eventsTTLL/%s/cutstep" % mode)
+    h = fRD[mode].Get("eventsTTLJ/%s/cutstep" % mode)
     nstep = h.GetNbinsX()
     cutflow["count"][mode]["Data"] = [h.GetBinContent(i) for i in range(1, nstep+1)]
     cutflow["error"][mode]["Data"] = [h.GetBinError(i) for i in range(1, nstep+1)]
@@ -211,7 +208,7 @@ for mode in cutflow["count"].keys():
         cutflow["step"] = [h.GetXaxis().GetBinLabel(i) for i in range(1, nstep+1)]
 
     for finName, color, f in srcMCs:
-        h = f.Get("eventsTTLL/%s/cutstep" % mode)
+        h = f.Get("eventsTTLJ/%s/cutstep" % mode)
         cutflow["count"][mode][finName] = [h.GetBinContent(i) for i in range(1, nstep+1)]
         cutflow["error"][mode][finName] = [h.GetBinError(i) for i in range(1, nstep+1)]
 cutflow["nstep"] = nstep
