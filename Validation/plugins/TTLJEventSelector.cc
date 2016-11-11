@@ -93,6 +93,10 @@ struct ControlPlotsTTLJ
       h_met_pt[i] = subdir.make<TH1D>("met_pt", "met_pt", 1000, 0, 1000);
       h_met_phi[i] = subdir.make<TH1D>("met_phi", "met_phi", 100, -pi, pi);
       h_leptons_n[i] = subdir.make<TH1D>("leptons_n", "leptons_n", 10, 0, 10);
+      h_lepton1_pt[i]  = subdir.make<TH1D>("lepton1_pt", "lepton1_pt", 1000, 0, 1000);
+      h_lepton1_eta[i] = subdir.make<TH1D>("lepton1_eta", "lepton1_eta", 100, -maxeta, maxeta);
+      h_lepton1_phi[i] = subdir.make<TH1D>("lepton1_phi", "lepton1_phi", 100, -pi, pi);
+      h_lepton1_q[i]   = subdir.make<TH1D>("lepton1_q", "lepton1_q", 3, -1.5, 1.5);
       h_jets_n[i] = subdir.make<TH1D>("jets_n", "jets_n", 10, 0, 10);
       h_jets_pt[i]  = subdir.make<TH1D>("jets_pt", "jets_pt", 1000, 0, 1000);
       h_jets_eta[i] = subdir.make<TH1D>("jets_eta", "jets_eta", 100, -maxeta, maxeta);
@@ -117,8 +121,8 @@ struct ControlPlotsTTLJ
       h_jets_eta[i] = subdir.make<TH1D>("jets_eta", "jets_eta", 100, -maxeta, maxeta);
       h_jets_ht[i] = subdir.make<TH1D>("jets_ht", "jets_ht", 1000, 0, 1000);
 
-      for ( int nJet=1; nJet<=4; ++nJet ) {
-        const string prefix = Form("jet%d_", nJet);
+      for ( int nJet=0; nJet<6; ++nJet ) {
+        const string prefix = Form("jet%d_", nJet+1);
         h_jet_m[i][nJet]   = subdir.make<TH1D>((prefix+"m").c_str(), (prefix+"m").c_str(), 500, 0, 500);
         h_jet_pt[i][nJet]  = subdir.make<TH1D>((prefix+"pt").c_str(), (prefix+"pt").c_str(), 1000, 0, 1000);
         h_jet_eta[i][nJet] = subdir.make<TH1D>((prefix+"eta").c_str(), (prefix+"eta").c_str(), 100, -maxeta, maxeta);
@@ -190,7 +194,7 @@ private:
   bool isGoodMuon(const cat::Muon& mu)
   {
     if ( std::abs(mu.eta()) > 2.1 ) return false;
-    if ( shiftedMuonPt(mu) < 26 ) return false;
+    if ( std::isnan(mu.pt()) or shiftedMuonPt(mu) < 26 ) return false;
 
     if ( mu.relIso(0.4) > 0.15 ) return false;
     if ( !mu.isTightMuon() ) return false;
@@ -198,8 +202,8 @@ private:
   }
   bool isGoodElectron(const cat::Electron& el)
   {
-    if ( std::abs(el.eta()) > 2.4 ) return false;
-    if ( shiftedElectronPt(el) < 30 ) return false;
+    if ( std::abs(el.eta()) > 2.1 ) return false;
+    if ( std::isnan(el.pt()) or shiftedElectronPt(el) < 35 ) return false;
 
     if ( isMVAElectronSel_ and !el.isTrigMVAValid() ) return false;
 
@@ -464,7 +468,6 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
     cat::Electron lep(p);
     lep.setP4(p.p4()*scale);
-    selElectrons.push_back(lep);
     const bool isGood = isGoodElectron(p); // note: pt scale is done in the function
     const bool isVeto = isVetoElectron(p); // note: pt scale is done in the function
     if ( isGood ) selElectrons.push_back(lep);
@@ -704,6 +707,7 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
       h.hCutstep->Fill(icutstep, weight);
       h.hCutstepNoweight->Fill(icutstep);
+
       h.h_vertex_n[i]->Fill(nVertex, weight);
       h.h_met_pt[i]->Fill(met_pt, weight);
       h.h_met_phi[i]->Fill(met_phi, weight);
@@ -719,7 +723,7 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h.h_jets_eta[i]->Fill(jet.eta(), weight);
       }
       for ( int j=0, n=std::min(6, jets_n); j<n; ++j ) {
-        const auto& jet = out_jets->at(i);
+        const auto& jet = out_jets->at(j);
         h.h_jet_m[i][j]->Fill(jet.mass(), weight);
         h.h_jet_pt[i][j]->Fill(jet.pt(), weight);
         h.h_jet_eta[i][j]->Fill(jet.eta(), weight);

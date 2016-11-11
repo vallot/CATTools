@@ -610,6 +610,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       }
     }
   }
+
   // MuMu channel Cutstep 0b with trigger requirements
   int cutstep_mm = -2;
   if ( isIgnoreTrig_ or isTrigMuMu )
@@ -727,12 +728,13 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
     const auto zP4 = lepton1P4+lepton2P4;
 
-    for ( int icutstep=1; icutstep<nCutstep; ++icutstep ) {
+    for ( int i=3; i<nCutstep; ++i ) {
+      const int icutstep = i-2;
+      if ( cutstep < icutstep ) break;
+
       h.hCutstep->Fill(icutstep, weight);
       h.hCutstepNoweight->Fill(icutstep);
-    }
 
-    for ( int i=3; i<nCutstep; ++i ) {
       h.h_vertex_n[i]->Fill(nVertex, weight);
       h.h_met_pt[i]->Fill(met_pt, weight);
       h.h_met_phi[i]->Fill(met_phi, weight);
@@ -752,8 +754,8 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       h.h_jets_n[i]->Fill(jets_n, weight);
       h.h_jets_ht[i]->Fill(jets_ht, weight);
       for ( auto jet : *out_jets ) {
-        h_ee.h_jets_pt[i]->Fill(jet.pt(), weight);
-        h_ee.h_jets_eta[i]->Fill(jet.eta(), weight);
+        h.h_jets_pt[i]->Fill(jet.pt(), weight);
+        h.h_jets_eta[i]->Fill(jet.eta(), weight);
       }
       for ( int j=0, n=std::min(jets_n, 4); j<n; ++j ) {
         const auto& jet = out_jets->at(j);
@@ -766,13 +768,13 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       h.h_bjets_n[i]->Fill(bjets_n, weight);
       h.h_event_st[i]->Fill(leptons_st+jets_ht+met_pt, weight);
     }
-  } // switch(1)
+  }
 
   // Cutsomized cutflow without z-veto cut to be used in DY estimation and other studies
-  for ( int istep=1, nstep=cutstepBits.size(); istep<=nstep; ++istep ) {
-    if ( istep != 2 and !cutstepBits[istep-1] ) break;
+  for ( int i=0, nstep=cutstepBits.size(); i<nstep; ++i ) {
+    if ( i != 1 and !cutstepBits[i] ) break; // cutstepBits[1] is zVeto
 
-    h.h_z_m_noveto[istep]->Fill(z_m, weight);
+    h.h_z_m_noveto[i+3]->Fill(z_m, weight);
   }
 
   // Fill cut flow 2D plot
