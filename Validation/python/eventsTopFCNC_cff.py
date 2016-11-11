@@ -51,7 +51,8 @@ eventsTopFCNC = cms.EDFilter("TopFCNCEventSelector",
 
     vertex = cms.PSet(
         nVertex = cms.InputTag("catVertex", "nGoodPV"),
-        #src = cms.InputTag("catVertex"),
+        src = cms.InputTag("catVertex"),
+        #src = cms.InputTag("offlineSlimmedPrimaryVertices"),
         pileupWeight = cms.InputTag("pileupWeight"),
     ),
 

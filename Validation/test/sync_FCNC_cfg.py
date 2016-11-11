@@ -13,6 +13,9 @@ process.source.fileNames = [
 #    '/store/user/jhgoh/CATTools/sync/v7-6-5/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8.root',
     'file:/state/partition1/store/user/jhgoh/FCNC/Synchronization/201610/v801/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',
 ]
+#process.source.secondaryFileNames = cms.untracked.vstring(
+#    'file:/state/partition1/store/user/jhgoh/FCNC/Synchronization/201610/MINIAOD/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',
+#)
 
 process.load("CATTools.CatAnalyzer.filters_cff")
 #process.load("CATTools.Validation.ttllEventSelector_cfi")
