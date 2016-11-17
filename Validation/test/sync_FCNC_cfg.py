@@ -10,12 +10,10 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 50000
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 process.source.fileNames = [
-#    '/store/user/jhgoh/CATTools/sync/v7-6-5/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8.root',
-    'file:/state/partition1/store/user/jhgoh/FCNC/Synchronization/201610/v801/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',
+#    'file:/state/partition1/store/user/jhgoh/FCNC/Synchronization/201611/v802/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',
+#    'file:catTuple_seed81.root',
+    'file:catTuple.root',
 ]
-#process.source.secondaryFileNames = cms.untracked.vstring(
-#    'file:/state/partition1/store/user/jhgoh/FCNC/Synchronization/201610/MINIAOD/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',
-#)
 
 process.load("CATTools.CatAnalyzer.filters_cff")
 #process.load("CATTools.Validation.ttllEventSelector_cfi")
@@ -23,11 +21,21 @@ process.load("CATTools.CatAnalyzer.filters_cff")
 process.load("CATTools.Validation.eventsTopFCNC_cff")
 process.filterTrigMU.triggersToMatch = ['HLT_IsoMu24_v', 'HLT_IsoTkMu24_v',]
 process.filterTrigEL.triggersToMatch = ['HLT_Ele32_eta2p1_WPTight_Gsf_v']
+process.eventsTopFCNC.electron.idName = "cutBasedElectronID-Spring15-25ns-V1-standalone-medium"
 process.eventsTopFCNC.electron.vetoIdName = "cutBasedElectronID-Spring15-25ns-V1-standalone-loose"
+#process.eventsTopFCNC.vertex.src = "offlineSlimmedPrimaryVertices"
+process.el = process.eventsTopFCNC.clone(
+    channel = cms.string("electron"),
+    eventFile = cms.untracked.string("eventList_electron.txt"))
+process.mu = process.eventsTopFCNC.clone(
+    channel = cms.string("muon"),
+    eventFile = cms.untracked.string("eventList_muon.txt"))
+delattr(process, 'eventsTopFCNC')
 
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string("hist.root"),
 )
 
-process.p = cms.Path(process.eventsTopFCNC)
+process.p_el = cms.Path(process.el)
+process.p_mu = cms.Path(process.mu)
 

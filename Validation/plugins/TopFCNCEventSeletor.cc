@@ -16,151 +16,19 @@
 #include "CATTools/CatAnalyzer/interface/TopTriggerSF.h"
 
 #include "DataFormats/Candidate/interface/LeafCandidate.h"
-//#include "DataFormats/Candidate/interface/CompositeCandidate.h"
-//#include "DataFormats/Candidate/interface/CompositeRefCandidate.h"
-#include "DataFormats/Candidate/interface/CompositePtrCandidate.h"
 
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 #include "CommonTools/Utils/interface/TFileDirectory.h"
 #include "TH1D.h"
-#include "TH2F.h"
+#include "TH2D.h"
+#include "THnSparse.h"
 
-#define nCutstep 7
+#include <fstream>
+
+#define nCutsteps 7
 
 using namespace std;
-
-namespace cat {
-
-struct ControlPlotsTopFCNC
-{
-  typedef TH1D* H1;
-  typedef TH2D* H2;
-
-  H1 hCutstep, hCutstepNoweight;
-
-  H1 h_vertex_n[nCutstep];
-  H1 h_met_pt[nCutstep], h_met_phi[nCutstep];
-
-  H1 h_leptons_n[nCutstep], h_vetoLeptons_n[nCutstep];
-  H1 h_lepton1_pt[nCutstep], h_lepton1_eta[nCutstep], h_lepton1_phi[nCutstep], h_lepton1_q[nCutstep];
-
-  H1 h_electrons_n[nCutstep], h_vetoElectrons_n[nCutstep];
-  H1 h_electron1_pt[nCutstep], h_electron1_eta[nCutstep];
-  H1 h_electron2_pt[nCutstep], h_electron2_eta[nCutstep];
-
-  H1 h_muons_n[nCutstep], h_vetoMuons_n[nCutstep];
-  H1 h_muon1_pt[nCutstep], h_muon1_eta[nCutstep];
-  H1 h_muon2_pt[nCutstep], h_muon2_eta[nCutstep];
-
-  H1 h_jets_n[nCutstep], h_jets_pt[nCutstep], h_jets_eta[nCutstep], h_jets_ht[nCutstep];
-  H1 h_jet_m[nCutstep][6]; 
-  H1 h_jet_pt[nCutstep][6];
-  H1 h_jet_eta[nCutstep][6];
-  H1 h_jet_phi[nCutstep][6];
-  H1 h_jet_btag[nCutstep][6];
-
-  H1 h_bjets_n[nCutstep];
-  H1 h_event_st[nCutstep];
-
-  void book(TFileDirectory&& dir)
-  {
-    const double maxeta = 3;
-    const double pi = 3.141592;
-
-    hCutstep = dir.make<TH1D>("cutstep", "cutstep", nCutstep, 1, nCutstep+1);
-    hCutstepNoweight = dir.make<TH1D>("cutstepNoweight", "cutstepNoweight", nCutstep, 1, nCutstep+1);
-
-    const char* stepLabels[nCutstep] = {
-      "S1 All event", "S2 Good PV", "S3 Trigger",
-      "S4 One signal lepton", "S5 Veto other lep", "S6 Veto same lep",
-      "S7 nJet3",
-    };
-    const char* stepNames[nCutstep] = {"step1", "step2", "step3", "step4", "step5", "step6", "step7"};
-
-    for ( int i=0; i<nCutstep; ++i ) {
-      hCutstep->GetXaxis()->SetBinLabel(i+1, stepLabels[i]);
-      hCutstepNoweight->GetXaxis()->SetBinLabel(i+1, stepLabels[i]);
-    }
-
-    std::vector<TFileDirectory> subdirs;
-
-    subdirs.push_back(dir.mkdir(stepNames[0]));
-    auto subdir = subdirs.back();
-    h_vertex_n[0] = subdir.make<TH1D>("vertex_n", "vertex_n", 100, 0, 100);
-    h_leptons_n[0] = subdir.make<TH1D>("leptons_n", "leptons_n", 10, 0, 10);
-
-    for ( int i=1; i<=2; ++i ) {
-      subdirs.push_back(dir.mkdir(stepNames[i]));
-      subdir = subdirs.back();
-      h_vertex_n[i] = subdir.make<TH1D>("vertex_n", "vertex_n", 100, 0, 100);
-      h_met_pt[i] = subdir.make<TH1D>("met_pt", "met_pt", 1000, 0, 1000);
-      h_met_phi[i] = subdir.make<TH1D>("met_phi", "met_phi", 100, -pi, pi);
-      h_leptons_n[i] = subdir.make<TH1D>("leptons_n", "leptons_n", 10, 0, 10);
-      h_vetoLeptons_n[i] = subdir.make<TH1D>("vetoLeptons_n", "vetoLeptons_n", 10, 0, 10);
-      h_lepton1_pt[i]  = subdir.make<TH1D>("lepton1_pt", "lepton1_pt", 1000, 0, 1000);
-      h_lepton1_eta[i] = subdir.make<TH1D>("lepton1_eta", "lepton1_eta", 100, -maxeta, maxeta);
-      h_lepton1_phi[i] = subdir.make<TH1D>("lepton1_phi", "lepton1_phi", 100, -pi, pi);
-      h_lepton1_q[i]   = subdir.make<TH1D>("lepton1_q", "lepton1_q", 3, -1.5, 1.5);
-
-      h_jets_n[i] = subdir.make<TH1D>("jets_n", "jets_n", 10, 0, 10);
-      h_jets_pt[i]  = subdir.make<TH1D>("jets_pt", "jets_pt", 1000, 0, 1000);
-      h_jets_eta[i] = subdir.make<TH1D>("jets_eta", "jets_eta", 100, -maxeta, maxeta);
-      h_jets_ht[i] = subdir.make<TH1D>("jets_ht", "jets_ht", 1000, 0, 1000);
-      h_bjets_n[i] = subdir.make<TH1D>("bjets_n", "bjets_n", 10, 0, 10);
-    }
-
-    for ( int i=3; i<nCutstep; ++i ) {
-      subdirs.push_back(dir.mkdir(stepNames[i]));
-      subdir = subdirs.back();
-      h_vertex_n[i] = subdir.make<TH1D>("vertex_n", "vertex_n", 100, 0, 100);
-      h_met_pt[i] = subdir.make<TH1D>("met_pt", "met_pt", 1000, 0, 1000);
-      h_met_phi[i] = subdir.make<TH1D>("met_phi", "met_phi", 100, -pi, pi);
-      h_leptons_n[i] = subdir.make<TH1D>("leptons_n", "leptons_n", 10, 0, 10);
-
-      h_lepton1_pt[i]  = subdir.make<TH1D>("lepton1_pt", "lepton1_pt", 1000, 0, 1000);
-      h_lepton1_eta[i] = subdir.make<TH1D>("lepton1_eta", "lepton1_eta", 100, -maxeta, maxeta);
-      h_lepton1_phi[i] = subdir.make<TH1D>("lepton1_phi", "lepton1_phi", 100, -pi, pi);
-      h_lepton1_q[i]   = subdir.make<TH1D>("lepton1_q", "lepton1_q", 3, -1.5, 1.5);
-
-      h_jets_n[i] = subdir.make<TH1D>("jets_n", "jets_n", 10, 0, 10);
-      h_jets_pt[i]  = subdir.make<TH1D>("jets_pt", "jets_pt", 1000, 0, 1000);
-      h_jets_eta[i] = subdir.make<TH1D>("jets_eta", "jets_eta", 100, -maxeta, maxeta);
-      h_jets_ht[i] = subdir.make<TH1D>("jets_ht", "jets_ht", 1000, 0, 1000);
-
-      for ( int nJet=0; nJet<6; ++nJet ) {
-        const string prefix = Form("jet%d_", nJet+1);
-        h_jet_m[i][nJet]   = subdir.make<TH1D>((prefix+"m").c_str(), (prefix+"m").c_str(), 500, 0, 500);
-        h_jet_pt[i][nJet]  = subdir.make<TH1D>((prefix+"pt").c_str(), (prefix+"pt").c_str(), 1000, 0, 1000);
-        h_jet_eta[i][nJet] = subdir.make<TH1D>((prefix+"eta").c_str(), (prefix+"eta").c_str(), 100, -maxeta, maxeta);
-        h_jet_phi[i][nJet] = subdir.make<TH1D>((prefix+"phi").c_str(), (prefix+"phi").c_str(), 100, -pi, pi);
-        h_jet_btag[i][nJet] = subdir.make<TH1D>((prefix+"btag").c_str(), (prefix+"btag").c_str(), 100, 0, 1);
-      }
-
-      h_bjets_n[i] = subdir.make<TH1D>("bjets_n", "bjets_n", 10, 0, 10);
-
-      h_event_st[i] = subdir.make<TH1D>("event_st", "event_st", 1000, 0, 1000);
-    }
-
-    std::vector<int> leptonDebugSteps = {0, 2, 3};
-    for ( int step : leptonDebugSteps ) {
-      subdir = subdirs[step];
-      h_vetoLeptons_n[step] = subdir.make<TH1D>("vetoLeptons_n", "vetoLeptons_n", 10, 0, 10);
-      h_electrons_n[step] = subdir.make<TH1D>("electrons_n", "electrons_n", 10, 0, 10);
-      h_vetoElectrons_n[step] = subdir.make<TH1D>("vetoElectrons_n", "vetoElectrons_n", 10, 0, 10);
-      h_electron1_pt[step]  = subdir.make<TH1D>("electron1_pt", "electron1_pt", 1000, 0, 1000);
-      h_electron1_eta[step] = subdir.make<TH1D>("electron1_eta", "electron1_eta", 100, -maxeta, maxeta);
-      h_electron2_pt[step]  = subdir.make<TH1D>("electron2_pt", "electron2_pt", 1000, 0, 1000);
-      h_electron2_eta[step] = subdir.make<TH1D>("electron2_eta", "electron2_eta", 100, -maxeta, maxeta);
-      h_muons_n[step] = subdir.make<TH1D>("muons_n", "muons_n", 10, 0, 10);
-      h_vetoMuons_n[step] = subdir.make<TH1D>("vetoMuons_n", "vetoMuons_n", 10, 0, 10);
-      h_muon1_pt[step]  = subdir.make<TH1D>("muon1_pt", "muon1_pt", 1000, 0, 1000);
-      h_muon1_eta[step] = subdir.make<TH1D>("muon1_eta", "muon1_eta", 100, -maxeta, maxeta);
-      h_muon2_pt[step]  = subdir.make<TH1D>("muon2_pt", "muon2_pt", 1000, 0, 1000);
-      h_muon2_eta[step] = subdir.make<TH1D>("muon2_eta", "muon2_eta", 100, -maxeta, maxeta);
-    }
-  };
-};
 
 class TopFCNCEventSelector : public edm::one::EDFilter<edm::one::SharedResources>
 {
@@ -172,6 +40,7 @@ public:
 private:
   typedef std::vector<float> vfloat;
   typedef std::vector<double> vdouble;
+  int channel_;
   edm::EDGetTokenT<float> pileupWeightToken_, genWeightToken_;
   edm::EDGetTokenT<vfloat> genWeightsToken_;
   int genWeightIndex_;
@@ -188,10 +57,6 @@ private:
 
   std::vector<edm::EDGetTokenT<float> > extWeightTokensF_;
   std::vector<edm::EDGetTokenT<double> > extWeightTokensD_;
-
-private:
-  TH1D* h_weight, * h_pileupWeight, * h_genWeight;
-  ControlPlotsTopFCNC h_el, h_mu;
 
 private:
   double shiftedMuonPt(const cat::Muon& mu) { return mu.pt()+muonScale_*mu.shiftedEn(); }
@@ -235,8 +100,8 @@ private:
     //if ( el.relIso(0.3) >= 0.11 ) return false;
     if ( !el.electronID(elIdName_) ) return false;
     //if ( !el.isPF() or !el.passConversionVeto() ) return false;
-    //const double scEta = std::abs(el.scEta());
-    //if ( isEcalCrackVeto_ and scEta > 1.4442 and scEta < 1.566 ) return false;
+    const double scEta = std::abs(el.scEta());
+    if ( isEcalCrackVeto_ and scEta > 1.4442 and scEta < 1.566 ) return false;
     //const double d0 = std::abs(el.dxy()), dz = std::abs(el.vz());
     //if      ( scEta <= 1.479 and (d0 > 0.05 or dz > 0.1) ) return false;
     //else if ( scEta >  1.479 and (d0 > 0.10 or dz > 0.2) ) return false;
@@ -253,7 +118,7 @@ private:
   }
   bool isVetoElectron(const cat::Electron& el)
   {
-    if ( std::abs(el.eta()) > 2.4 ) return false;
+    if ( std::abs(el.eta()) > 2.5 ) return false;
     if ( std::isnan(el.pt()) or shiftedElectronPt(el) < 10 ) return false;
     if ( !el.electronID(elVetoIdName_) ) return false;
     //const double scEta = std::abs(el.scEta());
@@ -264,6 +129,7 @@ private:
   }
   bool isBjet(const cat::Jet& jet)
   {
+    using namespace cat;
     const double bTag = jet.bDiscriminator(bTagName_);
     if      ( bTagWP_ == BTagWP::CSVL ) return bTag > WP_BTAG_CSVv2L;
     else if ( bTagWP_ == BTagWP::CSVM ) return bTag > WP_BTAG_CSVv2M;
@@ -272,14 +138,12 @@ private:
   }
 
 private:
-  typedef reco::Candidate::LorentzVector LV;
-
   // Energy scales
   int muonScale_, electronScale_, jetScale_, jetResol_;
   bool isSkipJER_; // Do not apply JER, needed to remove randomness during the Synchronization
 
   // Efficiency SF
-  ScaleFactorEvaluator muonSF_, electronSF_;
+  cat::ScaleFactorEvaluator muonSF_, electronSF_;
   double muonSFShift_, electronSFShift_;
   double trigSFShift_;
 
@@ -293,9 +157,14 @@ private:
   std::string elIdName_, elVetoIdName_;
   enum class BTagWP { CSVL, CSVM, CSVT } bTagWP_;
 
-};
+private:
+  TH1D* hWeight_;
+  TH1D* hCutstep_, * hCutstepNoweight_;
+  THnSparseF* hsp_;
 
-}
+  std::ofstream eventListFile_;
+
+};
 
 using namespace cat;
 
@@ -303,6 +172,14 @@ TopFCNCEventSelector::TopFCNCEventSelector(const edm::ParameterSet& pset):
   isMC_(pset.getParameter<bool>("isMC")),
   applyFilterAt_(pset.getParameter<int>("applyFilterAt"))
 {
+  const string eventFileName = pset.getUntrackedParameter<std::string>("eventFile", "");
+  if ( ! eventFileName.empty() ) eventListFile_.open(eventFileName);
+
+  const auto channel = pset.getParameter<std::string>("channel");
+  if ( channel == "electron" ) channel_ = 11;
+  else if ( channel == "muon" ) channel_ = 13;
+  else edm::LogError("TopFCNCEventSelector") << "channel must be \"electron\" or \"muon\"\n";
+
   const auto muonSet = pset.getParameter<edm::ParameterSet>("muon");
   muonToken_ = consumes<cat::MuonCollection>(muonSet.getParameter<edm::InputTag>("src"));
   muonScale_ = muonSet.getParameter<int>("scaleDirection");
@@ -384,15 +261,61 @@ TopFCNCEventSelector::TopFCNCEventSelector(const edm::ParameterSet& pset):
   usesResource("TFileService");
   edm::Service<TFileService> fs;
 
-  auto doverall = fs->mkdir("overall", "overall");
-  h_weight = doverall.make<TH1D>("weight", "weight", 200, -10, 10);
-  if ( isMC_ ) {
-    h_genWeight = doverall.make<TH1D>("genWeight", "genWeight", 200, -10, 10);
-    h_pileupWeight = doverall.make<TH1D>("pileupWeight", "pileupWeight", 200, -10, 10);
+  hCutstep_ = fs->make<TH1D>("hCutstep", "Cut step;;Events", nCutsteps, 0, nCutsteps);
+  hCutstepNoweight_ = fs->make<TH1D>("hCutstepNoweight", "Cut step (no weight);;Events", nCutsteps, 0, nCutsteps);
+  const char* labels[nCutsteps] = {
+    "S1 all", "S2 goodVertex", "S3 trigger",
+    "S4 lepton", "S5 other lepton veto", "S6 same lepton veto",
+    "S7 nJet3"
+  };
+  for ( int i=0; i<nCutsteps; ++i ) {
+    hCutstep_->GetXaxis()->SetBinLabel(i+1, labels[i]);
+    hCutstepNoweight_->GetXaxis()->SetBinLabel(i+1, labels[i]);
   }
 
-  h_el.book(fs->mkdir("el"));
-  h_mu.book(fs->mkdir("mu"));
+  constexpr int ndim = 1+1+2+4+2+2+6*5;
+  const int nbins[ndim] = {nCutsteps, 50, 100, 100, // cutstep, st, ht
+                           27, 100, 100, 100, // lepton pdgId, pt, eta, phi
+                           100, 100, // met
+                           10, 10, // nJet, nBjet
+                           100, 100, 100, 25, 100,  // jet1
+                           100, 100, 100, 25, 100,  // jet2
+                           100, 100, 100, 25, 100,  // jet3
+                           100, 100, 100, 25, 100,  // jet4
+                           100, 100, 100, 25, 100,  // jet5
+                           100, 100, 100, 25, 100}; // jet6
+  const double pi = TMath::Pi();
+  const double xmins[ndim] = {0, 0, 0, 0, -13.5, 0, -3, -pi, 0, -pi, 0, 0,
+                              0, -3, -pi, 0, 0,  // jet1
+                              0, -3, -pi, 0, 0,  // jet2
+                              0, -3, -pi, 0, 0,  // jet3
+                              0, -3, -pi, 0, 0,  // jet4
+                              0, -3, -pi, 0, 0,  // jet5
+                              0, -3, -pi, 0, 0}; // jet6
+  const double xmaxs[ndim] = {nCutsteps, 50, 1000, 1000,
+                              13.5, 500, 3, pi, 500, pi, 10, 10,
+                              500, 3, pi, 50, 1,
+                              500, 3, pi, 50, 1,
+                              500, 3, pi, 50, 1,
+                              500, 3, pi, 50, 1,
+                              500, 3, pi, 50, 1,
+                              500, 3, pi, 50, 1};
+  const char* varNames[ndim] = {
+    "cutstep", "vertex_n", "event_st", "event_ht", // [0-3]
+    "lepton_pid", "lepton_pt", "lepton_eta", "lepton_phi", // [4-7]
+    "met_pt", "met_phi", // [8,9]
+    "jets_n", "bjets_n", // [10,11]
+    "jet1_pt", "jet1_eta", "jet1_phi", "jet1_m", "jet1_btag", // [12-16]
+    "jet2_pt", "jet2_eta", "jet2_phi", "jet2_m", "jet2_btag", // [17-21]
+    "jet3_pt", "jet3_eta", "jet3_phi", "jet3_m", "jet3_btag", // [22-26]
+    "jet4_pt", "jet4_eta", "jet4_phi", "jet4_m", "jet4_btag", // [27-31]
+    "jet5_pt", "jet5_eta", "jet5_phi", "jet5_m", "jet5_btag", // [32-46]
+    "jet6_pt", "jet6_eta", "jet6_phi", "jet6_m", "jet6_btag", // [37-41]
+  };
+  hsp_ = fs->make<THnSparseF>("hsp", "all infos", ndim, nbins, xmins, xmaxs);
+  for ( int i=0; i<ndim; ++i ) {
+    hsp_->GetAxis(i)->SetTitle(varNames[i]);
+  }
 
   produces<int>("channel");
   produces<float>("weight");
@@ -405,6 +328,13 @@ TopFCNCEventSelector::TopFCNCEventSelector(const edm::ParameterSet& pset):
 bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 {
   if ( event.isRealData() ) isMC_ = false;
+
+  double vars[] = {0, 0, 0, 0,
+    0, 0, 0, 0, // lepton
+    0, 0, 0, 0, // met, jets_n, bjets_n
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // jet[1-6] pt, eta, phi, m, btag
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
   // Get physics objects
   edm::Handle<cat::MuonCollection> muonHandle;
@@ -421,21 +351,21 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   const auto& metP4 = metHandle->at(0).p4();
   double metDpx = 0, metDpy = 0;
 
-  //edm::Handle<int> nVertexHandle;
-  //event.getByToken(nVertexToken_, nVertexHandle);
-  //const int nVertex = *nVertexHandle;
-  edm::Handle<reco::VertexCollection> vertexHandle;
+  edm::Handle<int> nVertexHandle;
+  event.getByToken(nVertexToken_, nVertexHandle);
+  const int nVertex = *nVertexHandle;
+  /*edm::Handle<reco::VertexCollection> vertexHandle;
   event.getByToken(vertexToken_, vertexHandle);
   const int nVertex = [&](){
     int n = 0;
     for ( auto& v : *vertexHandle ) {
       if ( v.isFake() or v.ndof() <= 4 ) continue;
-      //if ( std::abs(v.position().rho()) >= 2 or std::abs(v.z()) >= 24 ) continue;     
-      if ( std::abs(v.position().rho()) >= 2 or std::abs(v.z()) >= 20 ) continue;     
+      if ( std::abs(v.position().rho()) >= 2 or std::abs(v.z()) >= 24 ) continue;     
       ++n;
     }
     return n;
-  }();
+  }();*/
+  vars[1] = nVertex;
 
   std::auto_ptr<std::vector<cat::Lepton> > out_leptons(new std::vector<cat::Lepton>());
   std::auto_ptr<std::vector<cat::Jet> > out_jets(new std::vector<cat::Jet>());
@@ -443,10 +373,10 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   // Compute event weight - from generator, pileup, etc
   double weight = 1.0;
   if ( isMC_ ) {
-    float genWeight = 1.;
     edm::Handle<float> fHandle;
     edm::Handle<vfloat> vfHandle;
 
+    float genWeight = 1.0;
     if ( genWeightIndex_ < 0 ) {
       event.getByToken(genWeightToken_, fHandle);
       genWeight = *fHandle;
@@ -457,11 +387,9 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     }
 
     event.getByToken(pileupWeightToken_, fHandle);
-    const float pileupWeight = *fHandle;
+    const float puWeight = *fHandle;
 
-    h_genWeight->Fill(genWeight);
-    h_pileupWeight->Fill(pileupWeight);
-    weight *= genWeight*pileupWeight;
+    weight *= genWeight*puWeight;
     // NOTE: weight value to be multiplied by lepton SF, etc.
   }
 
@@ -485,8 +413,9 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   event.getByToken(trigMuToken_, trigHandle);
   const int isTrigMu = *trigHandle;
 
+  double event_st = 0, event_ht = 0;
+
   // Select good leptons
-  double leptons_st = 0;
   cat::MuonCollection selMuons, vetoMuons;
   for ( int i=0, n=muonHandle->size(); i<n; ++i ) {
     auto& p = muonHandle->at(i);
@@ -495,13 +424,11 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
     cat::Muon lep(p);
     lep.setP4(p.p4()*scale);
-    const bool isGood = isGoodMuon(p); // note: pt scale is done in the function
-    const bool isVeto = isVetoMuon(p); // note: pt scale is done in the function
-    if ( isGood ) selMuons.push_back(lep);
-    else if ( isVeto ) vetoMuons.push_back(lep);
+    if ( isGoodMuon(p) ) selMuons.push_back(lep);
+    else if ( isVetoMuon(p) ) vetoMuons.push_back(lep);
     else continue;
 
-    leptons_st += pt;
+    event_st += lep.pt();
     metDpx += lep.px()-p.px();
     metDpy += lep.py()-p.py();
   }
@@ -513,52 +440,42 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
     cat::Electron lep(p);
     lep.setP4(p.p4()*scale);
-    const bool isGood = isGoodElectron(p); // note: pt scale is done in the function
-    const bool isVeto = isVetoElectron(p); // note: pt scale is done in the function
-    if ( isGood ) selElectrons.push_back(lep);
-    else if ( isVeto ) vetoElectrons.push_back(lep);
+    if ( isGoodElectron(p) ) selElectrons.push_back(lep);
+    else if ( isVetoElectron(p) ) vetoElectrons.push_back(lep);
     else continue;
 
-    leptons_st += pt;
+    event_st += lep.pt();
     metDpx += lep.px()-p.px();
     metDpy += lep.py()-p.py();
   }
-  std::vector<const cat::Lepton*> selLeptons;
-  for ( auto& x : selMuons ) selLeptons.push_back(&x);
-  for ( auto& x : selElectrons ) selLeptons.push_back(&x);
-  std::sort(selLeptons.begin(), selLeptons.end(),
-            [&](const cat::Lepton* a, const cat::Lepton* b){return a->pt() > b->pt();});
-  // Copy selLeptons to out_leptons
-  if ( !selLeptons.empty() ) out_leptons->push_back(*selLeptons.at(0));
-  const int leptons_n = selLeptons.size();
+  std::sort(selElectrons.begin(), selElectrons.end(),
+            [&](const cat::Electron& a, const cat::Electron& b){ return a.pt() > b.pt(); });
+  std::sort(selMuons.begin(), selMuons.end(),
+            [&](const cat::Muon& a, const cat::Muon& b){ return a.pt() > b.pt(); });
+
+  //const int leptons_n = selMuons.size() + selElectrons.size();
   const cat::Lepton* lepton1 = 0;
-  int channel = 0;
-  if ( leptons_n >= 1 ) {
-    // Set lepton1
-    lepton1 = selLeptons.at(0);
-
-    const int pdgId1 = std::abs(lepton1->pdgId());
-    // Determine channel
-    channel = abs(pdgId1);
-
-    // Apply lepton SF
-    if ( channel == 11 ) {
-      const auto e1 = dynamic_cast<const cat::Electron*>(lepton1);
-      const double w1 = electronSF_(lepton1->pt(), std::abs(e1->scEta()), electronSFShift_);
-      weight *= w1;
-      if ( !isIgnoreTrig_ ) weight *= isTrigEl;// * computeTrigSF(*lepton1, trigSFShift_);
-    }
-    else if ( channel == 13 ) {
-      const double w1 = muonSF_(lepton1->pt(), std::abs(lepton1->eta()), muonSFShift_);
-      weight *= w1;
-      if ( !isIgnoreTrig_ ) weight *= isTrigMu;// * computeTrigSF(*lepton1, trigSFShift_);
-    }
-    else edm::LogError("TopFCNCEventSelector") << "Strange event with nLepton >=2 but not falling info ee,mumu,emu category";
+  double trigSF = 1, leptonSF = 1;
+  if ( channel_ == 11 and !selElectrons.empty() ) {
+    const auto& el = selElectrons.at(0);
+    lepton1 = &el;
+    leptonSF = electronSF_(el.pt(), std::abs(el.scEta()), electronSFShift_);
+  }
+  else if ( channel_ == 13 and !selMuons.empty() ) {
+    const auto& mu = selMuons.at(0);
+    lepton1 = &mu;
+    leptonSF = muonSF_(mu.pt(), std::abs(mu.eta()), muonSFShift_);
+  }
+  if ( lepton1 ) {
+    vars[4] = lepton1->pdgId();
+    vars[5] = lepton1->pt();
+    vars[6] = lepton1->eta();
+    vars[7] = lepton1->phi();
+    out_leptons->push_back(*lepton1);
   }
 
   // Select good jets
   int bjets_n = 0;
-  double jets_ht = 0;
   for ( int i=0, n=jetHandle->size(); i<n; ++i ) {
     auto& p = jetHandle->at(i);
     if ( std::abs(p.eta()) > 2.4 ) continue;
@@ -573,372 +490,117 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     metDpy += jet.py()-p.py();
     if ( pt < 30 ) continue;
 
-    if ( leptons_n >= 1 and deltaR(jet.p4(), out_leptons->at(0).p4()) < 0.4 ) continue;
+    if ( lepton1 and deltaR(jet.p4(), lepton1->p4()) < 0.4 ) continue;
+
+    event_ht += pt;
+    if ( isBjet(p) ) ++bjets_n;
 
     out_jets->push_back(jet);
-    jets_ht += pt;
-    if ( isBjet(p) ) ++bjets_n;
   }
+  event_st += event_ht;
   const int jets_n = out_jets->size();
   std::sort(out_jets->begin(), out_jets->end(),
             [&](const cat::Jet& a, const cat::Jet& b){return a.pt() > b.pt();});
 
   // Update & calculate met
   const double met_pt = hypot(metP4.px()-metDpx, metP4.py()-metDpy);
-  const double met_phi = atan2(metP4.px()-metDpx, metP4.py()-metDpy);
+  const double met_phi = atan2(metP4.py()-metDpy, metP4.px()-metDpx);
+  vars[8] = met_pt;
+  vars[9] = met_phi;
 
-  // Check cut steps and fill some histograms
-  int cutstep = 1;
-  switch(1) default: { // C++ trick to avoid nested if-statements.
-    // Fill all events
-    h_weight->Fill(weight);
+  // Check cut steps
+  std::vector<bool> cutsteps(nCutsteps);
+  cutsteps[0] = true; // always true
+  cutsteps[1] = (nVertex > 0);
+  if ( channel_ == 11 ) {
+    cutsteps[2] = (!isIgnoreTrig_ and isTrigEl != 0);
+    cutsteps[3] = (selElectrons.size() == 1);
+    cutsteps[4] = (selMuons.size()+vetoMuons.size() == 0);
+    cutsteps[5] = vetoElectrons.empty();
+  }
+  else if ( channel_ == 13 ) {
+    cutsteps[2] = (!isIgnoreTrig_ and isTrigMu != 0);
+    cutsteps[3] = (selMuons.size() == 1);
+    cutsteps[4] = (selElectrons.size()+vetoElectrons.size() == 0);
+    cutsteps[5] = vetoMuons.empty();
+  }
+  cutsteps[6] = (jets_n >= 3);
 
-    h_el.hCutstep->Fill(cutstep, weight);
-    h_el.hCutstepNoweight->Fill(cutstep);
-
-    h_el.h_vertex_n[0]->Fill(nVertex, weight);
-    h_el.h_leptons_n[0]->Fill(leptons_n, weight);
-    h_el.h_vetoLeptons_n[0]->Fill(vetoMuons.size()+vetoElectrons.size(), weight);
-    h_el.h_electrons_n[0]->Fill(selElectrons.size(), weight);
-    h_el.h_vetoElectrons_n[0]->Fill(vetoElectrons.size(), weight);
-    h_el.h_muons_n[0]->Fill(selMuons.size(), weight);
-    h_el.h_vetoMuons_n[0]->Fill(vetoMuons.size(), weight);
-
-    if ( selElectrons.size() > 0 ) {
-      const auto p = selElectrons.at(0);
-      h_el.h_electron1_pt[0]->Fill(p.pt(), weight);
-      h_el.h_electron1_eta[0]->Fill(p.eta(), weight);
-    }
-    if ( selElectrons.size() > 1 ) {
-      const auto p = selElectrons.at(1);
-      h_el.h_electron2_pt[0]->Fill(p.pt(), weight);
-      h_el.h_electron2_eta[0]->Fill(p.eta(), weight);
-    }
-    if ( selMuons.size() > 0 ) {
-      const auto p = selMuons.at(0);
-      h_el.h_muon1_pt[0]->Fill(p.pt(), weight);
-      h_el.h_muon1_eta[0]->Fill(p.eta(), weight);
-    }
-    if ( selMuons.size() > 1 ) {
-      const auto p = selMuons.at(1);
-      h_el.h_muon2_pt[0]->Fill(p.pt(), weight);
-      h_el.h_muon2_eta[0]->Fill(p.eta(), weight);
-    }
-
-    h_mu.hCutstep->Fill(cutstep, weight);
-    h_mu.hCutstepNoweight->Fill(cutstep);
-    h_mu.h_vertex_n[0]->Fill(nVertex, weight);
-
-    h_mu.h_vetoLeptons_n[0]->Fill(vetoMuons.size()+vetoElectrons.size(), weight);
-    h_mu.h_electrons_n[0]->Fill(selElectrons.size(), weight);
-    h_mu.h_vetoElectrons_n[0]->Fill(vetoElectrons.size(), weight);
-    h_mu.h_muons_n[0]->Fill(selMuons.size(), weight);
-    h_mu.h_vetoMuons_n[0]->Fill(vetoMuons.size(), weight);
-
-    if ( selElectrons.size() > 0 ) {
-      const auto p = selElectrons.at(0);
-      h_mu.h_electron1_pt[0]->Fill(p.pt(), weight);
-      h_mu.h_electron1_eta[0]->Fill(p.eta(), weight);
-    }
-    if ( selElectrons.size() > 1 ) {
-      const auto p = selElectrons.at(1);
-      h_mu.h_electron2_pt[0]->Fill(p.pt(), weight);
-      h_mu.h_electron2_eta[0]->Fill(p.eta(), weight);
-    }
-    if ( selMuons.size() > 0 ) {
-      const auto p = selMuons.at(0);
-      h_mu.h_muon1_pt[0]->Fill(p.pt(), weight);
-      h_mu.h_muon1_eta[0]->Fill(p.eta(), weight);
-    }
-    if ( selMuons.size() > 1 ) {
-      const auto p = selMuons.at(1);
-      h_mu.h_muon2_pt[0]->Fill(p.pt(), weight);
-      h_mu.h_muon2_eta[0]->Fill(p.eta(), weight);
-    }
-
-    if ( nVertex <= 0 ) break;
-    cutstep = 2;
-
-    h_el.hCutstep->Fill(cutstep, weight);
-    h_el.hCutstepNoweight->Fill(cutstep);
-    h_el.h_vertex_n[1]->Fill(nVertex, weight);
-    h_el.h_met_pt[1]->Fill(met_pt, weight);
-    h_el.h_met_phi[1]->Fill(met_phi, weight);
-    h_el.h_leptons_n[1]->Fill(leptons_n, weight);
-
-    if ( leptons_n >= 1 ) {
-      const auto lepton1P4 = shiftedLepPt(*lepton1)/lepton1->pt()*lepton1->p4();
-      h_el.h_lepton1_pt[1]->Fill(lepton1P4.pt(), weight);
-      h_el.h_lepton1_eta[1]->Fill(lepton1->eta(), weight);
-      h_el.h_lepton1_phi[1]->Fill(lepton1->phi(), weight);
-      h_el.h_lepton1_q[1]->Fill(lepton1->charge(), weight);
-    }
-
-    h_el.h_jets_n[1]->Fill(jets_n, weight);
-    h_el.h_bjets_n[1]->Fill(bjets_n, weight);
-    h_el.h_jets_ht[1]->Fill(jets_ht, weight);
-    for ( auto jet : *out_jets ) {
-      h_el.h_jets_pt[1]->Fill(jet.pt(), weight);
-      h_el.h_jets_eta[1]->Fill(jet.eta(), weight);
-    }
-
-    h_mu.hCutstep->Fill(cutstep, weight);
-    h_mu.hCutstepNoweight->Fill(cutstep);
-    h_mu.h_vertex_n[1]->Fill(nVertex, weight);
-    h_mu.h_met_pt[1]->Fill(met_pt, weight);
-    h_mu.h_met_phi[1]->Fill(met_phi, weight);
-    h_mu.h_leptons_n[1]->Fill(leptons_n, weight);
-    if ( leptons_n >= 1 ) {
-      const auto lepton1P4 = shiftedLepPt(*lepton1)/lepton1->pt()*lepton1->p4();
-      h_mu.h_lepton1_pt[1]->Fill(lepton1P4.pt(), weight);
-      h_mu.h_lepton1_eta[1]->Fill(lepton1->eta(), weight);
-      h_mu.h_lepton1_phi[1]->Fill(lepton1->phi(), weight);
-      h_mu.h_lepton1_q[1]->Fill(lepton1->charge(), weight);
-    }
-    h_mu.h_jets_n[1]->Fill(jets_n, weight);
-    h_mu.h_bjets_n[1]->Fill(bjets_n, weight);
-    h_mu.h_jets_ht[1]->Fill(jets_ht, weight);
-    for ( auto jet : *out_jets ) {
-      h_mu.h_jets_pt[1]->Fill(jet.pt(), weight);
-      h_mu.h_jets_eta[1]->Fill(jet.eta(), weight);
-    }
-
-    // El channel Cutstep 0b with trigger requirements
-    int cutstep_el = cutstep, cutstep_mu = cutstep;
-    if ( isIgnoreTrig_ or isTrigEl ) {
-      cutstep_el = 3;
-      h_el.hCutstep->Fill(cutstep_el, weight);
-      h_el.hCutstepNoweight->Fill(cutstep_el);
-      h_el.h_vertex_n[2]->Fill(nVertex, weight);
-      h_el.h_met_pt[2]->Fill(met_pt, weight);
-      h_el.h_met_phi[2]->Fill(met_phi, weight);
-      h_el.h_leptons_n[2]->Fill(leptons_n, weight);
-
-      if ( leptons_n >= 1 ) {
-        const auto lepton1P4 = shiftedLepPt(*lepton1)/lepton1->pt()*lepton1->p4();
-        h_el.h_lepton1_pt[2]->Fill(lepton1P4.pt(), weight);
-        h_el.h_lepton1_eta[2]->Fill(lepton1->eta(), weight);
-        h_el.h_lepton1_phi[2]->Fill(lepton1->phi(), weight);
-        h_el.h_lepton1_q[2]->Fill(lepton1->charge(), weight);
-      }
-
-      h_el.h_vetoLeptons_n[2]->Fill(vetoMuons.size()+vetoElectrons.size(), weight);
-      h_el.h_electrons_n[2]->Fill(selElectrons.size(), weight);
-      h_el.h_vetoElectrons_n[2]->Fill(vetoElectrons.size(), weight);
-      h_el.h_muons_n[2]->Fill(selMuons.size(), weight);
-      h_el.h_vetoMuons_n[2]->Fill(vetoMuons.size(), weight);
-
-      if ( selElectrons.size() > 0 ) {
-        const auto p = selElectrons.at(0);
-        h_el.h_electron1_pt[2]->Fill(p.pt(), weight);
-        h_el.h_electron1_eta[2]->Fill(p.eta(), weight);
-      }
-      if ( selElectrons.size() > 1 ) {
-        const auto p = selElectrons.at(1);
-        h_el.h_electron2_pt[2]->Fill(p.pt(), weight);
-        h_el.h_electron2_eta[2]->Fill(p.eta(), weight);
-      }
-      if ( selMuons.size() > 0 ) {
-        const auto p = selMuons.at(0);
-        h_el.h_muon1_pt[2]->Fill(p.pt(), weight);
-        h_el.h_muon1_eta[2]->Fill(p.eta(), weight);
-      }
-      if ( selMuons.size() > 1 ) {
-        const auto p = selMuons.at(1);
-        h_el.h_muon2_pt[2]->Fill(p.pt(), weight);
-        h_el.h_muon2_eta[2]->Fill(p.eta(), weight);
-      }
-
-      h_el.h_jets_n[2]->Fill(jets_n, weight);
-      h_el.h_bjets_n[2]->Fill(bjets_n, weight);
-      h_el.h_jets_ht[2]->Fill(jets_ht, weight);
-      for ( auto jet : *out_jets ) {
-        h_el.h_jets_pt[2]->Fill(jet.pt(), weight);
-        h_el.h_jets_eta[2]->Fill(jet.eta(), weight);
-      }
-
-    }
-    // Mu channel Cutstep 0b with trigger requirements
-    if ( isIgnoreTrig_ or isTrigMu ) {
-      cutstep_mu = 3;
-      h_mu.hCutstep->Fill(cutstep_mu, weight);
-      h_mu.hCutstepNoweight->Fill(cutstep_mu);
-      h_mu.h_vertex_n[2]->Fill(nVertex, weight);
-      h_mu.h_met_pt[2]->Fill(met_pt, weight);
-      h_mu.h_met_phi[2]->Fill(met_phi, weight);
-      h_mu.h_leptons_n[2]->Fill(leptons_n, weight);
-
-      h_mu.h_vetoLeptons_n[2]->Fill(vetoMuons.size()+vetoElectrons.size(), weight);
-      h_mu.h_electrons_n[2]->Fill(selElectrons.size(), weight);
-      h_mu.h_vetoElectrons_n[2]->Fill(vetoElectrons.size(), weight);
-      h_mu.h_muons_n[2]->Fill(selMuons.size(), weight);
-      h_mu.h_vetoMuons_n[2]->Fill(vetoMuons.size(), weight);
-
-      if ( selElectrons.size() > 0 ) {
-        const auto p = selElectrons.at(0);
-        h_mu.h_electron1_pt[2]->Fill(p.pt(), weight);
-        h_mu.h_electron1_eta[2]->Fill(p.eta(), weight);
-      }
-      if ( selElectrons.size() > 1 ) {
-        const auto p = selElectrons.at(1);
-        h_mu.h_electron2_pt[2]->Fill(p.pt(), weight);
-        h_mu.h_electron2_eta[2]->Fill(p.eta(), weight);
-      }
-      if ( selMuons.size() > 0 ) {
-        const auto p = selMuons.at(0);
-        h_mu.h_muon1_pt[2]->Fill(p.pt(), weight);
-        h_mu.h_muon1_eta[2]->Fill(p.eta(), weight);
-      }
-      if ( selMuons.size() > 1 ) {
-        const auto p = selMuons.at(1);
-        h_mu.h_muon2_pt[2]->Fill(p.pt(), weight);
-        h_mu.h_muon2_eta[2]->Fill(p.eta(), weight);
-      }
-
-      if ( leptons_n >= 1 ) {
-        const auto lepton1P4 = shiftedLepPt(*lepton1)/lepton1->pt()*lepton1->p4();
-        h_mu.h_lepton1_pt[2]->Fill(lepton1P4.pt(), weight);
-        h_mu.h_lepton1_eta[2]->Fill(lepton1->eta(), weight);
-        h_mu.h_lepton1_phi[2]->Fill(lepton1->phi(), weight);
-        h_mu.h_lepton1_q[2]->Fill(lepton1->charge(), weight);
-      }
-
-      h_mu.h_jets_n[2]->Fill(jets_n, weight);
-      h_mu.h_bjets_n[2]->Fill(bjets_n, weight);
-      h_mu.h_jets_ht[2]->Fill(jets_ht, weight);
-      for ( auto jet : *out_jets ) {
-        h_mu.h_jets_pt[2]->Fill(jet.pt(), weight);
-        h_mu.h_jets_eta[2]->Fill(jet.eta(), weight);
-      }
-    }
-
-    // Apply up to cut step3
-    if      ( channel == 11 and cutstep_el == 3 ) cutstep = 3;
-    else if ( channel == 13 and cutstep_mu == 3 ) cutstep = 3;
-    else break;
-
-    // Now the next steps are rather clear, start from lepton selection
-
-    // Step4 exactly one signal lepton
-    if ( leptons_n != 1 ) break;
-    cutstep = 4;
-
-    // Step5 veto any additional lepton in different flavour
-    if ( (channel == 11 and !vetoMuons.empty()) or
-        (channel == 13 and !vetoElectrons.empty()) ) break;
-    cutstep = 5;
-
-    // Step6 veto any additional lepton in same flavour
-    if ( (channel == 11 and !vetoElectrons.empty()) or
-        (channel == 13 and !vetoMuons.empty()) ) break;
-    cutstep = 6;
-
-    // Step7 Minimal jet multiplicity
-    if ( jets_n < 3 ) break;
-    cutstep = 7;
+  // Run though the cut steps
+  int cutstep = 0;
+  double w = weight;
+  for ( cutstep = 0; cutstep < nCutsteps and cutsteps[cutstep]; ++cutstep ) {
+    if ( cutstep == 2 and !isIgnoreTrig_ ) w *= trigSF;
+    else if ( cutstep == 3 ) w *= leptonSF;
+    hCutstep_->Fill(cutstep, w);
+    hCutstepNoweight_->Fill(cutstep);
   }
 
-  // Cut step is ready. Now proceed to fill histograms from step 4 one lepton
-  if ( cutstep >= 4 ) {
-    auto& h = channel == 11 ? h_el : h_mu;
-    // Start from the step1 (is [3] in the array)
-    // lepton1 should exist from step1
-    const auto lepton1P4 = shiftedLepPt(*lepton1)/lepton1->pt()*lepton1->p4();
-
-    for ( int icutstep=4; icutstep<=cutstep; ++icutstep ) {
-      const int i = icutstep-1; // Fill phys object histograms from one lepton step, array[3]
-      h.hCutstep->Fill(icutstep, weight);
-      h.hCutstepNoweight->Fill(icutstep);
-      h.h_vertex_n[i]->Fill(nVertex, weight);
-      h.h_met_pt[i]->Fill(met_pt, weight);
-      h.h_met_phi[i]->Fill(met_phi, weight);
-      h.h_leptons_n[i]->Fill(leptons_n, weight);
-      h.h_lepton1_pt[i]->Fill(lepton1P4.pt(), weight);
-      h.h_lepton1_eta[i]->Fill(lepton1->eta(), weight);
-      h.h_lepton1_phi[i]->Fill(lepton1->phi(), weight);
-      h.h_lepton1_q[i]->Fill(lepton1->charge(), weight);
-      h.h_jets_n[i]->Fill(jets_n, weight);
-      h.h_jets_ht[i]->Fill(jets_ht, weight);
-      for ( auto jet : *out_jets ) {
-        h.h_jets_pt[i]->Fill(jet.pt(), weight);
-        h.h_jets_eta[i]->Fill(jet.eta(), weight);
-      }
-      for ( int j=0, n=std::min(6, jets_n); j<n; ++j ) {
-        const auto& jet = out_jets->at(j);
-        h.h_jet_m[i][j]->Fill(jet.mass(), weight);
-        h.h_jet_pt[i][j]->Fill(jet.pt(), weight);
-        h.h_jet_eta[i][j]->Fill(jet.eta(), weight);
-        h.h_jet_phi[i][j]->Fill(jet.phi(), weight);
-        h.h_jet_btag[i][j]->Fill(jet.bDiscriminator(bTagName_), weight);
-      }
-      h.h_bjets_n[i]->Fill(bjets_n, weight);
-      h.h_event_st[i]->Fill(leptons_st+jets_ht+met_pt, weight);
-
-      if ( i == 0 or i == 2 or i == 3 ) {
-        h.h_vetoLeptons_n[i]->Fill(vetoMuons.size()+vetoElectrons.size(), weight);
-        h.h_electrons_n[i]->Fill(selElectrons.size(), weight);
-        h.h_vetoElectrons_n[i]->Fill(vetoElectrons.size(), weight);
-        h.h_vetoElectrons_n[i]->Fill(selMuons.size(), weight);
-        h.h_vetoMuons_n[i]->Fill(vetoMuons.size(), weight);
-
-        if ( selElectrons.size() > 0 ) {
-          const auto p = selElectrons.at(0);
-          h.h_electron1_pt[i]->Fill(p.pt(), weight);
-          h.h_electron1_eta[i]->Fill(p.eta(), weight);
-        }
-        if ( selElectrons.size() > 1 ) {
-          const auto p = selElectrons.at(1);
-          h.h_electron2_pt[i]->Fill(p.pt(), weight);
-          h.h_electron2_eta[i]->Fill(p.eta(), weight);
-        }
-        if ( selMuons.size() > 0 ) {
-          const auto p = selMuons.at(0);
-          h.h_muon1_pt[i]->Fill(p.pt(), weight);
-          h.h_muon1_eta[i]->Fill(p.eta(), weight);
-        }
-        if ( selMuons.size() > 1 ) {
-          const auto p = selMuons.at(1);
-          h.h_muon2_pt[i]->Fill(p.pt(), weight);
-          h.h_muon2_eta[i]->Fill(p.eta(), weight);
-        }
-
-        if ( leptons_n >= 1 ) {
-          const auto lepton1P4 = shiftedLepPt(*lepton1)/lepton1->pt()*lepton1->p4();
-          h.h_lepton1_pt[i]->Fill(lepton1P4.pt(), weight);
-          h.h_lepton1_eta[i]->Fill(lepton1->eta(), weight);
-          h.h_lepton1_phi[i]->Fill(lepton1->phi(), weight);
-          h.h_lepton1_q[i]->Fill(lepton1->charge(), weight);
-        }
-      }
-
-    }
+  // Fill n-dim histogram
+  vars[2] = event_st;
+  vars[3] = event_ht;
+  vars[0] = cutstep;
+  vars[10] = jets_n;
+  vars[11] = bjets_n;
+  for ( unsigned int i=0, n=std::min(6, jets_n); i<n; ++i ) {
+    const auto& jet = out_jets->at(i);
+    const int ii = 12+i*5;
+    vars[ii+0] = jet.pt();
+    vars[ii+1] = jet.eta();
+    vars[ii+2] = jet.phi();
+    vars[ii+3] = jet.mass();
+    vars[ii+4] = jet.bDiscriminator(bTagName_);
   }
+  hsp_->Fill(vars, w);
 
-  event.put(std::auto_ptr<int>(new int((int)channel)), "channel");
+  event.put(std::auto_ptr<int>(new int((int)channel_)), "channel");
   event.put(std::auto_ptr<float>(new float(weight)), "weight");
-  event.put(std::auto_ptr<float>(new float(metP4.pt())), "met");
-  event.put(std::auto_ptr<float>(new float(metP4.phi())), "metphi");
+  event.put(std::auto_ptr<float>(new float(met_pt)), "met");
+  event.put(std::auto_ptr<float>(new float(met_phi)), "metphi");
   event.put(out_leptons, "leptons");
   event.put(out_jets, "jets");
 
   // Apply filter at the given step.
-  if ( cutstep >= applyFilterAt_ ) return true;
+  if ( cutstep >= applyFilterAt_ ) {
+    if ( eventListFile_.is_open() ) {
+      const int run = event.id().run();
+      const int lum = event.id().luminosityBlock();
+      const int evt = event.id().event();
+      char buffer[101];
+      snprintf(buffer, 100, "%6d %6d %10d", run, lum, evt);
+      eventListFile_ << buffer;
+      snprintf(buffer, 100, "  %+2d  %6.2f %+4.2f %+4.2f", int(vars[4]), vars[5], vars[6], vars[7]);
+      eventListFile_ << buffer;
+      snprintf(buffer, 100, "    %6.1f  %+4.2f", vars[8], vars[9]);
+      eventListFile_ << buffer;
+      snprintf(buffer, 100, "    %d %d", int(vars[10]), int(vars[11]));
+      eventListFile_ << buffer;
+      snprintf(buffer, 100, "  %6.2f %+4.2f %+4.2f  \n", vars[12], vars[13], vars[14]);
+      eventListFile_ << buffer;
+    }
+
+    return true;
+  }
 
   return false;
 }
 
 TopFCNCEventSelector::~TopFCNCEventSelector()
 {
-  if ( h_el.hCutstepNoweight ) {
+  if ( hCutstepNoweight_ ) {
     cout << "---- cut flows without weight ----\n";
-    cout << "Step\tel\tmu\n";
-    const int n = h_el.hCutstepNoweight->GetNbinsX();
-    for ( int i=1; i<=n; ++i ) {
-      const string name(h_el.hCutstepNoweight->GetXaxis()->GetBinLabel(i));
-      if ( name.empty() ) break;
-      cout << name.substr(0, name.find(' '));
-      cout << '\t' << h_el.hCutstepNoweight->GetBinContent(i);
-      cout << '\t' << h_mu.hCutstepNoweight->GetBinContent(i) << '\n';
+    if ( channel_ == 11 ) cout << "Electron channel:\n";
+    else if ( channel_ == 13 ) cout << "Muon channel:\n";
+    size_t fw = 8;
+    for ( int i=1; i<=nCutsteps; ++i ) {
+      fw = std::max(fw, strlen(hCutstepNoweight_->GetXaxis()->GetBinLabel(i)));
+    }
+    fw += 2;
+    for ( int i=1; i<=nCutsteps; ++i ) {
+      const string name(hCutstepNoweight_->GetXaxis()->GetBinLabel(i));
+      cout << name;
+      for ( size_t k=name.size(); k<fw; ++k ) cout << ' ';
+      cout << hCutstepNoweight_->GetBinContent(i) << '\n';
     }
     cout << "-----------------------------------\n";
   }

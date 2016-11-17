@@ -4,9 +4,10 @@ from CATTools.CatAnalyzer.flatGenWeights_cfi import *
 
 eventsTopFCNC = cms.EDFilter("TopFCNCEventSelector",
     isMC = cms.bool(True),
+    channel = cms.string("electron"),
     ## alwaysAcceptAfter : Accept event even though selection may fail _AFTER_ this step
     ## Use case: store ntuple only for events that passes step4
-    applyFilterAt = cms.int32(4),
+    applyFilterAt = cms.int32(7),
 
     # Physics objects
     muon = cms.PSet(
@@ -29,7 +30,8 @@ eventsTopFCNC = cms.EDFilter("TopFCNCEventSelector",
         #scaleDirection = cms.int32(+1),
         efficiencySF = electronSFCutBasedIDMediumWP,
         efficiencySFDirection = cms.int32(0),
-        applyEcalCrackVeto = cms.bool(True),
+        #applyEcalCrackVeto = cms.bool(True),
+        applyEcalCrackVeto = cms.bool(False),
     ),
 
     jet = cms.PSet(
