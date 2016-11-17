@@ -46,6 +46,7 @@ namespace cat {
     float getEffArea( float dR, float scEta );
     int getSNUID(float, float, float, float, float, float, int, bool, float);
     edm::EDGetTokenT<edm::View<pat::Electron> > src_;
+    edm::EDGetTokenT<edm::View<pat::Electron> > unsmearedElecToken_;
     edm::EDGetTokenT<reco::VertexCollection> vertexLabel_;
     edm::EDGetTokenT<reco::GenParticleCollection> mcLabel_;
     edm::EDGetTokenT<reco::BeamSpot> beamLineSrc_;
@@ -65,6 +66,7 @@ namespace cat {
 
 cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig) :
   src_(consumes<edm::View<pat::Electron> >(iConfig.getParameter<edm::InputTag>("src"))),
+  unsmearedElecToken_(consumes<edm::View<pat::Electron> >(iConfig.getParameter<edm::InputTag>("unsmaredElectrons"))),
   vertexLabel_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexLabel"))),
   mcLabel_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcLabel"))),
   beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc"))),
@@ -92,6 +94,9 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
 
   Handle<edm::View<pat::Electron> > src;
   iEvent.getByToken(src_, src);
+
+  edm::Handle<edm::View<pat::Electron> > unsmearedElecHandle;
+  iEvent.getByToken(unsmearedElecToken_, unsmearedElecHandle);
 
   Handle<reco::GenParticleCollection> genParticles;
 
@@ -129,10 +134,12 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
   for (const pat::Electron &aPatElectron : *src){
     cat::Electron aElectron(aPatElectron);
     auto elecsRef = src->refAt(j);
+    auto unsmearedElecRef = unsmearedElecHandle->refAt(j);
 
     if (runOnMC_){
       aElectron.setGenParticleRef(aPatElectron.genParticleRef());
       aElectron.setMCMatched( mcMatch( aPatElectron.p4(), genParticles ) );
+      aElectron.setSmearedScale(aPatElectron.pt()/unsmearedElecRef->pt());
     }
     aElectron.setIsGsfCtfScPixChargeConsistent( aPatElectron.isGsfCtfScPixChargeConsistent() );
     aElectron.setIsEB( aPatElectron.isEB() );
@@ -167,14 +174,14 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
 
     if (elecIDSrcs_.size()){// for remade electron IDs
       for (size_t i = 0; i < elecIDSrcs_.size(); ++i){
-	ids[i].second = (*idhandles[i])[elecsRef];
-	aElectron.setElectronID(ids[i]);
+        ids[i].second = (*idhandles[i])[unsmearedElecRef];
+        aElectron.setElectronID(ids[i]);
       }
     }
     else if (electronIDs_.size()){// for selected IDs in miniAOD
       for(unsigned int i = 0; i < electronIDs_.size(); i++){
-	pat::Electron::IdPair pid(electronIDs_.at(i), aPatElectron.electronID(electronIDs_.at(i)));
-	aElectron.setElectronID(pid);
+        pat::Electron::IdPair pid(electronIDs_.at(i), aPatElectron.electronID(electronIDs_.at(i)));
+        aElectron.setElectronID(pid);
       }
     }
     else {
