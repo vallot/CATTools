@@ -153,64 +153,15 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         #process.catMETsNoHF = process.catMETs.clone(src = cms.InputTag("slimmedMETsNoHF","","CAT"))
         #del process.slimmedMETsNoHF.caloMET        
         #######################################################################
-        ## Energy smearing and scale correction
-        ## https://twiki.cern.ch/twiki/bin/view/CMS/EGMSmearer
-        process.RandomNumberGeneratorService.calibratedPatElectrons = cms.PSet(
-            initialSeed = cms.untracked.uint32(81),
-            engineName = cms.untracked.string('TRandom3')
-        )
-        process.RandomNumberGeneratorService.calibratedPatPhotons = cms.PSet(
-            initialSeed = cms.untracked.uint32(81),
-            engineName = cms.untracked.string('TRandom3')
-        )
-        process.load('EgammaAnalysis.ElectronTools.calibratedElectronsRun2_cfi')
-        process.calibratedPatElectrons.isMC = runOnMC
-        process.catElectrons.src = "calibratedPatElectrons"
-    
-        process.load('EgammaAnalysis.ElectronTools.calibratedPhotonsRun2_cfi')
-        process.calibratedPatPhotons.isMC = runOnMC
-        process.catPhotons.src = "calibratedPatPhotons"
-        #######################################################################
-        ## for egamma pid https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2#Recipe_for_regular_users_for_74X
-        ##from PhysicsTools.SelectorUtils.tools.vid_id_tools import DataFormat,switchOnVIDPhotonIdProducer,setupAllVIDIdsInModule,setupVIDPhotonSelection            
-        ##switchOnVIDPhotonIdProducer(process, DataFormat.MiniAOD)
-
-        #Use IDs from https://github.com/cms-sw/cmssw/blob/CMSSW_7_4_X/RecoEgamma/PhotonIdentification/python/Identification/ 
-        ##photon_ids = ['RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_Spring15_25ns_V1_cff',
-        ##              'RecoEgamma.PhotonIdentification.Identification.mvaPhotonID_Spring15_25ns_nonTrig_V2_cff']
+        ## Energy/Photon smearing and scale correction
+        from CATTools.CatProducer.EGamma.smearing_cff import enableElectronSmearing, enablePhotonSmearing
+        enableElectronSmearing(process, runOnMC)
+        enablePhotonSmearing(process, runOnMC)
         
-        #add them to the VID producer
-        ##for idmod in photon_ids:
-        ##    setupAllVIDIdsInModule(process,idmod,setupVIDPhotonSelection)
-
-        ##process.catPhotons.photonIDSources = cms.PSet( 
-        ##    cutBasedPhotonID_Spring15_25ns_V1_standalone_loose = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-Spring15-25ns-V1-standalone-loose"),
-        ##    cutBasedPhotonID_Spring15_25ns_V1_standalone_medium = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-Spring15-25ns-V1-standalone-medium"),
-        ##    cutBasedPhotonID_Spring15_25ns_V1_standalone_tight = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-Spring15-25ns-V1-standalone-tight"),
-        ##    mvaPhoID_Spring15_25ns_nonTrig_V2_wp90 =  cms.InputTag("egmPhotonIDs:mvaPhoID-Spring15-25ns-nonTrig-V2-wp90"),
-        ##    )
-        
-        ## from PhysicsTools.SelectorUtils.tools.vid_id_tools import DataFormat,switchOnVIDElectronIdProducer,setupAllVIDIdsInModule,setupVIDElectronSelection
-        ## electron_ids = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_25ns_V1_cff',
-        ##                 'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV60_cff',
-        ##                 'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_nonTrig_V1_cff',
-        ##                 'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_Trig_V1_cff']
-        ## switchOnVIDElectronIdProducer(process, DataFormat.MiniAOD)
-        ## for idmod in electron_ids:
-        ##     setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
-
-        ## process.catElectrons.electronIDSources = cms.PSet(
-        ##     cutBasedElectronID_Spring15_25ns_V1_standalone_loose = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-loose"),
-        ##     cutBasedElectronID_Spring15_25ns_V1_standalone_medium = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-medium"),
-        ##     cutBasedElectronID_Spring15_25ns_V1_standalone_tight = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-tight"),
-        ##     cutBasedElectronID_Spring15_25ns_V1_standalone_veto = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-veto"),
-        ##     heepElectronID_HEEPV60 = cms.InputTag("egmGsfElectronIDs:heepElectronID-HEEPV60"),
-        ##     mvaEleID_Spring15_25ns_nonTrig_V1_wp80 = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-nonTrig-V1-wp80"),
-        ##     mvaEleID_Spring15_25ns_nonTrig_V1_wp90 = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-nonTrig-V1-wp90"),
-        ##     mvaEleID_Spring15_25ns_Trig_V1_wp80 = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-Trig-V1-wp90"),
-        ##     mvaEleID_Spring15_25ns_Trig_V1_wp90 = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-Trig-V1-wp80"),
-        ## )
-
+        ## Electron/Photon VID
+        from CATTools.CatProducer.EGamma.versionnedID_cff import enableElectronVID, enablePhotonVID
+        enableElectronVID(process)
+        enablePhotonVID(process)
        
         #######################################################################    
         # adding pfMVAMet https://twiki.cern.ch/twiki/bin/viewauth/CMS/MVAMet#Spring15_samples_with_25ns_50ns
