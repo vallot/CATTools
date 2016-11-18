@@ -26,9 +26,9 @@ import json
 datasets = json.load(open(js))
 queuesRD, queuesMC = [], []
 for d in datasets:
-    name = d['DataSetName']
-    if len(name) == 0: continue
-    pdName, sdName = name.split('/')[1], name.split('/')[2]
+    dataset = d['DataSetName']
+    if len(dataset) == 0: continue
+    pdName, sdName = dataset.split('/')[1], dataset.split('/')[2]
     if os.path.exists('crab_%s_%s' % (reqName, pdName)): continue
     elif os.path.exists('crab_%s_%s_%s' % (reqName, pdName, sdName)): continue
     if len(d['path']) != 0: continue
@@ -40,7 +40,7 @@ for d in datasets:
     if runOnMC:
         opts['globalTag'] = cat.globalTag_mc
         opts['runOnMC'] = "True"
-        if name.startswith('/TT') or name.startswith("/tt"): opts['runGenTop'] = "True"
+        if dataset.startswith('/TT') or dataset.startswith("/tt"): opts['runGenTop'] = "True"
     else:
         opts['globalTag'] = cat.globalTag_rd
         opts['runOnMC'] = "False"
@@ -52,10 +52,10 @@ for d in datasets:
             opts[key] = val
 
     ## List-fy opts to use in crab API
-    opts = ["%s=%s" % (key, opts[key]) for key in opts]
+    opts = [str("%s=%s" % (key, opts[key])) for key in opts]
 
-    if d['type'] == 'Data': queuesRD.append((name, opts))
-    else: queuesMC.append((name, opts))
+    if d['type'] == 'Data': queuesRD.append((d['name'], dataset, opts))
+    else: queuesMC.append((d['name'], dataset, opts))
 
 ## Now job configuration is almost ready. Use CrabAPI to configure jobs
 from WMCore.Configuration import Configuration
@@ -77,25 +77,32 @@ config.section_("Site")
 config.Site.storageSite = 'T3_KR_KISTI'
 config.Data.outLFNDirBase = '/store/group/CAT/' 
 
+## Start job submission
+from CRABAPI.RawCommand import crabCommand
+
 ## Submit real data jobs
 config.Data.splitting = 'LumiBased'
 config.Data.unitsPerJob = 40
-config.Data.lumiMask = os.environ['CMSSW_BASE']+'/src/CATTools/CatProducer/data/LumiMask/'+cat.lumiJSON
-for name, opts in queuesRD:
-    label = name.split('/')[1]+'_'+name.split('/')[2]
+config.Data.lumiMask = os.environ['CMSSW_BASE']+'/src/CATTools/CatProducer/data/LumiMask/'+cat.lumiJSON+".txt"
+for name, dataset, opts in queuesRD:
+    print "@@@ Submitting", name
+    label = dataset.split('/')[1]+'_'+dataset.split('/')[2]
     config.General.requestName = '%s_%s' % (reqName, label)
-    config.Data.inputDataset = name
-    config.Data.outputDatasetTag = '%s_%s' % (reqName, name.split('/')[2])
-    print config
+    config.Data.inputDataset = dataset
+    config.Data.outputDatasetTag = '%s_%s' % (reqName, dataset.split('/')[2])
+    config.JobType.pyCfgParams = opts
+    crabCommand('submit', config=config)
     
 ## Submit MC jobs
 config.Data.splitting='FileBased'
 config.Data.unitsPerJob=1 
 config.Data.lumiMask = ''
-for name, opts in queuesMC:
-    label = name.split('/')[1]
+for name, dataset, opts in queuesMC:
+    print "@@@ Submitting", name
+    label = dataset.split('/')[1]
     config.General.requestName = '%s_%s' % (reqName, label)
-    config.Data.inputDataset = name
-    config.Data.outputDatasetTag = '%s_%s' % (reqName, name.split('/')[2])
-    print config
+    config.Data.inputDataset = dataset
+    config.Data.outputDatasetTag = '%s_%s' % (reqName, dataset.split('/')[2])
+    config.JobType.pyCfgParams = opts
+    crabCommand('submit', config=config)
 
