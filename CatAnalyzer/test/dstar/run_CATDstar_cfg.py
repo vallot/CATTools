@@ -8,11 +8,10 @@ process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
 process.options.allowUnscheduled = cms.untracked.bool(True)
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
-#process.source.fileNames = ['/store/user/jhgoh/CATTools/sync/v7-6-3/MuonEG_Run2015D-16Dec2015-v1.root',]
-#process.source.fileNames = ['file:/xrootd/store/user/jhgoh/CATTools/sync/v7-6-3/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',]
-#process.source.fileNames = ['file:../../../catdata_20160315/catTuple.root']
-#process.source.fileNames = ['root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v8-0-0_RunIISpring16MiniAODv2-PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0_ext4-v1/160705_214937/0000/catTuple_1.root', 'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/DoubleMuon/v8-0-0_Run2016B-PromptReco-v2/160705_213930/0001/catTuple_1304.root'  ]
-process.source.fileNames = ['root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/DoubleMuon/v8-0-0_Run2016B-PromptReco-v2/160705_213930/0001/catTuple_1304.root']
+process.source.fileNames = ['root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v8-0-2_RunIISpring16MiniAODv2-PUSpring16RAWAODSIM_reHLT_80X_mcRun2_asymptotic_v14_ext3-v1/161104_204003/0002/catTuple_2111.root'] # TT_powheg v8-0-2
+#process.source.fileNames = ['root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v8-0-1_RunIISpring16MiniAODv2-PUSpring16RAWAODSIM_reHLT_80X_mcRun2_asymptotic_v14_ext3-v1/160822_144100/0002/catTuple_2112.root'] # TT_powheg v8-0-1
+#process.source.fileNames = ['root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/ZZ_TuneCUETP8M1_13TeV-pythia8/v8-0-1_RunIISpring16MiniAODv2-PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v1/160810_124436/0000/catTuple_22.root'] # ZZ v8-0-1
+#process.source.fileNames = ['root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v8-0-1_RunIISpring16MiniAODv2-PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v1/160810_120220/0000/catTuple_85.root'] # DYJets v8-0-1
 
 useSilver = False
 catmet = 'catMETs'
@@ -78,6 +77,7 @@ process.cattree = cms.EDAnalyzer("CATDstarAnalyzer",
     # input collection
     d0s    = cms.InputTag("catDstars","D0Cand"),
     dstars = cms.InputTag("catDstars","DstarCand"),
+    Jpsis  = cms.InputTag("catDstars","JpsiCand"),
     matchingDeltaR = cms.double(0.15),
     partonTop_channel = cms.InputTag("partonTop","channel"),
     partonTop_modes = cms.InputTag("partonTop", "modes"),

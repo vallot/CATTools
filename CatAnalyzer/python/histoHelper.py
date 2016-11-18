@@ -226,7 +226,8 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
     iPos = 0
     if( iPos==0 ):
         cmsLumi.relPosX = 0.1
-    cmsLumi.CMS_lumi(pads[0], 4, iPos)
+    cmsLumi.CMS_lumi(pads[0], 0, iPos)
+    #cmsLumi.CMS_lumi(pads[0], 4, iPos)
 
     canv.Modified()
     canv.Update()
