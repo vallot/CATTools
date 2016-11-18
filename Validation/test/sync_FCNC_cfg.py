@@ -21,8 +21,6 @@ process.load("CATTools.CatAnalyzer.filters_cff")
 process.load("CATTools.Validation.eventsTopFCNC_cff")
 process.filterTrigMU.triggersToMatch = ['HLT_IsoMu24_v', 'HLT_IsoTkMu24_v',]
 process.filterTrigEL.triggersToMatch = ['HLT_Ele32_eta2p1_WPTight_Gsf_v']
-process.eventsTopFCNC.electron.idName = "cutBasedElectronID-Spring15-25ns-V1-standalone-medium"
-process.eventsTopFCNC.electron.vetoIdName = "cutBasedElectronID-Spring15-25ns-V1-standalone-loose"
 #process.eventsTopFCNC.vertex.src = "offlineSlimmedPrimaryVertices"
 process.el = process.eventsTopFCNC.clone(
     channel = cms.string("electron"),

@@ -21,8 +21,8 @@ eventsTopFCNC = cms.EDFilter("TopFCNCEventSelector",
 
     electron = cms.PSet(
         src = cms.InputTag("catElectrons"),
-        idName = cms.string("cutBasedElectronID-Spring15-25ns-V1-standalone-medium"),
-        vetoIdName = cms.string("cutBasedElectronID-Spring15-25ns-V1-standalone-veto"),
+        idName = cms.string("cutBasedElectronID-Summer16-80X-V1-medium"),
+        vetoIdName = cms.string("cutBasedElectronID-Summer16-80X-V1-loose"),
 
         #idName = cms.string("mvaEleID-Spring15-25ns-Trig-V1-wp90"),
         scaleDirection = cms.int32(0),
