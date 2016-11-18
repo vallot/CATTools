@@ -154,12 +154,12 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         #del process.slimmedMETsNoHF.caloMET        
         #######################################################################
         ## Energy/Photon smearing and scale correction
-        from CATTools.CatProducer.EGamma.smearing_cff import enableElectronSmearing, enablePhotonSmearing
+        from CATTools.CatProducer.physicsObjectRecipes.egmSmearing_cff import enableElectronSmearing, enablePhotonSmearing
         enableElectronSmearing(process, runOnMC)
         enablePhotonSmearing(process, runOnMC)
         
         ## Electron/Photon VID
-        from CATTools.CatProducer.EGamma.versionnedID_cff import enableElectronVID, enablePhotonVID
+        from CATTools.CatProducer.physicsObjectRecipes.egmVersionedID_cff import enableElectronVID, enablePhotonVID
         enableElectronVID(process)
         enablePhotonVID(process)
        
