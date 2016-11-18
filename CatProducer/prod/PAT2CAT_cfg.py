@@ -21,12 +21,13 @@ else: runGenTop = False
 ####################################################################
 #### setting up global tag
 ####################################################################
-from Configuration.AlCa.autoCond_condDBv2 import autoCond
-process.GlobalTag.globaltag = autoCond['run2_mc']
-if not runOnMC:
-    process.GlobalTag.globaltag = autoCond['run2_data']
-if globalTag:
-    process.GlobalTag.globaltag = globalTag
+#from Configuration.AlCa.autoCond_condDBv2 import autoCond
+#if runOnMC: process.GlobalTag.globaltag = autoCond['run2_mc']
+#else: process.GlobalTag.globaltag = autoCond['run2_data']
+if not globalTag:
+    if runOnMC: from CATTools.CatProducer.catDefinitions_cfi import globalTag_mc as globalTag
+    else: from CATTools.CatProducer.catDefinitions_cfi import globalTag_rd as globalTag
+process.GlobalTag.globaltag = globalTag
 print "runOnMC =",runOnMC,"and useMiniAOD =",useMiniAOD
 print "process.GlobalTag.globaltag =",process.GlobalTag.globaltag    
 ####################################################################
