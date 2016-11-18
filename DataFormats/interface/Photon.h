@@ -59,6 +59,8 @@ namespace cat {
     float SCRawEnergy() const { return scRawE_;}
     float SCPreShowerEnergy() const { return scPreShE_;}
 
+    float smearedScale() const { return smearedScale_; }
+
     bool mcMatched() const { return mcMatched_; }
 
     float getEffArea(IsoType iso_type, float scEta) ;
@@ -94,8 +96,9 @@ namespace cat {
     void setSCrawEnergy(float raw_e){ scRawE_ = raw_e;}
     void setSCPreShowerEnergy(float pre_E){ scPreShE_ = pre_E;}
 
-    void setMCMatched(bool m) { mcMatched_ = m; }
+    void setSmearedScale(const float scale) { smearedScale_ = scale; }
 
+    void setMCMatched(bool m) { mcMatched_ = m; }
     
   private:
 
@@ -121,6 +124,8 @@ namespace cat {
     float r9_;
     float HoverE_;
     float scEta_, scPhi_, scRawE_, scPreShE_;
+
+    float smearedScale_;
 
     bool mcMatched_;
     
