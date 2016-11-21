@@ -53,17 +53,10 @@ process.TFileService = cms.Service("TFileService",
     fileName = cms.string("dstar_v2_result.root"
 ))
 
-"""
-process.catOut = cms.OutputModule("PoolOutputModule",
-    fileName = cms.untracked.string('catTuple.root'),
-    outputCommands = cms.untracked.vstring(['drop *','keep *_ttbar*_*_*'])
-)
-"""
-#process.catOutPath = cms.EndPath(process.catOut)
-
-#process.load("CATTools.CatProducer.catCandidates_cff")    
 
 process.eventsTTLL.filters.ignoreTrig = cms.bool(True)
+#process.eventsTTLL.filters.ignoreTrig = cms.bool(False)
+process.eventsTTLL.applyFilterAt = cms.int32(5)
 
 
 if ( options.isTT ) : 
