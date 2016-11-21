@@ -18,7 +18,9 @@ options.parseArguments()
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 #process.source.fileNames = ['root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TTTo2L2Nu_13TeV-powheg/v8-0-0_RunIISpring16MiniAODv2-PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0_ext1-v1/160705_215520/0000/catTuple_1.root']
-process.source.fileNames = ['root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TTTo2L2Nu_13TeV-powheg/v8-0-2_RunIISpring16MiniAODv2-PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0_ext1-v1/161104_204219/0000/catTuple_4.root']
+#process.source.fileNames = ['root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TTTo2L2Nu_13TeV-powheg/v8-0-2_RunIISpring16MiniAODv2-PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0_ext1-v1/161104_204219/0000/catTuple_4.root']
+process.source.fileNames = ['root://cms-xrdr.sdfarm.kr:///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v8-0-2_RunIISpring16MiniAODv2-PUSpring16RAWAODSIM_reHLT_80X_mcRun2_asymptotic_v14_ext3-v1/161104_204003/0000/catTuple_4.root']
+
 
 #process.MessageLogger.debugModules = cms.untracked.vstring('cattree')
 #process.MessageLogger.destinations = cms.untracked.vstring('detailInfo')
@@ -54,8 +56,8 @@ process.TFileService = cms.Service("TFileService",
 ))
 
 
-process.eventsTTLL.filters.ignoreTrig = cms.bool(True)
-#process.eventsTTLL.filters.ignoreTrig = cms.bool(False)
+#process.eventsTTLL.filters.ignoreTrig = cms.bool(True)
+process.eventsTTLL.filters.ignoreTrig = cms.bool(False)
 process.eventsTTLL.applyFilterAt = cms.int32(5)
 
 

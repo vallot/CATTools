@@ -266,8 +266,6 @@ void CATDstarV2Analyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
   edm::Handle<int> iHandle;
   iEvent.getByToken(channelToken_, iHandle);
   b_channel_ = *iHandle;
-  if ( b_channel_ != CH_FULLLEPTON ) return; // Just for a confirmation
-
 
   edm::Handle<float> fHandle;
   iEvent.getByToken(weightToken_, fHandle);
