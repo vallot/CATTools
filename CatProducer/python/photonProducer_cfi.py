@@ -2,6 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 catPhotons = cms.EDProducer("CATPhotonProducer",
     src = cms.InputTag("slimmedPhotons"),
+    unsmearedPhotons = cms.InputTag("slimmedPhotons"),
     photonIDs = cms.vstring("cutBasedPhotonID-Spring15-25ns-V1-standalone-loose",
                             "cutBasedPhotonID-Spring15-25ns-V1-standalone-medium",
                             "cutBasedPhotonID-Spring15-25ns-V1-standalone-tight",

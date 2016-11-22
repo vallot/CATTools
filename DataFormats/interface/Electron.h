@@ -41,7 +41,7 @@ namespace cat {
 
     float ipsignificance() const { return ipsig_;}
 
-    
+    float smearedScale() const { return smearedScale_; }
     float shiftedEn() const { if (this->isEB()) return 0.006; else return 0.015; }
     float shiftedEnDown() const {return 1-shiftedEn();}
     float shiftedEnUp() const {return  1+shiftedEn();}
@@ -67,6 +67,7 @@ namespace cat {
     void setTrigMVAValid(bool val) { isTrigMVAValid_ = val; }
     void setIpSignficance(float ipsig) {ipsig_ = ipsig;}
 
+    void setSmearedScale(const float scale) { smearedScale_ = scale; }
 
     float scaleFactor(const std::string& name, int sign = 0) const;
     
@@ -74,6 +75,7 @@ namespace cat {
 
     std::vector<pat::Electron::IdPair> electronIDs_;
 
+    float smearedScale_; // smearedScale = (pt_smeared)/(pt_original). Undo smearing by pt()/smearedScale()
     float relIso03_;
     float relIso04_;
     float ipsig_;

@@ -4,6 +4,7 @@ from CATTools.CatProducer.muonProducer_cfi import *
 from CATTools.CatProducer.electronProducer_cfi import *
 from CATTools.CatProducer.photonProducer_cfi import *
 from CATTools.CatProducer.jetProducer_cfi import *
+from CATTools.CatProducer.fatjetProducer_cfi import *
 from CATTools.CatProducer.metProducer_cfi import *
 from CATTools.CatProducer.tauProducer_cfi import *
 from CATTools.CatProducer.secondaryVertexProducer_cfi import *

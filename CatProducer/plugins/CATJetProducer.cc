@@ -48,9 +48,10 @@ namespace cat {
   private:
     edm::EDGetTokenT<pat::JetCollection> src_;
     edm::EDGetTokenT<double> rhoToken_;
+    edm::EDGetTokenT<edm::ValueMap<float>> qgToken_;
 
     const std::vector<std::string> btagNames_;
-    std::string uncertaintyTag_, payloadName_;
+    std::string uncertaintyTag_, payloadName_, jetalgoName_;
     const std::string jetResFilePath_, jetResSFFilePath_;
     bool setGenParticle_;
     bool runOnMC_;
@@ -71,8 +72,9 @@ cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
   jetResSFFilePath_(edm::FileInPath(iConfig.getParameter<std::string>("jetResSFFile")).fullPath()),
   setGenParticle_(iConfig.getParameter<bool>("setGenParticle"))
 {
-  produces<std::vector<cat::Jet> >();
-  ///  pfjetIDFunctor = PFJetIDSelectionFunctor(PFJetIDSelectionFunctor::FIRSTDATA,PFJetIDSelectionFunctor::LOOSE);
+    qgToken_ = consumes<edm::ValueMap<float>>(edm::InputTag("QGTagger", "qgLikelihood"));
+    jetalgoName_ = iConfig.getParameter<edm::InputTag>("src").label();
+    produces<std::vector<cat::Jet> >();
 }
 
 void cat::CATJetProducer::beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&)
@@ -107,8 +109,18 @@ void cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
   iEvent.getByToken(rhoToken_, rhoHandle);
   const double rho = *rhoHandle;
 
+  // for quark gluon likelihood calculation
+  edm::Handle<edm::ValueMap<float>> qgHandle; 
+  iEvent.getByToken(qgToken_, qgHandle);
+
   auto_ptr<vector<cat::Jet> >  out(new vector<cat::Jet>());
-  for (const pat::Jet &aPatJet : *src) {
+
+  int ij=0;
+  for (auto aPatJetPointer = src->begin(); aPatJetPointer != src->end(); aPatJetPointer++)
+///  for (const pat::Jet &aPatJet : *src) 
+  {
+
+    const pat::Jet aPatJet = *aPatJetPointer;
 
     cat::Jet aJet(aPatJet);
 
@@ -168,6 +180,20 @@ void cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     int partonPdgId = aPatJet.genParton() ? aPatJet.genParton()->pdgId() : 0;
     aJet.setPartonPdgId(partonPdgId);
 
+    // calculate quark/gluon likelihood but only for AK4
+
+    if (jetalgoName_=="updatedPatJets")
+    {
+        edm::RefToBase<pat::Jet> jetRef(edm::Ref<pat::JetCollection>(src, aPatJetPointer - src->begin()));
+        float qgLikelihood = (*qgHandle)[jetRef];
+        aJet.setQGLikelihood(qgLikelihood);
+        //aJet.setQGLikelihood(aPatJet.userFloat("QGTaggerAK4PFCHS:qgLikelihood"));
+    }
+    else // for others, it's undefined
+    {
+        aJet.setQGLikelihood(-2.0);
+    }
+
     // setting JEC uncertainty
     if (!payloadName_.empty()){
       jecUnc->setJetEta(aJet.eta());
@@ -220,6 +246,7 @@ void cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     }
 
     out->push_back(aJet);
+    ij++;
   }
 
   if (jecUnc) delete jecUnc;

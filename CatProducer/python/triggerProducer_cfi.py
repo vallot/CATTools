@@ -11,7 +11,7 @@ catTrigger = cms.EDProducer("CATTriggerProducer",
     ),
     triggerObjects = cms.InputTag("selectedPatTrigger"),
     triggerPrescales = cms.InputTag("patTrigger"),
-    selectTrigObjects = cms.vstring("HLT_Ele", "HLT_DoubleEle", "HLT_Mu", "HLT_TkMu", "HLT_IsoMu", "HLT_IsoTkMu", "HLT_DoubleIsoMu", "HLT_PFJet","HLT_DoublePhoton", "HLT_Photon"),
+    selectTrigObjects = cms.vstring("HLT_Ele", "HLT_DoubleEle", "HLT_Mu", "HLT_TkMu", "HLT_IsoMu", "HLT_IsoTkMu", "HLT_DiMu", "HLT_DoubleIsoMu", "HLT_PFJet","HLT_DoublePhoton", "HLT_Photon"),
     metFilterNames = cms.vstring(),
     hltPathNames = cms.vstring(),
 ##     metFilterNames = cms.vstring(

@@ -20,6 +20,8 @@
 #include "CATTools/DataFormats/interface/MET.h"
 #include "CATTools/DataFormats/interface/GenWeights.h"
 
+#include "CATTools/CatAnalyzer/interface/BTagWeightEvaluator.h"
+
 #include "TH1.h"
 #include "TTree.h"
 
@@ -32,6 +34,21 @@
 // from  edm::one::EDAnalyzer<> and also remove the line from
 // constructor "usesResource("TFileService");"
 // This will improve performance in multithreaded jobs.
+
+template<class T>
+struct bigger_second
+: std::binary_function<T,T,bool>
+{
+   inline bool operator()(const T& lhs, const T& rhs)
+   {
+      return lhs.second > rhs.second;
+   }
+};
+typedef std::pair<int,double> data_t;
+
+using namespace edm;
+using namespace reco;
+using namespace cat;
 
 class TopAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
    public:
@@ -60,6 +77,9 @@ class TopAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
       edm::EDGetTokenT<float>                          puWeight_;
       edm::EDGetTokenT<cat::GenWeights>                genWeightToken_;
 
+      // ---------- CSV weight ------------
+      BTagWeightEvaluator csvWeight;
+
       // ----------member data ---------------------------
 
       TTree * tree;
@@ -71,6 +91,7 @@ class TopAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
     
       float PUWeight;
       float GenWeight;
+      float CSVWeight[19]; // 0 = central, 1-18 = systematics
       int NVertex; 
 
       double MET;
@@ -130,14 +151,22 @@ class TopAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
       float Jet_hadronFlavour[100];
       float Jet_BTag[100];
       float Jet_bDiscriminator[100];
+      float Jet_pfCombinedCvsLJetTags[100];
+      float Jet_pfCombinedCvsBJetTags[100];
  
       float Jet_JES_Up[100];
       float Jet_JES_Dw[100];
+
+      int csvid[100];
  
       int NBJet;
 
       int DiLeptonic;
       int SemiLeptonic;
+      int TTBJ;
+      int TTBB;
+      int TTCC;
+      int TTJJ;
  
       int GenNJet20;
       int GenNBJet20;
@@ -189,6 +218,9 @@ TopAnalyzer::TopAnalyzer(const edm::ParameterSet& iConfig)
    edm::Service<TFileService> fs;
    tree = fs->make<TTree>("events", "Tree for Top quark study");
    tmp = fs->make<TH1F>("EventSummary","EventSummary",2,0,2);
+
+   // CSV re-shape 
+   csvWeight.initCSVWeight(false, "csvv2");
  
 }
 
@@ -210,9 +242,6 @@ TopAnalyzer::~TopAnalyzer()
 void
 TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-   using namespace edm;
-   using namespace reco;
-   using namespace cat;
 
    tmp->Fill(0);
 
@@ -236,6 +265,11 @@ TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      GenNAddJet20 = catGenTop.NaddJets20();
      GenNAddBJet20 = catGenTop.NaddbJets20();
      GenNAddCJet20 = catGenTop.NaddcJets20();
+
+     if( GenNAddBJet20 == 1 ) TTBJ = 1;
+     if( GenNAddBJet20 >= 2 ) TTBB = 1;
+     if( GenNAddCJet20 >= 2 ) TTCC = 1;
+     if( GenNAddJet20 >= 2 ) TTJJ = 1;
 
      if( catGenTop.lepton1().pt() > 0){
        GenLepton1_Pt = catGenTop.lepton1().pt();
@@ -362,6 +396,14 @@ TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    NElectron = nelectrons;
    NLooseElectron = nlooseelectrons;
 
+   // CSV re-shape 
+   // Initialize SF_btag
+   float Jet_SF_CSV[19];
+   for (unsigned int iu=0; iu<19; iu++) Jet_SF_CSV[iu] = 1.0;
+
+   //for CSV ordering
+   std::map<int,double> mapJetBDiscriminator;
+
    int nJets = 0;
    int nbJets = 0;
 
@@ -402,8 +444,16 @@ TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      Jet_JES_Up[nJets] = jet.shiftedEnUp();
      Jet_JES_Dw[nJets] = jet.shiftedEnDown();
 
+     for (unsigned int iu=0; iu<19; iu++) Jet_SF_CSV[iu] *= csvWeight.getSF(jet, iu);
+
      double bDiscriminator = jet.bDiscriminator(BTAG_CSVv2);
+     double pfCombinedCvsLJetTags = jet.bDiscriminator("pfCombinedCvsLJetTags");
+     double pfCombinedCvsBJetTags = jet.bDiscriminator("pfCombinedCvsBJetTags");
+
      Jet_bDiscriminator[nJets] = bDiscriminator;
+     Jet_pfCombinedCvsLJetTags[nJets] = pfCombinedCvsLJetTags;
+     Jet_pfCombinedCvsBJetTags[nJets] = pfCombinedCvsBJetTags;
+
      if( bDiscriminator > WP_BTAG_CSVv2M) {
        nbJets++;
        Jet_BTag[nJets] = 1;
@@ -411,12 +461,24 @@ TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
        Jet_BTag[nJets] = 0;
      }
 
+     mapJetBDiscriminator[nJets] = bDiscriminator;
+
      nJets++;
    }
 
    NJet = nJets;
    NBJet = nbJets;
 
+   for (unsigned int iu=0; iu<19; iu++) CSVWeight[iu] = Jet_SF_CSV[iu];
+
+   //csv order
+   std::vector< std::pair<int,double> > vecJetBDisc(mapJetBDiscriminator.begin(), mapJetBDiscriminator.end());
+   std::sort(vecJetBDisc.begin(), vecJetBDisc.end(), bigger_second<data_t>());
+   int ncsvid = 0;
+   for( std::vector< std::pair<int,double> >::iterator it = vecJetBDisc.begin() ; it != vecJetBDisc.end(); ++it){
+      csvid[ncsvid] = (*it).first;
+      ncsvid++;
+   }
 
 #ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
    ESHandle<SetupData> pSetup;
@@ -439,6 +501,7 @@ TopAnalyzer::beginJob()
    tree->Branch("LUMI",&LUMI,"LUMI/i");
    tree->Branch("PUWeight",&PUWeight,"PUWeight/F");
    tree->Branch("GenWeight",&GenWeight,"GenWeight/F");
+   tree->Branch("CSVWeight",CSVWeight,"CSVWeight_[19]/F");
    tree->Branch("NVertex",&NVertex,"NVertex/i");
 
    tree->Branch("MET",&MET,"MET/d");
@@ -490,13 +553,22 @@ TopAnalyzer::beginJob()
    tree->Branch("Jet_hadronFlavour",Jet_hadronFlavour,"Jet_hadronFlavour[NJet]/F");
    tree->Branch("Jet_BTag",Jet_BTag,"Jet_BTag[NJet]/F");
    tree->Branch("Jet_bDiscriminator",Jet_bDiscriminator,"Jet_bDiscriminator[NJet]/F"); 
-
+   tree->Branch("Jet_pfCombinedCvsLJetTags",Jet_pfCombinedCvsLJetTags,"Jet_pfCombinedCvsLJetTags[NJet]/F"); 
+   tree->Branch("Jet_pfCombinedCvsBJetTags",Jet_pfCombinedCvsBJetTags,"Jet_pfCombinedCvsBJetTags[NJet]/F"); 
+  
    tree->Branch("Jet_JES_Up",Jet_JES_Up,"Jet_JES_Up[NJet]/F");
    tree->Branch("Jet_JES_Dw",Jet_JES_Dw,"Jet_JES_Dw[NJet]/F");
+
+   tree->Branch("csvid",csvid,"csvid[NJet]/i");
  
    tree->Branch("NBJet",&NBJet,"NBJet/i");
    tree->Branch("DiLeptonic",&DiLeptonic,"DiLeptonic/i");
    tree->Branch("SemiLeptonic",&SemiLeptonic,"SemiLeptonic/i");
+
+   tree->Branch("TTBJ",&TTBJ,"TTBJ/i");
+   tree->Branch("TTBB",&TTBB,"TTBB/i");
+   tree->Branch("TTCC",&TTCC,"TTCC/i");
+   tree->Branch("TTJJ",&TTJJ,"TTJJ/i");
 
    tree->Branch("GenNJet20",&GenNJet20, "GenNJet20/i");
    tree->Branch("GenNBJet20",&GenNBJet20, "GenNBJet20/i");
@@ -531,7 +603,11 @@ TopAnalyzer::clear(){
   NBJet = -1;
   DiLeptonic = -1;
   SemiLeptonic = -1;
-  
+  TTBJ = -1; 
+  TTBB = -1; 
+  TTCC = -1; 
+  TTJJ = -1; 
+ 
   GenNJet20 = -1; 
   GenNBJet20 = -1;
   GenNCJet20 = -1;

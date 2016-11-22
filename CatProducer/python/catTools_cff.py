@@ -3,6 +3,8 @@ import catDefinitions_cfi as cat
 import os
 print os.environ['CMSSW_BASE']
 
+from CondCore.DBCommon.CondDBSetup_cfi import *
+
 def catTool(process, runOnMC=True, useMiniAOD=True):
     if runOnMC:
         from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
@@ -22,7 +24,6 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
     else:
         jecFile = jecFile+"_DATA"
     if useJECfile:
-        #from CondCore.DBCommon.CondDBSetup_cfi import CondDBSetup
         from CondCore.CondDB.CondDB_cfi import CondDB
         CondDB.__delattr__('connect')
         process.jec = cms.ESSource("PoolDBESSource",CondDB,
@@ -49,29 +50,17 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         #######################################################################
         ## Event filters from MET https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2
         ## New muon filters to be run on the fly
-        process.load("RecoMET.METFilters.BadChargedCandidateFilter_cfi")
-        process.load("RecoMET.METFilters.BadPFMuonFilter_cfi")
-        process.BadChargedCandidateFilter.muons = "slimmedMuons"
-        process.BadChargedCandidateFilter.PFCandidates = "packedPFCandidates"
-        process.BadPFMuonFilter.muons = "slimmedMuons"
-        process.BadPFMuonFilter.PFCandidates = "packedPFCandidates"
-        ## Existing HBHE noise filter
-        process.load('CommonTools.RecoAlgos.HBHENoiseFilterResultProducer_cfi')
-        process.HBHENoiseFilterResultProducer.minZeros = cms.int32(99999)
-        process.HBHENoiseFilterResultProducer.IgnoreTS4TS5ifJetInLowBVRegion=cms.bool(False) 
-        process.HBHENoiseFilterResultProducer.defaultDecision = cms.string("HBHENoiseFilterResultRun2Loose")
+        process.load('RecoMET.METFilters.BadPFMuonFilter_cfi')
+        process.BadPFMuonFilter.muons = cms.InputTag("slimmedMuons")
+        process.BadPFMuonFilter.PFCandidates = cms.InputTag("packedPFCandidates")
 
-        process.ApplyBaselineHBHENoiseFilter = cms.EDFilter('BooleanFlagFilter',
-            inputLabel = cms.InputTag('HBHENoiseFilterResultProducer','HBHENoiseFilterResult'),
-            reverseDecision = cms.bool(False))
-        
+        process.load('RecoMET.METFilters.BadChargedCandidateFilter_cfi')
+        process.BadChargedCandidateFilter.muons = cms.InputTag("slimmedMuons")
+        process.BadChargedCandidateFilter.PFCandidates = cms.InputTag("packedPFCandidates")
+            
         process.nEventsFiltered = cms.EDProducer("EventCountProducer")
     
-        process.p += (process.HBHENoiseFilterResultProducer* #produces HBHE bools
-                      process.ApplyBaselineHBHENoiseFilter*  #reject events based
-                      process.BadChargedCandidateFilter*
-                      process.BadPFMuonFilter*
-                      process.nEventsFiltered)
+        process.p += (process.BadPFMuonFilter*process.BadChargedCandidateFilter*process.nEventsFiltered)
         #######################################################################
         # adding puppi https://twiki.cern.ch/twiki/bin/view/CMS/PUPPI        
         #process.catJetsPuppi.src = cms.InputTag("slimmedJetsPuppi")
@@ -81,6 +70,32 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         ## process.particleFlowNoMuonPUPPI.candName         = 'packedPFCandidatesWoMuon'
         ## process.particleFlowNoMuonPUPPI.vertexName       = 'offlineSlimmedPrimaryVertices'
         
+        ########################################################################
+        ## Setup to acess quark/gluon likelihood value
+
+        #from JMEAnalysis.JetToolbox.jetToolbox_cff import jetToolbox
+        #jetToolbox( process, 'ak4', 'ak4JetSubs', 'out', PUMethod='CHS', updateCollection='slimmedJets',  JETCorrPayload='AK8PFchs', miniAOD=True, addQGTagger=True )   ### For example
+        #jetToolbox( process, 'ak4', 'ak4JetSubs', 'out', PUMethod='CHS', miniAOD=True, addQGTagger=True )   ### For example
+
+#process.options.allowUnscheduled = cms.untracked.bool(True)
+        qgDatabaseVersion = 'v1' # check https://twiki.cern.ch/twiki/bin/viewauth/CMS/QGDataBaseVersion
+        QGPoolDBESSource = cms.ESSource("PoolDBESSource",
+                CondDBSetup,
+                toGet = cms.VPSet(),
+                connect = cms.string('frontier://FrontierProd/CMS_COND_PAT_000')
+        )
+
+        for type in ['AK4PFchs','AK4PFchs_antib']:
+            QGPoolDBESSource.toGet.extend(cms.VPSet(cms.PSet(
+                record = cms.string('QGLikelihoodRcd'),
+                tag    = cms.string('QGLikelihoodObject_'+qgDatabaseVersion+'_'+type),
+                label  = cms.untracked.string('QGL_'+type)
+           )))
+        process.load('RecoJets.JetProducers.QGTagger_cfi')
+        process.QGTagger.srcJets    = cms.InputTag("updatedPatJets")   # Could be reco::PFJetCollection or pat::JetCollection (both AOD and miniAOD)
+        #process.QGTagger.srcJets    = cms.InputTag("slimmedJets")   # Could be reco::PFJetCollection or pat::JetCollection (both AOD and miniAOD)
+        #process.QGTagger.srcJets    = cms.InputTag("selectedPatJetsAK4PFCHS")   # Could be reco::PFJetCollection or pat::JetCollection (both AOD and miniAOD)
+        process.QGTagger.jetsLabel  = cms.string('QGL_AK4PFchs')        # Other options: see https://twiki.cern.ch/twiki/bin/viewauth/CMS/QGDataBaseVersion
         #######################################################################
         ## applying new jec on the fly
         process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
@@ -115,10 +130,15 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
             engineName = cms.untracked.string('TRandom3'),
             initialSeed = cms.untracked.uint32(1),
         )
+        process.RandomNumberGeneratorService.catFatJets = cms.PSet(
+            engineName = cms.untracked.string('TRandom3'),
+            initialSeed = cms.untracked.uint32(1),
+        )
         process.RandomNumberGeneratorService.catJetsPuppi = cms.PSet(
             engineName = cms.untracked.string('TRandom3'),
             initialSeed = cms.untracked.uint32(1),
         )
+
         ## #######################################################################
         ## # MET corrections from https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
         #from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
@@ -133,64 +153,15 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         #process.catMETsNoHF = process.catMETs.clone(src = cms.InputTag("slimmedMETsNoHF","","CAT"))
         #del process.slimmedMETsNoHF.caloMET        
         #######################################################################
-        ## Energy smearing and scale correction
-        ## https://twiki.cern.ch/twiki/bin/view/CMS/EGMSmearer
-        process.RandomNumberGeneratorService.calibratedPatElectrons=cms.PSet(
-            engineName = cms.untracked.string('TRandom3'),
-            initialSeed = cms.untracked.uint32(1)
-        )
-        process.RandomNumberGeneratorService.calibratedPatPhotons=cms.PSet(
-            engineName = cms.untracked.string('TRandom3'),
-            initialSeed = cms.untracked.uint32(1)
-        )
-        process.load('EgammaAnalysis.ElectronTools.calibratedElectronsRun2_cfi')
-        process.calibratedPatElectrons.isMC = runOnMC
-        process.catElectrons.src = "calibratedPatElectrons"
-    
-        process.load('EgammaAnalysis.ElectronTools.calibratedPhotonsRun2_cfi')
-        process.calibratedPatPhotons.isMC = runOnMC
-        process.catPhotons.src = "calibratedPatPhotons"
-        #######################################################################
-        ## for egamma pid https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2#Recipe_for_regular_users_for_74X
-        ##from PhysicsTools.SelectorUtils.tools.vid_id_tools import DataFormat,switchOnVIDPhotonIdProducer,setupAllVIDIdsInModule,setupVIDPhotonSelection            
-        ##switchOnVIDPhotonIdProducer(process, DataFormat.MiniAOD)
-
-        #Use IDs from https://github.com/cms-sw/cmssw/blob/CMSSW_7_4_X/RecoEgamma/PhotonIdentification/python/Identification/ 
-        ##photon_ids = ['RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_Spring15_25ns_V1_cff',
-        ##              'RecoEgamma.PhotonIdentification.Identification.mvaPhotonID_Spring15_25ns_nonTrig_V2_cff']
+        ## Energy/Photon smearing and scale correction
+        from CATTools.CatProducer.EGamma.smearing_cff import enableElectronSmearing, enablePhotonSmearing
+        enableElectronSmearing(process, runOnMC)
+        enablePhotonSmearing(process, runOnMC)
         
-        #add them to the VID producer
-        ##for idmod in photon_ids:
-        ##    setupAllVIDIdsInModule(process,idmod,setupVIDPhotonSelection)
-
-        ##process.catPhotons.photonIDSources = cms.PSet( 
-        ##    cutBasedPhotonID_Spring15_25ns_V1_standalone_loose = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-Spring15-25ns-V1-standalone-loose"),
-        ##    cutBasedPhotonID_Spring15_25ns_V1_standalone_medium = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-Spring15-25ns-V1-standalone-medium"),
-        ##    cutBasedPhotonID_Spring15_25ns_V1_standalone_tight = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-Spring15-25ns-V1-standalone-tight"),
-        ##    mvaPhoID_Spring15_25ns_nonTrig_V2_wp90 =  cms.InputTag("egmPhotonIDs:mvaPhoID-Spring15-25ns-nonTrig-V2-wp90"),
-        ##    )
-        
-        ## from PhysicsTools.SelectorUtils.tools.vid_id_tools import DataFormat,switchOnVIDElectronIdProducer,setupAllVIDIdsInModule,setupVIDElectronSelection
-        ## electron_ids = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_25ns_V1_cff',
-        ##                 'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV60_cff',
-        ##                 'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_nonTrig_V1_cff',
-        ##                 'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_Trig_V1_cff']
-        ## switchOnVIDElectronIdProducer(process, DataFormat.MiniAOD)
-        ## for idmod in electron_ids:
-        ##     setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
-
-        ## process.catElectrons.electronIDSources = cms.PSet(
-        ##     cutBasedElectronID_Spring15_25ns_V1_standalone_loose = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-loose"),
-        ##     cutBasedElectronID_Spring15_25ns_V1_standalone_medium = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-medium"),
-        ##     cutBasedElectronID_Spring15_25ns_V1_standalone_tight = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-tight"),
-        ##     cutBasedElectronID_Spring15_25ns_V1_standalone_veto = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-veto"),
-        ##     heepElectronID_HEEPV60 = cms.InputTag("egmGsfElectronIDs:heepElectronID-HEEPV60"),
-        ##     mvaEleID_Spring15_25ns_nonTrig_V1_wp80 = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-nonTrig-V1-wp80"),
-        ##     mvaEleID_Spring15_25ns_nonTrig_V1_wp90 = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-nonTrig-V1-wp90"),
-        ##     mvaEleID_Spring15_25ns_Trig_V1_wp80 = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-Trig-V1-wp90"),
-        ##     mvaEleID_Spring15_25ns_Trig_V1_wp90 = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-Trig-V1-wp80"),
-        ## )
-
+        ## Electron/Photon VID
+        from CATTools.CatProducer.EGamma.versionnedID_cff import enableElectronVID, enablePhotonVID
+        enableElectronVID(process)
+        enablePhotonVID(process)
        
         #######################################################################    
         # adding pfMVAMet https://twiki.cern.ch/twiki/bin/viewauth/CMS/MVAMet#Spring15_samples_with_25ns_50ns

@@ -47,6 +47,7 @@ namespace cat {
 
     // ----------member data ---------------------------
     edm::EDGetTokenT<edm::View<pat::Photon> > src_;
+    edm::EDGetTokenT<edm::View<pat::Photon> > unsmearedPhotToken_;
 
     // Photon variables computed upstream in a special producer
     edm::EDGetTokenT<reco::VertexCollection> vertexLabel_;
@@ -67,6 +68,7 @@ namespace cat {
 
 cat::CATPhotonProducer::CATPhotonProducer(const edm::ParameterSet & iConfig) :
   src_(consumes<edm::View<pat::Photon> >(iConfig.getParameter<edm::InputTag>("src"))),
+  unsmearedPhotToken_(consumes<edm::View<pat::Photon> >(iConfig.getParameter<edm::InputTag>("unsmearedPhotons"))),
   vertexLabel_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexLabel"))),
   mcLabel_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcLabel"))),
   rhoLabel_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoLabel"))),
@@ -95,6 +97,8 @@ cat::CATPhotonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
   Handle<edm::View<pat::Photon> > src;
   iEvent.getByToken(src_, src);
 
+  edm::Handle<edm::View<pat::Photon> > unsmearedPhotHandle;
+  iEvent.getByToken(unsmearedPhotToken_, unsmearedPhotHandle);
 
   Handle<double> rhoHandle;
   iEvent.getByToken(rhoLabel_, rhoHandle);
@@ -121,11 +125,14 @@ cat::CATPhotonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
   for (const pat::Photon & aPatPhoton : *src){
     cat::Photon aPhoton(aPatPhoton);
     auto phosRef = src->refAt(j);
+    auto unsmearedPhotRef = unsmearedPhotHandle->refAt(j);
 
     if (runOnMC_){
       aPhoton.setGenParticleRef(aPatPhoton.genParticleRef());
       if(mcMatch(aPatPhoton.p4(), genParticles )  == 1) aPhoton.setMCMatched( true);
       else  aPhoton.setMCMatched( false);
+
+      aPhoton.setSmearedScale(phosRef->pt()/unsmearedPhotRef->pt());
     }
     
     aPhoton.setRho(rhoIso);
@@ -160,15 +167,15 @@ cat::CATPhotonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
     
     if (phoIDSrcs_.size()){// for remade photon IDs
       for (size_t i = 0; i < phoIDSrcs_.size(); ++i){
-	ids[i].second = (*idhandles[i])[phosRef];
-	aPhoton.setPhotonID(ids[i]);
+        ids[i].second = (*idhandles[i])[unsmearedPhotRef];
+        aPhoton.setPhotonID(ids[i]);
       }
     }
     else if (photonIDs_.size()){// for sphoted IDs in miniAOD
       for(unsigned int i = 0; i < photonIDs_.size(); i++){
 
-	pat::Photon::IdPair pid(photonIDs_.at(i), aPatPhoton.photonID(photonIDs_.at(i)));
-	aPhoton.setPhotonID(pid);
+        pat::Photon::IdPair pid(photonIDs_.at(i), aPatPhoton.photonID(photonIDs_.at(i)));
+        aPhoton.setPhotonID(pid);
       }
     }
     else {

@@ -24,6 +24,7 @@ Photon::Photon(const reco::LeafCandidate & aPhoton) :
   r9_(0),
   HoverE_(0),
   scEta_(0), scPhi_(0), scRawE_(0), scPreShE_(0),
+  smearedScale_(1),
   mcMatched_(false)
 {}
 

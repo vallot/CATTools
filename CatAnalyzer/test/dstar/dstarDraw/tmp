@@ -1,6 +1,0 @@
-[?1034hTCut = (step>=5&&(d0_LXY>0.1&&d0_L3D>0.2&&dstar_LXY>0.1&&dstar_L3D>0.2))*(genweight*puweight*mueffweight*eleffweight*tri*topPtWeight)
-2.2 fb^{-1}, #sqrt{s} = 13 TeV
-Dilepton_s5_dstar.M()_cut_applied.png
-.png
-png
-ng
