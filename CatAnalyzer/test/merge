@@ -1,0 +1,52 @@
+#!/usr/bin/env python
+import sys, os
+
+# ///////////////////////////////////////////////////////////////////////////
+# ///    Useage: dir/*.root ->(merge)-> results_merged/samplename.root    ///
+# ///         to apply for all folders in pwd at once, enter 'all',       ///
+# ///      otherwise only specific dir name where root files are in       ///
+# ///////////////////////////////////////////////////////////////////////////
+
+user_input = sys.argv[1]
+"""
+if "results_merged" not in os.listdir(os.getcwd()):
+    os.system("mkdir results_merged")
+    print "'results_merged' has been created."
+"""
+#version="v7-6-6/"
+version="%s_bump2"%os.environ["CMSSW_VERSION"]
+pstored="/xrootd/store/user/pseudotop/ntuples/"
+pstored2=pstored+"%s/"%version
+pmerged=pstored+"results_merged/" 
+
+if pmerged+version not in os.listdir(pstored):
+    os.system("mkdir -p "+pmerged+version)
+    print "'results_merged' has been created."
+
+#pwd = os.getcwd()+'/'
+print pstored2, pmerged, os.listdir(pstored2)
+if user_input == "all":
+    dir_list = [x for x in os.listdir(pstored2) if (os.path.isdir(pstored2+x) and x != "results_merged")]
+else: dir_list = os.listdir(pwd+user_input)
+print dir_list
+
+failed_list = []
+for d in dir_list:
+    print pstored2+d
+    root_list = [x for x in os.listdir(pstored2+d) if (("cattree" in x) and x.endswith(".root"))]
+    file_names = ""
+    for x in root_list:
+        file_names += " %s/%s"%(pstored2+d,x)
+    if len(root_list) == 0:
+        failed_list.append(d)
+    else:
+        #os.system("hadd -f %s.root %s"%(pmerged+version+"h2muAnalyzer_"+d,file_names))
+        os.system("hadd -f %s.root %s"%(pmerged+version+"/h2muAnalyzer_"+d,file_names))
+
+if len(failed_list) > 0:
+    print
+    print " ** What failed:    ", failed_list
+    print
+
+
+

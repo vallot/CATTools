@@ -53,6 +53,9 @@ private:
   int preSelect(const cat::JetCollection& seljets, float MET) const;
   int jetCategory(const cat::JetCollection& seljets, float MET, float ll_pt) const;
   int etaCategory(float lep1_eta, float lep2_eta) const;
+  bool bumpCategory(const cat::JetCollection& jets, const cat::MuonCollection& recolep);
+  bool bumpCat1(const cat::JetCollection& jets, const cat::MuonCollection& recolep);
+  bool bumpCat2(const cat::JetCollection& jets, const cat::MuonCollection& recolep, float met);
 
   ScaleFactorEvaluator muonSF_, elecSF_;
   float getMuEffSF(const cat::Lepton& p, int sys) const
@@ -88,7 +91,8 @@ private:
   edm::EDGetTokenT<cat::METCollection>      metToken_;
   edm::EDGetTokenT<reco::VertexCollection>   vtxToken_;
   edm::EDGetTokenT<reco::GenParticleCollection> mcLabel_;  
-  edm::EDGetTokenT<edm::TriggerResults> triggerBits_;
+  //edm::EDGetTokenT<edm::TriggerResults> triggerBits_;
+  std::vector<edm::EDGetTokenT<edm::TriggerResults>> triggerBits_;
   edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjects_;
 
   rochcor2016 *rmcor;
@@ -109,6 +113,8 @@ private:
   int b_cat_eta;
   bool b_isLoose, b_isMedium, b_isTight;
 
+  bool b_bumpcat1, b_bumpcat2;
+
   TLorentzVector b_genlep1; int b_genlep1_pid;
   TLorentzVector b_genlep2; int b_genlep2_pid;
   TLorentzVector b_gendilep;
@@ -119,6 +125,7 @@ private:
   
   const static int NCutflow = 7;
   std::vector<std::vector<int> > cutflow_;
+  int bumpcut[7]={0,0,0,0,0,0,0};
 };
 //
 // constructors and destructor
@@ -128,7 +135,7 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
   recoFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("recoFilters"));
   nGoodVertexToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("nGoodVertex"));
   lumiSelectionToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("lumiSelection"));
-  //genweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("genweight"));
+  genweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("genweight"));
   //pdfweightToken_ = consumes<vector<float>>(iConfig.getParameter<edm::InputTag>("pdfweight"));
   //scaleweightToken_ = consumes<vector<float>>(iConfig.getParameter<edm::InputTag>("scaleweight"));
   puweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("puweight"));
@@ -138,7 +145,10 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
   metToken_  = consumes<cat::METCollection>(iConfig.getParameter<edm::InputTag>("mets"));
   vtxToken_  = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertices"));
   mcLabel_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcLabel"));
-  triggerBits_ = consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerBits"));
+  //triggerBits_ = consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerBits"));
+  for ( auto x : iConfig.getParameter<std::vector<edm::InputTag>>("triggerBits") ) {
+    triggerBits_.push_back(consumes<edm::TriggerResults>(x));
+  }
   triggerObjects_ = consumes<pat::TriggerObjectStandAloneCollection>(iConfig.getParameter<edm::InputTag>("triggerObjects"));
 
   typedef std::vector<double> vdouble;
@@ -209,6 +219,10 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
     //Geometrical Categorization
     //only included 0jet and 1jet
     tr->Branch("cat_eta", &b_cat_eta, "cat_eta/I");
+   
+    //28GeV bump category
+    tr->Branch("bumpcat1", &b_bumpcat1, "bumpcat1/O");
+    tr->Branch("bumpcat2", &b_bumpcat2, "bumpcat2/O");
     
     if (sys == 0){
       tr->Branch("weight", &b_weight, "weight/F");
@@ -232,16 +246,23 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
       tr->Branch("gendilep", "TLorentzVector", &b_gendilep);
     }
   }
- 
   for (int i = 0; i < NCutflow; i++) cutflow_.push_back({0,0,0,0});
 }
 
 h2muAnalyzer::~h2muAnalyzer()
 {
+
   cout <<"     cut flow   emu    ee    mumu"<< endl;
   for ( int i=0; i<NCutflow; ++i ) {
     cout <<"step"<< i << "    "<< cutflow_[i][0] <<  "   "<< cutflow_[i][1] << "   " << cutflow_[i][2] << "   " << cutflow_[i][3]<< endl;
   }
+  cout <<setw(15)<<"nocut"<<setw(15)<<"cut_charge"<<setw(15)<<"cut_pt"<<setw(15)<<"cut_eta"<<setw(15)<<"cut_nopassbtag"<<setw(15)<<"pass_bumpcat1"<<setw(15)<<"pass_bumpcat2"<<endl;
+  int bumpcutsize = int(sizeof(bumpcut)/sizeof(bumpcut[0]));
+  
+  for (int i=0;i<bumpcutsize;i++){
+    cout <<setw(15)<<bumpcut[i];
+  }
+  cout<<endl;
 }
 
 void h2muAnalyzer::beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&){}
@@ -273,9 +294,9 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
       iEvent.getByToken(puweightToken_dn_, puweightHandle_dn);
       b_puweight_dn = *puweightHandle_dn;
 
-      // edm::Handle<float> genweightHandle;
-      // iEvent.getByToken(genweightToken_, genweightHandle);
-      // b_genweight = (*genweightHandle);
+      edm::Handle<float> genweightHandle;
+      iEvent.getByToken(genweightToken_, genweightHandle);
+      b_genweight = (*genweightHandle);
       b_weight = b_genweight*b_puweight;
 
       edm::Handle<reco::GenParticleCollection> genParticles;
@@ -330,8 +351,12 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
     ////////////////////////////////////////////////////////////////////////////////
     // trigger
     edm::Handle<edm::TriggerResults> triggerBits;
+    for ( auto token : triggerBits_ ) {
+        if ( iEvent.getByToken(token, triggerBits) ) break;
+    }
+    //edm::Handle<edm::TriggerResults> triggerBits;
     edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
-    iEvent.getByToken(triggerBits_, triggerBits);
+    //iEvent.getByToken(triggerBits_, triggerBits);
     iEvent.getByToken(triggerObjects_, triggerObjects);
     const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
     AnalysisHelper trigHelper = AnalysisHelper(triggerNames, triggerBits, triggerObjects);
@@ -436,6 +461,11 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
     b_cat_eta = etaCategory(b_lep1.Eta(), b_lep2.Eta());
     b_cat = jetCategory(selectedJets, b_met, b_dilep.Pt());
 
+    if (b_njet > 1){
+      b_bumpcat1 = bumpCat1(selectedJets, selectedMuons);
+      b_bumpcat2 = bumpCat2(selectedJets, selectedMuons, b_met); 
+    }
+
     ttree_[sys]->Fill();
   }
   delete rmcor;
@@ -450,7 +480,7 @@ float h2muAnalyzer::selectMuons(const cat::MuonCollection& muons, cat::MuonColle
     
     float qter = 1.0;
     TLorentzVector tmu(mu.tlv());
-
+/*
     cout << "\n initial   " << mu.tlv().Pt()
 	 << ", " << mu.tlv().Eta()
 	 << ", " << mu.tlv().Phi()
@@ -458,14 +488,14 @@ float h2muAnalyzer::selectMuons(const cat::MuonCollection& muons, cat::MuonColle
 	 << " mu.trackerLayersWithMeasurement() " << mu.trackerLayersWithMeasurement()
 	 << " mu.numberOfValidHits() " << mu.numberOfValidHits()
 	 <<endl;
-    
+*/    
     if (runOnMC)
       rmcor->momcor_mc(tmu, mu.charge(), mu.trackerLayersWithMeasurement(), qter);
     else 
       rmcor->momcor_data(tmu, mu.charge(), 0, qter);
 
     mu.setP4(m.p4() * tmu.E()/mu.tlv().E());
-
+/*
     if (tmu.Pt() != mu.tlv().Pt()){
       cout << " corrected " << tmu.Pt()
 	   << ", " << tmu.Eta()
@@ -479,6 +509,7 @@ float h2muAnalyzer::selectMuons(const cat::MuonCollection& muons, cat::MuonColle
 	   << ", " << mu.tlv().M()
 	   <<endl;
     }
+*/
     if (sys == sys_mu_u) mu.setP4(m.p4() * m.shiftedEnUp());
     if (sys == sys_mu_d) mu.setP4(m.p4() * m.shiftedEnDown());
 
@@ -528,7 +559,7 @@ cat::JetCollection h2muAnalyzer::selectJets(const cat::JetCollection& jets, cat:
 
     if (jet.pt() < 30.) continue;
     if (std::abs(jet.eta()) > 4.7)  continue;
-    //if (!jet.LooseId()) continue;
+    if (!jet.LooseId()) continue;
 
     bool hasOverLap = false;
     for (auto lep : recolep){
@@ -546,7 +577,7 @@ void h2muAnalyzer::resetBr()
   b_nvertex = 0;b_step = 0;b_channel = 0;b_njet = 0;
   b_step1 = 0;b_step2 = 0;b_step3 = 0;b_step4 = 0;b_step5 = 0;b_step6 = 0;b_tri = 0;b_filtered = 0;
   b_met = 0;
-  b_weight = 0; b_puweight = 0; b_puweight_up = 0; b_puweight_dn = 0; b_genweight = 0;
+  b_weight = 1; b_puweight = 0; b_puweight_up = 0; b_puweight_dn = 0; b_genweight = 0;
   b_mueffweight = 0;b_mueffweight_up = 0;b_mueffweight_dn = 0;
   b_eleffweight = 0;b_eleffweight_up = 0;b_eleffweight_dn = 0;
   b_pdfWeights.clear();
@@ -554,6 +585,8 @@ void h2muAnalyzer::resetBr()
 
   b_cat = 0; b_cat_eta = 0;
   b_isLoose = 0; b_isMedium = 0; b_isTight = 0;
+
+  b_bumpcat1 = 0; b_bumpcat2 = 0;
  
   b_genlep1 = TLorentzVector(); b_genlep1_pid = 0;
   b_genlep2 = TLorentzVector(); b_genlep2_pid = 0;
@@ -617,6 +650,93 @@ int h2muAnalyzer::etaCategory(float lep1_eta, float lep2_eta) const
   if (GC == 200) return 6; // EE
   
   return -1;
+}
+
+bool h2muAnalyzer::bumpCategory(const cat::JetCollection& jets,const cat::MuonCollection& recolep)
+{
+  /*
+  for(int i=0;i<int(jets.size());i++){
+      std::vector<double> row;
+      row.push_back(jets[i].pt());
+      row.push_back(std::abs(jets[i].eta()));
+      row.push_back(jets[i].phi());
+      row.push_back(jets[i].bDiscriminator(BTAG_CSVv2));
+      jet2d.push_back(row);
+  }
+  sort(jet2d.begin(),jet2d.end(), [](std::vector<double> a, std::vector<double> b){return a[0] > b[0];});//sort by jet pt()
+  */
+  bumpcut[0]+=1;
+  if (recolep[0].charge() * recolep[1].charge() > 0) return false;
+  bumpcut[1]+=1;
+  if (recolep[0].pt() < 25 || recolep[1].pt() < 25) return false;
+  bumpcut[2]+=1;
+  if (recolep[0].eta() > 2.1 || recolep[1].eta() > 2.1) return false;
+  bumpcut[3]+=1;
+  return true;
+} 
+
+bool h2muAnalyzer::bumpCat1(const cat::JetCollection& jets,const cat::MuonCollection& recolep)
+{
+  bool event_cat=false;
+  if (!bumpCategory(jets,recolep)){return event_cat;}
+  int btagpass=0;
+  for(auto& j:jets){
+      cat::Jet jet(j);
+      if (jet.bDiscriminator(BTAG_CSVv2) > WP_BTAG_CSVv2T) {
+          //cout<<(*a)[0]<<", "<<(*a)[1]<<", "<<(*a)[2]<<", "<<WP_BTAG_CSVv2T<<endl;
+          if ( jet.pt() > 30. && jet.eta() < 2.4 ) btagpass++;
+      }
+      else {
+          if( jet.pt() > 30. && jet.eta() < 2.4 ) return false;
+          if( jet.pt() > 30. && jet.eta() > 2.4 && jet.eta() < 4.7){
+            event_cat=true;
+            bumpcut[4]+=1;
+          }
+      }
+  }
+  if (btagpass==0){
+      return false;
+  }
+  else {
+      bumpcut[5]+=1;
+      return event_cat;
+  }
+}
+
+bool h2muAnalyzer::bumpCat2(const cat::JetCollection& jets,const cat::MuonCollection& recolep, float met)
+{
+  bool event_cat=false;
+  if (!bumpCategory(jets,recolep)){return event_cat;}
+  int btag=0;
+  int cond=0;
+  TLorentzVector dilep = recolep[0].tlv() + recolep[1].tlv();
+  TLorentzVector dijet(0,0,0,0);
+  for(auto& j:jets){
+      cat::Jet jet(j);
+      if ( jet.pt() > 30. && jet.eta() > 2.4 && jet.eta() < 4.7 ) continue;
+      if ( jet.pt() < 30. || jet.eta() > 2.4 ) continue;
+      cond+=1;
+      if ( jet.bDiscriminator(BTAG_CSVv2) > WP_BTAG_CSVv2T ){
+          btag+=1;
+          dijet+=jet.tlv();
+      }
+      else if ( jet.bDiscriminator(BTAG_CSVv2) < WP_BTAG_CSVv2T ){
+          dijet+=jet.tlv();
+      }
+  }
+  //cout<<dijet.Phi()<<endl;
+  // dilep and dijet passed the previous cut
+  double delta_phi = std::abs(dilep.Phi()-dijet.Phi());
+  // 2nd event category
+  if ( (btag > 0) && (cond == 2) ){
+      //printf("no error\n");
+      if (met<40 && delta_phi>2.5){
+          event_cat=true;
+          //cout<<delta_phi<<endl;
+          bumpcut[6]+=1;
+      }
+  }
+  return event_cat; 
 }
 
 //define this as a plug-in

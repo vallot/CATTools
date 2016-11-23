@@ -20,12 +20,13 @@ json_used = 'Golden'
 datalumi = 15920 #15.92fb-1
 version = os.environ['CMSSW_VERSION']
 
-rootfileDir = "/xrootd/store/user/pseudotop/ntuples/results_merged/%s/h2muAnalyzer_"%version
+rootfileDir = "/xrootd/store/user/pseudotop/ntuples/results_merged/%s_bump2/h2muAnalyzer_"%version
 #rootfileDir = "/xrootd/store/user/pseudotop/ntuples/results_merged/v7-6-3/h2muAnalyzer_"
 #rootfileDir = "%s/src/CATTools/CatAnalyzer/test/results_merged/h2muAnalyzer_" % os.environ['CMSSW_BASE']
 #rootfileDir = "%s/cattuples/20160324_163101/results_merged/h2muAnalyzer_" % os.environ['HOME_SCRATCH']
 
 CMS_lumi.lumi_sqrtS = "%.2f fb^{-1}, #sqrt{s} = 13 TeV 25ns "%(float(datalumi)/1000)
+"""
 mcfilelist = [
               'GG_HToMuMu',
              # 'GluGluToZZTo2mu2tau',
@@ -47,6 +48,8 @@ mcfilelist = [
               'DYJets_10to50',
              ]#ref : https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToMuMu
 #mcfilelist = ['VBF_HToMuMu','WW','WZ','ZZ','TT_powheg','DYJets','DYJets_10to50']#,'WJets']
+"""
+mcfilelist = []
 rdfilelist = [
               'SingleMuon_Run2016',#mumu
               #'SingleMuon_Run2015C',
@@ -55,19 +58,22 @@ rdfilelist = [
 
 datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset/dataset.json" % os.environ['CMSSW_BASE']))
 
+bumpcat=2
 #cut_step = "(step>=5)"
-cut = 'dilep.M()>20&&step>=5'
+#cut = 'dilep.M()>10&&step>=1&&bumpcat==%d'%bumpcat
+cut = 'dilep.M()>10&&bumpcat%d==1'%bumpcat
 #cut = 'filtered==1&&%s&&%s'%(cut_step,emu_pid)
 #cut = 'channel==2'
 print cut
 #weight = 'genweight*puweight*mueffweight*eleffweight*tri'
-weight = 'weight*(mueffweight)'
+weight = 'weight'
 plotvar = 'dilep.M()'
-binning = [300, 0, 300]
+#binning = [300, 0, 300]
+binning = [30, 10, 70]
 x_name = 'mass [GeV]'
-y_name = 'events'
+y_name = 'events/2 GeV'
 dolog = False
-f_name = 'll_m'
+f_name = 'll_m_bump%d'%bumpcat
 
 try:
     opts, args = getopt.getopt(sys.argv[1:],"hdc:w:b:p:x:y:f:j:",["cut","weight","binning","plotvar","x_name","y_name","f_name","json_used","dolog"])
@@ -188,47 +194,10 @@ for imc,mcname in enumerate(mcfilelist):
             bg[5]+= remchist.Integral(remchist.FindBin(120),remchist.FindBin(130))
 '''        
 print "rdfname: %s\n tname: %s\n binning: %s\n plotvar: %s\n tcut: %s\n"%(rdfname, tname, binning, plotvar, tcut)
+print CMS_lumi
 rdhist = makeTH1(rdfname, tname, 'data', binning, plotvar, tcut)
-#drawTH1(f_name, CMS_lumi, mchistList, rdhist, x_name, y_name,dolog)
-
-print "="*50
-print rfname
-print "="*50
-x_min = 110
-f_txt_bw = open("bw_%s.txt"%(f_name),"w")
-while (x_min<140):
-  if plotvar == 'dilep.M()':# blind data around higgs mass
-    f_txt = open("events_%s.txt"%(f_name),"w")
-    print>>f_txt, "Run data : %s\n cut : %s\n # : \n %d\n"%(rdfilelist[0],f_name,rdhist.Integral(rdhist.FindBin(100),rdhist.FindBin(110)))
-    value=[0,0,0,0]
-    value[0],value[1],value[2],value[3] = drawBWFit("bw_"+f_name+".png",rdhist,88,94)
-    print>>f_txt_bw, "==== %d ===="%(x_min)   
-    print>>f_txt_bw, "f_name : %s\n mean : %f\n mean error : %f\n gamma : %f\n gamma error : %f\n"%(f_name,value[0],value[1],value[2],value[3])
-    #f_txt2 = open("eventlist_%s_%s.txt"%(rdfilelist[0],f_name),"w")
-    #print>>f_txt2, 
- #   print>>f2_txt, " cut : %s\n"%(f_name)
- #   for j in range(6):
- #       print>>f2_txt, "*"*(50)
- #       print>>f2_txt, " datalumi : %s\n sig : %s\n bg : %s\n significance : %s\n"%(lumilist[j],sig[j],bg[j],(sig[j]/math.sqrt(sig[j]+bg[j])))
-   
-    parameterization("fit_"+f_name+"_%d.png"%(x_min),CMS_lumi,rdhist, mchistList, x_min, binning[2], value[0], value[1], value[2], value[3])
-    if 'SingleMuon' in rdfname:
-        if len(binning) == 3:
-            htmp = ROOT.TH1D("tmp", "tmp", binning[0], binning[1], binning[2])
-        else:
-            htmp = ROOT.TH1D("tmp", "tmp", len(binning)-1, array.array('f', binning))
-        for i in range(binning[1],binning[2]):
-            if (rdhist.FindBin(120)<=i<=rdhist.FindBin(130)):continue
-            entries=rdhist.GetBinContent(i)
-            htmp.SetBinContent(i,entries)
-            
-    #after blind the signal region.
-    parameterization("fit_"+f_name+"_%d_signal_region_blinded.png"%(x_min), CMS_lumi,htmp, mchistList, x_min, binning[2], value[0], value[1], value[2], value[3],False,True)
-    #f_txt2.close()
-    f_txt.close()
-    f2_txt.close()
-    x_min +=10
-    if x_min>110:break
-
-f_txt_bw.close()
+canv = ROOT.TCanvas()
+rdhist.Draw()
+canv.SaveAs("%s.png"%f_name)
+#drawTH1(f_name, CMS_lumi, mchistList, rdhist, x_name, y_name)
 

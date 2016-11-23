@@ -225,7 +225,7 @@ rochcor2016::~rochcor2016(){
 rochcor2016::rochcor2016(){
 
   muresol1.init("./RoccoR_13tev.txt");
-  muresol1.dumpParams();
+//  muresol1.dumpParams();
   
   eran.SetSeed(123456);
   sran.SetSeed(1234);
@@ -247,7 +247,7 @@ rochcor2016::rochcor2016(){
 rochcor2016::rochcor2016(int seed){
 
   muresol1.init("./RoccoR_13tev.txt");
-  muresol1.dumpParams();
+//  muresol1.dumpParams();
 
   eran.SetSeed(123456);
   sran.SetSeed(seed);
