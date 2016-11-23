@@ -39,7 +39,7 @@ process.catOut.outputCommands = catEventContent
 
 if runOnMC:
     process.load("CATTools.CatProducer.pileupWeight_cff")
-    process.load("CATTools.CatProducer.genWeight_cff")
+    process.load("CATTools.CatProducer.producers.genWeight_cff")
     process.catOut.outputCommands.extend(catEventContentMC)
 else: 
     process.catOut.outputCommands.extend(catEventContentRD)
@@ -73,7 +73,7 @@ catTool(process, runOnMC, useMiniAOD)
 ####################################################################
 #### setting up pat tools - miniAOD step or correcting miniAOD
 ####################################################################
-from CATTools.CatProducer.patTools_cff import *
+from CATTools.CatProducer.patTools.patTools_cff import *
 patTool(process, runOnMC, useMiniAOD)
 ####################################################################
 #### cmsRun options

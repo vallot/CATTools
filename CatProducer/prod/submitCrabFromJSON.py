@@ -1,10 +1,15 @@
 #!/usr/bin/env python
 import sys, os
 
-if len(sys.argv) < 2:
+if len(sys.argv) < 2 or '-h' in sys.argv or '--help' in sys.argv:
     print "Usage: %s vX-Y-Z"
     print "or, you can put your own 'catGetDatasetInfo'-compatible json file"
-    sys.exit(1)
+    sys.exit(0)
+
+doSubmit = True 
+if '--dryrun' in sys.argv:
+    doSubmit = False
+    sys.argv.remove('--dryrun')
 
 reqName = ""
 if sys.argv[1].endswith('.json'):
@@ -59,50 +64,67 @@ for d in datasets:
 
 ## Now job configuration is almost ready. Use CrabAPI to configure jobs
 from WMCore.Configuration import Configuration
-config = Configuration()
+def initConfig(runOnMC):
+    config = Configuration()
 
-config.section_("General")
-config.General.transferLogs    = False
-config.General.transferOutputs = True
+    config.section_("General")
+    config.General.transferLogs    = False
+    config.General.transferOutputs = True
 
-config.section_("JobType")
-config.JobType.pluginName  = 'Analysis'
-config.JobType.psetName    = 'PAT2CAT_cfg.py'
+    config.section_("JobType")
+    config.JobType.pluginName  = 'Analysis'
+    config.JobType.psetName    = 'PAT2CAT_cfg.py'
 
-config.section_("Data")
-config.Data.publication  = False
-config.Data.allowNonValidInputDataset = True
+    config.section_("Data")
+    config.Data.publication  = False
+    config.Data.allowNonValidInputDataset = True
 
-config.section_("Site")
-config.Site.storageSite = 'T3_KR_KISTI'
-config.Data.outLFNDirBase = '/store/group/CAT/' 
+    config.section_("Site")
+    config.Site.storageSite = 'T3_KR_KISTI'
+    config.Data.outLFNDirBase = '/store/group/CAT/' 
+
+    if runOnMC:
+        config.Data.splitting='FileBased'
+        config.Data.unitsPerJob=1 
+    else:
+        config.Data.splitting = 'LumiBased'
+        config.Data.unitsPerJob = 40
+        config.Data.lumiMask = os.environ['CMSSW_BASE']+'/src/CATTools/CatProducer/data/LumiMask/'+cat.lumiJSON+".txt"
+    return config
 
 ## Start job submission
 from CRABAPI.RawCommand import crabCommand
 
 ## Submit real data jobs
-config.Data.splitting = 'LumiBased'
-config.Data.unitsPerJob = 40
-config.Data.lumiMask = os.environ['CMSSW_BASE']+'/src/CATTools/CatProducer/data/LumiMask/'+cat.lumiJSON+".txt"
+configs = []
+import time
 for name, dataset, opts in queuesRD:
-    print "@@@ Submitting", name
+    print "@@@ Creating", name
     label = dataset.split('/')[1]+'_'+dataset.split('/')[2]
+    config = initConfig(False)
     config.General.requestName = '%s_%s' % (reqName, label)
     config.Data.inputDataset = dataset
     config.Data.outputDatasetTag = '%s_%s' % (reqName, dataset.split('/')[2])
     config.JobType.pyCfgParams = opts
-    crabCommand('submit', config=config)
-    
-## Submit MC jobs
-config.Data.splitting='FileBased'
-config.Data.unitsPerJob=1 
-config.Data.lumiMask = ''
-for name, dataset, opts in queuesMC:
+    print config
+    continue
     print "@@@ Submitting", name
+    crabCommand('submit', config=config, dryrun=(not doSubmit))
+    time.sleep(1)
+    configs.append(config)
+
+## Submit MC jobs
+for name, dataset, opts in queuesMC:
+    print "@@@ Creating", name
     label = dataset.split('/')[1]
+    config = initConfig(True)
     config.General.requestName = '%s_%s' % (reqName, label)
     config.Data.inputDataset = dataset
     config.Data.outputDatasetTag = '%s_%s' % (reqName, dataset.split('/')[2])
     config.JobType.pyCfgParams = opts
-    crabCommand('submit', config=config)
-
+    print config
+    continue
+    print "@@@ Submitting", name
+    crabCommand('submit', config=config, dryrun=(not doSubmit))
+    time.sleep(1)
+    configs.append(config)
