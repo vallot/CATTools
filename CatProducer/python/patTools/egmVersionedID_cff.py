@@ -9,8 +9,8 @@ def enableElectronVID(process):
         'cutBasedElectronHLTPreselecition_Summer16_V1_cff',
         'cutBasedElectronID_Summer16_80X_V1_cff',
         'heepElectronID_HEEPV60_cff',
-        'mvaElectronID_Spring15_25ns_Trig_V1_cff',
-        'mvaElectronID_Spring15_25ns_nonTrig_V1_cff',
+        'mvaElectronID_Spring16_GeneralPurpose_V1_cff',
+        'mvaElectronID_Spring16_HZZ_V1_cff',
     ]
     for idmod in electron_ids:
         idmod = "RecoEgamma.ElectronIdentification.Identification."+idmod
@@ -23,16 +23,16 @@ def enableElectronVID(process):
         "egmGsfElectronIDs:cutBasedElectronID-Summer16-80X-V1-tight",
         "egmGsfElectronIDs:cutBasedElectronHLTPreselection-Summer16-V1",
         "egmGsfElectronIDs:heepElectronID-HEEPV60",
-        "egmGsfElectronIDs:mvaEleID-Spring15-25ns-nonTrig-V1-wp80",
-        "egmGsfElectronIDs:mvaEleID-Spring15-25ns-nonTrig-V1-wp90",
-        "egmGsfElectronIDs:mvaEleID-Spring15-25ns-Trig-V1-wp90",
-        "egmGsfElectronIDs:mvaEleID-Spring15-25ns-Trig-V1-wp80",
+        "egmGsfElectronIDs:mvaEleID-Spring16-GeneralPurpose-V1-wp90",
+        "egmGsfElectronIDs:mvaEleID-Spring16-GeneralPurpose-V1-wp80",
+        "egmGsfElectronIDs:mvaEleID-Spring16-HZZ-V1-wpLoose",
     ]
     process.catElectrons.electronIDSources = cms.PSet()
     for idName in electron_idNames:
         setattr(process.catElectrons.electronIDSources,
-                idName.split(':')[-1].replace('-','_'),
+                idName.split(':',1)[1].replace('-','_'),
                 cms.InputTag(idName))
+        process.catElectrons.electronIDs.append(idName.split(':',1)[1])
 
     return process
 
@@ -58,8 +58,9 @@ def enablePhotonVID(process):
     process.catPhotons.photonIDSources = cms.PSet()
     for idName in photon_idNames:
         setattr(process.catPhotons.photonIDSources,
-                idName.split(':')[-1].replace('-','_'),
+                idName.split(':',1)[1].replace('-','_'),
                 cms.InputTag(idName))
+        process.catPhotons.photonIDs.append(idName.split(':',1)[1])
 
     return process
 
