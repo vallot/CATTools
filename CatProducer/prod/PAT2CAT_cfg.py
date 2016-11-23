@@ -10,7 +10,6 @@ options.register('runOnMC', True, VarParsing.multiplicity.singleton, VarParsing.
 options.register('useMiniAOD', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "useMiniAOD: 1  default")
 options.register('globalTag', '', VarParsing.multiplicity.singleton, VarParsing.varType.string, "globalTag: 1  default")
 options.register('runGenTop', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runGenTop: 1  default")
-options.register('runOnRelVal', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runOnRelVal: 1  default")
 
 options.parseArguments()
 runOnMC = options.runOnMC
@@ -22,12 +21,13 @@ else: runGenTop = False
 ####################################################################
 #### setting up global tag
 ####################################################################
-from Configuration.AlCa.autoCond_condDBv2 import autoCond
-process.GlobalTag.globaltag = autoCond['run2_mc']
-if not runOnMC:
-    process.GlobalTag.globaltag = autoCond['run2_data']
-if globalTag:
-    process.GlobalTag.globaltag = globalTag
+#from Configuration.AlCa.autoCond_condDBv2 import autoCond
+#if runOnMC: process.GlobalTag.globaltag = autoCond['run2_mc']
+#else: process.GlobalTag.globaltag = autoCond['run2_data']
+if not globalTag:
+    if runOnMC: from CATTools.CatProducer.catDefinitions_cfi import globalTag_mc as globalTag
+    else: from CATTools.CatProducer.catDefinitions_cfi import globalTag_rd as globalTag
+process.GlobalTag.globaltag = globalTag
 print "runOnMC =",runOnMC,"and useMiniAOD =",useMiniAOD
 print "process.GlobalTag.globaltag =",process.GlobalTag.globaltag    
 ####################################################################
@@ -39,7 +39,7 @@ process.catOut.outputCommands = catEventContent
 
 if runOnMC:
     process.load("CATTools.CatProducer.pileupWeight_cff")
-    process.load("CATTools.CatProducer.genWeight_cff")
+    process.load("CATTools.CatProducer.producers.genWeight_cff")
     process.catOut.outputCommands.extend(catEventContentMC)
 else: 
     process.catOut.outputCommands.extend(catEventContentRD)
@@ -73,7 +73,7 @@ catTool(process, runOnMC, useMiniAOD)
 ####################################################################
 #### setting up pat tools - miniAOD step or correcting miniAOD
 ####################################################################
-from CATTools.CatProducer.patTools_cff import *
+from CATTools.CatProducer.patTools.patTools_cff import *
 patTool(process, runOnMC, useMiniAOD)
 ####################################################################
 #### cmsRun options

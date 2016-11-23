@@ -25,7 +25,7 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         jecFile = jecFile+"_DATA"
     if useJECfile:
         from CondCore.CondDB.CondDB_cfi import CondDB
-        CondDB.__delattr__('connect')
+        if hasattr(CondDB, 'connect'): delattr(CondDB, 'connect')
         process.jec = cms.ESSource("PoolDBESSource",CondDB,
             connect = cms.string('sqlite_fip:CATTools/CatProducer/data/JEC/%s.db'%jecFile),            
             toGet = cms.VPSet(
@@ -154,12 +154,12 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         #del process.slimmedMETsNoHF.caloMET        
         #######################################################################
         ## Energy/Photon smearing and scale correction
-        from CATTools.CatProducer.EGamma.smearing_cff import enableElectronSmearing, enablePhotonSmearing
+        from CATTools.CatProducer.patTools.egmSmearing_cff import enableElectronSmearing, enablePhotonSmearing
         enableElectronSmearing(process, runOnMC)
         enablePhotonSmearing(process, runOnMC)
         
         ## Electron/Photon VID
-        from CATTools.CatProducer.EGamma.versionnedID_cff import enableElectronVID, enablePhotonVID
+        from CATTools.CatProducer.patTools.egmVersionedID_cff import enableElectronVID, enablePhotonVID
         enableElectronVID(process)
         enablePhotonVID(process)
        
