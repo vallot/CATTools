@@ -14,23 +14,22 @@ def enableQGLikelihood(process, qgDatabaseVersion='v2b', runOnMC=True, useMiniAO
     )
 
     process.load('RecoJets.JetProducers.QGTagger_cfi')
-    process.QGTagger.jetsLabel = cms.string('QGL_AK4PFchs')
-
-    if useMiniAOD:
-        process.QGTagger.srcJets = cms.InputTag("slimmedJets")
-    else:
-        process.QGTagger.srcJets = cms.InputTag("updatedPatJets")
-        #process.QGTagger.srcJets    = cms.InputTag("selectedPatJetsAK4PFCHS")
-
     for type in ['AK4PFchs']:#, 'AK4PF',]:
         process.QGPoolDBESSource.toGet.extend(cms.VPSet(cms.PSet(
             record = cms.string('QGLikelihoodRcd'),
             tag    = cms.string('QGLikelihoodObject_'+qgDatabaseVersion+'_'+type),
             label  = cms.untracked.string('QGL_'+type)
         )))
-
     process.es_prefer_QGPoolDBESSource = cms.ESPrefer("PoolDBESSource","QGPoolDBESSource")
 
-    process.catJets.qgLikelihood.src = 'QGTagger:qgLikelihood'
+    process.QGTagger.jetsLabel = cms.string('QGL_AK4PFchs')
+    #if useMiniAOD:
+    #    process.QGTagger.srcJets = cms.InputTag("slimmedJets")
+    #else:
+    #    process.QGTagger.srcJets = cms.InputTag("updatedPatJets")
+    #    #process.QGTagger.srcJets    = cms.InputTag("selectedPatJetsAK4PFCHS")
+
+    process.catJets.qgLikelihood = 'QGTagger:qgLikelihood'
+    process.QGTagger.srcJets = process.catJets.src
 
     return process

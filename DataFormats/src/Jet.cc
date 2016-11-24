@@ -25,7 +25,8 @@ Jet::Jet(const reco::LeafCandidate & aJet) :
   partonPdgId_(0),
   shiftedEnDown_(1),
   shiftedEnUp_(1),					     
-  fJER_(1), fJERUp_(1), fJERDown_(1)
+  fJER_(1), fJERUp_(1), fJERDown_(1),
+  qgLikelihood_(-2)
 {}
 
 /// destructor

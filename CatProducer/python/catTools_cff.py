@@ -66,11 +66,6 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
 
 #process.options.allowUnscheduled = cms.untracked.bool(True)
 
-        ## qg-likelihood
-        # check https://twiki.cern.ch/twiki/bin/viewauth/CMS/QGDataBaseVersion
-        from CATTools.CatProducer.patTools.jetQGLikelihood_cff import enableQGLikelihood
-        process = enableQGLikelihood(process, qgDatabaseVersion="v2b", runOnMC=runOnMC, useMiniAOD=useMiniAOD)
-
         #######################################################################
         ## applying new jec on the fly
         process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
@@ -113,6 +108,11 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
             engineName = cms.untracked.string('TRandom3'),
             initialSeed = cms.untracked.uint32(1),
         )
+
+        ## qg-likelihood
+        # check https://twiki.cern.ch/twiki/bin/viewauth/CMS/QGDataBaseVersion
+        from CATTools.CatProducer.patTools.jetQGLikelihood_cff import enableQGLikelihood
+        process = enableQGLikelihood(process, qgDatabaseVersion="v2b", runOnMC=runOnMC, useMiniAOD=useMiniAOD)
 
         ## #######################################################################
         ## # MET corrections from https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
