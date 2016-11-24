@@ -44,7 +44,7 @@ catEventContentTOPMC.extend([
     'keep *_GenTtbarCategories_*_*',
     'keep *_GenTtbarCategories*_*_*',
     'keep *_catGenTops_*_*',
-    'keep *_partonTop_*_*',
+    #'keep *_partonTop_*_*', ## Can be built on the fly from prunedGenParticles
     'keep *_pseudoTop_*_*',
     'keep *_genJetHadronFlavour_*_*',
     ])
