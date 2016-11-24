@@ -24,6 +24,7 @@ catEventContent.extend([
     'keep patPackedTriggerPrescales_patTrigger__*',
     'keep *_lumiMask*_*_*',
     'keep *_fixedGridRhoAll_*_', 'keep *_fixedGridRhoFastjetAll_*_*',
+    'keep *_BadChargedCandidateFilter_*_*', 'keep *_BadPFMuonFilter_*_*',
     ])
 
 catEventContentRD.extend([

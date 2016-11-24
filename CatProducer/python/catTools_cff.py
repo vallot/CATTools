@@ -47,20 +47,9 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         print "JEC based on", process.jec.connect
     
     if useMiniAOD: ## corrections when using miniAOD
-        #######################################################################
-        ## Event filters from MET https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2
-        ## New muon filters to be run on the fly
-        process.load('RecoMET.METFilters.BadPFMuonFilter_cfi')
-        process.BadPFMuonFilter.muons = cms.InputTag("slimmedMuons")
-        process.BadPFMuonFilter.PFCandidates = cms.InputTag("packedPFCandidates")
+        from CATTools.CatProducer.patTools.metFilters_cff import enableAdditionalMETFilters
+        process = enableAdditionalMETFilters(process, runOnMC)
 
-        process.load('RecoMET.METFilters.BadChargedCandidateFilter_cfi')
-        process.BadChargedCandidateFilter.muons = cms.InputTag("slimmedMuons")
-        process.BadChargedCandidateFilter.PFCandidates = cms.InputTag("packedPFCandidates")
-            
-        process.nEventsFiltered = cms.EDProducer("EventCountProducer")
-    
-        process.p += (process.BadPFMuonFilter*process.BadChargedCandidateFilter*process.nEventsFiltered)
         #######################################################################
         # adding puppi https://twiki.cern.ch/twiki/bin/view/CMS/PUPPI        
         #process.catJetsPuppi.src = cms.InputTag("slimmedJetsPuppi")
