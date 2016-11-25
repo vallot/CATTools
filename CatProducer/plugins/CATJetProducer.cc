@@ -51,7 +51,7 @@ namespace cat {
     edm::EDGetTokenT<edm::ValueMap<float>> qgToken_;
 
     const std::vector<std::string> btagNames_;
-    std::string uncertaintyTag_, payloadName_, jetalgoName_;
+    std::string uncertaintyTag_, payloadName_;
     const std::string jetResFilePath_, jetResSFFilePath_;
     bool setGenParticle_;
     bool runOnMC_;
@@ -66,15 +66,15 @@ namespace cat {
 cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
   src_(consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("src"))),
   rhoToken_(consumes<double>(iConfig.getParameter<edm::InputTag>("rho"))),
+  qgToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("qgLikelihood"))),
   btagNames_(iConfig.getParameter<std::vector<std::string> >("btagNames")),
   payloadName_(iConfig.getParameter<std::string>("payloadName")),
   jetResFilePath_(edm::FileInPath(iConfig.getParameter<std::string>("jetResFile")).fullPath()),
   jetResSFFilePath_(edm::FileInPath(iConfig.getParameter<std::string>("jetResSFFile")).fullPath()),
   setGenParticle_(iConfig.getParameter<bool>("setGenParticle"))
 {
-    qgToken_ = consumes<edm::ValueMap<float>>(edm::InputTag("QGTagger", "qgLikelihood"));
-    jetalgoName_ = iConfig.getParameter<edm::InputTag>("src").label();
-    produces<std::vector<cat::Jet> >();
+
+  produces<std::vector<cat::Jet> >();
 }
 
 void cat::CATJetProducer::beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&)
@@ -181,17 +181,12 @@ void cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     aJet.setPartonPdgId(partonPdgId);
 
     // calculate quark/gluon likelihood but only for AK4
-
-    if (jetalgoName_=="updatedPatJets")
-    {
-        edm::RefToBase<pat::Jet> jetRef(edm::Ref<pat::JetCollection>(src, aPatJetPointer - src->begin()));
-        float qgLikelihood = (*qgHandle)[jetRef];
-        aJet.setQGLikelihood(qgLikelihood);
-        //aJet.setQGLikelihood(aPatJet.userFloat("QGTaggerAK4PFCHS:qgLikelihood"));
-    }
-    else // for others, it's undefined
-    {
-        aJet.setQGLikelihood(-2.0);
+    aJet.setQGLikelihood(-2.0);
+    if ( qgHandle.isValid() ) {
+      edm::RefToBase<pat::Jet> jetRef(edm::Ref<pat::JetCollection>(src, aPatJetPointer - src->begin()));
+      float qgLikelihood = (*qgHandle)[jetRef];
+      aJet.setQGLikelihood(qgLikelihood);
+      //aJet.setQGLikelihood(aPatJet.userFloat("QGTaggerAK4PFCHS:qgLikelihood"));
     }
 
     // setting JEC uncertainty
