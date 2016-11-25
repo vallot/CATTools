@@ -116,6 +116,7 @@ for name, dataset, opts in queuesRD:
     else: os.system('crab submit --dryrun %s' % fName)
     time.sleep(1)
     os.remove(fName)
+    if os.path.exists(fName+'c'): os.remove(fName+'c') ## remove .pyc file
 
 ## Submit MC jobs
 for name, dataset, opts in queuesMC:
@@ -136,3 +137,4 @@ for name, dataset, opts in queuesMC:
     else: os.system('crab submit --dryrun %s' % fName)
     time.sleep(1)
     os.remove(fName)
+    if os.path.exists(fName+'c'): os.remove(fName+'c') ## remove .pyc file
