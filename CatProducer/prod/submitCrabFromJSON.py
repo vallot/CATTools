@@ -93,11 +93,11 @@ def initConfig(runOnMC):
     return config
 
 ## Start job submission
-from CRABAPI.RawCommand import crabCommand
+#from CRABAPI.RawCommand import crabCommand
 
 ## Submit real data jobs
-configs = []
 import time
+from tempfile import mkstemp
 for name, dataset, opts in queuesRD:
     print "@@@ Creating", name
     label = dataset.split('/')[1]+'_'+dataset.split('/')[2]
@@ -106,12 +106,17 @@ for name, dataset, opts in queuesRD:
     config.Data.inputDataset = dataset
     config.Data.outputDatasetTag = '%s_%s' % (reqName, dataset.split('/')[2])
     config.JobType.pyCfgParams = opts
-    print config
-    continue
+    fd, fName = mkstemp(suffix='.py')
+    f = os.fdopen(fd, 'w')
+    print>>f, config
+    f.close()
     print "@@@ Submitting", name
-    crabCommand('submit', config=config, dryrun=(not doSubmit))
+    #crabCommand('submit', config=fName, dryrun=(not doSubmit))
+    if doSubmit: os.system('crab submit %s' % fName)
+    else: os.system('crab submit --dryrun %s' % fName)
     time.sleep(1)
-    configs.append(config)
+    os.remove(fName)
+    if os.path.exists(fName+'c'): os.remove(fName+'c') ## remove .pyc file
 
 ## Submit MC jobs
 for name, dataset, opts in queuesMC:
@@ -122,9 +127,14 @@ for name, dataset, opts in queuesMC:
     config.Data.inputDataset = dataset
     config.Data.outputDatasetTag = '%s_%s' % (reqName, dataset.split('/')[2])
     config.JobType.pyCfgParams = opts
-    print config
-    continue
+    fd, fName = mkstemp(suffix='.py')
+    f = os.fdopen(fd, 'w')
+    print>>f, config
+    f.close()
     print "@@@ Submitting", name
-    crabCommand('submit', config=config, dryrun=(not doSubmit))
+    #crabCommand('submit', config=fName, dryrun=(not doSubmit))
+    if doSubmit: os.system('crab submit %s' % fName)
+    else: os.system('crab submit --dryrun %s' % fName)
     time.sleep(1)
-    configs.append(config)
+    os.remove(fName)
+    if os.path.exists(fName+'c'): os.remove(fName+'c') ## remove .pyc file
