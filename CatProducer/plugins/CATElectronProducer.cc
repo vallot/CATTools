@@ -224,7 +224,6 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     }
 
     int snu_id = getSNUID(aPatElectron.full5x5_sigmaIetaIeta(), abs(aPatElectron.deltaEtaSuperClusterTrackAtVtx() ), abs(aPatElectron.deltaPhiSuperClusterTrackAtVtx() ), aPatElectron.hcalOverEcal(), eoverp, abs(aElectron.dz()) , aPatElectron.gsfTrack()->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS), aPatElectron.passConversionVeto(),aPatElectron.superCluster()->eta() );
-
     aElectron.setSNUID(snu_id);
 
     // Fill the validity flag of triggered MVA
@@ -274,25 +273,23 @@ int cat::CATElectronProducer::getSNUID(float full5x5_sigmaIetaIeta, float deltaE
   //Spring15 selection, 25ns selection
   //string id [4] = {"veto", "loose","medium", "tight" };
 
-  double l_b_sieie   [4] = { 0.0114, 0.0103, 0.0101 , 0.0101 };
-  double l_b_dEtaIn  [4] = { 0.0152, 0.0105, 0.0103,  0.00926};
-  double l_b_dPhiIn  [4] = { 0.216,  0.115,  0.0336,  0.0336};
-  double l_b_hoe     [4] = { 0.181,  0.104,  0.0876,  0.0597};
-  double l_b_dZ      [4] = { 0.472,  0.41,   0.373,   0.0466};
-  double l_b_ep      [4] = { 0.207,  0.102,  0.0174,  0.012};
-  int    l_b_missHits[4] = { 2,      2,      2,       2};
+  double l_b_sieie   [4] = { 0.0115, 0.011, 0.00998, 0.00998};
+  double l_b_dEtaIn  [4] = { 0.00749,0.00477, 0.00311, 0.00308};
+  double l_b_dPhiIn  [4] = { 0.228, 0.222, 0.103, 0.0816};
+  double l_b_hoe     [4] = { 0.356, 0.298, 0.253, 0.0414};
+  double l_b_ep      [4] = { 0.299, 0.241, 0.134, 0.0129};
+  int    l_b_missHits[4] = { 2, 1, 1, 1};
 
   //----------------------------------------------------------------------
   // Endcap electron cut values
   //----------------------------------------------------------------------
-
-  double l_e_sieie   [4] = { 0.0352,  0.0301,  0.0283,  0.0279};
-  double l_e_dEtaIn  [4] = { 0.0113,  0.00814, 0.00733, 0.00724};
-  double l_e_dPhiIn  [4] = { 0.237,   0.182,   0.114,   0.0918};
-  double l_e_hoe     [4] = { 0.116,   0.0897,  0.0678,  0.0615};
-  double l_e_dZ      [4] = { 0.921,   0.822,   0.602,   0.417};
-  double l_e_ep      [4] = { 0.174,   0.126,   0.0898,  0.00999};
-  int    l_e_missHits[4] = { 3,       1,       1,       1};
+  
+  double l_e_sieie   [4] = { 0.037, 0.0314, 0.0298, 0.0292};
+  double l_e_dEtaIn  [4] = { 0.00895, 0.00868, 0.00609, 0.00605};
+  double l_e_dPhiIn  [4] = { 0.213, 0.213, 0.045, 0.0394};
+  double l_e_hoe     [4] = { 0.211, 0.101, 0.0878, 0.0641};
+  double l_e_ep      [4] = { 0.15, 0.14, 0.13,0.0129};
+  int    l_e_missHits[4] = { 3, 1, 1, 1};
 
   int flag_id=0;
   for(int i=0; i < 4; i++){
@@ -303,7 +300,6 @@ int cat::CATElectronProducer::getSNUID(float full5x5_sigmaIetaIeta, float deltaE
       if(deltaPhiSuperClusterTrackAtVtx >= l_b_dPhiIn[i])pass_id = false;
       if(hoverE >= l_b_hoe[i])pass_id = false;
       if(eoverp >= l_b_ep[i])pass_id = false;
-      if(std::abs(dz) >=  l_b_dZ[i])pass_id = false;
       if(exp_miss_innerhits > l_b_missHits[i])pass_id = false;
       if(!pass_conversion_veto) pass_id = false;
     }
@@ -313,7 +309,6 @@ int cat::CATElectronProducer::getSNUID(float full5x5_sigmaIetaIeta, float deltaE
       if(deltaPhiSuperClusterTrackAtVtx>= l_e_dPhiIn[i])pass_id = false;
       if(hoverE>= l_e_hoe[i])pass_id = false;
       if(eoverp>= l_e_ep[i])pass_id = false;
-      if(std::abs(dz) >=  l_e_dZ[i])pass_id = false;
       if(exp_miss_innerhits > l_e_missHits[i])pass_id = false;
       if(!pass_conversion_veto) pass_id = false;
     }
@@ -334,15 +329,15 @@ cat::CATElectronProducer::getEffArea( float dR, float scEta)
   // else
   //   return ElectronEffectiveArea::GetElectronEffectiveArea( ElectronEffectiveArea::kEleGammaAndNeutralHadronIso04, scEta, electronEATarget);
 
-  // new effArea 
+  // new effArea  https://github.com/ikrav/cmssw/blob/egm_id_80X_v1/RecoEgamma/ElectronIdentification/data/Summer16/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_80X.txt
   float absEta = std::abs(scEta);
-  if ( 0.0000 >= absEta && absEta < 1.0000 ) return 0.1752;
-  if ( 1.0000 >= absEta && absEta < 1.4790 ) return 0.1862;
-  if ( 1.4790 >= absEta && absEta < 2.0000 ) return 0.1411;
-  if ( 2.0000 >= absEta && absEta < 2.2000 ) return 0.1534;
-  if ( 2.2000 >= absEta && absEta < 2.3000 ) return 0.1903;
-  if ( 2.3000 >= absEta && absEta < 2.4000 ) return 0.2243;
-  if ( 2.4000 >= absEta && absEta < 5.0000 ) return 0.2687;
+  if ( 0.0000 >= absEta && absEta < 1.0000 ) return 0.1703;
+  if ( 1.0000 >= absEta && absEta < 1.4790 ) return 0.1715;
+  if ( 1.4790 >= absEta && absEta < 2.0000 ) return 0.1213;
+  if ( 2.0000 >= absEta && absEta < 2.2000 ) return 0.1230;
+  if ( 2.2000 >= absEta && absEta < 2.3000 ) return 0.1635;
+  if ( 2.3000 >= absEta && absEta < 2.4000 ) return 0.1937;
+  if ( 2.4000 >= absEta && absEta < 5.0000 ) return 0.2393;
   return 0;
 }
 
