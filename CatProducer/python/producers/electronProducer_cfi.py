@@ -1,4 +1,5 @@
 import FWCore.ParameterSet.Config as cms
+from TrackingTools.TransientTrack.TransientTrackBuilder_cfi import *
 
 catElectrons = cms.EDProducer("CATElectronProducer",
     src = cms.InputTag("slimmedElectrons"),
