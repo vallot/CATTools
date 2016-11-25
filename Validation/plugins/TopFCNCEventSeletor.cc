@@ -59,32 +59,24 @@ private:
   std::vector<edm::EDGetTokenT<double> > extWeightTokensD_;
 
 private:
-  double shiftedMuonPt(const cat::Muon& mu) { return mu.pt()+muonScale_*mu.shiftedEn(); }
-  double shiftedElectronPt(const cat::Electron& el) { return el.pt()+electronScale_*el.shiftedEn(); }
-  double shiftedLepPt(const reco::Candidate& cand)
-  {
-    auto muonP = dynamic_cast<const cat::Muon*>(&cand);
-    auto electronP = dynamic_cast<const cat::Electron*>(&cand);
-    if ( muonP ) return shiftedMuonPt(*muonP);
-    else if ( electronP ) return shiftedElectronPt(*electronP);
-    return cand.pt();
-  }
-  double shiftedJetPt(const reco::Candidate& cand)
+  double shiftedMuonScale(const cat::Muon& mu) { return 1+muonScale_*mu.shiftedEn()/mu.pt(); }
+  double shiftedElectronScale(const cat::Electron& el) { return 1+electronScale_*el.shiftedEn()/el.pt(); }
+  double shiftedJetScale(const reco::Candidate& cand)
   {
     const auto jet = dynamic_cast<const cat::Jet&>(cand);
-    double pt = jet.pt();
-    if      ( jetScale_ == +1 ) pt *= jet.shiftedEnUp();
-    else if ( jetScale_ == -1 ) pt *= jet.shiftedEnDown();
+    double scale = 1.0;
+    if      ( jetScale_ == +1 ) scale *= jet.shiftedEnUp();
+    else if ( jetScale_ == -1 ) scale *= jet.shiftedEnDown();
 
-    if ( isMC_ and !isSkipJER_ ) pt *= jet.smearedRes(jetResol_);
+    if ( isMC_ and !isSkipJER_ ) scale *= jet.smearedRes(jetResol_);
 
-    return pt;
+    return scale;
   }
 
   bool isGoodMuon(const cat::Muon& mu)
   {
     if ( std::abs(mu.eta()) > 2.1 ) return false;
-    if ( std::isnan(mu.pt()) or shiftedMuonPt(mu) < 27 ) return false;
+    if ( std::isnan(mu.pt()) or mu.pt() < 27 ) return false;
 
     if ( mu.relIso(0.4) > 0.15 ) return false;
     if ( !mu.isTightMuon() ) return false;
@@ -93,7 +85,7 @@ private:
   bool isGoodElectron(const cat::Electron& el)
   {
     if ( std::abs(el.eta()) > 2.1 ) return false;
-    if ( std::isnan(el.pt()) or shiftedElectronPt(el) < 35 ) return false;
+    if ( std::isnan(el.pt()) or el.pt() < 35 ) return false;
 
     if ( isMVAElectronSel_ and !el.isTrigMVAValid() ) return false;
 
@@ -110,7 +102,7 @@ private:
   bool isVetoMuon(const cat::Muon& mu)
   {
     if ( std::abs(mu.eta()) > 2.4 ) return false;
-    if ( std::isnan(mu.pt()) or shiftedMuonPt(mu) < 10 ) return false;
+    if ( std::isnan(mu.pt()) or mu.pt() < 10 ) return false;
 
     if ( !mu.isLooseMuon() ) return false;
     if ( mu.relIso(0.4) > 0.25 ) return false;
@@ -119,7 +111,7 @@ private:
   bool isVetoElectron(const cat::Electron& el)
   {
     if ( std::abs(el.eta()) > 2.5 ) return false;
-    if ( std::isnan(el.pt()) or shiftedElectronPt(el) < 10 ) return false;
+    if ( std::isnan(el.pt()) or el.pt() < 10 ) return false;
     if ( !el.electronID(elVetoIdName_) ) return false;
     //const double scEta = std::abs(el.scEta());
     //const double d0 = std::abs(el.dxy()), dz = std::abs(el.vz());
@@ -419,13 +411,12 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   cat::MuonCollection selMuons, vetoMuons;
   for ( int i=0, n=muonHandle->size(); i<n; ++i ) {
     auto& p = muonHandle->at(i);
-    const double pt = shiftedMuonPt(p);
-    const double scale = pt/p.pt();
+    const double scale = shiftedMuonScale(p);
 
     cat::Muon lep(p);
     lep.setP4(p.p4()*scale);
-    if ( isGoodMuon(p) ) selMuons.push_back(lep);
-    else if ( isVetoMuon(p) ) vetoMuons.push_back(lep);
+    if ( isGoodMuon(lep) ) selMuons.push_back(lep);
+    else if ( isVetoMuon(lep) ) vetoMuons.push_back(lep);
     else continue;
 
     event_st += lep.pt();
@@ -435,18 +426,17 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   cat::ElectronCollection selElectrons, vetoElectrons;
   for ( int i=0, n=electronHandle->size(); i<n; ++i ) {
     auto& p = electronHandle->at(i);
-    const double pt = shiftedElectronPt(p);
-    const double scale = pt/p.pt();
+    const double scale = shiftedElectronScale(p)/p.smearedScale();
 
     cat::Electron lep(p);
     lep.setP4(p.p4()*scale);
-    if ( isGoodElectron(p) ) selElectrons.push_back(lep);
-    else if ( isVetoElectron(p) ) vetoElectrons.push_back(lep);
+    if ( isGoodElectron(lep) ) selElectrons.push_back(lep);
+    else if ( isVetoElectron(lep) ) vetoElectrons.push_back(lep);
     else continue;
 
     event_st += lep.pt();
-    metDpx += lep.px()-p.px();
-    metDpy += lep.py()-p.py();
+    metDpx += lep.px()-p.px()/p.smearedScale();
+    metDpy += lep.py()-p.py()/p.smearedScale();
   }
   std::sort(selElectrons.begin(), selElectrons.end(),
             [&](const cat::Electron& a, const cat::Electron& b){ return a.pt() > b.pt(); });
@@ -481,18 +471,17 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     if ( std::abs(p.eta()) > 2.4 ) continue;
     if ( !p.LooseId() ) continue;
 
-    const double pt = shiftedJetPt(p);
-    const double scale = pt/p.pt();
+    const double scale = shiftedJetScale(p);
     cat::Jet jet(p);
     jet.setP4(scale*p.p4());
 
     metDpx += jet.px()-p.px();
     metDpy += jet.py()-p.py();
-    if ( pt < 30 ) continue;
+    if ( jet.pt() < 30 ) continue;
 
     if ( lepton1 and deltaR(jet.p4(), lepton1->p4()) < 0.4 ) continue;
 
-    event_ht += pt;
+    event_ht += jet.pt();
     if ( isBjet(p) ) ++bjets_n;
 
     out_jets->push_back(jet);
