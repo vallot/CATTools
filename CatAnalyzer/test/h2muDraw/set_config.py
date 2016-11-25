@@ -4,33 +4,32 @@ import ROOT,os,sys,copy
 ROOT.gROOT.SetBatch(True)
 
 ds = []
-outDir = "%s/src/CATTools/CatAnalyzer/test/h2muDraw/plot" %( os.environ['CMSSW_BASE'] )
+outDir = "plot"
 if not os.path.isdir(outDir):os.mkdir(outDir)
 
-info = [['nvertex','nvertex','(ll_m>50&&step>=5&&filtered==1)','[30,0,30]','no. vertex','events'],
-        ['ll_m','ll_m','(ll_m>50&&step>=5&&filtered==1)','[200,0,200]','mass [GeV]','events'],
-        ['ll_pt','ll_pt','(ll_m>50&&step>=5&&filtered==1)','[100,0,100]','diMuon p_{T} [GeV]','events'],
-        ['lep1_pt','lep1_pt','(ll_m>50&&step>=5&&filtered==1)','[100,0,100]','leading muon p_{T} [GeV]','events'],
-        ['lep2_pt','lep2_pt','(ll_m>50&&step>=5&&filtered==1)','[100,0,100]','sub-leading muon p_{T} [GeV]','events'],
-        ['lep1_eta','lep1_eta','(ll_m>50&&step>=5&&filtered==1)','[100,-3,3]','#eta','events'],
-        ['lep2_eta','lep2_eta','(ll_m>50&&step>=5&&filtered==1)','[100,-3,3]','#eta','events'],
-        ['met','met','(ll_m>50&&step>=5&&filtered==1)','[100,0,100]','met [GeV]','events'],
+info = [
+        #['nvertex','nvertex','(ll_m>50&&step>=5&&filtered==1)','[30,0,30]','no. vertex','events'],
+        ['dilep.M()','ll_m','(dilep.M()>50&&step>=5&&filtered==1)','[300,0,300]','mass [GeV]','events'],
+        #['dilep.Pt()','ll_pt','(ll_m>50&&step>=5&&filtered==1)','[100,0,100]','diMuon p_{T} [GeV]','events'],
+        #['lep1.Pt()','lep1_pt','(ll_m>50&&step>=5&&filtered==1)','[100,0,100]','leading muon p_{T} [GeV]','events'],
+        #['lep2.Pt()','lep2_pt','(ll_m>50&&step>=5&&filtered==1)','[100,0,100]','sub-leading muon p_{T} [GeV]','events'],
+        #['lep1.Eta()','lep1_eta','(ll_m>50&&step>=5&&filtered==1)','[100,-3,3]','#eta','events'],
+        #['lep2.Eta()','lep2_eta','(ll_m>50&&step>=5&&filtered==1)','[100,-3,3]','#eta','events'],
+        #['met','met','(ll_m>50&&step>=5&&filtered==1)','[100,0,100]','met [GeV]','events'],
        ]
 
 muid = ["tight","medium"]
 muid_cut = ["(isTight==1)","(isMedium==1)"]
 
 # ====== jetcat init. ======
-jet0_tight = "(cat_jet == 1)"
-jet0_loose = "(cat_jet == 2)"
-jet1_tight = "(cat_jet == 3)"
-jet1_loose = "(cat_jet == 4)"
-jet2_vbf = "(cat_jet == 5 || cat_jet == 7)"
-jet2_ggf = "(cat_jet == 6)"
-jet2_loose = "(cat_jet == 8)"
+jet2_vbf = "(cat == 1)"
+jet2_ggf = "(cat == 2)"
+jet2_loose = "(cat == 3)"
+jet01_tight = "(cat == 4)"
+jet01_loose = "(cat == 5)"
 
-cat_jet = ["0jet_tight","0jet_loose","1jet_tight","1jet_loose","2jet_VBF_tight","2jet_ggF_tight","2jet_loose"]
-cat_jet_cut = [jet0_tight, jet0_loose, jet1_tight, jet1_loose, jet2_vbf, jet2_ggf, jet2_loose]
+cat = ["2jet_VBF_tight","2jet_ggF_tight","2jet_loose","01jet_tight","01jet_loose"]
+cat_cut = [jet2_vbf, jet2_ggf, jet2_loose, jet01_tight, jet01_loose]
 
 BB = "(cat_eta == 1)"
 BO = "(cat_eta == 2)"
@@ -50,16 +49,15 @@ for info_loop in range(len(info)):
         tmp_info[info_loop][1] += "_%s"%muid[i_i]
         info.append(tmp_info[info_loop])
         tmp_info = copy.deepcopy(info)
-        for j_i, j in enumerate(cat_jet_cut):
-            if j_i>3:
-                tmp_info[info_loop][2] += "*%s*%s"%(i,j)
-                tmp_info[info_loop][1] += "_%s_%s"%(muid[i_i],cat_jet[j_i])
-                info.append(tmp_info[info_loop])
-                tmp_info = copy.deepcopy(info)
+        for j_i, j in enumerate(cat_cut):
+            tmp_info[info_loop][2] += "*%s*%s"%(i,j)
+            tmp_info[info_loop][1] += "_%s_%s"%(muid[i_i],cat[j_i])
+            info.append(tmp_info[info_loop])
+            tmp_info = copy.deepcopy(info)
             for k_i, k in enumerate(cat_eta_cut):
-                if j_i<4:
+                if j_i>2:
                     tmp_info[info_loop][2] += "*%s*%s*%s"%(i,j,k)
-                    tmp_info[info_loop][1] += "_%s_%s_%s"%(muid[i_i],cat_jet[j_i],cat_eta[k_i])
+                    tmp_info[info_loop][1] += "_%s_%s_%s"%(muid[i_i],cat[j_i],cat_eta[k_i])
                     info.append(tmp_info[info_loop])
                     tmp_info = copy.deepcopy(info)
 print '== start =='
@@ -75,8 +73,9 @@ for i in range(len(info)):
                'y_name':info[i][5],
     })
     sorted(ds[i])
-print ds
-print>>f_json, json.dumps(ds)
+import pprint
+pprint.pprint(ds)
+print>>f_json, json.dumps(ds,indent=4,sort_keys=True)
 f_json.close()
 print '== done =='
 print 'After run this script, run \"run_h2muDraw.py\"'

@@ -1,25 +1,44 @@
-#include"dileptonCommon.h"
 #include "CATTools/DataFormats/interface/SecVertex.h"
-#include<TClonesArray.h>
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
+#include "FWCore/Framework/interface/Event.h"
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
 
+#include "FWCore/ServiceRegistry/interface/Service.h"
+#include "CommonTools/UtilAlgos/interface/TFileService.h"
+
+#include "CATTools/DataFormats/interface/Muon.h"
+#include "CATTools/DataFormats/interface/Electron.h"
+#include "CATTools/CatAnalyzer/interface/analysisUtils.h"
+#include "CATTools/CommonTools/interface/TTbarModeDefs.h"
+#include "CATTools/CommonTools/interface/AnalysisHelper.h"
+
+
+#include<TClonesArray.h>
+#include<TLorentzVector.h>
+#include<TTree.h>
 using namespace std;
 using namespace cat;
-using namespace dileptonCommonGlobal;
 
-class CATDstarAnalyzer : public dileptonCommon {
+class CATDstarV2Analyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
   public:
-    explicit CATDstarAnalyzer(const edm::ParameterSet&);
-    ~CATDstarAnalyzer();
+    explicit CATDstarV2Analyzer(const edm::ParameterSet&);
+    ~CATDstarV2Analyzer();
 
   private:
     shared_ptr<TLorentzVector> mcMatching( vector<TLorentzVector>& , TLorentzVector& ) ; 
     virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
-    virtual void analyzeCustom(const edm::Event& iEvent, const edm::EventSetup& iSetup, int sys) final;   // "final" keyword to prevent inherited
-    virtual void setBranchCustom(TTree* tr, int sys) final;
-    virtual void resetBrCustom() final;
-    //void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&) override;
+    void setBranchCustom(TTree* tr);
+    void resetBrCustom();
+    int isFromtop(const reco::GenParticle& p);
+    //void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&) override {};
     //void endLuminosityBlock(const edm::LuminosityBlock&, const edm::EventSetup&) override {};
+    TTree* tree_;
 
+    int b_channel_;
+    float b_weight_;
+
+    TLorentzVector b_lep1, b_lep2;
+    int b_lep1_pid, b_lep2_pid;
     std::vector<bool> b_d0_true, b_d0_fit;
     //std::vector<float> b_d0_pt, b_d0_eta, b_d0_phi, b_d0_m;
     std::vector<float> b_d0_LXY, b_d0_L3D, b_d0_dRTrue, b_d0_relPtTrue, b_d0_dca;
@@ -66,12 +85,16 @@ class CATDstarAnalyzer : public dileptonCommon {
     edm::EDGetTokenT<cat::SecVertexCollection>      JpsiToken_;
     edm::EDGetTokenT<edm::View<reco::GenParticle> >            mcSrc_;
 
+    edm::EDGetTokenT<int> channelToken_;
+    edm::EDGetTokenT<float> weightToken_;
+    edm::EDGetTokenT<cat::LeptonCollection> leptonsToken_;
+
     double matchingDeltaR_;
 
 };
 
 
-int isFromtop( const reco::GenParticle& p){
+int CATDstarV2Analyzer::isFromtop( const reco::GenParticle& p){
   int nIDMother;
   
   int nTopMother = 0;
@@ -98,7 +121,7 @@ int isFromtop( const reco::GenParticle& p){
 
 //
 // constructors and destructor
-void CATDstarAnalyzer::setBranchCustom(TTree* tr, int sys) {
+void CATDstarV2Analyzer::setBranchCustom(TTree* tr) {
 
   b_d0         = new TClonesArray("TLorentzVector",100);
   b_d0_dau1    = new TClonesArray("TLorentzVector",100);
@@ -110,6 +133,11 @@ void CATDstarAnalyzer::setBranchCustom(TTree* tr, int sys) {
   b_Jpsi       = new TClonesArray("TLorentzVector",100);
   b_Jpsi_dau1  = new TClonesArray("TLorentzVector",100);
   b_Jpsi_dau2  = new TClonesArray("TLorentzVector",100);
+
+
+  // Event Info
+  tr->Branch("weight", &b_weight_, "weight/F");
+  tr->Branch("channel", &b_channel_, "channel/I");
 
   // D0
   tr->Branch("d0","TClonesArray",&b_d0,32000,0);
@@ -185,9 +213,8 @@ void CATDstarAnalyzer::setBranchCustom(TTree* tr, int sys) {
 
 }
 
-CATDstarAnalyzer::CATDstarAnalyzer(const edm::ParameterSet& iConfig) : dileptonCommon(iConfig)
+CATDstarV2Analyzer::CATDstarV2Analyzer(const edm::ParameterSet& iConfig) 
 {
-  parameterInit(iConfig);
 
   d0Token_  = consumes<cat::SecVertexCollection>(iConfig.getParameter<edm::InputTag>("d0s"));
   dstarToken_  = consumes<cat::SecVertexCollection>(iConfig.getParameter<edm::InputTag>("dstars"));
@@ -195,19 +222,26 @@ CATDstarAnalyzer::CATDstarAnalyzer(const edm::ParameterSet& iConfig) : dileptonC
   mcSrc_ = consumes<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("mcLabel"));
   matchingDeltaR_  = iConfig.getParameter<double>("matchingDeltaR");
 
+  
+  const auto recoLabel = iConfig.getParameter<edm::InputTag>("recoObjects").label();
+  channelToken_ = consumes<int>(edm::InputTag(recoLabel, "channel"));
+  weightToken_ = consumes<float>(edm::InputTag(recoLabel, "weight"));
+  leptonsToken_ = consumes<cat::LeptonCollection>(edm::InputTag(recoLabel, "leptons"));
 
-  for (int sys = 0; sys < nsys_e; ++sys){
-    auto tr = ttree_[sys];
-    setBranchCustom(tr, sys);
-  }
+  usesResource("TFileService");
+  edm::Service<TFileService> fs;
+
+  tree_= fs->make<TTree>("tree","tree");
+  
+  setBranchCustom(tree_);
 }
 
-CATDstarAnalyzer::~CATDstarAnalyzer()
+CATDstarV2Analyzer::~CATDstarV2Analyzer()
 {
 
 }
 
-shared_ptr<TLorentzVector> CATDstarAnalyzer::mcMatching( vector<TLorentzVector>& aGens, TLorentzVector& aReco) {
+shared_ptr<TLorentzVector> CATDstarV2Analyzer::mcMatching( vector<TLorentzVector>& aGens, TLorentzVector& aReco) {
   float minDR= 999.;
   //float minRelPt = 1.0;
   shared_ptr<TLorentzVector> matchedGen;
@@ -221,30 +255,40 @@ shared_ptr<TLorentzVector> CATDstarAnalyzer::mcMatching( vector<TLorentzVector>&
   return nullptr;
 }
 
+void CATDstarV2Analyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
+  //b_run = iEvent.id().run();
+  //b_event = iEvent.id().event();
 
-void CATDstarAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
-{
-  b_run = iEvent.id().run();
-  b_event = iEvent.id().event();
-
+  resetBrCustom();
   const bool runOnMC = !iEvent.isRealData();
-  cutflow_[0][0]++;
-
-  for (int sys = 0; sys < nsys_e; ++sys){
-    if (sys > 0 && !runOnMC) break;
-    resetBr();
-    int terminate = eventSelection(iEvent, iSetup, sys);
-    if ( terminate == -1 ) continue;
-    else if ( terminate == -2 ) return;
-
-    analyzeCustom(iEvent, iSetup, sys);
-    ttree_[sys]->Fill();
-  }
-}
 
 
-void CATDstarAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventSetup& iSetup, int sys) {
-  const bool runOnMC = !iEvent.isRealData();
+  edm::Handle<int> iHandle;
+  iEvent.getByToken(channelToken_, iHandle);
+  b_channel_ = *iHandle;
+
+  edm::Handle<float> fHandle;
+  iEvent.getByToken(weightToken_, fHandle);
+  b_weight_ = *fHandle;
+
+  edm::Handle<cat::LeptonCollection> leptonsHandle;
+  iEvent.getByToken(leptonsToken_, leptonsHandle);
+  if ( leptonsHandle->size() < 2 ) return;
+  const auto& lepton1 = leptonsHandle->at(0);
+  const auto& lepton2 = leptonsHandle->at(1);
+  b_lep1 = ToTLorentzVector(lepton1);
+  b_lep2 = ToTLorentzVector(lepton2);
+  b_lep1_pid = lepton1.pdgId();
+  b_lep2_pid = lepton2.pdgId();
+  switch ( std::abs(b_lep1_pid)+std::abs(b_lep2_pid) ) {
+    case 11+11: b_channel_ = CH_ELEL; break;
+    case 11+13: b_channel_ = CH_MUEL; break;
+    case 13+13: b_channel_ = CH_MUMU; break;
+    default: b_channel_ = CH_NOLL;
+  } 
+
+
+
   edm::Handle<cat::SecVertexCollection> d0s;       iEvent.getByToken(d0Token_,d0s);
   edm::Handle<cat::SecVertexCollection> dstars;    iEvent.getByToken(dstarToken_,dstars);
   edm::Handle<cat::SecVertexCollection> Jpsis;     iEvent.getByToken(JpsiToken_,Jpsis);
@@ -556,13 +600,15 @@ void CATDstarAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventS
     b_Jpsi_lepSV_lowM.push_back(( fMDMLep1 >= fMDMLep2 ? fMDMLep1 : fMDMLep2 ));
     b_Jpsi_lepSV_dRM.push_back(( fSqrtdRMLep1 >= fSqrtdRMLep2 ? fMDMLep1 : fMDMLep2 ));
   }
-  
-  
-
+  tree_->Fill();
 }
 
-void CATDstarAnalyzer::resetBrCustom()
+void CATDstarV2Analyzer::resetBrCustom()
 {
+
+  b_weight_=0.f;
+  b_channel_=0;
+
   b_d0->Clear();    b_d0_dau1->Clear();    b_d0_dau2->Clear();
   b_dstar->Clear(); b_dstar_dau1->Clear(); b_dstar_dau2->Clear(); b_dstar_dau3->Clear();
   b_Jpsi->Clear();    b_Jpsi_dau1->Clear();    b_Jpsi_dau2->Clear();
@@ -609,8 +655,6 @@ void CATDstarAnalyzer::resetBrCustom()
   b_Jpsi_lepSV_correctM.clear();
 
 }
-
+#include "FWCore/Framework/interface/MakerMacros.h"
 //define this as a plug-in
-DEFINE_FWK_MODULE(CATDstarAnalyzer);
-
-
+DEFINE_FWK_MODULE(CATDstarV2Analyzer);

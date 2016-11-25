@@ -3,8 +3,6 @@ import catDefinitions_cfi as cat
 import os
 print os.environ['CMSSW_BASE']
 
-from CondCore.DBCommon.CondDBSetup_cfi import *
-
 def catTool(process, runOnMC=True, useMiniAOD=True):
     if runOnMC:
         from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
@@ -25,7 +23,7 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         jecFile = jecFile+"_DATA"
     if useJECfile:
         from CondCore.CondDB.CondDB_cfi import CondDB
-        CondDB.__delattr__('connect')
+        if hasattr(CondDB, 'connect'): delattr(CondDB, 'connect')
         process.jec = cms.ESSource("PoolDBESSource",CondDB,
             connect = cms.string('sqlite_fip:CATTools/CatProducer/data/JEC/%s.db'%jecFile),            
             toGet = cms.VPSet(
@@ -47,20 +45,9 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         print "JEC based on", process.jec.connect
     
     if useMiniAOD: ## corrections when using miniAOD
-        #######################################################################
-        ## Event filters from MET https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2
-        ## New muon filters to be run on the fly
-        process.load('RecoMET.METFilters.BadPFMuonFilter_cfi')
-        process.BadPFMuonFilter.muons = cms.InputTag("slimmedMuons")
-        process.BadPFMuonFilter.PFCandidates = cms.InputTag("packedPFCandidates")
+        from CATTools.CatProducer.patTools.metFilters_cff import enableAdditionalMETFilters
+        process = enableAdditionalMETFilters(process, runOnMC)
 
-        process.load('RecoMET.METFilters.BadChargedCandidateFilter_cfi')
-        process.BadChargedCandidateFilter.muons = cms.InputTag("slimmedMuons")
-        process.BadChargedCandidateFilter.PFCandidates = cms.InputTag("packedPFCandidates")
-            
-        process.nEventsFiltered = cms.EDProducer("EventCountProducer")
-    
-        process.p += (process.BadPFMuonFilter*process.BadChargedCandidateFilter*process.nEventsFiltered)
         #######################################################################
         # adding puppi https://twiki.cern.ch/twiki/bin/view/CMS/PUPPI        
         #process.catJetsPuppi.src = cms.InputTag("slimmedJetsPuppi")
@@ -78,24 +65,7 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         #jetToolbox( process, 'ak4', 'ak4JetSubs', 'out', PUMethod='CHS', miniAOD=True, addQGTagger=True )   ### For example
 
 #process.options.allowUnscheduled = cms.untracked.bool(True)
-        qgDatabaseVersion = 'v1' # check https://twiki.cern.ch/twiki/bin/viewauth/CMS/QGDataBaseVersion
-        QGPoolDBESSource = cms.ESSource("PoolDBESSource",
-                CondDBSetup,
-                toGet = cms.VPSet(),
-                connect = cms.string('frontier://FrontierProd/CMS_COND_PAT_000')
-        )
 
-        for type in ['AK4PFchs','AK4PFchs_antib']:
-            QGPoolDBESSource.toGet.extend(cms.VPSet(cms.PSet(
-                record = cms.string('QGLikelihoodRcd'),
-                tag    = cms.string('QGLikelihoodObject_'+qgDatabaseVersion+'_'+type),
-                label  = cms.untracked.string('QGL_'+type)
-           )))
-        process.load('RecoJets.JetProducers.QGTagger_cfi')
-        process.QGTagger.srcJets    = cms.InputTag("updatedPatJets")   # Could be reco::PFJetCollection or pat::JetCollection (both AOD and miniAOD)
-        #process.QGTagger.srcJets    = cms.InputTag("slimmedJets")   # Could be reco::PFJetCollection or pat::JetCollection (both AOD and miniAOD)
-        #process.QGTagger.srcJets    = cms.InputTag("selectedPatJetsAK4PFCHS")   # Could be reco::PFJetCollection or pat::JetCollection (both AOD and miniAOD)
-        process.QGTagger.jetsLabel  = cms.string('QGL_AK4PFchs')        # Other options: see https://twiki.cern.ch/twiki/bin/viewauth/CMS/QGDataBaseVersion
         #######################################################################
         ## applying new jec on the fly
         process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
@@ -139,6 +109,11 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
             initialSeed = cms.untracked.uint32(1),
         )
 
+        ## qg-likelihood
+        # check https://twiki.cern.ch/twiki/bin/viewauth/CMS/QGDataBaseVersion
+        from CATTools.CatProducer.patTools.jetQGLikelihood_cff import enableQGLikelihood
+        process = enableQGLikelihood(process, qgDatabaseVersion="v2b", runOnMC=runOnMC, useMiniAOD=useMiniAOD)
+
         ## #######################################################################
         ## # MET corrections from https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
         #from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
@@ -154,12 +129,12 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         #del process.slimmedMETsNoHF.caloMET        
         #######################################################################
         ## Energy/Photon smearing and scale correction
-        from CATTools.CatProducer.EGamma.smearing_cff import enableElectronSmearing, enablePhotonSmearing
+        from CATTools.CatProducer.patTools.egmSmearing_cff import enableElectronSmearing, enablePhotonSmearing
         enableElectronSmearing(process, runOnMC)
         enablePhotonSmearing(process, runOnMC)
         
         ## Electron/Photon VID
-        from CATTools.CatProducer.EGamma.versionnedID_cff import enableElectronVID, enablePhotonVID
+        from CATTools.CatProducer.patTools.egmVersionedID_cff import enableElectronVID, enablePhotonVID
         enableElectronVID(process)
         enablePhotonVID(process)
        

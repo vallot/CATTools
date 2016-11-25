@@ -24,6 +24,7 @@ catEventContent.extend([
     'keep patPackedTriggerPrescales_patTrigger__*',
     'keep *_lumiMask*_*_*',
     'keep *_fixedGridRhoAll_*_', 'keep *_fixedGridRhoFastjetAll_*_*',
+    'keep *_BadChargedCandidateFilter_*_*', 'keep *_BadPFMuonFilter_*_*',
     ])
 
 catEventContentRD.extend([
@@ -43,7 +44,7 @@ catEventContentTOPMC.extend([
     'keep *_GenTtbarCategories_*_*',
     'keep *_GenTtbarCategories*_*_*',
     'keep *_catGenTops_*_*',
-    'keep *_partonTop_*_*',
+    #'keep *_partonTop_*_*', ## Can be built on the fly from prunedGenParticles
     'keep *_pseudoTop_*_*',
     'keep *_genJetHadronFlavour_*_*',
     ])
