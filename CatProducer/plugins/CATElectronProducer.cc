@@ -135,6 +135,8 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     cat::Electron aElectron(aPatElectron);
     auto elecsRef = src->refAt(j);
     auto unsmearedElecRef = unsmearedElecHandle->refAt(j);
+    // nan protection - smearing fails for soft electrons
+    if ( std::isnan(std::abs(aElectron.p())) ) aElectron = *unsmearedElecRef;
 
     if (runOnMC_){
       aElectron.setGenParticleRef(aPatElectron.genParticleRef());
