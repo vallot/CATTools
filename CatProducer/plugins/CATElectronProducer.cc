@@ -140,8 +140,8 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
 
     if (runOnMC_){
       aElectron.setGenParticleRef(aPatElectron.genParticleRef());
-      aElectron.setMCMatched( mcMatch( aPatElectron.p4(), genParticles ) );
-      aElectron.setSmearedScale(aPatElectron.pt()/unsmearedElecRef->pt());
+      aElectron.setMCMatched( mcMatch( aElectron.p4(), genParticles ) );
+      aElectron.setSmearedScale(aElectron.pt()/unsmearedElecRef->pt());
     }
     aElectron.setIsGsfCtfScPixChargeConsistent( aPatElectron.isGsfCtfScPixChargeConsistent() );
     aElectron.setIsEB( aPatElectron.isEB() );
