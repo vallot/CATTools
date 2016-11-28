@@ -742,20 +742,30 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     bool IsttLF = false;
     bool Istt   = false;
 
-    if(genttbarConeCat->begin()->NbJets20() > 1 && 
-       genttbarConeCat->begin()->NJets20()  > 5) Isttjj = true;
+    // Categorization based in the Full Ph-Sp
+    if(genttbarConeCat->begin()->NaddJets20() > 1) Isttjj = true;
+
+    if      (genttbarConeCat->begin()->NaddbJets20() > 1) Isttbb = true;
+    else if (genttbarConeCat->begin()->NaddbJets20() > 0) Isttb  = true;
+    else if (genttbarConeCat->begin()->NaddcJets20() > 1) Isttcc = true;
+    else if (genttbarConeCat->begin()->NaddJets20()  > 1) IsttLF = true;
+    else Istt = true;
 
     // Categorization based in the Visible Ph-Sp
-    if      (genttbarConeCat->begin()->NbJets20() > 3  && 
-	     genttbarConeCat->begin()->NJets20()  > 5) Isttbb = true;
-    else if (genttbarConeCat->begin()->NbJets20() > 2  && 
-	     genttbarConeCat->begin()->NJets20()  > 5) Isttb  = true;
-    else if (genttbarConeCat->begin()->NbJets20() > 1  && 
-	     genttbarConeCat->begin()->NJets20()  > 5  && 
-	     genttbarConeCat->begin()->NcJets20() > 1) Isttcc = true;
-    else if (genttbarConeCat->begin()->NbJets20() > 1  && 
-	     genttbarConeCat->begin()->NJets20()  > 5) IsttLF = true;
-    else Istt = true;
+    // if(genttbarConeCat->begin()->NbJets20() > 1 && 
+    //    genttbarConeCat->begin()->NJets20()  > 5) Isttjj = true;
+
+    // if      (genttbarConeCat->begin()->NbJets20() > 3  && 
+    // 	     genttbarConeCat->begin()->NJets20()  > 5) Isttbb = true;
+    // else if (genttbarConeCat->begin()->NbJets20() > 2  && 
+    // 	     genttbarConeCat->begin()->NJets20()  > 5) Isttb  = true;
+    // else if (genttbarConeCat->begin()->NbJets20() > 1  && 
+    // 	     genttbarConeCat->begin()->NJets20()  > 5  && 
+    // 	     genttbarConeCat->begin()->NcJets20() > 1) Isttcc = true;
+    // else if (genttbarConeCat->begin()->NbJets20() > 1  && 
+    // 	     genttbarConeCat->begin()->NJets20()  > 5) IsttLF = true;
+    // else Istt = true;
+
 
     if (TTbarCatMC_ == 0)           IsCat = true;
     if (Isttbb && TTbarCatMC_ == 1) IsCat = true;
