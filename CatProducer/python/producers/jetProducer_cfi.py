@@ -9,6 +9,9 @@ catJets = cms.EDProducer('CATJetProducer',
     jetResSFFile = cms.string("CATTools/CatProducer/data/JER/Spring16_25nsV6_MC_SF_AK4PFchs.txt"),
     setGenParticle = cms.bool(True),
 
+    minPt = cms.double(5.0),
+    maxEta = cms.double(3.1),
+
     qgLikelihood = cms.InputTag(""), ## Keep this to be invalid and let it to be controlled by patTools/jetsQGLikelihood_cff.py
 )
 

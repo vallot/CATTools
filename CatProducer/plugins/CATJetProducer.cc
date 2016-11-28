@@ -55,6 +55,7 @@ namespace cat {
     const std::string jetResFilePath_, jetResSFFilePath_;
     bool setGenParticle_;
     bool runOnMC_;
+    const double minPt_, maxEta_;
     //PFJetIDSelectionFunctor pfjetIDFunctor;
     JetCorrectionUncertainty *jecUnc;
 
@@ -71,7 +72,9 @@ cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
   payloadName_(iConfig.getParameter<std::string>("payloadName")),
   jetResFilePath_(edm::FileInPath(iConfig.getParameter<std::string>("jetResFile")).fullPath()),
   jetResSFFilePath_(edm::FileInPath(iConfig.getParameter<std::string>("jetResSFFile")).fullPath()),
-  setGenParticle_(iConfig.getParameter<bool>("setGenParticle"))
+  setGenParticle_(iConfig.getParameter<bool>("setGenParticle")),
+  minPt_(iConfig.getParameter<double>("minPt")),
+  maxEta_(iConfig.getParameter<double>("maxEta"))
 {
 
   produces<std::vector<cat::Jet> >();
@@ -110,17 +113,19 @@ void cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
   const double rho = *rhoHandle;
 
   // for quark gluon likelihood calculation
-  edm::Handle<edm::ValueMap<float>> qgHandle; 
+  edm::Handle<edm::ValueMap<float>> qgHandle;
   iEvent.getByToken(qgToken_, qgHandle);
 
   auto_ptr<vector<cat::Jet> >  out(new vector<cat::Jet>());
 
   int ij=0;
   for (auto aPatJetPointer = src->begin(); aPatJetPointer != src->end(); aPatJetPointer++)
-///  for (const pat::Jet &aPatJet : *src) 
+///  for (const pat::Jet &aPatJet : *src)
   {
 
     const pat::Jet aPatJet = *aPatJetPointer;
+    if ( std::abs(aPatJet.eta()) > maxEta_ ) continue;
+    if ( aPatJet.pt() < minPt_ ) continue;
 
     cat::Jet aJet(aPatJet);
 
