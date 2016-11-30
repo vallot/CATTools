@@ -57,13 +57,13 @@ cat::CATDStarProducer::CATDStarProducer(const edm::ParameterSet & iConfig) :
   produces<vector<cat::SecVertex> >("D0Cand");
   produces<vector<cat::SecVertex> >("DstarCand");
   produces<vector<cat::SecVertex> >("JpsiCand");
-  produces<vector<cat::SecVertex> >("JpsiMVACand");
+  //produces<vector<cat::SecVertex> >("JpsiMVACand");
 
   maxNumPFCand_ = iConfig.getParameter<int>("maxNumPFCand");
   d0MassWindow_ = iConfig.getParameter<double>("d0MassWindow");
   d0MassCut_ = iConfig.getParameter<double>("d0MassCut");
   maxDeltaR_  = iConfig.getParameter<double>("maxDeltaR");
-  applyCuts_ = iConfig.getParameter<bool>("applyCut");
+  applyCuts_ = iConfig.getParameter<bool>("applySoftLeptonCut");
 }
   void
 cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
@@ -77,11 +77,11 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
     auto_ptr<vector<cat::SecVertex> >    D0_Out(new vector<cat::SecVertex>());
     auto_ptr<vector<cat::SecVertex> > Dstar_Out(new std::vector<cat::SecVertex>());
     auto_ptr<vector<cat::SecVertex> >  Jpsi_Out(new std::vector<cat::SecVertex>());
-    auto_ptr<vector<cat::SecVertex> >  JpsiMVA_Out(new std::vector<cat::SecVertex>());
+    //auto_ptr<vector<cat::SecVertex> >  JpsiMVA_Out(new std::vector<cat::SecVertex>());
     iEvent.put(D0_Out   , "D0Cand");
     iEvent.put(Dstar_Out, "DstarCand");
     iEvent.put(Jpsi_Out, "JpsiCand");
-    iEvent.put(JpsiMVA_Out, "JpsiMVACand");
+    //iEvent.put(JpsiMVA_Out, "JpsiMVACand");
     return ; 
   }
   reco::Vertex pv = recVtxs->at(0);
@@ -92,7 +92,7 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
   auto_ptr<vector<cat::SecVertex> >    D0_Out(new vector<cat::SecVertex>());
   auto_ptr<vector<cat::SecVertex> > Dstar_Out(new std::vector<cat::SecVertex>());
   auto_ptr<vector<cat::SecVertex> >  Jpsi_Out(new std::vector<cat::SecVertex>());
-  auto_ptr<vector<cat::SecVertex> >  JpsiMVA_Out(new std::vector<cat::SecVertex>());
+  //auto_ptr<vector<cat::SecVertex> >  JpsiMVA_Out(new std::vector<cat::SecVertex>());
 
   edm::ESHandle<TransientTrackBuilder> trackBuilder;
   iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",trackBuilder);
@@ -104,14 +104,18 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
   //typedef std::shared_ptr<ConstPC> Shared_PCP;
   typedef ConstPC* Shared_PCP;
 
+  std::vector<Shared_PCP> softlepCands;
+
   for (const pat::Jet & aPatJet : *jetHandle){
     std::vector< Shared_PCP >  jetDaughters;
     std::vector<TransientTrack> tracks;
     unsigned int dau_size = aPatJet.numberOfDaughters();
     if ( dau_size < 3 ) continue;
     for( unsigned int idx = 0 ; idx < dau_size ; idx++) {
-      jetDaughters.push_back( Shared_PCP(dynamic_cast<ConstPC*>(aPatJet.daughter(idx) ))); 
-
+      Shared_PCP dauCand ( dynamic_cast<ConstPC*>(aPatJet.daughter(idx)));
+      if ( dauCand->charge() ==0 ) continue;
+      jetDaughters.push_back( dauCand );
+      if ( abs(dauCand->pdgId()) == 11  || abs(dauCand->pdgId())==13) softlepCands.push_back(dauCand);
     }
 
     sort(jetDaughters.begin(), jetDaughters.end(), [](Shared_PCP a, Shared_PCP b) {return a->pt() > b->pt(); }); 
@@ -119,17 +123,16 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
     if ( dau_size > maxNumPFCand_ ) dau_size = maxNumPFCand_;
     jetDaughters.resize( dau_size );
 
-
     for ( unsigned int lep1_idx = 0 ; lep1_idx< dau_size-1 ; lep1_idx++) {
       for ( unsigned int lep2_idx = lep1_idx+1 ; lep2_idx< dau_size ; lep2_idx++) {
+        
         bool flag_jpsi = true;
         Shared_PCP lep1Cand = jetDaughters[lep1_idx];
         Shared_PCP lep2Cand = jetDaughters[lep2_idx];
 
         int pdgMul = lep1Cand->pdgId() * lep2Cand->pdgId();
-        if ( pdgMul != -121 && pdgMul != -169 ) flag_jpsi = false;
-        if ( !flag_jpsi && abs( pdgMul ) !=2321 && abs( pdgMul) != 2743 ) continue;
-
+        if ( pdgMul != -121 && pdgMul != -169 ) { flag_jpsi = false; continue; }
+        //if ( !flag_jpsi && abs( pdgMul ) !=2321 && abs( pdgMul) != 2743 ) continue;
 
         //if ( reco::deltaR( *lep1Cand, *lep2Cand) > maxDeltaR_ ) continue;
         
@@ -195,7 +198,7 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
         JpsiCand.addDaughter( *lep2Cand );
 
         JpsiCand.setTrackQuality( (int)lep1Cand->trackHighPurity(), (int)lep2Cand->trackHighPurity());
-        if ( abs(lep1Cand->pdgId() ) == 13 || abs(lep2Cand->pdgId()) == 13 ) {
+        if ( abs(lep1Cand->pdgId() ) == 13 && abs(lep2Cand->pdgId()) == 13 ) {
           int lep1ID = (int)lep1Cand->isStandAloneMuon() + (int)lep1Cand->isGlobalMuon()*2;
           int lep2ID = (int)lep2Cand->isStandAloneMuon() + (int)lep2Cand->isGlobalMuon()*2;
           JpsiCand.setLeptonID( lep1ID, lep2ID );
@@ -203,11 +206,13 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
         else JpsiCand.setLeptonID( -1, -1 );
 
         if( flag_jpsi ) Jpsi_Out->push_back( JpsiCand );
-        JpsiMVA_Out->push_back( JpsiCand );
+        //JpsiMVA_Out->push_back( JpsiCand );
 
       }
     }
 
+    if ( applyCuts_ && softlepCands.size()==0  ) continue;
+    
     for ( unsigned int pion_idx = 0 ; pion_idx< dau_size ; pion_idx++) {
       for ( unsigned int kaon_idx = 0 ; kaon_idx< dau_size ; kaon_idx++) {
         if ( pion_idx == kaon_idx ) continue;
@@ -215,10 +220,9 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
         std::shared_ptr<pat::PackedCandidate> kaonCand(jetDaughters[kaon_idx]->clone());
         kaonCand->setMass(gKaonMass);
 
-        if ( abs(pionCand->pdgId()) != 211 || abs( kaonCand->pdgId()) != 211) continue;
+        if ( abs(pionCand->pdgId()) == 13 or abs(pionCand->pdgId()) == 11) continue;
+        if ( abs(kaonCand->pdgId()) == 13 or abs(kaonCand->pdgId()) == 11) continue;
         if ( pionCand->charge() * kaonCand->charge() != -1 ) continue;
-
-        //if ( reco::deltaR( *pionCand, *kaonCand) > maxDeltaR_ ) continue;
 
         auto D0 = pionCand->p4()+ kaonCand->p4();
         if ( abs(D0.M() - gD0Mass) > d0MassCut_) continue;
@@ -281,6 +285,7 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
  
         D0Cand.addDaughter( *pionCand );
         D0Cand.addDaughter( *kaonCand );
+        if ( applyCuts_ ) D0Cand.addDaughter( *softlepCands[0] );
 
         D0Cand.setTrackQuality( (int)pionCand->trackHighPurity(), (int)kaonCand->trackHighPurity());
 
@@ -357,7 +362,6 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
   iEvent.put(D0_Out   , "D0Cand");
   iEvent.put(Dstar_Out, "DstarCand");
   iEvent.put(Jpsi_Out, "JpsiCand");
-  iEvent.put(JpsiMVA_Out, "JpsiMVACand");
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"
