@@ -38,9 +38,11 @@ namespace cat {
       edm::EDGetTokenT<edm::View<pat::Jet> >                    jetSrc_;
       edm::EDGetTokenT<reco::VertexCollection>                vertexLabel_;
 
+      const float gJpsiMass = 3.096;
       const float gPionMass = 0.1396;
       const float gKaonMass = 0.4937;
       const float gD0Mass   = 1.86480;
+      const float gDstarD0DiffMass   = 0.145;
       float d0MassWindow_, maxDeltaR_ ,d0MassCut_;
       unsigned int maxNumPFCand_;
       bool applyCuts_;
@@ -57,7 +59,6 @@ cat::CATDStarProducer::CATDStarProducer(const edm::ParameterSet & iConfig) :
   produces<vector<cat::SecVertex> >("D0Cand");
   produces<vector<cat::SecVertex> >("DstarCand");
   produces<vector<cat::SecVertex> >("JpsiCand");
-  //produces<vector<cat::SecVertex> >("JpsiMVACand");
 
   maxNumPFCand_ = iConfig.getParameter<int>("maxNumPFCand");
   d0MassWindow_ = iConfig.getParameter<double>("d0MassWindow");
@@ -68,20 +69,18 @@ cat::CATDStarProducer::CATDStarProducer(const edm::ParameterSet & iConfig) :
   void
 cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
-
   Handle<reco::VertexCollection> recVtxs;
   iEvent.getByToken(vertexLabel_,recVtxs);
   float dca;
 
+  auto_ptr<vector<cat::SecVertex> >    D0_Out(new vector<cat::SecVertex>());
+  auto_ptr<vector<cat::SecVertex> > Dstar_Out(new std::vector<cat::SecVertex>());
+  auto_ptr<vector<cat::SecVertex> >  Jpsi_Out(new std::vector<cat::SecVertex>());
+
   if ( recVtxs->empty() ) {
-    auto_ptr<vector<cat::SecVertex> >    D0_Out(new vector<cat::SecVertex>());
-    auto_ptr<vector<cat::SecVertex> > Dstar_Out(new std::vector<cat::SecVertex>());
-    auto_ptr<vector<cat::SecVertex> >  Jpsi_Out(new std::vector<cat::SecVertex>());
-    //auto_ptr<vector<cat::SecVertex> >  JpsiMVA_Out(new std::vector<cat::SecVertex>());
     iEvent.put(D0_Out   , "D0Cand");
     iEvent.put(Dstar_Out, "DstarCand");
     iEvent.put(Jpsi_Out, "JpsiCand");
-    //iEvent.put(JpsiMVA_Out, "JpsiMVACand");
     return ; 
   }
   reco::Vertex pv = recVtxs->at(0);
@@ -89,10 +88,6 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
   Handle<edm::View<pat::Jet> > jetHandle;
   iEvent.getByToken(jetSrc_, jetHandle);
 
-  auto_ptr<vector<cat::SecVertex> >    D0_Out(new vector<cat::SecVertex>());
-  auto_ptr<vector<cat::SecVertex> > Dstar_Out(new std::vector<cat::SecVertex>());
-  auto_ptr<vector<cat::SecVertex> >  Jpsi_Out(new std::vector<cat::SecVertex>());
-  //auto_ptr<vector<cat::SecVertex> >  JpsiMVA_Out(new std::vector<cat::SecVertex>());
 
   edm::ESHandle<TransientTrackBuilder> trackBuilder;
   iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",trackBuilder);
@@ -106,17 +101,24 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
 
   std::vector<Shared_PCP> softlepCands;
 
+  int njet=0;
   for (const pat::Jet & aPatJet : *jetHandle){
+    if (aPatJet.pt()< 30 or abs(aPatJet.eta())>3 ) continue;
+    njet++;
     std::vector< Shared_PCP >  jetDaughters;
     std::vector<TransientTrack> tracks;
-    unsigned int dau_size = aPatJet.numberOfDaughters();
-    if ( dau_size < 3 ) continue;
-    for( unsigned int idx = 0 ; idx < dau_size ; idx++) {
+
+    cat::SecVertex bestJpsi, bestD0, bestDstar; 
+    bool flag_jpsi =false, flag_d0 = false, flag_dstar=false;
+    for( unsigned int idx = 0 ; idx < aPatJet.numberOfDaughters() ; idx++) {
       Shared_PCP dauCand ( dynamic_cast<ConstPC*>(aPatJet.daughter(idx)));
       if ( dauCand->charge() ==0 ) continue;
+      if ( dauCand->pt() <1 ) continue;
       jetDaughters.push_back( dauCand );
       if ( abs(dauCand->pdgId()) == 11  || abs(dauCand->pdgId())==13) softlepCands.push_back(dauCand);
     }
+    unsigned int dau_size = jetDaughters.size();
+    if ( dau_size < 2 ) continue;
 
     sort(jetDaughters.begin(), jetDaughters.end(), [](Shared_PCP a, Shared_PCP b) {return a->pt() > b->pt(); }); 
 
@@ -126,12 +128,11 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
     for ( unsigned int lep1_idx = 0 ; lep1_idx< dau_size-1 ; lep1_idx++) {
       for ( unsigned int lep2_idx = lep1_idx+1 ; lep2_idx< dau_size ; lep2_idx++) {
         
-        bool flag_jpsi = true;
         Shared_PCP lep1Cand = jetDaughters[lep1_idx];
         Shared_PCP lep2Cand = jetDaughters[lep2_idx];
 
         int pdgMul = lep1Cand->pdgId() * lep2Cand->pdgId();
-        if ( pdgMul != -121 && pdgMul != -169 ) { flag_jpsi = false; continue; }
+        if ( pdgMul != -121 && pdgMul != -169 ) continue; 
         //if ( !flag_jpsi && abs( pdgMul ) !=2321 && abs( pdgMul) != 2743 ) continue;
 
         //if ( reco::deltaR( *lep1Cand, *lep2Cand) > maxDeltaR_ ) continue;
@@ -169,7 +170,7 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
         }
         else { vx = Point(0,0,0); continue; }
 
-
+        //flag_jpsi = true;
         const math::XYZTLorentzVector lv( Jpsi.px(), Jpsi.py(), Jpsi.pz(), Jpsi.E());
         auto vc = VertexCompositeCandidate(0, lv, vx, 443) ;  // + pdgId,
         cat::SecVertex JpsiCand(vc);
@@ -204,14 +205,15 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
           JpsiCand.setLeptonID( lep1ID, lep2ID );
         }
         else JpsiCand.setLeptonID( -1, -1 );
-
-        if( flag_jpsi ) Jpsi_Out->push_back( JpsiCand );
-        //JpsiMVA_Out->push_back( JpsiCand );
-
+  
+        if ( JpsiCand.mass() < 2 || JpsiCand.mass()>4 ) continue;
+        if ( !flag_jpsi || abs(bestJpsi.mass() - gJpsiMass)> abs(JpsiCand.mass()-gJpsiMass)   ) bestJpsi = JpsiCand;
+        flag_jpsi = true;
       }
     }
 
     if ( applyCuts_ && softlepCands.size()==0  ) continue;
+
     
     for ( unsigned int pion_idx = 0 ; pion_idx< dau_size ; pion_idx++) {
       for ( unsigned int kaon_idx = 0 ; kaon_idx< dau_size ; kaon_idx++) {
@@ -289,7 +291,11 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
 
         D0Cand.setTrackQuality( (int)pionCand->trackHighPurity(), (int)kaonCand->trackHighPurity());
 
-        D0_Out->push_back( D0Cand );
+        //D0_Out->push_back( D0Cand );
+        if ( !flag_d0 || abs(bestD0.mass() - gD0Mass)> abs(D0Cand.mass()-gD0Mass)   ) bestD0 = D0Cand;
+        flag_d0 = true;
+
+        if ( dau_size < 3 ) continue;
 
         if ( abs( D0.M() - gD0Mass) < d0MassWindow_ ) {
           for( unsigned int extra_pion_idx = 0 ;  extra_pion_idx < dau_size ; extra_pion_idx++) {
@@ -331,6 +337,7 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
             DstarCand.addDaughter( *pionCand );
             DstarCand.addDaughter( *kaonCand );
             DstarCand.addDaughter( *pion2Cand );
+            if ( applyCuts_ ) D0Cand.addDaughter( *softlepCands[0] );
             DstarCand.setTrackQuality( (int)(pionCand->trackHighPurity()&kaonCand->trackHighPurity()), (int)pion2Cand->trackHighPurity());
             if ( fit_dstar) {
               DstarCand.setVProb( TMath::Prob( vtxChi2, (int) vtxNdof));
@@ -352,13 +359,23 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
             if ( cApp.status() ) DstarCand.set_dca(2, std::abs(cApp.distance()));
             else DstarCand.set_dca(2,-9);
       
-            Dstar_Out->push_back( DstarCand );
+            //Dstar_Out->push_back( DstarCand );
+           
+            DstarCand.setDiffMass( abs(DstarCand.mass() - D0.M()) );
+            
+            if ( DstarCand.DiffMass() > 0.2) continue;
+            if ( !flag_dstar || abs( bestDstar.DiffMass() - gDstarD0DiffMass) > abs( DstarCand.DiffMass() - gDstarD0DiffMass)   ) bestDstar = DstarCand;
+            flag_dstar = true;
           }
         }
       }
 
     }
+    if ( flag_jpsi  )    Jpsi_Out->push_back(bestJpsi);
+    if ( flag_dstar )    Dstar_Out->push_back(bestDstar);
+    if ( flag_d0    )    D0_Out->push_back(bestD0);
   }
+  //std::cout<<"nJet : "<<njet<<" Jpsi : "<<Jpsi_Out->size()<< " D0 : "<<D0_Out->size()<<"  D* : "<<Dstar_Out->size()<<std::endl;
   iEvent.put(D0_Out   , "D0Cand");
   iEvent.put(Dstar_Out, "DstarCand");
   iEvent.put(Jpsi_Out, "JpsiCand");
