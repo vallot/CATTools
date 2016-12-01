@@ -2,17 +2,13 @@
 #include "CATTools/DataFormats/interface/SecVertex.h"
 #include<TClonesArray.h>
 
-using namespace std;
-using namespace cat;
-using namespace dileptonCommonGlobal;
-
 class CATDstarAnalyzer : public dileptonCommon {
   public:
     explicit CATDstarAnalyzer(const edm::ParameterSet&);
     ~CATDstarAnalyzer();
 
   protected:
-    shared_ptr<TLorentzVector> mcMatching( vector<TLorentzVector>& , TLorentzVector& ) ; 
+    std::shared_ptr<TLorentzVector> mcMatching( std::vector<TLorentzVector>& , TLorentzVector& ) ; 
     virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
     virtual void analyzeCustom(const edm::Event& iEvent, const edm::EventSetup& iSetup, int sys) final;   // "final" keyword to prevent inherited
     virtual void setBranchCustom(TTree* tr, int sys) final;

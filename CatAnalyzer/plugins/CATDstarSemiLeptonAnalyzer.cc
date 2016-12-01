@@ -1,12 +1,21 @@
-#include "CATTools/CatAnalyzer/interface/CATDstarAnalyzer.h"
+#include "CATTools/CatAnalyzer/interface/CATDstarSemiLeptonAnalyzer.h"
 
+#include "FWCore/Framework/interface/LuminosityBlock.h"
+#include "FWCore/ServiceRegistry/interface/Service.h"
+#include "CommonTools/UtilAlgos/interface/TFileService.h"
+
+#include "CATTools/CatAnalyzer/interface/TopTriggerSF.h"
+#include "CATTools/CatAnalyzer/interface/TopEventGlobalVar.h"
+#include "CATTools/CatAnalyzer/interface/KinematicReconstructionSolution.h"
+
+#include "DataFormats/Math/interface/deltaR.h"
+#include "DataFormats/Math/interface/deltaPhi.h"
 
 using namespace std;
 using namespace cat;
-using namespace dileptonCommonGlobal;
+using namespace TopEventCommonGlobal;
 
-void CATDstarAnalyzer::setBranchCustom(TTree* tr, int sys) {
-
+void CATDstarSemiLeptonAnalyzer::setBranchCustom(TTree* tr, int sys) {
   b_d0       = new TClonesArray("TLorentzVector",100);
   b_d0_dau1   = new TClonesArray("TLorentzVector",100);
   b_d0_dau2   = new TClonesArray("TLorentzVector",100);
@@ -53,31 +62,9 @@ void CATDstarAnalyzer::setBranchCustom(TTree* tr, int sys) {
   tr->Branch("dstar_dau2_q","std::vector<float>",&b_dstar_dau2_q);
 
   tr->Branch("dstar_dau3_q","std::vector<float>",&b_dstar_dau3_q);
-
 }
 
-CATDstarAnalyzer::CATDstarAnalyzer(const edm::ParameterSet& iConfig) : dileptonCommon(iConfig)
-{
-  //parameterInit(iConfig);
-
-  d0Token_  = consumes<cat::SecVertexCollection>(iConfig.getParameter<edm::InputTag>("d0s"));
-  dstarToken_  = consumes<cat::SecVertexCollection>(iConfig.getParameter<edm::InputTag>("dstars"));
-  mcSrc_ = consumes<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("mcLabel"));
-  matchingDeltaR_  = iConfig.getParameter<double>("matchingDeltaR");
-
-
-  for (int sys = 0; sys < nsys_e; ++sys){
-    auto tr = ttree_[sys];
-    setBranchCustom(tr, sys);
-  }
-}
-
-CATDstarAnalyzer::~CATDstarAnalyzer()
-{
-
-}
-
-shared_ptr<TLorentzVector> CATDstarAnalyzer::mcMatching( vector<TLorentzVector>& aGens, TLorentzVector& aReco) {
+shared_ptr<TLorentzVector> CATDstarSemiLeptonAnalyzer::mcMatching( vector<TLorentzVector>& aGens, TLorentzVector& aReco) {
   float minDR= 999.;
   //float minRelPt = 1.0;
   shared_ptr<TLorentzVector> matchedGen;
@@ -90,31 +77,31 @@ shared_ptr<TLorentzVector> CATDstarAnalyzer::mcMatching( vector<TLorentzVector>&
   }
   return nullptr;
 }
-
-
-void CATDstarAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
-{
-  b_run = iEvent.id().run();
-  b_event = iEvent.id().event();
-
-  const bool runOnMC = !iEvent.isRealData();
-  cutflow_[0][0]++;
-
-  for (int sys = 0; sys < nsys_e; ++sys){
-    if (sys > 0 && !runOnMC) break;
-    resetBr();
-    if( sys == 0 ) genInfo(iEvent, iSetup);
-    int terminate = eventSelection(iEvent, iSetup, sys);
-    if ( terminate == -1 ) continue;
-    else if ( terminate == -2 ) return;
-
-    analyzeCustom(iEvent, iSetup, sys);
-    ttree_[sys]->Fill();
-  }
+void CATDstarSemiLeptonAnalyzer::endJob() {
+  showSummary();
 }
 
+CATDstarSemiLeptonAnalyzer::CATDstarSemiLeptonAnalyzer(const edm::ParameterSet& iConfig ) :TopEventCommon(iConfig) 
+{
+  setEventSelection(iConfig);
+  d0Token_  = consumes<cat::SecVertexCollection>(iConfig.getParameter<edm::InputTag>("d0s"));
+  dstarToken_  = consumes<cat::SecVertexCollection>(iConfig.getParameter<edm::InputTag>("dstars"));
+  mcSrc_ = consumes<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("mcLabel"));
+  matchingDeltaR_  = iConfig.getParameter<double>("matchingDeltaR");
 
-void CATDstarAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventSetup& iSetup, int sys) {
+  for (int sys = 0; sys < nsys_e; ++sys){
+    auto tr = ttree_[sys];
+    setBranchCustom(tr, sys);
+  }
+}
+void CATDstarSemiLeptonAnalyzer::showSummary() {
+  TopEventInfo& evInfo_ = TopEventInfo::getInstance();
+  cout <<setw(10)<<"cut flow"<<setw(10)<<"no ll"<<setw(10)<<"mu Jet"<<setw(10)<<"e Jet"<<setw(10)<<"all"<< endl;
+  for ( int i=0; i<NCutflow; ++i ) {
+    cout <<setw(10)<<"step "<<setw(2)<<i<< setw(10)<<evInfo_.cutflow_[i][0] << setw(10)<<evInfo_.cutflow_[i][1] << setw(10)<<evInfo_.cutflow_[i][2] <<setw(10)<<evInfo_.cutflow_[i][3]<< endl;
+  }
+}
+void CATDstarSemiLeptonAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventSetup& iSetup, int sys) {
   edm::Handle<cat::SecVertexCollection> d0s;       iEvent.getByToken(d0Token_,d0s);
   edm::Handle<cat::SecVertexCollection> dstars;    iEvent.getByToken(dstarToken_,dstars);
 
@@ -221,10 +208,8 @@ void CATDstarAnalyzer::analyzeCustom(const edm::Event& iEvent, const edm::EventS
 
     b_dstar_dau3_q.push_back  ( x.daughter(2)->charge());
   }
-
 }
-
-void CATDstarAnalyzer::resetBrCustom()
+void CATDstarSemiLeptonAnalyzer::resetBranchCustom()
 {
   b_d0->Clear();    b_d0_dau1->Clear();    b_d0_dau2->Clear();
   b_dstar->Clear(); b_dstar_dau1->Clear(); b_dstar_dau2->Clear(); b_dstar_dau3->Clear();
@@ -242,9 +227,9 @@ void CATDstarAnalyzer::resetBrCustom()
   b_dstar_dau2_q.clear();
   b_dstar_dau3_q.clear();
 
-
 }
+
 
 //define this as a plug-in
 #include "FWCore/Framework/interface/MakerMacros.h"
-DEFINE_FWK_MODULE(CATDstarAnalyzer);
+DEFINE_FWK_MODULE(CATDstarSemiLeptonAnalyzer);

@@ -50,12 +50,14 @@ filterTrigMUMU = filterTrigMUEL.clone(
 )
 filterTrigMU = filterTrigMUEL.clone(
     triggersToMatch = cms.vstring(
-        "HLT_IsoMu18_v",
+        "HLT_IsoMu20_v",
+        "HLT_IsoTkMu20_v",
     ),
 )
 filterTrigEL = filterTrigMUEL.clone(
     triggersToMatch = cms.vstring(
-        "HLT_Ele23_WPLoose_Gsf_v",
+        "HLT_Ele22_eta2p1_WP75_Gsf_v",
+        "HLT_Ele22_eta2p1_WPLoose_Gsf_v",
     ),
 )
 

@@ -1,3 +1,5 @@
+#ifndef __CATTools_ScaleFactorEvaluator__
+#define __CATTools_ScaleFactorEvaluator__
 #include <vector>
 #include <utility>
 #include <algorithm>
@@ -22,3 +24,4 @@ private:
 };
 
 }
+#endif
