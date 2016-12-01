@@ -345,19 +345,12 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
   edm::Handle<int> nVertexHandle;
   event.getByToken(nVertexToken_, nVertexHandle);
-  const int nVertex = *nVertexHandle;
-  /*edm::Handle<reco::VertexCollection> vertexHandle;
+  const int nGoodVertex = *nVertexHandle;
+  edm::Handle<reco::VertexCollection> vertexHandle;
   event.getByToken(vertexToken_, vertexHandle);
-  const int nVertex = [&](){
-    int n = 0;
-    for ( auto& v : *vertexHandle ) {
-      if ( v.isFake() or v.ndof() <= 4 ) continue;
-      if ( std::abs(v.position().rho()) >= 2 or std::abs(v.z()) >= 24 ) continue;     
-      ++n;
-    }
-    return n;
-  }();*/
-  vars[1] = nVertex;
+  // use the side-effect of catVertex producer: pv collection size == 1 only if the pv[0] is good vtx
+  vars[1] = nGoodVertex;
+  const bool isGoodPV0 = (vertexHandle->size() == 1);
 
   std::auto_ptr<std::vector<cat::Lepton> > out_leptons(new std::vector<cat::Lepton>());
   std::auto_ptr<std::vector<cat::Jet> > out_jets(new std::vector<cat::Jet>());
@@ -500,7 +493,7 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   // Check cut steps
   std::vector<bool> cutsteps(nCutsteps);
   cutsteps[0] = true; // always true
-  cutsteps[1] = (nVertex > 0);
+  cutsteps[1] = isGoodPV0;
   cutsteps[2] = isRECOFilterOK;
   if ( channel_ == 11 ) {
     cutsteps[3] = (!isIgnoreTrig_ and isTrigEl != 0);
