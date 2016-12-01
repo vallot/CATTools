@@ -62,6 +62,7 @@ namespace cat {
     std::vector<edm::EDGetTokenT<edm::ValueMap<bool> > > phoIDTokens_;
     const std::vector<std::string> photonIDs_;
 
+    const double minPt_, maxEta_;
   };
 
 } // namespace
@@ -72,7 +73,9 @@ cat::CATPhotonProducer::CATPhotonProducer(const edm::ParameterSet & iConfig) :
   vertexLabel_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexLabel"))),
   mcLabel_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcLabel"))),
   rhoLabel_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoLabel"))),
-  photonIDs_(iConfig.getParameter<std::vector<std::string> >("photonIDs"))
+  photonIDs_(iConfig.getParameter<std::vector<std::string> >("photonIDs")),
+  minPt_(iConfig.getParameter<double>("minPt")),
+  maxEta_(iConfig.getParameter<double>("maxEta"))
 {
   produces<std::vector<cat::Photon> >();
   if (iConfig.existsAs<edm::ParameterSet>("photonIDSources")) {
@@ -126,14 +129,18 @@ cat::CATPhotonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
     cat::Photon aPhoton(aPatPhoton);
     auto phosRef = src->refAt(j);
     auto unsmearedPhotRef = unsmearedPhotHandle->refAt(j);
+    if ( std::isnan(std::abs(aPhoton.p())) ) aPhoton = *unsmearedPhotRef;
 
     if (runOnMC_){
       aPhoton.setGenParticleRef(aPatPhoton.genParticleRef());
       if(mcMatch(aPatPhoton.p4(), genParticles )  == 1) aPhoton.setMCMatched( true);
       else  aPhoton.setMCMatched( false);
 
-      aPhoton.setSmearedScale(phosRef->pt()/unsmearedPhotRef->pt());
+      aPhoton.setSmearedScale(aPhoton.pt()/unsmearedPhotRef->pt());
     }
+
+    if ( std::abs(aPhoton.eta()) > maxEta_ ) continue;
+    if ( std::max(aPhoton.pt(), unsmearedPhotRef->pt()) < minPt_ ) continue;
     
     aPhoton.setRho(rhoIso);
 
