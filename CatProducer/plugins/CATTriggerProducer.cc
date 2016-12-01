@@ -17,70 +17,75 @@
 #include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
 #include "DataFormats/PatCandidates/interface/PackedTriggerPrescales.h"
 
+#include "CATTools/DataFormats/interface/TriggerBits.h"
+
 #include <boost/regex.hpp>
 
 #include <memory>
 #include <vector>
 #include <string>
 
+using namespace cat;
+using namespace std;
+
 class CATTriggerProducer : public edm::stream::EDProducer<>
 {
 public:
   CATTriggerProducer(const edm::ParameterSet& pset);
   void produce(edm::Event& event, const edm::EventSetup& eventSetup) override;
-  void beginRun(const edm::Run& run, const edm::EventSetup& eventSetup) override;
+  //void beginRun(const edm::Run& run, const edm::EventSetup& eventSetup) override;
 
 private:
   typedef std::vector<double> doubles;
   typedef std::vector< std::string > strings;
   typedef std::vector< std::pair < std::string, std::string> > pairstrings;
 
-  std::vector<edm::EDGetTokenT<edm::TriggerResults>> triggerBits_;
-  edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjects_;
-  edm::EDGetTokenT<pat::PackedTriggerPrescales> triggerPrescales_;
-  std::vector<edm::EDGetTokenT<edm::TriggerResults>> metFilterBits_;
+  std::vector<edm::EDGetTokenT<edm::TriggerResults>> flagResTokens_;
+  std::map<std::string, edm::EDGetTokenT<bool>> flagBoolTokens_;
+  strings flagNamesToSelect_;
 
-  strings selectTrigObjects_;
+  std::vector<edm::EDGetTokenT<edm::TriggerResults>> trigResTokens_;
+  edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> trigObjToken_;
+  edm::EDGetTokenT<pat::PackedTriggerPrescales> trigPSToken_;
+  strings trigNamesToSelect_;
   pairstrings hltNames_;
-  pairstrings metFilterNames_;
+
   //HLTConfigProvider hltConfig_;
 };
 
-CATTriggerProducer::CATTriggerProducer(const edm::ParameterSet& pset):
-  triggerObjects_(consumes<pat::TriggerObjectStandAloneCollection>(pset.getParameter<edm::InputTag>("triggerObjects"))),
-  triggerPrescales_(consumes<pat::PackedTriggerPrescales>(pset.getParameter<edm::InputTag>("triggerPrescales")))
+CATTriggerProducer::CATTriggerProducer(const edm::ParameterSet& pset)
 {
-  for ( auto x : pset.getParameter<std::vector<edm::InputTag>>("triggerBits") ) {
-    triggerBits_.push_back(consumes<edm::TriggerResults>(x));
+  auto hltPSet = pset.getParameter<edm::ParameterSet>("HLT");
+  for ( auto x : hltPSet.getParameter<std::vector<edm::InputTag>>("triggerResults") ) {
+    trigResTokens_.push_back(consumes<edm::TriggerResults>(x));
   }
-  for ( auto x : pset.getParameter<std::vector<edm::InputTag>>("metFilterBits") ) {
-    metFilterBits_.push_back(consumes<edm::TriggerResults>(x));
-  }
-
+  trigObjToken_ = consumes<pat::TriggerObjectStandAloneCollection>(hltPSet.getParameter<edm::InputTag>("objects"));
+  trigPSToken_ = consumes<pat::PackedTriggerPrescales>(hltPSet.getParameter<edm::InputTag>("prescales"));
   const boost::regex matchVersion("_v[0-9\\*]+$"); // regexp from HLTrigger/HLTCore/HLTConfigProvider
-
-  for ( auto& selectTrigObject : pset.getParameter<strings>("selectTrigObjects") ){
-    selectTrigObjects_.push_back(selectTrigObject);
-  }
-  if (selectTrigObjects_.size()){
-    produces<pat::TriggerObjectStandAloneCollection >();
-  }
-
-  for ( auto& hltPath : pset.getParameter<strings>("hltPathNames") ){
-    hltPath = boost::regex_replace(hltPath, matchVersion, "");
+  for ( auto& name : hltPSet.getParameter<strings>("select") ) {
+    trigNamesToSelect_.push_back(name);
+    string hltPath = boost::regex_replace(name, matchVersion, "");
     std::string hltSavedAs = hltPath;
     hltSavedAs.erase(std::remove(hltSavedAs.begin(), hltSavedAs.end(), '_'), hltSavedAs.end());
     std::cout << " " << hltPath << std::endl;
-    produces<int >( hltSavedAs );
     hltNames_.push_back(std::make_pair(hltPath, hltSavedAs));
   }
-  for ( auto& hltPath : pset.getParameter<strings>("metFilterNames") ){
-    std::cout << " " << hltPath << std::endl;
-    produces<bool >( hltPath );
-    metFilterNames_.push_back(std::make_pair("Flag_"+hltPath, hltPath));
+
+  auto flagPSet = pset.getParameter<edm::ParameterSet>("Flag");
+  flagNamesToSelect_ = flagPSet.getParameter<strings>("names");
+  for ( auto x : flagPSet.getParameter<std::vector<edm::InputTag>>("Flags") ) {
+    flagResTokens_.push_back(consumes<edm::TriggerResults>(x));
   }
+  for ( auto x : flagPSet.getParameter<std::vector<edm::InputTag>>("bools") ) {
+    flagBoolTokens_.insert(std::make_pair("Flag_"+x.label(), consumes<bool>(x)));
+    flagNamesToSelect_.push_back("Flag_"+x.label());
+  }
+
+  produces<cat::TriggerBits>();
+  produces<pat::TriggerObjectStandAloneCollection >();
 }
 
+/*
 void CATTriggerProducer::beginRun(const edm::Run& run, const edm::EventSetup& eventSetup)
 {
   // bool changed = true;
@@ -96,72 +101,58 @@ void CATTriggerProducer::beginRun(const edm::Run& run, const edm::EventSetup& ev
   //  // histograms or do anything else dependent on the revised HLT config
   // }
 }
+*/
 
 void CATTriggerProducer::produce(edm::Event& event, const edm::EventSetup& eventSetup)
 {
-  edm::Handle<edm::TriggerResults> metFilterBits;
-  for ( auto token : metFilterBits_ ) {
-    if ( event.getByToken(token, metFilterBits) ) break;
+  std::unique_ptr<cat::TriggerBits> out_trigBits(new cat::TriggerBits());
+  std::unique_ptr<pat::TriggerObjectStandAloneCollection> out_objects(new pat::TriggerObjectStandAloneCollection());
+
+  std::map<std::string, int> results;
+
+  // Open RECO filter flag handles
+  std::map<string, edm::Handle<bool>> flagBoolHandles;
+  for ( auto key=flagBoolTokens_.begin(); key!=flagBoolTokens_.end(); ++key ) {
+    edm::Handle<bool> handle;
+    if ( !event.getByToken(key->second, handle) ) continue;
+    flagBoolHandles.insert(std::make_pair(key->first, handle));
+  };
+  std::vector<edm::Handle<edm::TriggerResults>> flagResHandles;
+  for ( auto token : flagResTokens_ ) {
+    edm::Handle<edm::TriggerResults> handle;
+    if ( !event.getByToken(token, handle) ) continue;
+    flagResHandles.push_back(handle);
   }
 
-  if ( metFilterBits.isValid() and !metFilterNames_.empty() ) {
-    // save filter info
-    const edm::TriggerNames &metFilterNames = event.triggerNames(*metFilterBits);
-
-    for ( auto& hltPath : metFilterNames_ ) {
-      bool passMet = false;
-      unsigned int trigIndex = metFilterNames.triggerIndex(hltPath.first);
-      if ( trigIndex < metFilterBits->size() ){
-        if ( metFilterBits->accept(trigIndex) )
-          passMet = true;
-      }
-      event.put(std::auto_ptr<bool>(new bool (passMet)), hltPath.second);
+  for ( string flagName : flagNamesToSelect_ ) {
+    int result = 0;
+    
+    auto flagBool = flagBoolHandles.find(flagName);
+    if ( flagBool != flagBoolHandles.end() ) {
+      result = *(flagBool->second);
     }
-  }
-  // // for full list of metFilterger names that pass
-  // for (unsigned int i = 0, n = metFilterBits->size(); i < n-3; ++i) {
-  //   std::cout << i << " metFiltername "<<metFilterNames.triggerName(i)<< std::endl;
-  // }
 
-  
-  edm::Handle<edm::TriggerResults> triggerBits;
-  for ( auto token : triggerBits_ ) {
-    if ( event.getByToken(token, triggerBits) ) break;
-  }
-  const edm::TriggerNames &trigNames = event.triggerNames(*triggerBits);
-
-  if ( triggerBits.isValid() and !selectTrigObjects_.empty() ) {
-    // filtering TriggerObjectStandAlone
-    edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
-    event.getByToken(triggerObjects_, triggerObjects);
-    pat::TriggerObjectStandAloneCollection *catTriggerObjects = new pat::TriggerObjectStandAloneCollection();
-    for (pat::TriggerObjectStandAlone trigObj : *triggerObjects) { // note: not "const &" since we want to call unpackPathNames
-      bool keepTriggerObject = false;
-      trigObj.unpackPathNames(trigNames);
-      std::vector<std::string> pathNamesAll  = trigObj.pathNames(false);
-      for (unsigned h = 0, n = pathNamesAll.size(); h < n; ++h) {
-        for ( auto& selectTrigObject : selectTrigObjects_ ){
-          if (pathNamesAll[h].find(selectTrigObject) == 0){
-            if (trigObj.hasPathName( pathNamesAll[h], true, true )){
-	      //std::cout << "CATTriggerProducer::saving "<< pathNamesAll[h] << std::endl;	      
-              keepTriggerObject = true;
-            }
-          }
-        }
-      }
-      if (keepTriggerObject){
-        trigObj.packPathNames(trigNames);
-        catTriggerObjects->push_back(trigObj);
+    for ( auto handle : flagResHandles ) {
+      const auto& filterNames = event.triggerNames(*handle);
+      unsigned int index = filterNames.triggerIndex(flagName);
+      if ( index < filterNames.size() and handle->accept(index) ) {
+        result = 1;
+        break;
       }
     }
 
-    event.put(std::auto_ptr<pat::TriggerObjectStandAloneCollection>(catTriggerObjects));
+    results[flagName] = result;
   }
 
-  if ( !hltNames_.empty() ){
+  // Trigger results and objects
+  for ( auto trigResToken : trigResTokens_ ) {
+    edm::Handle<edm::TriggerResults> trigResHandle;
+    if ( !event.getByToken(trigResToken, trigResHandle) ) continue;
+    const edm::TriggerNames &trigNames = event.triggerNames(*trigResHandle);
+
     // saving trigger info as preScale value (int)
-    edm::Handle<pat::PackedTriggerPrescales> triggerPrescales;
-    event.getByToken(triggerPrescales_, triggerPrescales);
+    edm::Handle<pat::PackedTriggerPrescales> trigPSHandle;
+    event.getByToken(trigPSToken_, trigPSHandle);
     for ( auto& hltPath : hltNames_ ){
       const strings hltPathsWithV = HLTConfigProvider::restoreVersion(trigNames.triggerNames(), hltPath.first);
       int psValue = 0;
@@ -171,15 +162,40 @@ void CATTriggerProducer::produce(edm::Event& event, const edm::EventSetup& event
       }
       const std::string& trigName = hltPathsWithV[0];
       unsigned int trigIndex = trigNames.triggerIndex(trigName);
-      if ( trigIndex < triggerBits->size() ){
-        if ( triggerBits->accept(trigIndex) ) {
-          psValue = triggerPrescales->getPrescaleForIndex(trigIndex);
+      if ( trigIndex < trigResHandle->size() ){
+        if ( trigResHandle->accept(trigIndex) ) {
+          psValue = trigPSHandle->getPrescaleForIndex(trigIndex);
         }
       }
-      event.put(std::auto_ptr<int>(new int (psValue)), hltPath.second);
+      results[hltPath.second] = psValue;
+    }
+
+    edm::Handle<pat::TriggerObjectStandAloneCollection> trigObjHandle;
+    event.getByToken(trigObjToken_, trigObjHandle);
+
+    for ( pat::TriggerObjectStandAlone trigObj : *trigObjHandle ) { // note: not "const &" since we want to call unpackPathNames
+      bool keepTriggerObject = false;
+      trigObj.unpackPathNames(trigNames);
+      std::vector<std::string> pathNamesAll  = trigObj.pathNames(false);
+      for ( unsigned int h = 0, n = pathNamesAll.size(); h < n; ++h ) {
+        for ( auto& trigName : trigNamesToSelect_ ){
+          if ( pathNamesAll[h].find(trigName) == 0 and
+               trigObj.hasPathName( pathNamesAll[h], true, true ) ) {
+              keepTriggerObject = true;
+              break;
+          }
+        }
+      }
+      if ( keepTriggerObject ) {
+        trigObj.packPathNames(trigNames);
+        out_objects->push_back(trigObj);
+      }
     }
   }
 
+  out_trigBits->set(results);
+  event.put(std::move(out_trigBits));
+  event.put(std::move(out_objects));
 }
 
 DEFINE_FWK_MODULE(CATTriggerProducer);
