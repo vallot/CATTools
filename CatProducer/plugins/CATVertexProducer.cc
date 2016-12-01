@@ -46,11 +46,9 @@ void cat::CATVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup 
 
   // only save the first vertex!
   // If the first vertex fails quality cut, put it in the 2nd place.
-  int ipv0 = -1, igoodpv0 = -1;
+  int igoodpv0 = -1;
   for ( int i=0; i<nPV; ++i ) {
     const auto& vtx = recVtxs->at(i);
-    if ( ipv0 < 0 ) ipv0 = i;
-
     if ( vtx.ndof() <= minNDOF_ ) continue;
     if ( maxAbsZ_ > 0 and std::abs(vtx.z()) > maxAbsZ_ ) continue;
     if ( maxd0_ > 0 and std::abs(vtx.position().rho()) > maxd0_ ) continue;
@@ -65,8 +63,8 @@ void cat::CATVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup 
     out->push_back(recVtxs->at(igoodpv0));
     out->back().removeTracks();
   }
-  if ( ipv0 and ipv0 != igoodpv0 ) {
-    out->push_back(recVtxs->at(ipv0));
+  if ( nPV > 0 and igoodpv0 != 0 ) {
+    out->push_back(recVtxs->front());
     out->back().removeTracks();
   }
 
