@@ -1,6 +1,6 @@
 from CATTools.CatProducer.catTemplate_cfg import *
 ## some options
-doSecVertex=True # for jpsi candidates
+doSecVertex=False # for jpsi candidates
 doDstar=True      # for Dstar meson.
     
 ## setting up arguements
@@ -34,6 +34,7 @@ print "process.GlobalTag.globaltag =",process.GlobalTag.globaltag
 #### cat tools output
 ####################################################################
 process.load("CATTools.CatProducer.catCandidates_cff")    
+process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
 from CATTools.CatProducer.catEventContent_cff import *
 process.catOut.outputCommands = catEventContent
 
@@ -53,7 +54,6 @@ if runGenTop:
     process.catOut.outputCommands.extend(['keep *_catGenTops_*_*',])
             
 if doSecVertex:
-    process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
     process.catOut.outputCommands.extend(catEventContentSecVertexs)
 
 if doDstar :
