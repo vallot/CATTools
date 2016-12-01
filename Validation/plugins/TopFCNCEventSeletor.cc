@@ -26,7 +26,7 @@
 
 #include <fstream>
 
-#define nCutsteps 7
+#define nCutsteps 8
 
 using namespace std;
 
@@ -256,9 +256,9 @@ TopFCNCEventSelector::TopFCNCEventSelector(const edm::ParameterSet& pset):
   hCutstep_ = fs->make<TH1D>("hCutstep", "Cut step;;Events", nCutsteps, 0, nCutsteps);
   hCutstepNoweight_ = fs->make<TH1D>("hCutstepNoweight", "Cut step (no weight);;Events", nCutsteps, 0, nCutsteps);
   const char* labels[nCutsteps] = {
-    "S1 all", "S2 goodVertex", "S3 trigger",
-    "S4 lepton", "S5 other lepton veto", "S6 same lepton veto",
-    "S7 nJet3"
+    "S1 all", "S2 goodVertex", "S3 Event filter", "S4 trigger",
+    "S5 lepton", "S6 other lepton veto", "S7 same lepton veto",
+    "S8 nJet3"
   };
   for ( int i=0; i<nCutsteps; ++i ) {
     hCutstep_->GetXaxis()->SetBinLabel(i+1, labels[i]);
@@ -398,7 +398,7 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   // Get event filters and triggers
   edm::Handle<int> trigHandle;
   event.getByToken(recoFilterToken_, trigHandle);
-  //const int isRECOFilterOK = *trigHandle;
+  const int isRECOFilterOK = *trigHandle;
 
   event.getByToken(trigElToken_, trigHandle);
   const int isTrigEl = *trigHandle;
@@ -501,26 +501,27 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   std::vector<bool> cutsteps(nCutsteps);
   cutsteps[0] = true; // always true
   cutsteps[1] = (nVertex > 0);
+  cutsteps[2] = isRECOFilterOK;
   if ( channel_ == 11 ) {
-    cutsteps[2] = (!isIgnoreTrig_ and isTrigEl != 0);
-    cutsteps[3] = (selElectrons.size() == 1);
-    cutsteps[4] = (selMuons.size()+vetoMuons.size() == 0);
-    cutsteps[5] = vetoElectrons.empty();
+    cutsteps[3] = (!isIgnoreTrig_ and isTrigEl != 0);
+    cutsteps[4] = (selElectrons.size() == 1);
+    cutsteps[5] = (selMuons.size()+vetoMuons.size() == 0);
+    cutsteps[6] = vetoElectrons.empty();
   }
   else if ( channel_ == 13 ) {
-    cutsteps[2] = (!isIgnoreTrig_ and isTrigMu != 0);
-    cutsteps[3] = (selMuons.size() == 1);
-    cutsteps[4] = (selElectrons.size()+vetoElectrons.size() == 0);
-    cutsteps[5] = vetoMuons.empty();
+    cutsteps[3] = (!isIgnoreTrig_ and isTrigMu != 0);
+    cutsteps[4] = (selMuons.size() == 1);
+    cutsteps[5] = (selElectrons.size()+vetoElectrons.size() == 0);
+    cutsteps[6] = vetoMuons.empty();
   }
-  cutsteps[6] = (jets_n >= 3);
+  cutsteps[7] = (jets_n >= 3);
 
   // Run though the cut steps
   int cutstep = 0;
   double w = weight;
   for ( cutstep = 0; cutstep < nCutsteps and cutsteps[cutstep]; ++cutstep ) {
-    if ( cutstep == 2 and !isIgnoreTrig_ ) w *= trigSF;
-    else if ( cutstep == 3 ) w *= leptonSF;
+    if ( cutstep == 3 and !isIgnoreTrig_ ) w *= trigSF;
+    else if ( cutstep == 4 ) w *= leptonSF;
     hCutstep_->Fill(cutstep, w);
     hCutstepNoweight_->Fill(cutstep);
   }
