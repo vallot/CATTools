@@ -14,6 +14,7 @@
 #include "CATTools/DataFormats/interface/MCParticle.h"
 #include "CATTools/DataFormats/interface/SecVertex.h"
 #include "CATTools/DataFormats/interface/GenWeights.h"
+#include "CATTools/DataFormats/interface/Trigger.h"
 #include "DataFormats/Common/interface/ValueMap.h"
 
 #include <vector>
@@ -123,6 +124,12 @@ namespace {
 
     cat::GenWeightInfo gwi;
     edm::Wrapper<cat::GenWeightInfo> wgwi;
+
+    cat::TriggerBits tb;
+    edm::Wrapper<cat::TriggerBits> wtb;
+
+    cat::TriggerNames tn;
+    edm::Wrapper<cat::TriggerNames> wtn;
   };
 
 

@@ -94,4 +94,10 @@
 
   <class name="cat::GenWeightInfo" />
   <class name="edm::Wrapper<cat::GenWeightInfo>" />
+
+  <class name="cat::TriggerBits" />
+  <class name="edm::Wrapper<cat::TriggerBits>" />
+
+  <class name="cat::TriggerNames" />
+  <class name="edm::Wrapper<cat::TriggerNames>" />
 </lcgdict>
