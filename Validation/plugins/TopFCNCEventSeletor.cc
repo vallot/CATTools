@@ -350,7 +350,7 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   event.getByToken(vertexToken_, vertexHandle);
   // use the side-effect of catVertex producer: pv collection size == 1 only if the pv[0] is good vtx
   vars[1] = nGoodVertex;
-  const bool isGoodPV0 = (vertexHandle->size() == 1);
+  const bool isGoodPV0 = (nGoodVertex >= 1 and vertexHandle->size() == 1);
 
   std::auto_ptr<std::vector<cat::Lepton> > out_leptons(new std::vector<cat::Lepton>());
   std::auto_ptr<std::vector<cat::Jet> > out_jets(new std::vector<cat::Jet>());
