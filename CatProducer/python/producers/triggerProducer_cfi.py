@@ -18,8 +18,8 @@ catTrigger = cms.EDProducer("CATTriggerProducer",
     ),
     flags = cms.PSet(
         triggerResults = cms.VInputTag(
-            cms.InputTag("TriggerResults","","PAT"),
             cms.InputTag("TriggerResults","","RECO"),
+            cms.InputTag("TriggerResults","","PAT"),
         ),
         names = cms.vstring(
             "Flag_goodVertices",

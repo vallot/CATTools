@@ -102,7 +102,7 @@ void CATTriggerProducer::produce(edm::Event& event, const edm::EventSetup&)
   }
 
   // Collect event filter results from TriggerResults
-  // Give the priority to the first in
+  // Give the priority to the last in
   for ( auto token : flagTokens_ ) {
     edm::Handle<edm::TriggerResults> flagHandle;
     if ( !event.getByToken(token, flagHandle) ) continue;
@@ -111,8 +111,8 @@ void CATTriggerProducer::produce(edm::Event& event, const edm::EventSetup&)
     for ( auto flagName : flagNames_ ) {
       unsigned int trigIndex = filterNames.triggerIndex(flagName);
       if ( trigIndex >= flagHandle->size() ) continue;
-      if ( filterBits_.find(flagName) != filterBits_.end() ) continue;
 
+      if ( flagName.find("Flag_") != 0 ) flagName = "Flag_"+flagName;
       filterBits_[flagName] = flagHandle->accept(trigIndex);
     }
   }
