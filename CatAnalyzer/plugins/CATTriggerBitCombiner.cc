@@ -59,7 +59,7 @@ bool CATTriggerBitCombiner::filter(edm::Event& event, const edm::EventSetup&)
     const auto& trigName = trigNames[index];
     const int accPS = trigBitsHandle->result(index);
     for ( const auto& trigPattern : triggersToMatch_ ) {
-      if ( trigName.find(trigPattern) == string::npos ) continue;
+      if ( trigName.find(trigPattern) != 0 ) continue;
       if ( accPS == 0 ) hasFailed = true;
       else results.push_back(accPS);
     }
@@ -71,7 +71,7 @@ bool CATTriggerBitCombiner::filter(edm::Event& event, const edm::EventSetup&)
     else result = *(std::min_element(results.begin(), results.end()));
   }
   else {
-    if ( hasFailed ) result = 0;
+    if ( results.empty() or hasFailed ) result = 0;
     else {
       result = std::accumulate(results.begin(), results.end(), 1, std::multiplies<int>());
     }
