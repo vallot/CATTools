@@ -1,8 +1,6 @@
 #ifndef CATTools_TriggerBits_H
 #define CATTools_TriggerBits_H
 
-#include "DataFormats/Common/interface/RefProd.h"
-
 #include <vector>
 #include <string>
 #include <map>
