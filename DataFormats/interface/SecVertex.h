@@ -19,6 +19,7 @@ namespace cat {
   public:
     SecVertex();
     SecVertex(reco::VertexCompositeCandidate & aSecVertex);
+    SecVertex(SecVertex const & aSecVertex);
     virtual ~SecVertex();
 
     float lxy() const { return lxy_;}
@@ -29,6 +30,10 @@ namespace cat {
     int leptonID2() const { return leptonID2_;}
     int trackQuality2() const { return trackQuality2_;}
 
+    float JetDR() const { return jetDR_; }
+    float LegDR() const { return legDR_; }
+    float DiffMass() const { return diffMass_;}
+
     void setLxy(float i) { lxy_ = i; }
     void setL3D(float i) { l3D_ = i; }
     void setVProb(float i) { vProb_ = i; }
@@ -37,6 +42,7 @@ namespace cat {
     void setMCMatch(bool flag) { isMCMatch_ = flag ; }
     void setJetDR( float dR ) { jetDR_ = dR; }
     void setLegDR( float dR ) { legDR_ = dR; }
+    void setDiffMass( float diffMass) { diffMass_ = diffMass;}
 
     float dca() const { return dca_;}// distance of closest approach
     float dca(int i) const { 
@@ -51,13 +57,13 @@ namespace cat {
       else if (i==1) dca2_= dca ; 
       else if (i==2) dca3_ = dca;
     }
-
+    bool isMCMatch() const { return isMCMatch_;}
     float cxPtHypot() const { return cxPtHypot_;}// crossing point hypot
     void set_cxPtHypot(float i) { cxPtHypot_ = i; }
     float cxPtAbs() const { return cxPtAbs_;}// crossing point abs
     void set_cxPtAbs(float i) { cxPtAbs_ = i; }
   private:
-    float lxy_, l3D_, vProb_, dca_,dca2_,dca3_, cxPtHypot_, cxPtAbs_, jetDR_, legDR_ ;
+    float lxy_, l3D_, vProb_, dca_,dca2_,dca3_, cxPtHypot_, cxPtAbs_, jetDR_, legDR_ ,diffMass_;
     //int ipos_, ineg_;
     int leptonID1_, trackQuality1_;
     int leptonID2_, trackQuality2_;
