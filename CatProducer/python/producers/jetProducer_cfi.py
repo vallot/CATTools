@@ -10,7 +10,7 @@ catJets = cms.EDProducer('CATJetProducer',
     setGenParticle = cms.bool(True),
 
     minPt = cms.double(5.0),
-    maxEta = cms.double(999.0), ## No cut on eta
+    maxEta = cms.double(1e9), ## No cut on eta
 
     qgLikelihood = cms.InputTag(""), ## Keep this to be invalid and let it to be controlled by patTools/jetsQGLikelihood_cff.py
 )

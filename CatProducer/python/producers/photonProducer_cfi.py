@@ -8,7 +8,7 @@ catPhotons = cms.EDProducer("CATPhotonProducer",
     vertexLabel = cms.InputTag('catVertex'),
     beamLineSrc = cms.InputTag("offlineBeamSpot"),
     minPt = cms.double(5.0),
-    maxEta = cms.double(3.1),
+    maxEta = cms.double(1e9),
     photonIDSources = cms.PSet(),
     photonIDs = cms.vstring(),  ## Defined in CatProducer/python/patTools/egmVersionedID_cff.py
 )
