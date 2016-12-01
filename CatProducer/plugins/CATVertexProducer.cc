@@ -43,20 +43,31 @@ void cat::CATVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup 
 
   const int nPV = recVtxs->size();
   int nGoodPV = 0;
-  std::auto_ptr<reco::VertexCollection> out(new reco::VertexCollection());
 
-  // only save the first good vertex!
-  for ( auto &vtx : *recVtxs ){
-    if ( vtx.ndof() > minNDOF_ &&
-        ( (maxAbsZ_ <=0 ) || std::abs(vtx.z()) <= maxAbsZ_ ) &&
-        ( (maxd0_ <=0 ) || std::abs(vtx.position().rho()) <= maxd0_ ) &&
-        !(vtx.isFake() ) ){
-      if (nGoodPV == 0) {
-        out->push_back(vtx);
-        out->back().removeTracks();
-      }
-      ++nGoodPV;
-    }
+  // only save the first vertex!
+  // If the first vertex fails quality cut, put it in the 2nd place.
+  int ipv0 = -1, igoodpv0 = -1;
+  for ( int i=0; i<nPV; ++i ) {
+    const auto& vtx = recVtxs->at(i);
+    if ( ipv0 < 0 ) ipv0 = i;
+
+    if ( vtx.ndof() <= minNDOF_ ) continue;
+    if ( maxAbsZ_ > 0 and std::abs(vtx.z()) > maxAbsZ_ ) continue;
+    if ( maxd0_ > 0 and std::abs(vtx.position().rho()) > maxd0_ ) continue;
+    if ( vtx.isFake() ) continue;
+
+    if ( igoodpv0 < 0 ) igoodpv0 = i;
+    ++nGoodPV;
+  }
+
+  std::auto_ptr<reco::VertexCollection> out(new reco::VertexCollection());
+  if ( igoodpv0 >= 0 ) {
+    out->push_back(recVtxs->at(igoodpv0));
+    out->back().removeTracks();
+  }
+  if ( ipv0 and ipv0 != igoodpv0 ) {
+    out->push_back(recVtxs->at(ipv0));
+    out->back().removeTracks();
   }
 
   iEvent.put(std::auto_ptr<int>(new int (nGoodPV)), "nGoodPV");
