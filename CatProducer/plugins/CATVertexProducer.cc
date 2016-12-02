@@ -3,16 +3,8 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "DataFormats/Common/interface/Association.h"
-#include "DataFormats/Common/interface/RefToPtr.h"
-
-#include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
-
-using namespace edm;
-using namespace std;
-using namespace reco;
 
 namespace cat {
 
@@ -24,55 +16,60 @@ namespace cat {
     void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
 
   private:
-    reco::VertexCollection *out_;
-
-    edm::EDGetTokenT<reco::VertexCollection> vertexLabel_;
-    unsigned int minNDOF;
-    double maxAbsZ;
-    double maxd0;
+    const edm::EDGetTokenT<reco::VertexCollection> vertexLabel_;
+    const unsigned int minNDOF_;
+    const double maxAbsZ_;
+    const double maxd0_;
 
   };
 
 } // namespace
 
 cat::CATVertexProducer::CATVertexProducer(const edm::ParameterSet & iConfig) :
-  vertexLabel_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexLabel")))
+  vertexLabel_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexLabel"))),
+  minNDOF_(iConfig.getParameter<unsigned int>("minimumNDOF")),
+  maxAbsZ_(iConfig.getParameter<double>("maxAbsZ")),
+  maxd0_(iConfig.getParameter<double>("maxd0"))
 {
-  minNDOF = iConfig.getParameter<unsigned int>("minimumNDOF");
-  maxAbsZ = iConfig.getParameter<double>("maxAbsZ");
-  maxd0 = iConfig.getParameter<double>("maxd0");
   produces<reco::VertexCollection >();
   produces<int >("nGoodPV");
   produces<int >("nPV");
 }
 
-void
-cat::CATVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
+void cat::CATVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
-  Handle<reco::VertexCollection> recVtxs;
+  edm::Handle<reco::VertexCollection> recVtxs;
   iEvent.getByToken(vertexLabel_,recVtxs);
 
-  int nPV = recVtxs->size();
+  const int nPV = recVtxs->size();
   int nGoodPV = 0;
-  out_ = new reco::VertexCollection();
 
-  // only save the first good vertex!
-  for (auto &vtx : *recVtxs){
-    if ( vtx.ndof() > minNDOF &&
-	 ( (maxAbsZ <=0 ) || std::abs(vtx.z()) <= maxAbsZ ) &&
-	 ( (maxd0 <=0 ) || std::abs(vtx.position().rho()) <= maxd0 ) &&
-	 !(vtx.isFake() ) ){
-      if (nGoodPV == 0){
-	out_->push_back(vtx);
-	out_->back().removeTracks();
-      }
-      nGoodPV++;
-    }
+  // only save the first vertex!
+  // If the first vertex fails quality cut, put it in the 2nd place.
+  int igoodpv0 = -1;
+  for ( int i=0; i<nPV; ++i ) {
+    const auto& vtx = recVtxs->at(i);
+    if ( vtx.ndof() <= minNDOF_ ) continue;
+    if ( maxAbsZ_ > 0 and std::abs(vtx.z()) > maxAbsZ_ ) continue;
+    if ( maxd0_ > 0 and std::abs(vtx.position().rho()) > maxd0_ ) continue;
+    if ( vtx.isFake() ) continue;
+
+    if ( igoodpv0 < 0 ) igoodpv0 = i;
+    ++nGoodPV;
+  }
+
+  std::auto_ptr<reco::VertexCollection> out(new reco::VertexCollection());
+  if ( igoodpv0 >= 0 ) {
+    out->push_back(recVtxs->at(igoodpv0));
+    out->back().removeTracks();
+  }
+  if ( nPV > 0 and igoodpv0 != 0 ) {
+    out->push_back(recVtxs->front());
+    out->back().removeTracks();
   }
 
   iEvent.put(std::auto_ptr<int>(new int (nGoodPV)), "nGoodPV");
   iEvent.put(std::auto_ptr<int>(new int (nPV)), "nPV");
-  auto_ptr<reco::VertexCollection> out(out_);
   iEvent.put(out);
 }
 
