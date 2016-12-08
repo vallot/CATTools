@@ -10,7 +10,7 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 50000
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 process.source.fileNames = [
-    '/store/group/CAT/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v8-0-0_RunIISpring16MiniAODv2-PUSpring16RAWAODSIM_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v1/160707_125444/0000/catTuple_1.root',
+    '/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v8-0-3_RunIISpring16MiniAODv2-PUSpring16RAWAODSIM_reHLT_80X_mcRun2_asymptotic_v14_ext3-v1/161205_142558/0000/catTuple_1.root',
 ]
 
 process.load("CATTools.CatAnalyzer.filters_cff")
@@ -23,6 +23,7 @@ process.TFileService = cms.Service("TFileService",
 )
 
 process.load("CATTools.CatAnalyzer.flatGenWeights_cfi")
+process.load("CATTools.CatProducer.mcTruthTop.partonTop_cfi")
 process.agen = cms.EDAnalyzer("CATGenTopAnalysis",
     weightIndex = cms.int32(-1),
     weight = cms.InputTag("flatGenWeights"),
@@ -38,6 +39,9 @@ process.p = cms.Path(
   * process.gen + process.rec
   * process.eventsTTLJ
 )
+
+process.eventsTTLJ.filters.filterRECO = "filterRECOMC"
+process.eventsTTLJ.filters.ignoreTrig = True
 
 ## Customise with cmd arguments
 import sys
