@@ -203,7 +203,7 @@ CATHisAnalysis::CATHisAnalysis(const edm::ParameterSet& pset):
   hElectron2_enUp_ = dirElectron.make<TH1D>("h2_enUp","enUp;Energy scale up",100,0,3);
   hElectron2_enDn_ = dirElectron.make<TH1D>("h2_enDn","enDn;Energy scale down",100,0,3);
 
-  TFileDirectory dirMuon = fs->mkdir("electron", "electron");
+  TFileDirectory dirMuon = fs->mkdir("muon", "muon");
   hMuon_n_    = dirMuon.make<TH1D>("h_n","n;Multiplicity",10,0,10);
   hMuon_pt_   = dirMuon.make<TH1D>("h_pt","pt",500,0,500);
   hMuon_eta_  = dirMuon.make<TH1D>("h_eta","eta",400,-3,3);
