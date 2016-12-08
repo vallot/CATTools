@@ -194,7 +194,7 @@ private:
   bool isGoodMuon(const cat::Muon& mu)
   {
     if ( std::abs(mu.eta()) > 2.1 ) return false;
-    if ( std::isnan(mu.pt()) or shiftedMuonPt(mu) < 26 ) return false;
+    if ( std::isnan(mu.pt()) or shiftedMuonPt(mu) < 27 ) return false;
 
     if ( mu.relIso(0.4) > 0.15 ) return false;
     if ( !mu.isTightMuon() ) return false;

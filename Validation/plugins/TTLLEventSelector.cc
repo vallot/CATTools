@@ -195,7 +195,7 @@ private:
   bool isGoodMuon(const cat::Muon& mu)
   {
     if ( std::abs(mu.eta()) > 2.4 ) return false;
-    if ( shiftedMuonPt(mu) < 20 ) return false;
+    if ( shiftedMuonPt(mu) < 25 ) return false;
 
     if ( mu.relIso(0.4) > 0.15 ) return false;
     if ( !mu.isTightMuon() ) return false;
@@ -204,7 +204,7 @@ private:
   bool isGoodElectron(const cat::Electron& el)
   {
     if ( std::abs(el.eta()) > 2.4 ) return false;
-    if ( shiftedElectronPt(el) < 20 ) return false;
+    if ( shiftedElectronPt(el) < 25 ) return false;
 
     if ( isMVAElectronSel_ and !el.isTrigMVAValid() ) return false;
 
