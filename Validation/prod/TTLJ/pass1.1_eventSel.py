@@ -59,8 +59,8 @@ samples = {
         ## Real data
         ## cmsRun analyze_dat_cfg.py
         ## do common systematic variations
-        "SingleElectron_Run2016B", "SingleElectron_Run2016C", 
-        "SingleMuon_Run2016B", "SingleMuon_Run2016C", 
+        "SingleElectron_Run2016B", "SingleElectron_Run2016C", "SingleElectron_Run2016D", "SingleElectron_Run2016E", "SingleElectron_Run2016F", "SingleElectron_Run2016G", "SingleElectron_Run2016H_v2", "SingleElectron_Run2016H_v3",
+        "SingleMuon_Run2016B", "SingleMuon_Run2016C", "SingleMuon_Run2016D", "SingleMuon_Run2016E", "SingleMuon_Run2016F", "SingleMuon_Run2016G", "SingleMuon_Run2016H_v2", "SingleMuon_Run2016H_v3",
     ],
     'bkg nominal syst systMC':[
         ## MC samples without ttbar genFilter
@@ -70,7 +70,7 @@ samples = {
         ## No ttbar specific gen level analyzer, no ttbar genFilters
         "DYJets", "DYJets_10to50",
         "SingleTop_s", "SingleTop_t", "SingleTbar_t", "SingleTop_tW", "SingleTbar_tW", 
-        "WJets_MG", 
+        "WJets",#_MG", 
         "WW", "WZ", "ZZ", 
         "WWW", "WWZ", "WZZ", "ZZZ", 
     ],
@@ -82,10 +82,10 @@ samples = {
         ## do ttbar specific gen level analyzer, do ttbar-dilepton genFilters
         ## do PDF variations
         "TTLJ_powheg", 
-        "ttbb",
+        #"ttbb",
     ],
     'sig nominal syst systMC':[
-        "ttW", "ttZ",
+        #"ttW", "ttZ",
     ],
     'sig.noll nominal syst systMC':[
         ## ttbar-others
@@ -94,32 +94,32 @@ samples = {
         ## do MC common systematic variations
         ## do ttbar specific gen level analyzer, do ttbar-dilepton genFilters
         "TT_powheg", 
-        "ttW", "ttZ",
+        #"ttW", "ttZ",
     ],
     'sig nominal scaleup':[
         ## MC signal samples, for the systematic unc. variations
         ## Therefore, produce nominals only
         ## cmsRun analyze_sig_cfg.py
         ## do ttbar specific gen level analyzer, do ttbar-dilepton genFilters
-        "TTLJ_powheg_scaleup", "TT_powheg_scaleup",
+        #"TTLJ_powheg_scaleup", "TT_powheg_scaleup",
     ],
     'sig nominal scaledn':[
-        "TTLJ_powheg_scaledown", "TT_powheg_scaledown",
+        #"TTLJ_powheg_scaledown", "TT_powheg_scaledown",
     ],
     'sig nominal':[
         ## Variation on generator choice
         ## produce nominals only
         ## cmsRun analyze_sig_cfg.py
         ## do ttbar specific gen level analyzer, do ttbar-dilepton genFilters
-        "TTJets_MG", "TTJets_aMC", 
-        "TT_powheg_herwig", 
+        #"TTJets_MG", "TTJets_aMC", 
+        #"TT_powheg_herwig", 
 
-        "TT_powheg_mtop1695", "TT_powheg_mtop1755",
+        #"TT_powheg_mtop1695", "TT_powheg_mtop1755",
 
-        "TT_powheg_noCR", "TT_powheg_mpiOFF", 
+        #"TT_powheg_noCR", "TT_powheg_mpiOFF", 
 
-        "TTLJ_powheg_alphaS", "TT_powheg_alphaS", 
-        "TT_powheg_herwig_mpiOFF", 
+        #"TTLJ_powheg_alphaS", "TT_powheg_alphaS", 
+        #"TT_powheg_herwig_mpiOFF", 
     ],
 }
 
