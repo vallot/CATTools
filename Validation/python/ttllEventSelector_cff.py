@@ -20,8 +20,8 @@ eventsTTLL = cms.EDFilter("TTLLEventSelector",
 
     electron = cms.PSet(
         src = cms.InputTag("catElectrons"),
-        idName = cms.string("cutBasedElectronID-Spring15-25ns-V1-standalone-medium"),
-        #idName = cms.string("mvaEleID-Spring15-25ns-Trig-V1-wp90"),
+        idName = cms.string("cutBasedElectronID-Summer16-80X-V1-medium"),
+        #idName = cms.string("mvaEleID-Spring16-GeneralPurpose-V1-wp80"),
         scaleDirection = cms.int32(0),
         #scaleDirection = cms.int32(-1),
         #scaleDirection = cms.int32(+1),
@@ -59,7 +59,7 @@ eventsTTLL = cms.EDFilter("TTLLEventSelector",
         trigMUEL = cms.InputTag("filterTrigMUEL"),
         trigMUMU = cms.InputTag("filterTrigMUMU"),
         trigELEL = cms.InputTag("filterTrigELEL"),
-        ignoreTrig = cms.bool(True), # Accept event even if it does not pass HLT. Needed for synchronization
+        ignoreTrig = cms.bool(False), # Accept event even if it does not pass HLT. Needed for synchronization
         efficiencySFDirection = cms.int32(0),
     ),
 
