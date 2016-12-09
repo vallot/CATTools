@@ -71,7 +71,7 @@ samples = {
         ## No ttbar specific gen level analyzer, no ttbar genFilters
         "DYJets", "DYJets_10to50",# "DYJets_MG", "DYJets_MG_10to50", 
         "SingleTop_s", "SingleTop_t", "SingleTbar_t", "SingleTop_tW", "SingleTbar_tW", 
-        "WJets", 
+        "WJets", "WJets_MG",
         "WW", "WZ", "ZZ", 
         "WWW", "WWZ", "WZZ", "ZZZ", 
     ],
@@ -183,6 +183,6 @@ print "> cd pass1"
 print "> ./submit.sh"
 print ""
 print "or, use the xargs magic to submit them all"
-print "> cat submit.sh | sed -e 's;create-batch;;g' | xargs -L1 -P20 create-batch"
+print "> cat submit*.sh | sed -e 's;create-batch;;g' -e 's; *$;;g' | xargs -l -P20 create-batch"
 print ""
 
