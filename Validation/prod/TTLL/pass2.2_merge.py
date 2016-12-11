@@ -53,7 +53,14 @@ for d in ds:
     sses = []
     for ss in ds[d]['subsamples']:
         fName = ss['hist']
-        xsec, normFactor = ss['xsec'], ss['normFactor']
+        #xsec, normFactor = ss['xsec'], ss['normFactor']
+        xsec, normFactor = ss['xsec'], 1
+        for modName in ("eventsTTLL/overall/weight", "eventsTTLJ/overall/weight"):
+            f = TFile(fName)
+            hh = f.Get(modName)
+            if hh == None: continue
+            normFactor = hh.Integral()
+            break
         scale = 1
         if ss['type'] != 'Data' and normFactor != 0: scale = xsec/normFactor
         sses.append( (TFile(fName), scale) )
@@ -73,7 +80,7 @@ for d in ds:
         h = sses[0][0].Get(hName).Clone()
         h.SetDirectory(dout)
         h.Reset()
-        h.Sumw2()
+        #h.Sumw2()
         ## Merge histograms
         for ss in sses:
             hin = ss[0].Get(hName)

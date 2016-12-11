@@ -10,7 +10,7 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 50000
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 process.source.fileNames = [
-    '/store/group/CAT/SingleMuon/v8-0-0_Run2016B-PromptReco-v2/160705_213508/0000/catTuple_1.root',
+    '/store/group/CAT/SingleMuon/v8-0-3_Run2016G-23Sep2016-v1/161204_002923/0000/catTuple_1.root',
 ]
 
 process.load("CATTools.CatAnalyzer.filters_cff")

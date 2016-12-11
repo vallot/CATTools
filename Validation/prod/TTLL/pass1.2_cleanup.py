@@ -106,8 +106,8 @@ if __name__ == '__main__':
     if len(jobsFailed) > 0:
         print "@@ There are some failed jobs"
         print "@@ Please resubmit following jobs"
-        #if os.path.exists("pass1/resubmit"): os.system("rm -rf pass1/resubmit")
-        if not os.path.exists("pass1/resubmit"): os.makedirs("pass1/resubmit")
+        if os.path.exists("pass1/resubmit"): os.system("rm -rf pass1/resubmit")
+        os.makedirs("pass1/resubmit")
         fsubmit = open("pass1/resubmit/submit.sh", "w")
         for sample, jobs in jobsFailed:
             print sample, jobs
@@ -128,6 +128,7 @@ if __name__ == '__main__':
             print>>fsubmit, ("create-batch --jobName {0} --fileList {0}.txt --cfg {0}_cfg.py --maxFiles 1".format(prefix))
 
         fsubmit.close()
+        os.system("chmod +x pass1/resubmit/submit.sh")
 
     if nSub > 0:
         print "@@ Done, wait for the %d jobs to finish" % nSub
