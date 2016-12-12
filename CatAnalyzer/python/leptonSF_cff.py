@@ -1,5 +1,13 @@
 import FWCore.ParameterSet.Config as cms
 
+dummySF = cms.PSet(
+    pt_bins = cms.vdouble(0,1e9),
+    abseta_bins = cms.vdouble(0,1e9),
+    eta_bins = cms.vdouble(-1e9,1e9),
+    values = cms.vdouble(1.0),
+    errors = cms.vdouble(0.0),
+)
+
 ## Muon SF reference https://twiki.cern.ch/twiki/bin/view/CMS/MuonWorkInProgressAndPagResults
 ## Retrieve data from the cmsdoc web page:
 ##   https://cmsdoc.cern.ch/cms/Physics/muon/ReferenceEfficiencies/Run2016/25ns/proviSFs_2p6fb/MuonID_Z_2016runB_2p6fb.json
