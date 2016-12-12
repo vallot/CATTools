@@ -256,7 +256,7 @@ pileupWeightMap["Cert_271036-280385_13TeV_PromptReco_Collisions16_JSON_Dn"] = cm
 9.001732e+06,4.786056e+06,2.450571e+06,1.210284e+06,5.779961e+05,
 2.681473e+05,1.220185e+05,5.563009e+04,2.654281e+04,1.421956e+04,
 )
-#pileupCalc.py -i /CATTools/CatProducer/data/LumiMask/Cert_271036-282092_13TeV_PromptReco_Collisions16_JSON.txt --inputLumiJSON /CATTools/CatProducer/data/LumiMask/pileup_latest.txt --minBiasXsec 69200 --calcMode true --maxPileupBin 100 --numPileupBins 100 PileUpData.root 
+#pileupCalc.py -i /CATTools/CatProducer/data/LumiMask/Cert_271036-282092_13TeV_PromptReco_Collisions16_JSON.txt --inputLumiJSON /CATTools/CatProducer/data/LumiMask/pileup_latest.txt --minBiasXsec 69200 --calcMode true --maxPileupBin 50 --numPileupBins 50 PileUpData.root 
 pileupWeightMap["Cert_271036-282092_13TeV_PromptReco_Collisions16_JSON"] = cms.vdouble(
 1.615092e+05,6.171469e+05,1.605461e+06,2.604653e+06,3.830441e+06,
 5.105480e+06,6.158739e+06,1.102612e+07,3.230081e+07,7.653193e+07,
@@ -279,7 +279,7 @@ pileupWeightMap["Cert_271036-282092_13TeV_PromptReco_Collisions16_JSON"] = cms.v
 2.620338e+01,1.991880e+01,1.503919e+01,1.127823e+01,8.400634e+00,
 6.214952e+00,4.566859e+00,3.333123e+00,2.416231e+00,1.739717e+00,
 )
-#pileupCalc.py -i /CATTools/CatProducer/data/LumiMask/Cert_271036-282092_13TeV_PromptReco_Collisions16_JSON.txt --inputLumiJSON /CATTools/CatProducer/data/LumiMask/pileup_latest.txt --minBiasXsec 72383 --calcMode true --maxPileupBin 100 --numPileupBins 100 PileUpData_Up.root 
+#pileupCalc.py -i /CATTools/CatProducer/data/LumiMask/Cert_271036-282092_13TeV_PromptReco_Collisions16_JSON.txt --inputLumiJSON /CATTools/CatProducer/data/LumiMask/pileup_latest.txt --minBiasXsec 72383 --calcMode true --maxPileupBin 50 --numPileupBins 50 PileUpData_Up.root 
 pileupWeightMap["Cert_271036-282092_13TeV_PromptReco_Collisions16_JSON_Up"] = cms.vdouble(
 1.475330e+05,5.539474e+05,1.426733e+06,2.270246e+06,3.491851e+06,
 4.568972e+06,5.602659e+06,7.811008e+06,2.092644e+07,5.191734e+07,
@@ -302,7 +302,7 @@ pileupWeightMap["Cert_271036-282092_13TeV_PromptReco_Collisions16_JSON_Up"] = cm
 6.974792e+01,5.507205e+01,4.321563e+01,3.370234e+01,2.612091e+01,
 2.011989e+01,1.540180e+01,1.171725e+01,8.859073e+00,6.656693e+00,
 )
-#pileupCalc.py -i /CATTools/CatProducer/data/LumiMask/Cert_271036-282092_13TeV_PromptReco_Collisions16_JSON.txt --inputLumiJSON /CATTools/CatProducer/data/LumiMask/pileup_latest.txt --minBiasXsec 66016 --calcMode true --maxPileupBin 100 --numPileupBins 100 PileUpData_Dn.root 
+#pileupCalc.py -i /CATTools/CatProducer/data/LumiMask/Cert_271036-282092_13TeV_PromptReco_Collisions16_JSON.txt --inputLumiJSON /CATTools/CatProducer/data/LumiMask/pileup_latest.txt --minBiasXsec 66016 --calcMode true --maxPileupBin 50 --numPileupBins 50 PileUpData_Dn.root 
 pileupWeightMap["Cert_271036-282092_13TeV_PromptReco_Collisions16_JSON_Dn"] = cms.vdouble(
 1.784187e+05,6.997595e+05,1.797028e+06,3.000864e+06,4.252756e+06,
 5.679557e+06,7.085814e+06,1.724724e+07,4.937341e+07,1.156644e+08,
@@ -325,7 +325,7 @@ pileupWeightMap["Cert_271036-282092_13TeV_PromptReco_Collisions16_JSON_Dn"] = cm
 7.897794e+00,5.742829e+00,4.144853e+00,2.969307e+00,2.111366e+00,
 1.490163e+00,1.043916e+00,7.258701e-01,5.009714e-01,3.431843e-01,
 )
-#pileupCalc.py -i /CATTools/CatProducer/data/LumiMask/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt --inputLumiJSON /CATTools/CatProducer/data/LumiMask/pileup_latest.txt --minBiasXsec 69200 --calcMode true --maxPileupBin 100 --numPileupBins 100 PileUpData.root 
+#pileupCalc.py -i /CATTools/CatProducer/data/LumiMask/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt --inputLumiJSON /CATTools/CatProducer/data/LumiMask/pileup_latest.txt --minBiasXsec 69200 --calcMode true --maxPileupBin 50 --numPileupBins 50 PileUpData.root 
 pileupWeightMap["Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON"] = cms.vdouble(
 2.387970e+05,8.375429e+05,2.308427e+06,3.124754e+06,4.475978e+06,
 5.973461e+06,6.923919e+06,1.282391e+07,3.520148e+07,7.868935e+07,
@@ -337,18 +337,8 @@ pileupWeightMap["Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON"] = 
 4.268718e+08,3.348264e+08,2.574354e+08,1.934708e+08,1.415774e+08,
 1.004589e+08,6.884891e+07,4.542183e+07,2.876924e+07,1.745858e+07,
 1.013579e+07,5.623866e+06,2.980638e+06,1.509081e+06,7.306624e+05,
-3.393810e+05,1.523941e+05,6.735705e+04,3.047581e+04,1.514840e+04,
-8.974999e+03,6.495949e+03,5.434762e+03,4.889949e+03,4.521715e+03,
-4.208464e+03,3.909763e+03,3.614274e+03,3.320722e+03,3.031096e+03,
-2.748237e+03,2.474977e+03,2.213817e+03,1.966815e+03,1.735546e+03,
-1.521109e+03,1.324149e+03,1.144898e+03,9.832202e+02,8.386676e+02,
-7.105336e+02,5.979098e+02,4.997392e+02,4.148663e+02,3.420820e+02,
-2.801624e+02,2.279014e+02,1.841373e+02,1.477726e+02,1.177887e+02,
-9.325467e+01,7.333219e+01,5.727639e+01,4.443378e+01,3.423791e+01,
-2.620338e+01,1.991880e+01,1.503919e+01,1.127823e+01,8.400634e+00,
-6.214952e+00,4.566859e+00,3.333123e+00,2.416231e+00,1.739717e+00,
 )
-#pileupCalc.py -i /CATTools/CatProducer/data/LumiMask/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt --inputLumiJSON /CATTools/CatProducer/data/LumiMask/pileup_latest.txt --minBiasXsec 72383 --calcMode true --maxPileupBin 100 --numPileupBins 100 PileUpData_Up.root 
+#pileupCalc.py -i /CATTools/CatProducer/data/LumiMask/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt --inputLumiJSON /CATTools/CatProducer/data/LumiMask/pileup_latest.txt --minBiasXsec 72383 --calcMode true --maxPileupBin 50 --numPileupBins 50 PileUpData_Up.root 
 pileupWeightMap["Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON_Up"] = cms.vdouble(
 2.326834e+05,6.594790e+05,2.183879e+06,2.745838e+06,4.071531e+06,
 5.390457e+06,6.316909e+06,8.980580e+06,2.371224e+07,5.397650e+07,
@@ -360,18 +350,8 @@ pileupWeightMap["Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON_Up"]
 5.746183e+08,4.684041e+08,3.755114e+08,2.958985e+08,2.287956e+08,
 1.731131e+08,1.277240e+08,9.155644e+07,6.355044e+07,4.259085e+07,
 2.749684e+07,1.707085e+07,1.017802e+07,5.822522e+06,3.194297e+06,
-1.680510e+06,8.484420e+05,4.119635e+05,1.933815e+05,8.880861e+04,
-4.094722e+04,1.992782e+04,1.101071e+04,7.298141e+03,5.722804e+03,
-4.985435e+03,4.560490e+03,4.244753e+03,3.963531e+03,3.691485e+03,
-3.421626e+03,3.153557e+03,2.889088e+03,2.630613e+03,2.380501e+03,
-2.140853e+03,1.913419e+03,1.699565e+03,1.500273e+03,1.316159e+03,
-1.147500e+03,9.942699e+02,8.561777e+02,7.327099e+02,6.231741e+02,
-5.267399e+02,4.424793e+02,3.694026e+02,3.064906e+02,2.527231e+02,
-2.071015e+02,1.686678e+02,1.365185e+02,1.098149e+02,8.778922e+01,
-6.974792e+01,5.507205e+01,4.321563e+01,3.370234e+01,2.612091e+01,
-2.011989e+01,1.540180e+01,1.171725e+01,8.859073e+00,6.656693e+00,
 )
-#pileupCalc.py -i /CATTools/CatProducer/data/LumiMask/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt --inputLumiJSON /CATTools/CatProducer/data/LumiMask/pileup_latest.txt --minBiasXsec 66016 --calcMode true --maxPileupBin 100 --numPileupBins 100 PileUpData_Dn.root 
+#pileupCalc.py -i /CATTools/CatProducer/data/LumiMask/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt --inputLumiJSON /CATTools/CatProducer/data/LumiMask/pileup_latest.txt --minBiasXsec 66016 --calcMode true --maxPileupBin 50 --numPileupBins 50 PileUpData_Dn.root 
 pileupWeightMap["Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON_Dn"] = cms.vdouble(
 2.474113e+05,1.069278e+06,2.428277e+06,3.566992e+06,4.990902e+06,
 6.549383e+06,8.022547e+06,1.988552e+07,5.187614e+07,1.197761e+08,
@@ -383,14 +363,4 @@ pileupWeightMap["Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON_Dn"]
 2.917549e+08,2.177137e+08,1.579472e+08,1.108720e+08,7.495866e+07,
 4.861817e+07,3.015711e+07,1.784735e+07,1.006027e+07,5.395202e+06,
 2.751268e+06,1.334411e+06,6.165808e+05,2.726823e+05,1.167808e+05,
-4.980536e+04,2.244774e+04,1.173778e+04,7.636727e+03,6.017898e+03,
-5.280649e+03,4.837350e+03,4.483816e+03,4.153851e+03,3.828857e+03,
-3.506027e+03,3.187482e+03,2.876619e+03,2.576851e+03,2.291178e+03,
-2.022034e+03,1.771241e+03,1.540024e+03,1.329043e+03,1.138448e+03,
-9.679458e+02,8.168710e+02,6.842602e+02,5.689249e+02,4.695210e+02,
-3.846110e+02,3.127198e+02,2.523806e+02,2.021733e+02,1.607528e+02,
-1.268704e+02,9.938681e+01,7.727942e+01,5.964380e+01,4.569122e+01,
-3.474289e+01,2.622193e+01,1.964392e+01,1.460685e+01,1.078076e+01,
-7.897794e+00,5.742829e+00,4.144853e+00,2.969307e+00,2.111366e+00,
-1.490163e+00,1.043916e+00,7.258701e-01,5.009714e-01,3.431843e-01,
 )
