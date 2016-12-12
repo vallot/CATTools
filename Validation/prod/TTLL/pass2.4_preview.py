@@ -33,7 +33,8 @@ fRD = {
 
 ## Data driven corrections
 dataset = json.loads(open("pass2/dataset.json").read())
-scaleDY = json.loads(open("pass2/scaler_DY.json").read())
+if not os.path.exists('pass2/scaler_DY.json'): scaleDY = {'scale':{}}
+else: scaleDY = json.loads(open("pass2/scaler_DY.json").read())
 
 ## Pick the first root file to get full list of plots
 plts = []
