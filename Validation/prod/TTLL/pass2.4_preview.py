@@ -135,6 +135,13 @@ for iplt, pltInfo in enumerate(plts):
     hRD.GetXaxis().SetLabelOffset(999)
     hRD.GetXaxis().SetLabelSize(0)
 
+    leg = TLegend(0.7, 0.7, 0.95, 0.95)
+    hsList = hsMC.GetHists()
+    for i in reversed(range(hsList.GetEntries())):
+        h = hsList.At(i)
+        leg.AddEntry(h, h.GetTitle(), "lf")
+    leg.AddEntry(hRD, "Data", "lp")
+
     ## Draw'em all
     plotDim = (400, 300, 100) # width, main height, ratio height
     margin = (2*40, 20, 60, 60) # left, right, bottom, top
