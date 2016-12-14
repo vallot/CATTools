@@ -130,6 +130,8 @@ private:
   }
 
 private:
+  bool isUseGoodPV_; // Use good PV for the event selection or raw PV0
+
   // Energy scales
   int muonScale_, electronScale_, jetScale_, jetResol_;
   bool isSkipJER_; // Do not apply JER, needed to remove randomness during the Synchronization
@@ -145,6 +147,7 @@ private:
 
   // ID variables
   bool isEcalCrackVeto_, isMVAElectronSel_;
+  bool isSkipEleSmearing_; // Do not apply energy smearing, needed to remove randomness during the synchronization
   std::string bTagName_;
   std::string elIdName_, elVetoIdName_;
   enum class BTagWP { CSVL, CSVM, CSVT } bTagWP_;
@@ -200,6 +203,7 @@ TopFCNCEventSelector::TopFCNCEventSelector(const edm::ParameterSet& pset):
     electronSFShift_ = electronSet.getParameter<int>("efficiencySFDirection");
   }
   isEcalCrackVeto_ = isMVAElectronSel_ = false;
+  isSkipEleSmearing_ = electronSet.getParameter<bool>("skipSmearing");
   if ( elIdName_.substr(0,3) == "mva" ) {
     isMVAElectronSel_ = true;
   }
@@ -223,6 +227,7 @@ TopFCNCEventSelector::TopFCNCEventSelector(const edm::ParameterSet& pset):
   metToken_ = consumes<cat::METCollection>(metSet.getParameter<edm::InputTag>("src"));
 
   const auto vertexSet = pset.getParameter<edm::ParameterSet>("vertex");
+  isUseGoodPV_ = vertexSet.getParameter<bool>("useGoodPV");
   nVertexToken_ = consumes<int>(vertexSet.getParameter<edm::InputTag>("nVertex"));
   vertexToken_ = consumes<reco::VertexCollection>(vertexSet.getParameter<edm::InputTag>("src"));
   pileupWeightToken_ = consumes<float>(vertexSet.getParameter<edm::InputTag>("pileupWeight"));
@@ -419,7 +424,7 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   cat::ElectronCollection selElectrons, vetoElectrons;
   for ( int i=0, n=electronHandle->size(); i<n; ++i ) {
     auto& p = electronHandle->at(i);
-    const double scale = shiftedElectronScale(p)/p.smearedScale();
+    const double scale = shiftedElectronScale(p)/(isSkipEleSmearing_ ? p.smearedScale() : 1);
 
     cat::Electron lep(p);
     lep.setP4(p.p4()*scale);
@@ -428,8 +433,8 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     else continue;
 
     event_st += lep.pt();
-    metDpx += lep.px()-p.px()/p.smearedScale();
-    metDpy += lep.py()-p.py()/p.smearedScale();
+    metDpx += lep.px()-p.px()/(isSkipEleSmearing_ ? p.smearedScale() : 1);
+    metDpy += lep.py()-p.py()/(isSkipEleSmearing_ ? p.smearedScale() : 1);
   }
   std::sort(selElectrons.begin(), selElectrons.end(),
             [&](const cat::Electron& a, const cat::Electron& b){ return a.pt() > b.pt(); });
@@ -493,7 +498,7 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   // Check cut steps
   std::vector<bool> cutsteps(nCutsteps);
   cutsteps[0] = true; // always true
-  cutsteps[1] = isGoodPV0;
+  cutsteps[1] = (isUseGoodPV_ ? (nGoodVertex >= 1) : isGoodPV0);
   cutsteps[2] = isRECOFilterOK;
   if ( channel_ == 11 ) {
     cutsteps[3] = (!isIgnoreTrig_ and isTrigEl != 0);

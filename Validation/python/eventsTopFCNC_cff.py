@@ -32,6 +32,7 @@ eventsTopFCNC = cms.EDFilter("TopFCNCEventSelector",
         efficiencySFDirection = cms.int32(0),
         #applyEcalCrackVeto = cms.bool(True),
         applyEcalCrackVeto = cms.bool(False),
+        skipSmearing = cms.bool(False), # Needed for synchronization
     ),
 
     jet = cms.PSet(
@@ -44,7 +45,7 @@ eventsTopFCNC = cms.EDFilter("TopFCNCEventSelector",
         resolDirection = cms.int32(0),
         #resolDirection = cms.int32(-1),
         #resolDirection = cms.int32(+1),
-        skipJER = cms.bool(True), # Needed for synchronization
+        skipJER = cms.bool(False), # Needed for synchronization
     ),
 
     met = cms.PSet(
@@ -52,6 +53,7 @@ eventsTopFCNC = cms.EDFilter("TopFCNCEventSelector",
     ),
 
     vertex = cms.PSet(
+        useGoodPV = cms.bool(True), # Use the good PV to select event
         nVertex = cms.InputTag("catVertex", "nGoodPV"),
         src = cms.InputTag("catVertex"),
         #src = cms.InputTag("offlineSlimmedPrimaryVertices"),
