@@ -37,6 +37,7 @@ namespace cat {
     int trackerLayersWithMeasurement() const { return trackerLayersWithMeasurement_; }
 
     float ipsignificance() const { return ipsig_;}
+    float MiniRelIso() const {return relMiniIso_;}
 
     float shiftedEn() const { if (this->pt() < 100) return 0.002; else return 0.05; }
     float shiftedEnDown() const {return 1-shiftedEn();}
@@ -45,6 +46,7 @@ namespace cat {
     void setIsGlobalMuon(bool d) { isGlobalMuon_ = d; }
     void setIsSoftMuon(bool d) { isSoftMuon_ = d; }
 
+    void setrelMiniIso(double iso) { relMiniIso_ = iso;  }
     void setNormalizedChi2(float d) { normalizedChi2_ = d; }
     void setNumberOfValidHits(int i) { numberOfValidHits_ = i; }
     void setNumberOfValidMuonHits(int i) { numberOfValidMuonHits_ = i; }
@@ -63,6 +65,7 @@ namespace cat {
 
     float normalizedChi2_;
     float ipsig_;
+    float relMiniIso_;
 
     int numberOfValidHits_;
     int numberOfValidMuonHits_;

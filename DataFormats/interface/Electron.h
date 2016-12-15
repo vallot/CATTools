@@ -33,6 +33,8 @@ namespace cat {
       if( dR < 0.35) return relIso03_;
       else return relIso04_;
     }
+
+    float MiniRelIso() const {return relMiniIso03_;}
     
     float scEta() const { return scEta_; }
     bool passConversionVeto() const { return passConversionVeto_; }
@@ -58,6 +60,9 @@ namespace cat {
       if( dR < 0.35) relIso03_ = relIso;
       else  relIso04_ = relIso;
     }
+    
+    void setrelMiniIso(double iso) { relMiniIso03_ = iso;  }
+
     void setscEta(float i) { scEta_ = i; }
     void setPassConversionVeto(bool i) {  passConversionVeto_ = i; }
     void setIsGsfCtfScPixChargeConsistent(bool d) { isGsfCtfScPixChargeConsistent_ = d ; }
@@ -78,6 +83,7 @@ namespace cat {
     float smearedScale_; // smearedScale = (pt_smeared)/(pt_original). Undo smearing by pt()/smearedScale()
     float relIso03_;
     float relIso04_;
+    float relMiniIso03_;
     float ipsig_;
     float scEta_;
     bool passConversionVeto_;
