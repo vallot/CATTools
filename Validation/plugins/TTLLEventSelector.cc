@@ -81,37 +81,37 @@ struct ControlPlots
     }
 
     auto subdir = dir.mkdir(stepNames[0]);
-    h_vertex_n[0] = subdir.make<TH1D>("vertex_n", "vertex_n", 100, 0, 100);
+    h_vertex_n[0] = subdir.make<TH1D>("vertex_n", "vertex_n;Number of primary vertices;Events", 100, 0, 100);
 
     for ( int i=1; i<=2; ++i ) {
       subdir = dir.mkdir(stepNames[i]);
-      h_vertex_n[i] = subdir.make<TH1D>("vertex_n", "vertex_n", 100, 0, 100);
-      h_met_pt[i] = subdir.make<TH1D>("met_pt", "met_pt", 1000, 0, 1000);
-      h_met_phi[i] = subdir.make<TH1D>("met_phi", "met_phi", 100, -pi, pi);
-      h_leptons_n[i] = subdir.make<TH1D>("leptons_n", "leptons_n", 10, 0, 10);
-      h_jets_n[i] = subdir.make<TH1D>("jets_n", "jets_n", 10, 0, 10);
-      h_jets_pt[i]  = subdir.make<TH1D>("jets_pt", "jets_pt", 1000, 0, 1000);
-      h_jets_eta[i] = subdir.make<TH1D>("jets_eta", "jets_eta", 100, -maxeta, maxeta);
-      h_jets_ht[i] = subdir.make<TH1D>("jets_ht", "jets_ht", 1000, 0, 1000);
-      h_bjets_n[i] = subdir.make<TH1D>("bjets_n", "bjets_n", 10, 0, 10);
+      h_vertex_n[i] = subdir.make<TH1D>("vertex_n", "vertex_n;Number of primary vertices;Events", 100, 0, 100);
+      h_met_pt[i] = subdir.make<TH1D>("met_pt", "met_pt;Missing transverse momentum (GeV);Events/1GeV", 1000, 0, 1000);
+      h_met_phi[i] = subdir.make<TH1D>("met_phi", "met_phi;Missing transverse momentum #phi;Events", 100, -pi, pi);
+      h_leptons_n[i] = subdir.make<TH1D>("leptons_n", "leptons_n;Lepton multiplicity;Events", 10, 0, 10);
+      h_jets_n[i] = subdir.make<TH1D>("jets_n", "jets_n;Jet multiplicity;Events", 10, 0, 10);
+      h_jets_pt[i]  = subdir.make<TH1D>("jets_pt", "jets_pt;Jets p_{T} (GeV);Events/1GeV", 1000, 0, 1000);
+      h_jets_eta[i] = subdir.make<TH1D>("jets_eta", "jets_eta;Jets #eta;Events", 100, -maxeta, maxeta);
+      h_jets_ht[i] = subdir.make<TH1D>("jets_ht", "jets_ht;Jets #Sigma p_{T} (GeV);Events/1GeV", 1000, 0, 1000);
+      h_bjets_n[i] = subdir.make<TH1D>("bjets_n", "bjets_n;b-jet multiplicity;Events", 10, 0, 10);
     }
 
     for ( int i=3; i<nCutstep; ++i ) {
       subdir = dir.mkdir(stepNames[i]);
-      h_vertex_n[i] = subdir.make<TH1D>("vertex_n", "vertex_n", 100, 0, 100);
-      h_met_pt[i] = subdir.make<TH1D>("met_pt", "met_pt", 1000, 0, 1000);
-      h_met_phi[i] = subdir.make<TH1D>("met_phi", "met_phi", 100, -pi, pi);
-      h_leptons_n[i] = subdir.make<TH1D>("leptons_n", "leptons_n", 10, 0, 10);
+      h_vertex_n[i] = subdir.make<TH1D>("vertex_n", "vertex_n;Number of primary vertices;Events", 100, 0, 100);
+      h_met_pt[i] = subdir.make<TH1D>("met_pt", "met_pt;Missing transverse momentum (GeV);Events/1GeV", 1000, 0, 1000);
+      h_met_phi[i] = subdir.make<TH1D>("met_phi", "met_phi;Missing transverse momentum #phi;Events", 100, -pi, pi);
+      h_leptons_n[i] = subdir.make<TH1D>("leptons_n", "leptons_n;Lepton multiplicity;Events", 10, 0, 10);
 
-      h_lepton1_pt [i] = subdir.make<TH1D>("lepton1_pt", "lepton1_pt", 1000, 0, 1000);
-      h_lepton1_eta[i] = subdir.make<TH1D>("lepton1_eta", "lepton1_eta", 100, -maxeta, maxeta);
-      h_lepton1_phi[i] = subdir.make<TH1D>("lepton1_phi", "lepton1_phi", 100, -pi, pi);
-      h_lepton1_q  [i] = subdir.make<TH1D>("lepton1_q", "lepton1_q", 3, -1.5, 1.5);
+      h_lepton1_pt [i] = subdir.make<TH1D>("lepton1_pt", "lepton1_pt;1st leading lepton p_{T} (GeV);Events/1GeV", 1000, 0, 1000);
+      h_lepton1_eta[i] = subdir.make<TH1D>("lepton1_eta", "lepton1_eta;1st leading lepton #eta;Events", 100, -maxeta, maxeta);
+      h_lepton1_phi[i] = subdir.make<TH1D>("lepton1_phi", "lepton1_phi;1st leading lepton #phi;Events", 100, -pi, pi);
+      h_lepton1_q  [i] = subdir.make<TH1D>("lepton1_q", "lepton1_q;1st leading lepton charge;Events", 3, -1.5, 1.5);
 
       h_lepton2_pt [i] = subdir.make<TH1D>("lepton2_pt", "lepton2_pt", 1000, 0, 1000);
       h_lepton2_eta[i] = subdir.make<TH1D>("lepton2_eta", "lepton2_eta", 100, -maxeta, maxeta);
       h_lepton2_phi[i] = subdir.make<TH1D>("lepton2_phi", "lepton2_phi", 100, -pi, pi);
-      h_lepton2_q  [i] = subdir.make<TH1D>("lepton2_q", "lepton2_q", 3, -1.5, 1.5);
+      h_lepton2_q  [i] = subdir.make<TH1D>("lepton2_q", "lepton2_q;2nd leading lepton charge;Events", 3, -1.5, 1.5);
 
       h_z_m  [i] = subdir.make<TH1D>("z_m", "z_m", 1000, 0, 1000);
       h_z_pt [i] = subdir.make<TH1D>("z_pt", "z_pt", 1000, 0, 1000);
@@ -119,22 +119,27 @@ struct ControlPlots
       h_z_phi[i] = subdir.make<TH1D>("z_phi", "z_phi", 100, -pi, pi);
       h_z_m_noveto[i] = subdir.make<TH1D>("z_m_noveto", "z_m_noveto", 1000, 0, 1000);
 
-      h_jets_n[i] = subdir.make<TH1D>("jets_n", "jets_n", 10, 0, 10);
-      h_jets_pt [i] = subdir.make<TH1D>("jets_pt", "jets_pt", 1000, 0, 1000);
-      h_jets_eta[i] = subdir.make<TH1D>("jets_eta", "jets_eta", 100, -maxeta, maxeta);
-      h_jets_ht[i] = subdir.make<TH1D>("jets_ht", "jets_ht", 1000, 0, 1000);
+      h_jets_n[i] = subdir.make<TH1D>("jets_n", "jets_n;Jet multiplicity;Events", 10, 0, 10);
+      h_jets_pt [i] = subdir.make<TH1D>("jets_pt", "jets_pt;Jets p_{T} (GeV);Events/1GeV", 1000, 0, 1000);
+      h_jets_eta[i] = subdir.make<TH1D>("jets_eta", "jets_eta;Jets #eta;Events", 100, -maxeta, maxeta);
+      h_jets_ht[i] = subdir.make<TH1D>("jets_ht", "jets_ht;Jets #Sigma p_{T} (GeV);Events/1GeV", 1000, 0, 1000);
 
       for ( int j=0; j<4; ++j ) {
         const string prefix = Form("jet%d_", j+1);
-        h_jet_m  [i][j] = subdir.make<TH1D>((prefix+"m").c_str(), (prefix+"m").c_str(), 500, 0, 500);
-        h_jet_pt [i][j] = subdir.make<TH1D>((prefix+"pt").c_str(), (prefix+"pt").c_str(), 1000, 0, 1000);
-        h_jet_eta[i][j] = subdir.make<TH1D>((prefix+"eta").c_str(), (prefix+"eta").c_str(), 100, -maxeta, maxeta);
-        h_jet_phi[i][j] = subdir.make<TH1D>((prefix+"phi").c_str(), (prefix+"phi").c_str(), 100, -pi, pi);
-        h_jet_btag[i][j] = subdir.make<TH1D>((prefix+"btag").c_str(), (prefix+"btag").c_str(), 100, 0, 1);
+        string titlePrefix = "";
+        if ( j == 0 ) titlePrefix = "1st";
+        else if ( j == 1 ) titlePrefix = "2nd";
+        else if ( j == 2 ) titlePrefix = "3rd";
+        else titlePrefix = Form("%dth", j+1);
+        h_jet_m  [i][j] = subdir.make<TH1D>((prefix+"m").c_str(), (prefix+"m;"+titlePrefix+" leading jet mass (GeV);Events/1GeV").c_str(), 500, 0, 500);
+        h_jet_pt [i][j] = subdir.make<TH1D>((prefix+"pt").c_str(), (prefix+"pt;"+titlePrefix+" leading jet p_{T} (GeV);Events/1GeV").c_str(), 1000, 0, 1000);
+        h_jet_eta[i][j] = subdir.make<TH1D>((prefix+"eta").c_str(), (prefix+"eta;"+titlePrefix+" leading jet #eta;Events").c_str(), 100, -maxeta, maxeta);
+        h_jet_phi[i][j] = subdir.make<TH1D>((prefix+"phi").c_str(), (prefix+"phi;"+titlePrefix+" leading jet #phi;Events").c_str(), 100, -pi, pi);
+        h_jet_btag[i][j] = subdir.make<TH1D>((prefix+"btag").c_str(), (prefix+"btag;"+titlePrefix+" leading jet b discriminator output;Events").c_str(), 100, 0, 1);
       }
 
-      h_bjets_n[i] = subdir.make<TH1D>("bjets_n", "bjets_n", 10, 0, 10);
-      h_event_st[i] = subdir.make<TH1D>("event_st", "event_st", 1000, 0, 1000);
+      h_bjets_n[i] = subdir.make<TH1D>("bjets_n", "bjets_n;b-jet multiplicity;Events", 10, 0, 10);
+      h_event_st[i] = subdir.make<TH1D>("event_st", "event_st;#Sigma p_{T} (GeV);Events/1GeV", 1000, 0, 1000);
     }
   };
 };
