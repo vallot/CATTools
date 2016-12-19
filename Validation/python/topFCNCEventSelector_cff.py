@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 from CATTools.CatAnalyzer.leptonSF_cff import *
 from CATTools.CatAnalyzer.flatGenWeights_cfi import *
 
-eventsTopFCNC = cms.EDFilter("TopFCNCEventSelector",
+eventsFCNC = cms.EDFilter("TopFCNCEventSelector",
     isMC = cms.bool(True),
     channel = cms.string("electron"),
     ## alwaysAcceptAfter : Accept event even though selection may fail _AFTER_ this step
