@@ -21,6 +21,7 @@
 #include "CATTools/DataFormats/interface/GenWeights.h"
 
 #include "CATTools/CatAnalyzer/interface/BTagWeightEvaluator.h"
+#include "CATTools/CommonTools/interface/AnalysisHelper.h"
 
 #include "TH1.h"
 #include "TTree.h"
@@ -76,6 +77,8 @@ class TopAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
       edm::EDGetTokenT<int>                            pvToken_;
       edm::EDGetTokenT<float>                          puWeight_;
       edm::EDGetTokenT<cat::GenWeights>                genWeightToken_;
+      edm::EDGetTokenT<edm::TriggerResults>            triggerBits_;
+      edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjects_;
 
       // ---------- CSV weight ------------
       BTagWeightEvaluator csvWeight;
@@ -184,7 +187,9 @@ class TopAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
       float WMuon_Phi[100];
       float WElectron_MT[100];
       float WElectron_Phi[100]; 
-      
+     
+      int IsMuonTrig;
+      int IsElectronTrig; 
 };
 
 //
@@ -211,6 +216,9 @@ TopAnalyzer::TopAnalyzer(const edm::ParameterSet& iConfig)
    pvToken_       = consumes<int>                            (iConfig.getParameter<edm::InputTag>("pvLabel"));
    puWeight_      = consumes<float>                          (iConfig.getParameter<edm::InputTag>("puWeight"));
    genWeightToken_  = consumes<cat::GenWeights>              (iConfig.getParameter<edm::InputTag>("genWeightLabel"));
+   // Trigger  
+   triggerBits_     = consumes<edm::TriggerResults>                    (iConfig.getParameter<edm::InputTag>("triggerBits"));
+   triggerObjects_  = consumes<pat::TriggerObjectStandAloneCollection> (iConfig.getParameter<edm::InputTag>("triggerObjects"));
 
 
    usesResource("TFileService");
@@ -293,6 +301,19 @@ TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      GenWeight = genWeight->genWeight();
      tmp->Fill(1,GenWeight);
    }
+
+   edm::Handle<edm::TriggerResults> triggerBits;
+   edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
+   iEvent.getByToken(triggerBits_, triggerBits);
+   iEvent.getByToken(triggerObjects_, triggerObjects);
+   const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
+   AnalysisHelper trigHelper = AnalysisHelper(triggerNames, triggerBits, triggerObjects);
+   //we don't use triggerObjects here: can be removed. 
+
+   bool PassMuonTrigger = (trigHelper.triggerFired("HLT_IsoMu27_v") || trigHelper.triggerFired("HLT_IsoTkMu27_v"));
+   if(PassMuonTrigger) IsMuonTrig = 1;
+   bool PassElectronTrigger = (trigHelper.triggerFired("HLT_Ele27_eta2p1_WPLoose_Gsf_v"));
+   if(PassElectronTrigger) IsElectronTrig = 1;
 
    edm::Handle<int> pvHandle;
    iEvent.getByToken( pvToken_, pvHandle );
@@ -586,7 +607,9 @@ TopAnalyzer::beginJob()
    tree->Branch("WMuon_Phi",WMuon_Phi,"WMuon_Phi[NMuon]/F"); 
    tree->Branch("WElectron_MT",WElectron_MT,"WElectron_MT[NElectron]/F"); 
    tree->Branch("WElectron_Phi",WElectron_Phi,"WElectron_Phi[NElectron]/F"); 
- 
+
+   tree->Branch("IsMuonTrig",&IsMuonTrig,"IsMuonTrig/i"); 
+   tree->Branch("IsElectronTrig",&IsElectronTrig,"IsElectronTrig/i"); 
 }
 
 void
@@ -619,6 +642,9 @@ TopAnalyzer::clear(){
   GenLepton1_Eta = -9.0;
   GenLepton2_Pt = -9.0;
   GenLepton2_Eta = -9.0;
+
+  IsMuonTrig = 0;
+  IsElectronTrig = 0;
 
 }
 

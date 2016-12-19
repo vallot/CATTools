@@ -65,6 +65,22 @@ miniAOD_customizeOutput(process.catOut)
     
 process.catOutpath = cms.EndPath(process.catOut)    
 process.schedule.append(process.catOutpath)
+
+
+#### pileup weight
+import CATTools.CatProducer.catDefinitions_cfi as cat
+lumiJSON = "Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON"
+if runOnMC:
+        from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
+        process.pileupWeight.pileupMC = pileupWeightMap[cat.pileupMCmap]
+        process.pileupWeight.pileupRD = pileupWeightMap["%s"%lumiJSON]
+        process.pileupWeight.pileupUp = pileupWeightMap["%s_Up"%lumiJSON]
+        process.pileupWeight.pileupDn = pileupWeightMap["%s_Dn"%lumiJSON]
+else:
+        from FWCore.PythonUtilities.LumiList import LumiList
+        process.lumiMask = cms.EDProducer("LumiMaskProducer",
+            LumiSections = LumiList('../data/LumiMask/%s.txt'%lumiJSON).getVLuminosityBlockRange())
+
 ####################################################################
 #### setting up cat tools
 ####################################################################
