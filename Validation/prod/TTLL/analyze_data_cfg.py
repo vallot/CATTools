@@ -9,10 +9,8 @@ process.options.allowUnscheduled = cms.untracked.bool(True)
 process.MessageLogger.cerr.FwkReport.reportEvery = 50000
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
-process.source.fileNames = [
-    '/store/group/CAT/DoubleEG/v8-0-3_Run2016G-23Sep2016-v1/161204_005359/0000/catTuple_1.root',
-]
-
+from CATTools.Validation.commonTestInput_cff import commonTestCATTuples
+process.source.fileNames = commonTestCATTuples["data"]
 process.load("CATTools.CatAnalyzer.filters_cff")
 process.load("CATTools.Validation.ttllEventSelector_cff")
 process.load("CATTools.Validation.validation_cff")

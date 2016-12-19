@@ -9,10 +9,8 @@ process.options.allowUnscheduled = cms.untracked.bool(True)
 process.MessageLogger.cerr.FwkReport.reportEvery = 50000
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
-process.source.fileNames = [
-    '/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v8-0-3_RunIISpring16MiniAODv2-PUSpring16RAWAODSIM_reHLT_80X_mcRun2_asymptotic_v14_ext3-v1/161205_142558/0000/catTuple_1.root',
-]
-
+from CATTools.Validation.commonTestInput_cff import commonTestCATTuples
+process.source.fileNames = commonTestCATTuples["sig"]
 process.load("CATTools.CatAnalyzer.filters_cff")
 process.load("CATTools.Validation.ttljEventSelector_cff")
 process.load("CATTools.CatAnalyzer.ttll.ttllGenFilters_cff")
