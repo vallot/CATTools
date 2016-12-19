@@ -53,16 +53,14 @@ for d in ds:
     sses = []
     for ss in ds[d]['subsamples']:
         fName = ss['hist']
-        #xsec, normFactor = ss['xsec'], ss['normFactor']
-        xsec, normFactor = ss['xsec'], 1
-        for modName in ("eventsTTLL/overall/weight", "eventsTTLJ/overall/weight"):
-            f = TFile(fName)
-            hh = f.Get(modName)
-            if hh == None: continue
-            normFactor = hh.Integral()
-            break
         scale = 1
-        if ss['type'] != 'Data' and normFactor != 0: scale = xsec/normFactor
+        if ss['type'] != 'Data':
+            xsec = ss['xsec']
+            f = TFile(fName)
+            hh = f.Get("gen/hWeight")
+            normFactor = hh.GetMean()*hh.GetEntries()
+            if normFactor == 0: scale = 0
+            else: scale = xsec/normFactor
         sses.append( (TFile(fName), scale) )
 
     fout = TFile(foutName, "RECREATE")
