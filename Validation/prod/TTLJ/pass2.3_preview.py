@@ -131,6 +131,9 @@ for iplt, pltInfo in enumerate(plts):
     hRatio.SetMinimum(0)
     hRatio.SetMaximum(rMax)
 
+    hRD.GetXaxis().SetLabelOffset(999)
+    hRD.GetXaxis().SetLabelSize(0)
+
     ## Draw'em all
     plotDim = (400, 300, 100) # width, main height, ratio height
     margin = (2*40, 20, 60, 60) # left, right, bottom, top
