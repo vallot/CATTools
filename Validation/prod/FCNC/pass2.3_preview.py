@@ -163,7 +163,7 @@ for iplt, pltInfo in enumerate(plts):
 
     pad1 = c.cd(1)
     pad1.SetPad(0, 1.0*padH[1]/canH, 1, 1)
-    pad1.SetMargin(1.*margin[0]/canW, 1.*margin[1]/canW, 0.1, 1.*margin[3]/padH[0])
+    pad1.SetMargin(1.*margin[0]/canW, 1.*margin[1]/canW, 0.05, 1.*margin[3]/padH[0])
 
     pad1.SetLogy()
     hRD.SetMaximum(hRD.GetMaximum()*100)
