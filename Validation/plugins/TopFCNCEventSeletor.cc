@@ -26,9 +26,113 @@
 
 #include <fstream>
 
-#define nCutsteps 8
+#define nCutstep 11
 
 using namespace std;
+
+namespace cat {
+
+struct ControlPlotsFCNC
+{
+  typedef TH1D* H1;
+  typedef TH2D* H2;
+
+  H1 hCutstep, hCutstepNoweight;
+
+  H1 h_vertex_n[nCutstep];
+  H1 h_met_pt[nCutstep], h_met_phi[nCutstep];
+  H1 h_leptons_n[nCutstep];
+  H1 h_lepton1_pt[nCutstep], h_lepton1_eta[nCutstep], h_lepton1_phi[nCutstep], h_lepton1_q[nCutstep];
+  H1 h_jets_n[nCutstep], h_jets_pt[nCutstep], h_jets_eta[nCutstep], h_jets_ht[nCutstep];
+
+  H1 h_jet_m[nCutstep][6];
+  H1 h_jet_pt[nCutstep][6];
+  H1 h_jet_eta[nCutstep][6];
+  H1 h_jet_phi[nCutstep][6];
+  H1 h_jet_btag[nCutstep][6];
+
+  H1 h_bjets_n[nCutstep];
+  H1 h_event_st[nCutstep];
+
+  void book(TFileDirectory&& dir)
+  {
+    const double maxeta = 3;
+    const double pi = 3.141592;
+
+    hCutstep = dir.make<TH1D>("cutstep", "cutstep", nCutstep, 0, nCutstep);
+    hCutstepNoweight = dir.make<TH1D>("cutstepNoweight", "cutstepNoweight", nCutstep, 0, nCutstep);
+
+    const char* stepLabels[] = {
+      "S1 all event", "S2 goodVertex", "S3 Event filter", "S4 trigger",
+      "S5 lepton", "S6 other lepton veto", "S7 same lepton veto",
+      "S8a nJet1", "S8b nJet2", "S8c nJet3", "S9  nBJet1"
+    };
+    const char* stepNames[nCutstep] = {"step1", "step2", "step3", "step4",
+                                       "step5", "step6", "step7",
+                                       "step8a", "step8b", "step8c", "step9"};
+
+    for ( int i=0; i<nCutstep; ++i ) {
+      hCutstep->GetXaxis()->SetBinLabel(i+1, stepLabels[i]);
+      hCutstepNoweight->GetXaxis()->SetBinLabel(i+1, stepLabels[i]);
+    }
+
+    auto subdir = dir.mkdir(stepNames[0]);
+    h_vertex_n[0] = subdir.make<TH1D>("vertex_n", "vertex_n;Number of primary vertices;Events;Vertex multipliity;Events", 100, 0, 100);
+
+    for ( int i=1; i<=3; ++i ) {
+      subdir = dir.mkdir(stepNames[i]);
+      h_vertex_n[i] = subdir.make<TH1D>("vertex_n", "vertex_n;Number of primary vertices;Events", 100, 0, 100);
+      h_met_pt[i] = subdir.make<TH1D>("met_pt", "met_pt;Missing transverse momentum (GeV);Events/1GeV", 1000, 0, 1000);
+      h_met_phi[i] = subdir.make<TH1D>("met_phi", "met_phi;Missing transverse momentum #phi;Events", 100, -pi, pi);
+      h_leptons_n[i] = subdir.make<TH1D>("leptons_n", "leptons_n;Lepton multiplicity;Events", 10, 0, 10);
+      h_lepton1_pt[i]  = subdir.make<TH1D>("lepton1_pt", "lepton1_pt;1st leading lepton p_{T} (GeV);Events/1GeV", 1000, 0, 1000);
+      h_lepton1_eta[i] = subdir.make<TH1D>("lepton1_eta", "lepton1_eta;1st leading lepton #eta;Events", 100, -maxeta, maxeta);
+      h_lepton1_phi[i] = subdir.make<TH1D>("lepton1_phi", "lepton1_phi;1st leading lepton #phi;Events", 100, -pi, pi);
+      h_lepton1_q[i]   = subdir.make<TH1D>("lepton1_q", "lepton1_q;1st leading lepton charge;Events", 3, -1.5, 1.5);
+      h_jets_n[i] = subdir.make<TH1D>("jets_n", "jets_n;Jet multiplicity;Events", 10, 0, 10);
+      h_jets_pt[i]  = subdir.make<TH1D>("jets_pt", "jets_pt;Jets p_{T} (GeV);Events/1GeV", 1000, 0, 1000);
+      h_jets_eta[i] = subdir.make<TH1D>("jets_eta", "jets_eta;Jets #eta;Events", 100, -maxeta, maxeta);
+      h_jets_ht[i] = subdir.make<TH1D>("jets_ht", "jets_ht;Jets #Sigma p_{T} (GeV);Events/1GeV", 1000, 0, 1000);
+      h_bjets_n[i] = subdir.make<TH1D>("bjets_n", "bjets_n;b-jet multiplicity;Events", 10, 0, 10);
+    }
+
+    for ( int i=4; i<nCutstep; ++i ) {
+      subdir = dir.mkdir(stepNames[i]);
+      h_vertex_n[i] = subdir.make<TH1D>("vertex_n", "vertex_n;Number of primary vertices;Events", 100, 0, 100);
+      h_met_pt[i] = subdir.make<TH1D>("met_pt", "met_pt;Missing transverse momentum (GeV);Events/1GeV", 1000, 0, 1000);
+      h_met_phi[i] = subdir.make<TH1D>("met_phi", "met_phi;Missing transverse momentum #phi;Events", 100, -pi, pi);
+      h_leptons_n[i] = subdir.make<TH1D>("leptons_n", "leptons_n;Lepton multiplicity;Events", 10, 0, 10);
+
+      h_lepton1_pt[i]  = subdir.make<TH1D>("lepton1_pt", "lepton1_pt;1st leading lepton p_{T} (GeV);Events/1GeV", 1000, 0, 1000);
+      h_lepton1_eta[i] = subdir.make<TH1D>("lepton1_eta", "lepton1_eta;1st leading lepton #eta;Events", 100, -maxeta, maxeta);
+      h_lepton1_phi[i] = subdir.make<TH1D>("lepton1_phi", "lepton1_phi;1st leading lepton #phi;Events", 100, -pi, pi);
+      h_lepton1_q[i]   = subdir.make<TH1D>("lepton1_q", "lepton1_q;1st leading lepton charge;Events", 3, -1.5, 1.5);
+
+      h_jets_n[i] = subdir.make<TH1D>("jets_n", "jets_n;Jet multiplicity;Events", 10, 0, 10);
+      h_jets_pt[i]  = subdir.make<TH1D>("jets_pt", "jets_pt;Jets p_{T} (GeV);Events/1GeV", 1000, 0, 1000);
+      h_jets_eta[i] = subdir.make<TH1D>("jets_eta", "jets_eta;Jets #eta;Events", 100, -maxeta, maxeta);
+      h_jets_ht[i] = subdir.make<TH1D>("jets_ht", "jets_ht;Jets #Sigma p_{T} (GeV);Events/1GeV", 1000, 0, 1000);
+
+      for ( int j=0; j<6; ++j ) {
+        const string prefix = Form("jet%d_", j+1);
+        string titlePrefix = "";
+        if ( j == 0 ) titlePrefix = "1st";
+        else if ( j == 1 ) titlePrefix = "2nd";
+        else if ( j == 2 ) titlePrefix = "3rd";
+        else titlePrefix = Form("%dth", j+1);
+        h_jet_m  [i][j] = subdir.make<TH1D>((prefix+"m").c_str(), (prefix+"m;"+titlePrefix+" leading jet mass (GeV);Events/1GeV").c_str(), 500, 0, 500);
+        h_jet_pt [i][j] = subdir.make<TH1D>((prefix+"pt").c_str(), (prefix+"pt;"+titlePrefix+" leading jet p_{T} (GeV);Events/1GeV").c_str(), 1000, 0, 1000);
+        h_jet_eta[i][j] = subdir.make<TH1D>((prefix+"eta").c_str(), (prefix+"eta;"+titlePrefix+" leading jet #eta;Events").c_str(), 100, -maxeta, maxeta);
+        h_jet_phi[i][j] = subdir.make<TH1D>((prefix+"phi").c_str(), (prefix+"phi;"+titlePrefix+" leading jet #phi;Events").c_str(), 100, -pi, pi);
+        h_jet_btag[i][j] = subdir.make<TH1D>((prefix+"btag").c_str(), (prefix+"btag;"+titlePrefix+" leading jet b discriminator output;Events").c_str(), 100, 0, 1);
+      }
+
+      h_bjets_n[i] = subdir.make<TH1D>("bjets_n", "bjets_n;b-jet multiplicity;Events", 10, 0, 10);
+
+      h_event_st[i] = subdir.make<TH1D>("event_st", "event_st;#Sigma p_{T} *(GeV);Events/1GeV", 1000, 0, 1000);
+    }
+  };
+};
 
 class TopFCNCEventSelector : public edm::one::EDFilter<edm::one::SharedResources>
 {
@@ -153,13 +257,13 @@ private:
   enum class BTagWP { CSVL, CSVM, CSVT } bTagWP_;
 
 private:
-  TH1D* hWeight_;
-  TH1D* hCutstep_, * hCutstepNoweight_;
-  THnSparseF* hsp_;
+  ControlPlotsFCNC h_ch;
 
   std::ofstream eventListFile_;
 
 };
+
+} // namespace cat
 
 using namespace cat;
 
@@ -257,62 +361,8 @@ TopFCNCEventSelector::TopFCNCEventSelector(const edm::ParameterSet& pset):
   // Fill histograms, etc
   usesResource("TFileService");
   edm::Service<TFileService> fs;
-
-  hCutstep_ = fs->make<TH1D>("hCutstep", "Cut step;;Events", nCutsteps, 0, nCutsteps);
-  hCutstepNoweight_ = fs->make<TH1D>("hCutstepNoweight", "Cut step (no weight);;Events", nCutsteps, 0, nCutsteps);
-  const char* labels[nCutsteps] = {
-    "S1 all", "S2 goodVertex", "S3 Event filter", "S4 trigger",
-    "S5 lepton", "S6 other lepton veto", "S7 same lepton veto",
-    "S8 nJet3"
-  };
-  for ( int i=0; i<nCutsteps; ++i ) {
-    hCutstep_->GetXaxis()->SetBinLabel(i+1, labels[i]);
-    hCutstepNoweight_->GetXaxis()->SetBinLabel(i+1, labels[i]);
-  }
-
-  constexpr int ndim = 1+1+2+4+2+2+6*5;
-  const int nbins[ndim] = {nCutsteps, 50, 100, 100, // cutstep, st, ht
-                           27, 100, 100, 100, // lepton pdgId, pt, eta, phi
-                           100, 100, // met
-                           10, 10, // nJet, nBjet
-                           100, 100, 100, 25, 100,  // jet1
-                           100, 100, 100, 25, 100,  // jet2
-                           100, 100, 100, 25, 100,  // jet3
-                           100, 100, 100, 25, 100,  // jet4
-                           100, 100, 100, 25, 100,  // jet5
-                           100, 100, 100, 25, 100}; // jet6
-  const double pi = TMath::Pi();
-  const double xmins[ndim] = {0, 0, 0, 0, -13.5, 0, -3, -pi, 0, -pi, 0, 0,
-                              0, -3, -pi, 0, 0,  // jet1
-                              0, -3, -pi, 0, 0,  // jet2
-                              0, -3, -pi, 0, 0,  // jet3
-                              0, -3, -pi, 0, 0,  // jet4
-                              0, -3, -pi, 0, 0,  // jet5
-                              0, -3, -pi, 0, 0}; // jet6
-  const double xmaxs[ndim] = {nCutsteps, 50, 1000, 1000,
-                              13.5, 500, 3, pi, 500, pi, 10, 10,
-                              500, 3, pi, 50, 1,
-                              500, 3, pi, 50, 1,
-                              500, 3, pi, 50, 1,
-                              500, 3, pi, 50, 1,
-                              500, 3, pi, 50, 1,
-                              500, 3, pi, 50, 1};
-  const char* varNames[ndim] = {
-    "cutstep", "vertex_n", "event_st", "event_ht", // [0-3]
-    "lepton_pid", "lepton_pt", "lepton_eta", "lepton_phi", // [4-7]
-    "met_pt", "met_phi", // [8,9]
-    "jets_n", "bjets_n", // [10,11]
-    "jet1_pt", "jet1_eta", "jet1_phi", "jet1_m", "jet1_btag", // [12-16]
-    "jet2_pt", "jet2_eta", "jet2_phi", "jet2_m", "jet2_btag", // [17-21]
-    "jet3_pt", "jet3_eta", "jet3_phi", "jet3_m", "jet3_btag", // [22-26]
-    "jet4_pt", "jet4_eta", "jet4_phi", "jet4_m", "jet4_btag", // [27-31]
-    "jet5_pt", "jet5_eta", "jet5_phi", "jet5_m", "jet5_btag", // [32-46]
-    "jet6_pt", "jet6_eta", "jet6_phi", "jet6_m", "jet6_btag", // [37-41]
-  };
-  hsp_ = fs->make<THnSparseF>("hsp", "all infos", ndim, nbins, xmins, xmaxs);
-  for ( int i=0; i<ndim; ++i ) {
-    hsp_->GetAxis(i)->SetTitle(varNames[i]);
-  }
+  const string channelStr = channel_ == 11 ? "el" : "mu";
+  h_ch.book(fs->mkdir(channelStr));
 
   produces<int>("channel");
   produces<float>("weight");
@@ -325,13 +375,6 @@ TopFCNCEventSelector::TopFCNCEventSelector(const edm::ParameterSet& pset):
 bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 {
   if ( event.isRealData() ) isMC_ = false;
-
-  double vars[] = {0, 0, 0, 0,
-    0, 0, 0, 0, // lepton
-    0, 0, 0, 0, // met, jets_n, bjets_n
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // jet[1-6] pt, eta, phi, m, btag
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
   // Get physics objects
   edm::Handle<cat::MuonCollection> muonHandle;
@@ -354,7 +397,6 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   edm::Handle<reco::VertexCollection> vertexHandle;
   event.getByToken(vertexToken_, vertexHandle);
   // use the side-effect of catVertex producer: pv collection size == 1 only if the pv[0] is good vtx
-  vars[1] = nGoodVertex;
   const bool isGoodPV0 = (nGoodVertex >= 1 and vertexHandle->size() == 1);
 
   std::auto_ptr<std::vector<cat::Lepton> > out_leptons(new std::vector<cat::Lepton>());
@@ -441,7 +483,7 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   std::sort(selMuons.begin(), selMuons.end(),
             [&](const cat::Muon& a, const cat::Muon& b){ return a.pt() > b.pt(); });
 
-  //const int leptons_n = selMuons.size() + selElectrons.size();
+  const int leptons_n = selMuons.size() + selElectrons.size();
   const cat::Lepton* lepton1 = 0;
   double trigSF = 1, leptonSF = 1;
   if ( channel_ == 11 and !selElectrons.empty() ) {
@@ -454,11 +496,13 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     lepton1 = &mu;
     leptonSF = muonSF_(mu.pt(), std::abs(mu.eta()), muonSFShift_);
   }
+  int lepton1_id = 0;
+  double lepton1_pt = -1, lepton1_eta = -999, lepton1_phi = -999;
   if ( lepton1 ) {
-    vars[4] = lepton1->pdgId();
-    vars[5] = lepton1->pt();
-    vars[6] = lepton1->eta();
-    vars[7] = lepton1->phi();
+    lepton1_id = lepton1->pdgId();
+    lepton1_pt = lepton1->pt();
+    lepton1_eta = lepton1->eta();
+    lepton1_phi = lepton1->phi();
     out_leptons->push_back(*lepton1);
   }
 
@@ -492,11 +536,9 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   // Update & calculate met
   const double met_pt = hypot(metP4.px()-metDpx, metP4.py()-metDpy);
   const double met_phi = atan2(metP4.py()-metDpy, metP4.px()-metDpx);
-  vars[8] = met_pt;
-  vars[9] = met_phi;
 
   // Check cut steps
-  std::vector<bool> cutsteps(nCutsteps);
+  std::vector<bool> cutsteps(nCutstep);
   cutsteps[0] = true; // always true
   cutsteps[1] = (isUseGoodPV_ ? (nGoodVertex >= 1) : isGoodPV0);
   cutsteps[2] = isRECOFilterOK;
@@ -512,34 +554,61 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     cutsteps[5] = (selElectrons.size()+vetoElectrons.size() == 0);
     cutsteps[6] = vetoMuons.empty();
   }
-  cutsteps[7] = (jets_n >= 3);
+  cutsteps[ 7] = (jets_n >= 1);
+  cutsteps[ 8] = (jets_n >= 2);
+  cutsteps[ 9] = (jets_n >= 3);
+  cutsteps[10] = (jets_n >= 4);
 
   // Run though the cut steps
   int cutstep = 0;
   double w = weight;
-  for ( cutstep = 0; cutstep < nCutsteps and cutsteps[cutstep]; ++cutstep ) {
+  for ( cutstep = 0; cutstep < nCutstep and cutsteps[cutstep]; ++cutstep ) {
     if ( cutstep == 3 and !isIgnoreTrig_ ) w *= trigSF;
     else if ( cutstep == 4 ) w *= leptonSF;
-    hCutstep_->Fill(cutstep, w);
-    hCutstepNoweight_->Fill(cutstep);
+    h_ch.hCutstep->Fill(cutstep, w);
+    h_ch.hCutstepNoweight->Fill(cutstep);
+
+    h_ch.h_vertex_n[cutstep]->Fill(nGoodVertex, w);
+    if ( cutstep >= 1 ) {
+      h_ch.h_met_pt[cutstep]->Fill(met_pt, w);
+      h_ch.h_met_phi[cutstep]->Fill(met_phi, w);
+      h_ch.h_jets_ht[cutstep]->Fill(event_ht, w);
+
+      h_ch.h_leptons_n[cutstep]->Fill(leptons_n, w);
+      if ( lepton1 ) {
+        h_ch.h_lepton1_pt[cutstep]->Fill(lepton1->pt(), w);
+        h_ch.h_lepton1_eta[cutstep]->Fill(lepton1->eta(), w);
+        h_ch.h_lepton1_phi[cutstep]->Fill(lepton1->phi(), w);
+        h_ch.h_lepton1_q[cutstep]->Fill(lepton1->charge(), w);
+      }
+
+      h_ch.h_jets_n[cutstep]->Fill(jets_n, w);
+      for ( int j=0, n=std::min(6, jets_n); j<n; ++j ) {
+        h_ch.h_jets_pt[cutstep]->Fill(out_jets->at(j).pt(), w);
+        h_ch.h_jets_eta[cutstep]->Fill(out_jets->at(j).eta(), w);
+      }
+      h_ch.h_bjets_n[cutstep]->Fill(bjets_n, w);
+    }
+    if ( cutstep >= 4 ) {
+      h_ch.h_event_st[cutstep]->Fill(event_st, w);
+      for ( int j=0, n=std::min(6, jets_n); j<n; ++j ) {
+        h_ch.h_jet_m  [cutstep][j]->Fill(out_jets->at(j).mass(), w);
+        h_ch.h_jet_pt [cutstep][j]->Fill(out_jets->at(j).pt(), w);
+        h_ch.h_jet_eta[cutstep][j]->Fill(out_jets->at(j).eta(), w);
+        h_ch.h_jet_phi[cutstep][j]->Fill(out_jets->at(j).phi(), w);
+        h_ch.h_jet_btag[cutstep][j]->Fill(out_jets->at(j).bDiscriminator(bTagName_), w);
+      }
+    }
   }
 
   // Fill n-dim histogram
-  vars[2] = event_st;
-  vars[3] = event_ht;
-  vars[0] = cutstep;
-  vars[10] = jets_n;
-  vars[11] = bjets_n;
-  for ( unsigned int i=0, n=std::min(6, jets_n); i<n; ++i ) {
-    const auto& jet = out_jets->at(i);
-    const int ii = 12+i*5;
-    vars[ii+0] = jet.pt();
-    vars[ii+1] = jet.eta();
-    vars[ii+2] = jet.phi();
-    vars[ii+3] = jet.mass();
-    vars[ii+4] = jet.bDiscriminator(bTagName_);
+  double jet1_pt = -1, jet1_eta = -999, jet1_phi = -999;
+  if ( jets_n >= 1 ) {
+    const auto& jet = out_jets->at(0);
+    jet1_pt  = jet.pt();
+    jet1_eta = jet.eta();
+    jet1_phi = jet.phi();
   }
-  hsp_->Fill(vars, w);
 
   event.put(std::auto_ptr<int>(new int((int)channel_)), "channel");
   event.put(std::auto_ptr<float>(new float(weight)), "weight");
@@ -557,13 +626,13 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       char buffer[101];
       snprintf(buffer, 100, "%6d %6d %10d", run, lum, evt);
       eventListFile_ << buffer;
-      snprintf(buffer, 100, "  %+2d  %6.2f %+4.2f %+4.2f", int(vars[4]), vars[5], vars[6], vars[7]);
+      snprintf(buffer, 100, "  %+2d  %6.2f %+4.2f %+4.2f", lepton1_id, lepton1_pt, lepton1_eta, lepton1_phi);
       eventListFile_ << buffer;
-      snprintf(buffer, 100, "    %6.1f  %+4.2f", vars[8], vars[9]);
+      snprintf(buffer, 100, "    %6.1f  %+4.2f", met_pt, met_phi);
       eventListFile_ << buffer;
-      snprintf(buffer, 100, "    %d %d", int(vars[10]), int(vars[11]));
+      snprintf(buffer, 100, "    %d %d", jets_n, bjets_n);
       eventListFile_ << buffer;
-      snprintf(buffer, 100, "  %6.2f %+4.2f %+4.2f  \n", vars[12], vars[13], vars[14]);
+      snprintf(buffer, 100, "  %6.2f %+4.2f %+4.2f  \n", jet1_pt, jet1_eta, jet1_phi);
       eventListFile_ << buffer;
     }
 
@@ -575,20 +644,20 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
 TopFCNCEventSelector::~TopFCNCEventSelector()
 {
-  if ( hCutstepNoweight_ ) {
+  if ( h_ch.hCutstepNoweight ) {
     cout << "---- cut flows without weight ----\n";
     if ( channel_ == 11 ) cout << "Electron channel:\n";
     else if ( channel_ == 13 ) cout << "Muon channel:\n";
     size_t fw = 8;
-    for ( int i=1; i<=nCutsteps; ++i ) {
-      fw = std::max(fw, strlen(hCutstepNoweight_->GetXaxis()->GetBinLabel(i)));
+    for ( int i=1; i<=nCutstep; ++i ) {
+      fw = std::max(fw, strlen(h_ch.hCutstepNoweight->GetXaxis()->GetBinLabel(i)));
     }
     fw += 2;
-    for ( int i=1; i<=nCutsteps; ++i ) {
-      const string name(hCutstepNoweight_->GetXaxis()->GetBinLabel(i));
+    for ( int i=1; i<=nCutstep; ++i ) {
+      const string name(h_ch.hCutstepNoweight->GetXaxis()->GetBinLabel(i));
       cout << name;
       for ( size_t k=name.size(); k<fw; ++k ) cout << ' ';
-      cout << hCutstepNoweight_->GetBinContent(i) << '\n';
+      cout << h_ch.hCutstepNoweight->GetBinContent(i) << '\n';
     }
     cout << "-----------------------------------\n";
   }

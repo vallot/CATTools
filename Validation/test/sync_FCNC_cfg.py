@@ -12,7 +12,7 @@ process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 process.source.fileNames = [
 #    'file:/state/partition1/store/user/jhgoh/FCNC/Synchronization/201611/v802/TT_TuneCUETP8M1_13TeV-powheg-pythia8.root',
 #    'file:catTuple_seed81.root',
-    'file:catTuple.root',
+    'file:EL/catTuple.root',
 ]
 
 process.load("CATTools.CatAnalyzer.filters_cff")
@@ -21,14 +21,14 @@ process.load("CATTools.CatAnalyzer.filters_cff")
 process.load("CATTools.Validation.topFCNCEventSelector_cff")
 process.filterTrigMU.triggersToMatch = ['HLT_IsoMu24_v', 'HLT_IsoTkMu24_v',]
 process.filterTrigEL.triggersToMatch = ['HLT_Ele32_eta2p1_WPTight_Gsf_v']
-#process.eventsTopFCNC.vertex.src = "offlineSlimmedPrimaryVertices"
-process.el = process.eventsTopFCNC.clone(
+#process.eventsFCNC.vertex.src = "offlineSlimmedPrimaryVertices"
+process.el = process.eventsFCNC.clone(
     channel = cms.string("electron"),
     eventFile = cms.untracked.string("eventList_electron.txt"))
-process.mu = process.eventsTopFCNC.clone(
+process.mu = process.eventsFCNC.clone(
     channel = cms.string("muon"),
     eventFile = cms.untracked.string("eventList_muon.txt"))
-delattr(process, 'eventsTopFCNC')
+delattr(process, 'eventsFCNC')
 
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string("hist.root"),
