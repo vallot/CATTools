@@ -15,15 +15,10 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 process.MessageLogger.cerr.FwkReport.reportEvery = 10000
 
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring(
-#'/store/user/youn/cat710_phy14_ttbar_2025_aod/catTuple_972.root'
-#in Kisti v736
-#"root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-3-6_RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v4/150820_215807/0000/catTuple_1.root",
-'file:catTuple.root'
-#'file:catTuple_DYJets.root'
-#'file:/cms/home/youn/work/cattool/tag711/cat/src/CATTools/CatProducer/prod/catTuple.root'
-    )
+    fileNames = cms.untracked.vstring()
 )
+from CATTools.Validation.commonTestInput_cff import commonTestCATTuples
+process.source.fileNames = commonTestCATTuples["sig"]
 
 process.nEventsTotal = cms.EDProducer("EventCountProducer")
 
