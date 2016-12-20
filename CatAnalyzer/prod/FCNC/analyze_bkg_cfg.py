@@ -14,14 +14,8 @@ process.source.fileNames = commonTestCATTuples["bkg"]
 process.load("CATTools.CatAnalyzer.filters_cff")
 process.load("CATTools.Validation.topFCNCEventSelector_cff")
 process.load("CATTools.Validation.validation_cff")
-
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string("hist.root"),
-)
-
-process.p = cms.Path(
-    process.gen + process.rec
-  * process.eventsFCNC
+    fileName = cms.string("ntuple.root"),
 )
 
 process.load("CATTools.CatProducer.pileupWeight_cff")
@@ -35,6 +29,39 @@ process.eventsFCNC.vertex.pileupWeight = "pileupWeight::CATeX"
 
 process.eventsFCNC.filters.filterRECO = "filterRECOMC"
 process.eventsFCNC.filters.ignoreTrig = True
+
+process.el = process.eventsFCNC.clone(channel = cms.string("electron"))
+process.mu = process.eventsFCNC.clone(channel = cms.string("muon"))
+delattr(process, 'eventsFCNC')
+
+process.load("CATTools.CatAnalyzer.csvWeights_cfi")
+process.csvWeightsEL = process.csvWeights.clone(src = cms.InputTag("el:jets"))
+process.csvWeightsMU = process.csvWeights.clone(src = cms.InputTag("mu:jets"))
+delattr(process, "csvWeights")
+
+process.load("CATTools.CatAnalyzer.analyzers.topFCNCNtuple_cff")
+process.ntupleFCNC.puWeight = process.el.vertex.pileupWeight
+process.ntupleEL = process.ntupleFCNC.clone(
+    src = cms.InputTag("el"),
+    csvWeight = cms.InputTag("csvWeightsEL"),
+    csvWeightSyst = cms.InputTag("csvWeightsEL:syst"),
+)
+process.ntupleMU = process.ntupleFCNC.clone(
+    src = cms.InputTag("mu"),
+    csvWeight = cms.InputTag("csvWeightsMU"),
+    csvWeightSyst = cms.InputTag("csvWeightsMU:syst"),
+)
+delattr(process, 'ntupleFCNC')
+
+process.p_el = cms.Path(
+    process.gen + process.rec
+  * process.el * process.ntupleEL
+)
+
+process.p_mu = cms.Path(
+    process.gen + process.rec
+  * process.mu * process.ntupleMU
+)
 
 ## Customise with cmd arguments
 import sys
