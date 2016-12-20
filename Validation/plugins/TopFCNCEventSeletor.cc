@@ -562,7 +562,9 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   // Run though the cut steps
   int cutstep = 0;
   double w = weight;
-  for ( cutstep = 0; cutstep < nCutstep and cutsteps[cutstep]; ++cutstep ) {
+  for ( cutstep = 0; cutstep < nCutstep; ++cutstep ) {
+    if ( !cutsteps[cutstep] and !(cutstep == 3 and isIgnoreTrig_) ) break;
+
     if ( cutstep == 3 and !isIgnoreTrig_ ) w *= trigSF;
     else if ( cutstep == 4 ) w *= leptonSF;
     h_ch.hCutstep->Fill(cutstep, w);
