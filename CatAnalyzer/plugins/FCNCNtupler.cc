@@ -9,19 +9,8 @@
 
 #include "CATTools/DataFormats/interface/Lepton.h"
 #include "CATTools/DataFormats/interface/Jet.h"
-/*
-#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
-#include "CATTools/DataFormats/interface/GenTop.h"
-#include "CATTools/DataFormats/interface/Muon.h"
-#include "CATTools/DataFormats/interface/Electron.h"
-#include "CATTools/DataFormats/interface/MET.h"
-#include "CATTools/DataFormats/interface/GenWeights.h"
-
-#include "CATTools/CatAnalyzer/interface/BTagWeightEvaluator.h"
-#include "CATTools/CommonTools/interface/AnalysisHelper.h"
-
-#include "TH1.h"
-*/
+//#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+//#include "CATTools/DataFormats/interface/GenTop.h"
 
 #include "TTree.h"
 #include "TString.h"
@@ -134,14 +123,14 @@ FCNCNtupler::FCNCNtupler(const edm::ParameterSet& pset)
   tree_->Branch("jets_n", &b_jets_n, "jets_n/b"); // enough with 255
   tree_->Branch("jets_ht", &b_jets_ht, "jets_ht/F");
   for ( int i=0; i<kMaxNJets; ++i ) {
-    const string name = Form("jet%d_", i);
-    tree_->Branch((name+"_pt" ).c_str(), &b_jets_pt[i] , (name+"_pt/F" ).c_str());
-    tree_->Branch((name+"_eta").c_str(), &b_jets_eta[i], (name+"_eta/F").c_str());
-    tree_->Branch((name+"_phi").c_str(), &b_jets_phi[i], (name+"_phi/F").c_str());
-    tree_->Branch((name+"_m"  ).c_str(), &b_jets_m[i]  , (name+"_m/F"  ).c_str());
-    tree_->Branch((name+"_btag").c_str(), &b_jets_btag[i], (name+"_btag/F").c_str());
-    tree_->Branch((name+"_ctagL").c_str(), &b_jets_ctagL[i], (name+"_ctagL/F").c_str());
-    tree_->Branch((name+"_ctagB").c_str(), &b_jets_ctagB[i], (name+"_ctagB/F").c_str());
+    const string name = Form("jet%d_", i+1);
+    tree_->Branch((name+"pt" ).c_str(), &b_jets_pt[i] , (name+"pt/F" ).c_str());
+    tree_->Branch((name+"eta").c_str(), &b_jets_eta[i], (name+"eta/F").c_str());
+    tree_->Branch((name+"phi").c_str(), &b_jets_phi[i], (name+"phi/F").c_str());
+    tree_->Branch((name+"m"  ).c_str(), &b_jets_m[i]  , (name+"m/F"  ).c_str());
+    tree_->Branch((name+"btag" ).c_str(), &b_jets_btag[i] , (name+"btag/F" ).c_str());
+    tree_->Branch((name+"ctagL").c_str(), &b_jets_ctagL[i], (name+"ctagL/F").c_str());
+    tree_->Branch((name+"ctagB").c_str(), &b_jets_ctagB[i], (name+"ctagB/F").c_str());
   }
 
   // bJets
@@ -220,17 +209,17 @@ void FCNCNtupler::clear()
 {
   b_run = b_lumi = b_event = 0;
   b_weight_gen = b_weight_pu = b_weight_csv = 1.;
-  b_event_st = -1e4;
+  b_event_st = -10;
   b_vertex_n = 0;
-  b_lepton1_pt = b_lepton1_eta = b_lepton1_phi = -1e4;
+  b_lepton1_pt = b_lepton1_eta = b_lepton1_phi = -10;
   b_lepton1_pid = 0;
-  b_met_pt = b_met_phi = -1e4;
+  b_met_pt = b_met_phi = -10;
   b_jets_n = 0;
-  b_jets_ht = -1e4;
+  b_jets_ht = -10;
   for ( int i=0; i<kMaxNJets; ++i ) {
-    b_jets_pt[i] = b_jets_eta[i] = b_jets_phi[i] = -1;
-    b_jets_m[i] = -1;
-    b_jets_btag[i] = b_jets_ctagL[i] = b_jets_ctagB[i] = -1e4;
+    b_jets_pt[i] = b_jets_eta[i] = b_jets_phi[i] = -10;
+    b_jets_m[i] = -10;
+    b_jets_btag[i] = b_jets_ctagL[i] = b_jets_ctagB[i] = -10;
   }
   b_bjets_n = 0;
 }
