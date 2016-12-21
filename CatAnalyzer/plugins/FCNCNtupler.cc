@@ -157,7 +157,7 @@ void FCNCNtupler::analyze(const edm::Event& event, const edm::EventSetup&)
     b_weight_gen = *fHandle;
 
     event.getByToken(csvWeightToken_, fHandle);
-    b_weight_gen = *fHandle;
+    b_weight_csv = *fHandle;
   }
 
   event.getByToken(nVertexToken_, iHandle);
