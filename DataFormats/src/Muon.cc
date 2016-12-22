@@ -7,8 +7,6 @@ Muon::Muon() {}
 
 Muon::Muon(const reco::LeafCandidate & aMuon) :
   Lepton( aMuon ),
-  isGlobalMuon_(false),
-  isSoftMuon_(false),
   normalizedChi2_(-1),
   ipsig_(-1),
   numberOfValidHits_(0),
@@ -16,7 +14,9 @@ Muon::Muon(const reco::LeafCandidate & aMuon) :
   numberOfMatchedStations_(0),
   numberOfValidPixelHits_(0),
   trackerLayersWithMeasurement_(0)
-{}
+{
+  idBits_.reset();
+}
 
 /// destructor
 Muon::~Muon() {

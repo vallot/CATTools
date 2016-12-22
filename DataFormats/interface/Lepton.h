@@ -22,10 +22,10 @@ namespace cat {
     Lepton(const reco::LeafCandidate & aLepton);
     virtual ~Lepton();
 
-    bool isPF() const{ return isPF_; }
-    bool isTight() const { return isTight_; }
-    bool isMedium() const { return isMedium_; }
-    bool isLoose() const { return isLoose_; }
+    bool isPF() const{ return idBits_[0]; }
+    bool isTight() const { return idBits_[1]; }
+    bool isMedium() const { return idBits_[2]; }
+    bool isLoose() const { return idBits_[3]; }
     
     float dxy() const { return dxy_; }
     float dz() const { return dz_; }
@@ -59,19 +59,19 @@ namespace cat {
       return charged + ( corNeutralIso>0 ? corNeutralIso : 0 ) ;
     }
     float relIso(float dR=0.3, float dBetaFactor = 0.5) const {
-	float abs = absIso(dR, dBetaFactor)/this->pt();
-	return abs >=0 ? abs : -1;
+      float abs = absIso(dR, dBetaFactor)/this->pt();
+      return abs >=0 ? abs : -1;
     }
     // to be undated with shifts on the fly!
     /* float shiftedEnDown() const {return  shiftedEnDown_;} */
     /* float shiftedEnUp() const {return  shiftedEnUp_;} */
 
-    bool mcMatched() const { return mcMatched_; }
+    bool mcMatched() const { return idBits_[4]; }
 
-    void setIsPF(bool d) { isPF_ = d ; }
-    void setIsTight(bool d) { isTight_ = d; }
-    void setIsMedium(bool d) { isMedium_ = d; }
-    void setIsLoose(bool d) { isLoose_ = d; }
+    void setIsPF(bool d) { idBits_[0] = d ; }
+    void setIsTight(bool d) { idBits_[1] = d; }
+    void setIsMedium(bool d) { idBits_[2] = d; }
+    void setIsLoose(bool d) { idBits_[3] = d; }
 
     void setDz(float d) { dz_ = d; }
     void setDxy(float d) { dxy_ = d; }
@@ -87,15 +87,11 @@ namespace cat {
     void setPhotonIso04(float i) { photonIso04_ = i; }
 
     void setMiniRelIso(float i){relMiniIso_=i;}
-
-    void setMCMatched(bool m) { mcMatched_ = m; }
+    void setMCMatched(bool m) { idBits_[4] = m; }
     
   private:
 
-    bool isPF_;
-    bool isTight_;
-    bool isMedium_;
-    bool isLoose_;    
+    std::bitset<5> idBits_; // isPF, isTight, isMedium, isLoose, mcMatched
 
     float dz_;
     float dxy_;
@@ -111,8 +107,6 @@ namespace cat {
     float photonIso04_;
 
     float relMiniIso_;
-
-    bool mcMatched_;
   };
 }
 

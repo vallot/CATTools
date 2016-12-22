@@ -8,7 +8,8 @@
 #include "DataFormats/PatCandidates/interface/JetCorrFactors.h"
 
 #include <string>
-#include <boost/array.hpp>
+//#include <boost/array.hpp>
+#include <bitset>
 
 // Define typedefs for convenience
 namespace cat {
@@ -61,11 +62,11 @@ namespace cat {
     Jet(const reco::LeafCandidate & aJet);
     virtual ~Jet();
 
-    bool LooseId() const { return looseJetID_; }// temp for backward comp
-    bool TightId() const { return tightJetID_; }// temp for backward comp
-    bool looseJetID() const { return looseJetID_; }
-    bool tightJetID() const { return tightJetID_; }
-    bool tightLepVetoJetID() const { return tightLepVetoJetID_; }
+    inline bool LooseId() const { return looseJetID(); }// temp for backward comp
+    inline bool TightId() const { return tightJetID(); }// temp for backward comp
+    bool looseJetID() const { return jetIdBits_[0]; }
+    bool tightJetID() const { return jetIdBits_[1]; }
+    bool tightLepVetoJetID() const { return jetIdBits_[2]; }
 
     float pileupJetId() const { return pileupJetId_; }
     float chargedEmEnergyFraction() const { return chargedEmEnergyFraction_; }
@@ -105,9 +106,9 @@ namespace cat {
 
     float qgLikelihood() const { return qgLikelihood_; }
     
-    void setLooseJetID(bool id) { looseJetID_ = id; }
-    void setTightJetID(bool id) { tightJetID_ = id; }
-    void setTightLepVetoJetID(bool id) { tightLepVetoJetID_ = id; }
+    void setLooseJetID(bool id) { jetIdBits_[0] = id; }
+    void setTightJetID(bool id) { jetIdBits_[1] = id; }
+    void setTightLepVetoJetID(bool id) { jetIdBits_[2] = id; }
 
     void setPileupJetId(float f) { pileupJetId_ = f;}
     void setChargedEmEnergyFraction(float f) { chargedEmEnergyFraction_ = f; }
@@ -140,9 +141,7 @@ namespace cat {
 
     edm::FwdRef<reco::GenJetCollection>  genJetFwdRef_;
 
-    bool looseJetID_;
-    bool tightJetID_;
-    bool tightLepVetoJetID_;
+    std::bitset<3> jetIdBits_; // loose,tight,tightLepVeto
 
     float pileupJetId_;
     float chargedEmEnergyFraction_;
@@ -152,14 +151,14 @@ namespace cat {
     //float pairDiscriVector_;
      /// b tagging information
     float vtxMass_;
-    int vtxNtracks_;
+    unsigned short vtxNtracks_;
     float vtx3DVal_;
     float vtx3DSig_;
 
     //parton flavour
-    int partonFlavour_;
-    int hadronFlavour_;
-    int partonPdgId_;
+    short partonFlavour_;
+    short hadronFlavour_;
+    short partonPdgId_;
 
     float shiftedEnDown_;
     float shiftedEnUp_;

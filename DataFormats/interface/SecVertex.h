@@ -65,8 +65,8 @@ namespace cat {
   private:
     float lxy_, l3D_, vProb_, dca_,dca2_,dca3_, cxPtHypot_, cxPtAbs_, jetDR_, legDR_ ,diffMass_;
     //int ipos_, ineg_;
-    int leptonID1_, trackQuality1_;
-    int leptonID2_, trackQuality2_;
+    char leptonID1_, trackQuality1_;
+    char leptonID2_, trackQuality2_;
     bool isMCMatch_;
 
   };

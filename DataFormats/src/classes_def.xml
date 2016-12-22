@@ -100,4 +100,6 @@
 
   <class name="cat::TriggerNames" />
   <class name="edm::Wrapper<cat::TriggerNames>" />
+
+  <class pattern="std::bitset<*>" />
 </lcgdict>
