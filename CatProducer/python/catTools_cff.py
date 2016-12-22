@@ -70,7 +70,7 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         ## applying new jec on the fly
         process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
         process.patJetCorrFactors.primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices")
-        #process.catJets.src = cms.InputTag("updatedPatJets") # do we neeed to update JEC for 80x?
+        process.catJets.src = cms.InputTag("updatedPatJets")
         ### updating puppi jet jec
         process.patJetPuppiCorrFactorsUpdated = process.updatedPatJetCorrFactors.clone(
             src = process.catJetsPuppi.src,
