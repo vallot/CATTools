@@ -6,8 +6,6 @@
 #include "CATTools/DataFormats/interface/Electron.h"
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/MET.h"
-//#include "CATTools/DataFormats/interface/SecVertex.h"
-//#include "CATTools/DataFormats/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 
