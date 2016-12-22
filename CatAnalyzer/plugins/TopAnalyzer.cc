@@ -269,9 +269,9 @@ void TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
   AnalysisHelper trigHelper = AnalysisHelper(triggerNames, triggerBits, triggerObjects);
   //we don't use triggerObjects here: can be removed. 
 
-  bool PassMuonTrigger = (trigHelper.triggerFired("HLT_IsoMu27_v") || trigHelper.triggerFired("HLT_IsoTkMu27_v"));
+  bool PassMuonTrigger = (trigHelper.triggerFired("HLT_IsoMu24_v") || trigHelper.triggerFired("HLT_IsoTkMu24_v"));
   if(PassMuonTrigger) IsMuonTrig = 1;
-  bool PassElectronTrigger = (trigHelper.triggerFired("HLT_Ele27_eta2p1_WPLoose_Gsf_v"));
+  bool PassElectronTrigger = (trigHelper.triggerFired("HLT_Ele32_eta2p1_WPTight_Gsf_v"));
   if(PassElectronTrigger) IsElectronTrig = 1;
 
   edm::Handle<int> pvHandle;
@@ -340,7 +340,7 @@ void TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
   for (unsigned int i = 0; i < electrons->size() ; i++) {
     const cat::Electron & electron = electrons->at(i);
 
-    bool passLooseElectron = electron.pt() > 15 && fabs(electron.eta()) < 2.4 && electron.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-veto") > 0;
+    bool passLooseElectron = electron.pt() > 15 && fabs(electron.eta()) < 2.4 && electron.electronID("cutBasedElectronID-Summer16-80X-V1-veto") > 0;
     //bool passID = electron.pt() > 30 && fabs(electron.eta()) < 2.1 && electron.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-tight") > 0;
 
     if ( !passLooseElectron ) continue;
@@ -354,7 +354,7 @@ void TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     LooseElectron_Charge[nelectrons] = electron.charge();
     nlooseelectrons++;
 
-    bool passMediumElectron = electron.pt() > 30 && fabs(electron.eta()) < 2.1 && electron.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-medium") > 0;
+    bool passMediumElectron = electron.pt() > 30 && fabs(electron.eta()) < 2.1 && electron.electronID("cutBasedElectronID-Summer16-80X-V1-medium") > 0;
     //bool passIso = electron.relIso() < 0.12;
 
     if ( !passMediumElectron ) continue;
