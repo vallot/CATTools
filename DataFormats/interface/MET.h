@@ -26,18 +26,18 @@ namespace cat {
 
     float sumEt() const { return sumEt_; }
     float rawMET() const {return rawMET_;}
-    float unclusteredEnPx(int dir) const { if (dir > 0) return unclusteredEnUp_px_; else return unclusteredEnDown_px_;}
-    float unclusteredEnPy(int dir) const { if (dir > 0) return unclusteredEnUp_py_; else return unclusteredEnDown_py_;}
-    float unclusteredEnSumEt(int dir) const { if (dir > 0) return unclusteredEnUp_sumet_; else return unclusteredEnDown_sumet_;}
+    float unclusteredEnPx(int dir) const { if (dir == 1.) return unclusteredEnUp_px_; else if (dir == -1.) return unclusteredEnDown_px_; else return 0.;}
+    float unclusteredEnPy(int dir) const { if (dir == 1.) return unclusteredEnUp_py_; else if (dir == -1.) return unclusteredEnDown_py_; else return 0.;}
+    float unclusteredEnSumEt(int dir) const { if (dir == 1.) return unclusteredEnUp_sumet_; else if (dir == -1.) return unclusteredEnDown_sumet_; else return 0.;}
     float unclusteredEnPt(int dir) const { return hypotf(unclusteredEnPx(dir), unclusteredEnPy(dir));}
     float unclusteredEnPhi(int dir) const { return std::atan2(unclusteredEnPy(dir), unclusteredEnPx(dir));}
 
-    float JetEnPx(int dir) const { if (dir > 0) return jetEnUp_px_; else return jetEnDown_px_;}
-    float JetEnPy(int dir) const { if (dir > 0) return jetEnUp_py_; else return jetEnDown_py_;}
-    float JetEnSumEt(int dir) const { if (dir > 0) return jetEnUp_sumet_; else return jetEnDown_sumet_;}
-    float JetResPx(int dir) const { if (dir > 0) return jetResUp_px_; else return jetResDown_px_;}
-    float JetResPy(int dir) const { if (dir > 0) return jetResUp_py_; else return jetResDown_py_;}
-    float JetResSumEt(int dir) const { if (dir > 0) return jetResUp_sumet_; else return jetResDown_sumet_;}
+    float JetEnPx(int dir) const { if (dir == 1.) return jetEnUp_px_; else if (dir == -1.) return jetEnDown_px_;  else return 0.;}
+    float JetEnPy(int dir) const { if (dir == 1.) return jetEnUp_py_; else if (dir == -1.) return jetEnDown_py_; else return 0.;}
+    float JetEnSumEt(int dir) const { if (dir == 1.) return jetEnUp_sumet_; else if (dir == -1.) return jetEnDown_sumet_; else return 0.;}
+    float JetResPx(int dir) const { if (dir == 1.) return jetResUp_px_; else if (dir == -1.) return jetResDown_px_; else return 0.;}
+    float JetResPy(int dir) const { if (dir == 1.) return jetResUp_py_; else if (dir == -1.) return jetResDown_py_; else return 0.;}
+    float JetResSumEt(int dir) const { if (dir == 1.) return jetResUp_sumet_; else if (dir == -1.) return jetResDown_sumet_; else return 0.;}
     
     
     void setRawMET(float m) {rawMET_=m;}

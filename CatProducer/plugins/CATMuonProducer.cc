@@ -37,7 +37,7 @@ namespace cat {
 
     bool mcMatch( const reco::Candidate::LorentzVector& lepton, Handle<reco::GenParticleCollection> genParticles );
     bool MatchObjects( const reco::Candidate::LorentzVector& pasObj, const reco::Candidate::LorentzVector& proObj, bool exact );
-    double getMiniRelIso(edm::Handle<pat::PackedCandidateCollection> pfcands,   const reco::Candidate* ptcl, double  r_iso_min, double r_iso_max , double kt_scale);
+    double getMiniRelIso(edm::Handle<pat::PackedCandidateCollection> pfcands,  const reco::Candidate::LorentzVector& ptcl, double  r_iso_min, double r_iso_max , double kt_scale);
     
   private:
     edm::EDGetTokenT<pat::MuonCollection> src_;
@@ -64,29 +64,21 @@ cat::CATMuonProducer::CATMuonProducer(const edm::ParameterSet & iConfig) :
 
 
 double cat::CATMuonProducer::getMiniRelIso(edm::Handle<pat::PackedCandidateCollection> pfcands,
-					   const reco::Candidate* ptcl,
+					   const reco::Candidate::LorentzVector& ptcl,
 					   double r_iso_min, double r_iso_max, double kt_scale){
 
-  if (ptcl->pt()<5.) return 99999.;
+  if (ptcl.pt()<5.) return 99999.;
 
   double deadcone_nh(0.), deadcone_ch(0.), deadcone_ph(0.), deadcone_pu(0.);
-  if(ptcl->isElectron()) {
-    if (fabs(ptcl->eta())>1.479) {deadcone_ch = 0.015; deadcone_pu = 0.015; deadcone_ph = 0.08;}
-  } else if(ptcl->isMuon()) {
-    deadcone_ch = 0.0001; deadcone_pu = 0.01; deadcone_ph = 0.01;deadcone_nh = 0.01;
-  } else {
-    //deadcone_ch = 0.0001; deadcone_pu = 0.01; deadcone_ph = 0.01;deadcone_nh = 0.01; // maybe use muon cones??                                                                                                                                                                                                                                                 
-
-  }
+  deadcone_ch = 0.0001; deadcone_pu = 0.01; deadcone_ph = 0.01;deadcone_nh = 0.01;
 
   double iso_nh(0.); double iso_ch(0.);
   double iso_ph(0.); double iso_pu(0.);
   double ptThresh(0.5);
-  if(ptcl->isElectron()) ptThresh = 0;
-  double r_iso = max(r_iso_min,min(r_iso_max, kt_scale/ptcl->pt()));
+  double r_iso = max(r_iso_min,min(r_iso_max, kt_scale/ptcl.pt()));
   for (const pat::PackedCandidate &pfc : *pfcands) {
     if (abs(pfc.pdgId())<7) continue;
-    double dr = deltaR(pfc, *ptcl);
+    double dr = deltaR(pfc, ptcl);
     if (dr > r_iso) continue;
 
 
@@ -123,7 +115,7 @@ double cat::CATMuonProducer::getMiniRelIso(edm::Handle<pat::PackedCandidateColle
   if (iso>0) iso += iso_ch;
   else iso = iso_ch;
   
-  iso = iso/ptcl->pt();
+  iso = iso/ptcl.pt();
 
   return iso;
 }
@@ -188,9 +180,7 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     iEvent.getByToken(pfSrc_, pfcands);
 
 
-    aMuon.setrelMiniIso(getMiniRelIso( pfcands, dynamic_cast<const reco::Candidate *>(&aMuon), 0.05, 0.2, 10.));
-    
-    
+    aMuon.setMiniRelIso(getMiniRelIso( pfcands, aMuon.p4(), 0.05, 0.2, 10.));
     aMuon.setIsGlobalMuon( aPatMuon.isGlobalMuon() );
     aMuon.setIsPF( aPatMuon.isPFMuon() );
     aMuon.setIsTight( aPatMuon.isTightMuon(pv) );

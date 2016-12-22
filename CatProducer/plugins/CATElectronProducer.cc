@@ -41,7 +41,7 @@ namespace cat {
     void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
     bool mcMatch( const reco::Candidate::LorentzVector& lepton, const edm::Handle<reco::GenParticleCollection> & genParticles );
     bool MatchObjects( const reco::Candidate::LorentzVector& pasObj, const reco::Candidate::LorentzVector& proObj, bool exact );
-    double getMiniRelIso(edm::Handle<pat::PackedCandidateCollection> pfcands,   const reco::Candidate* ptcl, double  r_iso_min, double r_iso_max, double kt_scale,double rhoIso, double AEff);
+    double getMiniRelIso(edm::Handle<pat::PackedCandidateCollection> pfcands,  const reco::Candidate::LorentzVector& ptcl, double  r_iso_min, double r_iso_max, double kt_scale,double rhoIso, double AEff);
 
     
   private:
@@ -72,29 +72,22 @@ namespace cat {
 
 
 double cat::CATElectronProducer::getMiniRelIso(edm::Handle<pat::PackedCandidateCollection> pfcands,
-					       const reco::Candidate* ptcl,
+					       const reco::Candidate::LorentzVector& ptcl,
 					       double r_iso_min, double r_iso_max, double kt_scale, double rhoIso, double AEff){
 
-  if (ptcl->pt()<5.) return 99999.;
+  if (ptcl.pt()<5.) return 99999.;
   
   double deadcone_nh(0.), deadcone_ch(0.), deadcone_ph(0.), deadcone_pu(0.);
-  if(ptcl->isElectron()) {
-    if (fabs(ptcl->eta())>1.479) {deadcone_ch = 0.015; deadcone_pu = 0.015; deadcone_ph = 0.08;}
-  } else if(ptcl->isMuon()) {
-    deadcone_ch = 0.0001; deadcone_pu = 0.01; deadcone_ph = 0.01;deadcone_nh = 0.01;  
-  } else {
-    //deadcone_ch = 0.0001; deadcone_pu = 0.01; deadcone_ph = 0.01;deadcone_nh = 0.01; // maybe use muon cones??
-    
-  }
+  if (fabs(ptcl.eta())>1.479) {deadcone_ch = 0.015; deadcone_pu = 0.015; deadcone_ph = 0.08;}
   
   double iso_nh(0.); double iso_ch(0.); 
   double iso_ph(0.); double iso_pu(0.);
-  double ptThresh(0.5);
-  if(ptcl->isElectron()) ptThresh = 0;
-  double r_iso = max(r_iso_min,min(r_iso_max, kt_scale/ptcl->pt()));
+  double ptThresh(0.);
+
+  double r_iso = max(r_iso_min,min(r_iso_max, kt_scale/ptcl.pt()));
   for (const pat::PackedCandidate &pfc : *pfcands) {
     if (abs(pfc.pdgId())<7) continue;
-    double dr = deltaR(pfc, *ptcl);
+    double dr = deltaR(pfc, ptcl);
     if (dr > r_iso) continue;
         
     //////////////////  NEUTRALS  /////////////////////////
@@ -127,7 +120,7 @@ double cat::CATElectronProducer::getMiniRelIso(edm::Handle<pat::PackedCandidateC
   double iso(0.);
   double conesize_correction= pow((r_iso/0.3),2.);
   
-  iso = ( iso_ch  + std::max(0.0, iso_nh + iso_ph - rhoIso*AEff*conesize_correction) )/ ptcl->pt();
+  iso = ( iso_ch  + std::max(0.0, iso_nh + iso_ph - rhoIso*AEff*conesize_correction) )/ ptcl.pt();
 
   return iso;
 }
@@ -252,7 +245,7 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     double nhIso03 = aElectron.neutralHadronIso(0.3);
     double phIso03 = aElectron.photonIso(0.3);
     aElectron.setrelIso(0.3, chIso03, nhIso03, phIso03, elEffArea03, rhoIso, ecalpt);
-    aElectron.setrelMiniIso(getMiniRelIso( pfcands, dynamic_cast<const reco::Candidate *>(&aElectron), 0.05, 0.2, 10., rhoIso,elEffArea03));
+    aElectron.setMiniRelIso(getMiniRelIso( pfcands, aElectron.p4(), 0.05, 0.2, 10., rhoIso,elEffArea03));
 
 
     aElectron.setscEta( aPatElectron.superCluster()->eta());
