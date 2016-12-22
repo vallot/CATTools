@@ -30,6 +30,7 @@ private:
 
   typedef std::vector<float> vfloat;
   typedef std::vector<double> vdouble;
+  edm::EDGetTokenT<float> topPtWeightToken_;
   edm::EDGetTokenT<float> puWeightToken_, genWeightToken_;
   edm::EDGetTokenT<vfloat> scaleWeightsToken_, pdfWeightsToken_;
   edm::EDGetTokenT<float> csvWeightToken_;
@@ -50,6 +51,7 @@ private:
 
   float b_weight_gen, b_weight_pu;
   float b_weight_csv;
+  float b_weight_topPt;
 
   float b_event_st;
   unsigned char b_vertex_n;
@@ -64,7 +66,7 @@ private:
   float b_jets_ht;
   float b_jets_pt[kMaxNJets], b_jets_eta[kMaxNJets], b_jets_phi[kMaxNJets];
   float b_jets_m[kMaxNJets];
-  float b_jets_csv[kMaxNJets], b_jets_cvsL[kMaxNJets], b_jets_cvsB[kMaxNJets];
+  float b_jets_csv[kMaxNJets], b_jets_CvsL[kMaxNJets], b_jets_CvsB[kMaxNJets];
 
   unsigned char b_bjetsL_n, b_bjetsM_n, b_bjetsT_n;
 };
@@ -89,6 +91,7 @@ FCNCNtupler::FCNCNtupler(const edm::ParameterSet& pset)
     pdfWeightsToken_ = consumes<vfloat>(pset.getParameter<edm::InputTag>("pdfWeights"));
     csvWeightToken_ = consumes<float>(pset.getParameter<edm::InputTag>("csvWeight"));
     csvWeightSystToken_ = consumes<vfloat>(pset.getParameter<edm::InputTag>("csvWeightSyst"));
+    topPtWeightToken_ = consumes<float>(pset.getParameter<edm::InputTag>("topPtWeight"));
   }
 
   usesResource("TFileService");
@@ -104,6 +107,7 @@ FCNCNtupler::FCNCNtupler(const edm::ParameterSet& pset)
   tree_->Branch("weight_gen", &b_weight_gen, "weight_gen/F"); // central gen weight
   tree_->Branch("weight_pu", &b_weight_pu, "weight_pu/F"); // pileup weight
   tree_->Branch("weight_csv", &b_weight_csv, "weight_csv/F"); // CSV weight
+  tree_->Branch("weight_topPt", &b_weight_topPt, "weight_topPt/F");// top pt weight
 
   // Event-wise observables
   tree_->Branch("event_st", &b_event_st, "event_st/F");
@@ -129,8 +133,8 @@ FCNCNtupler::FCNCNtupler(const edm::ParameterSet& pset)
     tree_->Branch((name+"phi").c_str(), &b_jets_phi[i], (name+"phi/F").c_str());
     tree_->Branch((name+"m"  ).c_str(), &b_jets_m[i]  , (name+"m/F"  ).c_str());
     tree_->Branch((name+"csv" ).c_str(), &b_jets_csv[i] , (name+"csv/F" ).c_str());
-    tree_->Branch((name+"cvsL").c_str(), &b_jets_cvsL[i], (name+"cvsL/F").c_str());
-    tree_->Branch((name+"cvsB").c_str(), &b_jets_cvsB[i], (name+"cvsB/F").c_str());
+    tree_->Branch((name+"CvsL").c_str(), &b_jets_CvsL[i], (name+"CvsL/F").c_str());
+    tree_->Branch((name+"CvsB").c_str(), &b_jets_CvsB[i], (name+"CvsB/F").c_str());
   }
 
   // bJets
@@ -152,6 +156,9 @@ void FCNCNtupler::analyze(const edm::Event& event, const edm::EventSetup&)
   b_event = event.id().event();
 
   if ( isMC_ ) {
+    event.getByToken(topPtWeightToken_, fHandle);
+    b_weight_topPt = *fHandle;
+
     event.getByToken(puWeightToken_, fHandle);
     b_weight_pu = *fHandle;
 
@@ -195,8 +202,8 @@ void FCNCNtupler::analyze(const edm::Event& event, const edm::EventSetup&)
       b_jets_phi[i] = jet.phi();
       b_jets_m[i] = jet.mass();
       b_jets_csv[i] = jet.bDiscriminator(cat::BTAG_CSVv2);
-      b_jets_cvsL[i] = jet.bDiscriminator(cat::CTAG_CvsL);
-      b_jets_cvsB[i] = jet.bDiscriminator(cat::CTAG_CvsB);
+      b_jets_CvsL[i] = jet.bDiscriminator(cat::CTAG_CvsL);
+      b_jets_CvsB[i] = jet.bDiscriminator(cat::CTAG_CvsB);
     }
     b_jets_ht += jet.pt();
 
@@ -212,6 +219,7 @@ void FCNCNtupler::analyze(const edm::Event& event, const edm::EventSetup&)
 void FCNCNtupler::clear()
 {
   b_run = b_lumi = b_event = 0;
+  b_weight_topPt = 1.;
   b_weight_gen = b_weight_pu = b_weight_csv = 1.;
   b_event_st = -10;
   b_vertex_n = 0;
@@ -223,7 +231,7 @@ void FCNCNtupler::clear()
   for ( int i=0; i<kMaxNJets; ++i ) {
     b_jets_pt[i] = b_jets_eta[i] = b_jets_phi[i] = -10;
     b_jets_m[i] = -10;
-    b_jets_csv[i] = b_jets_cvsL[i] = b_jets_cvsB[i] = -10;
+    b_jets_csv[i] = b_jets_CvsL[i] = b_jets_CvsB[i] = -10;
   }
   b_bjetsL_n = b_bjetsM_n = b_bjetsT_n = 0;
 }

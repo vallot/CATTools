@@ -48,6 +48,7 @@ process.el = process.eventsFCNC.clone(channel = cms.string("electron"))
 process.mu = process.eventsFCNC.clone(channel = cms.string("muon"))
 delattr(process, 'eventsFCNC')
 
+process.load("CATTools.CatAnalyzer.topPtWeightProducer_cfi")
 process.load("CATTools.CatAnalyzer.csvWeights_cfi")
 process.csvWeightsEL = process.csvWeights.clone(src = cms.InputTag("el:jets"))
 process.csvWeightsMU = process.csvWeights.clone(src = cms.InputTag("mu:jets"))

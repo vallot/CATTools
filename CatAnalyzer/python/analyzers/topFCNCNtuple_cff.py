@@ -7,6 +7,7 @@ ntupleFCNC = cms.EDAnalyzer("FCNCNtupler",
 
     src = cms.InputTag("event"),
 
+    topPtWeight = cms.InputTag("topPtWeight"),
     genWeight = cms.InputTag("flatGenWeights"),
     pdfWeights = cms.InputTag("flatGenWeights:pdf"),
     scaleWeights = cms.InputTag("flatGenWeights:scale"),
