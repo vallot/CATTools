@@ -36,9 +36,8 @@ dataset = json.loads(open("pass2/dataset.json").read())
 ## Pick the first root file to get full list of plots
 plts = []
 f = TFile("pass2/nominal/%s.root" % srcMCs[0][0])
-moddir = f.Get("eventsFCNC")
-print moddir
-for ch in [x.GetName() for x in moddir.GetListOfKeys()]:
+for ch in ("el", "mu"):
+    moddir = f.Get(ch)
     chdir = moddir.GetDirectory(ch)
     if chdir == None: continue
 
@@ -47,11 +46,11 @@ for ch in [x.GetName() for x in moddir.GetListOfKeys()]:
         if stepobj == None: continue
 
         if stepobj.IsA().GetName() in ("TH1D", "TH1F"):
-            plts.append({'name':"eventsFCNC/%s/%s" % (ch, step)})
+            plts.append({'name':"%s/%s/%s" % (ch, ch, step)})
         elif stepobj.IsA().InheritsFrom("TDirectory"):
             for plt in [x.GetName() for x in stepobj.GetListOfKeys()]:
                 if stepobj.Get(plt) == None: continue
-                plts.append({'name':"eventsFCNC/%s/%s/%s" % (ch, step, plt)})
+                plts.append({'name':"%s/%s/%s/%s" % (ch, ch, step, plt)})
 
 ## Start loop
 fout = TFile("pass2/preview.root", "recreate")
@@ -123,8 +122,9 @@ for iplt, pltInfo in enumerate(plts):
         grpRatio.SetPointError(n, w/2, e)
     if rMax > 2: rMax = 3
     hRatio.SetStats(False)
-    hRatio.SetMinimum(0)
-    hRatio.SetMaximum(rMax)
+    hRatio.SetMinimum(0.5)
+    #hRatio.SetMaximum(rMax)
+    hRatio.SetMaximum(1.5)
 
     ## Draw'em all
     plotDim = (400, 300, 100) # width, main height, ratio height
@@ -200,7 +200,7 @@ cutflow = {
 }
 nstep = 0
 for mode in cutflow["count"].keys():
-    h = fRD[mode].Get("eventsFCNC/%s/cutstep" % mode)
+    h = fRD[mode].Get("%s/%s/cutstep" % (mode, mode))
     nstep = h.GetNbinsX()
     cutflow["count"][mode]["Data"] = [h.GetBinContent(i) for i in range(1, nstep+1)]
     cutflow["error"][mode]["Data"] = [h.GetBinError(i) for i in range(1, nstep+1)]
@@ -208,7 +208,7 @@ for mode in cutflow["count"].keys():
         cutflow["step"] = [h.GetXaxis().GetBinLabel(i) for i in range(1, nstep+1)]
 
     for finName, color, f in srcMCs:
-        h = f.Get("eventsFCNC/%s/cutstep" % mode)
+        h = f.Get("%s/%s/cutstep" % (mode, mode))
         cutflow["count"][mode][finName] = [h.GetBinContent(i) for i in range(1, nstep+1)]
         cutflow["error"][mode][finName] = [h.GetBinError(i) for i in range(1, nstep+1)]
 cutflow["nstep"] = nstep
