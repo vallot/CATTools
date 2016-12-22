@@ -73,6 +73,12 @@ samples = {
         "WJets", "WJets_MG", 
         "WW", "WZ", "ZZ", 
         "WWW", "WWZ", "WZZ", "ZZZ", 
+        "TT_AntitopLeptonicDecay_TH_1L3B_Eta_Hct", "TT_TopLeptonicDecay_TH_1L3B_Eta_Hct",
+        "TT_AntitopLeptonicDecay_TH_1L3B_Eta_Hut", "TT_TopLeptonicDecay_TH_1L3B_Eta_Hut",
+    ],
+    'bkg scaleup scaledn pdf':[
+        "TT_AntitopLeptonicDecay_TH_1L3B_Eta_Hct", "TT_TopLeptonicDecay_TH_1L3B_Eta_Hct",
+        "TT_AntitopLeptonicDecay_TH_1L3B_Eta_Hut", "TT_TopLeptonicDecay_TH_1L3B_Eta_Hut",
     ],
     'sig nominal syst systMC scaleup scaledn pdf':[
         ## MC Signal samples, select ttbar-dilepton at Gen.Level
