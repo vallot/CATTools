@@ -4,6 +4,7 @@ using namespace cat;
 
 /// default constructor
 Electron::Electron() {
+  idBits_.reset();
 }
 
 Electron::Electron(const reco::LeafCandidate & aElectron) :
@@ -13,12 +14,10 @@ Electron::Electron(const reco::LeafCandidate & aElectron) :
   relIso04_(0),
   ipsig_(0),
   scEta_(0),
-  passConversionVeto_(false),
-  isGsfCtfScPixChargeConsistent_(false),
-  isEB_(false),
-  snuID_(0),
-  isTrigMVAValid_(false)
-{}
+  snuID_(0)
+{
+  idBits_.reset();
+}
 
 /// destructor
 Electron::~Electron() {

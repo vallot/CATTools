@@ -7,6 +7,8 @@
 #include "DataFormats/PatCandidates/interface/Electron.h"
 #include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
 
+#include <bitset>
+
 // Define typedefs for convenience
 namespace cat {
   class Electron;
@@ -35,9 +37,9 @@ namespace cat {
     }
     
     float scEta() const { return scEta_; }
-    bool passConversionVeto() const { return passConversionVeto_; }
-    bool isGsfCtfScPixChargeConsistent() const{ return isGsfCtfScPixChargeConsistent_; }
-    bool isEB() const{ return isEB_; }
+    bool passConversionVeto() const { return idBits_[0]; }
+    bool isGsfCtfScPixChargeConsistent() const{ return idBits_[1]; }
+    bool isEB() const{ return idBits_[2]; }
 
     float ipsignificance() const { return ipsig_;}
 
@@ -46,8 +48,15 @@ namespace cat {
     float shiftedEnDown() const {return 1-shiftedEn();}
     float shiftedEnUp() const {return  1+shiftedEn();}
     
-    int snuID() const {return snuID_;}
-    bool isTrigMVAValid() const { return isTrigMVAValid_; }
+    int snuID() const {
+      int idflag = 0, base = 1;
+      for ( unsigned int i=0; i<snuID_.size(); ++i ) {
+        if ( snuID_[i] ) idflag += base;
+        base *= 10;
+      }
+      return idflag;
+    }
+    bool isTrigMVAValid() const { return idBits_[3]; }
     
     void setElectronIDs(const std::vector<pat::Electron::IdPair> & ids) { electronIDs_ = ids; }
     void setElectronID(pat::Electron::IdPair ids) { electronIDs_.push_back(ids); }
@@ -60,12 +69,12 @@ namespace cat {
     }
     
     void setscEta(float i) { scEta_ = i; }
-    void setPassConversionVeto(bool i) {  passConversionVeto_ = i; }
-    void setIsGsfCtfScPixChargeConsistent(bool d) { isGsfCtfScPixChargeConsistent_ = d ; }
-    void setIsEB(bool d) { isEB_ = d ; }
+    void setPassConversionVeto(bool i) {  idBits_[0] = i; }
+    void setIsGsfCtfScPixChargeConsistent(bool d) { idBits_[1] = d ; }
+    void setIsEB(bool d) { idBits_[2] = d ; }
 
-    void setSNUID(int id) {snuID_ = id;}
-    void setTrigMVAValid(bool val) { isTrigMVAValid_ = val; }
+    void setSNUID(std::bitset<4> id) {snuID_ = id;}
+    void setTrigMVAValid(bool val) { idBits_[3] = val; }
     void setIpSignficance(float ipsig) {ipsig_ = ipsig;}
 
     void setSmearedScale(const float scale) { smearedScale_ = scale; }
@@ -81,12 +90,8 @@ namespace cat {
     float relIso04_;
     float ipsig_;
     float scEta_;
-    bool passConversionVeto_;
-    bool isGsfCtfScPixChargeConsistent_;
-    bool isEB_;
-    
-    int snuID_;
-    bool isTrigMVAValid_;
+    std::bitset<4> idBits_; // passConversionVeto, isGsfCtfScPixChargeConsistent, isEB, isTrigMVAValid
+    std::bitset<4> snuID_;
   };
 }
 
