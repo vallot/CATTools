@@ -75,7 +75,7 @@ if __name__ == '__main__':
     nSub = 0
     jobsFinished, jobsFailed = [], []
     for sample in os.listdir(outDir):
-        sample = pathjoin(outDir, sample, '.')
+        sample = pathjoin(outDir, sample, 'nominal')
         if not isdir(sample): continue
 
         stat = jobStatus(sample)
