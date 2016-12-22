@@ -82,6 +82,7 @@ for d in ds:
         ## Merge histograms
         for ss in sses:
             hin = ss[0].Get(hName)
+            if not hin.IsA().InheritsFrom("TH1"): continue
             h.Add(hin, ss[1])
             hin.Delete()
         dout.cd()
