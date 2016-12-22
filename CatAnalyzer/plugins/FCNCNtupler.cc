@@ -64,9 +64,9 @@ private:
   float b_jets_ht;
   float b_jets_pt[kMaxNJets], b_jets_eta[kMaxNJets], b_jets_phi[kMaxNJets];
   float b_jets_m[kMaxNJets];
-  float b_jets_btag[kMaxNJets], b_jets_ctagL[kMaxNJets], b_jets_ctagB[kMaxNJets];
+  float b_jets_csv[kMaxNJets], b_jets_cvsL[kMaxNJets], b_jets_cvsB[kMaxNJets];
 
-  unsigned char b_bjets_n;
+  unsigned char b_bjetsL_n, b_bjetsM_n, b_bjetsT_n;
 };
 
 using namespace std;
@@ -128,13 +128,15 @@ FCNCNtupler::FCNCNtupler(const edm::ParameterSet& pset)
     tree_->Branch((name+"eta").c_str(), &b_jets_eta[i], (name+"eta/F").c_str());
     tree_->Branch((name+"phi").c_str(), &b_jets_phi[i], (name+"phi/F").c_str());
     tree_->Branch((name+"m"  ).c_str(), &b_jets_m[i]  , (name+"m/F"  ).c_str());
-    tree_->Branch((name+"btag" ).c_str(), &b_jets_btag[i] , (name+"btag/F" ).c_str());
-    tree_->Branch((name+"ctagL").c_str(), &b_jets_ctagL[i], (name+"ctagL/F").c_str());
-    tree_->Branch((name+"ctagB").c_str(), &b_jets_ctagB[i], (name+"ctagB/F").c_str());
+    tree_->Branch((name+"csv" ).c_str(), &b_jets_csv[i] , (name+"csv/F" ).c_str());
+    tree_->Branch((name+"cvsL").c_str(), &b_jets_cvsL[i], (name+"cvsL/F").c_str());
+    tree_->Branch((name+"cvsB").c_str(), &b_jets_cvsB[i], (name+"cvsB/F").c_str());
   }
 
   // bJets
-  tree_->Branch("bjets_n", &b_bjets_n, "bjets_n/b"); // enough with 255
+  tree_->Branch("bjetsL_n", &b_bjetsL_n, "bjetsL_n/b"); // enough with 255
+  tree_->Branch("bjetsM_n", &b_bjetsM_n, "bjetsM_n/b"); // enough with 255
+  tree_->Branch("bjetsT_n", &b_bjetsT_n, "bjetsT_n/b"); // enough with 255
 
   // Composite objects
 }
@@ -192,13 +194,15 @@ void FCNCNtupler::analyze(const edm::Event& event, const edm::EventSetup&)
       b_jets_eta[i] = jet.eta();
       b_jets_phi[i] = jet.phi();
       b_jets_m[i] = jet.mass();
-      b_jets_btag[i] = jet.bDiscriminator(cat::BTAG_CSVv2);
-      b_jets_ctagL[i] = jet.bDiscriminator(cat::CTAG_CvsL);
-      b_jets_ctagB[i] = jet.bDiscriminator(cat::CTAG_CvsB);
+      b_jets_csv[i] = jet.bDiscriminator(cat::BTAG_CSVv2);
+      b_jets_cvsL[i] = jet.bDiscriminator(cat::CTAG_CvsL);
+      b_jets_cvsB[i] = jet.bDiscriminator(cat::CTAG_CvsB);
     }
     b_jets_ht += jet.pt();
 
-    if ( jet.bDiscriminator(cat::BTAG_CSVv2) > cat::WP_BTAG_CSVv2M ) ++b_bjets_n;
+    if ( jet.bDiscriminator(cat::BTAG_CSVv2) > cat::WP_BTAG_CSVv2L ) ++b_bjetsL_n;
+    if ( jet.bDiscriminator(cat::BTAG_CSVv2) > cat::WP_BTAG_CSVv2M ) ++b_bjetsM_n;
+    if ( jet.bDiscriminator(cat::BTAG_CSVv2) > cat::WP_BTAG_CSVv2T ) ++b_bjetsT_n;
   }
   b_event_st += b_jets_ht;
 
@@ -219,9 +223,9 @@ void FCNCNtupler::clear()
   for ( int i=0; i<kMaxNJets; ++i ) {
     b_jets_pt[i] = b_jets_eta[i] = b_jets_phi[i] = -10;
     b_jets_m[i] = -10;
-    b_jets_btag[i] = b_jets_ctagL[i] = b_jets_ctagB[i] = -10;
+    b_jets_csv[i] = b_jets_cvsL[i] = b_jets_cvsB[i] = -10;
   }
-  b_bjets_n = 0;
+  b_bjetsL_n = b_bjetsM_n = b_bjetsT_n = 0;
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"
