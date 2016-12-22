@@ -30,6 +30,7 @@ eventsTTLJ = cms.EDFilter("TTLJEventSelector",
         efficiencySF = electronSFCutBasedIDMediumWP,
         efficiencySFDirection = cms.int32(0),
         applyEcalCrackVeto = cms.bool(True),
+        skipSmearing = cms.bool(False),
     ),
 
     jet = cms.PSet(
