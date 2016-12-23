@@ -27,19 +27,32 @@ filterRECO = cms.EDFilter("CATTriggerBitCombiner",
     doFilter = cms.bool(False),
 )
 
+filterRECOMC = filterRECO.clone(
+    triggersToMatch = cms.vstring(
+        "Flag_HBHENoiseFilter",
+        "Flag_HBHENoiseIsoFilter",
+        "Flag_goodVertices",
+        "Flag_eeBadScFilter",
+        "Flag_globalTightHalo2016Filter",
+
+        "Flag_badPFMuon",
+        "Flag_badChargedHadron",
+    ),
+)
+
 filterTrigMUEL = cms.EDFilter("CATTriggerBitCombiner",
     src = cms.InputTag("catTrigger"),
     combineBy = cms.string("or"),
     triggersToMatch = cms.vstring(
-        "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",
-        "HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v",
         "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
         "HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v",
+        "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",
+        "HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v",
     ),
     doFilter = cms.bool(False),
 )
 
-filterTrigMuELMC = filterTrigMUEL.clone(triggersToMatch = cms.vstring(
+filterTrigMUELMC = filterTrigMUEL.clone(triggersToMatch = cms.vstring(
     "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v"
     "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v",))
 

@@ -35,7 +35,7 @@ def printCutflow(cutflow):
         count_sig = [0.]*nstep
         errsq_sig = [0.]*nstep
         for x in count[mode]:
-            if 't_bar_t' not in x or 'Others' in x: continue
+            if 't#bar{t}' not in x or 'Others' in x: continue
             c, e = count[mode][x], error[mode][x]
             print tfmt % x,
             print " | ".join([("%"+str(fws[i]*2/3)+".1f+-%"+str(fws[i]/3)+".1f") % (c[i], e[i]) for i in range(nstep)])

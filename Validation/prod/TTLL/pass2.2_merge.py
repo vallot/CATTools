@@ -53,9 +53,14 @@ for d in ds:
     sses = []
     for ss in ds[d]['subsamples']:
         fName = ss['hist']
-        xsec, normFactor = ss['xsec'], ss['normFactor']
         scale = 1
-        if ss['type'] != 'Data' and normFactor != 0: scale = xsec/normFactor
+        if ss['type'] != 'Data':
+            xsec = ss['xsec']
+            f = TFile(fName)
+            hh = f.Get("gen/hWeight")
+            normFactor = hh.GetMean()*hh.GetEntries()
+            if normFactor == 0: scale = 0
+            else: scale = xsec/normFactor
         sses.append( (TFile(fName), scale) )
 
     fout = TFile(foutName, "RECREATE")
@@ -73,10 +78,11 @@ for d in ds:
         h = sses[0][0].Get(hName).Clone()
         h.SetDirectory(dout)
         h.Reset()
-        h.Sumw2()
+        #h.Sumw2()
         ## Merge histograms
         for ss in sses:
             hin = ss[0].Get(hName)
+            if not hin.IsA().InheritsFrom("TH1"): continue
             h.Add(hin, ss[1])
             hin.Delete()
         dout.cd()

@@ -4,22 +4,22 @@
 recipes = {
     'nominal':{'nominal':[]},
     'syst':{
-        'mu_pt/up':['eventsTTLJ.muon.scaleDirection=1'],
-        'mu_pt/dn':['eventsTTLJ.muon.scaleDirection=-1'],
-        'el_pt/up':['eventsTTLJ.electron.scaleDirection=1'],
-        'el_pt/dn':['eventsTTLJ.electron.scaleDirection=-1'],
-        'jet_cor/up':['eventsTTLJ.jet.scaleDirection=1'],
-        'jet_cor/dn':['eventsTTLJ.jet.scaleDirection=-1'],
+        'mu_pt/up':['eventsFCNC.muon.scaleDirection=1'],
+        'mu_pt/dn':['eventsFCNC.muon.scaleDirection=-1'],
+        'el_pt/up':['eventsFCNC.electron.scaleDirection=1'],
+        'el_pt/dn':['eventsFCNC.electron.scaleDirection=-1'],
+        'jet_cor/up':['eventsFCNC.jet.scaleDirection=1'],
+        'jet_cor/dn':['eventsFCNC.jet.scaleDirection=-1'],
     },
     'systMC':{
-        'jet_res/up':['eventsTTLJ.jet.resolDirection=1'],
-        'jet_res/dn':['eventsTTLJ.jet.resolDirection=-1'],
-        'pileup/up':['eventsTTLJ.vertex.pileupWeight="pileupWeight:up"'],
-        'pileup/dn':['eventsTTLJ.vertex.pileupWeight="pileupWeight:dn"'],
-        'mu_eff/up':['eventsTTLJ.muon.efficiencySFDirection=1'],
-        'mu_eff/dn':['eventsTTLJ.muon.efficiencySFDirection=-1'],
-        'el_eff/up':['eventsTTLJ.electron.efficiencySFDirection=1'],
-        'el_eff/dn':['eventsTTLJ.electron.efficiencySFDirection=-1'],
+        'jet_res/up':['eventsFCNC.jet.resolDirection=1'],
+        'jet_res/dn':['eventsFCNC.jet.resolDirection=-1'],
+        'pileup/up':['eventsFCNC.vertex.pileupWeight="pileupWeight:up"'],
+        'pileup/dn':['eventsFCNC.vertex.pileupWeight="pileupWeight:dn"'],
+        'mu_eff/up':['eventsFCNC.muon.efficiencySFDirection=1'],
+        'mu_eff/dn':['eventsFCNC.muon.efficiencySFDirection=-1'],
+        'el_eff/up':['eventsFCNC.electron.efficiencySFDirection=1'],
+        'el_eff/dn':['eventsFCNC.electron.efficiencySFDirection=-1'],
     },
     'scaleup':{},
     'scaledn':{},
@@ -35,12 +35,12 @@ recipes = {
 for i in range(3):
     for ss in ("up", "dn"):
         if ss == 'up':
-            s  = ['eventsTTLJ.genWeight.src="flatGenWeights:scaleup"',
+            s  = ['eventsFCNC.genWeight.src="flatGenWeights:scaleup"',
                   'agen.weight="flatGenWeights:scaleup"']
-        else: s = ['eventsTTLJ.genWeight.src="flatGenWeights:scaledown"',
+        else: s = ['eventsFCNC.genWeight.src="flatGenWeights:scaledown"',
                    'agen.weight="flatGenWeights:scaledown"']
 
-        s.extend(['eventsTTLJ.genWeight.index=%d' % i, 'agen.weightIndex=%d' % i])
+        s.extend(['eventsFCNC.genWeight.index=%d' % i, 'agen.weightIndex=%d' % i])
         recipes['scale'+ss]['gen_scale/%s_%d' % (ss, i)] = s[:]
 
 ## PDF weights
@@ -49,7 +49,7 @@ for i in range(3):
 ## Basically, (1+8 scale variations) + (1+100 NNPDF variations) + (other PDF variations) + (1+N hdamp variations)
 ## NOTE: there is weight vector, but we don't do it for LO generator here.
 for i in range(100):
-    r = ['eventsTTLJ.genWeight.src="flatGenWeights:pdf"', 'eventsTTLJ.genWeight.index=%d' % i,
+    r = ['eventsFCNC.genWeight.src="flatGenWeights:pdf"', 'eventsFCNC.genWeight.index=%d' % i,
          'agen.weight="flatGenWeights:pdf"', 'agen.weightIndex=%d' % i]
     recipes['pdf']['gen_pdf/%d' % i] = r[:] 
 
@@ -73,6 +73,12 @@ samples = {
         "WJets", "WJets_MG", 
         "WW", "WZ", "ZZ", 
         "WWW", "WWZ", "WZZ", "ZZZ", 
+        "TT_AntitopLeptonicDecay_TH_1L3B_Eta_Hct", "TT_TopLeptonicDecay_TH_1L3B_Eta_Hct",
+        "TT_AntitopLeptonicDecay_TH_1L3B_Eta_Hut", "TT_TopLeptonicDecay_TH_1L3B_Eta_Hut",
+    ],
+    'bkg scaleup scaledn pdf':[
+        "TT_AntitopLeptonicDecay_TH_1L3B_Eta_Hct", "TT_TopLeptonicDecay_TH_1L3B_Eta_Hct",
+        "TT_AntitopLeptonicDecay_TH_1L3B_Eta_Hut", "TT_TopLeptonicDecay_TH_1L3B_Eta_Hut",
     ],
     'sig nominal syst systMC scaleup scaledn pdf':[
         ## MC Signal samples, select ttbar-dilepton at Gen.Level

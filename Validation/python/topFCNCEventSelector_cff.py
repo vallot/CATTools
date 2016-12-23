@@ -2,11 +2,12 @@ import FWCore.ParameterSet.Config as cms
 from CATTools.CatAnalyzer.leptonSF_cff import *
 from CATTools.CatAnalyzer.flatGenWeights_cfi import *
 
-eventsTTLJ = cms.EDFilter("TTLJEventSelector",
+eventsFCNC = cms.EDFilter("TopFCNCEventSelector",
     isMC = cms.bool(True),
+    channel = cms.string("electron"),
     ## alwaysAcceptAfter : Accept event even though selection may fail _AFTER_ this step
     ## Use case: store ntuple only for events that passes step4
-    applyFilterAt = cms.int32(4),
+    applyFilterAt = cms.int32(7),
 
     # Physics objects
     muon = cms.PSet(
@@ -21,16 +22,17 @@ eventsTTLJ = cms.EDFilter("TTLJEventSelector",
     electron = cms.PSet(
         src = cms.InputTag("catElectrons"),
         idName = cms.string("cutBasedElectronID-Summer16-80X-V1-medium"),
-        vetoIdName = cms.string("cutBasedElectronID-Summer16-80X-V1-veto"),
+        vetoIdName = cms.string("cutBasedElectronID-Summer16-80X-V1-loose"),
 
-        #idName = cms.string("mvaEleID-Spring16-GeneralPurpose-V1-wp80"),
+        #idName = cms.string("mvaEleID-Spring15-25ns-Trig-V1-wp90"),
         scaleDirection = cms.int32(0),
         #scaleDirection = cms.int32(-1),
         #scaleDirection = cms.int32(+1),
         efficiencySF = electronSFCutBasedIDMediumWP,
         efficiencySFDirection = cms.int32(0),
-        applyEcalCrackVeto = cms.bool(True),
-        skipSmearing = cms.bool(False),
+        #applyEcalCrackVeto = cms.bool(True),
+        applyEcalCrackVeto = cms.bool(False),
+        skipSmearing = cms.bool(False), # Needed for synchronization
     ),
 
     jet = cms.PSet(
@@ -51,8 +53,10 @@ eventsTTLJ = cms.EDFilter("TTLJEventSelector",
     ),
 
     vertex = cms.PSet(
+        useGoodPV = cms.bool(True), # Use the good PV to select event
         nVertex = cms.InputTag("catVertex", "nGoodPV"),
-        #src = cms.InputTag("catVertex"),
+        src = cms.InputTag("catVertex"),
+        #src = cms.InputTag("offlineSlimmedPrimaryVertices"),
         pileupWeight = cms.InputTag("pileupWeight"),
     ),
 

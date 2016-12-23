@@ -6,6 +6,9 @@ from os.path import join as pathjoin
 from multiprocessing import Pool, cpu_count
 import imp
 
+prefix = "hist"
+outDir = "pass1"
+
 def hadd(d):
     d = d.rstrip('/')
     if not isdir(d): return 
@@ -18,7 +21,7 @@ def hadd(d):
 
     rootFiles = []
     for x in os.listdir(d):
-        if not x.endswith('.root') or not x.startswith("hist_"): continue
+        if not x.endswith('.root') or not x.startswith(prefix): continue
         x = pathjoin(d, x)
         if os.stat(x).st_size <= 200: continue
         rootFiles.append(x)
@@ -68,12 +71,11 @@ def jobStatus(d):
 
 if __name__ == '__main__':
     pool = Pool(cpu_count())
-    pass1Dir = "pass1"
 
     nSub = 0
     jobsFinished, jobsFailed = [], []
-    for sample in os.listdir(pass1Dir):
-        sample = pathjoin(pass1Dir, sample, 'nominal')
+    for sample in os.listdir(outDir):
+        sample = pathjoin(outDir, sample, 'nominal')
         if not isdir(sample): continue
 
         stat = jobStatus(sample)
@@ -84,7 +86,7 @@ if __name__ == '__main__':
         elif len(stat[0])+len(stat[2]) == 0: jobsFinished.append(sample)
         elif len(stat[0]) == 0 and len(stat[2]) > 0: jobsFailed.append((sample, stat[2][:]))
 
-    for sample in [pathjoin(pass1Dir, x) for x in os.listdir(pass1Dir) if isdir(pathjoin(pass1Dir, x))]:
+    for sample in [pathjoin(outDir, x) for x in os.listdir(outDir) if isdir(pathjoin(outDir, x))]:
         for subsample in [pathjoin(sample, x) for x in os.listdir(sample) if isdir(pathjoin(sample, x))]:
             for syst in [pathjoin(subsample, x) for x in os.listdir(subsample) if isdir(pathjoin(subsample, x))]:
                 stat = jobStatus(syst)
@@ -106,28 +108,29 @@ if __name__ == '__main__':
     if len(jobsFailed) > 0:
         print "@@ There are some failed jobs"
         print "@@ Please resubmit following jobs"
-        #if os.path.exists("pass1/resubmit"): os.system("rm -rf pass1/resubmit")
-        if not os.path.exists("pass1/resubmit"): os.makedirs("pass1/resubmit")
-        fsubmit = open("pass1/resubmit/submit.sh", "w")
+        if os.path.exists("%s/resubmit" % outDir): os.system("rm -rf %s/resubmit" % outDir)
+        os.makedirs("%s/resubmit" % outDir)
+        fsubmit = open("%s/resubmit/submit.sh" % outDir, "w")
         for sample, jobs in jobsFailed:
             print sample, jobs
             files = []
             for job in jobs:
-                os.system("rm -f %s/hist_%03d.root" % (sample, job))
+                os.system("rm -f %s/%s_%03d.root" % (sample, prefix, job))
                 process = imp.load_source("process", "%s/job_%03d_cfg.py" % (sample, job)).process
                 for file in process.source.fileNames:
                     files.append(file)
-            prefix = sample.replace("pass1/", "").replace("/", "_")
-            frerun = open("pass1/resubmit/%s.txt" % prefix, "w")
+            prefix = sample.replace("%s/" % outDir, "").replace("/", "_")
+            frerun = open("%s/resubmit/%s.txt" % (outDir, prefix), "w")
             for f in files: print>>frerun, f
             frerun.close()
-            frerun = open("pass1/resubmit/%s_cfg.py" % prefix, "w")
+            frerun = open("%s/resubmit/%s_cfg.py" % (outDir, prefix), "w")
             frerun.write(process.dumpPython())
             frerun.close()
 
             print>>fsubmit, ("create-batch --jobName {0} --fileList {0}.txt --cfg {0}_cfg.py --maxFiles 1".format(prefix))
 
         fsubmit.close()
+        os.system("chmod +x %s/resubmit/submit.sh" % outDir)
 
     if nSub > 0:
         print "@@ Done, wait for the %d jobs to finish" % nSub

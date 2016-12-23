@@ -13,8 +13,6 @@
 #include "CATTools/CatAnalyzer/interface/TopTriggerSF.h"
 
 #include "DataFormats/Candidate/interface/LeafCandidate.h"
-//#include "DataFormats/Candidate/interface/CompositeCandidate.h"
-//#include "DataFormats/Candidate/interface/CompositeRefCandidate.h"
 #include "DataFormats/Candidate/interface/CompositePtrCandidate.h"
 
 #include "FWCore/ServiceRegistry/interface/Service.h"
@@ -29,7 +27,7 @@ using namespace std;
 
 namespace cat {
 
-struct ControlPlots
+struct ControlPlotsTTLL
 {
   typedef TH1D* H1;
   typedef TH2D* H2;
@@ -81,37 +79,37 @@ struct ControlPlots
     }
 
     auto subdir = dir.mkdir(stepNames[0]);
-    h_vertex_n[0] = subdir.make<TH1D>("vertex_n", "vertex_n", 100, 0, 100);
+    h_vertex_n[0] = subdir.make<TH1D>("vertex_n", "vertex_n;Number of primary vertices;Events", 100, 0, 100);
 
     for ( int i=1; i<=2; ++i ) {
       subdir = dir.mkdir(stepNames[i]);
-      h_vertex_n[i] = subdir.make<TH1D>("vertex_n", "vertex_n", 100, 0, 100);
-      h_met_pt[i] = subdir.make<TH1D>("met_pt", "met_pt", 1000, 0, 1000);
-      h_met_phi[i] = subdir.make<TH1D>("met_phi", "met_phi", 100, -pi, pi);
-      h_leptons_n[i] = subdir.make<TH1D>("leptons_n", "leptons_n", 10, 0, 10);
-      h_jets_n[i] = subdir.make<TH1D>("jets_n", "jets_n", 10, 0, 10);
-      h_jets_pt[i]  = subdir.make<TH1D>("jets_pt", "jets_pt", 1000, 0, 1000);
-      h_jets_eta[i] = subdir.make<TH1D>("jets_eta", "jets_eta", 100, -maxeta, maxeta);
-      h_jets_ht[i] = subdir.make<TH1D>("jets_ht", "jets_ht", 1000, 0, 1000);
-      h_bjets_n[i] = subdir.make<TH1D>("bjets_n", "bjets_n", 10, 0, 10);
+      h_vertex_n[i] = subdir.make<TH1D>("vertex_n", "vertex_n;Number of primary vertices;Events", 100, 0, 100);
+      h_met_pt[i] = subdir.make<TH1D>("met_pt", "met_pt;Missing transverse momentum (GeV);Events/1GeV", 1000, 0, 1000);
+      h_met_phi[i] = subdir.make<TH1D>("met_phi", "met_phi;Missing transverse momentum #phi;Events", 100, -pi, pi);
+      h_leptons_n[i] = subdir.make<TH1D>("leptons_n", "leptons_n;Lepton multiplicity;Events", 10, 0, 10);
+      h_jets_n[i] = subdir.make<TH1D>("jets_n", "jets_n;Jet multiplicity;Events", 10, 0, 10);
+      h_jets_pt[i]  = subdir.make<TH1D>("jets_pt", "jets_pt;Jets p_{T} (GeV);Events/1GeV", 1000, 0, 1000);
+      h_jets_eta[i] = subdir.make<TH1D>("jets_eta", "jets_eta;Jets #eta;Events", 100, -maxeta, maxeta);
+      h_jets_ht[i] = subdir.make<TH1D>("jets_ht", "jets_ht;Jets #Sigma p_{T} (GeV);Events/1GeV", 1000, 0, 1000);
+      h_bjets_n[i] = subdir.make<TH1D>("bjets_n", "bjets_n;b-jet multiplicity;Events", 10, 0, 10);
     }
 
     for ( int i=3; i<nCutstep; ++i ) {
       subdir = dir.mkdir(stepNames[i]);
-      h_vertex_n[i] = subdir.make<TH1D>("vertex_n", "vertex_n", 100, 0, 100);
-      h_met_pt[i] = subdir.make<TH1D>("met_pt", "met_pt", 1000, 0, 1000);
-      h_met_phi[i] = subdir.make<TH1D>("met_phi", "met_phi", 100, -pi, pi);
-      h_leptons_n[i] = subdir.make<TH1D>("leptons_n", "leptons_n", 10, 0, 10);
+      h_vertex_n[i] = subdir.make<TH1D>("vertex_n", "vertex_n;Number of primary vertices;Events", 100, 0, 100);
+      h_met_pt[i] = subdir.make<TH1D>("met_pt", "met_pt;Missing transverse momentum (GeV);Events/1GeV", 1000, 0, 1000);
+      h_met_phi[i] = subdir.make<TH1D>("met_phi", "met_phi;Missing transverse momentum #phi;Events", 100, -pi, pi);
+      h_leptons_n[i] = subdir.make<TH1D>("leptons_n", "leptons_n;Lepton multiplicity;Events", 10, 0, 10);
 
-      h_lepton1_pt [i] = subdir.make<TH1D>("lepton1_pt", "lepton1_pt", 1000, 0, 1000);
-      h_lepton1_eta[i] = subdir.make<TH1D>("lepton1_eta", "lepton1_eta", 100, -maxeta, maxeta);
-      h_lepton1_phi[i] = subdir.make<TH1D>("lepton1_phi", "lepton1_phi", 100, -pi, pi);
-      h_lepton1_q  [i] = subdir.make<TH1D>("lepton1_q", "lepton1_q", 3, -1.5, 1.5);
+      h_lepton1_pt [i] = subdir.make<TH1D>("lepton1_pt", "lepton1_pt;1st leading lepton p_{T} (GeV);Events/1GeV", 1000, 0, 1000);
+      h_lepton1_eta[i] = subdir.make<TH1D>("lepton1_eta", "lepton1_eta;1st leading lepton #eta;Events", 100, -maxeta, maxeta);
+      h_lepton1_phi[i] = subdir.make<TH1D>("lepton1_phi", "lepton1_phi;1st leading lepton #phi;Events", 100, -pi, pi);
+      h_lepton1_q  [i] = subdir.make<TH1D>("lepton1_q", "lepton1_q;1st leading lepton charge;Events", 3, -1.5, 1.5);
 
       h_lepton2_pt [i] = subdir.make<TH1D>("lepton2_pt", "lepton2_pt", 1000, 0, 1000);
       h_lepton2_eta[i] = subdir.make<TH1D>("lepton2_eta", "lepton2_eta", 100, -maxeta, maxeta);
       h_lepton2_phi[i] = subdir.make<TH1D>("lepton2_phi", "lepton2_phi", 100, -pi, pi);
-      h_lepton2_q  [i] = subdir.make<TH1D>("lepton2_q", "lepton2_q", 3, -1.5, 1.5);
+      h_lepton2_q  [i] = subdir.make<TH1D>("lepton2_q", "lepton2_q;2nd leading lepton charge;Events", 3, -1.5, 1.5);
 
       h_z_m  [i] = subdir.make<TH1D>("z_m", "z_m", 1000, 0, 1000);
       h_z_pt [i] = subdir.make<TH1D>("z_pt", "z_pt", 1000, 0, 1000);
@@ -119,22 +117,27 @@ struct ControlPlots
       h_z_phi[i] = subdir.make<TH1D>("z_phi", "z_phi", 100, -pi, pi);
       h_z_m_noveto[i] = subdir.make<TH1D>("z_m_noveto", "z_m_noveto", 1000, 0, 1000);
 
-      h_jets_n[i] = subdir.make<TH1D>("jets_n", "jets_n", 10, 0, 10);
-      h_jets_pt [i] = subdir.make<TH1D>("jets_pt", "jets_pt", 1000, 0, 1000);
-      h_jets_eta[i] = subdir.make<TH1D>("jets_eta", "jets_eta", 100, -maxeta, maxeta);
-      h_jets_ht[i] = subdir.make<TH1D>("jets_ht", "jets_ht", 1000, 0, 1000);
+      h_jets_n[i] = subdir.make<TH1D>("jets_n", "jets_n;Jet multiplicity;Events", 10, 0, 10);
+      h_jets_pt [i] = subdir.make<TH1D>("jets_pt", "jets_pt;Jets p_{T} (GeV);Events/1GeV", 1000, 0, 1000);
+      h_jets_eta[i] = subdir.make<TH1D>("jets_eta", "jets_eta;Jets #eta;Events", 100, -maxeta, maxeta);
+      h_jets_ht[i] = subdir.make<TH1D>("jets_ht", "jets_ht;Jets #Sigma p_{T} (GeV);Events/1GeV", 1000, 0, 1000);
 
       for ( int j=0; j<4; ++j ) {
         const string prefix = Form("jet%d_", j+1);
-        h_jet_m  [i][j] = subdir.make<TH1D>((prefix+"m").c_str(), (prefix+"m").c_str(), 500, 0, 500);
-        h_jet_pt [i][j] = subdir.make<TH1D>((prefix+"pt").c_str(), (prefix+"pt").c_str(), 1000, 0, 1000);
-        h_jet_eta[i][j] = subdir.make<TH1D>((prefix+"eta").c_str(), (prefix+"eta").c_str(), 100, -maxeta, maxeta);
-        h_jet_phi[i][j] = subdir.make<TH1D>((prefix+"phi").c_str(), (prefix+"phi").c_str(), 100, -pi, pi);
-        h_jet_btag[i][j] = subdir.make<TH1D>((prefix+"btag").c_str(), (prefix+"btag").c_str(), 100, 0, 1);
+        string titlePrefix = "";
+        if ( j == 0 ) titlePrefix = "1st";
+        else if ( j == 1 ) titlePrefix = "2nd";
+        else if ( j == 2 ) titlePrefix = "3rd";
+        else titlePrefix = Form("%dth", j+1);
+        h_jet_m  [i][j] = subdir.make<TH1D>((prefix+"m").c_str(), (prefix+"m;"+titlePrefix+" leading jet mass (GeV);Events/1GeV").c_str(), 500, 0, 500);
+        h_jet_pt [i][j] = subdir.make<TH1D>((prefix+"pt").c_str(), (prefix+"pt;"+titlePrefix+" leading jet p_{T} (GeV);Events/1GeV").c_str(), 1000, 0, 1000);
+        h_jet_eta[i][j] = subdir.make<TH1D>((prefix+"eta").c_str(), (prefix+"eta;"+titlePrefix+" leading jet #eta;Events").c_str(), 100, -maxeta, maxeta);
+        h_jet_phi[i][j] = subdir.make<TH1D>((prefix+"phi").c_str(), (prefix+"phi;"+titlePrefix+" leading jet #phi;Events").c_str(), 100, -pi, pi);
+        h_jet_btag[i][j] = subdir.make<TH1D>((prefix+"btag").c_str(), (prefix+"btag;"+titlePrefix+" leading jet b discriminator output;Events").c_str(), 100, 0, 1);
       }
 
-      h_bjets_n[i] = subdir.make<TH1D>("bjets_n", "bjets_n", 10, 0, 10);
-      h_event_st[i] = subdir.make<TH1D>("event_st", "event_st", 1000, 0, 1000);
+      h_bjets_n[i] = subdir.make<TH1D>("bjets_n", "bjets_n;b-jet multiplicity;Events", 10, 0, 10);
+      h_event_st[i] = subdir.make<TH1D>("event_st", "event_st;#Sigma p_{T} (GeV);Events/1GeV", 1000, 0, 1000);
     }
   };
 };
@@ -166,36 +169,32 @@ private:
   std::vector<edm::EDGetTokenT<double> > extWeightTokensD_;
 
 private:
-  TH1D* h_weight, * h_pileupWeight, * h_genWeight;
-  ControlPlots h_ee, h_mm, h_em;
-
-private:
-  double shiftedMuonPt(const cat::Muon& mu) { return mu.pt()+muonScale_*mu.shiftedEn(); }
-  double shiftedElectronPt(const cat::Electron& el) { return el.pt()+electronScale_*el.shiftedEn(); }
-  double shiftedLepPt(const reco::Candidate& cand)
+  double shiftedMuonScale(const cat::Muon& mu) { return 1+muonScale_*mu.shiftedEn()/mu.pt(); }
+  double shiftedElectronScale(const cat::Electron& el) { return 1+electronScale_*el.shiftedEn()/el.pt(); }
+  double shiftedLepScale(const reco::Candidate& cand)
   {
     auto muonP = dynamic_cast<const cat::Muon*>(&cand);
     auto electronP = dynamic_cast<const cat::Electron*>(&cand);
-    if ( muonP ) return shiftedMuonPt(*muonP);
-    else if ( electronP ) return shiftedElectronPt(*electronP);
+    if ( muonP ) return shiftedMuonScale(*muonP);
+    else if ( electronP ) return shiftedElectronScale(*electronP);
     return cand.pt();
   }
-  double shiftedJetPt(const reco::Candidate& cand)
+  double shiftedJetScale(const reco::Candidate& cand)
   {
     const auto jet = dynamic_cast<const cat::Jet&>(cand);
-    double pt = jet.pt();
-    if      ( jetScale_ == +1 ) pt *= jet.shiftedEnUp();
-    else if ( jetScale_ == -1 ) pt *= jet.shiftedEnDown();
+    double scale = 1.;
+    if      ( jetScale_ == +1 ) scale *= jet.shiftedEnUp();
+    else if ( jetScale_ == -1 ) scale *= jet.shiftedEnDown();
 
-    if ( isMC_ and !isSkipJER_ ) pt *= jet.smearedRes(jetResol_);
+    if ( isMC_ and !isSkipJER_ ) scale *= jet.smearedRes(jetResol_);
 
-    return pt;
+    return scale;
   }
 
   bool isGoodMuon(const cat::Muon& mu)
   {
     if ( std::abs(mu.eta()) > 2.4 ) return false;
-    if ( shiftedMuonPt(mu) < 20 ) return false;
+    if ( mu.pt() < 25 ) return false;
 
     if ( mu.relIso(0.4) > 0.15 ) return false;
     if ( !mu.isTightMuon() ) return false;
@@ -204,7 +203,7 @@ private:
   bool isGoodElectron(const cat::Electron& el)
   {
     if ( std::abs(el.eta()) > 2.4 ) return false;
-    if ( shiftedElectronPt(el) < 20 ) return false;
+    if ( el.pt() < 25 ) return false;
 
     if ( isMVAElectronSel_ and !el.isTrigMVAValid() ) return false;
 
@@ -217,6 +216,7 @@ private:
   }
   bool isBjet(const cat::Jet& jet)
   {
+    using namespace cat;
     const double bTag = jet.bDiscriminator(bTagName_);
     if      ( bTagWP_ == BTagWP::CSVL ) return bTag > WP_BTAG_CSVv2L;
     else if ( bTagWP_ == BTagWP::CSVM ) return bTag > WP_BTAG_CSVv2M;
@@ -225,14 +225,12 @@ private:
   }
 
 private:
-  typedef reco::Candidate::LorentzVector LV;
-
   // Energy scales
   int muonScale_, electronScale_, jetScale_, jetResol_;
   bool isSkipJER_; // Do not apply JER, needed to remove randomness during the Synchronization
 
   // Efficiency SF
-  ScaleFactorEvaluator muonSF_, electronSF_;
+  cat::ScaleFactorEvaluator muonSF_, electronSF_;
   double muonSFShift_, electronSFShift_;
   double trigSFShift_;
 
@@ -242,13 +240,18 @@ private:
 
   // ID variables
   bool isEcalCrackVeto_, isMVAElectronSel_;
+  bool isSkipEleSmearing_;
   std::string bTagName_;
   std::string elIdName_;
   enum class BTagWP { CSVL, CSVM, CSVT } bTagWP_;
 
+private:
+  TH1D* h_weight, * h_pileupWeight, * h_genWeight;
+  ControlPlotsTTLL h_ee, h_mm, h_em;
+
 };
 
-}
+} // namespace cat
 
 using namespace cat;
 
@@ -259,8 +262,7 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   const auto muonSet = pset.getParameter<edm::ParameterSet>("muon");
   muonToken_ = consumes<cat::MuonCollection>(muonSet.getParameter<edm::InputTag>("src"));
   muonScale_ = muonSet.getParameter<int>("scaleDirection");
-  if ( isMC_ )
-  {
+  if ( isMC_ ) {
     const auto muonSFSet = muonSet.getParameter<edm::ParameterSet>("efficiencySF");
     // FIXME : for muons, eta bins are folded - always double check this with cfg
     muonSF_.set(muonSFSet.getParameter<vdouble>("pt_bins"),
@@ -274,8 +276,7 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   electronToken_ = consumes<cat::ElectronCollection>(electronSet.getParameter<edm::InputTag>("src"));
   elIdName_ = electronSet.getParameter<string>("idName");
   electronScale_ = electronSet.getParameter<int>("scaleDirection");
-  if ( isMC_ )
-  {
+  if ( isMC_ ) {
     const auto electronSFSet = electronSet.getParameter<edm::ParameterSet>("efficiencySF");
     // FIXME : for electrons, eta bins are NOT folded - always double check this with cfg
     electronSF_.set(electronSFSet.getParameter<vdouble>("pt_bins"),
@@ -285,6 +286,7 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
     electronSFShift_ = electronSet.getParameter<int>("efficiencySFDirection");
   }
   isEcalCrackVeto_ = isMVAElectronSel_ = false;
+  isSkipEleSmearing_ = electronSet.getParameter<bool>("skipSmearing");
   if ( elIdName_.substr(0,3) == "mva" ) {
     isMVAElectronSel_ = true;
   }
@@ -319,8 +321,7 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   isIgnoreTrig_ = filterSet.getParameter<bool>("ignoreTrig");
   trigSFShift_ = filterSet.getParameter<int>("efficiencySFDirection");
 
-  if ( isMC_ )
-  {
+  if ( isMC_ ) {
     const auto genWeightSet = pset.getParameter<edm::ParameterSet>("genWeight");
 
     genWeightIndex_ = genWeightSet.getParameter<int>("index");
@@ -341,8 +342,7 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
 
   auto doverall = fs->mkdir("overall", "overall");
   h_weight = doverall.make<TH1D>("weight", "weight", 200, -10, 10);
-  if ( isMC_ )
-  {
+  if ( isMC_ ) {
     h_genWeight = doverall.make<TH1D>("genWeight", "genWeight", 200, -10, 10);
     h_pileupWeight = doverall.make<TH1D>("pileupWeight", "pileupWeight", 200, -10, 10);
   }
@@ -387,8 +387,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
   // Compute event weight - from generator, pileup, etc
   double weight = 1.0;
-  if ( isMC_ )
-  {
+  if ( isMC_ ) {
     float genWeight = 1.;
     edm::Handle<float> fHandle;
     edm::Handle<vfloat> vfHandle;
@@ -436,36 +435,34 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   // Select good leptons
   double leptons_st = 0;
   cat::MuonCollection selMuons;
-  for ( int i=0, n=muonHandle->size(); i<n; ++i )
-  {
+  for ( int i=0, n=muonHandle->size(); i<n; ++i ) {
     auto& p = muonHandle->at(i);
-    if ( !isGoodMuon(p) ) continue;
-    const double pt = shiftedMuonPt(p);
-    const double scale = pt/p.pt();
+    const double scale = shiftedMuonScale(p);
 
     cat::Muon lep(p);
     lep.setP4(p.p4()*scale);
+    if ( !isGoodMuon(p) ) continue;
+
     selMuons.push_back(lep);
 
-    leptons_st += pt;
+    leptons_st += lep.pt();
     metDpx += lep.px()-p.px();
     metDpy += lep.py()-p.py();
   }
   cat::ElectronCollection selElectrons;
-  for ( int i=0, n=electronHandle->size(); i<n; ++i )
-  {
+  for ( int i=0, n=electronHandle->size(); i<n; ++i ) {
     auto& p = electronHandle->at(i);
-    if ( !isGoodElectron(p) ) continue;
-    const double pt = shiftedElectronPt(p);
-    const double scale = pt/p.pt();
+    const double scale = shiftedElectronScale(p)/(isSkipEleSmearing_ ? p.smearedScale() : 1);
 
     cat::Electron lep(p);
     lep.setP4(p.p4()*scale);
+    if ( !isGoodElectron(p) ) continue;
+
     selElectrons.push_back(lep);
 
-    leptons_st += pt;
-    metDpx += lep.px()-p.px();
-    metDpy += lep.py()-p.py();
+    leptons_st += lep.pt();
+    metDpx += lep.px()-p.px()/(isSkipEleSmearing_ ? p.smearedScale() : 1);
+    metDpy += lep.py()-p.py()/(isSkipEleSmearing_ ? p.smearedScale() : 1);
   }
   std::vector<const cat::Lepton*> selLeptons;
   for ( auto& x : selMuons ) selLeptons.push_back(&x);
@@ -485,8 +482,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     const int pdgId1 = std::abs(lepton1->pdgId());
     const int pdgId2 = std::abs(lepton2->pdgId());
     // Determine channel
-    switch ( pdgId1+pdgId2 )
-    {
+    switch ( pdgId1+pdgId2 ) {
       case 11+11: { channel = CH_ELEL; break; }
       case 13+13: { channel = CH_MUMU; break; }
       case 11+13: {
@@ -496,29 +492,28 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       }
     }
     // Apply lepton SF
-    if ( channel == CH_ELEL )
-    {
+    if ( channel != CH_NOLL ) weight *= computeTrigSF(*lepton1, *lepton2, trigSFShift_);
+
+    if ( channel == CH_ELEL ) {
       const auto e1 = dynamic_cast<const cat::Electron*>(lepton1);
       const auto e2 = dynamic_cast<const cat::Electron*>(lepton2);
       const double w1 = electronSF_(lepton1->pt(), std::abs(e1->scEta()), electronSFShift_);
       const double w2 = electronSF_(lepton2->pt(), std::abs(e2->scEta()), electronSFShift_);
       weight *= w1*w2;
-      if ( !isIgnoreTrig_ ) weight *= isTrigElEl * computeTrigSF(*lepton1, *lepton2, trigSFShift_);
+      if ( !isIgnoreTrig_ ) weight *= isTrigElEl;
     }
-    else if ( channel == CH_MUMU )
-    {
+    else if ( channel == CH_MUMU ) {
       const double w1 = muonSF_(lepton1->pt(), std::abs(lepton1->eta()), muonSFShift_);
       const double w2 = muonSF_(lepton2->pt(), std::abs(lepton2->eta()), muonSFShift_);
       weight *= w1*w2;
-      if ( !isIgnoreTrig_ ) weight *= isTrigMuMu * computeTrigSF(*lepton1, *lepton2, trigSFShift_);
+      if ( !isIgnoreTrig_ ) weight *= isTrigMuMu;
     }
-    else if ( channel == CH_MUEL )
-    {
+    else if ( channel == CH_MUEL ) {
       const auto e1 = dynamic_cast<const cat::Electron*>(lepton1);
       const double w1 = electronSF_(lepton1->pt(), std::abs(e1->scEta()), electronSFShift_);
       const double w2 = muonSF_(lepton2->pt(), std::abs(lepton2->eta()), muonSFShift_);
       weight *= w1*w2;
-      if ( !isIgnoreTrig_ ) weight *= isTrigMuEl* computeTrigSF(*lepton1, *lepton2, trigSFShift_);
+      if ( !isIgnoreTrig_ ) weight *= isTrigMuEl;
     }
     else edm::LogError("TTLLEventSelector") << "Strange event with nLepton >=2 but not falling info ee,mumu,emu category";
   }
@@ -527,27 +522,26 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   // Select good jets
   int bjets_n = 0;
   double jets_ht = 0;
-  for ( int i=0, n=jetHandle->size(); i<n; ++i )
-  {
+  for ( int i=0, n=jetHandle->size(); i<n; ++i ) {
     auto& p = jetHandle->at(i);
     if ( std::abs(p.eta()) > 2.4 ) continue;
     if ( !p.LooseId() ) continue;
 
-    const double pt = shiftedJetPt(p);
-    const double scale = pt/p.pt();
+    const double scale = shiftedJetScale(p);
     cat::Jet jet(p);
     jet.setP4(scale*p.p4());
 
     metDpx += jet.px()-p.px();
     metDpy += jet.py()-p.py();
-    if ( pt < 30 ) continue;
+    if ( jet.pt() < 30 ) continue;
 
     if ( leptons_n >= 1 and deltaR(jet.p4(), out_leptons->at(0).p4()) < 0.4 ) continue;
     if ( leptons_n >= 2 and deltaR(jet.p4(), out_leptons->at(1).p4()) < 0.4 ) continue;
 
-    out_jets->push_back(jet);
-    jets_ht += pt;
+    jets_ht += jet.pt();
     if ( isBjet(p) ) ++bjets_n;
+
+    out_jets->push_back(jet);
   }
   const int jets_n = out_jets->size();
   std::sort(out_jets->begin(), out_jets->end(),
@@ -574,8 +568,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
   // ElEl channel Cutstep 0b with trigger requirements
   int cutstep_ee = -2;
-  if ( isIgnoreTrig_ or isTrigElEl )
-  {
+  if ( isIgnoreTrig_ or isTrigElEl ) {
     ++cutstep_ee;
     h_ee.hCutstep->Fill(-1, weight);
     h_ee.hCutstepNoweight->Fill(-1);
@@ -592,8 +585,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     }
 
     // Cutstep 0c with reco filters
-    if ( isMC_ or isRECOFilterOK )
-    {
+    if ( isMC_ or isRECOFilterOK ) {
       ++cutstep_ee;
       h_ee.hCutstep->Fill(0., weight);
       h_ee.hCutstepNoweight->Fill(0.);
@@ -613,8 +605,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
   // MuMu channel Cutstep 0b with trigger requirements
   int cutstep_mm = -2;
-  if ( isIgnoreTrig_ or isTrigMuMu )
-  {
+  if ( isIgnoreTrig_ or isTrigMuMu ) {
     ++cutstep_mm;
     h_mm.hCutstep->Fill(-1, weight);
     h_mm.hCutstepNoweight->Fill(-1);
@@ -631,8 +622,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     }
 
     // Cutstep 0c with reco filters
-    if ( isMC_ or isRECOFilterOK )
-    {
+    if ( isMC_ or isRECOFilterOK ) {
       ++cutstep_mm;
       h_mm.hCutstep->Fill(0., weight);
       h_mm.hCutstepNoweight->Fill(0.);
@@ -651,8 +641,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   }
   // MuEl channel Cutstep 0b with trigger requirements
   int cutstep_em = -2;
-  if ( isIgnoreTrig_ or isTrigMuEl )
-  {
+  if ( isIgnoreTrig_ or isTrigMuEl ) {
     ++cutstep_em;
     h_em.hCutstep->Fill(-1, weight);
     h_em.hCutstepNoweight->Fill(-1);
@@ -669,8 +658,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     }
 
     // Cutstep 0c with reco filters
-    if ( isMC_ or isRECOFilterOK )
-    {
+    if ( isMC_ or isRECOFilterOK ) {
       ++cutstep_em;
       h_em.hCutstep->Fill(0., weight);
       h_em.hCutstepNoweight->Fill(0.);
@@ -691,8 +679,8 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   // Check each cut steps
   int cutstep = -1;
   // bitset for the cut steps, fill the results only for events that pass step0a,0b,0c
-  std::bitset<nCutstep-2> cutstepBits(0);
-  //for ( auto x : cutstepBits ) x = false;
+  std::bitset<nCutstep-2> cutstepBits;
+  cutstepBits.reset();
   if ( (channel == CH_ELEL and cutstep_ee == 0) or
        (channel == CH_MUMU and cutstep_mm == 0) or
        (channel == CH_MUEL and cutstep_em == 0) ) {
@@ -723,8 +711,8 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
   // Cut step is ready. Now proceed to fill histograms
   if ( cutstep > 0 ) {
-    const auto lepton1P4 = shiftedLepPt(*lepton1)/lepton1->pt()*lepton1->p4();
-    const auto lepton2P4 = shiftedLepPt(*lepton2)/lepton2->pt()*lepton2->p4();
+    const auto lepton1P4 = shiftedLepScale(*lepton1)*lepton1->p4();
+    const auto lepton2P4 = shiftedLepScale(*lepton2)*lepton2->p4();
 
     const auto zP4 = lepton1P4+lepton2P4;
 
@@ -812,13 +800,11 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
 TTLLEventSelector::~TTLLEventSelector()
 {
-  if ( h_em.hCutstepNoweight )
-  {
+  if ( h_em.hCutstepNoweight ) {
     cout << "---- cut flows without weight ----\n";
     cout << "Step\tee\tmumu\temu\n";
     const int n = h_em.hCutstepNoweight->GetNbinsX();
-    for ( int i=1; i<=n; ++i )
-    {
+    for ( int i=1; i<=n; ++i ) {
       const string name(h_ee.hCutstepNoweight->GetXaxis()->GetBinLabel(i));
       if ( name.empty() ) break;
       cout << name.substr(0, name.find(' '));

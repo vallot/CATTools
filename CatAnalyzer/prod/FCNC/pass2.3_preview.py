@@ -14,35 +14,30 @@ setTDRStyle()
 gStyle.SetOptTitle(0)
 gStyle.SetOptStat(0)
 
-dataset = json.loads(open("pass2/dataset.json").read())
-
 srcMCs = [
-    ["t#bar{t}+Jets#rightarrow l^{+}l^{-}", 632],
-    ["t#bar{t}+Jets:Others", 632+3],
-    ["SingleTop", 800],
-    ["Dibosons", 432],
+    ["t_bar_t__Jets_rightarrow_l___pm_", 632],
+    ["t_bar_t__Jets_Others", 632+3],
+    ["SingleTop", 800,],
+    ["Dibosons", 432,],
     ["Tribosons", 433],
-    ["W+Jets:MG", 416],
-    ["Z/#gamma#rightarrow ll", 600],
+    ["W_Jets_MG", 416],
+    ["Z__gamma_rightarrow_ll", 600],
 ]
-for s in srcMCs: s.append(dataset[s[0]]['hist'])
-for s in srcMCs: s.append(TFile(s[-1]))
+for s in srcMCs: s.append(TFile("pass2/nominal/%s.root" % s[0]))
 
 fRD = {
-    'ee':TFile("pass2/nominal/DoubleEG.root"),
-    'mm':TFile("pass2/nominal/DoubleMuon.root"),
-    'em':TFile("pass2/nominal/MuonEG.root"),
+    'el':TFile("pass2/nominal/SingleElectron.root"),
+    'mu':TFile("pass2/nominal/SingleMuon.root"),
 }
 
 ## Data driven corrections
-if not os.path.exists('pass2/scaler_DY.json'): scaleDY = {'scale':{}}
-else: scaleDY = json.loads(open("pass2/scaler_DY.json").read())
+dataset = json.loads(open("pass2/dataset.json").read())
 
 ## Pick the first root file to get full list of plots
 plts = []
-f = srcMCs[-1][-1]
-moddir = f.Get("eventsTTLL")
-for ch in [x.GetName() for x in moddir.GetListOfKeys()]:
+f = TFile("pass2/nominal/%s.root" % srcMCs[0][0])
+for ch in ("el", "mu"):
+    moddir = f.Get(ch)
     chdir = moddir.GetDirectory(ch)
     if chdir == None: continue
 
@@ -51,11 +46,11 @@ for ch in [x.GetName() for x in moddir.GetListOfKeys()]:
         if stepobj == None: continue
 
         if stepobj.IsA().GetName() in ("TH1D", "TH1F"):
-            plts.append({'name':"eventsTTLL/%s/%s" % (ch, step)})
+            plts.append({'name':"%s/%s/%s" % (ch, ch, step)})
         elif stepobj.IsA().InheritsFrom("TDirectory"):
             for plt in [x.GetName() for x in stepobj.GetListOfKeys()]:
                 if stepobj.Get(plt) == None: continue
-                plts.append({'name':"eventsTTLL/%s/%s/%s" % (ch, step, plt)})
+                plts.append({'name':"%s/%s/%s/%s" % (ch, ch, step, plt)})
 
 ## Start loop
 fout = TFile("pass2/preview.root", "recreate")
@@ -92,12 +87,9 @@ for iplt, pltInfo in enumerate(plts):
     hsMC = THStack("hsMC", "")
     hMC = hRD.Clone()
     hMC.Reset()
-    histsMC = []
-    for title, color, finName, f in srcMCs:
+    for finName, color, f in srcMCs:
         h = f.Get(plt)
         h.Scale(lumi)
-        if finName == "Z__gamma_rightarrow_ll" and dirName in scaleDY["scale"]:
-            h.Scale(scaleDY["scale"][dirName])
         hMC.Add(h)
         h.GetStats(stats)
         h.AddBinContent(nbinsX, h.GetBinContent(nbinsX+1))
@@ -106,11 +98,7 @@ for iplt, pltInfo in enumerate(plts):
         h.SetFillColor(color)
         h.SetLineColor(color)
         #h.SetLineStyle(0)
-        h.GetXaxis().SetLabelOffset(999)
-        h.GetXaxis().SetLabelSize(0)
         hsMC.Add(h)
-        h.SetTitle(title)
-        histsMC.append(h)
     hRatio = hRD.Clone()
     hRatio.Reset()
     hRatio.SetTitle(";%s;Data/MC" % hRD.GetXaxis().GetTitle())
@@ -134,11 +122,9 @@ for iplt, pltInfo in enumerate(plts):
         grpRatio.SetPointError(n, w/2, e)
     if rMax > 2: rMax = 3
     hRatio.SetStats(False)
-    hRatio.SetMinimum(0)
-    hRatio.SetMaximum(rMax)
-
-    hRD.GetXaxis().SetLabelOffset(999)
-    hRD.GetXaxis().SetLabelSize(0)
+    hRatio.SetMinimum(0.5)
+    #hRatio.SetMaximum(rMax)
+    hRatio.SetMaximum(1.5)
 
     ## Draw'em all
     plotDim = (400, 300, 100) # width, main height, ratio height
@@ -146,14 +132,6 @@ for iplt, pltInfo in enumerate(plts):
     padH = (plotDim[1] + margin[3], plotDim[2] + margin[2])
     canH = padH[0] + padH[1]
     canW = plotDim[0] + margin[0] + margin[1]
-
-    leg = TLegend(0.6, 0.6, 1.-1.*margin[1]/canW-.03, 1-1.*margin[3]/padH[0]-.05)
-    leg.SetNColumns(2)
-    leg.SetBorderSize(0)
-    leg.SetFillStyle(0)
-    for h in reversed(histsMC):
-        leg.AddEntry(h, h.GetTitle(), "f")
-    leg.AddEntry(hRD, "Data", "lp")
 
     hRatio.GetXaxis().SetTitleSize(0.1)
     hRatio.GetXaxis().SetTitleOffset(0.75)
@@ -193,7 +171,6 @@ for iplt, pltInfo in enumerate(plts):
     hRD.Draw("")
     hsMC.Draw("samehist")
     hRD.Draw("same,e")
-    leg.Draw()
     pad1.RedrawAxis()
 
     fout.cd(dirName)
@@ -216,24 +193,24 @@ for iplt, pltInfo in enumerate(plts):
 
 ## Start to print cut flow
 cutflow = {
-    "count":{"ee":{}, "mm":{}, "em":{}},
-    "error":{"ee":{}, "mm":{}, "em":{}},
+    "count":{"el":{}, "mu":{}},
+    "error":{"el":{}, "mu":{}},
     "nstep":0,
     "step":None,
 }
 nstep = 0
 for mode in cutflow["count"].keys():
-    h = fRD[mode].Get("eventsTTLL/%s/cutstep" % mode)
+    h = fRD[mode].Get("%s/%s/cutstep" % (mode, mode))
     nstep = h.GetNbinsX()
     cutflow["count"][mode]["Data"] = [h.GetBinContent(i) for i in range(1, nstep+1)]
     cutflow["error"][mode]["Data"] = [h.GetBinError(i) for i in range(1, nstep+1)]
     if cutflow["step"] == None:
         cutflow["step"] = [h.GetXaxis().GetBinLabel(i) for i in range(1, nstep+1)]
 
-    for title, color, finName, f in srcMCs:
-        h = f.Get("eventsTTLL/%s/cutstep" % mode)
-        cutflow["count"][mode][title] = [h.GetBinContent(i) for i in range(1, nstep+1)]
-        cutflow["error"][mode][title] = [h.GetBinError(i) for i in range(1, nstep+1)]
+    for finName, color, f in srcMCs:
+        h = f.Get("%s/%s/cutstep" % (mode, mode))
+        cutflow["count"][mode][finName] = [h.GetBinContent(i) for i in range(1, nstep+1)]
+        cutflow["error"][mode][finName] = [h.GetBinError(i) for i in range(1, nstep+1)]
 cutflow["nstep"] = nstep
 printCutflow(cutflow)
 
