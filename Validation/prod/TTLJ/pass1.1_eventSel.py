@@ -85,7 +85,7 @@ samples = {
         #"ttbb",
     ],
     'sig nominal syst systMC':[
-        #"ttW", "ttZ",
+        "ttW", "ttZ",
     ],
     'sig.noll nominal syst systMC':[
         ## ttbar-others
@@ -94,32 +94,32 @@ samples = {
         ## do MC common systematic variations
         ## do ttbar specific gen level analyzer, do ttbar-dilepton genFilters
         "TT_powheg", 
-        #"ttW", "ttZ",
+        "ttW", "ttZ",
     ],
     'sig nominal scaleup':[
         ## MC signal samples, for the systematic unc. variations
         ## Therefore, produce nominals only
         ## cmsRun analyze_sig_cfg.py
         ## do ttbar specific gen level analyzer, do ttbar-dilepton genFilters
-        #"TTLJ_powheg_scaleup", "TT_powheg_scaleup",
+        "TTLJ_powheg_scaleup", "TT_powheg_scaleup",
     ],
     'sig nominal scaledn':[
-        #"TTLJ_powheg_scaledown", "TT_powheg_scaledown",
+        "TTLJ_powheg_scaledown", "TT_powheg_scaledown",
     ],
     'sig nominal':[
         ## Variation on generator choice
         ## produce nominals only
         ## cmsRun analyze_sig_cfg.py
         ## do ttbar specific gen level analyzer, do ttbar-dilepton genFilters
-        #"TTJets_MG", "TTJets_aMC", 
-        #"TT_powheg_herwig", 
+        "TTJets_MG", "TTJets_aMC", 
+        "TT_powheg_herwig", 
 
-        #"TT_powheg_mtop1695", "TT_powheg_mtop1755",
+        "TT_powheg_mtop1695", "TT_powheg_mtop1755",
 
-        #"TT_powheg_noCR", "TT_powheg_mpiOFF", 
+        "TT_powheg_noCR", "TT_powheg_mpiOFF", 
 
-        #"TTLJ_powheg_alphaS", "TT_powheg_alphaS", 
-        #"TT_powheg_herwig_mpiOFF", 
+        "TTLJ_powheg_alphaS", "TT_powheg_alphaS", 
+        "TT_powheg_herwig_mpiOFF", 
     ],
 }
 
