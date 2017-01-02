@@ -9,7 +9,7 @@ x_name_l  = ["M(ll) [GeV]", "Jet Multiplicity", "Missing Et [GeV]", "b Jet Multi
              "p_{T}^{l} [GeV]", "lepton #eta",
              "p_{T}^{j} [GeV]", "jet #eta",
              "p_{T}^{t} [GeV]", "y^{t}",
-             "p_{T}^{t#bar{t}} [GeV]", "y^{t#bar{t}}", "M^{t#bar{t}} [GeV]", "#Delta#phi^{t#bar{t}}"]
+             "p_{T}^{t#bar{t}} [GeV]", "y^{t#bar{t}}", "M^{t#bar{t}} [GeV]", "#Delta#phi^{t#bar{t}} [Rad]"]
 binset_l  = ["[60,20,320]", "[10,0,10]", "[20,0,200]", "[6,0,6]",
 			 "[9,20,290]", "[10,-2.5,2.5]",
 			 "[9,30,300]", "[10,-2.5,2.5]",
@@ -32,7 +32,7 @@ for channel in [0,1,2,3]:
             if step >= 5:
                 cmd = cmd+' -w \'genweight*puweight*mueffweight*eleffweight*tri*btagweight\''
                 cmd = cmd+' -c \'tri!=0&&filtered==1&&is3lep==2&&pseudojet1.Pt()>30&&pseudojet2.Pt()>30&&lep1.Pt()>20&&lep2.Pt()>20\''
-            cmd = cmd+' > tmp &'
+            cmd = cmd+' > /dev/null &'
             lst.append(cmd)
 
 for l in lst:

@@ -1,15 +1,16 @@
 #!/usr/bin/env python
-import ROOT, CATTools.CatAnalyzer.CMS_lumi, json, os, getopt, sys, math
+import ROOT,json, os, getopt, sys, math
 from CATTools.CatAnalyzer.histoHelper import *
-import DYestimation
+import DYEstimation
 ROOT.gROOT.SetBatch(True)
 '''
 topDraw.py -a 1 -s 1 -c 'tri==1&&filtered==1' -b [40,0,40] -p nvertex -x 'no. vertex' &
 topDraw.py -a 1 -s 1 -b [100,-3,3] -p lep1_eta,lep2_eta -x '#eta' &
 '''
-datalumi = 2.17
+datalumi = 2.17 #Run2015 v765
 CMS_lumi.lumi_sqrtS = "%.1f fb^{-1}, #sqrt{s} = 13 TeV"%(datalumi)
 datalumi = datalumi*1000 # due to fb
+CMS_lumi.writeExtraText = False
 
 mcfilelist = ['TT_powheg', 'WJets', 'SingleTbar_tW', 'SingleTop_tW', 'ZZ', 'WW', 'WZ', 'DYJets', 'DYJets_10to50']
 rdfilelist = ['MuonEG_Run2015','DoubleEG_Run2015','DoubleMuon_Run2015']
@@ -79,28 +80,19 @@ ttother_tcut = '(%s&&%s&&%s)*(%s)'%(stepch_tcut,cut,ttother_tcut,weight)
 rd_tcut = '%s&&%s'%(stepch_tcut,cut)
 print "TCut =",tcut
 
-#namming
-unit = ""
-if len(binning) == 3:
-    num = (binning[2]-binning[1])/float(binning[0])
-    if num != 1:
-        if x_name.endswith(']'):
-            unit = x_name.split('[')[1]
-            unit = unit.split(']')[0]
-        y_name = y_name + " / %.2g %s"%(num,unit)
-if len(binning) == 3 : nbins = binning[0]
-else : nbins = len(binning)-1
+title_l = ["t#bar{t}", "W+jets", "Single top", "Single top", "Diboson", "Diboson", "Diboson", "Z/#gamma^{*}#rightarrow#font[12]{l#lower[-0.4]{+}l#lower[-0.4]{#font[122]{\55}}}", "Z/#gamma^{*}#rightarrow#font[12]{l#lower[-0.4]{+}l#lower[-0.4]{#font[122]{\55}}}"]
+sysList = ['jer','jes','mu','el','puweight','mueffweight','eleffweight','btagweight']
 
-#DYestimation
+#DYEstimation
 if not os.path.exists('./DYFactor.json'):
-    DYestimation.printDYFactor(rootfileDir, tname, datasets, datalumi, cut, weight, rdfilelist)#This will create 'DYFactor.json' on same dir.
+    DYEstimation.printDYFactor(rootfileDir, tname, datasets, datalumi, cut, weight, rdfilelist)#This will create 'DYFactor.json' on same dir.
 dyratio=json.load(open('./DYFactor.json'))
-
-title_l = ["t#bar{t}", "W+jets", "Single top", "Single top", "Dibosons", "Dibosons", "Dibosons", "Z/#gamma^{*}#rightarrow#font[12]{l#lower[-0.4]{+}l#lower[-0.4]{#font[122]{\55}}}", "Z/#gamma^{*}#rightarrow#font[12]{l#lower[-0.4]{+}l#lower[-0.4]{#font[122]{\55}}}"]
 
 #saving mc histos
 errList = []
 mchistList = []
+sysErr_up = []
+sysErr_dn = []
 for i, mcname in enumerate(mcfilelist):
     data = findDataSet(mcname, datasets)
     scale = datalumi*data["xsec"]
@@ -121,7 +113,11 @@ for i, mcname in enumerate(mcfilelist):
     mchist = makeTH1(rfname, tname, title, binning, plotvar, tcut, scale)
     mchist.SetLineColor(colour)
     mchist.SetFillColor(colour)
+    if overflow: overFlow(mchist)
     mchistList.append(mchist)
+    up_tmp, dn_tmp = sysUncertainty(rfname, tname, binning, title, scale, tcut, plotvar, mchist, sysList)
+    sysErr_up.append(up_tmp)
+    sysErr_dn.append(dn_tmp)
     if 'TT' in mcname:
         mchist.SetTitle(mchist.GetTitle()+"-signal (visible)")
         N = getWeightedEntries(rfname, tname, 'tri', ttother_tcut)
@@ -133,6 +129,7 @@ for i, mcname in enumerate(mcfilelist):
         ttothers = makeTH1(rfname, tname, title+'-others', binning, plotvar, ttother_tcut, scale)
         ttothers.SetLineColor(906)
         ttothers.SetFillColor(906)
+        if overflow: overFlow(ttothers)
         mchistList.append(ttothers)
         mchist.Add(ttothers, -1)
         ttsignal = mchist.Clone()
@@ -150,7 +147,44 @@ else:
         rfname = rootfileDir + rdfile +".root"
         rdtcut = 'channel==%d&&%s&&%s'%((i+1),stepch_tcut,cut)
         rdhist.Add(makeTH1(rfname, tname, 'data', binning, plotvar, rdtcut))
+if overflow: overFlow(rdhist)
 rdhist.SetLineColor(1)
+rdhist.SetName('data')
+nbins = rdhist.GetNbinsX()
+
+#namming
+unit = ""
+if len(binning) == 3 and rdhist.GetBinWidth(0) != 1:
+    if x_name.endswith(']'):
+        unit = x_name.split('[')[1]
+        unit = unit.split(']')[0]
+    y_name = y_name + " / %g %s"%(rdhist.GetBinWidth(0),unit)
+
+#error band
+errorBand = copy.deepcopy(rdhist)
+errorBand.SetFillColor(14)
+errorBand.SetFillStyle(3001)
+errorBand.SetMarkerStyle(0)
+
+avrSys=[]
+for k in range(len(sysList)):
+    sysErr_sum = 0
+    for j in range(1,nbins):
+        sumh = 0
+        suml = 0
+        for i in range(len(mcfilelist)):
+            sumh += sysErr_up[i][k].GetBinContent(j)**2
+            suml += sysErr_dn[i][k].GetBinContent(j)**2
+        statErr = errorBand.GetBinError(j)
+        sysErr = math.sqrt(max(sumh,suml))
+        statsysErr = math.sqrt(statErr**2+sysErr**2) 
+        errorBand.SetBinError(j, statsysErr)
+
+        if errorBand.GetBinContent(j) !=0: sysErr_sum += sysErr/errorBand.GetBinContent(j)*100
+    avrSys.append(sysErr_sum/nbins/2)
+
+for a in avrSys:
+    print "%s%%"%a
 
 #get event yeild table
 num, err = table(mchistList, errList, mchistList[0], errList[0])
@@ -158,23 +192,11 @@ for k in num.keys():
     print '%s  ~&~ $%8d \\pm %6.2f$'%(k, max(0,num[k]), err[k])
 print 'data  ~&~ $%8d           $ \n'%rdhist.Integral(0,nbins+1)
 
-#overflow
-if overflow:
-    for hist in mchistList:
-        hist.SetBinContent(nbins, hist.GetBinContent(nbins)+hist.GetBinContent(nbins+1))
-        hist.SetBinContent(1, hist.GetBinContent(1)+hist.GetBinContent(0))
-    rdhist.SetBinContent(nbins, rdhist.GetBinContent(nbins)+rdhist.GetBinContent(nbins+1))
-    rdhist.SetBinContent(1, rdhist.GetBinContent(1)+rdhist.GetBinContent(0))
-
 #bin normalize
 if binNormalize and len(binning)!=3:
     for hist in mchistList:
-        for i in range(len(binning)):
-            hist.SetBinContent(i, hist.GetBinContent(i)/hist.GetBinWidth(i))
-            hist.SetBinError(i, hist.GetBinError(i)/hist.GetBinWidth(i))
-    for i in range(len(binning)):
-        rdhist.SetBinContent(i, rdhist.GetBinContent(i)/rdhist.GetBinWidth(i))
-        rdhist.SetBinError(i, rdhist.GetBinError(i)/rdhist.GetBinWidth(i))
+        binNormalize(hist)
+    binNormalize(rdhist)
     y_name = y_name + "/%s"%(unit)
 
 #Drawing plots on canvas
@@ -182,8 +204,29 @@ var = plotvar.split(',')[0]
 var = ''.join(i for i in var if not i.isdigit())
 var = var.replace('.','_').lower()
 var = var.replace('()','')
-outfile = "%s_s%d_%s"%(channel_name[channel-1],step,var)
-if channel == 0: outfile = "Dilepton_s%d_%s"%(step,var)
-drawTH1(outfile, CMS_lumi, mchistList, rdhist, x_name, y_name, dolog, True, 0.5)
+outfile = "%s_s%d_%s.png"%(channel_name[channel-1],step,var)
+if channel == 0: outfile = "Dilepton_s%d_%s.png"%(step,var)
+canv = drawTH1(outfile, CMS_lumi, mchistList, rdhist, x_name, y_name, dolog, True, 0.5)
+
+## Additional draw
+## you can get list of objects on canvavs via 'canv.GetListOfPrimitives()'
+## in case you know the name, 'obj = canv.GetPrivmitive(name)'
+mainPad = canv.GetPrimitive("mainPad")
+mainPad.cd()
+errorBand.Draw("e2same")
+mainPad.GetPrimitive("data").Draw("esamex0")
+canv.Update()
+
+ratioPad = canv.GetPrimitive("ratioPad")
+ratioPad.cd()
+sysErrRatio = errorBand.Clone()
+sysErrRatio.Divide(rdhist)
+sysErrRatio.Draw("e2same")
+ratioPad.GetPrimitive("hnewtmp").Draw("esame")
+canv.Update()
+
+canv.SaveAs(outfile)
+#canv.SaveAs(outfile.replace(".png",".pdf"))
+print outfile
 print outfile
 

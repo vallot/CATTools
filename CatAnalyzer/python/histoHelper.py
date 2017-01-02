@@ -1,26 +1,15 @@
 import math, array, ROOT, copy, CMS_lumi, tdrstyle
 import PhysicsTools.PythonAnalysis.rootplot.core as rootplotcore
 tdrstyle.setTDRStyle()
+def defTH1(title, name, binning):
+    if len(binning) == 3:
+        hist = ROOT.TH1D(name, title, binning[0], binning[1], binning[2])
+    else:
+        hist = ROOT.TH1D(name, title, len(binning)-1, array.array('f', binning))
+    return hist
 
 def getTH1(title, binning, tree, plotvar, cut, scale = 0.):
-    if len(binning) == 3:
-        hist = ROOT.TH1D("name", title, binning[0], binning[1], binning[2])
-    else:
-        hist = ROOT.TH1D("name", title, len(binning)-1, array.array('f', binning))
-    tree.Project("name", plotvar, cut)
-    if hist.GetSumw2N() == 0:
-        hist.Sumw2()
-    if scale != 0:
-        hist.Scale(scale)
-    return copy.deepcopy(hist)
-
-def getTH2(title, binning, tree, plotvar, cut, scale = 0.):
-    if len(binning) == 3:
-        hist = ROOT.TH2D("name", title, binning[0], binning[1], binning[2], binning[0], binning[1], binning[2])
-    elif len(binning) == 2 and len(binning[0]) ==3 :
-        hist = ROOT.TH2D("name", title, binning[0][0], binning[0][1], binning[0][2], binning[1][0], binning[1][1], binning[1][2])
-    else:
-        hist = ROOT.TH2D("name", title, len(binning)-1, array.array('f', binning), len(binning)-1, array.array('f', binning))
+    hist = defTH1(title, "name", binning)
     tree.Project("name", plotvar, cut)
     if hist.GetSumw2N() == 0:
         hist.Sumw2()
@@ -32,11 +21,7 @@ def makeTH1(filename, treename, title, binning, plotvar, cut, scale = 0.):
     tfile = ROOT.TFile(filename)
     tree  = tfile.Get(treename)
     
-    if len(binning) == 3:
-        hist = ROOT.TH1D("temp", title, binning[0], binning[1], binning[2])
-    else:
-        hist = ROOT.TH1D("temp", title, len(binning)-1, array.array('f', binning))      
-        
+    hist = defTH1(title, "tmp", binning)
     for var in plotvar.split(','):
         hist.Add(getTH1(title, binning, tree, var, cut, scale))
         
@@ -65,21 +50,21 @@ def divide_canvas(canvas, ratio_fraction):
     pad_ratio.SetTopMargin(margins[0] + (1 - ratio_fraction) * useable_height)
     return pad, pad_ratio
 
-def makeCanvas(name, doRatio=False):
-    H_ref = 600;
+def makeCanvas(name, doRatio = False):
+    H_ref = 600
+    W_ref = 800
     if doRatio:
-        H_ref = 800;
-    W_ref = 800;
-    canvas = ROOT.TCanvas(name,name,W_ref,H_ref)    
-    return canvas
+        H_ref = 800
+    canv = ROOT.TCanvas(name,name,W_ref,H_ref)    
+    return canv
 
-def setMargins(canvas, doRatio=False):
-    H_ref = 600;
+def setMargins(canvas, doRatio = False):
+    H_ref = 600
+    W_ref = 800
     if doRatio:
-        H_ref = 800;
-    W_ref = 800;
+        H_ref = 800
     W = W_ref
-    H  = H_ref
+    H = H_ref
     T = 0.08*H_ref
     B = 0.12*H_ref 
     L = 0.12*W_ref
@@ -122,7 +107,7 @@ def setDefTH1Style(th1, x_name, y_name):
     ROOT.gStyle.cd()
     return th1
     
-def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=True, ratioRange=0.45, siglist=None, legx=0.68, legfontsize=0.030):
+def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=True, ratioRange=0.45, legx=0.68, legfontsize=0.030):
     leg = ROOT.TLegend(legx,0.68,legx+0.2,0.91)
     leg.SetBorderSize(0)
     #leg.SetNColumns(2)
@@ -133,29 +118,18 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
     leg.SetFillStyle(0)
     leg.AddEntry(data,"Data","lp")
     
+    hs = ROOT.THStack("hs_%s_mc"%(name), "hs_%s_mc"%(name))    
     leghist = []
-    
-    if siglist is not None:
-        #leg.AddEntry(sig, sig.GetTitle(), "l")
-        #leghist.append(sig.GetTitle())
-        for i, sig in enumerate(siglist):
-            leg.AddEntry(sig, sig.GetTitle(), "l")
-            leghist.append(sig.GetTitle())
-
-    hs = ROOT.THStack("hs_%s_mc"%(name), "hs_%s_mc"%(name))
-    hratio = mclist[0].Clone("hratio")
-    hratio.Reset()
-    
     for i, mc in enumerate(mclist):
         hnew = mc.Clone("hnew"+mc.GetName())
         hnew.Sumw2(False)
         hs.Add(hnew)
-        hratio.Add(mc)
         inversed = mclist[len(mclist)-1-i]
         if not any(inversed.GetTitle() == s for s in leghist):
             leg.AddEntry(inversed, inversed.GetTitle(), "f")
             leghist.append(inversed.GetTitle())
                         
+    hratio = hs.GetStack().Last()
     hratio.Divide(data,hratio,1.,1.,"B")
 
     tdrstyle.setTDRStyle()
@@ -163,9 +137,8 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
     setDefTH1Style(data, x_name, y_name)
     data.SetMaximum(data.GetMaximum()*1.8)
     if doLog:
-        #data.SetMaximum(10**7)
-        #data.SetMinimum(10**-3)
         data.SetMaximum(data.GetMaximum()*100)
+        #data.SetMinimum(10**-3)
     else:
         data.GetYaxis().SetTitleSize(0.04)
         data.GetYaxis().SetLabelSize(0.024)
@@ -183,35 +156,23 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
     canv = makeCanvas(name, doRatio)
     pads=[canv]
     pads = rootplotcore.divide_canvas(canv, ratio_fraction)
+
     pads[0].cd()
-    
-    setMargins(pads[0],doRatio)
+    setMargins(pads[0], doRatio)
     if doLog:
         pads[0].SetLogy()
 
     data.Draw()
     hs.Draw("same")
-    
-    if siglist is not None:
-        for i, sig in enumerate(siglist):
-            sig.Draw("samehist")
-    
     data.Draw("esamex0")
     leg.Draw("same")
-
-    tex = ROOT.TLatex()
-    tex.SetNDC()
-    tex.SetTextFont(42)
-    tex.SetTextSize(0.04)
-    tex.DrawLatex(0.25, 0.85, name.split('_')[0])
-    #tex.DrawLatex(canv.GetLeftMargin()*1.4, 1-canv.GetTopMargin()*2.8, name.split('_')[0])
     
     pads[0].Update()
 
     if doRatio:
         pads[1].cd()
         pads[1].SetGridy()
-        setMargins(pads[1],doRatio)
+        setMargins(pads[1], doRatio)
         hratio.SetLineColor(1)
         hratio.Draw("e")
         hratio.SetMaximum(1.+ratioRange)
@@ -223,15 +184,16 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
         p.Update()
 
     canv.cd()
-    iPos = 0
+
+    #iPos = 0 # in frame
+    iPos = 11 # out frame
     if( iPos==0 ):
         cmsLumi.relPosX = 0.1
     cmsLumi.CMS_lumi(pads[0], 0, iPos)
 
     canv.Modified()
     canv.Update()
-    canv.SaveAs(name+".png")
-    canv.SaveAs(name+".pdf")
+    return copy.deepcopy(canv)
 
 def drellYanEstimation(mc_ee_in, mc_ee_out, mc_mm_in, mc_mm_out,
                        rd_ee_in, rd_mm_in, rd_em_in, kMM, kEE):
@@ -312,3 +274,39 @@ def set_palette(name="", ncontours=999):
     TColor.CreateGradientColorTable(npoints, s, r, g, b, ncontours)
     gStyle.SetNumberContours(ncontours)
 
+def overFlow(hist):
+    nbins = hist.GetNbinsX()
+    hist.SetBinContent(nbins, hist.GetBinContent(nbins)+hist.GetBinContent(nbins+1))
+    hist.SetBinContent(1, hist.GetBinContent(1)+hist.GetBinContent(0))
+
+def binNormalize(hist):
+    nbins = hist.GetNbinsX()
+    for i in range(1,nbins):
+        hist.SetBinContent(i, hist.GetBinContent(i)/hist.GetBinWidth(i))
+        hist.SetBinError(i, hist.GetBinError(i)/hist.GetBinWidth(i))
+    
+def extraText(canv, position, content):
+    canv.cd()
+    tex = ROOT.TLatex()
+    tex.SetNDC()
+    tex.SetTextFont(42)
+    tex.SetTextSize(0.04)
+    tex.DrawLatex(position[0], position[1], content)
+    canv.Update()
+
+def sysUncertainty(filename, treename, binning, title, scale, cut, plotvar, h_nom, sysList):
+    sysErrs_up = []
+    sysErrs_dn = []
+    for sys in sysList:
+        if 'weight' not in sys:
+            sysErrs_up.append(makeTH1(filename, "cattree/%s_u"%sys, title, binning, plotvar, cut, scale))
+            sysErrs_dn.append(makeTH1(filename, "cattree/%s_d"%sys, title, binning, plotvar, cut, scale))
+        else:
+            sysErrs_up.append(makeTH1(filename, treename, title, binning, plotvar, cut.replace(sys,'%s_up'%sys), scale))
+            sysErrs_dn.append(makeTH1(filename, treename, title, binning, plotvar, cut.replace(sys,'%s_dn'%sys), scale))
+
+    for i in range(len(sysList)):
+        sysErrs_up[i].Add(h_nom, -1)
+        sysErrs_dn[i].Add(h_nom, -1)
+
+    return sysErrs_up, sysErrs_dn
