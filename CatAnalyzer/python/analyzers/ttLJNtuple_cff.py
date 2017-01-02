@@ -3,10 +3,11 @@ import FWCore.ParameterSet.Config as cms
 ttLJ = cms.EDAnalyzer("TTLJNtupler",
     isMC = cms.bool(True),
     isTTbar = cms.bool(False),
+    doGenWeightSysts = cms.bool(False),
 
     nVertex = cms.InputTag("catVertex:nGoodPV"),
 
-    src = cms.InputTag("events"),
+    src = cms.InputTag("eventsTTLJ"),
 
     topPtWeight = cms.InputTag("topPtWeight"),
     genWeight = cms.InputTag("flatGenWeights"),

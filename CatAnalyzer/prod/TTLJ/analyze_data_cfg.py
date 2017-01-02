@@ -27,15 +27,6 @@ process.TFileService = cms.Service("TFileService",
 process.eventsTTLJ.skipHistograms = True
 process.eventsTTLJ.applyFilterAt = 7 ## save events from step 5c, nJet>=3
 
-process.events = process.eventsTTLJ.clone()
-process.events.applyFilterAt = -2
-process.events.skipHistograms = False
-
-process.eventsTTLJ.muon.scaleDirection = -1
-process.eventsTTLJ.electron.scaleDirection = -1
-process.eventsTTLJ.jet.scaleDirection = -1
-process.eventsTTLJ.jet.resolDirection = -1
-
 process.load("CATTools.CatAnalyzer.analyzers.ttLJNtuple_cff")
 process.load("CATTools.CatAnalyzer.csvWeights_cfi")
 process.filterRECO = process.filterRECOMC.clone()
@@ -46,7 +37,7 @@ process.ttLJ.isTTbar = False
 process.pTTLJ = cms.Path(
     process.filterLumi * process.removeLumisWithL1TCert
 #  * process.rec
-  * process.events + process.eventsTTLJ
+  * process.eventsTTLJ
   * process.ttLJ
 )
 

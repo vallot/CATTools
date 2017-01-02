@@ -26,7 +26,7 @@ public:
   void analyze(const edm::Event& event, const edm::EventSetup&) override;
 
 private:
-  bool isMC_, isTTbar_;
+  bool isMC_, isTTbar_, doGenWeightSysts_;
 
   typedef std::vector<float> vfloat;
   typedef std::vector<double> vdouble;
@@ -83,6 +83,10 @@ private:
 
   unsigned char b_bjetsL_n, b_bjetsM_n, b_bjetsT_n;
 
+  float b_ttLJ_mT, b_ttLJ_mlj, b_ttLJ_m3, b_ttLJ_ttpt, b_ttLJ_dphi;
+  float b_ttLJjj_pt, b_ttLJjj_eta, b_ttLJjj_phi, b_ttLJjj_m;
+  float b_ttLJjj_dR, b_ttLJjj_csv1, b_ttLJjj_csv2;
+
   const unsigned static char kMaxNPartons = 10;
   unsigned char b_tops_n;
   unsigned char b_tops_mode[kMaxNPartons];
@@ -99,6 +103,7 @@ TTLJNtupler::TTLJNtupler(const edm::ParameterSet& pset)
 {
   isMC_ = pset.getParameter<bool>("isMC");
   isTTbar_ = pset.getParameter<bool>("isTTbar");
+  doGenWeightSysts_ = pset.getParameter<bool>("doGenWeightSysts");
 
   auto srcTag = pset.getParameter<edm::InputTag>("src");
   leptonToken_ = consumes<cat::LeptonCollection>(edm::InputTag(srcTag.label(), "leptons"));
@@ -187,9 +192,11 @@ TTLJNtupler::TTLJNtupler(const edm::ParameterSet& pset)
     tree_->Branch("wgt_puUp", &b_wgt_puUp, "wgt_puUp/F"); // pileup weight
     tree_->Branch("wgt_puDn", &b_wgt_puDn, "wgt_puDn/F"); // pileup weight
 
-    tree_->Branch("wgts_scaleUp", "std::vector<float>", &*b_wgts_scaleUp);
-    tree_->Branch("wgts_scaleDn", "std::vector<float>", &*b_wgts_scaleDn);
-    tree_->Branch("wgts_pdf", "std::vector<float>", &*b_wgts_pdf);
+    if ( doGenWeightSysts_ ) {
+      tree_->Branch("wgts_scaleUp", "std::vector<float>", &*b_wgts_scaleUp);
+      tree_->Branch("wgts_scaleDn", "std::vector<float>", &*b_wgts_scaleDn);
+      tree_->Branch("wgts_pdf", "std::vector<float>", &*b_wgts_pdf);
+    }
 
     tree_->Branch("wgts_csvUp", "std::vector<float>", &*b_wgts_csvUp); // CSV weight
     tree_->Branch("wgts_csvDn", "std::vector<float>", &*b_wgts_csvDn); // CSV weight
@@ -227,6 +234,18 @@ TTLJNtupler::TTLJNtupler(const edm::ParameterSet& pset)
   tree_->Branch("bjetsT_n", &b_bjetsT_n, "bjetsT_n/b"); // enough with 255
 
   // Composite objects
+  tree_->Branch("ttLJ_mT", &b_ttLJ_mT, "ttLJ_mT/F");
+  tree_->Branch("ttLJ_mlj", &b_ttLJ_mlj, "ttLJ_mlj/F");
+  tree_->Branch("ttLJ_m3", &b_ttLJ_m3, "ttLJ_m3/F");
+  tree_->Branch("ttLJ_ttpt", &b_ttLJ_ttpt, "ttLJ_ttpt/F");
+  tree_->Branch("ttLJ_dphi", &b_ttLJ_dphi, "ttLJ_dphi/F");
+  tree_->Branch("ttLJjj_pt"  , &b_ttLJjj_pt  , "ttLJjj_pt/F"  );
+  tree_->Branch("ttLJjj_eta" , &b_ttLJjj_eta , "ttLJjj_eta/F" );
+  tree_->Branch("ttLJjj_phi" , &b_ttLJjj_phi , "ttLJjj_phi/F" );
+  tree_->Branch("ttLJjj_m"   , &b_ttLJjj_m   , "ttLJjj_m/F"   );
+  tree_->Branch("ttLJjj_dR"  , &b_ttLJjj_dR  , "ttLJjj_dR/F"  );
+  tree_->Branch("ttLJjj_csv1", &b_ttLJjj_csv1, "ttLJjj_csv1/F");
+  tree_->Branch("ttLJjj_csv2", &b_ttLJjj_csv2, "ttLJjj_csv2/F");
 }
 
 void TTLJNtupler::analyze(const edm::Event& event, const edm::EventSetup&)
@@ -257,14 +276,14 @@ void TTLJNtupler::analyze(const edm::Event& event, const edm::EventSetup&)
     event.getByToken(genWeightToken_, fHandle);
     b_wgt_gen = *fHandle;
 
-    if ( event.getByToken(scaleUpWeightsToken_, vfHandle) ) {
+    if ( doGenWeightSysts_ and event.getByToken(scaleUpWeightsToken_, vfHandle) ) {
       for ( auto x : *vfHandle ) b_wgts_scaleUp->push_back(x);
     }
-    if ( event.getByToken(scaleDnWeightsToken_, vfHandle) ) {
+    if ( doGenWeightSysts_ and event.getByToken(scaleDnWeightsToken_, vfHandle) ) {
       for ( auto x : *vfHandle ) b_wgts_scaleDn->push_back(x);
     }
 
-    if ( event.getByToken(pdfWeightsToken_, vfHandle) ) {
+    if ( doGenWeightSysts_ and event.getByToken(pdfWeightsToken_, vfHandle) ) {
       for ( auto x : *vfHandle ) b_wgts_pdf->push_back(x);
     }
 
@@ -319,6 +338,73 @@ void TTLJNtupler::analyze(const edm::Event& event, const edm::EventSetup&)
     if ( jet.bDiscriminator(cat::BTAG_CSVv2) > cat::WP_BTAG_CSVv2L ) ++b_bjetsL_n;
     if ( jet.bDiscriminator(cat::BTAG_CSVv2) > cat::WP_BTAG_CSVv2M ) ++b_bjetsM_n;
     if ( jet.bDiscriminator(cat::BTAG_CSVv2) > cat::WP_BTAG_CSVv2T ) ++b_bjetsT_n;
+  }
+
+  switch ( 1 ) default: {
+    if ( b_leptons_n <= 0 ) break;
+    const double metPx = b_met_pt*cos(b_met_phi), metPy = b_met_pt*sin(b_met_phi);
+    const math::XYZTLorentzVector lepP4 = leptonHandle->at(0).p4();
+    b_ttLJ_mT = sqrt(2*(lepP4.pt()*b_met_pt-lepP4.px()*metPx-lepP4.py()*metPy));
+
+    if ( b_jets_n <= 0 ) break;
+    const auto jetend = jetHandle->end();
+    double minDRlj = 1e9;
+    auto selJet0 = jetend;
+    for ( auto jet0 = jetHandle->begin(); jet0 != jetend; ++jet0 ) {
+      const double dRlj = deltaR(lepP4, jet0->p4());
+      if ( dRlj < minDRlj ) {
+        minDRlj = dRlj;
+        selJet0 = jet0;
+      }
+    }
+    if ( selJet0 != jetend ) {
+      b_ttLJ_mlj = (selJet0->p4()+lepP4).mass();
+    }
+
+    if ( b_jets_n <= 4 ) break;
+    double maxPtjjj = -10;
+    auto selJet1 = jetend, selJet2 = jetend, selJet3 = jetend;
+    for ( auto jet1 = jetHandle->begin(); jet1 != jetend; ++jet1 ) {
+      if ( jet1 == selJet0 ) continue;
+      for ( auto jet2 = std::next(jet1); jet2 != jetend; ++jet2 ) {
+        if ( jet2 == selJet0 ) continue;
+        for ( auto jet3 = std::next(jet2); jet3 != jetend; ++jet3 ) {
+          if ( jet3 == selJet0 ) continue;
+          const double ptjjj = (jet1->p4()+jet2->p4()+jet3->p4()).pt();
+          if ( ptjjj > maxPtjjj ) {
+            maxPtjjj = ptjjj;
+            selJet1 = jet1;
+            selJet2 = jet2;
+            selJet3 = jet3;
+          }
+        }
+      }
+    }
+    if ( maxPtjjj >= 0 ) {
+      auto top1 = lepP4+selJet0->p4()+math::XYZTLorentzVector(metPx, metPy, 0, b_met_pt);
+      auto top2 = (selJet1->p4()+selJet2->p4()+selJet3->p4());
+      b_ttLJ_m3 = top2.mass();
+      b_ttLJ_ttpt = (top1+top2).pt();
+      b_ttLJ_dphi = deltaPhi(top1.phi(), top2.phi());
+    }
+
+    if ( b_jets_n <= 6 ) break;
+    for ( auto jet1 = jetHandle->begin(); jet1 != jetend; ++jet1 ) {
+      if ( jet1 == selJet0 or jet1 == selJet1 or jet1 == selJet2 or jet1 == selJet3 ) continue;
+      for ( auto jet2 = std::next(jet1); jet2 != jetend; ++jet2 ) {
+        if ( jet2 == selJet0 or jet2 == selJet1 or jet2 == selJet2 or jet2 == selJet3 ) continue;
+        const auto jj = jet1->p4()+jet2->p4();
+        b_ttLJjj_pt  = jj.pt();
+        b_ttLJjj_eta = jj.eta();
+        b_ttLJjj_phi = jj.phi();
+        b_ttLJjj_m   = jj.mass();
+        b_ttLJjj_dR  = deltaR(jet1->p4(), jet2->p4());
+        b_ttLJjj_csv1 = jet1->bDiscriminator(cat::BTAG_CSVv2);
+        b_ttLJjj_csv2 = jet2->bDiscriminator(cat::BTAG_CSVv2);
+        break;
+      }
+      break;
+    }
   }
   b_event_st += b_jets_ht;
 
@@ -409,6 +495,11 @@ void TTLJNtupler::clear()
     b_wdaus2_pt[i] = b_wdaus2_eta[i] = b_wdaus2_phi[i] = b_wdaus2_m[i] = -10;
     b_wdaus1_id[i] = b_wdaus2_id[i] = 0;
   }
+
+  b_ttLJ_mT = b_ttLJ_mlj = b_ttLJ_m3 = -10;
+  b_ttLJ_ttpt = b_ttLJ_dphi = -10;
+  b_ttLJjj_pt = b_ttLJjj_eta = b_ttLJjj_phi = b_ttLJjj_m = -10;
+  b_ttLJjj_dR = b_ttLJjj_csv1 = b_ttLJjj_csv2 = -10;
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"
