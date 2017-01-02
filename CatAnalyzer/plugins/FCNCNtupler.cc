@@ -56,12 +56,14 @@ private:
   float b_event_st;
   unsigned char b_vertex_n;
 
-  float b_lepton1_pt, b_lepton1_eta, b_lepton1_phi;
-  unsigned char b_lepton1_pid;
+  const unsigned static char kMaxNLeptons = 10;
+  unsigned char b_leptons_n;
+  float b_leptons_pt[kMaxNLeptons], b_leptons_eta[kMaxNLeptons], b_leptons_phi[kMaxNLeptons];
+  unsigned char b_leptons_pid[kMaxNLeptons];
 
   float b_met_pt, b_met_phi;
 
-  const unsigned static char kMaxNJets = 6;
+  const unsigned static char kMaxNJets = 100;
   unsigned char b_jets_n;
   float b_jets_ht;
   float b_jets_pt[kMaxNJets], b_jets_eta[kMaxNJets], b_jets_phi[kMaxNJets];
@@ -114,10 +116,11 @@ FCNCNtupler::FCNCNtupler(const edm::ParameterSet& pset)
   tree_->Branch("vertex_n", &b_vertex_n, "vertex_n/b"); // enough with 255
 
   // Leptons
-  tree_->Branch("lepton1_pt" , &b_lepton1_pt , "lepton1_pt/F");
-  tree_->Branch("lepton1_eta", &b_lepton1_eta, "lepton1_eta/F");
-  tree_->Branch("lepton1_phi", &b_lepton1_phi, "lepton1_phi/F");
-  tree_->Branch("lepton1_pid", &b_lepton1_pid, "lepton1_pid/B"); // +-11 or +-13. enough with += 127
+  tree_->Branch("leptons_n", &b_leptons_n, "leptons_n/b");
+  tree_->Branch("leptons_pt" , &b_leptons_pt , "leptons_pt[leptons_n]/F");
+  tree_->Branch("leptons_eta", &b_leptons_eta, "leptons_eta[leptons_n]/F");
+  tree_->Branch("leptons_phi", &b_leptons_phi, "leptons_phi[leptons_n]/F");
+  tree_->Branch("leptons_pid", &b_leptons_pid, "leptons_pid[leptons_n]/B"); // +-11 or +-13. enough with += 127
 
   // MET
   tree_->Branch("met_pt" , &b_met_pt , "met_pt/F");
@@ -126,16 +129,13 @@ FCNCNtupler::FCNCNtupler(const edm::ParameterSet& pset)
   // Jets
   tree_->Branch("jets_n", &b_jets_n, "jets_n/b"); // enough with 255
   tree_->Branch("jets_ht", &b_jets_ht, "jets_ht/F");
-  for ( int i=0; i<kMaxNJets; ++i ) {
-    const string name = Form("jet%d_", i+1);
-    tree_->Branch((name+"pt" ).c_str(), &b_jets_pt[i] , (name+"pt/F" ).c_str());
-    tree_->Branch((name+"eta").c_str(), &b_jets_eta[i], (name+"eta/F").c_str());
-    tree_->Branch((name+"phi").c_str(), &b_jets_phi[i], (name+"phi/F").c_str());
-    tree_->Branch((name+"m"  ).c_str(), &b_jets_m[i]  , (name+"m/F"  ).c_str());
-    tree_->Branch((name+"csv" ).c_str(), &b_jets_csv[i] , (name+"csv/F" ).c_str());
-    tree_->Branch((name+"CvsL").c_str(), &b_jets_CvsL[i], (name+"CvsL/F").c_str());
-    tree_->Branch((name+"CvsB").c_str(), &b_jets_CvsB[i], (name+"CvsB/F").c_str());
-  }
+  tree_->Branch("jets_pt" , &b_jets_pt , "jets_pt[jets_n]/F");
+  tree_->Branch("jets_eta", &b_jets_eta, "jets_eta[jets_n]/F");
+  tree_->Branch("jets_phi", &b_jets_phi, "jets_phi[jets_n]/F");
+  tree_->Branch("jets_m"  , &b_jets_m  , "jets_m[jets_n]/F");
+  tree_->Branch("jets_csv" , &b_jets_csv , "jets_csv[jets_n]/F");
+  tree_->Branch("jets_CvsL", &b_jets_CvsL, "jets_CvsL[jets_n]/F");
+  tree_->Branch("jets_CvsB", &b_jets_CvsB, "jets_CvsB[jets_n]/F");
 
   // bJets
   tree_->Branch("bjetsL_n", &b_bjetsL_n, "bjetsL_n/b"); // enough with 255
@@ -182,11 +182,12 @@ void FCNCNtupler::analyze(const edm::Event& event, const edm::EventSetup&)
   edm::Handle<cat::LeptonCollection> leptonHandle;
   event.getByToken(leptonToken_, leptonHandle);
   if ( !leptonHandle->empty() ) {
+    b_leptons_n = 1;
     const auto& lepton1 = leptonHandle->at(0);
-    b_lepton1_pt = lepton1.pt();
-    b_lepton1_eta = lepton1.eta();
-    b_lepton1_phi = lepton1.phi();
-    b_lepton1_pid = lepton1.pdgId();
+    b_leptons_pt[0] = lepton1.pt();
+    b_leptons_eta[0] = lepton1.eta();
+    b_leptons_phi[0] = lepton1.phi();
+    b_leptons_pid[0] = lepton1.pdgId();
 
     b_event_st += lepton1.pt();
   }
@@ -223,8 +224,9 @@ void FCNCNtupler::clear()
   b_weight_gen = b_weight_pu = b_weight_csv = 1.;
   b_event_st = -10;
   b_vertex_n = 0;
-  b_lepton1_pt = b_lepton1_eta = b_lepton1_phi = -10;
-  b_lepton1_pid = 0;
+  b_leptons_n = 0;
+  b_leptons_pt[0] = b_leptons_eta[0] = b_leptons_phi[0] = -10;
+  b_leptons_pid[0] = 0;
   b_met_pt = b_met_phi = -10;
   b_jets_n = 0;
   b_jets_ht = -10;
