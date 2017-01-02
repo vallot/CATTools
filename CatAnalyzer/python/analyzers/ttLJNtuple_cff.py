@@ -15,5 +15,7 @@ ttLJ = cms.EDAnalyzer("TTLJNtupler",
     csvWeight = cms.InputTag("csvWeights"),
 
     puWeight = cms.InputTag("pileupWeight"),
+
+    partonTop = cms.InputTag("partonTop"),
 )
 

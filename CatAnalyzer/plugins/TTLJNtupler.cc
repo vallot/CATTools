@@ -43,6 +43,10 @@ private:
   edm::EDGetTokenT<cat::JetCollection> jetToken_;
   edm::EDGetTokenT<float> metPtToken_, metPhiToken_;
 
+  edm::EDGetTokenT<int> partonChToken_;
+  edm::EDGetTokenT<reco::GenParticleCollection> partonTopToken_;
+  edm::EDGetTokenT<std::vector<int>> partonModesToken_;
+
 private:
   void clear();
 
@@ -78,6 +82,15 @@ private:
   float b_jets_csv[kMaxNJets], b_jets_CvsL[kMaxNJets], b_jets_CvsB[kMaxNJets];
 
   unsigned char b_bjetsL_n, b_bjetsM_n, b_bjetsT_n;
+
+  const unsigned static char kMaxNPartons = 10;
+  unsigned char b_tops_n;
+  unsigned char b_tops_mode[kMaxNPartons];
+  float b_tops_pt[kMaxNPartons], b_tops_eta[kMaxNPartons], b_tops_phi[kMaxNPartons], b_tops_m[kMaxNPartons];
+  float b_ws_pt[kMaxNPartons], b_ws_eta[kMaxNPartons], b_ws_phi[kMaxNPartons], b_ws_m[kMaxNPartons];
+  float b_wdaus1_pt[kMaxNPartons], b_wdaus1_eta[kMaxNPartons], b_wdaus1_phi[kMaxNPartons], b_wdaus1_m[kMaxNPartons];
+  float b_wdaus2_pt[kMaxNPartons], b_wdaus2_eta[kMaxNPartons], b_wdaus2_phi[kMaxNPartons], b_wdaus2_m[kMaxNPartons];
+  short b_wdaus1_id[kMaxNPartons], b_wdaus2_id[kMaxNPartons];
 };
 
 using namespace std;
@@ -110,7 +123,14 @@ TTLJNtupler::TTLJNtupler(const edm::ParameterSet& pset)
     csvWeightToken_ = consumes<float>(edm::InputTag(csvWeightLabel.label()));
     csvWeightSystToken_ = consumes<vfloat>(edm::InputTag(csvWeightLabel.label(), "syst"));
 
-    topPtWeightToken_ = consumes<float>(pset.getParameter<edm::InputTag>("topPtWeight"));
+    if ( isTTbar_ ) {
+      topPtWeightToken_ = consumes<float>(pset.getParameter<edm::InputTag>("topPtWeight"));
+
+      auto partonLabel = pset.getParameter<edm::InputTag>("partonTop");
+      partonChToken_ = consumes<int>(edm::InputTag(partonLabel.label(), "channel"));
+      partonTopToken_ = consumes<reco::GenParticleCollection>(partonLabel);
+      partonModesToken_ = consumes<std::vector<int>>(edm::InputTag(partonLabel.label(), "modes"));
+    }
   }
 
   b_wgts_scaleUp.reset(new std::vector<float>());
@@ -135,6 +155,33 @@ TTLJNtupler::TTLJNtupler(const edm::ParameterSet& pset)
     tree_->Branch("wgt_csv", &b_wgt_csv, "wgt_csv/F"); // CSV weight
     if ( isTTbar_ ) {
       tree_->Branch("wgt_topPt", &b_wgt_topPt, "wgt_topPt/F");// top pt weight
+
+      tree_->Branch("tops_n", &b_tops_n, "tops_n/b");
+
+      tree_->Branch("tops_mode", &b_tops_mode, "tops_mode[tops_n]/b");
+
+      tree_->Branch("tops_pt" , &b_tops_pt , "tops_pt[tops_n]/F" );
+      tree_->Branch("tops_eta", &b_tops_eta, "tops_eta[tops_n]/F");
+      tree_->Branch("tops_phi", &b_tops_phi, "tops_phi[tops_n]/F");
+      tree_->Branch("tops_m"  , &b_tops_m  , "tops_m[tops_n]/F"  );
+
+      tree_->Branch("ws_pt" , &b_ws_pt , "ws_pt[tops_n]/F" );
+      tree_->Branch("ws_eta", &b_ws_eta, "ws_eta[tops_n]/F");
+      tree_->Branch("ws_phi", &b_ws_phi, "ws_phi[tops_n]/F");
+      tree_->Branch("ws_m"  , &b_ws_m  , "ws_m[tops_n]/F"  );
+
+      tree_->Branch("wdaus1_pt" , &b_wdaus1_pt , "wdaus1_pt[tops_n]/F" );
+      tree_->Branch("wdaus1_eta", &b_wdaus1_eta, "wdaus1_eta[tops_n]/F");
+      tree_->Branch("wdaus1_phi", &b_wdaus1_phi, "wdaus1_phi[tops_n]/F");
+      tree_->Branch("wdaus1_m"  , &b_wdaus1_m  , "wdaus1_m[tops_n]/F"  );
+
+      tree_->Branch("wdaus2_pt" , &b_wdaus2_pt , "wdaus2_pt[tops_n]/F" );
+      tree_->Branch("wdaus2_eta", &b_wdaus2_eta, "wdaus2_eta[tops_n]/F");
+      tree_->Branch("wdaus2_phi", &b_wdaus2_phi, "wdaus2_phi[tops_n]/F");
+      tree_->Branch("wdaus2_m"  , &b_wdaus2_m  , "wdaus2_m[tops_n]/F"  );
+
+      tree_->Branch("wdaus1_id", &b_wdaus1_id, "wdaus1_id[tops_n]/S");
+      tree_->Branch("wdaus2_id", &b_wdaus2_id, "wdaus2_id[tops_n]/S");
     }
 
     tree_->Branch("wgt_puUp", &b_wgt_puUp, "wgt_puUp/F"); // pileup weight
@@ -275,6 +322,52 @@ void TTLJNtupler::analyze(const edm::Event& event, const edm::EventSetup&)
   }
   b_event_st += b_jets_ht;
 
+  if ( isMC_ and isTTbar_ ) {
+    edm::Handle<int> channelHandle;
+    event.getByToken(partonChToken_, channelHandle);
+
+    edm::Handle<std::vector<int>> modesHandle;
+    event.getByToken(partonModesToken_, modesHandle);
+
+    edm::Handle<reco::GenParticleCollection> partonTopHandle;
+    event.getByToken(partonTopToken_, partonTopHandle);
+
+    b_tops_n = modesHandle->size();
+    for ( int i=0, n=std::min(b_tops_n, kMaxNPartons); i<n; ++i ) {
+      b_tops_mode[i] = modesHandle->at(i);
+
+      auto& top = partonTopHandle->at(i);
+      b_tops_pt[i] = top.pt();
+      b_tops_eta[i] = top.eta();
+      b_tops_phi[i] = top.phi();
+      b_tops_m[i] = top.mass();
+
+      if ( top.numberOfDaughters() < 2 ) continue;
+      auto& wboson = *top.daughter(0); // dau0 is W
+      //auto& b1 = *top.daughter(1); // dau1 is b quark
+      b_ws_pt[i] = wboson.pt();
+      b_ws_eta[i] = wboson.eta();
+      b_ws_phi[i] = wboson.phi();
+      b_ws_m[i] = wboson.mass();
+
+      if ( wboson.numberOfDaughters() < 2 ) continue;
+      auto& wdau1 = *wboson.daughter(0); // Note: abs(dau1_id) < abs(dau2_id)
+      auto& wdau2 = *wboson.daughter(1); // therefore, lepton comes first, neutrino last
+
+      b_wdaus1_pt[i] = wdau1.pt();
+      b_wdaus1_eta[i] = wdau1.eta();
+      b_wdaus1_phi[i] = wdau1.phi();
+      b_wdaus1_m[i] = wdau1.mass();
+      b_wdaus1_id[i] = wdau1.pdgId();
+
+      b_wdaus2_pt[i] = wdau2.pt();
+      b_wdaus2_eta[i] = wdau2.eta();
+      b_wdaus2_phi[i] = wdau2.phi();
+      b_wdaus2_m[i] = wdau2.mass();
+      b_wdaus2_id[i] = wdau2.pdgId();
+    }
+  }
+
   tree_->Fill();
 }
 
@@ -308,6 +401,14 @@ void TTLJNtupler::clear()
   }
   b_bjetsL_n = b_bjetsM_n = b_bjetsT_n = 0;
 
+  b_tops_n = 0;
+  for ( int i=0; i<kMaxNPartons; ++i ) {
+    b_tops_pt[i] = b_tops_eta[i] = b_tops_phi[i] = b_tops_m[i] = -10;
+    b_ws_pt[i] = b_ws_eta[i] = b_ws_phi[i] = b_ws_m[i] = -10;
+    b_wdaus1_pt[i] = b_wdaus1_eta[i] = b_wdaus1_phi[i] = b_wdaus1_m[i] = -10;
+    b_wdaus2_pt[i] = b_wdaus2_eta[i] = b_wdaus2_phi[i] = b_wdaus2_m[i] = -10;
+    b_wdaus1_id[i] = b_wdaus2_id[i] = 0;
+  }
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"
