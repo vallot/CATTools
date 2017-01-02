@@ -595,7 +595,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     }
 
     // Cutstep 0c with reco filters
-    if ( isMC_ or isRECOFilterOK ) {
+    if ( isRECOFilterOK ) {
       ++cutstep_ee;
       if ( !skipHistograms_ ) {
         h_ee.hCutstep->Fill(0., weight);
@@ -636,7 +636,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     }
 
     // Cutstep 0c with reco filters
-    if ( isMC_ or isRECOFilterOK ) {
+    if ( isRECOFilterOK ) {
       ++cutstep_mm;
       if ( !skipHistograms_ ) {
         h_mm.hCutstep->Fill(0., weight);
@@ -676,7 +676,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     }
 
     // Cutstep 0c with reco filters
-    if ( isMC_ or isRECOFilterOK ) {
+    if ( isRECOFilterOK ) {
       ++cutstep_em;
       if ( !skipHistograms_ ) {
         h_em.hCutstep->Fill(0., weight);
