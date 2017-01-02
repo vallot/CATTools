@@ -29,9 +29,13 @@ namespace cat {
 
 struct ControlPlotsTTLJ
 {
+  ControlPlotsTTLJ() { isBooked = false; }
+
   //const static int nCutstep;
   typedef TH1D* H1;
   typedef TH2D* H2;
+
+  bool isBooked;
 
   H1 hCutstep, hCutstepNoweight;
   H2 h2Cutstep, h2CutstepNoweight;
@@ -150,6 +154,8 @@ struct ControlPlotsTTLJ
       h_event_mjj[i] = subdir.make<TH1D>("event_mjj", "event_mjj;Dijet mass (GeV);Events/1GeV", 500, 0, 500);
       h_event_m3[i] = subdir.make<TH1D>("event_m3", "event_m3;M3 (GeV);Events/1GeV", 500, 0, 500);
     }
+
+    isBooked = true;
   };
 };
 //const static int ControlPlotsTTLJ::nCutstep = 12;
@@ -832,7 +838,7 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
 TTLJEventSelector::~TTLJEventSelector()
 {
-  if ( h_el.hCutstepNoweight ) {
+  if ( h_el.isBooked ) {
     cout << "---- cut flows without weight ----\n";
     cout << "Step\tel\tmu\n";
     const int n = h_el.hCutstepNoweight->GetNbinsX();

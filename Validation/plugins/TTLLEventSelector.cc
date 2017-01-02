@@ -29,8 +29,12 @@ namespace cat {
 
 struct ControlPlotsTTLL
 {
+  ControlPlotsTTLL() { isBooked = false; }
+
   typedef TH1D* H1;
   typedef TH2D* H2;
+
+  bool isBooked;
 
   H1 hCutstep, hCutstepNoweight;
   H2 h2Cutstep, h2CutstepNoweight;
@@ -139,6 +143,8 @@ struct ControlPlotsTTLL
       h_bjets_n[i] = subdir.make<TH1D>("bjets_n", "bjets_n;b-jet multiplicity;Events", 10, 0, 10);
       h_event_st[i] = subdir.make<TH1D>("event_st", "event_st;#Sigma p_{T} (GeV);Events/1GeV", 1000, 0, 1000);
     }
+
+    isBooked = true;
   };
 };
 
@@ -822,7 +828,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
 TTLLEventSelector::~TTLLEventSelector()
 {
-  if ( h_em.hCutstepNoweight ) {
+  if ( h_em.isBooked ) {
     cout << "---- cut flows without weight ----\n";
     cout << "Step\tee\tmumu\temu\n";
     const int n = h_em.hCutstepNoweight->GetNbinsX();
