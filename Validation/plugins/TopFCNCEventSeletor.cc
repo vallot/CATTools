@@ -161,8 +161,16 @@ private:
   std::vector<edm::EDGetTokenT<double> > extWeightTokensD_;
 
 private:
-  double shiftedMuonScale(const cat::Muon& mu) { return 1+muonScale_*mu.shiftedEn()/mu.pt(); }
-  double shiftedElectronScale(const cat::Electron& el) { return 1+electronScale_*el.shiftedEn()/el.pt(); }
+  double shiftedMuonScale(const cat::Muon& mu) {
+    if      ( muonScale_ > 0 ) return mu.shiftedEnUp();
+    else if ( muonScale_ < 0 ) return mu.shiftedEnDown();
+    return 1;
+  }
+  double shiftedElectronScale(const cat::Electron& el) {
+    if      ( electronScale_ > 0 ) return el.shiftedEnUp();
+    else if ( electronScale_ < 0 ) return el.shiftedEnDown();
+    return 1;
+  }
   double shiftedJetScale(const reco::Candidate& cand)
   {
     const auto jet = dynamic_cast<const cat::Jet&>(cand);
