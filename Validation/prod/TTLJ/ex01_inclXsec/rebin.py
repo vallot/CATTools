@@ -13,7 +13,8 @@ if not os.path.exists("pass2"): os.system("ln -s ../pass2")
 
 module = "eventsTTLJ"
 modes = ("el", "mu")
-step = "step5d" ## which cut step to start (step5d for nJet4)
+#step = "step5d" ## which cut step to start (step5d for nJet4)
+step = "step6" ## which cut step to start (step6 for nBjet1)
 hists = {
     'bjets_n':{
         'title':'bjets_n;b-jet multiplicity;Events',
