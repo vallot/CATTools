@@ -41,9 +41,6 @@ process.pTTLJ = cms.Path(
   * process.ttLJ
 )
 
-from CATTools.CatAnalyzer.skimTTLJ_cff import *
-enableTTLJSkim(process, 'pTTLJ', [process.filterLumi, process.removeLumisWithL1TCert], False)
-
 ## Customise with cmd arguments
 import sys
 if len(sys.argv) > 2:
