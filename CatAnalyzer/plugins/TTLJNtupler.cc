@@ -161,7 +161,7 @@ TTLJNtupler::TTLJNtupler(const edm::ParameterSet& pset)
     if ( isTTbar_ ) {
       tree_->Branch("wgt_topPt", &b_wgt_topPt, "wgt_topPt/F");// top pt weight
 
-      tree_->Branch("tops_n", &b_tops_n, "tops_n/b");
+      tree_->Branch("tops_n", &b_tops_n, "tops_n/i"); // array index must be an integer
 
       tree_->Branch("tops_mode", &b_tops_mode, "tops_mode[tops_n]/b");
 
@@ -207,7 +207,7 @@ TTLJNtupler::TTLJNtupler(const edm::ParameterSet& pset)
   tree_->Branch("vertex_n", &b_vertex_n, "vertex_n/b"); // enough with 255
 
   // Leptons
-  tree_->Branch("leptons_n", &b_leptons_n, "leptons_n/b");
+  tree_->Branch("leptons_n", &b_leptons_n, "leptons_n/i");
   tree_->Branch("leptons_pt" , &b_leptons_pt , "leptons_pt[leptons_n]/F");
   tree_->Branch("leptons_eta", &b_leptons_eta, "leptons_eta[leptons_n]/F");
   tree_->Branch("leptons_phi", &b_leptons_phi, "leptons_phi[leptons_n]/F");
@@ -218,7 +218,7 @@ TTLJNtupler::TTLJNtupler(const edm::ParameterSet& pset)
   tree_->Branch("met_phi", &b_met_phi, "met_phi/F");
 
   // Jets
-  tree_->Branch("jets_n", &b_jets_n, "jets_n/b"); // enough with 255
+  tree_->Branch("jets_n", &b_jets_n, "jets_n/i"); // array index must be an integer
   tree_->Branch("jets_ht", &b_jets_ht, "jets_ht/F");
   tree_->Branch("jets_pt" , &b_jets_pt , "jets_pt[jets_n]/F");
   tree_->Branch("jets_eta", &b_jets_eta, "jets_eta[jets_n]/F");
