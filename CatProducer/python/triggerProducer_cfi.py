@@ -1,12 +1,17 @@
 import FWCore.ParameterSet.Config as cms
 
 catTrigger = cms.EDProducer("CATTriggerProducer",
-    triggerBits = cms.InputTag("TriggerResults","","HLT"),
+    triggerBits = cms.VInputTag(
+        cms.InputTag("TriggerResults","","HLT2"),# due to reHLT, this is the first choice
+        cms.InputTag("TriggerResults","","HLT"),# if above is not found, falls to default
+    ),
+    metFilterBits = cms.VInputTag(
+        cms.InputTag("TriggerResults","","PAT"),
+        cms.InputTag("TriggerResults","","RECO"),
+    ),
     triggerObjects = cms.InputTag("selectedPatTrigger"),
     triggerPrescales = cms.InputTag("patTrigger"),
     selectTrigObjects = cms.vstring("HLT_Ele", "HLT_DoubleEle", "HLT_Mu", "HLT_TkMu", "HLT_IsoMu", "HLT_IsoTkMu", "HLT_DoubleIsoMu", "HLT_PFJet","HLT_DoublePhoton", "HLT_Photon"),
-    metFilterBitsPAT = cms.InputTag("TriggerResults","","PAT"),
-    metFilterBitsRECO = cms.InputTag("TriggerResults","","RECO"),
     metFilterNames = cms.vstring(),
     hltPathNames = cms.vstring(),
 ##     metFilterNames = cms.vstring(

@@ -1,14 +1,23 @@
+import FWCore.ParameterSet.Config as cms
 #------------------------------------------------------------------
 #------------------------------------------------------------------
-# Data or MC Sample
-runOnMC      = True
-# ttbar Category
-runOnTTbarMC = 1 # runOnTTbarMC == 0->No ttbar, 1->ttbar Signal, 2->ttbar Background
-TTbarCatMC   = 0 # 0->All ttbar, 1->ttbb, 2->ttbj, 3->ttcc, 4->ttLF, 5->tt, 6->ttjj
+## setting up arguements
+from FWCore.ParameterSet.VarParsing import VarParsing
+options = VarParsing ('analysis')
+# JSON
+options.register('UserJSON', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "UserJSON: Fault  default")
+# runOnTTbarMC ==> 0->No ttbar, 1->ttbar Signal, 2->ttbar Background
+options.register('runOnTTbarMC', 0, VarParsing.multiplicity.singleton, VarParsing.varType.int, "runOnTTbarMC: 0  default No ttbar sample")
+# TTbarCatMC   ==> 0->All ttbar, 1->ttbb, 2->ttbj, 3->ttcc, 4->ttLF, 5->tt, 6->ttjj
+options.register('TTbarCatMC', 0, VarParsing.multiplicity.singleton, VarParsing.varType.int, "TTbarCatMC: 0  default All ttbar events")
+options.parseArguments()
+
+print "User JSON file: " + str(options.UserJSON)
+print "runOnTTbarMC: "   + str(options.runOnTTbarMC)
+print "TTbarCatMC: "     + str(options.TTbarCatMC)
 #------------------------------------------------------------------
 #------------------------------------------------------------------
 
-import FWCore.ParameterSet.Config as cms
 process = cms.Process("ttbbLepJets")
 
 # initialize MessageLogger and output report
@@ -24,8 +33,8 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.source = cms.Source("PoolSource",
      fileNames = cms.untracked.vstring(
-        'file:TT_TuneCUETP8M1_13TeV-powheg-pythia8_v8-0-0.root'
-        #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v7-6-2_RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext3-v1/160211_132614/0000/catTuple_1.root',
+        #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v8-0-1_RunIISpring16MiniAODv2-PUSpring16RAWAODSIM_reHLT_80X_mcRun2_asymptotic_v14_ext3-v1/160822_144100/0000/catTuple_1.root',
+        'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/QCD_Pt-120to170_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8/v7-6-6_RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12-v1/160625_141750/0000/catTuple_1.root',
         )
 )
 
@@ -38,19 +47,25 @@ process.source = cms.Source("PoolSource",
 # process.pileupWeight.pileupDn = pileupWeightMap["Run2015Dn_25nsV1"]
 
 # json file (Only Data)
-# ReReco JSON file taken from: https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions15/13TeV/Reprocessing/Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON.txt
-# import FWCore.PythonUtilities.LumiList as LumiList
-# process.source.lumisToProcess = LumiList.LumiList(filename = 'Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON.txt').getVLuminosityBlockRange()
+if options.UserJSON:
+    # ReReco JSON file taken from: https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions15/13TeV/Reprocessing/Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON.txt
+    print "Running data.... Including JSON File."
+    import FWCore.PythonUtilities.LumiList as LumiList
+    process.source.lumisToProcess = LumiList.LumiList(filename = 'Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON.txt').getVLuminosityBlockRange()
 
 # Lepton SF
 from CATTools.CatAnalyzer.leptonSF_cff import *
-
+# GEN Weights
 process.load("CATTools.CatAnalyzer.flatGenWeights_cfi")
 
 process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
-                                     sampleLabel       = cms.untracked.bool(runOnMC),
-                                     TTbarSampleLabel  = cms.untracked.int32(runOnTTbarMC),
-                                     TTbarCatLabel     = cms.untracked.int32(TTbarCatMC),
+                                     TTbarSampleLabel  = cms.untracked.int32(options.runOnTTbarMC),
+                                     TTbarCatLabel     = cms.untracked.int32(options.TTbarCatMC),
+                                     # Skim: Cut in number of (gen) jets 
+                                     Skim_N_Jets       = cms.untracked.uint32(0),
+                                     # Constrain in Kin. Fitter using CSV position
+                                     KFUsebtag         = cms.untracked.bool(True),
+                                     CSVPosConKF       = cms.untracked.bool(True),
                                      genWeightLabel    = cms.InputTag("flatGenWeights"),
                                      pdfWeightLabel    = cms.InputTag("flatGenWeights", "pdf"),
                                      scaleUpWeightLabel   = cms.InputTag("flatGenWeights","scaleup"),
@@ -70,6 +85,7 @@ process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      puUpWeightLabel   = cms.InputTag("pileupWeight:up"),
                                      puDownWeightLabel = cms.InputTag("pileupWeight:dn"),
                                      triggerBits       = cms.InputTag("TriggerResults::HLT"), 
+                                     triggerBits2      = cms.InputTag("TriggerResults::HLT2"), 
                                      triggerObjects    = cms.InputTag("catTrigger"), 
                                      JetMother         = cms.InputTag("genJetHadronFlavour:ancestors"),
                                      )

@@ -346,7 +346,7 @@ int dileptonCommon::eventSelection(const edm::Event& iEvent, const edm::EventSet
           const auto partonW21 = partonW2->daughter(0);
           const auto partonW22 = partonW2->daughter(1);
           if ( (partonW11->pt() > 20 && std::abs(partonW11->eta()) < 2.4 && (std::abs(partonW11->pdgId()) == 11 || std::abs(partonW11->pdgId()) == 13) ) &&
-              (partonW21->pt() > 20 && std::abs(partonW21->eta()) < 2.4 && (std::abs(partonW11->pdgId()) == 11 || std::abs(partonW11->pdgId()) == 13) ))
+              (partonW21->pt() > 20 && std::abs(partonW21->eta()) < 2.4 && (std::abs(partonW21->pdgId()) == 11 || std::abs(partonW21->pdgId()) == 13) ))
             b_gen_partonInPhaseLep = true;
 
           // Fill lepton informations
