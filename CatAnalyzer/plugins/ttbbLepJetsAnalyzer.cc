@@ -1196,6 +1196,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         // b-tag discriminant
         float jet_btagDis_CSV = jet.bDiscriminator(BTAG_CSVv2);
         b_Jet_CSV ->push_back(jet_btagDis_CSV);
+        // c-tag discriminant
         float jet_btagDis_CvsL = jet.bDiscriminator("pfCombinedCvsLJetTags");
         b_Jet_CvsL ->push_back(jet_btagDis_CvsL);
         float jet_btagDis_CvsB = jet.bDiscriminator("pfCombinedCvsBJetTags");
@@ -1272,7 +1273,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     }
     
     //---------------------------------------------------------------------------
-    // Kinematic Reconstruction: First Test
+    // Kinematic Reconstruction
     //---------------------------------------------------------------------------
     TLorentzVector Kinnu, Kinblrefit, Kinbjrefit, Kinj1refit, Kinj2refit;
     Kinnu.SetPtEtaPhiE(0,0,0,0);
