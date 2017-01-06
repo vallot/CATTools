@@ -72,6 +72,12 @@ private:
   unsigned int SkimNJets_;
   bool KFUsebtag_;
   bool CSVPosConKF_;
+  // Trigger Names
+  string triggerNameDataEl_;
+  string triggerNameDataMu_;
+  string triggerNameMCEl_;
+  string triggerNameMCMu_;
+  string triggerNameEl_, triggerNameMu_;
   
   // Event Weights
   edm::EDGetTokenT<float>                        genWeightToken_;
@@ -229,7 +235,11 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   TTbarCatMC_ (iConfig.getUntrackedParameter<int>("TTbarCatLabel", 0)),
   SkimNJets_  (iConfig.getUntrackedParameter<unsigned int>("Skim_N_Jets", 0)),
   KFUsebtag_  (iConfig.getUntrackedParameter<bool>("KFUsebtagLabel", true)),
-  CSVPosConKF_(iConfig.getUntrackedParameter<bool>("CSVPosConKFLabel", true))
+  CSVPosConKF_(iConfig.getUntrackedParameter<bool>("CSVPosConKFLabel", true)),
+  triggerNameDataEl_(iConfig.getUntrackedParameter<string>("triggerNameDataEl", "")),
+  triggerNameDataMu_(iConfig.getUntrackedParameter<string>("triggerNameDataMu", "")),
+  triggerNameMCEl_  (iConfig.getUntrackedParameter<string>("triggerNameMCEl",   "")),
+  triggerNameMCMu_  (iConfig.getUntrackedParameter<string>("triggerNameMCMu",   ""))
 {
   const auto elecSFSet = iConfig.getParameter<edm::ParameterSet>("elecSF");
   SF_elec_.set(elecSFSet.getParameter<std::vector<double>>("pt_bins" ),
@@ -452,6 +462,23 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   ScaleWeights->GetXaxis()->SetBinLabel(4,"muR=Up   muF=Up");
   ScaleWeights->GetXaxis()->SetBinLabel(5,"muR=Down muF=Nom");
   ScaleWeights->GetXaxis()->SetBinLabel(6,"muR=Down muF=Down");
+
+  std::cout << 
+    "Data Electron: " << triggerNameDataEl_ << 
+    " Data Muon: "    << triggerNameDataMu_ << 
+    " MC Electron: "  << triggerNameMCEl_   << 
+    " MC Muon: "      << triggerNameMCMu_   << 
+    std::endl;
+  
+  if(isMC_){
+    triggerNameEl_ = triggerNameMCEl_;
+    triggerNameMu_ = triggerNameMCMu_;
+  } 
+  else{
+    triggerNameEl_ = triggerNameDataEl_;
+    triggerNameMu_ = triggerNameDataMu_;  
+  }  
+
 }
 
 
@@ -1064,9 +1091,9 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
   AnalysisHelper trigHelper = AnalysisHelper(triggerNames, triggerBits, triggerObjects);
 
-  if ( (ch_tag == 0 && (trigHelper.triggerFired("HLT_IsoMu22_v") || trigHelper.triggerFired("HLT_IsoTkMu22_v"))) ||
-       (ch_tag == 1 ) ) { // TO BE UPDATED: Add electron triggers
-    //(ch_tag == 1 && (trigHelper.triggerFired("HLT_Ele22_eta2p1_WP75_Gsf_v") || trigHelper.triggerFired("HLT_Ele22_eta2p1_WPLoose_Gsf_v"))) ) {
+  if ( (ch_tag == 0 && (trigHelper.triggerFired(triggerNameMu_))) ||
+       (ch_tag == 1 && (trigHelper.triggerFired(triggerNameEl_))) 
+       ) {
     EvTrigger = true;
   }
 

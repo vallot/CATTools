@@ -70,6 +70,12 @@ process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      # Constrain in Kin. Fitter using CSV position
                                      KFUsebtag         = cms.untracked.bool(True),
                                      CSVPosConKF       = cms.untracked.bool(True),
+                                     # TriggerNames
+                                     triggerNameDataEl = cms.untracked.string("HLT_Ele32_eta2p1_WPTight_Gsf_v"), 
+                                     triggerNameDataMu = cms.untracked.string("HLT_IsoMu24_v"), 
+                                     triggerNameMCEl   = cms.untracked.string("HLT_Ele32_eta2p1_WPTight_Gsf_v3"), 
+                                     triggerNameMCMu   = cms.untracked.string("HLT_IsoMu24_v2"), 
+                                     # Input Tags
                                      genWeightLabel    = cms.InputTag("flatGenWeights"),
                                      pdfWeightLabel    = cms.InputTag("flatGenWeights", "pdf"),
                                      scaleUpWeightLabel   = cms.InputTag("flatGenWeights","scaleup"),
