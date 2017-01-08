@@ -73,11 +73,11 @@ private:
   bool KFUsebtag_;
   bool CSVPosConKF_;
   // Trigger Names
-  string triggerNameDataEl_;
-  string triggerNameDataMu_;
-  string triggerNameMCEl_;
-  string triggerNameMCMu_;
-  string triggerNameEl_, triggerNameMu_;
+  std::vector<string> triggerNameDataEl_;
+  std::vector<string> triggerNameDataMu_;
+  std::vector<string> triggerNameMCEl_;
+  std::vector<string> triggerNameMCMu_;
+  std::vector<string> triggerNameEl_, triggerNameMu_;
   
   // Event Weights
   edm::EDGetTokenT<float>                        genWeightToken_;
@@ -236,10 +236,10 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   SkimNJets_  (iConfig.getUntrackedParameter<unsigned int>("Skim_N_Jets", 0)),
   KFUsebtag_  (iConfig.getUntrackedParameter<bool>("KFUsebtagLabel", true)),
   CSVPosConKF_(iConfig.getUntrackedParameter<bool>("CSVPosConKFLabel", true)),
-  triggerNameDataEl_(iConfig.getUntrackedParameter<string>("triggerNameDataEl", "")),
-  triggerNameDataMu_(iConfig.getUntrackedParameter<string>("triggerNameDataMu", "")),
-  triggerNameMCEl_  (iConfig.getUntrackedParameter<string>("triggerNameMCEl",   "")),
-  triggerNameMCMu_  (iConfig.getUntrackedParameter<string>("triggerNameMCMu",   ""))
+  triggerNameDataEl_(iConfig.getUntrackedParameter<std::vector<string>>("triggerNameDataEl")),
+  triggerNameDataMu_(iConfig.getUntrackedParameter<std::vector<string>>("triggerNameDataMu")),
+  triggerNameMCEl_  (iConfig.getUntrackedParameter<std::vector<string>>("triggerNameMCEl")),
+  triggerNameMCMu_  (iConfig.getUntrackedParameter<std::vector<string>>("triggerNameMCMu"))
 {
   const auto elecSFSet = iConfig.getParameter<edm::ParameterSet>("elecSF");
   SF_elec_.set(elecSFSet.getParameter<std::vector<double>>("pt_bins" ),
@@ -463,13 +463,6 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   ScaleWeights->GetXaxis()->SetBinLabel(5,"muR=Down muF=Nom");
   ScaleWeights->GetXaxis()->SetBinLabel(6,"muR=Down muF=Down");
 
-  std::cout << 
-    "Data Electron: " << triggerNameDataEl_ << 
-    " Data Muon: "    << triggerNameDataMu_ << 
-    " MC Electron: "  << triggerNameMCEl_   << 
-    " MC Muon: "      << triggerNameMCMu_   << 
-    std::endl;
-  
   if(isMC_){
     triggerNameEl_ = triggerNameMCEl_;
     triggerNameMu_ = triggerNameMCMu_;
@@ -1091,8 +1084,21 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
   AnalysisHelper trigHelper = AnalysisHelper(triggerNames, triggerBits, triggerObjects);
 
-  if ( (ch_tag == 0 && (trigHelper.triggerFired(triggerNameMu_))) ||
-       (ch_tag == 1 && (trigHelper.triggerFired(triggerNameEl_))) 
+  bool IsTriggerMu = false;
+  bool IsTriggerEl = false;
+
+  for(std::vector<string>::iterator TrMu_it = triggerNameMu_.begin(); TrMu_it != triggerNameMu_.end(); TrMu_it++){
+    IsTriggerMu = trigHelper.triggerFired(*TrMu_it);
+    if (IsTriggerMu) break;
+  }
+
+  for(std::vector<string>::iterator TrEl_it = triggerNameEl_.begin(); TrEl_it != triggerNameEl_.end(); TrEl_it++){
+    IsTriggerEl = trigHelper.triggerFired(*TrEl_it);
+    if (IsTriggerEl) break;
+  }
+
+  if ( (ch_tag == 0 && IsTriggerMu) ||
+       (ch_tag == 1 && IsTriggerEl) 
        ) {
     EvTrigger = true;
   }
