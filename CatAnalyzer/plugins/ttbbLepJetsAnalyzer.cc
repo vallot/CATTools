@@ -1087,12 +1087,18 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   bool IsTriggerMu = false;
   bool IsTriggerEl = false;
 
+  trigHelper.listFiredTriggers();
+
   for(std::vector<string>::iterator TrMu_it = triggerNameMu_.begin(); TrMu_it != triggerNameMu_.end(); TrMu_it++){
+    // debugging
+    std::cout << "Trigger = " << *TrMu_it << std::endl;
     IsTriggerMu = trigHelper.triggerFired(*TrMu_it);
     if (IsTriggerMu) break;
   }
 
   for(std::vector<string>::iterator TrEl_it = triggerNameEl_.begin(); TrEl_it != triggerNameEl_.end(); TrEl_it++){
+    // debugging
+    std::cout << "Trigger = " << *TrEl_it << std::endl;
     IsTriggerEl = trigHelper.triggerFired(*TrEl_it);
     if (IsTriggerEl) break;
   }
@@ -1438,7 +1444,7 @@ bool ttbbLepJetsAnalyzer::IsSelectElectron(const cat::Electron & i_electron_cand
 
   // Electron cut based selection
   // From https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2
-  GoodElectron &= i_electron_candidate.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-medium") > 0.0;
+  GoodElectron &= i_electron_candidate.electronID("cutBasedElectronID-Summer16-80X-V1-medium") > 0.0;
 
   // Electron MVA selection (Tight: WP80)
   // From https://twiki.cern.ch/twiki/bin/viewauth/CMS/MultivariateElectronIdentificationRun2#Recipes_for_7_4_12_Spring15_MVA
@@ -1477,7 +1483,7 @@ bool ttbbLepJetsAnalyzer::IsVetoElectron(const cat::Electron & i_electron_candid
                    std::abs(i_electron_candidate.scEta()) > 1.566);
 
   // From https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2
-  GoodElectron &= i_electron_candidate.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-veto") > 0;
+  GoodElectron &= i_electron_candidate.electronID("cutBasedElectronID-Summer16-80X-V1-veto") > 0;
 
   //----------------------------------------------------------------------------------------------------
   //------------- The Relative Isolation is already calculated in the CAT object -----------------------
