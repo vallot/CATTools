@@ -305,13 +305,13 @@ void TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
     if( !passLooseMuon ) continue;
 
-    LooseMuon_Pt[nmuons] = muon.pt();
-    LooseMuon_Eta[nmuons] = muon.eta();
-    LooseMuon_Phi[nmuons] = muon.phi();
-    LooseMuon_E[nmuons] = muon.energy();
-    LooseMuon_Iso03[nmuons] = muon.relIso(0.3);
-    LooseMuon_Iso04[nmuons] = muon.relIso(0.4);
-    LooseMuon_Charge[nmuons] = muon.charge();
+    LooseMuon_Pt[nloosemuons] = muon.pt();
+    LooseMuon_Eta[nloosemuons] = muon.eta();
+    LooseMuon_Phi[nloosemuons] = muon.phi();
+    LooseMuon_E[nloosemuons] = muon.energy();
+    LooseMuon_Iso03[nloosemuons] = muon.relIso(0.3);
+    LooseMuon_Iso04[nloosemuons] = muon.relIso(0.4);
+    LooseMuon_Charge[nloosemuons] = muon.charge();
     nloosemuons++;
 
     bool passTightMuon = muon.pt() > 30 && fabs(muon.eta()) < 2.1 && muon.isTightMuon() && muon.relIso(0.4) < 0.15;
@@ -344,13 +344,13 @@ void TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
     if ( !passLooseElectron ) continue;
 
-    LooseElectron_Pt[nelectrons] = electron.pt();
-    LooseElectron_Eta[nelectrons] = electron.eta();
-    LooseElectron_Phi[nelectrons] = electron.phi();
-    LooseElectron_E[nelectrons] = electron.energy();
-    LooseElectron_Iso03[nelectrons] = electron.relIso(0.3);
-    LooseElectron_Iso04[nelectrons] = electron.relIso(0.4);
-    LooseElectron_Charge[nelectrons] = electron.charge();
+    LooseElectron_Pt[nlooseelectrons] = electron.pt();
+    LooseElectron_Eta[nlooseelectrons] = electron.eta();
+    LooseElectron_Phi[nlooseelectrons] = electron.phi();
+    LooseElectron_E[nlooseelectrons] = electron.energy();
+    LooseElectron_Iso03[nlooseelectrons] = electron.relIso(0.3);
+    LooseElectron_Iso04[nlooseelectrons] = electron.relIso(0.4);
+    LooseElectron_Charge[nlooseelectrons] = electron.charge();
     nlooseelectrons++;
 
     bool passMediumElectron = electron.pt() > 30 && fabs(electron.eta()) < 2.1 && electron.electronID("cutBasedElectronID-Summer16-80X-V1-medium") > 0;
