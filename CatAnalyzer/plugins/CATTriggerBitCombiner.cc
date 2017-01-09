@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <string>
+#include <iostream>
 
 class CATTriggerBitCombiner : public edm::stream::EDFilter<>
 {
@@ -50,6 +51,13 @@ bool CATTriggerBitCombiner::filter(edm::Event& event, const edm::EventSetup&)
 
   edm::Handle<cat::TriggerBits> trigBitsHandle;
   event.getByToken(trigBitsToken_, trigBitsHandle);
+
+  if ( trigNamesHandle->names().size() != trigBitsHandle->values().size() ) {
+    std::cout << "Inconsistent number of trig bits\n";
+    std::cout << "From names = " << trigNamesHandle->names().size() << '\n';
+    std::cout << "From bits  = " << trigBitsHandle->values().size() << '\n';
+    return false;
+  }
 
   // Keep trigger indices and ps factors
   std::vector<int> results;
