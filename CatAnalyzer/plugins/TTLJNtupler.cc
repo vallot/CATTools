@@ -67,15 +67,15 @@ private:
   float b_event_st;
   unsigned char b_vertex_n;
 
-  const unsigned static char kMaxNLeptons = 10;
-  unsigned char b_leptons_n;
+  const unsigned static int kMaxNLeptons = 10;
+  unsigned int b_leptons_n;
   float b_leptons_pt[kMaxNLeptons], b_leptons_eta[kMaxNLeptons], b_leptons_phi[kMaxNLeptons];
   unsigned char b_leptons_pid[kMaxNLeptons];
 
   float b_met_pt, b_met_phi;
 
-  const unsigned static char kMaxNJets = 100;
-  unsigned char b_jets_n;
+  const unsigned static int kMaxNJets = 100;
+  unsigned int b_jets_n;
   float b_jets_ht;
   float b_jets_pt[kMaxNJets], b_jets_eta[kMaxNJets], b_jets_phi[kMaxNJets];
   float b_jets_m[kMaxNJets];
@@ -87,8 +87,8 @@ private:
   float b_ttLJjj_pt, b_ttLJjj_eta, b_ttLJjj_phi, b_ttLJjj_m;
   float b_ttLJjj_dR, b_ttLJjj_csv1, b_ttLJjj_csv2;
 
-  const unsigned static char kMaxNPartons = 10;
-  unsigned char b_tops_n;
+  const unsigned static int kMaxNPartons = 10;
+  unsigned int b_tops_n;
   unsigned char b_tops_mode[kMaxNPartons];
   float b_tops_pt[kMaxNPartons], b_tops_eta[kMaxNPartons], b_tops_phi[kMaxNPartons], b_tops_m[kMaxNPartons];
   float b_ws_pt[kMaxNPartons], b_ws_eta[kMaxNPartons], b_ws_phi[kMaxNPartons], b_ws_m[kMaxNPartons];
@@ -322,7 +322,7 @@ void TTLJNtupler::analyze(const edm::Event& event, const edm::EventSetup&)
   edm::Handle<cat::JetCollection> jetHandle;
   event.getByToken(jetToken_, jetHandle);
   b_jets_n = jetHandle->size();
-  for ( int i=0, n=jetHandle->size(); i<n; ++i ) {
+  for ( unsigned int i=0, n=jetHandle->size(); i<n; ++i ) {
     const auto& jet = jetHandle->at(i);
     if ( i < kMaxNJets ) {
       b_jets_pt[i] = jet.pt();
@@ -480,7 +480,7 @@ void TTLJNtupler::clear()
   b_met_pt = b_met_phi = -10;
   b_jets_n = 0;
   b_jets_ht = -10;
-  for ( int i=0; i<kMaxNJets; ++i ) {
+  for ( unsigned int i=0; i<kMaxNJets; ++i ) {
     b_jets_pt[i] = b_jets_eta[i] = b_jets_phi[i] = -10;
     b_jets_m[i] = -10;
     b_jets_csv[i] = b_jets_CvsL[i] = b_jets_CvsB[i] = -10;
@@ -488,7 +488,7 @@ void TTLJNtupler::clear()
   b_bjetsL_n = b_bjetsM_n = b_bjetsT_n = 0;
 
   b_tops_n = 0;
-  for ( int i=0; i<kMaxNPartons; ++i ) {
+  for ( unsigned int i=0; i<kMaxNPartons; ++i ) {
     b_tops_pt[i] = b_tops_eta[i] = b_tops_phi[i] = b_tops_m[i] = -10;
     b_ws_pt[i] = b_ws_eta[i] = b_ws_phi[i] = b_ws_m[i] = -10;
     b_wdaus1_pt[i] = b_wdaus1_eta[i] = b_wdaus1_phi[i] = b_wdaus1_m[i] = -10;
