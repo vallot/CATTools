@@ -18,6 +18,8 @@
 
 using namespace std;
 
+//#define WSCALE 1
+
 void fit()
 {
   const char* srcdir = "hists";
@@ -123,14 +125,17 @@ void fit()
                                RooArgList(var_xs, var_xs0, var_lumi, var_norm_el_ttbar));
 
   // Number of... others
-  RooRealVar var_scale_mu_wjets("scale_mu_wjets", "wjets scaling", 1);//, 0, 2);
-  RooFormulaVar var_n_mu_wjets("n_mu_wjets", "lumi*norm_mu_wjets*scale_mu_wjets",
-                               RooArgList(var_lumi, var_norm_mu_wjets, var_scale_mu_wjets));
+#ifndef WSCALE
+  RooRealVar var_scale_wjets("scale_wjets", "wjets scaling", 1);
+#else
+  RooRealVar var_scale_wjets("scale_wjets", "wjets scaling", 1, 0, 2);
+#endif
+  RooFormulaVar var_n_mu_wjets("n_mu_wjets", "lumi*norm_mu_wjets*scale_wjets",
+                               RooArgList(var_lumi, var_norm_mu_wjets, var_scale_wjets));
   RooFormulaVar var_n_mu_mcbkg("n_mu_mcbkg", "lumi*norm_mu_mcbkg", RooArgList(var_lumi, var_norm_mu_mcbkg));
 
-  RooRealVar var_scale_el_wjets("scale_el_wjets", "wjets scaling", 1);//, 0, 2);
-  RooFormulaVar var_n_el_wjets("n_el_wjets", "lumi*norm_el_wjets*scale_el_wjets",
-                               RooArgList(var_lumi, var_norm_el_wjets, var_scale_el_wjets));
+  RooFormulaVar var_n_el_wjets("n_el_wjets", "lumi*norm_el_wjets*scale_wjets",
+                               RooArgList(var_lumi, var_norm_el_wjets, var_scale_wjets));
   RooFormulaVar var_n_el_mcbkg("n_el_mcbkg", "lumi*norm_el_mcbkg", RooArgList(var_lumi, var_norm_el_mcbkg));
 
 
@@ -155,8 +160,8 @@ void fit()
                              RooFit::DrawOption("F"), RooFit::FillColor(kGreen));
   rf_simPDF.plotOn(frame_el, RooFit::Slice(cat, "el"), RooFit::ProjWData(dh_comb), RooFit::Components("rp_el_ttbar"),
                              RooFit::DrawOption("F"), RooFit::FillColor(kRed));
-  rf_simPDF.plotOn(frame_el, RooFit::Slice(cat, "el"), RooFit::ProjWData(dh_comb), RooFit::Components("rp_el_wjets"));
-  rf_simPDF.plotOn(frame_el, RooFit::Slice(cat, "el"), RooFit::ProjWData(dh_comb), RooFit::Components("rp_el_mcbkg"));
+  //rf_simPDF.plotOn(frame_el, RooFit::Slice(cat, "el"), RooFit::ProjWData(dh_comb), RooFit::Components("rp_el_wjets"));
+  //rf_simPDF.plotOn(frame_el, RooFit::Slice(cat, "el"), RooFit::ProjWData(dh_comb), RooFit::Components("rp_el_mcbkg"));
   dh_comb.plotOn(frame_el, RooFit::Cut("cat==cat::el"), RooFit::Binning(bin_x), RooFit::DataError(RooAbsData::Poisson));
 
   auto frame_mu = var_x.frame();
@@ -167,8 +172,8 @@ void fit()
                              RooFit::DrawOption("F"), RooFit::FillColor(kGreen));
   rf_simPDF.plotOn(frame_mu, RooFit::Slice(cat, "mu"), RooFit::ProjWData(dh_comb), RooFit::Components("rp_mu_ttbar"),
                              RooFit::DrawOption("F"), RooFit::FillColor(kRed));
-  rf_simPDF.plotOn(frame_mu, RooFit::Slice(cat, "mu"), RooFit::ProjWData(dh_comb), RooFit::Components("rp_mu_wjets"));
-  rf_simPDF.plotOn(frame_mu, RooFit::Slice(cat, "mu"), RooFit::ProjWData(dh_comb), RooFit::Components("rp_mu_mcbkg"));
+  //rf_simPDF.plotOn(frame_mu, RooFit::Slice(cat, "mu"), RooFit::ProjWData(dh_comb), RooFit::Components("rp_mu_wjets"));
+  //rf_simPDF.plotOn(frame_mu, RooFit::Slice(cat, "mu"), RooFit::ProjWData(dh_comb), RooFit::Components("rp_mu_mcbkg"));
   dh_comb.plotOn(frame_mu, RooFit::Cut("cat==cat::mu"), RooFit::Binning(bin_x), RooFit::DataError(RooAbsData::Poisson));
 
   TCanvas* c1 = new TCanvas("c1", "c1", 1000, 500);
@@ -178,33 +183,37 @@ void fit()
   c1->cd(2);
   frame_mu->Draw();
 
-  auto nllFrame = var_xs.frame();
   auto nll = rf_simPDF.createNLL(dh_comb, RooFit::Extended(true));
+#ifndef WSCALE
+  auto nllFrame = var_xs.frame();
   nll->plotOn(nllFrame, RooFit::ShiftToZero());
   auto nllCurve = nllFrame->getCurve();
   const double maxNLL = std::max(nllCurve->Eval(var_xs.getMin()), nllCurve->Eval(var_xs.getMax()));
   nllFrame->SetMaximum(maxNLL*1.1);
   nllFrame->SetMinimum(-maxNLL*0.1);
+
   TCanvas* c2 = new TCanvas("c2", "c2", 500, 500);
   nllFrame->Draw();
+#else
+  TCanvas* c3 = new TCanvas("c3", "c3", 500, 500);
+  RooMinuit m(*nll);
+  m.migrad();
+  m.hesse();
+  m.minos();
+  auto nllFrame2 = m.contour(var_xs, var_scale_wjets, 1, 2, 3);
+  double x = 0, ex = 0;
+  x = var_xs.getVal();
+  ex = var_xs.getError();
+  nllFrame2->SetAxisRange(x-4*ex, x+4*ex, "X");
+  x = var_scale_wjets.getVal();
+  ex = var_scale_wjets.getError();
+  nllFrame2->SetAxisRange(x-4*ex, x+4*ex, "Y");
+  nllFrame2->Draw();
+#endif
 
-/*
-c3 = TCanvas("c3", "c3", 500, 500)
-m = RooMinuit(nll)
-m.migrad()
-m.hesse()
-nllFrame2 = m.contour(var_xs, var_scale_wjets, 1, 2, 3)
-x, err = var_xs.getVal(), var_xs.getError()
-nllFrame2.SetAxisRange(x-4*err, x+4*err, "X")
-x, err = var_scale_wjets.getVal(), var_scale_wjets.getError()
-nllFrame2.SetAxisRange(x-4*err, x+4*err, "Y")
-nllFrame2.Draw()
-
-*/
   cout << "\n\n*********************************\n";
   cout << "Cross section = " << var_xs.getVal() << " + " << var_xs.getErrorHi() << " - " << var_xs.getErrorLo() << endl;
-  cout << "scale mu+jets = " << var_scale_mu_wjets.getVal() << " + " << var_scale_mu_wjets.getErrorHi() << " - " << var_scale_mu_wjets.getErrorLo() << endl;
-  cout << "scale el+jets = " << var_scale_el_wjets.getVal() << " + " << var_scale_el_wjets.getErrorHi() << " - " << var_scale_el_wjets.getErrorLo() << endl;
+  cout << "scale W+jets = " << var_scale_wjets.getVal() << " + " << var_scale_wjets.getErrorHi() << " - " << var_scale_wjets.getErrorLo() << endl;
   cout << "*********************************\n\n";
 
 }
