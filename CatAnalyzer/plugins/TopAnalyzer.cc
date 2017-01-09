@@ -314,8 +314,7 @@ void TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     LooseMuon_Charge[nmuons] = muon.charge();
     nloosemuons++;
 
-    bool passTightMuon = muon.pt() > 30 && fabs(muon.eta()) < 2.1 && muon.isTightMuon();
-    //bool passIso = muon.relIso(0.4) < 0.15;
+    bool passTightMuon = muon.pt() > 30 && fabs(muon.eta()) < 2.1 && muon.isTightMuon() && muon.relIso(0.4) < 0.15;
 
     if( !passTightMuon ) continue;
 
@@ -398,22 +397,20 @@ void TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     TLorentzVector vjet(jet.px(), jet.py(), jet.pz(), jet.energy());
 
     for(int j = 0 ; j < NMuon ; j++){ 
-      if( Muon_Iso03[j] < 0.15 ){
-        TLorentzVector vlep(Muon_Pt[j], Muon_Eta[j], Muon_Phi[j], Muon_E[j]);
-        dr = vjet.DeltaR(vlep);
-      }
+      TLorentzVector vlep(Muon_Pt[j], Muon_Eta[j], Muon_Phi[j], Muon_E[j]);
+      dr = vjet.DeltaR(vlep);
+      if( dr < 0.4 ) break;
     }
+    if( dr < 0.4 ) continue;
 
     for(int j = 0 ; j < NElectron ; j++){
-      if( Electron_Iso03[j] < 0.15 ){
-        TLorentzVector vlep(Electron_Pt[j], Electron_Eta[j], Electron_Phi[j], Electron_E[j]);
-        dr = vjet.DeltaR(vlep);
-      }
+      TLorentzVector vlep(Electron_Pt[j], Electron_Eta[j], Electron_Phi[j], Electron_E[j]);
+      dr = vjet.DeltaR(vlep);
+      if( dr < 0.4 ) break; 
     }
-
     if( dr < 0.4) continue;
 
-    Jet_Pt[nJets] = jet.pt(); 
+    Jet_Pt[nJets] = jet.pt();
     Jet_Eta[nJets] = jet.eta();
     Jet_Phi[nJets] = jet.phi();
     Jet_E[nJets] = jet.energy();
@@ -465,10 +462,9 @@ void TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
   iSetup.get<SetupRecord>().get(pSetup);
 #endif
 
-  if (NMuon > 0 || NElectron > 0 ) {
-    tree->Fill();
-  }
-
+   if (NMuon == 1 || NElectron == 1 ) {
+     tree->Fill();
+   }
 }
 
 
