@@ -77,7 +77,6 @@ private:
   std::vector<string> triggerNameDataMu_;
   std::vector<string> triggerNameMCEl_;
   std::vector<string> triggerNameMCMu_;
-  std::vector<string> triggerNameEl_, triggerNameMu_;
   
   // Event Weights
   edm::EDGetTokenT<float>                        genWeightToken_;
@@ -463,14 +462,6 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   ScaleWeights->GetXaxis()->SetBinLabel(5,"muR=Down muF=Nom");
   ScaleWeights->GetXaxis()->SetBinLabel(6,"muR=Down muF=Down");
 
-  if(isMC_){
-    triggerNameEl_ = triggerNameMCEl_;
-    triggerNameMu_ = triggerNameMCMu_;
-  } 
-  else{
-    triggerNameEl_ = triggerNameDataEl_;
-    triggerNameMu_ = triggerNameDataMu_;  
-  }  
 
 }
 
@@ -1072,7 +1063,16 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   // HLTrigger
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-
+  std::vector<string> triggerNameEl_, triggerNameMu_;
+  if(isMC_){
+    triggerNameEl_ = triggerNameMCEl_;
+    triggerNameMu_ = triggerNameMCMu_;
+  } 
+  else{
+    triggerNameEl_ = triggerNameDataEl_;
+    triggerNameMu_ = triggerNameDataMu_;  
+  }  
+  
   bool EvTrigger = false; 
   edm::Handle<edm::TriggerResults> triggerBits;
   edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
@@ -1086,20 +1086,20 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
   bool IsTriggerMu = false;
   bool IsTriggerEl = false;
-
-  trigHelper.listFiredTriggers();
+  
+  // DEBUG: Print all triggers
+  // trigHelper.listFiredTriggers();
 
   for(std::vector<string>::iterator TrMu_it = triggerNameMu_.begin(); TrMu_it != triggerNameMu_.end(); TrMu_it++){
-    // debugging
-    std::cout << "Trigger = " << *TrMu_it << std::endl;
+    // No trigger
     IsTriggerMu = trigHelper.triggerFired(*TrMu_it);
+    if(*TrMu_it == "notrigger") IsTriggerMu = true; 
     if (IsTriggerMu) break;
   }
-
+  
   for(std::vector<string>::iterator TrEl_it = triggerNameEl_.begin(); TrEl_it != triggerNameEl_.end(); TrEl_it++){
-    // debugging
-    std::cout << "Trigger = " << *TrEl_it << std::endl;
     IsTriggerEl = trigHelper.triggerFired(*TrEl_it);
+    if(*TrEl_it == "notrigger") IsTriggerEl = true;
     if (IsTriggerEl) break;
   }
 
