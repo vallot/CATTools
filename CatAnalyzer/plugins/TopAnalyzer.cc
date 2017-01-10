@@ -397,14 +397,16 @@ void TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     TLorentzVector vjet(jet.px(), jet.py(), jet.pz(), jet.energy());
 
     for(int j = 0 ; j < NMuon ; j++){ 
-      TLorentzVector vlep(Muon_Pt[j], Muon_Eta[j], Muon_Phi[j], Muon_E[j]);
+      TLorentzVector vlep;
+      vlep.SetPtEtaPhiE(Muon_Pt[j], Muon_Eta[j], Muon_Phi[j], Muon_E[j]);
       dr = vjet.DeltaR(vlep);
       if( dr < 0.4 ) break;
     }
     if( dr < 0.4 ) continue;
 
     for(int j = 0 ; j < NElectron ; j++){
-      TLorentzVector vlep(Electron_Pt[j], Electron_Eta[j], Electron_Phi[j], Electron_E[j]);
+      TLorentzVector vlep;
+      vlep.SetPtEtaPhiE(Electron_Pt[j], Electron_Eta[j], Electron_Phi[j], Electron_E[j]);
       dr = vjet.DeltaR(vlep);
       if( dr < 0.4 ) break; 
     }
