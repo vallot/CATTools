@@ -22,6 +22,7 @@ Lepton::Lepton(const reco::LeafCandidate & aLepton) :
   puChargedHadronIso04_(0),
   neutralHadronIso04_(0),
   photonIso04_(0),
+  relMiniIso_(0),
   mcMatched_(false)
 {}
 

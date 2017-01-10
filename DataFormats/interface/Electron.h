@@ -58,6 +58,7 @@ namespace cat {
       if( dR < 0.35) relIso03_ = relIso;
       else  relIso04_ = relIso;
     }
+    
     void setscEta(float i) { scEta_ = i; }
     void setPassConversionVeto(bool i) {  passConversionVeto_ = i; }
     void setIsGsfCtfScPixChargeConsistent(bool d) { isGsfCtfScPixChargeConsistent_ = d ; }

@@ -41,16 +41,21 @@ namespace cat {
     void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
     bool mcMatch( const reco::Candidate::LorentzVector& lepton, const edm::Handle<reco::GenParticleCollection> & genParticles );
     bool MatchObjects( const reco::Candidate::LorentzVector& pasObj, const reco::Candidate::LorentzVector& proObj, bool exact );
+    double getMiniRelIso(edm::Handle<pat::PackedCandidateCollection> pfcands,  const reco::Candidate::LorentzVector& ptcl, double  r_iso_min, double r_iso_max, double kt_scale,double rhoIso, double AEff);
 
+    
   private:
+    
     float getEffArea( float dR, float scEta );
     int getSNUID(float, float, float, float, float, float, int, bool, float);
     edm::EDGetTokenT<edm::View<pat::Electron> > src_;
     edm::EDGetTokenT<edm::View<pat::Electron> > unsmearedElecToken_;
     edm::EDGetTokenT<reco::VertexCollection> vertexLabel_;
     edm::EDGetTokenT<reco::GenParticleCollection> mcLabel_;
+    edm::EDGetTokenT<pat::PackedCandidateCollection>        pfSrc_;
     edm::EDGetTokenT<reco::BeamSpot> beamLineSrc_;
     edm::EDGetTokenT<double> rhoLabel_;
+
     bool runOnMC_;
 
     typedef std::pair<std::string, edm::InputTag> NameTag;
@@ -64,15 +69,78 @@ namespace cat {
 
 } // namespace
 
+
+
+double cat::CATElectronProducer::getMiniRelIso(edm::Handle<pat::PackedCandidateCollection> pfcands,
+					       const reco::Candidate::LorentzVector& ptcl,
+					       double r_iso_min, double r_iso_max, double kt_scale, double rhoIso, double AEff){
+
+  if (ptcl.pt()<5.) return 99999.;
+  
+  double deadcone_nh(0.), deadcone_ch(0.), deadcone_ph(0.), deadcone_pu(0.);
+  if (fabs(ptcl.eta())>1.479) {deadcone_ch = 0.015; deadcone_pu = 0.015; deadcone_ph = 0.08;}
+  
+  double iso_nh(0.); double iso_ch(0.); 
+  double iso_ph(0.); double iso_pu(0.);
+  double ptThresh(0.);
+
+  double r_iso = max(r_iso_min,min(r_iso_max, kt_scale/ptcl.pt()));
+  for (const pat::PackedCandidate &pfc : *pfcands) {
+    if (abs(pfc.pdgId())<7) continue;
+    double dr = deltaR(pfc, ptcl);
+    if (dr > r_iso) continue;
+        
+    //////////////////  NEUTRALS  /////////////////////////
+    if (pfc.charge()==0){
+      if (pfc.pt()>ptThresh) {
+	/////////// PHOTONS ////////////
+	if (abs(pfc.pdgId())==22) {
+	  if(dr < deadcone_ph) continue;
+	  iso_ph += pfc.pt();
+	  /////////// NEUTRAL HADRONS ////////////
+	} else if (abs(pfc.pdgId())==130) {
+	  if(dr < deadcone_nh) continue;
+	  iso_nh += pfc.pt();
+	}
+      }
+      //////////////////  CHARGED from PV  /////////////////////////
+    } else if (pfc.fromPV()>1){
+      if (abs(pfc.pdgId())==211) {
+	if(dr < deadcone_ch) continue;
+	iso_ch += pfc.pt();
+      }
+      //////////////////  CHARGED from PU  /////////////////////////
+    } else {
+      if (pfc.pt()>ptThresh){
+	if(dr < deadcone_pu) continue;
+	iso_pu += pfc.pt();
+      }
+    }
+  }
+  double iso(0.);
+  double conesize_correction= pow((r_iso/0.3),2.);
+  
+  iso = ( iso_ch  + std::max(0.0, iso_nh + iso_ph - rhoIso*AEff*conesize_correction) )/ ptcl.pt();
+
+  return iso;
+}
+
+
+
+
+
 cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig) :
   src_(consumes<edm::View<pat::Electron> >(iConfig.getParameter<edm::InputTag>("src"))),
   unsmearedElecToken_(consumes<edm::View<pat::Electron> >(iConfig.getParameter<edm::InputTag>("unsmaredElectrons"))),
   vertexLabel_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexLabel"))),
   mcLabel_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcLabel"))),
+  pfSrc_(consumes<pat::PackedCandidateCollection>(iConfig.getParameter<edm::InputTag>("pfSrc"))),
   beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc"))),
   rhoLabel_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoLabel"))),
   electronIDs_(iConfig.getParameter<std::vector<std::string> >("electronIDs"))
 {
+  
+
   produces<std::vector<cat::Electron> >();
   if (iConfig.existsAs<edm::ParameterSet>("electronIDSources")) {
     edm::ParameterSet idps = iConfig.getParameter<edm::ParameterSet>("electronIDSources");
@@ -165,11 +233,20 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     double phIso04 = aElectron.photonIso(0.4);
     aElectron.setrelIso(0.4, chIso04, nhIso04, phIso04, elEffArea04, rhoIso, ecalpt);
 
+
+    //////////////// pfcands  //////////////////                                                                                                                                                                                                                       
+    edm::Handle<pat::PackedCandidateCollection> pfcands;
+    iEvent.getByToken(pfSrc_, pfcands);
+
+
+
     double elEffArea03 = getEffArea( 0.3, scEta);
     double chIso03 = aElectron.chargedHadronIso(0.3);
     double nhIso03 = aElectron.neutralHadronIso(0.3);
     double phIso03 = aElectron.photonIso(0.3);
     aElectron.setrelIso(0.3, chIso03, nhIso03, phIso03, elEffArea03, rhoIso, ecalpt);
+    aElectron.setMiniRelIso(getMiniRelIso( pfcands, aElectron.p4(), 0.05, 0.2, 10., rhoIso,elEffArea03));
+
 
     aElectron.setscEta( aPatElectron.superCluster()->eta());
     aElectron.setPassConversionVeto( aPatElectron.passConversionVeto() );
