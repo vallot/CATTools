@@ -1,8 +1,8 @@
 import os, time, socket
 
-InputDB        = "SamTra.info"
-FileHeader     = "Tree_LepJets_KFCSVOrder01NoSkim_v8-0-1_Spring16-80X_15920pb-1"
-OutputLocation = "/xrootd/store/user/brochero/v8-0-1/"
+InputDB        = "Samples_Bkg.info"
+FileHeader     = "Tree_LepJets_FullTr_v8-0-3_Spring16-80X_36814pb-1"
+OutputLocation = "/xrootd/store/user/brochero/v8-0-3/"
 
 DelayTime = 120. # Time in seconds
 maxNjobs = 4000  # Maximum number of jobs running simultaneously

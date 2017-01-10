@@ -1091,14 +1091,15 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   // trigHelper.listFiredTriggers();
 
   for(std::vector<string>::iterator TrMu_it = triggerNameMu_.begin(); TrMu_it != triggerNameMu_.end(); TrMu_it++){
-    // No trigger
     IsTriggerMu = trigHelper.triggerFired(*TrMu_it);
+    // No trigger
     if(*TrMu_it == "notrigger") IsTriggerMu = true; 
     if (IsTriggerMu) break;
   }
   
   for(std::vector<string>::iterator TrEl_it = triggerNameEl_.begin(); TrEl_it != triggerNameEl_.end(); TrEl_it++){
     IsTriggerEl = trigHelper.triggerFired(*TrEl_it);
+    // No trigger
     if(*TrEl_it == "notrigger") IsTriggerEl = true;
     if (IsTriggerEl) break;
   }

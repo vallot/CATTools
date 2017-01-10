@@ -35,8 +35,9 @@ process.source = cms.Source("PoolSource",
 
      # fileNames = cms.untracked.vstring()
      fileNames = cms.untracked.vstring(
-        'file:/afs/cern.ch/user/b/brochero/brochero_WorkArea/CATTuples_2017/CMSSW_8_0_20/src/CATTools/CatAnalyzer/prod/catTuple_ttbarLepJetsPowhegv803.root',
-        # 'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/QCD_Pt-120to170_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8/v7-6-6_RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12-v1/160625_141750/0000/catTuple_1.root',
+        #'file:/afs/cern.ch/user/b/brochero/brochero_WorkArea/CATTuples_2017/CMSSW_8_0_20/src/CATTools/CatAnalyzer/prod/catTuple_ttbarLepJetsPowhegv803.root',
+        #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/SingleMuon/v8-0-3_Run2016B-23Sep2016-v3/161204_002341/0000/catTuple_823.root',
+        'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/SingleElectron/v8-0-3_Run2016B-23Sep2016-v3/161203_235427/0000/catTuple_1.root',
         )
 )
 # from CATTools.Validation.commonTestInput_cff import commonTestCATTuples
