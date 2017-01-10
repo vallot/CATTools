@@ -44,6 +44,7 @@ namespace cat {
     edm::EDGetTokenT<reco::VertexCollection> vertexLabel_;
     edm::EDGetTokenT<reco::BeamSpot> beamLineSrc_;
     bool runOnMC_;
+    const double minPt_, maxEta_;
 
     typedef math::XYZPoint Point;
   };
@@ -53,7 +54,9 @@ cat::CATMuonProducer::CATMuonProducer(const edm::ParameterSet & iConfig) :
   src_(consumes<pat::MuonCollection>(iConfig.getParameter<edm::InputTag>("src"))),
   mcLabel_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcLabel"))),
   vertexLabel_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexLabel"))),
-  beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc")))
+  beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc"))),
+  minPt_(iConfig.getParameter<double>("minPt")),
+  maxEta_(iConfig.getParameter<double>("maxEta"))
 {
   produces<std::vector<cat::Muon> >();
 }
@@ -91,10 +94,12 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
   auto_ptr<vector<cat::Muon> >  out(new vector<cat::Muon>());
   for (const pat::Muon & aPatMuon : *src) {
     cat::Muon aMuon(aPatMuon);
+    if ( std::abs(aMuon.eta()) > maxEta_ ) continue;
+    if ( aMuon.pt() < minPt_ ) continue;
 
     if (runOnMC_){
       aMuon.setGenParticleRef(aPatMuon.genParticleRef());
-      aMuon.setMCMatched( mcMatch( aPatMuon.p4(), genParticles ) );      
+      aMuon.setMCMatched( mcMatch( aPatMuon.p4(), genParticles ) );
     }
 
     aMuon.setChargedHadronIso04( aPatMuon.pfIsolationR04().sumChargedHadronPt );
@@ -116,7 +121,7 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
 
     aMuon.setNumberOfMatchedStations( aPatMuon.numberOfMatchedStations() );
     aMuon.setNumberOfValidHits( aPatMuon.numberOfValidHits() );
-    
+
     if ( aPatMuon.globalTrack().isNonnull() && aPatMuon.globalTrack().isAvailable() ){
       aMuon.setNormalizedChi2( aPatMuon.normChi2() );
       aMuon.setNumberOfValidMuonHits( aPatMuon.globalTrack()->hitPattern().numberOfValidMuonHits() );
@@ -126,12 +131,11 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
       aMuon.setNumberOfValidPixelHits( aPatMuon.innerTrack()->hitPattern().numberOfValidPixelHits() );
       aMuon.setTackerLayersWithMeasurement( aPatMuon.innerTrack()->hitPattern().trackerLayersWithMeasurement() );
     }
-    
+
     aMuon.setDxy( aPatMuon.muonBestTrack()->dxy(pv.position()) );
     aMuon.setDz( aPatMuon.muonBestTrack()->dz(pv.position()) );
     aMuon.setVertex(Point(aPatMuon.muonBestTrack()->vx(),aPatMuon.muonBestTrack()->vy(),aPatMuon.muonBestTrack()->vz()));
 
-    
     reco::TrackRef  mutrack = aPatMuon.get<reco::TrackRef>();
     if (mutrack.isNull()){
       mutrack=aPatMuon.get<reco::TrackRef,reco::StandAloneMuonTag>();
@@ -139,7 +143,7 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     reco::TransientTrack mutranstrack = trackBuilder->build( mutrack ) ;
 
     TrajectoryStateOnSurface  muTSOS = IPTools::transverseExtrapolate(mutranstrack.impactPointState(), pVertex, mutranstrack.field());
-    
+
     if (muTSOS.isValid()){
       std::pair<bool,Measurement1D> muIPpair = IPTools::signedTransverseImpactParameter(mutranstrack, muTSOS.globalDirection(),pv);
       float muSignificanceIP = muIPpair.second.significance();

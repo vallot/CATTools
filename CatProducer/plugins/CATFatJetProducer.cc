@@ -219,7 +219,7 @@ void cat::CATFatJetProducer::produce(edm::Event & iEvent, const edm::EventSetup 
     // Jet substructure stuff
     double tau1 = aPatJet.userFloat("NjettinessAK8:tau1");    //
     double tau2 = aPatJet.userFloat("NjettinessAK8:tau2");    //  Access the n-subjettiness variables
-    double tau3 = aPatJet.userFloat("NjettinessAK8:tau3");    // 
+    double tau3 = aPatJet.userFloat("NjettinessAK8:tau3");    //
 
     double softdrop_mass = aPatJet.userFloat("ak8PFJetsCHSSoftDropMass"); // access to soft drop mass
     double pruned_mass = aPatJet.userFloat("ak8PFJetsCHSPrunedMass");     // access to pruned mass

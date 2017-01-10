@@ -60,6 +60,8 @@ namespace cat {
     std::vector<edm::EDGetTokenT<edm::ValueMap<bool> > > elecIDTokens_;
     const std::vector<std::string> electronIDs_;
 
+    const double minPt_, maxEta_;
+
   };
 
 } // namespace
@@ -71,7 +73,9 @@ cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig)
   mcLabel_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcLabel"))),
   beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc"))),
   rhoLabel_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoLabel"))),
-  electronIDs_(iConfig.getParameter<std::vector<std::string> >("electronIDs"))
+  electronIDs_(iConfig.getParameter<std::vector<std::string> >("electronIDs")),
+  minPt_(iConfig.getParameter<double>("minPt")),
+  maxEta_(iConfig.getParameter<double>("maxEta"))
 {
   produces<std::vector<cat::Electron> >();
   if (iConfig.existsAs<edm::ParameterSet>("electronIDSources")) {
@@ -143,6 +147,10 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
       aElectron.setMCMatched( mcMatch( aElectron.p4(), genParticles ) );
       aElectron.setSmearedScale(aElectron.pt()/unsmearedElecRef->pt());
     }
+
+    if ( std::abs(aElectron.eta()) > maxEta_ ) continue;
+    if ( std::max(aElectron.pt(), unsmearedElecRef->pt()) < minPt_ ) continue;
+
     aElectron.setIsGsfCtfScPixChargeConsistent( aPatElectron.isGsfCtfScPixChargeConsistent() );
     aElectron.setIsEB( aPatElectron.isEB() );
 
@@ -207,12 +215,11 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     eleTSOS = IPTools::transverseExtrapolate(eletranstrack.impactPointState(), pVertex, eletranstrack.field());
     if (eleTSOS.isValid()) {
       std::pair<bool, Measurement1D>     eleIPpair = IPTools::signedTransverseImpactParameter(eletranstrack, eleTSOS.globalDirection(), pv);
-      
+
       float eleSignificanceIP = eleIPpair.second.significance();
       aElectron.setIpSignficance(eleSignificanceIP);
     }
 
-    
     float eoverp = -999.;
     // |1/E-1/p| = |1/E - EoverPinner/E| is computed below
     // The if protects against ecalEnergy == inf or zero
@@ -285,7 +292,7 @@ int cat::CATElectronProducer::getSNUID(float full5x5_sigmaIetaIeta, float deltaE
   //----------------------------------------------------------------------
   // Endcap electron cut values
   //----------------------------------------------------------------------
-  
+
   double l_e_sieie   [4] = { 0.037, 0.0314, 0.0298, 0.0292};
   double l_e_dEtaIn  [4] = { 0.00895, 0.00868, 0.00609, 0.00605};
   double l_e_dPhiIn  [4] = { 0.213, 0.213, 0.045, 0.0394};

@@ -38,7 +38,6 @@ cat::CATMETProducer::CATMETProducer(const edm::ParameterSet & iConfig) :
   src_(consumes<pat::METCollection>(iConfig.getParameter<edm::InputTag>("src"))),
   setUnclusteredEn_(iConfig.getParameter<bool>("setUnclusteredEn")),
   setjetMETSyst_(iConfig.getParameter<bool>("setJetMETSyst"))
-  
 {
   produces<std::vector<cat::MET> >();
 }
@@ -61,7 +60,7 @@ cat::CATMETProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
 			      aPatMET.shiftedPy(pat::MET::UnclusteredEnDown),
   			      aPatMET.shiftedSumEt(pat::MET::UnclusteredEnDown));
   }
-  
+
   aMET.setRawMET(aPatMET.MET::uncorP4().Pt());
 
   if (setjetMETSyst_){
@@ -80,8 +79,6 @@ cat::CATMETProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
 
   }
 
-  
-  
   out->push_back(aMET);
 
   iEvent.put(out);
