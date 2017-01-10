@@ -16,6 +16,7 @@ class GenWeightInfo {
 public:
   GenWeightInfo() {};
   virtual ~GenWeightInfo() {};
+  bool isProductEqual(const GenWeightInfo& other) const;
 
   typedef std::vector<float> vfloat;
   typedef std::vector<std::string> vstring;

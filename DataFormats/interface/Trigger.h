@@ -43,6 +43,7 @@ public:
 
   // Getters
   unsigned short result(const int i) const { return values_.at(i); } 
+  std::vector<unsigned short> values() const { return values_; }
 
 private:
   std::vector<unsigned short> values_;

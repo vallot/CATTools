@@ -25,12 +25,12 @@
 #include <vector>
 #include <string>
 
-class CATTriggerProducer : public edm::one::EDProducer<edm::EndLuminosityBlockProducer>
+class CATTriggerProducer : public edm::one::EDProducer<edm::BeginLuminosityBlockProducer>
 {
 public:
   CATTriggerProducer(const edm::ParameterSet& pset);
   void produce(edm::Event& event, const edm::EventSetup&) override;
-  void endLuminosityBlockProduce(edm::LuminosityBlock& lumi, const edm::EventSetup&) override;
+  void beginLuminosityBlockProduce(edm::LuminosityBlock& lumi, const edm::EventSetup& eventSetup) override;
 
 private:
   typedef std::vector<double> doubles;
@@ -45,8 +45,9 @@ private:
   std::vector<edm::EDGetTokenT<edm::TriggerResults>> flagTokens_;
   std::vector<std::string> flagNames_;
   std::map<std::string, edm::EDGetTokenT<bool>> flagBools_;
+  std::vector<std::string> trigProcs_;
 
-  //HLTConfigProvider hltConfig_;
+  HLTConfigProvider hltConfig_;
   cat::TriggerResValues filterBits_;
 };
 
@@ -69,6 +70,7 @@ CATTriggerProducer::CATTriggerProducer(const edm::ParameterSet& pset)
   trigPSToken_ = consumes<pat::PackedTriggerPrescales>(trigPSet.getParameter<edm::InputTag>("prescales"));
   for ( auto x : trigPSet.getParameter<std::vector<edm::InputTag>>("triggerResults") ) {
     trigResTokens_.push_back(consumes<edm::TriggerResults>(x));
+    trigProcs_.push_back(x.process());
   }
   trigPrefixes_ = trigPSet.getParameter<strings>("prefix");
 
@@ -88,10 +90,40 @@ CATTriggerProducer::CATTriggerProducer(const edm::ParameterSet& pset)
   produces<TrigObjColl>();
 }
 
-void CATTriggerProducer::endLuminosityBlockProduce(edm::LuminosityBlock& lumi, const edm::EventSetup&)
+using namespace std;
+void CATTriggerProducer::beginLuminosityBlockProduce(edm::LuminosityBlock& lumi, const edm::EventSetup& eventSetup)
 {
-  lumi.put(std::auto_ptr<cat::TriggerNames>(new cat::TriggerNames(filterBits_)));
   filterBits_.clear();
+
+  for ( std::string name : flagNames_ ) {
+    if ( name.find("Flag_") != 0 ) name = "Flag_"+name;
+    filterBits_[name] = 0;
+  }
+  for ( auto key : flagBools_ ) {
+    std::string name = key.first;
+    if ( name.find("Flag_") != 0 ) name = "Flag_"+name;
+    filterBits_[name] = 0;
+  }
+
+  const auto& run = lumi.getRun();
+  for ( auto procName : trigProcs_ ) {
+    bool isChanged = true;
+    if ( hltConfig_.init(run, eventSetup, procName, isChanged) ) break;
+  }
+  for ( auto name : hltConfig_.triggerNames() ) {
+    bool skipPath = true;
+    for ( auto& prefix : trigPrefixes_ ) {
+      if ( name.find(prefix) == 0 ) {
+        skipPath = false;
+        break;
+      }
+    }
+    if ( skipPath ) continue;
+
+    filterBits_[name] = 0;
+  }
+
+  lumi.put(std::auto_ptr<cat::TriggerNames>(new cat::TriggerNames(filterBits_)));
 }
 
 void CATTriggerProducer::produce(edm::Event& event, const edm::EventSetup&)
@@ -113,6 +145,7 @@ void CATTriggerProducer::produce(edm::Event& event, const edm::EventSetup&)
       if ( trigIndex >= flagHandle->size() ) continue;
 
       if ( flagName.find("Flag_") != 0 ) flagName = "Flag_"+flagName;
+      if ( filterBits_.find(flagName) == filterBits_.end() ) continue;
       filterBits_[flagName] = flagHandle->accept(trigIndex);
     }
   }
@@ -125,6 +158,7 @@ void CATTriggerProducer::produce(edm::Event& event, const edm::EventSetup&)
     if ( !event.getByToken(key.second, flagHandle) ) continue;
 
     if ( name.find("Flag_") != 0 ) name = "Flag_"+name;
+    if ( filterBits_.find(name) == filterBits_.end() ) continue;
     filterBits_[name] = *flagHandle;
   }
 
@@ -154,6 +188,8 @@ void CATTriggerProducer::produce(edm::Event& event, const edm::EventSetup&)
     if ( trigResHandle->accept(trigIndex) ) {
       psValue = trigPSHandle->getPrescaleForIndex(trigIndex);
     }
+
+    if ( filterBits_.find(pathName) == filterBits_.end() ) continue;
 
     filterBits_[pathName] = std::min(USHRT_MAX, psValue);
   }
