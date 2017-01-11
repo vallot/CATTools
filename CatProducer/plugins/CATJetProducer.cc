@@ -140,14 +140,14 @@ void cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     bool tightJetID = (NHF<0.90 && NEMF<0.90 && NumConst>1) && ((abs(eta)<=2.4 && CHF>0 && CHM>0 && CEMF<0.99) || abs(eta)>2.4) && abs(eta)<=2.7;
     bool tightLepVetoJetID = (NHF<0.90 && NEMF<0.90 && NumConst>1 && MUF<0.8) && ((abs(eta)<=2.4 && CHF>0 && CHM>0 && CEMF<0.90) || abs(eta)>2.4) && abs(eta)<=2.7;
 
-    if (std::abs(eta) > 2.7){
-      looseJetID = (NEMF<0.90 && NumNeutralParticle>2 && abs(eta)>2.7 && abs(eta)<=3.0 );
-      tightJetID = (NEMF<0.90 && NumNeutralParticle>2 && abs(eta)>2.7 && abs(eta)<=3.0 );
-      tightLepVetoJetID = false;
-    }
-    else if ( std::abs(eta) > 3.0 ) {
+    if ( std::abs(eta) > 3.0 ) {
       looseJetID = (NEMF<0.90 && NumNeutralParticle>10 && abs(eta)>3.0 );
       tightJetID = (NEMF<0.90 && NumNeutralParticle>10 && abs(eta)>3.0 );
+      tightLepVetoJetID = false;
+    }
+    else if (std::abs(eta) > 2.7){
+      looseJetID = (NEMF<0.90 && NumNeutralParticle>2 && abs(eta)>2.7 && abs(eta)<=3.0 );
+      tightJetID = (NEMF<0.90 && NumNeutralParticle>2 && abs(eta)>2.7 && abs(eta)<=3.0 );
       tightLepVetoJetID = false;
     }
 
