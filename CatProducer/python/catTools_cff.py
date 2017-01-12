@@ -114,6 +114,10 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         from CATTools.CatProducer.patTools.jetQGLikelihood_cff import enableQGLikelihood
         process = enableQGLikelihood(process, qgDatabaseVersion="v2b", runOnMC=runOnMC, useMiniAOD=useMiniAOD)
 
+        ## DeepFlavour
+        from CATTools.CatProducer.patTools.jetDeepFlavour_cff import enableDeepFlavour
+        process = enableDeepFlavour(process)
+
         ## #######################################################################
         ## # MET corrections from https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
         #from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
