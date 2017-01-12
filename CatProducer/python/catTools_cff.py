@@ -16,11 +16,11 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
             LumiSections = LumiList('%s/src/CATTools/CatProducer/data/LumiMask/%s.txt'%(os.environ['CMSSW_BASE'], cat.lumiJSON)).getVLuminosityBlockRange())
     
     useJECfile = True
-    jecFile = cat.JetEnergyCorrection
+    jecFiles = cat.JetEnergyCorrection
     if runOnMC:
-        jecFile = jecFile+"_MC"
+        jecFile = jecFiles[1]
     else:
-        jecFile = jecFile+"_DATA"
+        jecFile = jecFiles[0]
     if useJECfile:
         from CondCore.CondDB.CondDB_cfi import CondDB
         if hasattr(CondDB, 'connect'): delattr(CondDB, 'connect')
