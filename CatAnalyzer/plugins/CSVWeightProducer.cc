@@ -2,6 +2,7 @@
 
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/ParameterSet/interface/FileInPath.h"
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/CatAnalyzer/interface/CSVHelper.h"
 
@@ -28,7 +29,12 @@ CSVWeightProducer::CSVWeightProducer(const edm::ParameterSet& pset):
   maxEta_(pset.getParameter<double>("maxEta"))
 {
   jetToken_ = consumes<cat::JetCollection>(pset.getParameter<edm::InputTag>("src"));
-  helper_.reset(new CSVHelper());
+  auto csvFileNameHF = pset.getParameter<std::string>("csvSFHF");
+  auto csvFileNameLF = pset.getParameter<std::string>("csvSFLF");
+  auto csvFileHF = edm::FileInPath("CATTools/CatAnalyzer/data/scaleFactors/"+csvFileNameHF).fullPath();
+  auto csvFileLF = edm::FileInPath("CATTools/CatAnalyzer/data/scaleFactors/"+csvFileNameLF).fullPath();
+
+  helper_.reset(new CSVHelper(csvFileHF, csvFileLF));
 
   produces<float>();
   produces<vfloat>("syst");

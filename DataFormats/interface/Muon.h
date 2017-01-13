@@ -38,6 +38,7 @@ namespace cat {
 
     float ipsignificance() const { return ipsig_;}
 
+
     float shiftedEn() const { if (this->pt() < 100) return 0.002; else return 0.05; }
     float shiftedEnDown() const {return 1-shiftedEn();}
     float shiftedEnUp() const {return  1+shiftedEn();}

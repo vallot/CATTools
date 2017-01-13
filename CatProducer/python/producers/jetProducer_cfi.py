@@ -10,6 +10,7 @@ catJets = cms.EDProducer('CATJetProducer',
     setGenParticle = cms.bool(True),
 
     qgLikelihood = cms.InputTag(""), ## Keep this to be invalid and let it to be controlled by patTools/jetsQGLikelihood_cff.py
+    flavTagLabels = cms.VInputTag(),
 )
 
 catJetsPuppi = catJets.clone(

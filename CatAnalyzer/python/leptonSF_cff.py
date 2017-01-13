@@ -9,26 +9,64 @@ dummySF = cms.PSet(
 )
 
 ## Muon SF reference https://twiki.cern.ch/twiki/bin/view/CMS/MuonWorkInProgressAndPagResults
+## SF for Run2016BCDE, before HIP issue
+muonSFTight = cms.PSet(
+    # Values of "MC_NUM_TightID_DEN_genTracks_PAR_pt_eta + TightISO_TightID_pt_eta"
+    pt_bins = cms.vdouble(20, 25, 30, 40, 50, 60, 120),
+    abseta_bins = cms.vdouble(0, 0.9, 1.2, 2.1, 2.4),
+    values = cms.vdouble(
+        0.968738, 0.973607, 0.975917, 0.978181, 0.976527, 0.991363, 
+        0.95508, 0.960286, 0.964482, 0.965257, 0.969011, 0.966896, 
+        0.972479, 0.976585, 0.981631, 0.985377, 0.983263, 0.987963, 
+        0.946304, 0.956094, 0.961093, 0.967634, 0.965302, 0.964568, 
+    ),
+    errors = cms.vdouble(
+        0.015418, 0.0150867, 0.0150098, 0.0150043, 0.0150314, 0.0151446, 
+        0.0157991, 0.0152807, 0.0151646, 0.0150083, 0.0150749, 0.0152792, 
+        0.0151862, 0.0150565, 0.0150083, 0.0150033, 0.0150312, 0.0151421, 
+        0.0155888, 0.0152089, 0.0150463, 0.0154599, 0.0152765, 0.0161151, 
+    ),
+)
+
+## SF for Run2016G-H, after HIP issue
+muonSFTightGH = cms.PSet(
+    # Values of "MC_NUM_TightID_DEN_genTracks_PAR_pt_eta + TightISO_TightID_pt_eta"
+    pt_bins = cms.vdouble(20, 25, 30, 40, 50, 60, 120),
+    abseta_bins = cms.vdouble(0, 0.9, 1.2, 2.1, 2.4),
+    values = cms.vdouble(
+        0.974446, 0.979875, 0.98113, 0.985025, 0.981515, 0.990442, 
+        0.983291, 0.984416, 0.983519, 0.981617, 0.979491, 0.982805, 
+        0.984607, 0.988896, 0.991054, 0.992458, 0.984471, 0.988043, 
+        0.975841, 0.978226, 0.971587, 0.974991, 0.967654, 0.964672, 
+    ),
+    errors = cms.vdouble(
+        0.0154011, 0.0486999, 0.0150098, 0.0150036, 0.0150252, 0.0150953, 
+        0.0218827, 0.0152387, 0.0150285, 0.0150103, 0.0150798, 0.0153115, 
+        0.0152088, 0.0150629, 0.0254806, 0.0150025, 0.0150384, 0.0151946, 
+        0.0155797, 0.0553856, 0.0151542, 0.0161887, 0.0152824, 0.0160921, 
+    ),
+)
+
 ## Retrieve data from the cmsdoc web page:
 ##   https://cmsdoc.cern.ch/cms/Physics/muon/ReferenceEfficiencies/Run2016/25ns/proviSFs_2p6fb/MuonID_Z_2016runB_2p6fb.json
 ##   https://cmsdoc.cern.ch/cms/Physics/muon/ReferenceEfficiencies/Run2016/25ns/proviSFs_2p6fb/MuonISO_Z_2016runB_2p6fb.json
-muonSFTight = cms.PSet(
-    # Values of "MC_NUM_TightIDandIPCut_DEN_genTracks_PAR_pt_spliteta_bin1 + MC_NUM_TightRelIso_DEN_TightID_PAR_pt_spliteta_bin1"
-    pt_bins = cms.vdouble(20, 25, 30, 40, 50, 60, 100, 200),
-    abseta_bins = cms.vdouble(0, 0.9, 1.2, 2.1, 2.4),
-    values = cms.vdouble(
-        0.941436, 0.959701, 0.968116, 0.970538, 0.968821, 0.972572, 0.987711,
-        0.955623, 0.96175, 0.969717, 0.968784, 0.970868, 0.967741, 1.02273,
-        0.97839, 0.983576, 0.987746, 0.988816, 0.990644, 0.988234, 1.01927,
-        0.968935, 0.963683, 0.967626, 0.966395, 0.979048, 0.975934, 0.916776,
-    ),
-    errors = cms.vdouble(
-        0.0155081, 0.0151449, 0.0150189, 0.0150086, 0.0150436, 0.0151513, 0.0221035,
-        0.0161243, 0.0154153, 0.0150604, 0.0150198, 0.0151218, 0.0154361, 0.0273559,
-        0.0152889, 0.0151052, 0.015018, 0.0150034, 0.015053, 0.0152429, 0.0179484,
-        0.0159104, 0.0153603, 0.0150775, 0.0150447, 0.0154516, 0.0169014, 0.0812482,
-    ),
-)
+#muonSFTight = cms.PSet(
+#    # Values of "MC_NUM_TightIDandIPCut_DEN_genTracks_PAR_pt_spliteta_bin1 + MC_NUM_TightRelIso_DEN_TightID_PAR_pt_spliteta_bin1"
+#    pt_bins = cms.vdouble(20, 25, 30, 40, 50, 60, 100, 200),
+#    abseta_bins = cms.vdouble(0, 0.9, 1.2, 2.1, 2.4),
+#    values = cms.vdouble(
+#        0.941436, 0.959701, 0.968116, 0.970538, 0.968821, 0.972572, 0.987711,
+#        0.955623, 0.96175, 0.969717, 0.968784, 0.970868, 0.967741, 1.02273,
+#        0.97839, 0.983576, 0.987746, 0.988816, 0.990644, 0.988234, 1.01927,
+#        0.968935, 0.963683, 0.967626, 0.966395, 0.979048, 0.975934, 0.916776,
+#    ),
+#    errors = cms.vdouble(
+#        0.0155081, 0.0151449, 0.0150189, 0.0150086, 0.0150436, 0.0151513, 0.0221035,
+#        0.0161243, 0.0154153, 0.0150604, 0.0150198, 0.0151218, 0.0154361, 0.0273559,
+#        0.0152889, 0.0151052, 0.015018, 0.0150034, 0.015053, 0.0152429, 0.0179484,
+#        0.0159104, 0.0153603, 0.0150775, 0.0150447, 0.0154516, 0.0169014, 0.0812482,
+#    ),
+#)
 
 ## Muon SF reference https://twiki.cern.ch/twiki/bin/viewauth/CMS/MuonReferenceEffsRun2
 ## Retrieve data from the cmsdoc web page:
@@ -53,8 +91,37 @@ muonSFTight76X = cms.PSet(
 
 )
 
-## Electorn SF from http://fcouderc.web.cern.ch/fcouderc/EGamma/scaleFactors/moriond2016_76X/eleCutBasedID/CutBasedID_MediumWP_76X_18Feb.txt_egammaPlots.pdf
+## Electron SF from https://twiki.cern.ch/twiki/bin/view/CMS/EgammaIDRecipesRun2?rev=36#Electron_efficiencies_and_scale
+## root file is retrieved from http://fcouderc.web.cern.ch/fcouderc/EGamma/scaleFactors/ichep2016_80X//resultsEleID/runBCD/passingMedium/egammaEffi.txt_SF2D.root
 electronSFCutBasedIDMediumWP = cms.PSet(
+    pt_bins = cms.vdouble(10.000000,20.000000,30.000000,40.000000,50.000000,200.000000),
+    eta_bins = cms.vdouble(-2.500000,-2.000000,-1.566000,-1.444000,-0.800000,0.000000,0.800000,1.444000,1.566000,2.000000,2.500000),
+    values = cms.vdouble(0.858209, 0.898527, 0.951219, 0.971429, 0.977273, 
+        0.748848, 0.854003, 0.923077, 0.953405, 0.966705, 
+        0.879630, 0.952267, 0.957045, 0.951253, 0.967347, 
+        0.947581, 0.944870, 0.963636, 0.965144, 0.963869, 
+        0.919386, 0.934718, 0.946701, 0.951537, 0.952928, 
+        0.902622, 0.952733, 0.966879, 0.970273, 0.972350, 
+        0.932000, 0.933131, 0.952196, 0.957092, 0.964037, 
+        1.010601, 0.920673, 0.946274, 0.934266, 0.939678, 
+        0.814554, 0.878205, 0.937255, 0.961905, 0.986175, 
+        0.858427, 0.911076, 0.946124, 0.968331, 0.978698, 
+        ),
+    errors = cms.vdouble(0.025860, 0.016977, 0.008878, 0.008115, 0.011493, 
+        0.052968, 0.020792, 0.010527, 0.005876, 0.005664, 
+        0.093792, 0.061282, 0.019637, 0.007580, 0.011131, 
+        0.023546, 0.020984, 0.007988, 0.005550, 0.005485, 
+        0.030269, 0.020054, 0.006414, 0.004149, 0.005486, 
+        0.030269, 0.020054, 0.006413, 0.004149, 0.005486, 
+        0.023546, 0.020984, 0.007988, 0.005550, 0.005485, 
+        0.093791, 0.061282, 0.019637, 0.007580, 0.011132, 
+        0.052968, 0.020792, 0.010527, 0.005876, 0.005664, 
+        0.025861, 0.016977, 0.008878, 0.008115, 0.011493, 
+        ),
+)
+
+## Electorn SF from http://fcouderc.web.cern.ch/fcouderc/EGamma/scaleFactors/moriond2016_76X/eleCutBasedID/CutBasedID_MediumWP_76X_18Feb.txt_egammaPlots.pdf
+electronSFCutBasedIDMediumWP76X = cms.PSet(
     # Values of "CutBasedID_MediumWP"
     pt_bins = cms.vdouble(10, 20, 30, 40, 50, 200),
     abseta_bins = cms.vdouble(0, 0.8, 1.444, 1.566, 2, 2.5),

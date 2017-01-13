@@ -16,11 +16,11 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
             LumiSections = LumiList('%s/src/CATTools/CatProducer/data/LumiMask/%s.txt'%(os.environ['CMSSW_BASE'], cat.lumiJSON)).getVLuminosityBlockRange())
     
     useJECfile = True
-    jecFile = cat.JetEnergyCorrection
+    jecFiles = cat.JetEnergyCorrection
     if runOnMC:
-        jecFile = jecFile+"_MC"
+        jecFile = jecFiles[1]
     else:
-        jecFile = jecFile+"_DATA"
+        jecFile = jecFiles[0]
     if useJECfile:
         from CondCore.CondDB.CondDB_cfi import CondDB
         if hasattr(CondDB, 'connect'): delattr(CondDB, 'connect')
@@ -113,6 +113,10 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         # check https://twiki.cern.ch/twiki/bin/viewauth/CMS/QGDataBaseVersion
         from CATTools.CatProducer.patTools.jetQGLikelihood_cff import enableQGLikelihood
         process = enableQGLikelihood(process, qgDatabaseVersion="v2b", runOnMC=runOnMC, useMiniAOD=useMiniAOD)
+
+        ## DeepFlavour
+        from CATTools.CatProducer.patTools.jetDeepFlavour_cff import enableDeepFlavour
+        process = enableDeepFlavour(process)
 
         ## #######################################################################
         ## # MET corrections from https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
