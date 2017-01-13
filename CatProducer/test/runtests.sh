@@ -2,8 +2,6 @@
 
 function die { echo $1: status $2 ;  exit $2; }
 
-[ -z LOCAL_TEST_DIR ] || LOCAL_TEST_DIR=.
-
 INPUTFILE=`python <<EOF
 from CATTools.Validation.commonTestInput_cff import *
 print commonTestMiniAODs["bkg"][0]
