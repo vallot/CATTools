@@ -87,7 +87,7 @@ for jsonFile in jsonFiles:
         command  = "pileupCalc.py -i %s/%s " % (baseCAT, jsonFile)
         command += "--inputLumiJSON %s/%s " % (baseCAT, puJSON)
         command += "--minBiasXsec %i " % int(minBiasXsec)
-        command += "--calcMode true --maxPileupBin 50 --numPileupBins 50 "
+        command += "--calcMode true --maxPileupBin 75 --numPileupBins 75 "
         command += fPU
 
         print command
