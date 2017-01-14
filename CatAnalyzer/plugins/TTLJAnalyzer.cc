@@ -17,11 +17,11 @@
 
 #include <memory>
 
-class TTLJNtupler : public edm::one::EDAnalyzer<edm::one::SharedResources>
+class TTLJAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>
 {
 public:
-  TTLJNtupler(const edm::ParameterSet& pset);
-  ~TTLJNtupler() {};
+  TTLJAnalyzer(const edm::ParameterSet& pset);
+  ~TTLJAnalyzer() {};
 
   void analyze(const edm::Event& event, const edm::EventSetup&) override;
 
@@ -70,6 +70,7 @@ private:
   const unsigned static int kMaxNLeptons = 10;
   unsigned int b_leptons_n;
   float b_leptons_pt[kMaxNLeptons], b_leptons_eta[kMaxNLeptons], b_leptons_phi[kMaxNLeptons];
+  float b_leptons_iso[kMaxNLeptons];
   unsigned char b_leptons_pid[kMaxNLeptons];
 
   float b_met_pt, b_met_phi;
@@ -80,6 +81,7 @@ private:
   float b_jets_pt[kMaxNJets], b_jets_eta[kMaxNJets], b_jets_phi[kMaxNJets];
   float b_jets_m[kMaxNJets];
   float b_jets_csv[kMaxNJets], b_jets_CvsL[kMaxNJets], b_jets_CvsB[kMaxNJets];
+  unsigned char b_jets_hadFlav[kMaxNJets];
 
   unsigned char b_bjetsL_n, b_bjetsM_n, b_bjetsT_n;
 
@@ -94,12 +96,12 @@ private:
   float b_ws_pt[kMaxNPartons], b_ws_eta[kMaxNPartons], b_ws_phi[kMaxNPartons], b_ws_m[kMaxNPartons];
   float b_wdaus1_pt[kMaxNPartons], b_wdaus1_eta[kMaxNPartons], b_wdaus1_phi[kMaxNPartons], b_wdaus1_m[kMaxNPartons];
   float b_wdaus2_pt[kMaxNPartons], b_wdaus2_eta[kMaxNPartons], b_wdaus2_phi[kMaxNPartons], b_wdaus2_m[kMaxNPartons];
-  short b_wdaus1_id[kMaxNPartons], b_wdaus2_id[kMaxNPartons];
+  char b_wdaus1_id[kMaxNPartons], b_wdaus2_id[kMaxNPartons];
 };
 
 using namespace std;
 
-TTLJNtupler::TTLJNtupler(const edm::ParameterSet& pset)
+TTLJAnalyzer::TTLJAnalyzer(const edm::ParameterSet& pset)
 {
   isMC_ = pset.getParameter<bool>("isMC");
   isTTbar_ = pset.getParameter<bool>("isTTbar");
@@ -185,8 +187,8 @@ TTLJNtupler::TTLJNtupler(const edm::ParameterSet& pset)
       tree_->Branch("wdaus2_phi", &b_wdaus2_phi, "wdaus2_phi[tops_n]/F");
       tree_->Branch("wdaus2_m"  , &b_wdaus2_m  , "wdaus2_m[tops_n]/F"  );
 
-      tree_->Branch("wdaus1_id", &b_wdaus1_id, "wdaus1_id[tops_n]/S");
-      tree_->Branch("wdaus2_id", &b_wdaus2_id, "wdaus2_id[tops_n]/S");
+      tree_->Branch("wdaus1_id", &b_wdaus1_id, "wdaus1_id[tops_n]/B");
+      tree_->Branch("wdaus2_id", &b_wdaus2_id, "wdaus2_id[tops_n]/B");
     }
 
     tree_->Branch("wgt_puUp", &b_wgt_puUp, "wgt_puUp/F"); // pileup weight
@@ -212,6 +214,7 @@ TTLJNtupler::TTLJNtupler(const edm::ParameterSet& pset)
   tree_->Branch("leptons_eta", &b_leptons_eta, "leptons_eta[leptons_n]/F");
   tree_->Branch("leptons_phi", &b_leptons_phi, "leptons_phi[leptons_n]/F");
   tree_->Branch("leptons_pid", &b_leptons_pid, "leptons_pid[leptons_n]/B"); // +-11 or +-13. enough with += 127
+  tree_->Branch("leptons_iso", &b_leptons_iso, "leptons_iso[leptons_n]/F");
 
   // MET
   tree_->Branch("met_pt" , &b_met_pt , "met_pt/F");
@@ -227,6 +230,7 @@ TTLJNtupler::TTLJNtupler(const edm::ParameterSet& pset)
   tree_->Branch("jets_csv" , &b_jets_csv , "jets_csv[jets_n]/F");
   tree_->Branch("jets_CvsL", &b_jets_CvsL, "jets_CvsL[jets_n]/F");
   tree_->Branch("jets_CvsB", &b_jets_CvsB, "jets_CvsB[jets_n]/F");
+  if ( isMC_ )  tree_->Branch("jets_hadFlav", &b_jets_hadFlav, "jets_hadFlav[jets_n]/b");
 
   // bJets
   tree_->Branch("bjetsL_n", &b_bjetsL_n, "bjetsL_n/b"); // enough with 255
@@ -248,7 +252,7 @@ TTLJNtupler::TTLJNtupler(const edm::ParameterSet& pset)
   tree_->Branch("ttLJjj_csv2", &b_ttLJjj_csv2, "ttLJjj_csv2/F");
 }
 
-void TTLJNtupler::analyze(const edm::Event& event, const edm::EventSetup&)
+void TTLJAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
 {
   edm::Handle<float> fHandle;
   edm::Handle<int> iHandle;
@@ -315,6 +319,7 @@ void TTLJNtupler::analyze(const edm::Event& event, const edm::EventSetup&)
     b_leptons_eta[0] = lepton1.eta();
     b_leptons_phi[0] = lepton1.phi();
     b_leptons_pid[0] = lepton1.pdgId();
+    b_leptons_iso[0] = lepton1.relIso(abs(lepton1.pdgId()) == 13 ? 0.4 : 0.3);
 
     b_event_st += lepton1.pt();
   }
@@ -322,7 +327,7 @@ void TTLJNtupler::analyze(const edm::Event& event, const edm::EventSetup&)
   edm::Handle<cat::JetCollection> jetHandle;
   event.getByToken(jetToken_, jetHandle);
   b_jets_n = jetHandle->size();
-  for ( unsigned int i=0, n=jetHandle->size(); i<n; ++i ) {
+  for ( unsigned int i=0; i<b_jets_n; ++i ) {
     const auto& jet = jetHandle->at(i);
     if ( i < kMaxNJets ) {
       b_jets_pt[i] = jet.pt();
@@ -332,6 +337,7 @@ void TTLJNtupler::analyze(const edm::Event& event, const edm::EventSetup&)
       b_jets_csv[i] = jet.bDiscriminator(cat::BTAG_CSVv2);
       b_jets_CvsL[i] = jet.bDiscriminator(cat::CTAG_CvsL);
       b_jets_CvsB[i] = jet.bDiscriminator(cat::CTAG_CvsB);
+      b_jets_hadFlav[i] = jet.hadronFlavour();
     }
     b_jets_ht += jet.pt();
 
@@ -419,7 +425,7 @@ void TTLJNtupler::analyze(const edm::Event& event, const edm::EventSetup&)
     event.getByToken(partonTopToken_, partonTopHandle);
 
     b_tops_n = modesHandle->size();
-    for ( int i=0, n=std::min(b_tops_n, kMaxNPartons); i<n; ++i ) {
+    for ( unsigned int i=0, n=std::min(b_tops_n, kMaxNPartons); i<n; ++i ) {
       b_tops_mode[i] = modesHandle->at(i);
 
       auto& top = partonTopHandle->at(i);
@@ -457,7 +463,7 @@ void TTLJNtupler::analyze(const edm::Event& event, const edm::EventSetup&)
   tree_->Fill();
 }
 
-void TTLJNtupler::clear()
+void TTLJAnalyzer::clear()
 {
   b_run = b_lumi = b_event = 0;
 
@@ -503,4 +509,4 @@ void TTLJNtupler::clear()
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"
-DEFINE_FWK_MODULE(TTLJNtupler);
+DEFINE_FWK_MODULE(TTLJAnalyzer);
