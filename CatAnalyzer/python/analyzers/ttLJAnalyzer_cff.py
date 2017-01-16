@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-ttLJ = cms.EDAnalyzer("TTLJNtupler",
+ttLJ = cms.EDAnalyzer("TTLJAnalyzer",
     isMC = cms.bool(True),
     isTTbar = cms.bool(False),
     doGenWeightSysts = cms.bool(False),
