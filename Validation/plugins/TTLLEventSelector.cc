@@ -296,7 +296,7 @@ TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
     const auto electronSFSet = electronSet.getParameter<edm::ParameterSet>("efficiencySF");
     // FIXME : for electrons, eta bins are NOT folded - always double check this with cfg
     electronSF_.set(electronSFSet.getParameter<vdouble>("pt_bins"),
-                    electronSFSet.getParameter<vdouble>("abseta_bins"),
+                    electronSFSet.getParameter<vdouble>("eta_bins"),
                     electronSFSet.getParameter<vdouble>("values"),
                     electronSFSet.getParameter<vdouble>("errors"));
     electronSFShift_ = electronSet.getParameter<int>("efficiencySFDirection");
@@ -517,8 +517,8 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     if ( channel == CH_ELEL ) {
       const auto e1 = dynamic_cast<const cat::Electron*>(lepton1);
       const auto e2 = dynamic_cast<const cat::Electron*>(lepton2);
-      const double w1 = electronSF_(lepton1->pt(), std::abs(e1->scEta()), electronSFShift_);
-      const double w2 = electronSF_(lepton2->pt(), std::abs(e2->scEta()), electronSFShift_);
+      const double w1 = electronSF_(lepton1->pt(), e1->scEta(), electronSFShift_);
+      const double w2 = electronSF_(lepton2->pt(), e2->scEta(), electronSFShift_);
       weight *= w1*w2;
       if ( !isIgnoreTrig_ ) weight *= isTrigElEl;
     }
@@ -530,7 +530,7 @@ bool TTLLEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     }
     else if ( channel == CH_MUEL ) {
       const auto e1 = dynamic_cast<const cat::Electron*>(lepton1);
-      const double w1 = electronSF_(lepton1->pt(), std::abs(e1->scEta()), electronSFShift_);
+      const double w1 = electronSF_(lepton1->pt(), e1->scEta(), electronSFShift_);
       const double w2 = muonSF_(lepton2->pt(), std::abs(lepton2->eta()), muonSFShift_);
       weight *= w1*w2;
       if ( !isIgnoreTrig_ ) weight *= isTrigMuEl;

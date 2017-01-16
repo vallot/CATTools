@@ -324,7 +324,7 @@ TTLJEventSelector::TTLJEventSelector(const edm::ParameterSet& pset):
     const auto electronSFSet = electronSet.getParameter<edm::ParameterSet>("efficiencySF");
     // FIXME : for electrons, eta bins are NOT folded - always double check this with cfg
     electronSF_.set(electronSFSet.getParameter<vdouble>("pt_bins"),
-                    electronSFSet.getParameter<vdouble>("abseta_bins"),
+                    electronSFSet.getParameter<vdouble>("eta_bins"),
                     electronSFSet.getParameter<vdouble>("values"),
                     electronSFSet.getParameter<vdouble>("errors"));
     electronSFShift_ = electronSet.getParameter<int>("efficiencySFDirection");
@@ -531,7 +531,7 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
     if ( channel == 11 ) {
       const auto e1 = dynamic_cast<const cat::Electron*>(lepton1);
-      const double w1 = electronSF_(lepton1->pt(), std::abs(e1->scEta()), electronSFShift_);
+      const double w1 = electronSF_(lepton1->pt(), e1->scEta(), electronSFShift_);
       weight *= w1;
       if ( !isIgnoreTrig_ ) weight *= isTrigEl;
     }
