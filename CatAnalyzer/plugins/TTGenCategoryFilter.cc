@@ -7,6 +7,7 @@
 #include "DataFormats/JetReco/interface/GenJetCollection.h"
 
 #include "CATTools/CommonTools/interface/TTbarModeDefs.h"
+#include "CATTools/DataFormats/interface/GenTop.h"
 
 using namespace std;
 using namespace cat;
@@ -21,7 +22,9 @@ private:
   const bool doInvert_;
 
   typedef std::vector<int> vint;
-  enum InputType { IN_PartonTop, IN_PseudoTop, IN_Hadron } inputType_;
+  enum InputType { IN_PartonTop, IN_PseudoTop, IN_GenTop } inputType_;
+
+  bool vetoTau_;
 
   // For the parton top
   edm::EDGetTokenT<reco::GenParticleCollection> parton_srcToken_;
@@ -29,7 +32,10 @@ private:
   edm::EDGetTokenT<vint> parton_modesToken_;
   edm::EDGetTokenT<reco::GenJetCollection> parton_jetToken_;
   const int nLepton_;
-  bool vetoTau_;
+
+  // For the GenTop
+  edm::EDGetTokenT<cat::GenTopCollection> genTop_srcToken_;
+  int genTop_addJetCh_;
 
   // FIXME : classification by pseudotop, hadrons to be added
 
@@ -42,7 +48,7 @@ TTGenCategoryFilter::TTGenCategoryFilter(const edm::ParameterSet& pset):
   const auto inputType = pset.getParameter<string>("inputType");
   if ( inputType == "PartonTop" ) inputType_ = IN_PartonTop;
   //else if ( inputType == "PseudoTop" ) inputType_ = IN_PseudoTop;
-  //else if ( inputType == "Hadron" ) inputType_ = IN_Hadron;
+  else if ( inputType == "GenTop" ) inputType_ = IN_GenTop;
   else edm::LogError("TTGenCategoryFilter") << "Wrong input inputType. Choose among (PartonTop,)";
 
   const auto addJetType = pset.getParameter<string>("addJetType");
@@ -55,6 +61,16 @@ TTGenCategoryFilter::TTGenCategoryFilter(const edm::ParameterSet& pset):
     parton_channelToken_ = consumes<int>(edm::InputTag(labelName, "channel"));
     parton_modesToken_ = consumes<vint>(edm::InputTag(labelName, "modes"));
     parton_jetToken_ = consumes<reco::GenJetCollection>(edm::InputTag(labelName, "qcdJets"));
+  }
+  else if ( inputType_ == IN_GenTop ) {
+    vetoTau_ = pset.getParameter<bool>("vetoTau");
+    genTop_srcToken_ = consumes<cat::GenTopCollection>(pset.getParameter<edm::InputTag>("src"));
+    const auto addJetCh = pset.getParameter<std::string>("addJetChannel");
+    genTop_addJetCh_ = 0;
+    if      ( addJetCh == "TTBB" ) genTop_addJetCh_ = 1;
+    else if ( addJetCh == "TTBJ" ) genTop_addJetCh_ = 2;
+    else if ( addJetCh == "TTCC" ) genTop_addJetCh_ = 3;
+    else if ( addJetCh == "TTJJ" ) genTop_addJetCh_ = 4;
   }
 
 }
@@ -85,9 +101,25 @@ bool TTGenCategoryFilter::filter(edm::Event& event, const edm::EventSetup&)
       if ( nLepton != nLepton_ ) break;
 
       accept = true;
-    }
+    }; break;
+    case IN_GenTop: {
+      edm::Handle<cat::GenTopCollection> srcHandle;
+      if ( !event.getByToken(genTop_srcToken_, srcHandle) ) break;
+      if ( srcHandle->empty() ) break;
+
+      const auto genTop = srcHandle->at(0);
+      const int channelOption = vetoTau_ ? 0 : 1;
+      if ( nLepton_ == 2 and !genTop.diLeptonic(channelOption) ) break;
+      if ( nLepton_ == 1 and !genTop.semiLeptonic(channelOption) ) break;
+
+      if ( genTop_addJetCh_ == 1 and genTop.NaddbJets20() <  2 ) break; // TTBB
+      if ( genTop_addJetCh_ == 2 and genTop.NaddbJets20() != 1 ) break; // TTBJ
+      if ( genTop_addJetCh_ == 3 and genTop.NaddcJets20() <  2 ) break; // TTCC
+      if ( genTop_addJetCh_ == 4 and genTop.NaddJets20()  <  2 ) break; // TTJJ
+
+      accept = true;
+    }; break;
     case IN_PseudoTop:
-    case IN_Hadron:
       break;
   }
 
