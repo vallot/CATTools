@@ -6,6 +6,7 @@
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
 #include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/LuminosityBlock.h"
 
 #include "CATTools/DataFormats/interface/Lepton.h"
 #include "CATTools/DataFormats/interface/Jet.h"
@@ -26,6 +27,8 @@ public:
   TTLLAnalyzer(const edm::ParameterSet& pset);
   ~TTLLAnalyzer() {};
 
+  void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&);
+  void endLuminosityBlock(const edm::LuminosityBlock&, const edm::EventSetup&) {};
   void analyze(const edm::Event& event, const edm::EventSetup&) override;
 
 private:
@@ -51,7 +54,7 @@ private:
 
 private:
   void clear();
-  std::unique_ptr<KinematicSolver> solver_;
+  std::unique_ptr<cat::KinematicSolver> solver_;
 
   TTree* tree_;
   unsigned int b_run;
@@ -93,6 +96,7 @@ private:
 
   float b_kinTop1_m, b_kinTop1_pt, b_kinTop1_y;
   float b_kinTop2_m, b_kinTop2_pt, b_kinTop2_y;
+  float b_kinTop1_csv, b_kinTop2_csv;
   float b_kinTT_m, b_kinTT_pt, b_kinTT_y, b_kinTT_dphi;
 
   const unsigned static int kMaxNPartons = 10;
@@ -145,8 +149,8 @@ TTLLAnalyzer::TTLLAnalyzer(const edm::ParameterSet& pset)
       partonModesToken_ = consumes<std::vector<int>>(edm::InputTag(partonLabel.label(), "modes"));
     }
   }
-  auto solverPSet = iConfig.getParameter<edm::ParameterSet>("solver");
-  solver_.reset(new DESYSmearedSolver(solverPSet));
+  auto solverPSet = pset.getParameter<edm::ParameterSet>("solver");
+  solver_.reset(new cat::DESYSmearedSolver(solverPSet));
 
   b_wgts_scaleUp.reset(new std::vector<float>());
   b_wgts_scaleDn.reset(new std::vector<float>());
@@ -258,6 +262,8 @@ TTLLAnalyzer::TTLLAnalyzer(const edm::ParameterSet& pset)
   tree_->Branch("kinTop2_m" , &b_kinTop2_m , "kinTop2_m/F" );
   tree_->Branch("kinTop2_pt", &b_kinTop2_pt, "kinTop2_pt/F");
   tree_->Branch("kinTop2_y" , &b_kinTop2_y , "kinTop2_y/F" );
+  tree_->Branch("kinTop1_csv", &b_kinTop1_csv, "kinTop1_csv/F");
+  tree_->Branch("kinTop2_csv", &b_kinTop2_csv, "kinTop2_csv/F");
 
   tree_->Branch("kinTT_m"   , &b_kinTT_m   , "kinTT_m/F"   );
   tree_->Branch("kinTT_pt " , &b_kinTT_pt  , "kinTT_pt/F"  );
@@ -266,12 +272,12 @@ TTLLAnalyzer::TTLLAnalyzer(const edm::ParameterSet& pset)
 
 }
 
-void TtbarDiLeptonAnalyzer::beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&)
+void TTLLAnalyzer::beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&)
 {
-  if ( dynamic_cast<DESYSmearedSolver*>(solver_.get()) != 0 ) {
+  if ( dynamic_cast<cat::DESYSmearedSolver*>(solver_.get()) != 0 ) {
     edm::Service<edm::RandomNumberGenerator> rng;
     CLHEP::HepRandomEngine& engine = rng->getEngine(lumi.index());
-    dynamic_cast<DESYSmearedSolver*>(solver_.get())->setRandom(&engine);
+    dynamic_cast<cat::DESYSmearedSolver*>(solver_.get())->setRandom(&engine);
   }
 }
 
@@ -408,16 +414,27 @@ void TTLLAnalyzer::analyze(const edm::Event& event, const edm::EventSetup&)
     if ( quality >= 0 ) {
       b_kinTop1_m  = solution.t1().mass();
       b_kinTop1_pt = solution.t1().pt();
-      b_kinTop1_y  = solution.t1().rapidity();
+      b_kinTop1_y  = solution.t1().Rapidity();
 
       b_kinTop2_m  = solution.t2().mass();
       b_kinTop2_pt = solution.t2().pt();
-      b_kinTop2_y  = solution.t2().rapidity();
+      b_kinTop2_y  = solution.t2().Rapidity();
 
-      b_kinTT_m  = solution.tt().mass();
-      b_kinTT_pt = solution.tt().pt();
-      b_kinTT_y  = solution.tt().rapidity();
-      b_kinTT_y  = deltaPhi(solution.t1().phi(), solution.t2().phi());
+      double minDR1 = 1e9, minDR2 = 1e9;
+      unsigned int i1 = b_jets_n, i2 = b_jets_n;
+      for ( unsigned int i=0; i<b_jets_n; ++i ) {
+        const double dR1 = deltaR2(solution.j1().eta(), solution.j1().phi(), b_jets_eta[i], b_jets_phi[i]);
+        const double dR2 = deltaR2(solution.j2().eta(), solution.j2().phi(), b_jets_eta[i], b_jets_phi[i]);
+        if ( dR1 < minDR1 ) { minDR1 = dR1; i1 = i; }
+        if ( dR2 < minDR2 ) { minDR2 = dR2; i2 = i; }
+      }
+      if ( i1 < b_jets_n ) b_kinTop1_csv = b_jets_csv[i1];
+      if ( i2 < b_jets_n ) b_kinTop2_csv = b_jets_csv[i2];
+
+      b_kinTT_m    = solution.tt().mass();
+      b_kinTT_pt   = solution.tt().pt();
+      b_kinTT_y    = solution.tt().Rapidity();
+      b_kinTT_dphi = deltaPhi(solution.t1().phi(), solution.t2().phi());
     }
     
   }
@@ -504,6 +521,13 @@ void TTLLAnalyzer::clear()
     b_jets_hadFlav[i] = 0;
   }
   b_bjetsL_n = b_bjetsM_n = b_bjetsT_n = 0;
+
+  b_ll_m = b_ll_pt = b_ll_eta = b_ll_phi = -10;
+  b_ll_q = 0;
+  b_kinTop1_m = b_kinTop1_pt = b_kinTop1_y = -10;
+  b_kinTop2_m = b_kinTop2_pt = b_kinTop2_y = -10;
+  b_kinTop1_csv = b_kinTop2_csv = -10;
+  b_kinTT_m = b_kinTT_pt = b_kinTT_y = b_kinTT_dphi = -10;
 
   b_tops_n = 0;
   for ( unsigned int i=0; i<kMaxNPartons; ++i ) {
