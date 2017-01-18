@@ -9,5 +9,7 @@ def enableElectronRegression(process):
 
     process.load('EgammaAnalysis.ElectronTools.regressionApplication_cff')
 
+    process.catElectrons.unsmaredElectrons = "slimmedElectrons::"+process.process
+
     return process
 
