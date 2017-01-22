@@ -32,18 +32,6 @@ process.agen = cms.EDAnalyzer("CATGenTopAnalysis",
     filterTaus = cms.bool(False),
 )
 
-process.load("CATTools.CatProducer.pileupWeight_cff")
-from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
-process.pileupWeight.weightingMethod = "RedoWeight"
-process.pileupWeight.pileupMC = pileupWeightMap["2016_25ns_SpringMC"]
-process.pileupWeight.pileupRD = pileupWeightMap["Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON"]
-process.pileupWeight.pileupUp = pileupWeightMap["Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON_Up"]
-process.pileupWeight.pileupDn = pileupWeightMap["Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON_Dn"]
-process.eventsFCNC.vertex.pileupWeight = "pileupWeight::CATeX"
-
-process.eventsFCNC.filters.filterRECO = "filterRECOMC"
-process.eventsFCNC.filters.ignoreTrig = True
-
 process.el = process.eventsFCNC.clone(channel = cms.string("electron"))
 process.mu = process.eventsFCNC.clone(channel = cms.string("muon"))
 delattr(process, 'eventsFCNC')

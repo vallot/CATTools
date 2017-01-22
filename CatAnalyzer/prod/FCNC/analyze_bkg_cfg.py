@@ -28,7 +28,6 @@ process.pileupWeight.pileupDn = pileupWeightMap["Cert_271036-284044_13TeV_23Sep2
 process.eventsFCNC.vertex.pileupWeight = "pileupWeight::CATeX"
 
 process.eventsFCNC.filters.filterRECO = "filterRECOMC"
-process.eventsFCNC.filters.ignoreTrig = True
 
 process.el = process.eventsFCNC.clone(channel = cms.string("electron"))
 process.mu = process.eventsFCNC.clone(channel = cms.string("muon"))
