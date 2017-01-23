@@ -42,19 +42,19 @@ process.csvWeightsEL = process.csvWeights.clone(src = cms.InputTag("el:jets"))
 process.csvWeightsMU = process.csvWeights.clone(src = cms.InputTag("mu:jets"))
 delattr(process, "csvWeights")
 
-process.load("CATTools.CatAnalyzer.analyzers.topFCNCNtuple_cff")
-process.ntupleFCNC.puWeight = process.el.vertex.pileupWeight
-process.ntupleEL = process.ntupleFCNC.clone(
+process.load("CATTools.CatAnalyzer.analyzers.ttLJAnalyzer_cff")
+process.ttLJ.puWeight = process.el.vertex.pileupWeight
+process.ntupleEL = process.ttLJ.clone(
     src = cms.InputTag("el"),
     csvWeight = cms.InputTag("csvWeightsEL"),
     csvWeightSyst = cms.InputTag("csvWeightsEL:syst"),
 )
-process.ntupleMU = process.ntupleFCNC.clone(
+process.ntupleMU = process.ttLJ.clone(
     src = cms.InputTag("mu"),
     csvWeight = cms.InputTag("csvWeightsMU"),
     csvWeightSyst = cms.InputTag("csvWeightsMU:syst"),
 )
-delattr(process, 'ntupleFCNC')
+delattr(process, 'ttLJ')
 
 process.p_el = cms.Path(
     process.agen + process.filterPartonTTLJ

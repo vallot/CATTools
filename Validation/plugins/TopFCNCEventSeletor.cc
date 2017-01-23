@@ -307,7 +307,7 @@ TopFCNCEventSelector::TopFCNCEventSelector(const edm::ParameterSet& pset):
     const auto electronSFSet = electronSet.getParameter<edm::ParameterSet>("efficiencySF");
     // FIXME : for electrons, eta bins are NOT folded - always double check this with cfg
     electronSF_.set(electronSFSet.getParameter<vdouble>("pt_bins"),
-                    electronSFSet.getParameter<vdouble>("abseta_bins"),
+                    electronSFSet.getParameter<vdouble>("eta_bins"),
                     electronSFSet.getParameter<vdouble>("values"),
                     electronSFSet.getParameter<vdouble>("errors"));
     electronSFShift_ = electronSet.getParameter<int>("efficiencySFDirection");
