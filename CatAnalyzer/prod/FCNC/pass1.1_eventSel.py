@@ -33,10 +33,10 @@ samples = {
         ## do MC common systematic variations
         ## No ttbar specific gen level analyzer, no ttbar genFilters
         "DYJets", "DYJets_10to50",
-        "SingleTop_s", "SingleTop_t", "SingleTbar_t", "SingleTop_tW", "SingleTbar_tW", 
-        "WJets", "WJets_MG", 
-        "WW", "WZ", "ZZ", 
-        "WWW", "WWZ", "WZZ", "ZZZ", 
+        "SingleTop_s", "SingleTop_t", "SingleTbar_t", "SingleTop_tW", "SingleTbar_tW",
+        "WJets", "WJets_MG",
+        "WW", "WZ", "ZZ",
+        "WWW", "WWZ", "WZZ", "ZZZ",
         "TT_AntitopLeptonicDecay_TH_1L3B_Eta_Hct", "TT_TopLeptonicDecay_TH_1L3B_Eta_Hct",
         "TT_AntitopLeptonicDecay_TH_1L3B_Eta_Hut", "TT_TopLeptonicDecay_TH_1L3B_Eta_Hut",
     ],
@@ -47,7 +47,7 @@ samples = {
         ## do MC common systematic variations
         ## do ttbar specific gen level analyzer, do ttbar-dilepton genFilters
         ## do PDF variations
-        "TTLJ_powheg", 
+        "TTLJ_powheg",
         #"ttbb",
     ],
     'sig.noll nominal syst systMC':[
@@ -56,7 +56,7 @@ samples = {
         ## do common systematic variations
         ## do MC common systematic variations
         ## do ttbar specific gen level analyzer, do ttbar-dilepton genFilters
-        "TT_powheg", 
+        "TT_powheg",
         #"ttW", "ttZ",
     ],
     'sig nominal':[
@@ -64,15 +64,15 @@ samples = {
         ## produce nominals only
         ## cmsRun analyze_sig_cfg.py
         ## do ttbar specific gen level analyzer, do ttbar-dilepton genFilters
-        #"TTJets_MG", "TTJets_aMC", 
-        #"TT_powheg_herwig", 
+        #"TTJets_MG", "TTJets_aMC",
+        #"TT_powheg_herwig",
 
         #"TT_powheg_mtop1695", "TT_powheg_mtop1755",
 
-        #"TT_powheg_noCR", "TT_powheg_mpiOFF", 
+        #"TT_powheg_noCR", "TT_powheg_mpiOFF",
 
-        #"TTLJ_powheg_alphaS", "TT_powheg_alphaS", 
-        #"TT_powheg_herwig_mpiOFF", 
+        #"TTLJ_powheg_alphaS", "TT_powheg_alphaS",
+        #"TT_powheg_herwig_mpiOFF",
     ],
 }
 for key in samples.keys():
@@ -111,19 +111,19 @@ for key in samples:
         baseargs += ["filterGenTop.invert=True"]
         suffix = "_Others"
     if 'ttbb' in modifiers:
-        baseargs += ["filterGenTop.addJetChannel='TTBB'"]
+        baseargs += ["filterGenTop.addJetChannel=\"TTBB\""]
         suffix = "_TTBB"
     elif 'ttbj' in modifiers:
-        baseargs += ["filterGenTop.addJetChannel='TTBJ'"]
+        baseargs += ["filterGenTop.addJetChannel=\"TTBJ\""]
         suffix = "_TTBJ"
     elif 'ttcc' in modifiers:
-        baseargs += ["filterGenTop.addJetChannel='TTCC'"]
+        baseargs += ["filterGenTop.addJetChannel=\"TTCC\""]
         suffix = "_TTCC"
     elif 'ttlf' in modifiers:
-        baseargs += ["filterGenTop.addJetChannel='TTLF'"]
+        baseargs += ["filterGenTop.addJetChannel=\"TTLF\""]
         suffix = "_TTLF"
     elif 'tt' in modifiers:
-        baseargs += ["filterGenTop.addJetChannel='none'"]
+        baseargs += ["filterGenTop.addJetChannel=\"none\""]
         suffix = "_noAddJet"
 
     for name in samples[key]:
