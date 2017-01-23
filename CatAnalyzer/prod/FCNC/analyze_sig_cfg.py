@@ -15,6 +15,8 @@ process.load("CATTools.CatAnalyzer.filters_cff")
 process.load("CATTools.Validation.topFCNCEventSelector_cff")
 process.load("CATTools.CatAnalyzer.ttll.ttllGenFilters_cff")
 process.load("CATTools.Validation.validation_cff")
+process.filterGenTop.nLepton = 2
+process.filterGenTop.addJetChannel = "TTBB" ## (TTBB, TTBJ, TTCC, TTJJ, none)
 
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string("ntuple.root"),
@@ -57,13 +59,13 @@ process.ntupleMU = process.ttLJ.clone(
 delattr(process, 'ttLJ')
 
 process.p_el = cms.Path(
-    process.agen + process.filterPartonTTLJ
+    process.agen + process.filterGenTop
   * process.gen + process.rec
   * process.el * process.ntupleEL
 )
 
 process.p_mu = cms.Path(
-    process.agen + process.filterPartonTTLJ
+    process.agen + process.filterGenTop
   * process.gen + process.rec
   * process.mu * process.ntupleMU
 )

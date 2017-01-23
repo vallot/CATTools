@@ -15,6 +15,7 @@ process.load("CATTools.CatAnalyzer.filters_cff")
 process.load("CATTools.Validation.ttljEventSelector_cff")
 process.load("CATTools.CatAnalyzer.ttll.ttllGenFilters_cff")
 process.load("CATTools.Validation.validation_cff")
+process.filterParton.nLepton = 1
 
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string("hist.root"),
@@ -33,7 +34,7 @@ process.agen = cms.EDAnalyzer("CATGenTopAnalysis",
 )
 
 process.p = cms.Path(
-    process.agen + process.filterPartonTTLJ
+    process.agen + process.filterParton
   * process.gen + process.rec
   * process.eventsTTLJ
 )

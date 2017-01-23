@@ -150,7 +150,7 @@ for key in samples:
     suffix = ""
     baseargs = []
     if 'noll' in modifiers:
-        baseargs += ["filterPartonTTLJ.invert=True"]
+        baseargs += ["filterParton.invert=True"]
         suffix = "_Others"
 
     for name in samples[key]:

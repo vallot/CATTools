@@ -44,7 +44,7 @@ delattr(process, 'filterRECOMC')
 process.ttLJ.isTTbar = True
 
 process.pTTLJ = cms.Path(
-    process.agen #+ process.filterPartonTTLJ
+    process.agen #+ process.filterParton
   * process.gen# + process.rec
   * process.eventsTTLJ
   * process.ttLJ

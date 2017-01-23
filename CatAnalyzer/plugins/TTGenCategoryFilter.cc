@@ -49,9 +49,7 @@ TTGenCategoryFilter::TTGenCategoryFilter(const edm::ParameterSet& pset):
   if ( inputType == "PartonTop" ) inputType_ = IN_PartonTop;
   //else if ( inputType == "PseudoTop" ) inputType_ = IN_PseudoTop;
   else if ( inputType == "GenTop" ) inputType_ = IN_GenTop;
-  else edm::LogError("TTGenCategoryFilter") << "Wrong input inputType. Choose among (PartonTop,)";
-
-  const auto addJetType = pset.getParameter<string>("addJetType");
+  else edm::LogError("TTGenCategoryFilter") << "Wrong input inputType. Choose among (PartonTop,GenTop)";
 
   if ( inputType_ == IN_PartonTop ) {
     vetoTau_ = pset.getParameter<bool>("vetoTau");
@@ -66,65 +64,72 @@ TTGenCategoryFilter::TTGenCategoryFilter(const edm::ParameterSet& pset):
     vetoTau_ = pset.getParameter<bool>("vetoTau");
     genTop_srcToken_ = consumes<cat::GenTopCollection>(pset.getParameter<edm::InputTag>("src"));
     const auto addJetCh = pset.getParameter<std::string>("addJetChannel");
-    genTop_addJetCh_ = 0;
+    genTop_addJetCh_ = 0; // Default value for "none of these category"
     if      ( addJetCh == "TTBB" ) genTop_addJetCh_ = 1;
     else if ( addJetCh == "TTBJ" ) genTop_addJetCh_ = 2;
     else if ( addJetCh == "TTCC" ) genTop_addJetCh_ = 3;
-    else if ( addJetCh == "TTJJ" ) genTop_addJetCh_ = 4;
+    else if ( addJetCh == "TTLF" ) genTop_addJetCh_ = 4;
   }
 
 }
 
 bool TTGenCategoryFilter::filter(edm::Event& event, const edm::EventSetup&)
 {
-  bool accept = false;
-  switch ( inputType_ ) {
-    case IN_PartonTop: {
-      edm::Handle<reco::GenParticleCollection> srcHandle;
-      edm::Handle<int> channelHandle;
-      edm::Handle<vint> modesHandle;
-      edm::Handle<reco::GenJetCollection> jetHandle;
+  if ( inputType_ == IN_PartonTop ) {
+    edm::Handle<reco::GenParticleCollection> srcHandle;
+    edm::Handle<int> channelHandle;
+    edm::Handle<vint> modesHandle;
+    edm::Handle<reco::GenJetCollection> jetHandle;
 
-      event.getByToken(parton_srcToken_, srcHandle);
-      event.getByToken(parton_channelToken_, channelHandle);
-      event.getByToken(parton_modesToken_, modesHandle);
-      event.getByToken(parton_jetToken_, jetHandle);
+    event.getByToken(parton_srcToken_, srcHandle);
+    event.getByToken(parton_channelToken_, channelHandle);
+    event.getByToken(parton_modesToken_, modesHandle);
+    event.getByToken(parton_jetToken_, jetHandle);
 
-      //const int channel = *channelHandle;
-      const int mode1 = modesHandle->at(0);
-      const int mode2 = modesHandle->at(1);
+    //const int channel = *channelHandle;
+    const int mode1 = modesHandle->at(0);
+    const int mode2 = modesHandle->at(1);
 
-      int nLepton = 0;
-      if ( mode1%3 != 0 and (!vetoTau_ or mode1 < CH_TAU_HADRON) ) ++nLepton;
-      if ( mode2%3 != 0 and (!vetoTau_ or mode2 < CH_TAU_HADRON) ) ++nLepton;
+    int nLepton = 0;
+    if ( mode1%3 != 0 and (!vetoTau_ or mode1 < CH_TAU_HADRON) ) ++nLepton;
+    if ( mode2%3 != 0 and (!vetoTau_ or mode2 < CH_TAU_HADRON) ) ++nLepton;
 
-      if ( nLepton != nLepton_ ) break;
+    const bool accept = ( nLepton == nLepton_ );
 
-      accept = true;
-    }; break;
-    case IN_GenTop: {
-      edm::Handle<cat::GenTopCollection> srcHandle;
-      if ( !event.getByToken(genTop_srcToken_, srcHandle) ) break;
-      if ( srcHandle->empty() ) break;
+    // return filter result, invert if "doInvert" is on
+    //    if ( doInvert_ ) return !accept;
+    //    return accept;
+    // .. in shorter syntax:
+    //   doInvert accpet -> result
+    //      T       T    ->   F
+    //      T       F    ->   T
+    //      F       T    ->   T
+    //      F       F    ->   F
+    return doInvert_ xor accept;
+  }
+  else if ( inputType_ == IN_GenTop ) {
+    edm::Handle<cat::GenTopCollection> srcHandle;
+    event.getByToken(genTop_srcToken_, srcHandle);
+    if ( srcHandle->empty() ) return false;
 
-      const auto genTop = srcHandle->at(0);
-      const int channelOption = vetoTau_ ? 0 : 1;
-      if ( nLepton_ == 2 and !genTop.diLeptonic(channelOption) ) break;
-      if ( nLepton_ == 1 and !genTop.semiLeptonic(channelOption) ) break;
+    const auto genTop = srcHandle->at(0);
+    const int channelOption = vetoTau_ ? 0 : 1;
 
-      if ( genTop_addJetCh_ == 1 and genTop.NaddbJets20() <  2 ) break; // TTBB
-      if ( genTop_addJetCh_ == 2 and genTop.NaddbJets20() != 1 ) break; // TTBJ
-      if ( genTop_addJetCh_ == 3 and genTop.NaddcJets20() <  2 ) break; // TTCC
-      if ( genTop_addJetCh_ == 4 and genTop.NaddJets20()  <  2 ) break; // TTJJ
+    // Same logic with the above
+    const bool acceptCh = ( nLepton_ == 2 and genTop.diLeptonic(channelOption) ) or
+                          ( nLepton_ == 1 and genTop.semiLeptonic(channelOption) );
+    if ( (doInvert_ xor acceptCh) == false ) return false;
 
-      accept = true;
-    }; break;
-    case IN_PseudoTop:
-      break;
+    // non-ttjj cases
+    if ( genTop.NaddJets20() < 2 ) return (genTop_addJetCh_ == 0);
+
+    if      ( genTop.NaddbJets20() >= 2 and genTop_addJetCh_ == 1 ) return true; // TTBB (2 b jets)
+    else if ( genTop.NaddbJets20() == 1 and genTop_addJetCh_ == 2 ) return true; // TTBJ (1 b jet)
+    else if ( genTop.NaddcJets20() >= 2 and genTop_addJetCh_ == 3 ) return true; // TTCC (2 c jets)
+    return genTop_addJetCh_ == 4; // others are TTLF
   }
 
-  if ( doInvert_ ) return !accept;
-  return accept;
+  return false; // dummy return
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"

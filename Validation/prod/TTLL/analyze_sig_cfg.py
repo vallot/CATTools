@@ -33,7 +33,7 @@ process.agen = cms.EDAnalyzer("CATGenTopAnalysis",
 )
 
 process.p = cms.Path(
-    process.agen + process.filterPartonTTLL
+    process.agen + process.filterParton
   * process.gen + process.rec
   * process.eventsTTLL
 )
