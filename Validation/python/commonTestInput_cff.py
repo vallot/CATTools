@@ -1,9 +1,10 @@
 import FWCore.ParameterSet.Config as cms
 
 commonTestCATTuples = {
-    "sig":cms.untracked.vstring("/store/group/CAT/TT_TuneCUETP8M1_13TeV-powheg-pythia8/v8-0-3_RunIISpring16MiniAODv2-PUSpring16RAWAODSIM_reHLT_80X_mcRun2_asymptotic_v14_ext3-v1/161205_142558/0000/catTuple_1.root",),
-    "bkg":cms.untracked.vstring("/store/group/CAT/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v8-0-3_RunIISpring16MiniAODv2-PUSpring16RAWAODSIM_reHLT_80X_mcRun2_asymptotic_v14-v1/161205_142228/0000/catTuple_1.root",),
-    "data":cms.untracked.vstring("/store/group/CAT/DoubleEG/v8-0-3_Run2016G-23Sep2016-v1/161204_005359/0000/catTuple_1.root"),
+    "sig":cms.untracked.vstring("/store/group/CAT/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/v8-0-4_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/170113_045423/0000/catTuple_1.root"),
+    "bkg":cms.untracked.vstring("/store/group/CAT/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v8-0-4_RunIISummer16MiniAODv2-PUMoriond17_HCALDebug_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/170116_095242/0000/catTuple_1.root"),
+    "data":cms.untracked.vstring("/store/group/CAT/DoubleEG/v8-0-4_Run2016H-PromptReco-v3/170113_133053/0000/catTuple_1.root"),
+
 }
 
 commonTestMiniAODs = {

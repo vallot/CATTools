@@ -15,7 +15,7 @@ class CSVHelper
     // (jetPt >= 60 && jetPt < 100), (jetPt >= 100 && jetPt < 160), (jetPt >= 160 && jetPt < 10000).
     // If nHFptBins < 6, the last on is inclusive (eg jetPt >=100 && jetPt < 10000 for nHFptBins=5).
     // The SFs from data have 5 bins, the pseudo data scale factors 6 bins.
-    CSVHelper(std::string hf="", std::string lf="", int nHFptBins=6);
+    CSVHelper(std::string hf="", std::string lf="", int nHFptBins=5);
 
     //double getCSVWeight(std::vector<double> jetPts, std::vector<double> jetEtas, std::vector<double> jetCSVs,
     //float getCSVWeight(std::vector<double> jetPts, std::vector<double> jetEtas, std::vector<double> jetCSVs,
