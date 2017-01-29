@@ -80,12 +80,14 @@ private:
   
   // Event Weights
   edm::EDGetTokenT<float>                        genWeightToken_;
-  edm::EDGetTokenT<std::vector<float>>           pdfWeightsToken_;
-  edm::EDGetTokenT<std::vector<float>>           scaleUpWeightsToken_;
-  edm::EDGetTokenT<std::vector<float>>           scaleDownWeightsToken_;
+  edm::EDGetTokenT<std::vector<float>>           pdfWeightToken_;
+  edm::EDGetTokenT<std::vector<float>>           scaleUpWeightToken_;
+  edm::EDGetTokenT<std::vector<float>>           scaleDownWeightToken_;
   edm::EDGetTokenT<float>                        puWeightToken_;
   edm::EDGetTokenT<float>                        puUpWeightToken_;
   edm::EDGetTokenT<float>                        puDownWeightToken_;
+  edm::EDGetTokenT<float>                        CSVWeightToken_;
+  edm::EDGetTokenT<std::vector<float>>           CSVSysWeightToken_;
   // Object Collections
   edm::EDGetTokenT<reco::GenParticleCollection>  genToken_;
   edm::EDGetTokenT<reco::GenJetCollection>       genJetToken_;
@@ -117,6 +119,7 @@ private:
   int b_Event, b_Run, b_Lumi_Number;
   float b_GenWeight;
   std::vector<float> *b_ScaleWeight;
+  std::vector<float> *b_PDFWeight;
   // PU/Vertices
   std::vector<float> *b_PUWeight;
   int b_nGoodPV;
@@ -184,6 +187,7 @@ private:
   std::vector<float> *b_Jet_SF_CSV_30;
   std::vector<float> *b_Jet_SF_CSV_35;
   std::vector<float> *b_Jet_SF_CSV_40;
+  std::vector<float> *b_Jet_SF_CSV;
   // c-Jet discriminant
   std::vector<float> *b_Jet_CvsL, *b_Jet_CvsB;
 
@@ -242,7 +246,8 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
 {
   const auto elecSFSet = iConfig.getParameter<edm::ParameterSet>("elecSF");
   SF_elec_.set(elecSFSet.getParameter<std::vector<double>>("pt_bins" ),
-	       elecSFSet.getParameter<std::vector<double>>("abseta_bins"),
+	       elecSFSet.getParameter<std::vector<double>>("eta_bins"),
+	       //elecSFSet.getParameter<std::vector<double>>("abseta_bins"),
 	       elecSFSet.getParameter<std::vector<double>>("values"  ),
 	       elecSFSet.getParameter<std::vector<double>>("errors"  ));
   
@@ -255,13 +260,23 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   SF_CSV_.initCSVWeight(false, "csvv2");
   
   // Weights
-  genWeightToken_        = consumes<float>             (iConfig.getParameter<edm::InputTag>("genWeightLabel"));
-  pdfWeightsToken_       = consumes<std::vector<float>>(iConfig.getParameter<edm::InputTag>("pdfWeightLabel"));
-  scaleUpWeightsToken_   = consumes<std::vector<float>>(iConfig.getParameter<edm::InputTag>("scaleUpWeightLabel"));
-  scaleDownWeightsToken_ = consumes<std::vector<float>>(iConfig.getParameter<edm::InputTag>("scaleDownWeightLabel"));
-  puWeightToken_         = consumes<float>             (iConfig.getParameter<edm::InputTag>("puWeightLabel"));
-  puUpWeightToken_       = consumes<float>             (iConfig.getParameter<edm::InputTag>("puUpWeightLabel"));
-  puDownWeightToken_     = consumes<float>             (iConfig.getParameter<edm::InputTag>("puDownWeightLabel"));
+  auto genWeightLabel = iConfig.getParameter<edm::InputTag>("genWeightLabel");
+  // aMC@NLO
+  genWeightToken_        = consumes<float>             (edm::InputTag(genWeightLabel.label()));
+  // PDF
+  pdfWeightToken_       = consumes<std::vector<float>>(edm::InputTag(genWeightLabel.label(), "pdf"));
+  // Scale
+  scaleUpWeightToken_   = consumes<std::vector<float>>(edm::InputTag(genWeightLabel.label(), "scaleup"));
+  scaleDownWeightToken_ = consumes<std::vector<float>>(edm::InputTag(genWeightLabel.label(), "scaledown"));
+  // PileUp
+  auto puWeightLabel = iConfig.getParameter<edm::InputTag>("puWeightLabel");
+  puWeightToken_         = consumes<float>             (edm::InputTag(puWeightLabel.label()));
+  puUpWeightToken_       = consumes<float>             (edm::InputTag(puWeightLabel.label(),"up"));
+  puDownWeightToken_     = consumes<float>             (edm::InputTag(puWeightLabel.label(),"dn"));
+  // CSV Weights
+  auto csvWeightLabel = iConfig.getParameter<edm::InputTag>("csvWeightLabel");
+  CSVWeightToken_        = consumes<float>             (edm::InputTag(csvWeightLabel.label()));
+  CSVSysWeightToken_     = consumes<std::vector<float>>(edm::InputTag(csvWeightLabel.label(), "syst"));
   // GEN and ttbar Categorization
   genToken_              = consumes<reco::GenParticleCollection>  (iConfig.getParameter<edm::InputTag>("genLabel"));
   genJetToken_           = consumes<reco::GenJetCollection>       (iConfig.getParameter<edm::InputTag>("genJetLabel"));  
@@ -275,11 +290,13 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   pvToken_           = consumes<int>                          (iConfig.getParameter<edm::InputTag>("pvLabel"));
   JetMotherToken_    = consumes<vector<vector<int>>>          (iConfig.getParameter<edm::InputTag>("JetMother"));
   // Trigger  
-  triggerBits_       = consumes<edm::TriggerResults>                    (iConfig.getParameter<edm::InputTag>("triggerBits"));
-  triggerBits2_      = consumes<edm::TriggerResults>                    (iConfig.getParameter<edm::InputTag>("triggerBits2"));
+  auto triggerLabel  = iConfig.getParameter<edm::InputTag>("triggerBits");
+  triggerBits_       = consumes<edm::TriggerResults>                    (edm::InputTag(triggerLabel.label(),"","HLT"));
+  triggerBits2_      = consumes<edm::TriggerResults>                    (edm::InputTag(triggerLabel.label(),"","HLT2"));
   triggerObjects_    = consumes<pat::TriggerObjectStandAloneCollection> (iConfig.getParameter<edm::InputTag>("triggerObjects"));
   
   b_PUWeight     = new std::vector<float>;
+  b_PDFWeight    = new std::vector<float>;  
   b_ScaleWeight  = new std::vector<float>;  
   b_Lepton_SF    = new std::vector<float>;  
 
@@ -309,6 +326,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   b_Jet_SF_CSV_30  = new std::vector<float>;
   b_Jet_SF_CSV_35  = new std::vector<float>;
   b_Jet_SF_CSV_40  = new std::vector<float>;
+  b_Jet_SF_CSV     = new std::vector<float>;
   b_Jet_CvsL    = new std::vector<float>;  
   b_Jet_CvsB    = new std::vector<float>;  
   b_Jet_partonFlavour = new std::vector<int>;
@@ -362,6 +380,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("jet_SF_CSV_30",    "std::vector<float>", &b_Jet_SF_CSV_30 );
   tree->Branch("jet_SF_CSV_35",    "std::vector<float>", &b_Jet_SF_CSV_35 );
   tree->Branch("jet_SF_CSV_40",    "std::vector<float>", &b_Jet_SF_CSV_40 );
+  tree->Branch("jet_SF_CSV",       "std::vector<float>", &b_Jet_SF_CSV );
   tree->Branch("jet_CvsL",         "std::vector<float>", &b_Jet_CvsL );
   tree->Branch("jet_CvsB",         "std::vector<float>", &b_Jet_CvsB );
 
@@ -391,7 +410,8 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
 
   // GEN Variables (only ttbarSignal)
   if(TTbarMC_ == 1){
-    tree->Branch("scaleweight",   "std::vector<float>", &b_ScaleWeight );
+    tree->Branch("pdfweight",   "std::vector<float>", &b_PDFWeight );
+    tree->Branch("scaleweight", "std::vector<float>", &b_ScaleWeight );
 
     tree->Branch("jet_MatchedGenJetIndex", "std::vector<int>",  &b_Jet_MatchedGenJetIndex);
 
@@ -471,6 +491,7 @@ ttbbLepJetsAnalyzer::~ttbbLepJetsAnalyzer()
    // do anything here that needs to be done at desctruction time
    // (e.g. close files, deallocate resources etc.)
   delete b_PUWeight;
+  delete b_PDFWeight;
   delete b_ScaleWeight;
 
   delete b_GenConeCatID;
@@ -511,6 +532,7 @@ ttbbLepJetsAnalyzer::~ttbbLepJetsAnalyzer()
   delete b_Jet_SF_CSV_30;
   delete b_Jet_SF_CSV_35;
   delete b_Jet_SF_CSV_40;
+  delete b_Jet_SF_CSV;
 
   delete b_Jet_CSV;
   delete b_Jet_CvsL;
@@ -536,6 +558,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
   b_PUWeight   ->clear();
   b_ScaleWeight->clear();
+  b_PDFWeight  ->clear();
 
   b_GenConeCatID->clear();
   b_GenCone_gJet_pT->clear();
@@ -578,6 +601,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   b_Jet_SF_CSV_30->clear();
   b_Jet_SF_CSV_35->clear();
   b_Jet_SF_CSV_40->clear();
+  b_Jet_SF_CSV   ->clear();
   b_Jet_CvsL     ->clear();
   b_Jet_CvsB     ->clear();
 
@@ -639,12 +663,12 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   }
 
   //---------------------------------------------------------------------------
-  // Weights for Syst. Scale: ttbar
+  // Weights for Syst. Scale and PDF: ttbar
   //---------------------------------------------------------------------------
   if(TTbarMC_ == 1 ) {
     edm::Handle<std::vector<float>> scaleUpWeightsHandle, scaleDownWeightsHandle;
-    iEvent.getByToken(scaleUpWeightsToken_,   scaleUpWeightsHandle);
-    iEvent.getByToken(scaleDownWeightsToken_, scaleDownWeightsHandle);
+    iEvent.getByToken(scaleUpWeightToken_,   scaleUpWeightsHandle);
+    iEvent.getByToken(scaleDownWeightToken_, scaleDownWeightsHandle);
 
     // muR/muF Scale Weights
     b_ScaleWeight->push_back(scaleUpWeightsHandle  ->at(0)); // muR=Nom  muF=Up
@@ -657,6 +681,12 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     // Sum of muR/muF Scale Weights
     for(unsigned int iscale = 0; iscale< b_ScaleWeight->size(); iscale++)
       ScaleWeights->Fill(iscale, b_ScaleWeight->at(iscale)); 
+
+    edm::Handle<std::vector<float>> PDFWeightsHandle;
+    iEvent.getByToken(pdfWeightToken_,   PDFWeightsHandle);
+
+    for ( auto& w : *PDFWeightsHandle ) b_PDFWeight->push_back(w);
+
   }
 
   //---------------------------------------------------------------------------
@@ -1173,10 +1203,23 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     int N_GoodJets = 0;
 
     // Initialize SF_btag
-    float Jet_SF_CSV[4][19];
-    for (unsigned int iu=0; iu<19; iu++){
-      for (unsigned int ipTj=0; ipTj<4; ipTj++) Jet_SF_CSV[ipTj][iu] = 1.0;
+    float Jet_SF_CSV[5][19];
+    for (unsigned int ipTj=0; ipTj<5; ipTj++){
+       for (unsigned int iu=0; iu<19; iu++) Jet_SF_CSV[ipTj][iu] = 1.0;
     }
+
+    // event.getByToken(csvWeightToken_, fHandle);
+    // b_wgt_csv = *fHandle;
+    // event.getByToken(csvWeightSystToken_, vfHandle);
+
+    Handle<float> rSF_CSV;
+    iEvent.getByToken(CSVWeightToken_, rSF_CSV);
+    Jet_SF_CSV[4][0] = *rSF_CSV;
+
+    Handle<std::vector<float>> rsysSF_CSV;
+    iEvent.getByToken(CSVSysWeightToken_, rsysSF_CSV);
+    for (unsigned int icsv = 0; icsv < rsysSF_CSV->size() ; icsv++)  Jet_SF_CSV[4][icsv+1] = rsysSF_CSV->at(icsv); 
+
     // Run again over all Jets (CSV order)
     for (unsigned int i = 0; i < JetIndex.size() ; i++) {
 
@@ -1227,13 +1270,15 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
           b_Jet_JER_Down ->push_back(jet.smearedResDown());
 
           // Ref: https://twiki.cern.ch/twiki/bin/view/CMS/BTagShapeCalibration
-          // Saving the central SF and the 18 syst. unc. for pT_Jets > 25 GeV
+          // Saving the central SF and the 18 syst. unc. for:
+
+	  // pT_Jets > 25 GeV
           if(jet.pt() > 25.) for (unsigned int iu=0; iu<19; iu++) Jet_SF_CSV[0][iu] *= SF_CSV_.getSF(jet, iu);
-          // Saving the central SF and the 18 syst. unc. for pT_Jets > 30 GeV
+          // pT_Jets > 30 GeV
           if(jet.pt() > 30.) for (unsigned int iu=0; iu<19; iu++) Jet_SF_CSV[1][iu] *= SF_CSV_.getSF(jet, iu);
-          // Saving the central SF and the 18 syst. unc. for pT_Jets > 35 GeV
+          // pT_Jets > 35 GeV
           if(jet.pt() > 35.) for (unsigned int iu=0; iu<19; iu++) Jet_SF_CSV[2][iu] *= SF_CSV_.getSF(jet, iu);
-          // Saving the central SF and the 18 syst. unc. for pT_Jets > 40 GeV
+          // pT_Jets > 40 GeV
           if(jet.pt() > 40.) for (unsigned int iu=0; iu<19; iu++) Jet_SF_CSV[3][iu] *= SF_CSV_.getSF(jet, iu);
 
 	  // GEN-Jets matched with RECO-Jets
@@ -1272,17 +1317,20 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       b_Jet_SF_CSV_30->push_back(1.0);
       b_Jet_SF_CSV_35->push_back(1.0);
       b_Jet_SF_CSV_40->push_back(1.0);
+      b_Jet_SF_CSV   ->push_back(1.0);
     }
     (*b_Jet_SF_CSV_25)[0] = Jet_SF_CSV[0][0]; //Central
     (*b_Jet_SF_CSV_30)[0] = Jet_SF_CSV[1][0]; //Central
     (*b_Jet_SF_CSV_35)[0] = Jet_SF_CSV[2][0]; //Central
     (*b_Jet_SF_CSV_40)[0] = Jet_SF_CSV[3][0]; //Central
+    (*b_Jet_SF_CSV   )[0] = Jet_SF_CSV[4][0]; //Central
     // To save only the error
     for (unsigned int iu=1; iu<19; iu++){
       (*b_Jet_SF_CSV_25)[iu] = std::abs(Jet_SF_CSV[0][iu] - Jet_SF_CSV[0][0]) ; // Syst. Unc.
       (*b_Jet_SF_CSV_30)[iu] = std::abs(Jet_SF_CSV[1][iu] - Jet_SF_CSV[1][0]) ; // Syst. Unc.
       (*b_Jet_SF_CSV_35)[iu] = std::abs(Jet_SF_CSV[2][iu] - Jet_SF_CSV[2][0]) ; // Syst. Unc.
       (*b_Jet_SF_CSV_40)[iu] = std::abs(Jet_SF_CSV[3][iu] - Jet_SF_CSV[3][0]) ; // Syst. Unc.
+      (*b_Jet_SF_CSV   )[iu] = std::abs(Jet_SF_CSV[4][iu] - Jet_SF_CSV[4][0]) ; // Syst. Unc.
     }
     
     //---------------------------------------------------------------------------
