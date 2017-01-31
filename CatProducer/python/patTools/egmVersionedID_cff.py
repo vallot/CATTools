@@ -34,6 +34,9 @@ def enableElectronVID(process):
                 cms.InputTag(idName))
         process.catElectrons.electronIDs.append(idName.split(':',1)[1])
 
+    process.egmGsfElectronIDs.physicsObjectSrc = process.catElectrons.unsmaredElectrons
+    process.electronMVAValueMapProducer.srcMiniAOD = process.catElectrons.unsmaredElectrons
+
     return process
 
 def enablePhotonVID(process):
@@ -62,6 +65,10 @@ def enablePhotonVID(process):
                 idName.split(':',1)[1].replace('-','_'),
                 cms.InputTag(idName))
         process.catPhotons.photonIDs.append(idName.split(':',1)[1])
+
+    process.egmPhotonIDs.physicsObjectSrc = process.catPhotons.unsmearedPhotons
+    process.photonMVAValueMapProducer.srcMiniAOD = process.catPhotons.unsmearedPhotons
+    process.photonIDValueMapProducer.srcMiniAOD = process.catPhotons.unsmearedPhotons
 
     return process
 
