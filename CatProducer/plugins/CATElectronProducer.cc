@@ -13,6 +13,10 @@
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
+#include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h"
+#include "DataFormats/DetId/interface/DetId.h"
+#include "DataFormats/EcalDetId/interface/EBDetId.h"
+#include "DataFormats/EcalDetId/interface/EEDetId.h"
 #include "FWCore/Utilities/interface/transform.h"
 
 #include "TrackingTools/TransientTrack/interface/TransientTrack.h"
@@ -55,6 +59,7 @@ namespace cat {
     edm::EDGetTokenT<pat::PackedCandidateCollection>        pfSrc_;
     edm::EDGetTokenT<reco::BeamSpot> beamLineSrc_;
     edm::EDGetTokenT<double> rhoLabel_;
+    edm::EDGetTokenT<edm::SortedCollection<EcalRecHit,edm::StrictWeakOrdering<EcalRecHit>>> ebRecHitsToken_;
 
     bool runOnMC_;
 
@@ -137,6 +142,7 @@ cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig)
   pfSrc_(consumes<pat::PackedCandidateCollection>(iConfig.getParameter<edm::InputTag>("pfSrc"))),
   beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc"))),
   rhoLabel_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoLabel"))),
+  ebRecHitsToken_(consumes<edm::SortedCollection<EcalRecHit,edm::StrictWeakOrdering<EcalRecHit>>>(iConfig.getParameter<edm::InputTag>("ebRecHits"))),
   electronIDs_(iConfig.getParameter<std::vector<std::string> >("electronIDs"))
 {
   
@@ -171,17 +177,21 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
   Handle<reco::VertexCollection> recVtxs;
   iEvent.getByToken(vertexLabel_, recVtxs);
   reco::Vertex pv;
-  if (recVtxs->size())
-    pv = recVtxs->at(0);
+  if (recVtxs->size()) pv = recVtxs->at(0);
 
   Handle<double> rhoHandle;
   iEvent.getByToken(rhoLabel_, rhoHandle);
   double rhoIso = std::max(*(rhoHandle.product()), 0.0);
 
+  edm::Handle<edm::SortedCollection<EcalRecHit,edm::StrictWeakOrdering<EcalRecHit>>> ebRecHitsHandle;
+
   GlobalPoint pVertex(pv.position().x(),pv.position().y(),pv.position().z());
 
   if (runOnMC_){
     iEvent.getByToken(mcLabel_,genParticles);
+  }
+  else {
+    iEvent.getByToken(ebRecHitsToken_, ebRecHitsHandle);
   }
 
   ESHandle<TransientTrackBuilder> trackBuilder;
@@ -205,6 +215,26 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     auto unsmearedElecRef = unsmearedElecHandle->refAt(j);
     // nan protection - smearing fails for soft electrons
     if ( std::isnan(std::abs(aElectron.p())) ) aElectron = *unsmearedElecRef;
+
+    // Redisual scale correction is needed for Moriond17 analysis. see https://twiki.cern.ch/twiki/bin/view/CMS/EGMSmearer
+    // this residual correction have to be applied ONLY FOR DATA with BARREL RecHits
+    if ( !runOnMC_ ) {
+      // FIXME: maybe it should be removed in the future
+      DetId detid = aPatElectron.superCluster()->seed()->seed();
+      const EcalRecHit * rh = 0;
+      if (detid.subdetId() == EcalBarrel) {
+        auto rh_i =  ebRecHitsHandle->find(detid);
+        if( rh_i != ebRecHitsHandle->end()) rh =  &(*rh_i);
+        else rh = NULL;
+      }
+      if ( rh ) {
+        double Ecorr=1;
+        if(rh->energy() > 200 && rh->energy()<300)  Ecorr=1.0199;
+        else if(rh->energy()>300 && rh->energy()<400) Ecorr=  1.052;
+        else if(rh->energy()>400 && rh->energy()<500) Ecorr = 1.015;
+        aElectron.setP4(Ecorr*aElectron.p4());
+      }
+    }
 
     if (runOnMC_){
       aElectron.setGenParticleRef(aPatElectron.genParticleRef());
