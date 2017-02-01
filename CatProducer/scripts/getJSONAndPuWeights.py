@@ -58,8 +58,8 @@ if not os.path.exists("%s/%s" % (baseCAT, puJSON)):
     print "Pileup JSON not in the CATTools. Checking the central JSON file repository."
     if os.path.exists(baseAFS):
         print "Copying pileup JSON to CATTools..."
-        print "cp %s/%s %s/" % (baseAFS, puSubPath, baseCAT)
-        os.system("cp %s/%s %s/" % (baseAFS, puSubPath, baseCAT))
+        print "cp %s/%s/pileup_latest.txt %s/" % (baseAFS, puSubPath, baseCAT)
+        os.system("cp %s/%s/pileup_latest.txt %s/" % (baseAFS, puSubPath, baseCAT))
     else:
         print "Downloading pileup JSON to CATTools..."
         print "wget %s/%s/%s -O %s/%s" % (baseURL, puSubPath, puJSON, baseCAT, puJSON)
