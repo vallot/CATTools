@@ -12,8 +12,10 @@ catTrigger = cms.EDProducer("CATTriggerProducer",
             "HLT_Ele", "HLT_DoubleEle",
             "HLT_Mu", "HLT_TkMu", "HLT_IsoMu", "HLT_IsoTkMu",
             "HLT_DiMu", "HLT_DoubleIsoMu",
+            "HLT_TripleMu",
             "HLT_PFJet",
             "HLT_DoublePhoton", "HLT_Photon"
+            "HLT_PFMET",
         ),
     ),
     flags = cms.PSet(
