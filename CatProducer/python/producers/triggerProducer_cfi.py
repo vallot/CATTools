@@ -3,7 +3,7 @@ import FWCore.ParameterSet.Config as cms
 catTrigger = cms.EDProducer("CATTriggerProducer",
     trigger = cms.PSet(
         triggerResults = cms.VInputTag(
-            cms.InputTag("TriggerResults","","HLT2"),# due to reHLT, this is the first choice
+#            cms.InputTag("TriggerResults","","HLT2"),# due to reHLT, this is the first choice
             cms.InputTag("TriggerResults","","HLT"),# if above is not found, falls to default
         ),
         objects = cms.InputTag("selectedPatTrigger"),
