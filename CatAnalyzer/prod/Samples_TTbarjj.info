@@ -1,0 +1,2 @@
+# -- TTbar Leptonic
+ttbar_LepJetsPowhegPythiattjj  ../data/dataset_v8-0-4/dataset_TTLJ_powheg.txt  runOnTTbarMC=1 TTbarCatMC=6

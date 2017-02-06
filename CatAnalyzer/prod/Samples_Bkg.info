@@ -1,0 +1,27 @@
+# -- Single Top
+tW_Powheg            ../data/dataset_v8-0-4/dataset_SingleTop_tW.txt   
+tbarW_Powheg         ../data/dataset_v8-0-4/dataset_SingleTbar_tW.txt
+t_tchannel_Powheg    ../data/dataset_v8-0-4/dataset_SingleTop_t.txt
+tbar_tchannel_Powheg ../data/dataset_v8-0-4/dataset_SingleTbar_t.txt
+
+# -- Boson-Boson
+WW_Pythia ../data/dataset_v8-0-4/dataset_WW.txt
+WZ_Pythia ../data/dataset_v8-0-4/dataset_WZ.txt
+ZZ_Pythia ../data/dataset_v8-0-4/dataset_ZZ.txt
+
+# -- TTbar background
+ttbar_PowhegPythiaBkg ../data/dataset_v8-0-4/dataset_TT_powheg.txt runOnTTbarMC=2
+
+# -- TTbar + H 
+ttHbb_PowhegPythia  ../data/dataset_v8-0-4/dataset_ttH_bb.txt 
+
+# -- TTbar + Boson
+ttW_Madgraph    ../data/dataset_v8-0-4/dataset_ttW.txt   
+ttZ_Madgraph    ../data/dataset_v8-0-4/dataset_ttZ.txt
+
+# -- W+Jets
+WJets_aMCatNLO ../data/dataset_v8-0-4/dataset_WJets.txt
+
+# -- Drell-Yan
+ZJets_M10to50_aMCatNLO ../data/dataset_v8-0-4/dataset_DYJets_10to50.txt
+ZJets_M50_aMCatNLO     ../data/dataset_v8-0-4/dataset_DYJets.txt
