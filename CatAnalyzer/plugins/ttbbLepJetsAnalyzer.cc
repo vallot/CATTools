@@ -464,7 +464,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
     gentree->Branch("genjet_gencone_mom", "std::vector<int>",   &b_GenJet_GenConeMom);
   }
 
-  EventInfo = fs->make<TH1F>("EventInfo","Event Information",8,0,8);
+  EventInfo = fs->make<TH1F>("EventInfo","Event Information",9,0,9);
   EventInfo->GetXaxis()->SetBinLabel(1,"Number of Events");
   EventInfo->GetXaxis()->SetBinLabel(2,"Sum of Weights");
   EventInfo->GetXaxis()->SetBinLabel(3,"ttbb Events pT>20");
@@ -473,6 +473,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   EventInfo->GetXaxis()->SetBinLabel(6,"ttjj Events pT>20");
   EventInfo->GetXaxis()->SetBinLabel(7,"ttjj Lep Events pT>20");
   EventInfo->GetXaxis()->SetBinLabel(8,"ttjj Lep (tau lep decay) Events pT>20");
+  EventInfo->GetXaxis()->SetBinLabel(9,"Sum of PU Weights");
 
   ScaleWeights = fs->make<TH1F>("ScaleWeights","Event Weights:",6,0,6);
   ScaleWeights->GetXaxis()->SetBinLabel(1,"muR=Nom  muF=Up");
@@ -624,6 +625,8 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   b_Run          = iEvent.id().run();
   b_Lumi_Number  = iEvent.luminosityBlock();
 
+  EventInfo->Fill(0.5, 1.0);         // Number of Events
+
   if(isMC_) {
 
     //---------------------------------------------------------------------------
@@ -635,6 +638,8 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     edm::Handle<float> PUWeight;
     iEvent.getByToken(puWeightToken_, PUWeight);
     b_PUWeight->push_back(*PUWeight); // Central
+
+    EventInfo->Fill(8.5, *PUWeight); // Sum of PUWeights
 
     edm::Handle<float> PUWeight_Up;
     iEvent.getByToken(puUpWeightToken_, PUWeight_Up);
@@ -653,8 +658,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     iEvent.getByToken(genWeightToken_, genWeight);
     b_GenWeight = *genWeight;
 
-    EventInfo->Fill(0.5, 1.0);         // Number of Events
-    EventInfo->Fill(1.5, b_GenWeight); // Sum of Weights
+    EventInfo->Fill(1.5, b_GenWeight); // Sum of aMC@NLO Weights
   }
 
   else{

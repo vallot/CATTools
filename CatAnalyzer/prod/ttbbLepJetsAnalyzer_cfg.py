@@ -29,7 +29,7 @@ process.load("FWCore.MessageLogger.MessageLogger_cfi")
 # )
 process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.source = cms.Source("PoolSource",
 
@@ -45,12 +45,13 @@ process.source = cms.Source("PoolSource",
 # process.source.fileNames = commonTestCATTuples["sig"]
 
 # PUReWeight
-# process.load("CATTools.CatProducer.pileupWeight_cff")
-# from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
-# process.pileupWeight.weightingMethod = "RedoWeight"
-# process.pileupWeight.pileupRD = pileupWeightMap["Run2015_25nsV1"]
-# process.pileupWeight.pileupUp = pileupWeightMap["Run2015Up_25nsV1"]
-# process.pileupWeight.pileupDn = pileupWeightMap["Run2015Dn_25nsV1"]
+process.load("CATTools.CatProducer.pileupWeight_cff")
+from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
+process.pileupWeight.weightingMethod = "RedoWeight"
+process.pileupWeight.pileupMC = pileupWeightMap["2016_25ns_Moriond17MC"]
+process.pileupWeight.pileupRD = pileupWeightMap["Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON"]
+process.pileupWeight.pileupUp = pileupWeightMap["Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON_Up"]
+process.pileupWeight.pileupDn = pileupWeightMap["Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON_Dn"]
 
 # json file (Only Data)
 if options.UserJSON:
@@ -77,7 +78,7 @@ process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      KFUsebtag         = cms.untracked.bool(True),
                                      CSVPosConKF       = cms.untracked.bool(True),
                                      # TriggerNames
-                                     triggerNameDataEl = cms.untracked.vstring("HLT_Ele32_eta2p1_WPTight_Gsf_v"), 
+                                     triggerNameDataEl = cms.untracked.vstring("HLT_Ele27_eta2p1_WPTight_Gsf_v","HLT_Ele32_eta2p1_WPTight_Gsf_v"), 
                                      triggerNameDataMu = cms.untracked.vstring("HLT_IsoMu24_v","HLT_IsoTkMu24_v"), 
                                      triggerNameMCEl   = cms.untracked.vstring("notrigger","HLT_Ele32_eta2p1_WPTight_Gsf_v"), 
                                      triggerNameMCMu   = cms.untracked.vstring("notrigger","HLT_IsoMu24_v","HLT_IsoTkMu24_v"), 
@@ -113,4 +114,5 @@ process.TFileService = cms.Service("TFileService",
 #                      process.ttbarSingleLepton)
 process.p = cms.Path(process.flatGenWeights +
                      process.csvWeights +
+                     process.pileupWeight +
                      process.ttbbLepJets)

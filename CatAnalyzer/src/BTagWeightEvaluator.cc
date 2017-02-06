@@ -55,8 +55,9 @@ void BTagWeightEvaluator::initCSVWeight(const bool useCSVHelper, const string bt
     string csvFileName;
     if      ( btagName == "csvv2" ) {
       btagAlgo_ = BTAG_CSVv2 ;
-      csvFileName = "CSVv2_ichep.csv";
-      //csvFileName = "ttH_BTV_CSVv2_13TeV_2015D_20151120.csv";
+      csvFileName = "ttH_BTV_CSVv2_13TeV_2016All_36p5_2017_1_10.csv";
+      // csvFileName = "CSVv2_ichep.csv";
+      // csvFileName = "ttH_BTV_CSVv2_13TeV_2015D_20151120.csv";
     }
     else if ( btagName == "mva" ) {
       btagAlgo_ = BTAG_cMVAv2;
