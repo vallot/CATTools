@@ -1111,7 +1111,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
      vetoElectrons.size()     == 0){
     ch_tag = 1; //electron + jets
     lepton.SetPtEtaPhiE(selectedElectrons[0].pt(), selectedElectrons[0].eta(), selectedElectrons[0].phi(), selectedElectrons[0].energy());
-    b_Lepton_relIso = selectedMuons.at(0).relIso(0.3);
+    b_Lepton_relIso = selectedElectrons.at(0).relIso(0.3);
     b_Lepton_isIso = (b_Lepton_relIso < (std::abs(selectedElectrons[0].scEta()) <= 1.479 ? 0.0766 : 0.0678) );
 
      if(isMC_) {
