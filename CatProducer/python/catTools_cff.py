@@ -145,6 +145,10 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         from CATTools.CatProducer.patTools.egmVersionedID_cff import enableElectronVID, enablePhotonVID
         process = enableElectronVID(process)
         process = enablePhotonVID(process)
+
+        ## Electron ID without isolation cuts
+        from CATTools.CatProducer.patTools.egmNoIsoID_cff import enableElectronNoIsoID
+        process = enableElectronNoIsoID(process)
        
         #######################################################################    
         # adding pfMVAMet https://twiki.cern.ch/twiki/bin/viewauth/CMS/MVAMet#Spring15_samples_with_25ns_50ns
