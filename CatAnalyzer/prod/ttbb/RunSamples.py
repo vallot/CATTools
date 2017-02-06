@@ -1,6 +1,8 @@
+#!/usr/bin/env python
 import os, time, socket, sys
 
 UserName       = os.environ["USER"]
+BaseDir        = os.environ["CMSSW_BASE"]+"/src"
 InputDB        = str(sys.argv[1])
 FileHeader     = "Tree_LepJets_PileUp17_v8-0-4_Spring16-80X_36814pb-1"
 #OutputLocation = "/xrootd/store/user/brochero/v8-0-4/"
@@ -11,7 +13,7 @@ maxNjobs = 3000  # Maximum number of jobs running simultaneously
 def NumberOfCondorJobs (str):
     condorNF = ".tempCondor_" + socket.gethostname() + "_" + str + "_" + time.strftime('%Hh%Mm%Ss') + ".info"
     print "condor_q %s > %s" % (UserName, condorNF)
-    os.system("condor_q %s > %s" % (UserName, condorNF)
+    os.system("condor_q %s > %s" % (UserName, condorNF))
     with open(condorNF, "rb") as fcondor:
         fcondor.seek(-2, 2)             # Jump to the second last byte.
         while fcondor.read(1) != b"\n": # Until EOL is found...
@@ -61,7 +63,7 @@ for line in fr:
         tempsn = line.rstrip().split()
         if len(tempsn) > 1:
             SamNam.append(str(tempsn[0]))
-            SamLoc.append(str(tempsn[1]))
+            SamLoc.append(BaseDir+"/CATTools/CatAnalyzer/data/dataset/"+str(tempsn[1]))
             tSamArg = ""
             if len(tempsn) > 2:
                 for narg in range(2, len(tempsn)):
@@ -76,11 +78,11 @@ for line in fr:
         else:              maxf =  int(round(nfSamLoc/500.))    
 
         print  str(nfSamLoc) + " root files. Max number of files per job " + str(maxf)  
-        CreateJob = str("./create-batch --jobName " + SamNam[nsrunning] + " --fileList " + SamLoc[nsrunning] + " --maxFiles " + str(maxf) + " --cfg ttbbLepJetsAnalyzer_cfg.py --queue batch6 --transferDest /xrootd/store/user/%s/" % UserName)
+        CreateJob = str("create-batch --jobName " + SamNam[nsrunning] + " --fileList " + SamLoc[nsrunning] + " --maxFiles " + str(maxf) + " --cfg ttbbLepJetsAnalyzer_cfg.py --queue batch6 --transferDest /store/user/%s/" % UserName)
         if SamArg[nsrunning] is not "":
             CreateJob += " --args ' " + SamArg[nsrunning] + " ' "
         print CreateJob
-        #os.system(CreateJob)
+        os.system(CreateJob)
 
         nJobs += nfSamLoc/maxf
         print "Number of jobs " + str(nJobs)

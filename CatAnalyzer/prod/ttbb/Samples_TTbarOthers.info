@@ -1,36 +1,36 @@
 # -- TTbar Inclusive
-ttbar_PowhegPythiaEvt        ../data/dataset_v8-0-4/dataset_TT_powheg_evtgen.txt           runOnTTbarMC=1 TTbarCatMC=0
-ttbar_PowhegPythiaEvtttbb    ../data/dataset_v8-0-4/dataset_TT_powheg_evtgen.txt           runOnTTbarMC=1 TTbarCatMC=1
-ttbar_PowhegPythiaEvtttjj    ../data/dataset_v8-0-4/dataset_TT_powheg_evtgen.txt           runOnTTbarMC=1 TTbarCatMC=6
+ttbar_PowhegPythiaEvt        dataset_TT_powheg_evtgen.txt           runOnTTbarMC=1 TTbarCatMC=0
+ttbar_PowhegPythiaEvtttbb    dataset_TT_powheg_evtgen.txt           runOnTTbarMC=1 TTbarCatMC=1
+ttbar_PowhegPythiaEvtttjj    dataset_TT_powheg_evtgen.txt           runOnTTbarMC=1 TTbarCatMC=6
 
-ttbar_PowhegHerwig           ../data/dataset_v8-0-4/dataset_TT_powheg_herwig.txt           runOnTTbarMC=1 TTbarCatMC=0
-ttbar_PowhegHerwigttbb       ../data/dataset_v8-0-4/dataset_TT_powheg_herwig.txt           runOnTTbarMC=1 TTbarCatMC=1
-ttbar_PowhegHerwigttjj       ../data/dataset_v8-0-4/dataset_TT_powheg_herwig.txt           runOnTTbarMC=1 TTbarCatMC=6
+ttbar_PowhegHerwig           dataset_TT_powheg_herwig.txt           runOnTTbarMC=1 TTbarCatMC=0
+ttbar_PowhegHerwigttbb       dataset_TT_powheg_herwig.txt           runOnTTbarMC=1 TTbarCatMC=1
+ttbar_PowhegHerwigttjj       dataset_TT_powheg_herwig.txt           runOnTTbarMC=1 TTbarCatMC=6
 
-ttbar_PowhegPythiattbb_SYS_Central     ../data/dataset_v8-0-4/dataset_TT_powheg.txt                  runOnTTbarMC=1 TTbarCatMC=1
-ttbar_PowhegPythiattjj_SYS_Central     ../data/dataset_v8-0-4/dataset_TT_powheg.txt                  runOnTTbarMC=1 TTbarCatMC=6
+ttbar_PowhegPythiattbb_SYS_Central     dataset_TT_powheg.txt                  runOnTTbarMC=1 TTbarCatMC=1
+ttbar_PowhegPythiattjj_SYS_Central     dataset_TT_powheg.txt                  runOnTTbarMC=1 TTbarCatMC=6
 
-ttbar_PowhegPythiattbb_SYS_UE_Up       ../data/dataset_v8-0-4/dataset_TT_powheg_UEup.txt             runOnTTbarMC=1 TTbarCatMC=1
-ttbar_PowhegPythiattjj_SYS_UE_Up       ../data/dataset_v8-0-4/dataset_TT_powheg_UEup.txt             runOnTTbarMC=1 TTbarCatMC=6
-ttbar_PowhegPythiattbb_SYS_UE_Down     ../data/dataset_v8-0-4/dataset_TT_powheg_UEdown.txt           runOnTTbarMC=1 TTbarCatMC=1
-ttbar_PowhegPythiattjj_SYS_UE_Down     ../data/dataset_v8-0-4/dataset_TT_powheg_UEdown.txt           runOnTTbarMC=1 TTbarCatMC=6
+ttbar_PowhegPythiattbb_SYS_UE_Up       dataset_TT_powheg_UEup.txt             runOnTTbarMC=1 TTbarCatMC=1
+ttbar_PowhegPythiattjj_SYS_UE_Up       dataset_TT_powheg_UEup.txt             runOnTTbarMC=1 TTbarCatMC=6
+ttbar_PowhegPythiattbb_SYS_UE_Down     dataset_TT_powheg_UEdown.txt           runOnTTbarMC=1 TTbarCatMC=1
+ttbar_PowhegPythiattjj_SYS_UE_Down     dataset_TT_powheg_UEdown.txt           runOnTTbarMC=1 TTbarCatMC=6
 
-ttbar_PowhegPythiattbb_SYS_ISR_Up       ../data/dataset_v8-0-4/dataset_TT_powheg_ISRup.txt             runOnTTbarMC=1 TTbarCatMC=1
-ttbar_PowhegPythiattjj_SYS_ISR_Up       ../data/dataset_v8-0-4/dataset_TT_powheg_ISRup.txt             runOnTTbarMC=1 TTbarCatMC=6
-ttbar_PowhegPythiattbb_SYS_ISR_Down     ../data/dataset_v8-0-4/dataset_TT_powheg_ISRdown.txt           runOnTTbarMC=1 TTbarCatMC=1
-ttbar_PowhegPythiattjj_SYS_ISR_Down     ../data/dataset_v8-0-4/dataset_TT_powheg_ISRdown.txt           runOnTTbarMC=1 TTbarCatMC=6
+ttbar_PowhegPythiattbb_SYS_ISR_Up       dataset_TT_powheg_ISRup.txt             runOnTTbarMC=1 TTbarCatMC=1
+ttbar_PowhegPythiattjj_SYS_ISR_Up       dataset_TT_powheg_ISRup.txt             runOnTTbarMC=1 TTbarCatMC=6
+ttbar_PowhegPythiattbb_SYS_ISR_Down     dataset_TT_powheg_ISRdown.txt           runOnTTbarMC=1 TTbarCatMC=1
+ttbar_PowhegPythiattjj_SYS_ISR_Down     dataset_TT_powheg_ISRdown.txt           runOnTTbarMC=1 TTbarCatMC=6
 
-ttbar_PowhegPythiattbb_SYS_FSR_Up       ../data/dataset_v8-0-4/dataset_TT_powheg_FSRup.txt             runOnTTbarMC=1 TTbarCatMC=1
-ttbar_PowhegPythiattjj_SYS_FSR_Up       ../data/dataset_v8-0-4/dataset_TT_powheg_FSRup.txt             runOnTTbarMC=1 TTbarCatMC=6
-ttbar_PowhegPythiattbb_SYS_FSR_Down     ../data/dataset_v8-0-4/dataset_TT_powheg_FSRdown.txt           runOnTTbarMC=1 TTbarCatMC=1
-ttbar_PowhegPythiattjj_SYS_FSR_Down     ../data/dataset_v8-0-4/dataset_TT_powheg_FSRdown.txt           runOnTTbarMC=1 TTbarCatMC=6
+ttbar_PowhegPythiattbb_SYS_FSR_Up       dataset_TT_powheg_FSRup.txt             runOnTTbarMC=1 TTbarCatMC=1
+ttbar_PowhegPythiattjj_SYS_FSR_Up       dataset_TT_powheg_FSRup.txt             runOnTTbarMC=1 TTbarCatMC=6
+ttbar_PowhegPythiattbb_SYS_FSR_Down     dataset_TT_powheg_FSRdown.txt           runOnTTbarMC=1 TTbarCatMC=1
+ttbar_PowhegPythiattjj_SYS_FSR_Down     dataset_TT_powheg_FSRdown.txt           runOnTTbarMC=1 TTbarCatMC=6
 
-ttbar_LepJetsPowhegPythiattbb_SYS_Central ../data/dataset_v8-0-3/dataset_TTLJ_powheg.txt     runOnTTbarMC=1 TTbarCatMC=1
-ttbar_LepJetsPowhegPythiattjj_SYS_Central ../data/dataset_v8-0-3/dataset_TTLJ_powheg.txt     runOnTTbarMC=1 TTbarCatMC=6
+ttbar_LepJetsPowhegPythiattbb_SYS_Central dataset_TTLJ_powheg.txt     runOnTTbarMC=1 TTbarCatMC=1
+ttbar_LepJetsPowhegPythiattjj_SYS_Central dataset_TTLJ_powheg.txt     runOnTTbarMC=1 TTbarCatMC=6
 
-ttbar_LepJetsPowhegPythiattbb_SYS_Scale_Down ../data/dataset_v8-0-3/dataset_TTLJ_powheg_scaledown.txt     runOnTTbarMC=1 TTbarCatMC=1
-ttbar_LepJetsPowhegPythiattjj_SYS_Scale_Down ../data/dataset_v8-0-3/dataset_TTLJ_powheg_scaledown.txt     runOnTTbarMC=1 TTbarCatMC=6
+ttbar_LepJetsPowhegPythiattbb_SYS_Scale_Down dataset_TTLJ_powheg_scaledown.txt     runOnTTbarMC=1 TTbarCatMC=1
+ttbar_LepJetsPowhegPythiattjj_SYS_Scale_Down dataset_TTLJ_powheg_scaledown.txt     runOnTTbarMC=1 TTbarCatMC=6
 
-ttbar_LepJetsPowhegPythiattbb_SYS_AlphaS ../data/dataset_v8-0-3/dataset_TTLJ_powheg_alphaS.txt     runOnTTbarMC=1 TTbarCatMC=1
-ttbar_LepJetsPowhegPythiattjj_SYS_AlphaS ../data/dataset_v8-0-3/dataset_TTLJ_powheg_alphaS.txt     runOnTTbarMC=1 TTbarCatMC=6
+ttbar_LepJetsPowhegPythiattbb_SYS_AlphaS dataset_TTLJ_powheg_alphaS.txt     runOnTTbarMC=1 TTbarCatMC=1
+ttbar_LepJetsPowhegPythiattjj_SYS_AlphaS dataset_TTLJ_powheg_alphaS.txt     runOnTTbarMC=1 TTbarCatMC=6
 
