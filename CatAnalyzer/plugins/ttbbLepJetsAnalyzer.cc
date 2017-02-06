@@ -349,12 +349,12 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   edm::Service<TFileService> fs;
   tree = fs->make<TTree>("tree", "TopTree");
 
-  tree->Branch("event",      &b_Event,       "Event/I");
-  tree->Branch("run",        &b_Run,         "Run/I");
-  tree->Branch("luminumber", &b_Lumi_Number, "Lumi_Number/I");
-  tree->Branch("genweight",  &b_GenWeight,   "GenWeight/F");
-  tree->Branch("GoodPV",     &b_nGoodPV,     "nGoodPV/I");
-  tree->Branch("channel",    &b_Channel,     "Channel/I");
+  tree->Branch("event",      &b_Event,       "event/I");
+  tree->Branch("run",        &b_Run,         "run/I");
+  tree->Branch("luminumber", &b_Lumi_Number, "luminumber/I");
+  tree->Branch("genweight",  &b_GenWeight,   "genweight/F");
+  tree->Branch("GoodPV",     &b_nGoodPV,     "GoodPV/I");
+  tree->Branch("channel",    &b_Channel,     "channel/I");
 
   tree->Branch("PUWeight",   "std::vector<float>", &b_PUWeight);
 
