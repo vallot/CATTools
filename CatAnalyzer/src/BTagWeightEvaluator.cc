@@ -55,14 +55,16 @@ void BTagWeightEvaluator::initCSVWeight(const bool useCSVHelper, const string bt
     string csvFileName;
     if      ( btagName == "csvv2" ) {
       btagAlgo_ = BTAG_CSVv2 ;
-      csvFileName = "CSVv2_ichep.csv";
-      //csvFileName = "ttH_BTV_CSVv2_13TeV_2015D_20151120.csv";
+      csvFileName = "CSVv2_Moriond17_B_H.csv";
     }
     else if ( btagName == "mva" ) {
       btagAlgo_ = BTAG_cMVAv2;
-      csvFileName = "cMVAv2_ichep.csv";
+      csvFileName = "cMVAv2_Moriond17_B_H.csv";
     }
-    //else if ( btagName == "jp"    ) btagAlgo_ = BTAG_JP    ;
+    else if ( btagName == "deepcsv" ) {
+      btagAlgo_ = BTAG_DeepCSV;
+      csvFileName = "DeepCSV_Moriond17_B_H.csv";
+    }
     else btagAlgo_ = "undefined"; // FIXME: Eventually raise error somewhere?
 
     const auto csvFile = edm::FileInPath("CATTools/CatAnalyzer/data/scaleFactors/"+csvFileName).fullPath();
@@ -91,13 +93,16 @@ void BTagWeightEvaluator::init(const int method,
   string csvFileName;
   if      ( btagName == "csvv2" ) {
     btagAlgo_ = BTAG_CSVv2 ;
-    csvFileName = "CSVv2_ichep.csv";
+    csvFileName = "CSVv2_Moriond17_B_H.csv";
   }
   else if ( btagName == "mva" ) {
     btagAlgo_ = BTAG_cMVAv2;
-    csvFileName = "cMVAv2_ichep.csv";
+    csvFileName = "cMVAv2_Moriond17_B_H.csv";
   }
-  //else if ( btagName == "jp"    ) btagAlgo_ = BTAG_JP    ;
+  else if ( btagName == "deepcsv" ) {
+    btagAlgo_ = BTAG_DeepCSV;
+    csvFileName = "DeepCSV_Moriond17_B_H.csv";
+  }
   else btagAlgo_ = "undefined"; // FIXME: Eventually raise error somewhere?
 
   const auto csvFile = edm::FileInPath("CATTools/CatAnalyzer/data/scaleFactors/"+csvFileName).fullPath();
