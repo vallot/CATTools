@@ -42,7 +42,7 @@ void dileptonCommon::parameterInit(const edm::ParameterSet& iConfig) {
   elecToken_ = consumes<cat::ElectronCollection>(elecSet.getParameter<edm::InputTag>("src"));
   const auto elecSFSet = elecSet.getParameter<edm::ParameterSet>("effSF");
   elecSF_.set(elecSFSet.getParameter<vdouble>("pt_bins"),
-      elecSFSet.getParameter<vdouble>("abseta_bins"),
+      elecSFSet.getParameter<vdouble>("eta_bins"),
       elecSFSet.getParameter<vdouble>("values"),
       elecSFSet.getParameter<vdouble>("errors"));
 
@@ -867,7 +867,7 @@ float dileptonCommon::selectElecs(const cat::ElectronCollection& elecs, cat::Ele
     if (el.pt() < 20.) continue;
     if ((std::abs(el.scEta()) > 1.4442) && (std::abs(el.scEta()) < 1.566)) continue;
     if (std::abs(el.eta()) > 2.4) continue;
-    if ( !el.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-medium") ) continue;
+    if ( !el.electronID("cutBasedElectronID-Summer16-80X-V1-medium") ) continue;
     //if ( !el.isTrigMVAValid() or !el.electronID("mvaEleID-Spring15-25ns-Trig-V1-wp90") ) continue;
     if (el.relIso(0.3) > 0.12) continue;
 

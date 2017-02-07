@@ -8,7 +8,6 @@ process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
 process.options.allowUnscheduled = cms.untracked.bool(True)
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
-
 from CATTools.Validation.commonTestInput_cff import commonTestCATTuples
 process.source.fileNames = commonTestCATTuples["sig"]
 
