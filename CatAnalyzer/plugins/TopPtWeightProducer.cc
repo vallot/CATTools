@@ -33,15 +33,13 @@ TopPtWeightProducer::TopPtWeightProducer(const edm::ParameterSet& pset)
 
 void TopPtWeightProducer::produce(edm::Event& event, const edm::EventSetup& eventSetup)
 {
-  if (event.isRealData()) return;
-  
   edm::Handle<reco::GenParticleCollection> srcHandle;
-  if (!event.getByToken(srcToken_, srcHandle)){
+  edm::Handle<vint> modes;
+  if ( event.isRealData() or
+      !event.getByToken(srcToken_, srcHandle) or !event.getByToken(modesToken_, modes) ) {
+    event.put(std::auto_ptr<float>(new float(1)));
     return;
   }
-
-  edm::Handle<vint> modes;
-  event.getByToken(modesToken_, modes);
 
   std::vector<const reco::GenParticle*> tQuarks;
   for ( auto& p : *srcHandle ) {
