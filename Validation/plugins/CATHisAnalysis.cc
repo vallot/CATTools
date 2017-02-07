@@ -203,7 +203,7 @@ CATHisAnalysis::CATHisAnalysis(const edm::ParameterSet& pset):
   hElectron2_enUp_ = dirElectron.make<TH1D>("h2_enUp","enUp;Energy scale up",100,0,3);
   hElectron2_enDn_ = dirElectron.make<TH1D>("h2_enDn","enDn;Energy scale down",100,0,3);
 
-  TFileDirectory dirMuon = fs->mkdir("electron", "electron");
+  TFileDirectory dirMuon = fs->mkdir("muon", "muon");
   hMuon_n_    = dirMuon.make<TH1D>("h_n","n;Multiplicity",10,0,10);
   hMuon_pt_   = dirMuon.make<TH1D>("h_pt","pt",500,0,500);
   hMuon_eta_  = dirMuon.make<TH1D>("h_eta","eta",400,-3,3);
@@ -411,11 +411,11 @@ void CATHisAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&)
     if ( electron.isVeto()      ) hElectron_ids_->Fill(1, weight);
     if ( electron.isMediumMVA() ) hElectron_ids_->Fill(2, weight);
     if ( electron.isTightMVA()  ) hElectron_ids_->Fill(3, weight);
-    if ( electron.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-loose")  > 0.5 )  hElectron_ids_->Fill(4, weight);
-    if ( electron.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-medium") > 0.5 )  hElectron_ids_->Fill(5, weight);
-    if ( electron.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-tight")  > 0.5 )  hElectron_ids_->Fill(6, weight);
-    if ( electron.isTrigMVAValid() and electron.electronID("mvaEleID-Spring15-25ns-Trig-V1-wp80") > 0.5 )  hElectron_ids_->Fill(7, weight);
-    if ( electron.isTrigMVAValid() and electron.electronID("mvaEleID-Spring15-25ns-Trig-V1-wp90") > 0.5 )  hElectron_ids_->Fill(8, weight);
+    if ( electron.electronID("cutBasedElectronID-Summer16-80X-V1-loose")  > 0.5 )  hElectron_ids_->Fill(4, weight);
+    if ( electron.electronID("cutBasedElectronID-Summer16-80X-V1-medium") > 0.5 )  hElectron_ids_->Fill(5, weight);
+    if ( electron.electronID("cutBasedElectronID-Summer16-80X-V1-tight")  > 0.5 )  hElectron_ids_->Fill(6, weight);
+    if ( electron.isTrigMVAValid() and electron.electronID("mvaEleID-Spring16-GeneralPurpose-V1-wp80") > 0.5 )  hElectron_ids_->Fill(7, weight);
+    if ( electron.isTrigMVAValid() and electron.electronID("mvaEleID-Spring16-GeneralPurpose-V1-wp90") > 0.5 )  hElectron_ids_->Fill(8, weight);
 
     hElectron_enDn_->Fill(electron.shiftedEnDown(), weight);
     hElectron_enUp_->Fill(electron.shiftedEnUp(), weight);
@@ -434,11 +434,11 @@ void CATHisAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&)
     if ( electron.isVeto()      ) hElectron1_ids_->Fill(1, weight);
     if ( electron.isMediumMVA() ) hElectron1_ids_->Fill(2, weight);
     if ( electron.isTightMVA()  ) hElectron1_ids_->Fill(3, weight);
-    if ( electron.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-loose")  > 0.5 )  hElectron1_ids_->Fill(4, weight);
-    if ( electron.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-medium") > 0.5 )  hElectron1_ids_->Fill(5, weight);
-    if ( electron.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-tight")  > 0.5 )  hElectron1_ids_->Fill(6, weight);
-    if ( electron.isTrigMVAValid() and electron.electronID("mvaEleID-Spring15-25ns-Trig-V1-wp80") > 0.5 )  hElectron1_ids_->Fill(7, weight);
-    if ( electron.isTrigMVAValid() and electron.electronID("mvaEleID-Spring15-25ns-Trig-V1-wp90") > 0.5 )  hElectron1_ids_->Fill(8, weight);
+    if ( electron.electronID("cutBasedElectronID-Summer16-80X-V1-loose")  > 0.5 )  hElectron1_ids_->Fill(4, weight);
+    if ( electron.electronID("cutBasedElectronID-Summer16-80X-V1-medium") > 0.5 )  hElectron1_ids_->Fill(5, weight);
+    if ( electron.electronID("cutBasedElectronID-Summer16-80X-V1-tight")  > 0.5 )  hElectron1_ids_->Fill(6, weight);
+    if ( electron.isTrigMVAValid() and electron.electronID("mvaEleID-Spring16-GeneralPurpose-V1-wp80") > 0.5 )  hElectron1_ids_->Fill(7, weight);
+    if ( electron.isTrigMVAValid() and electron.electronID("mvaEleID-Spring16-GeneralPurpose-V1-wp90") > 0.5 )  hElectron1_ids_->Fill(8, weight);
 
     hElectron1_enDn_->Fill(electron.shiftedEnDown(), weight);
     hElectron1_enUp_->Fill(electron.shiftedEnUp(), weight);
@@ -457,11 +457,11 @@ void CATHisAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&)
     if ( electron.isVeto()      ) hElectron2_ids_->Fill(1, weight);
     if ( electron.isMediumMVA() ) hElectron2_ids_->Fill(2, weight);
     if ( electron.isTightMVA()  ) hElectron2_ids_->Fill(3, weight);
-    if ( electron.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-loose")  > 0.5 )  hElectron2_ids_->Fill(4, weight);
-    if ( electron.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-medium") > 0.5 )  hElectron2_ids_->Fill(5, weight);
-    if ( electron.electronID("cutBasedElectronID-Spring15-25ns-V1-standalone-tight")  > 0.5 )  hElectron2_ids_->Fill(6, weight);
-    if ( electron.isTrigMVAValid() and electron.electronID("mvaEleID-Spring15-25ns-Trig-V1-wp80") > 0.5 )  hElectron2_ids_->Fill(7, weight);
-    if ( electron.isTrigMVAValid() and electron.electronID("mvaEleID-Spring15-25ns-Trig-V1-wp90") > 0.5 )  hElectron2_ids_->Fill(8, weight);
+    if ( electron.electronID("cutBasedElectronID-Summer16-80X-V1-loose")  > 0.5 )  hElectron2_ids_->Fill(4, weight);
+    if ( electron.electronID("cutBasedElectronID-Summer16-80X-V1-medium") > 0.5 )  hElectron2_ids_->Fill(5, weight);
+    if ( electron.electronID("cutBasedElectronID-Summer16-80X-V1-tight")  > 0.5 )  hElectron2_ids_->Fill(6, weight);
+    if ( electron.isTrigMVAValid() and electron.electronID("mvaEleID-Spring16-GeneralPurpose-V1-wp80") > 0.5 )  hElectron2_ids_->Fill(7, weight);
+    if ( electron.isTrigMVAValid() and electron.electronID("mvaEleID-Spring16-GeneralPurpose-V1-wp90") > 0.5 )  hElectron2_ids_->Fill(8, weight);
 
     hElectron2_enDn_->Fill(electron.shiftedEnDown(), weight);
     hElectron2_enUp_->Fill(electron.shiftedEnUp(), weight);

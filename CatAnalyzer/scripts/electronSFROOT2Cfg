@@ -1,0 +1,72 @@
+#!/usr/bin/env python
+
+from ROOT import *
+from math import sqrt
+
+def getData(fileName):
+    f = TFile(fileName)
+    h = f.Get("EGamma_SF2D")
+
+    nbinsX = h.GetNbinsX()
+    nbinsY = h.GetNbinsY()
+
+    eta_bins = [h.GetXaxis().GetBinLowEdge(i) for i in range(1, nbinsX+2)]
+    pt_bins  = [h.GetYaxis().GetBinLowEdge(i) for i in range(1, nbinsY+2)]
+
+    values = []
+    errors = []
+    for i in range(1, nbinsX+1): # eta bins
+        for j in range(1, nbinsY+1): # pt bins
+            val, err = h.GetBinContent(i,j), h.GetBinError(i,j)
+            values.append(val)
+            errors.append(err)
+
+    return [eta_bins[:], pt_bins[:], values[:], errors[:]]
+
+resRECO = getData("effRECO.root")
+resID   = getData("effID.root")
+
+nbins_RECO = len(resRECO[0]), len(resRECO[1])
+nbins_ID   = len(resID[0]), len(resID[1])
+
+eta_bins = sorted(list(set(resRECO[0]).union(set(resID[0]))))
+pt_bins = sorted(list(set(resRECO[1]).union(set(resID[1]))))
+
+values, errors = [], []
+for eta in eta_bins[:-1]:
+    iRECO = next(k for k,v in enumerate(resRECO[0]) if v > eta)-1
+    iID   = next(k for k,v in enumerate(resID[0]) if v > eta)-1
+
+    for pt in pt_bins[:-1]:
+        jRECO = next(k for k,v in enumerate(resRECO[1]) if v > pt)-1
+        jID   = next(k for k,v in enumerate(resID[1]) if v > pt)-1
+
+        addSyst = 0.01
+        if jRECO < 0:
+            addSyst = 0.03
+            jRECO = 0
+
+        valRECO = resRECO[2][jRECO+iRECO*(nbins_RECO[1]-1)]
+        errRECO = resRECO[3][jRECO+iRECO*(nbins_RECO[1]-1)]
+        valID   = resID[2][jID+iID*(nbins_ID[1]-1)]
+        errID   = resID[3][jID+iID*(nbins_ID[1]-1)]
+
+        values.append(valRECO*valID)
+        errors.append(sqrt( (errRECO+valRECO*addSyst)**2 + errID**2 ))
+
+pt_bins_str = ",".join(["%f" % x for x in pt_bins])
+eta_bins_str = ",".join(["%f" % x for x in eta_bins])
+values_str, errors_str = "", ""
+for j in range(len(eta_bins)-1):
+    for i in range(len(pt_bins)-1):
+        values_str += "%f" % values[i+j*(len(pt_bins)-1)] + ", "
+        errors_str += "%f" % errors[i+j*(len(pt_bins)-1)] + ", "
+    values_str += "\n        "
+    errors_str += "\n        "
+
+print """cms.PSet(
+    pt_bins = cms.vdouble(%s),
+    eta_bins = cms.vdouble(%s),
+    values = cms.vdouble(%s),
+    errors = cms.vdouble(%s),
+)""" % (pt_bins_str, eta_bins_str, values_str, errors_str)

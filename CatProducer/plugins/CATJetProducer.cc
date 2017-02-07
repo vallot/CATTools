@@ -29,50 +29,60 @@ using namespace std;
 
 namespace cat {
 
-  class CATJetProducer : public edm::stream::EDProducer<> {
-  public:
-    explicit CATJetProducer(const edm::ParameterSet & iConfig);
-    virtual ~CATJetProducer() { }
+class CATJetProducer : public edm::stream::EDProducer<>
+{
+public:
+  explicit CATJetProducer(const edm::ParameterSet & iConfig);
+  virtual ~CATJetProducer() { }
 
-    void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
-    void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&) override;
+  void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
+  void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&) override;
 
-    std::vector<const reco::Candidate *> getAncestors(const reco::Candidate &c);
-    bool hasBottom(const reco::Candidate &c);
-    bool hasCharm(const reco::Candidate &c);
-    bool decayFromBHadron(const reco::Candidate &c);
-    bool decayFromCHadron(const reco::Candidate &c);
-    const reco::Candidate* lastBHadron(const reco::Candidate &c);
-    const reco::Candidate* lastCHadron(const reco::Candidate &c);
+  std::vector<const reco::Candidate *> getAncestors(const reco::Candidate &c);
+  bool hasBottom(const reco::Candidate &c);
+  bool hasCharm(const reco::Candidate &c);
+  bool decayFromBHadron(const reco::Candidate &c);
+  bool decayFromCHadron(const reco::Candidate &c);
+  const reco::Candidate* lastBHadron(const reco::Candidate &c);
+  const reco::Candidate* lastCHadron(const reco::Candidate &c);
 
-  private:
-    edm::EDGetTokenT<pat::JetCollection> src_;
-    edm::EDGetTokenT<double> rhoToken_;
+private:
+  edm::EDGetTokenT<pat::JetCollection> src_;
+  edm::EDGetTokenT<double> rhoToken_;
+  edm::EDGetTokenT<edm::ValueMap<float>> qgToken_;
+  std::vector<std::string> flavTagNames_;
+  std::vector<edm::EDGetTokenT<edm::ValueMap<float>>> flavTagTokens_;
 
-    const std::vector<std::string> btagNames_;
-    std::string uncertaintyTag_, payloadName_;
-    const std::string jetResFilePath_, jetResSFFilePath_;
-    bool setGenParticle_;
-    bool runOnMC_;
-    //PFJetIDSelectionFunctor pfjetIDFunctor;
-    JetCorrectionUncertainty *jecUnc;
+  const std::vector<std::string> btagNames_;
+  std::string uncertaintyTag_, payloadName_;
+  const std::string jetResFilePath_, jetResSFFilePath_;
+  bool setGenParticle_;
+  bool runOnMC_;
+  //PFJetIDSelectionFunctor pfjetIDFunctor;
+  JetCorrectionUncertainty *jecUnc;
 
-    CLHEP::HepRandomEngine* rng_;
-  };
+  CLHEP::HepRandomEngine* rng_;
+};
 
 } // namespace
 
 cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
   src_(consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("src"))),
   rhoToken_(consumes<double>(iConfig.getParameter<edm::InputTag>("rho"))),
+  qgToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("qgLikelihood"))),
   btagNames_(iConfig.getParameter<std::vector<std::string> >("btagNames")),
   payloadName_(iConfig.getParameter<std::string>("payloadName")),
   jetResFilePath_(edm::FileInPath(iConfig.getParameter<std::string>("jetResFile")).fullPath()),
   jetResSFFilePath_(edm::FileInPath(iConfig.getParameter<std::string>("jetResSFFile")).fullPath()),
   setGenParticle_(iConfig.getParameter<bool>("setGenParticle"))
 {
+  for ( auto label : iConfig.getParameter<std::vector<edm::InputTag>>("flavTagLabels") ) {
+    const std::string name = label.label() + ":" + label.instance();
+    flavTagNames_.push_back(name);
+    flavTagTokens_.push_back(consumes<edm::ValueMap<float>>(label));
+  }
+
   produces<std::vector<cat::Jet> >();
-  ///  pfjetIDFunctor = PFJetIDSelectionFunctor(PFJetIDSelectionFunctor::FIRSTDATA,PFJetIDSelectionFunctor::LOOSE);
 }
 
 void cat::CATJetProducer::beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&)
@@ -81,15 +91,15 @@ void cat::CATJetProducer::beginLuminosityBlock(const edm::LuminosityBlock& lumi,
   rng_ = &rng->getEngine(lumi.index());
 }
 
-void cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) {
-
+void cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
+{
   runOnMC_ = !iEvent.isRealData();
 
   edm::Handle<pat::JetCollection> src;
   iEvent.getByToken(src_, src);
 
   edm::ESHandle<JetCorrectorParametersCollection> JetCorParColl;
-  if (payloadName_.size()){
+  if ( !payloadName_.empty() ) {
     // temp measure - payloadName should be AK4PFchs, but PHYS14_25_V2 does not have uncertainty
     iSetup.get<JetCorrectionsRecord>().get(payloadName_,JetCorParColl);
     JetCorrectorParameters const & JetCorPar = (*JetCorParColl)["Uncertainty"];
@@ -107,8 +117,24 @@ void cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
   iEvent.getByToken(rhoToken_, rhoHandle);
   const double rho = *rhoHandle;
 
+  // for quark gluon likelihood calculation
+  edm::Handle<edm::ValueMap<float>> qgHandle; 
+  iEvent.getByToken(qgToken_, qgHandle);
+
+  // for the different flavours
+  std::vector<std::string> flavTagNames;
+  std::vector<edm::Handle<edm::ValueMap<float>>> flavTagHandles;
+  for ( auto token : flavTagTokens_ ) {
+    flavTagHandles.push_back(edm::Handle<edm::ValueMap<float>>());
+    iEvent.getByToken(token, flavTagHandles.back());
+  }
+
   auto_ptr<vector<cat::Jet> >  out(new vector<cat::Jet>());
-  for (const pat::Jet &aPatJet : *src) {
+
+  for (auto aPatJetPointer = src->begin(); aPatJetPointer != src->end(); ++aPatJetPointer) {
+
+    const pat::Jet& aPatJet = *aPatJetPointer;
+    edm::RefToBase<pat::Jet> jetRef(edm::Ref<pat::JetCollection>(src, aPatJetPointer - src->begin()));
 
     cat::Jet aJet(aPatJet);
 
@@ -124,13 +150,18 @@ void cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     float eta = aPatJet.eta();
 
     aJet.setChargedEmEnergyFraction(aPatJet.chargedEmEnergyFraction());
-    bool looseJetID = (NHF<0.99 && NEMF<0.99 && NumConst>1) && ((abs(eta)<=2.4 && CHF>0 && CHM>0 && CEMF<0.99) || abs(eta)>2.4) && abs(eta)<=3.0;
-    bool tightJetID = (NHF<0.90 && NEMF<0.90 && NumConst>1) && ((abs(eta)<=2.4 && CHF>0 && CHM>0 && CEMF<0.99) || abs(eta)>2.4) && abs(eta)<=3.0;
-    bool tightLepVetoJetID = (NHF<0.90 && NEMF<0.90 && NumConst>1 && MUF<0.8) && ((abs(eta)<=2.4 && CHF>0 && CHM>0 && CEMF<0.90) || abs(eta)>2.4) && abs(eta)<=3.0;
+    bool looseJetID = (NHF<0.99 && NEMF<0.99 && NumConst>1) && ((abs(eta)<=2.4 && CHF>0 && CHM>0 && CEMF<0.99) || abs(eta)>2.4) && abs(eta)<=2.7;
+    bool tightJetID = (NHF<0.90 && NEMF<0.90 && NumConst>1) && ((abs(eta)<=2.4 && CHF>0 && CHM>0 && CEMF<0.99) || abs(eta)>2.4) && abs(eta)<=2.7;
+    bool tightLepVetoJetID = (NHF<0.90 && NEMF<0.90 && NumConst>1 && MUF<0.8) && ((abs(eta)<=2.4 && CHF>0 && CHM>0 && CEMF<0.90) || abs(eta)>2.4) && abs(eta)<=2.7;
 
-    if (std::abs(eta) > 3.){
+    if ( std::abs(eta) > 3.0 ) {
       looseJetID = (NEMF<0.90 && NumNeutralParticle>10 && abs(eta)>3.0 );
       tightJetID = (NEMF<0.90 && NumNeutralParticle>10 && abs(eta)>3.0 );
+      tightLepVetoJetID = false;
+    }
+    else if (std::abs(eta) > 2.7){
+      looseJetID = (NHF<0.98 && NEMF>0.01 && NumNeutralParticle>2 && abs(eta)>2.7 && abs(eta)<=3.0 );
+      tightJetID = (NHF<0.98 && NEMF>0.01 && NumNeutralParticle>2 && abs(eta)>2.7 && abs(eta)<=3.0 );
       tightLepVetoJetID = false;
     }
 
@@ -138,12 +169,13 @@ void cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     aJet.setTightJetID( tightJetID );
     aJet.setTightLepVetoJetID( tightLepVetoJetID );
 
-    if( aPatJet.hasUserFloat("pileupJetId:fullDiscriminant") )
+    if( aPatJet.hasUserFloat("pileupJetId:fullDiscriminant") ) {
       aJet.setPileupJetId( aPatJet.userFloat("pileupJetId:fullDiscriminant") );
+    }
 
-    //    aJet.addBDiscriminatorPair( aPatJet.bDiscriminator(btagNames_.at(0)) );
+    // aJet.addBDiscriminatorPair( aPatJet.bDiscriminator(btagNames_.at(0)) );
 
-    if (btagNames_.size() == 0){
+    if ( btagNames_.empty() ) {
       aJet.setBDiscriminators(aPatJet.getPairDiscri());
       // const std::vector<std::pair<std::string, float> > bpair = aPatJet.getPairDiscri();
       // for (unsigned int i =0; i < bpair.size(); i++){
@@ -151,9 +183,15 @@ void cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
       // }
     }
     else {
-      for(unsigned int i = 0; i < btagNames_.size(); i++){
-    	aJet.addBDiscriminatorPair(std::make_pair(btagNames_.at(i), aPatJet.bDiscriminator(btagNames_.at(i)) ));
+      for ( auto btagName : btagNames_ ) {
+        aJet.addBDiscriminatorPair(std::make_pair(btagName, aPatJet.bDiscriminator(btagName) ));
       }
+    }
+    for ( int i=0, n=flavTagNames_.size(); i<n; ++i ) {
+      const auto name = flavTagNames_[i];
+      auto handle = flavTagHandles[i];
+      const double value = handle.isValid() ? (*handle)[jetRef] : -999;
+      aJet.addBDiscriminatorPair(std::make_pair(name, value));
     }
     //cout << "jet pt " << aJet.pt() <<" eta " << aJet.eta() <<endl;
 
@@ -167,6 +205,15 @@ void cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     aJet.setPartonFlavour(aPatJet.partonFlavour());
     int partonPdgId = aPatJet.genParton() ? aPatJet.genParton()->pdgId() : 0;
     aJet.setPartonPdgId(partonPdgId);
+
+    // calculate quark/gluon likelihood but only for AK4
+    aJet.setQGLikelihood(-2.0);
+    if ( qgHandle.isValid() ) {
+      edm::RefToBase<pat::Jet> jetRef(edm::Ref<pat::JetCollection>(src, aPatJetPointer - src->begin()));
+      float qgLikelihood = (*qgHandle)[jetRef];
+      aJet.setQGLikelihood(qgLikelihood);
+      //aJet.setQGLikelihood(aPatJet.userFloat("QGTaggerAK4PFCHS:qgLikelihood"));
+    }
 
     // setting JEC uncertainty
     if (!payloadName_.empty()){

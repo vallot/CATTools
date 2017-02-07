@@ -1,6 +1,6 @@
 from CATTools.CatProducer.catTemplate_cfg import *
 ## some options
-doSecVertex=True # for jpsi candidates
+doSecVertex=False # for jpsi candidates
 doDstar=True      # for Dstar meson.
     
 ## setting up arguements
@@ -10,7 +10,6 @@ options.register('runOnMC', True, VarParsing.multiplicity.singleton, VarParsing.
 options.register('useMiniAOD', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "useMiniAOD: 1  default")
 options.register('globalTag', '', VarParsing.multiplicity.singleton, VarParsing.varType.string, "globalTag: 1  default")
 options.register('runGenTop', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runGenTop: 1  default")
-options.register('runOnRelVal', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runOnRelVal: 1  default")
 
 options.parseArguments()
 runOnMC = options.runOnMC
@@ -22,24 +21,26 @@ else: runGenTop = False
 ####################################################################
 #### setting up global tag
 ####################################################################
-from Configuration.AlCa.autoCond_condDBv2 import autoCond
-process.GlobalTag.globaltag = autoCond['run2_mc']
-if not runOnMC:
-    process.GlobalTag.globaltag = autoCond['run2_data']
-if globalTag:
-    process.GlobalTag.globaltag = globalTag
+#from Configuration.AlCa.autoCond_condDBv2 import autoCond
+#if runOnMC: process.GlobalTag.globaltag = autoCond['run2_mc']
+#else: process.GlobalTag.globaltag = autoCond['run2_data']
+if not globalTag:
+    if runOnMC: from CATTools.CatProducer.catDefinitions_cfi import globalTag_mc as globalTag
+    else: from CATTools.CatProducer.catDefinitions_cfi import globalTag_rd as globalTag
+process.GlobalTag.globaltag = globalTag
 print "runOnMC =",runOnMC,"and useMiniAOD =",useMiniAOD
 print "process.GlobalTag.globaltag =",process.GlobalTag.globaltag    
 ####################################################################
 #### cat tools output
 ####################################################################
 process.load("CATTools.CatProducer.catCandidates_cff")    
+process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
 from CATTools.CatProducer.catEventContent_cff import *
 process.catOut.outputCommands = catEventContent
 
 if runOnMC:
     process.load("CATTools.CatProducer.pileupWeight_cff")
-    process.load("CATTools.CatProducer.genWeight_cff")
+    process.load("CATTools.CatProducer.producers.genWeight_cff")
     process.catOut.outputCommands.extend(catEventContentMC)
 else: 
     process.catOut.outputCommands.extend(catEventContentRD)
@@ -53,18 +54,17 @@ if runGenTop:
     process.catOut.outputCommands.extend(['keep *_catGenTops_*_*',])
             
 if doSecVertex:
-    process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
     process.catOut.outputCommands.extend(catEventContentSecVertexs)
 
 if doDstar :
     process.catOut.outputCommands.extend(['keep *_catDstars_*_*',])
-
 
 from PhysicsTools.PatAlgos.slimming.miniAOD_tools import miniAOD_customizeOutput
 miniAOD_customizeOutput(process.catOut)
     
 process.catOutpath = cms.EndPath(process.catOut)    
 process.schedule.append(process.catOutpath)
+
 ####################################################################
 #### setting up cat tools
 ####################################################################
@@ -73,7 +73,7 @@ catTool(process, runOnMC, useMiniAOD)
 ####################################################################
 #### setting up pat tools - miniAOD step or correcting miniAOD
 ####################################################################
-from CATTools.CatProducer.patTools_cff import *
+from CATTools.CatProducer.patTools.patTools_cff import *
 patTool(process, runOnMC, useMiniAOD)
 ####################################################################
 #### cmsRun options
@@ -83,35 +83,22 @@ process.maxEvents.input = options.maxEvents
 # Default file here for test purpose
 if not options.inputFiles:
     if useMiniAOD:
-        if runGenTop:
-            process.source.fileNames = [
-            '/store/mc/RunIISpring16MiniAODv2/GluGlu_HToMuMu_M125_13TeV_powheg_pythia8/MINIAODSIM/PUSpring16RAWAODSIM_reHLT_80X_mcRun2_asymptotic_v14-v1/10000/12B931FE-CD3A-E611-9844-0025905C3D98.root',
-#'/store/relval/CMSSW_7_4_15/RelValTTbar_13/MINIAODSIM/PU25ns_74X_mcRun2_asymptotic_v2-v1/00000/0253820F-4772-E511-ADD3-002618943856.root',
-#'/store/relval/CMSSW_7_4_15/RelValTTbar_13/MINIAODSIM/PU25ns_74X_mcRun2_asymptotic_v2-v1/00000/3848030E-4772-E511-AFCA-0026189438CC.root'
-                ]
-        else:
-            process.source.fileNames = ['/store/relval/CMSSW_7_4_15/RelValZMM_13/MINIAODSIM/PU25ns_74X_mcRun2_asymptotic_v2-v1/00000/10FF6E32-3C72-E511-87AD-0025905A60B4.root']
-    else:
-        if useGenTop:
-            process.source.fileNames = ['/store/relval/CMSSW_7_4_12/RelValTTbar_13/GEN-SIM-RECO/PU25ns_74X_mcRun2_asymptotic_v2_v2-v1/00000/006F3660-4B5E-E511-B8FD-0025905B8596.root']
-        else:
-            process.source.fileNames = ['/store/relval/CMSSW_7_4_15/RelValZMM_13/GEN-SIM-RECO/PU25ns_74X_mcRun2_asymptotic_v2-v1/00000/18B13146-3872-E511-A382-00261894394D.root']
-
-if options.inputFiles:
+        from CATTools.Validation.commonTestInput_cff import commonTestMiniAODs
+        if runOnMC and runGenTop: process.source.fileNames = commonTestMiniAODs["sig"]
+        elif runOnMC: process.source.fileNames = commonTestMiniAODs["bkg"]
+        elif not runOnMC: process.source.fileNames = commonTestMiniAODs["data"]
+else:
     process.source.fileNames = options.inputFiles
+
 #pat input files are removed because it would not work if useMiniAOD is on.    
-
 ## to suppress the long output at the end of the job
-
-
 
 if options.maxEvents < 0:
     process.MessageLogger.cerr.FwkReport.reportEvery = 1000
-process.options.wantSummary = True
 
+process.options.wantSummary = True
 process.MessageLogger.cerr.threshold = 'ERROR'
 process.MessageLogger.suppressWarning = cms.untracked.vstring(["JetPtMismatchAtLowPt", "NullTransverseMomentum"])
-
 
 ## for debugging
 #process.options.wantSummary = True

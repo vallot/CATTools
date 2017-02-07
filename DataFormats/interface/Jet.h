@@ -22,26 +22,38 @@ namespace cat {
 
   // pfJetProbabilityBJetTags
   const std::string BTAG_JP = "pfJetProbabilityBJetTags";
+  //                         ICHEP16// 2015
   const double WP_BTAG_JPL = 0.245; // 0.275
   const double WP_BTAG_JPM = 0.515; // 0.545
   const double WP_BTAG_JPT = 0.760; // 0.790
   // pfCombinedInclusiveSecondaryVertexV2BJetTags
   const std::string BTAG_CSVv2 = "pfCombinedInclusiveSecondaryVertexV2BJetTags";
-  const double WP_BTAG_CSVv2L = 0.460; // 0.605
-  const double WP_BTAG_CSVv2M = 0.800; // 0.89
-  const double WP_BTAG_CSVv2T = 0.935; // 0.97
+  //                            Moriond17//ICHEP16//2015
+  const double WP_BTAG_CSVv2L = 0.5426; // 0.460; // 0.605
+  const double WP_BTAG_CSVv2M = 0.8484; // 0.800; // 0.89
+  const double WP_BTAG_CSVv2T = 0.9535; // 0.935; // 0.97
   // pfCombinedMVAV2BJetTags
   const std::string BTAG_cMVAv2 = "pfCombinedMVAV2BJetTags";
-  const double WP_BTAG_cMVAv2L = -0.715; // -
-  const double WP_BTAG_cMVAv2M =  0.185; // -
-  const double WP_BTAG_cMVAv2T =  0.875; // -
+  //                             Moriond17//ICHEP16
+  const double WP_BTAG_cMVAv2L = -0.5884; // -0.715; // -
+  const double WP_BTAG_cMVAv2M =  0.4432; //  0.185; // -
+  const double WP_BTAG_cMVAv2T =  0.9432; //  0.875; // -
   // pfCombinedCvsLJetTags
   const std::string CTAG_CvsL = "pfCombinedCvsLJetTags";
+  //                           Moriond17=ICHEP16
+  const double WP_CTAG_CvsLL = -0.48;// -
   const double WP_CTAG_CvsLM = -0.1; // -
-  const double WP_CTAG_CvsLT = 0.69; // -
+  const double WP_CTAG_CvsLT =  0.69; // -
   const std::string CTAG_CvsB = "pfCombinedCvsBJetTags";
+  //                           Moriond17=ICHEP16
+  const double WP_CTAG_CvsBL = -0.17; // -
   const double WP_CTAG_CvsBM = 0.08; // -
   const double WP_CTAG_CvsBT = -0.45; // -
+  // DeepCSV
+  const std::string BTAG_DeepCSV = "DeepCSV";
+  const double WP_BTAG_DeepCSVL = 0.2219;
+  const double WP_BTAG_DeepCSVM = 0.6324;
+  const double WP_BTAG_DeepCSVT = 0.8958;
 
   class Jet : public Particle{
   public:
@@ -91,6 +103,7 @@ namespace cat {
     float smearedResUp(int era = 0) const { return smearedRes(+1, era); };
     float smearedResDown(int era = 0) const { return smearedRes(-1, era); };
 
+    float qgLikelihood() const { return qgLikelihood_; }
     
     void setLooseJetID(bool id) { looseJetID_ = id; }
     void setTightJetID(bool id) { tightJetID_ = id; }
@@ -121,6 +134,8 @@ namespace cat {
       fJER_ = fJER; fJERUp_ = fJERUp; fJERDown_ = fJERDown;
     }
 
+    void setQGLikelihood(float f) { qgLikelihood_ = f; }
+
   private:
 
     edm::FwdRef<reco::GenJetCollection>  genJetFwdRef_;
@@ -150,6 +165,8 @@ namespace cat {
     float shiftedEnUp_;
 
     float fJER_, fJERUp_, fJERDown_;
+
+    float qgLikelihood_;
 
   };
 }

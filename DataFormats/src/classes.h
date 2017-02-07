@@ -8,11 +8,13 @@
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/Tau.h"
 #include "CATTools/DataFormats/interface/MET.h"
+#include "CATTools/DataFormats/interface/FatJet.h"
 #include "CATTools/DataFormats/interface/GenJet.h"
 #include "CATTools/DataFormats/interface/GenTop.h"
 #include "CATTools/DataFormats/interface/MCParticle.h"
 #include "CATTools/DataFormats/interface/SecVertex.h"
 #include "CATTools/DataFormats/interface/GenWeights.h"
+#include "CATTools/DataFormats/interface/Trigger.h"
 #include "DataFormats/Common/interface/ValueMap.h"
 
 #include <vector>
@@ -81,6 +83,12 @@ namespace {
     edm::Wrapper<std::vector<cat::MET> > metvw;
     edm::Ptr<cat::MET> metPtr;
 
+    cat::FatJet fj_;
+    std::vector<cat::FatJet> fjv;
+    edm::Wrapper<cat::FatJet> fjw;
+    edm::Wrapper<std::vector<cat::FatJet> > fjvw;
+    edm::Ptr<cat::FatJet> fjPtr;
+
     cat::MCParticle ma_;
     std::vector<cat::MCParticle> mav;
     edm::Wrapper<cat::MCParticle> maw;
@@ -116,6 +124,12 @@ namespace {
 
     cat::GenWeightInfo gwi;
     edm::Wrapper<cat::GenWeightInfo> wgwi;
+
+    cat::TriggerBits tb;
+    edm::Wrapper<cat::TriggerBits> wtb;
+
+    cat::TriggerNames tn;
+    edm::Wrapper<cat::TriggerNames> wtn;
   };
 
 

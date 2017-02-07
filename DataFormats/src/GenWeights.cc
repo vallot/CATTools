@@ -5,6 +5,29 @@
 using namespace std;
 using namespace cat;
 
+bool GenWeightInfo::isProductEqual(const GenWeightInfo& other) const
+{
+  if ( names_.size() != other.names_.size() ) return false;
+  if ( combineMethods_.size() != other.combineMethods_.size() ) return false;
+  if ( params_.size() != other.params_.size() ) return false;
+  if ( keys_.size() != other.keys_.size() ) return false;
+
+  for ( unsigned int i=0, n=names_.size(); i<n; ++i ) {
+    if ( names_[i] != other.names_[i] ) return false;
+  }
+  for ( unsigned int i=0, n=combineMethods_.size(); i<n; ++i ) {
+    if ( combineMethods_[i] != other.combineMethods_[i] ) return false;
+  }
+  for ( unsigned int i=0, n=params_.size(); i<n; ++i ) {
+    if ( params_[i] != other.params_[i] ) return false;
+  }
+  for ( unsigned int i=0, n=keys_.size(); i<n; ++i ) {
+    if ( keys_[i] != other.keys_[i] ) return false;
+  }
+
+  return true;
+}
+
 void GenWeightInfo::addWeightGroup(const string name, const string combineBy, const vector<string> params, const vector<unsigned short> keys)
 {
   names_.push_back(name);
