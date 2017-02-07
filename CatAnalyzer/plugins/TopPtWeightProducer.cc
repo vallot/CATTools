@@ -20,6 +20,8 @@ private:
 
   edm::EDGetTokenT<reco::GenParticleCollection> srcToken_;
   edm::EDGetTokenT<vint> modesToken_;
+
+  std::vector<double> paramsAny_, paramsLL_, paramsLJ_;
 };
 
 TopPtWeightProducer::TopPtWeightProducer(const edm::ParameterSet& pset)
@@ -27,6 +29,9 @@ TopPtWeightProducer::TopPtWeightProducer(const edm::ParameterSet& pset)
   const auto srcLabel = pset.getParameter<edm::InputTag>("src");
   srcToken_ = consumes<reco::GenParticleCollection>(srcLabel);
   modesToken_ = consumes<vint>(edm::InputTag(srcLabel.label(), "modes"));
+  paramsAny_ = pset.getParameter<std::vector<double>>("paramsAny");
+  paramsLL_ = pset.getParameter<std::vector<double>>("paramsLL");
+  paramsLJ_ = pset.getParameter<std::vector<double>>("paramsLJ");
 
   produces<float>();
 }
@@ -56,10 +61,8 @@ void TopPtWeightProducer::produce(edm::Event& event, const edm::EventSetup& even
     const bool isLep1 = (mode1 == CH_MUON or mode2 == CH_ELECTRON);
     const bool isLep2 = (mode2 == CH_MUON or mode2 == CH_ELECTRON);
 
-    double a = 0.156, b = -0.00137;
-    if ( isLep1 and isLep2 ) { a = 0.148; b = -0.00129; }
-    else if ( isLep1 or isLep2 ) { a = 0.159; b = -0.00141; }
-
+    const auto& params = (isLep1 and isLep2) ? paramsLL_ : (isLep1 or isLep2) ? paramsLJ_ : paramsAny_;
+    const double a = params[0], b = params[1];
     ptWeight = sqrt(exp(a+b*pt1)*exp(a+b*pt2));
   }
 
