@@ -49,10 +49,15 @@ private:
   std::vector<std::vector<VmapToken> > vmapTokens_;
 
   std::vector<int> indices_;
-  std::vector<std::vector<CandFtn> > exprs_;
+  std::vector<std::vector<CandFtn> > exprsF_, exprsI_, exprsB_;
   std::vector<std::vector<CandSel> > boolexprs_;
 
-  std::vector<std::vector<vfloat*> > candVars_;
+  std::vector<unsigned short*> candSize_;
+  std::vector<std::vector<float*> > candVarsF_;
+  std::vector<std::vector<int*> > candVarsI_;
+  std::vector<std::vector<bool*> > candVarsB_;
+
+  constexpr unsigned short maxSize_ = 255;
 };
 
 template<typename T>
