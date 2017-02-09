@@ -1,9 +1,0 @@
-# -- DATA Single Muon
-DataSingleMuB   ../data/dataset_v8-0-3/dataset_SingleMuon_Run2016B.txt
-DataSingleMuC   ../data/dataset_v8-0-3/dataset_SingleMuon_Run2016C.txt
-DataSingleMuD   ../data/dataset_v8-0-3/dataset_SingleMuon_Run2016D.txt
-DataSingleMuE   ../data/dataset_v8-0-3/dataset_SingleMuon_Run2016E.txt
-DataSingleMuF   ../data/dataset_v8-0-3/dataset_SingleMuon_Run2016F.txt
-DataSingleMuG   ../data/dataset_v8-0-3/dataset_SingleMuon_Run2016G.txt
-DataSingleMuHv2 ../data/dataset_v8-0-3/dataset_SingleMuon_Run2016H_v2.txt
-DataSingleMuHv3 ../data/dataset_v8-0-3/dataset_SingleMuon_Run2016H_v3.txt

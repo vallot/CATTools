@@ -22,6 +22,7 @@ process = cms.Process("ttbbLepJets")
 
 # initialize MessageLogger and output report
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
+process.MessageLogger.cerr.FwkReport.reportEvery = 50000
 # process.MessageLogger.cerr.threshold = 'INFO'
 # process.MessageLogger.categories.append('ttbbLepJets')
 # process.MessageLogger.cerr.INFO = cms.untracked.PSet(
@@ -102,6 +103,10 @@ process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      JetMother         = cms.InputTag("genJetHadronFlavour:ancestors"),
                                      )
 
+process.ttbbLepJetsQCD = process.ttbbLepJets.clone(
+    doLooseLepton = cms.untracked.bool(True),
+)
+
 process.TFileService = cms.Service("TFileService",
                                    fileName = cms.string('Tree_ttbbLepJets.root')
                                    )
@@ -115,4 +120,4 @@ process.TFileService = cms.Service("TFileService",
 process.p = cms.Path(process.flatGenWeights +
                      process.csvWeights +
                      process.pileupWeight +
-                     process.ttbbLepJets)
+                     process.ttbbLepJets + process.ttbbLepJetsQCD)

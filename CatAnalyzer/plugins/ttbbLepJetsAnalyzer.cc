@@ -66,6 +66,7 @@ private:
   bool IsVetoElectron  (const cat::Electron & i_electron_candidate);
 
   bool isMC_ ;
+  bool doLooseLepton_;
 
   int TTbarMC_; // 0->No ttbar, 1->ttbar Signal, 2->ttbar Background
   int TTbarCatMC_;
@@ -154,6 +155,8 @@ private:
   float b_Lepton_eta;
   float b_Lepton_phi;
   float b_Lepton_E;
+  float b_Lepton_relIso;
+  bool b_Lepton_isIso;
   std::vector<float> *b_Lepton_SF;
   float b_Lepton_LES;
   // GEN Jets
@@ -234,6 +237,7 @@ private:
 // constructors and destructor
 //
 ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
+  doLooseLepton_(iConfig.getUntrackedParameter<bool>("doLooseLepton", false)),
   TTbarMC_    (iConfig.getUntrackedParameter<int>("TTbarSampleLabel", 0)),
   TTbarCatMC_ (iConfig.getUntrackedParameter<int>("TTbarCatLabel", 0)),
   SkimNJets_  (iConfig.getUntrackedParameter<unsigned int>("Skim_N_Jets", 0)),
@@ -349,12 +353,12 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   edm::Service<TFileService> fs;
   tree = fs->make<TTree>("tree", "TopTree");
 
-  tree->Branch("event",      &b_Event,       "Event/I");
-  tree->Branch("run",        &b_Run,         "Run/I");
-  tree->Branch("luminumber", &b_Lumi_Number, "Lumi_Number/I");
-  tree->Branch("genweight",  &b_GenWeight,   "GenWeight/F");
-  tree->Branch("GoodPV",     &b_nGoodPV,     "nGoodPV/I");
-  tree->Branch("channel",    &b_Channel,     "Channel/I");
+  tree->Branch("event",      &b_Event,       "event/I");
+  tree->Branch("run",        &b_Run,         "run/I");
+  tree->Branch("luminumber", &b_Lumi_Number, "luminumber/I");
+  tree->Branch("genweight",  &b_GenWeight,   "genweight/F");
+  tree->Branch("GoodPV",     &b_nGoodPV,     "GoodPV/I");
+  tree->Branch("channel",    &b_Channel,     "channel/I");
 
   tree->Branch("PUWeight",   "std::vector<float>", &b_PUWeight);
 
@@ -368,6 +372,11 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("lepton_LES", &b_Lepton_LES, "lepton_LES/F" );
 
   tree->Branch("lepton_SF",  "std::vector<float>", &b_Lepton_SF );
+
+  if ( doLooseLepton_ ) {
+    tree->Branch("lepton_relIso", &b_Lepton_relIso, "lepton_relIso/F");
+    tree->Branch("lepton_isIso", &b_Lepton_isIso, "lepton_isIso/O");
+  }
 
   tree->Branch("jet_pT",           "std::vector<float>", &b_Jet_pT);
   tree->Branch("jet_eta",          "std::vector<float>", &b_Jet_eta);
@@ -624,6 +633,9 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   b_Event        = iEvent.id().event();
   b_Run          = iEvent.id().run();
   b_Lumi_Number  = iEvent.luminosityBlock();
+
+  b_Lepton_relIso = 999;
+  b_Lepton_isIso = false;
 
   EventInfo->Fill(0.5, 1.0);         // Number of Events
 
@@ -1017,12 +1029,20 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   Handle<cat::ElectronCollection> electrons;
   iEvent.getByToken(electronToken_, electrons);
 
-  for (unsigned int i = 0; i < electrons->size() ; i++) {
-    const cat::Electron & electron = electrons->at(i);
+  if ( !doLooseLepton_ ) {
+    for (unsigned int i = 0; i < electrons->size() ; i++) {
+      const cat::Electron & electron = electrons->at(i);
 
-    if( IsSelectElectron( electron ) ) selectedElectrons.push_back( electron );
-    else if( IsVetoElectron( electron ) ) vetoElectrons.push_back( electron ); // does not Include selected electrons
-
+      if( IsSelectElectron( electron ) ) selectedElectrons.push_back( electron );
+      else if( IsVetoElectron( electron ) ) vetoElectrons.push_back( electron ); // does not Include selected electrons
+    }
+  }
+  else if ( !electrons->empty() ) {
+    if ( IsSelectElectron(electrons->at(0)) ) selectedElectrons.push_back( electrons->at(0) );
+    for (unsigned int i = 1; i < electrons->size() ; i++) {
+      const cat::Electron & electron = electrons->at(i);
+      if ( IsVetoElectron(electron) ) vetoElectrons.push_back(electron);
+    }
   }
 
   //---------------------------------------------------------------------------
@@ -1037,12 +1057,20 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   Handle<cat::MuonCollection> muons;
   iEvent.getByToken(muonToken_, muons);
 
-  for (unsigned int i = 0; i < muons->size() ; i++) {
-    const cat::Muon & muon = muons->at(i);
+  if ( !doLooseLepton_ ) {
+    for (unsigned int i = 0; i < muons->size() ; i++) {
+      const cat::Muon & muon = muons->at(i);
 
-    if( IsSelectMuon( muon) ) selectedMuons.push_back( muon);
-    else if( IsVetoMuon( muon) ) vetoMuons.push_back( muon); // does not Include selected muons
-
+      if( IsSelectMuon( muon) ) selectedMuons.push_back( muon);
+      else if( IsVetoMuon( muon) ) vetoMuons.push_back( muon); // does not Include selected muons
+    }
+  }
+  else if ( !muons->empty() ) {
+    if ( IsSelectMuon(muons->at(0)) ) selectedMuons.push_back( muons->at(0) );
+    for (unsigned int i = 1; i < muons->size() ; i++) {
+      const cat::Muon & muon = muons->at(i);
+      if ( IsVetoMuon(muon) ) vetoMuons.push_back(muon);
+    }
   }
 
   //---------------------------------------------------------------------------
@@ -1064,6 +1092,8 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
      vetoElectrons.size()     == 0){
     lepton.SetPtEtaPhiE(selectedMuons[0].pt(), selectedMuons[0].eta(), selectedMuons[0].phi(), selectedMuons[0].energy());
     ch_tag = 0; //muon + jets
+    b_Lepton_relIso = selectedMuons[0].relIso(0.4);
+    b_Lepton_isIso = (b_Lepton_relIso < 0.15);
 
       if(isMC_) {
 	// Lepton SF (ID/ISO)
@@ -1081,6 +1111,8 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
      vetoElectrons.size()     == 0){
     ch_tag = 1; //electron + jets
     lepton.SetPtEtaPhiE(selectedElectrons[0].pt(), selectedElectrons[0].eta(), selectedElectrons[0].phi(), selectedElectrons[0].energy());
+    b_Lepton_relIso = selectedElectrons.at(0).relIso(0.3);
+    b_Lepton_isIso = (b_Lepton_relIso < (std::abs(selectedElectrons[0].scEta()) <= 1.479 ? 0.0766 : 0.0678) );
 
      if(isMC_) {
        // Lepton SF (ID/ISO)
@@ -1451,7 +1483,7 @@ bool ttbbLepJetsAnalyzer::IsSelectMuon(const cat::Muon & i_muon_candidate)
   // relIso( R ) already includes PU subtraction
   // float relIso = ( chIso + std::max(0.0, nhIso + phIso - 0.5*PUIso) )/ ecalpt;
 
-  GoodMuon &=( i_muon_candidate.relIso( 0.4 ) < 0.15 );
+  if ( !doLooseLepton_ ) GoodMuon &=( i_muon_candidate.relIso( 0.4 ) < 0.15 );
 
   //----------------------------------------------------------------------------------------------------
   //----------------------------------------------------------------------------------------------------
@@ -1512,8 +1544,10 @@ bool ttbbLepJetsAnalyzer::IsSelectElectron(const cat::Electron & i_electron_cand
   // relIso( R ) already includes AEff and RhoIso
   // float relIso = ( chIso + std::max(0.0, nhIso + phIso - rhoIso*AEff) )/ ecalpt;
 
-  if ( std::abs(i_electron_candidate.scEta()) <= 1.479)   GoodElectron &=( i_electron_candidate.relIso( 0.3 ) < 0.0766 );
-  else GoodElectron &= ( i_electron_candidate.relIso( 0.3 ) < 0.0678 );
+  if ( !doLooseLepton_ ) {
+    if ( std::abs(i_electron_candidate.scEta()) <= 1.479)   GoodElectron &=( i_electron_candidate.relIso( 0.3 ) < 0.0766 );
+    else GoodElectron &= ( i_electron_candidate.relIso( 0.3 ) < 0.0678 );
+  }
 
 
   // Effective Area Parametrization can be found in:
