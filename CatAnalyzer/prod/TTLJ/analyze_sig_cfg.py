@@ -37,7 +37,6 @@ process.eventsTTLJ.skipHistograms = True
 process.eventsTTLJ.applyFilterAt = 1 ## save events from step 1 one lepton
 
 process.load("CATTools.CatAnalyzer.topPtWeightProducer_cfi")
-process.load("CATTools.CatAnalyzer.analyzers.ttLJAnalyzer_cff")
 process.load("CATTools.CatAnalyzer.csvWeights_cfi")
 process.filterRECO = process.filterRECOMC.clone()
 delattr(process, 'filterRECOMC')

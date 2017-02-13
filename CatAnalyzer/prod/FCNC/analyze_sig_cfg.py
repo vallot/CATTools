@@ -44,7 +44,6 @@ process.csvWeightsEL = process.csvWeights.clone(src = cms.InputTag("el:jets"))
 process.csvWeightsMU = process.csvWeights.clone(src = cms.InputTag("mu:jets"))
 delattr(process, "csvWeights")
 
-process.load("CATTools.CatAnalyzer.analyzers.ttLJAnalyzer_cff")
 process.ttLJ.puWeight = process.el.vertex.pileupWeight
 process.ntupleEL = process.ttLJ.clone(
     src = cms.InputTag("el"),

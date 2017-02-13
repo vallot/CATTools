@@ -22,7 +22,6 @@ process.TFileService = cms.Service("TFileService",
 process.eventsTTLL.skipHistograms = True
 process.eventsTTLL.applyFilterAt = 1 ## save events from step 1, dilepton
 
-process.load("CATTools.CatAnalyzer.analyzers.ttLLAnalyzer_cff")
 process.load("CATTools.CatAnalyzer.csvWeights_cfi")
 process.filterRECO = process.filterRECOMC.clone()
 delattr(process, 'filterRECOMC')
