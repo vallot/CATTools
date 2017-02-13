@@ -6,7 +6,7 @@ eventsTTLJ = cms.EDFilter("TTLJEventSelector",
     isMC = cms.bool(True),
     ## alwaysAcceptAfter : Accept event even though selection may fail _AFTER_ this step
     ## Use case: store ntuple only for events that passes step4
-    applyFilterAt = cms.int32(4),
+    applyFilterAt = cms.string("step4"),
     skipHistograms = cms.bool(False),
 
     # Physics objects
@@ -17,6 +17,7 @@ eventsTTLJ = cms.EDFilter("TTLJEventSelector",
         #scaleDirection = cms.int32(+1),
         efficiencySF = muonSFTight,
         efficiencySFDirection = cms.int32(0),
+        ignoreIso = cms.bool(False),
     ),
 
     electron = cms.PSet(
@@ -32,6 +33,7 @@ eventsTTLJ = cms.EDFilter("TTLJEventSelector",
         efficiencySFDirection = cms.int32(0),
         applyEcalCrackVeto = cms.bool(True),
         skipSmearing = cms.bool(False),
+        ignoreIso = cms.bool(True), ## ignore isolation for the cut based ID
     ),
 
     jet = cms.PSet(
