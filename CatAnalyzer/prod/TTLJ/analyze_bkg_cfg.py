@@ -21,17 +21,21 @@ process.TFileService = cms.Service("TFileService",
 
 process.eventsTTLJ.filters.ignoreTrig = True
 process.eventsTTLJ.skipHistograms = True
-process.eventsTTLJ.applyFilterAt = 7 ## save events from step 5c, nJet>=3
+process.eventsTTLJ.applyFilterAt = "step1" ## save events from step 1 one lepton
 
 process.load("CATTools.CatAnalyzer.analyzers.ttLJAnalyzer_cff")
 process.load("CATTools.CatAnalyzer.csvWeights_cfi")
 process.filterRECO = process.filterRECOMC.clone()
 delattr(process, 'filterRECOMC')
 
+from CATTools.CatAnalyzer.analyzers.ntuple_cff import *
+process = ntupler_load(process, "eventsTTLJ")
+process = ntupler_addVarsGen(process, "eventsTTLJ")
+
 process.pTTLJ = cms.Path(
     process.gen# + process.rec
   * process.eventsTTLJ
-  * process.ttLJ
+  * process.ntuple
 )
 
 ## Customise with cmd arguments

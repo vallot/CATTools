@@ -12,7 +12,7 @@ process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 from CATTools.Validation.commonTestInput_cff import commonTestCATTuples
 process.source.fileNames = commonTestCATTuples["sig"]
 process.load("CATTools.CatAnalyzer.filters_cff")
-process.load("CATTools.Validation.ttljEventSelector_cff")
+process.load("CATTools.Validation.ttllEventSelector_cff")
 process.load("CATTools.CatAnalyzer.ttll.ttllGenFilters_cff")
 process.load("CATTools.Validation.validation_cff")
 
@@ -32,27 +32,24 @@ process.agen = cms.EDAnalyzer("CATGenTopAnalysis",
     filterTaus = cms.bool(False),
 )
 
-process.eventsTTLJ.filters.ignoreTrig = True
-process.eventsTTLJ.skipHistograms = True
-process.eventsTTLJ.applyFilterAt = "step1" ## save events from step 1 one lepton
+process.eventsTTLL.applyFilterAt = "step1" ## save events from step 1, dilepton
 
 process.load("CATTools.CatAnalyzer.topPtWeightProducer_cfi")
-process.load("CATTools.CatAnalyzer.analyzers.ttLJAnalyzer_cff")
 process.load("CATTools.CatAnalyzer.csvWeights_cfi")
 process.filterRECO = process.filterRECOMC.clone()
 delattr(process, 'filterRECOMC')
-process.ttLJ.isTTbar = True
 
 from CATTools.CatAnalyzer.analyzers.ntuple_cff import *
-process = ntupler_load(process, "eventsTTLJ")
-process = ntupler_addVarsGen(process, "eventsTTLJ")
+process = ntupler_load(process, "eventsTTLL")
+process = ntupler_addVarsTTLL(process, "eventsTTLL")
+process = ntupler_addVarsGen(process, "eventsTTLL")
 process = ntupler_addVarsTTGen(process)
 process = ntupler_addVarsGenTop(process)
 
-process.pTTLJ = cms.Path(
+process.pTTLL = cms.Path(
     process.agen #+ process.filterParton
   * process.gen# + process.rec
-  * process.eventsTTLJ
+  * process.eventsTTLL
   * process.ntuple
 )
 
