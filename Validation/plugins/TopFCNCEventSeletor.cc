@@ -257,7 +257,7 @@ private:
 
   bool isMC_;
   bool isIgnoreTrig_; // Accept event even if it does not pass HLT. Needed for synchronization
-  int applyFilterAt_;
+  const int applyFilterAt_;
 
   // ID variables
   bool isEcalCrackVeto_, isMVAElectronSel_;
@@ -278,17 +278,9 @@ private:
 using namespace cat;
 
 TopFCNCEventSelector::TopFCNCEventSelector(const edm::ParameterSet& pset):
-  isMC_(pset.getParameter<bool>("isMC"))
+  isMC_(pset.getParameter<bool>("isMC")),
+  applyFilterAt_(pset.getParameter<std::string>("applyFilterAt"))
 {
-  const auto applyFilterAt = pset.getParameter<std::string>("applyFilterAt");
-  applyFilterAt_ = 0;
-  for ( int i=0; i<ControlPlotsFCNC::nCutstep; ++i ) {
-    if ( applyFilterAt == ControlPlotsFCNC::stepNames[i] ) {
-      applyFilterAt_ = i;
-      break;
-    }
-  }
-
   const string eventFileName = pset.getUntrackedParameter<std::string>("eventFile", "");
   if ( ! eventFileName.empty() ) eventListFile_.open(eventFileName);
 

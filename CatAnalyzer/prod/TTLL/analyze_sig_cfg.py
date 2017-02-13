@@ -32,7 +32,7 @@ process.agen = cms.EDAnalyzer("CATGenTopAnalysis",
     filterTaus = cms.bool(False),
 )
 
-process.eventsTTLL.applyFilterAt = "step1" ## save events from step 1, dilepton
+process.eventsTTLL.applyFilterAt = 1 ## save events from step 1, dilepton
 
 process.load("CATTools.CatAnalyzer.topPtWeightProducer_cfi")
 process.load("CATTools.CatAnalyzer.csvWeights_cfi")

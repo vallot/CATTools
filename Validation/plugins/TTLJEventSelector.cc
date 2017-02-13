@@ -275,7 +275,7 @@ private:
 
   bool isMC_;
   bool isIgnoreTrig_; // Accept event even if it does not pass HLT. Needed for synchronization
-  int applyFilterAt_;
+  const int applyFilterAt_;
   const bool skipHistograms_;
 
   // ID variables
@@ -298,17 +298,9 @@ using namespace cat;
 
 TTLJEventSelector::TTLJEventSelector(const edm::ParameterSet& pset):
   isMC_(pset.getParameter<bool>("isMC")),
+  applyFilterAt_(pset.getParameter<std::string>("applyFilterAt")),
   skipHistograms_(pset.getParameter<bool>("skipHistograms"))
 {
-  const auto applyFilterAt = pset.getParameter<std::string>("applyFilterAt");
-  applyFilterAt_ = 0;
-  for ( int i=0; i<ControlPlotsTTLJ::nCutstep; ++i ) {
-    if ( applyFilterAt == ControlPlotsTTLJ::stepNames[i] ) {
-      applyFilterAt_ = i;
-      break;
-    }
-  }
-
   const auto muonSet = pset.getParameter<edm::ParameterSet>("muon");
   muonToken_ = consumes<cat::MuonCollection>(muonSet.getParameter<edm::InputTag>("src"));
   muonScale_ = muonSet.getParameter<int>("scaleDirection");

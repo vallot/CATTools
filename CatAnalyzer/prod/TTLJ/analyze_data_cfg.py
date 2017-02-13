@@ -25,7 +25,7 @@ process.TFileService = cms.Service("TFileService",
 )
 
 process.eventsTTLJ.skipHistograms = True
-process.eventsTTLJ.applyFilterAt = "step1" ## save events from step 1 one lepton
+process.eventsTTLJ.applyFilterAt = 1 ## save events from step 1 one lepton
 
 process.load("CATTools.CatAnalyzer.analyzers.ttLJAnalyzer_cff")
 process.load("CATTools.CatAnalyzer.csvWeights_cfi")

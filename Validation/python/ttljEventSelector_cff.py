@@ -6,7 +6,7 @@ eventsTTLJ = cms.EDFilter("TTLJEventSelector",
     isMC = cms.bool(True),
     ## alwaysAcceptAfter : Accept event even though selection may fail _AFTER_ this step
     ## Use case: store ntuple only for events that passes step4
-    applyFilterAt = cms.string("step4"),
+    applyFilterAt = cms.int32(8), ## 8 for nJet4
     skipHistograms = cms.bool(False),
 
     # Physics objects
