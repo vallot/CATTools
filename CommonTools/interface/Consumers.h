@@ -57,7 +57,7 @@ private:
   std::vector<std::vector<int*> > candVarsI_;
   std::vector<std::vector<bool*> > candVarsB_;
 
-  constexpr unsigned short maxSize_ = 255;
+  static constexpr unsigned short maxSize_ = 255;
 };
 
 template<typename T>

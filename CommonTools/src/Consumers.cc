@@ -64,7 +64,7 @@ void CandConsumers::init(const edm::ParameterSet& gpset, const std::string psetN
     const PSet exprISets = candPSet.getUntrackedParameter<PSet>("exprsI", PSet());
     for ( auto& exprName : exprISets.getParameterNamesForType<string>() ) {
       const string expr = exprISets.getParameter<string>(exprName);
-      candVarsI_.back().push_back(new float[maxSize_]);
+      candVarsI_.back().push_back(new int[maxSize_]);
       exprsI_.back().push_back(CandFtn(expr));
 
       const string brName = candName+"_"+exprName;
@@ -73,7 +73,7 @@ void CandConsumers::init(const edm::ParameterSet& gpset, const std::string psetN
     const PSet exprBSets = candPSet.getUntrackedParameter<PSet>("exprsB", PSet());
     for ( auto& exprName : exprBSets.getParameterNamesForType<string>() ) {
       const string expr = exprBSets.getParameter<string>(exprName);
-      candVarsB_.back().push_back(new float[maxSize_]);
+      candVarsB_.back().push_back(new bool[maxSize_]);
       exprsB_.back().push_back(CandFtn(expr));
 
       const string brName = candName+"_"+exprName;
@@ -81,7 +81,7 @@ void CandConsumers::init(const edm::ParameterSet& gpset, const std::string psetN
     }
     const PSet boolexprSets = candPSet.getUntrackedParameter<PSet>("boolexprs", PSet());
     for ( auto& exprName : boolexprSets.getParameterNamesForType<string>() ) {
-      const string expr = exprSets.getParameter<string>(exprName);
+      const string expr = boolexprSets.getParameter<string>(exprName);
       candVarsB_.back().push_back(new bool[maxSize_]);
       boolexprs_.back().push_back(CandSel(expr));
 
@@ -130,7 +130,7 @@ int CandConsumers::load(const edm::Event& event, const bool doException)
       event.getByToken(vmapTokens[iVar], vmapHandles[iVar]);
     }
 
-    unsigned short candSize = 0;;
+    int candSize = 0;
     for ( size_t i=0, n=srcHandle->size(); i<n and candSize < maxSize_; ++i ) {
       if ( index >= 0 and int(i) != index ) continue;
       edm::Ref<CandView> candRef(srcHandle, i);
@@ -138,25 +138,25 @@ int CandConsumers::load(const edm::Event& event, const bool doException)
       for ( size_t j=0; j<nExprF; ++j ) {
         double val = exprsF[j](*candRef);
         if ( !std::isfinite(val) ) val = -999;
-        (*candVarsF_[iCand][j])[candSize] = val;
+        candVarsF_[iCand][j][candSize] = val;
       }
       for ( size_t j=0; j<nExprI; ++j ) {
         const int val = exprsI[j](*candRef);
-        (*candVarsI_[iCand][j])[candSize] = val;
+        candVarsI_[iCand][j][candSize] = val;
       }
       for ( size_t j=0; j<nExprB; ++j ) {
         const bool val = exprsB[j](*candRef);
-        (*candVarsB_[iCand][j])[candSize] = val;
+        candVarsB_[iCand][j][candSize] = val;
       }
       for ( size_t j=0; j<nBExprs; ++j ) {
-        const double val = boolexprs[j](*candRef);
-        (*candVarsB_[iCand][j+nExprB])[candSize] = val;
+        const bool val = boolexprs[j](*candRef);
+        candVarsB_[iCand][j+nExprB][candSize] = val;
       }
       for ( size_t j=0; j<nVmap; ++j ) {
         double val = 0;
         if ( vmapHandles[j].isValid() ) val = (*vmapHandles[j])[candRef];
         else if ( doException ) throw cms::Exception("DataError") << "Cannot load " << vmapHandles[j];
-        (*candVarsF_[iCand][j+nExprF])[candSize] = val;
+        candVarsF_[iCand][j+nExprF][candSize] = val;
       }
 
       ++candSize;
