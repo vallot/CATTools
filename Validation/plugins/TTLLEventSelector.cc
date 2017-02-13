@@ -273,7 +273,7 @@ using namespace cat;
 
 TTLLEventSelector::TTLLEventSelector(const edm::ParameterSet& pset):
   isMC_(pset.getParameter<bool>("isMC")),
-  applyFilterAt_(pset.getParameter<std::string>("applyFilterAt")),
+  applyFilterAt_(pset.getParameter<int>("applyFilterAt")),
   skipHistograms_(pset.getParameter<bool>("skipHistograms"))
 {
   const auto muonSet = pset.getParameter<edm::ParameterSet>("muon");

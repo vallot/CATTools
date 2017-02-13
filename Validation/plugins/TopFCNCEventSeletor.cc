@@ -279,7 +279,7 @@ using namespace cat;
 
 TopFCNCEventSelector::TopFCNCEventSelector(const edm::ParameterSet& pset):
   isMC_(pset.getParameter<bool>("isMC")),
-  applyFilterAt_(pset.getParameter<std::string>("applyFilterAt"))
+  applyFilterAt_(pset.getParameter<int>("applyFilterAt"))
 {
   const string eventFileName = pset.getUntrackedParameter<std::string>("eventFile", "");
   if ( ! eventFileName.empty() ) eventListFile_.open(eventFileName);
