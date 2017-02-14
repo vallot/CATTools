@@ -32,7 +32,9 @@ process.agen = cms.EDAnalyzer("CATGenTopAnalysis",
     filterTaus = cms.bool(False),
 )
 
-process.eventsTTLJ.filters.ignoreTrig = True
+process.filterParton.nLepton = 1
+
+process.eventsTTLJ.filters.ignoreTrig = False
 process.eventsTTLJ.skipHistograms = True
 process.eventsTTLJ.applyFilterAt = 1 ## save events from step 1 one lepton
 
@@ -40,7 +42,6 @@ process.load("CATTools.CatAnalyzer.topPtWeightProducer_cfi")
 process.load("CATTools.CatAnalyzer.csvWeights_cfi")
 process.filterRECO = process.filterRECOMC.clone()
 delattr(process, 'filterRECOMC')
-process.ttLJ.isTTbar = True
 
 from CATTools.CatAnalyzer.analyzers.ntuple_cff import *
 process = ntupler_load(process, "eventsTTLJ")
@@ -49,8 +50,8 @@ process = ntupler_addVarsTTGen(process)
 process = ntupler_addVarsGenTop(process)
 
 process.pTTLJ = cms.Path(
-    process.agen #+ process.filterParton
-  * process.gen# + process.rec
+    process.agen + process.filterParton
+  * process.gen + process.rec
   * process.eventsTTLJ
   * process.ntuple
 )

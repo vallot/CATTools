@@ -30,8 +30,6 @@ process.eventsTTLJ.applyFilterAt = 1 ## save events from step 1 one lepton
 process.load("CATTools.CatAnalyzer.csvWeights_cfi")
 process.filterRECO = process.filterRECOMC.clone()
 delattr(process, 'filterRECOMC')
-process.ttLJ.isMC = False
-process.ttLJ.isTTbar = False
 
 from CATTools.CatAnalyzer.analyzers.ntuple_cff import *
 process = ntupler_load(process, "eventsTTLJ")

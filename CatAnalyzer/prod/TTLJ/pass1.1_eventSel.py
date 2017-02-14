@@ -4,10 +4,10 @@
 recipes = {
     'nominal':{'nominal':['eventsTTLJ.skipHistograms=False','ttLJ.doGenWeightSysts=True']},
     'syst':{
-        'mu_pt/up':['eventsTTLJ.muon.scaleDirection=1'],
-        'mu_pt/dn':['eventsTTLJ.muon.scaleDirection=-1'],
-        'el_pt/up':['eventsTTLJ.electron.scaleDirection=1'],
-        'el_pt/dn':['eventsTTLJ.electron.scaleDirection=-1'],
+        #'mu_pt/up':['eventsTTLJ.muon.scaleDirection=1'],
+        #'mu_pt/dn':['eventsTTLJ.muon.scaleDirection=-1'],
+        #'el_pt/up':['eventsTTLJ.electron.scaleDirection=1'],
+        #'el_pt/dn':['eventsTTLJ.electron.scaleDirection=-1'],
         'jet_cor/up':['eventsTTLJ.jet.scaleDirection=1'],
         'jet_cor/dn':['eventsTTLJ.jet.scaleDirection=-1'],
     },
@@ -111,9 +111,9 @@ for key in samples:
 
     suffix = ""
     baseargs = []
-    #if 'noll' in modifiers:
-    #    baseargs += ["filterParton.invert=True"]
-    #    suffix = "_Others"
+    if 'noll' in modifiers:
+        baseargs += ["filterParton.invert=True"]
+        suffix = "_Others"
 
     for name in samples[key]:
         nFiles = 10
