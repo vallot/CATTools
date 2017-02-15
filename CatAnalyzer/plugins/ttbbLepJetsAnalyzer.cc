@@ -366,7 +366,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("MET_phi", &b_MET_phi, "MET_phi/F");
 
   tree->Branch("lepton_pT",  &b_Lepton_pT,  "lepton_pT/F");
-  tree->Branch("lepton_eta", &b_Lepton_eta,  "lepton_eta/F");
+  tree->Branch("lepton_eta", &b_Lepton_eta, "lepton_eta/F");
   tree->Branch("lepton_phi", &b_Lepton_phi, "lepton_phi/F");
   tree->Branch("lepton_E" ,  &b_Lepton_E,   "lepton_E/F" );
   tree->Branch("lepton_LES", &b_Lepton_LES, "lepton_LES/F" );
@@ -375,7 +375,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
 
   if ( doLooseLepton_ ) {
     tree->Branch("lepton_relIso", &b_Lepton_relIso, "lepton_relIso/F");
-    tree->Branch("lepton_isIso", &b_Lepton_isIso, "lepton_isIso/O");
+    tree->Branch("lepton_isIso",  &b_Lepton_isIso,  "lepton_isIso/O");
   }
 
   tree->Branch("jet_pT",           "std::vector<float>", &b_Jet_pT);
@@ -393,7 +393,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("jet_CvsL",         "std::vector<float>", &b_Jet_CvsL );
   tree->Branch("jet_CvsB",         "std::vector<float>", &b_Jet_CvsB );
 
-  tree->Branch("jet_Number" , &b_Jet_Number, "jet_number/I" );
+  tree->Branch("jet_number" , &b_Jet_Number, "jet_number/I" );
 
   tree->Branch("jet_partonFlavour", "std::vector<int>",   &b_Jet_partonFlavour);
   tree->Branch("jet_hadronFlavour", "std::vector<int>",   &b_Jet_hadronFlavour);
@@ -416,7 +416,6 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("kinjet_E",     "std::vector<float>", &b_KinJet_E);
   tree->Branch("kinjet_index", "std::vector<int>",   &b_KinJet_Index);
   
-
   // GEN Variables (only ttbarSignal)
   if(TTbarMC_ == 1){
     tree->Branch("pdfweight",   "std::vector<float>", &b_PDFWeight );
@@ -450,16 +449,16 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
     tree->Branch("genjet_eta", "std::vector<float>", &b_GenJet_eta);
     tree->Branch("genjet_phi", "std::vector<float>", &b_GenJet_phi);
     tree->Branch("genjet_E",   "std::vector<float>", &b_GenJet_E);
-    tree->Branch("genjet_mom", "std::vector<int>",  &b_GenJet_mom);
+    tree->Branch("genjet_mom", "std::vector<int>",   &b_GenJet_mom);
 
     tree->Branch("genjet_gencone_mom", "std::vector<int>",  &b_GenJet_GenConeMom);
 
     //GEN TREE
     gentree = fs->make<TTree>("gentree", "TopGENTree");
-    gentree->Branch("genweight",     &b_GenWeight,     "GenWeight/F");
+    gentree->Branch("genweight",     &b_GenWeight,     "genweight/F");
     gentree->Branch("genchannel",    &b_GenChannel,    "genchannel/I");
     gentree->Branch("genhiggscatid", &b_GenHiggsCatID, "genhiggscatid/I");
-    gentree->Branch("draddjets",     &b_DRAddJets,     "DRAddJets/F");
+    gentree->Branch("draddjets",     &b_DRAddJets,     "draddjets/F");
     gentree->Branch("genlepton_pT",  &b_GenLepton_pT,  "genlepton_pT/F");
     gentree->Branch("genlepton_eta", &b_GenLepton_eta, "genlepton_eta/F");
 
@@ -662,7 +661,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     b_PUWeight->push_back(*PUWeight_Down); //Syst. Up
 
     //---------------------------------------------------------------------------
-    // Weights at Generation Level: MC@NLO
+    // Weights at Generation Level: aMC@NLO
     //---------------------------------------------------------------------------
 
     edm::Handle<float> genWeight;
@@ -800,13 +799,16 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     bool Istt   = false;
 
     // Categorization based in the Full Ph-Sp
-    if(genttbarConeCat->begin()->NaddJets20() > 1) Isttjj = true;
+    // Requires ttjj events to be categorized
+    if(genttbarConeCat->begin()->NaddJets20() > 1){
+      Isttjj = true;
 
-    if      (genttbarConeCat->begin()->NaddbJets20() > 1) Isttbb = true;
-    else if (genttbarConeCat->begin()->NaddbJets20() > 0) Isttb  = true;
-    else if (genttbarConeCat->begin()->NaddcJets20() > 1) Isttcc = true;
-    else if (genttbarConeCat->begin()->NaddJets20()  > 1) IsttLF = true;
-    else Istt = true;
+      if      (genttbarConeCat->begin()->NaddbJets20() > 1) Isttbb = true;
+      else if (genttbarConeCat->begin()->NaddbJets20() > 0) Isttb  = true;
+      else if (genttbarConeCat->begin()->NaddcJets20() > 1) Isttcc = true;
+      else if (genttbarConeCat->begin()->NaddJets20()  > 1) IsttLF = true;
+      else Istt = true;
+    }
 
     // Categorization based in the Visible Ph-Sp
     // if(genttbarConeCat->begin()->NbJets20() > 1 && 
@@ -1184,16 +1186,12 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
   // Check Gen Level for ttbar sample
   if (TTbarMC_ >0){
-    if(TTbarMC_ == 1){ // Signal ttbar event
-      if(nGenLep != 1) ch_tag = 999;
-    }
-    if(TTbarMC_ == 2){ // Background ttbar event
-      if(nGenLep == 1) ch_tag = 999;
-    }
-
+    // Signal ttbar event
+    if(TTbarMC_ == 1 && nGenLep != 1) ch_tag = 999;
+    // Background ttbar event
+    if(TTbarMC_ == 2 && nGenLep == 1) ch_tag = 999;
     // ttbar Category
     if(!IsCat) ch_tag = 999;
-
   } // if(TTbarMC_ >0)
 
   if (ch_tag<2 && EvTrigger){ // Single lepton event
@@ -1239,14 +1237,11 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     int N_GoodJets = 0;
 
     // Initialize SF_btag
+    // Jet_SF_CSV[Scenario][SystVariations];
     float Jet_SF_CSV[5][19];
     for (unsigned int ipTj=0; ipTj<5; ipTj++){
        for (unsigned int iu=0; iu<19; iu++) Jet_SF_CSV[ipTj][iu] = 1.0;
     }
-
-    // event.getByToken(csvWeightToken_, fHandle);
-    // b_wgt_csv = *fHandle;
-    // event.getByToken(csvWeightSystToken_, vfHandle);
 
     Handle<float> rSF_CSV;
     iEvent.getByToken(CSVWeightToken_, rSF_CSV);
@@ -1264,8 +1259,8 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       bool goodJet  = false;
       bool cleanJet = false;
 
-      // Jet Selection (pT>15GeV to take into account SYST Variations)
-      if(std::abs(jet.eta()) < 2.4 && jet.pt() > 15. && jet.LooseId()) goodJet = true;
+      // Jet Selection (pT>20GeV to take into account SYST Variations)
+      if(std::abs(jet.eta()) < 2.4 && jet.pt() > 20. && jet.LooseId()) goodJet = true;
       // Jet Cleaning
       TLorentzVector vjet;
       vjet.SetPtEtaPhiE(jet.pt(), jet.eta(), jet.phi(), jet.energy());
@@ -1274,12 +1269,14 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
       if(goodJet && cleanJet){
         // Basic variables
-        N_GoodJets ++;
         b_Jet_pT ->push_back(jet.pt());
         b_Jet_eta->push_back(jet.eta());
         b_Jet_phi->push_back(jet.phi());
         b_Jet_E  ->push_back(jet.energy());
         b_Jet_Index ->push_back(JetIndex[i]);
+	
+	// Number of Jets (easy cross check)
+        if(jet.pt() > 30.) N_GoodJets ++;
 
         // Parton Flavour
         b_Jet_partonFlavour->push_back(jet.partonFlavour());
@@ -1289,9 +1286,9 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         float jet_btagDis_CSV = jet.bDiscriminator(BTAG_CSVv2);
         b_Jet_CSV ->push_back(jet_btagDis_CSV);
         // c-tag discriminant
-        float jet_btagDis_CvsL = jet.bDiscriminator("pfCombinedCvsLJetTags");
+        float jet_btagDis_CvsL = jet.bDiscriminator(CTAG_CvsL);
         b_Jet_CvsL ->push_back(jet_btagDis_CvsL);
-        float jet_btagDis_CvsB = jet.bDiscriminator("pfCombinedCvsBJetTags");
+        float jet_btagDis_CvsB = jet.bDiscriminator(CTAG_CvsB);
 	b_Jet_CvsB ->push_back(jet_btagDis_CvsB);
 
         if(isMC_) {
@@ -1307,7 +1304,6 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
           // Ref: https://twiki.cern.ch/twiki/bin/view/CMS/BTagShapeCalibration
           // Saving the central SF and the 18 syst. unc. for:
-
 	  // pT_Jets > 25 GeV
           if(jet.pt() > 25.) for (unsigned int iu=0; iu<19; iu++) Jet_SF_CSV[0][iu] *= SF_CSV_.getSF(jet, iu);
           // pT_Jets > 30 GeV
@@ -1346,6 +1342,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       }// if(GoodJets)
     }// for(AllJets)
     
+    // Number of Jets (easy cross check)
     b_Jet_Number = N_GoodJets;
 
     for (unsigned int iu=0; iu<19; iu++){
@@ -1544,9 +1541,10 @@ bool ttbbLepJetsAnalyzer::IsSelectElectron(const cat::Electron & i_electron_cand
   // relIso( R ) already includes AEff and RhoIso
   // float relIso = ( chIso + std::max(0.0, nhIso + phIso - rhoIso*AEff) )/ ecalpt;
 
+  // Isolation is already included in the cut-based cuts, it is not needed 
   if ( !doLooseLepton_ ) {
-    if ( std::abs(i_electron_candidate.scEta()) <= 1.479)   GoodElectron &=( i_electron_candidate.relIso( 0.3 ) < 0.0766 );
-    else GoodElectron &= ( i_electron_candidate.relIso( 0.3 ) < 0.0678 );
+    if ( std::abs(i_electron_candidate.scEta()) <= 1.479)   GoodElectron &=( i_electron_candidate.relIso( 0.3 ) < 0.0695 );
+    else GoodElectron &= ( i_electron_candidate.relIso( 0.3 ) < 0.0821 );
   }
 
 
@@ -1575,8 +1573,8 @@ bool ttbbLepJetsAnalyzer::IsVetoElectron(const cat::Electron & i_electron_candid
   //----------------------------------------------------------------------------------------------------
   //------------- The Relative Isolation is already calculated in the CAT object -----------------------
   //----------------------------------------------------------------------------------------------------
-  if ( std::abs(i_electron_candidate.scEta()) <= 1.479) GoodElectron &= ( i_electron_candidate.relIso( 0.3 ) < 0.126 );
-  else GoodElectron &= ( i_electron_candidate.relIso( 0.3 ) < 0.144 );
+  if ( std::abs(i_electron_candidate.scEta()) <= 1.479) GoodElectron &= ( i_electron_candidate.relIso( 0.3 ) < 0.175 );
+  else GoodElectron &= ( i_electron_candidate.relIso( 0.3 ) < 0.159 );
   //----------------------------------------------------------------------------------------------------
   //----------------------------------------------------------------------------------------------------
 
