@@ -4,12 +4,11 @@ import os, time, socket, sys
 UserName       = os.environ["USER"]
 BaseDir        = os.environ["CMSSW_BASE"]+"/src"
 InputDB        = str(sys.argv[1])
-FileHeader     = "Tree_LepJets_PileUp17_v8-0-4_Spring16-80X_36814pb-1"
-#OutputLocation = "/xrootd/store/user/brochero/v8-0-4/"
-OutputLocation = ""
+FileHeader     = "Tree_LepJets_QCDInfo_v8-0-4_Spring16-80X_36814pb-1"
+OutputLocation = "/xrootd/store/user/brochero/v8-0-4/"
 
 DelayTime = 120. # Time in seconds
-maxNjobs = 3000  # Maximum number of jobs running simultaneously
+maxNjobs = 2000  # Maximum number of jobs running simultaneously
 def NumberOfCondorJobs (str):
     condorNF = ".tempCondor_" + socket.gethostname() + "_" + str + "_" + time.strftime('%Hh%Mm%Ss') + ".info"
     print "condor_q %s > %s" % (UserName, condorNF)
@@ -78,7 +77,7 @@ for line in fr:
         else:              maxf =  int(round(nfSamLoc/500.))    
 
         print  str(nfSamLoc) + " root files. Max number of files per job " + str(maxf)  
-        CreateJob = str("create-batch --jobName " + SamNam[nsrunning] + " --fileList " + SamLoc[nsrunning] + " --maxFiles " + str(maxf) + " --cfg ttbbLepJetsAnalyzer_cfg.py --queue batch6 --transferDest /store/user/%s/" % UserName)
+        CreateJob = str("./create-batch --jobName " + SamNam[nsrunning] + " --fileList " + SamLoc[nsrunning] + " --maxFiles " + str(maxf) + " --cfg ttbbLepJetsAnalyzer_cfg.py --queue batch6")
         if SamArg[nsrunning] is not "":
             CreateJob += " --args ' " + SamArg[nsrunning] + " ' "
         print CreateJob
@@ -118,8 +117,8 @@ for line in fr:
                     print "Merging " + SamNam[index] + " sample."
                     print "hadd -f " + OutputLocation + FileHeader + "_" + SamNam[index] + ".root " + SamNam[index] + "/*.root "
                     os.system("hadd -f " + OutputLocation + FileHeader + "_" + SamNam[index] + ".root " + SamNam[index] + "/*.root ")
-                    print "Removing " + SamNam[index] + " directory..."
-                    print "rm -rf " + SamNam[index]
+                    #print "Removing " + SamNam[index] + " directory..."
+                    #print "rm -rf " + SamNam[index]
                     print "Files kept in the current directory!! Delete them your self! "
                     #os.system("rm -rf " + SamNam[index])
                 nsrunning = 0
