@@ -5,7 +5,8 @@ TMinuit *tm = 0;
 TLorentzVector tmplep, tmpnu, tmpbl, tmpbj, tmpj1, tmpj2;
 float blres, bjres, j1res, j2res, metres;
 
-float CSVWP = 0.800;
+// Tight WP
+float CSVWP = 0.9535;
 
 // relative jet energy resolution
 double JetEResolution(double energy){ 
