@@ -50,7 +50,7 @@ for type in samples:
     elif 'ttNoFilter' in modifiers:
         baseargs += ['filterParton.nLepton=-1']
 
-    for name in samples[key]:
+    for name in samples[type]:
         jobName = "%s%s" % (name, suffix)
 
         submitCmd  = "create-batch --cfg analyze_%s_cfg.py --maxFiles 25 " % type

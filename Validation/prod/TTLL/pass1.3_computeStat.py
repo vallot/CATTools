@@ -14,8 +14,8 @@ for x in js: dsIn[x['name']] = x
 ds = {}
 for d in sorted(os.listdir('pass1')):
     if not os.path.isdir('pass1/'+d): continue
-    if not os.path.exists('pass1/'+d+'/nominal.root'): continue
-    fName = 'pass1/'+d+'/nominal.root'
+    if not os.path.exists('pass1/'+d+'.root'): continue
+    fName = 'pass1/'+d+'.root'
     f = TFile(fName)
     if f == None:
         print "!!! root file under %s is invalid" % name
