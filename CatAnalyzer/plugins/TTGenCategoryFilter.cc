@@ -76,6 +76,8 @@ TTGenCategoryFilter::TTGenCategoryFilter(const edm::ParameterSet& pset):
 bool TTGenCategoryFilter::filter(edm::Event& event, const edm::EventSetup&)
 {
   if ( inputType_ == IN_PartonTop ) {
+    if ( nLepton_ < 0 ) return true;
+
     edm::Handle<reco::GenParticleCollection> srcHandle;
     edm::Handle<int> channelHandle;
     edm::Handle<vint> modesHandle;
@@ -118,7 +120,7 @@ bool TTGenCategoryFilter::filter(edm::Event& event, const edm::EventSetup&)
     // Same logic with the above
     const bool acceptCh = ( nLepton_ == 2 and genTop.diLeptonic(channelOption) ) or
                           ( nLepton_ == 1 and genTop.semiLeptonic(channelOption) );
-    if ( (doInvert_ xor acceptCh) == false ) return false;
+    if ( nLepton_ >= 0 and (doInvert_ xor acceptCh) == false ) return false;
 
     // non-ttjj cases
     if ( genTop.NaddJets20() < 2 ) return (genTop_addJetCh_ == 0);
