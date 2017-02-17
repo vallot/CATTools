@@ -12,14 +12,12 @@ process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 from CATTools.Validation.commonTestInput_cff import commonTestCATTuples
 process.source.fileNames = commonTestCATTuples["sig"]
 process.load("CATTools.CatAnalyzer.filters_cff")
-process.load("CATTools.Validation.topFCNCEventSelector_cff")
+process.load("CATTools.Validation.ttllEventSelector_cff")
 process.load("CATTools.CatAnalyzer.ttll.ttllGenFilters_cff")
 process.load("CATTools.Validation.validation_cff")
-process.filterGenTop.nLepton = 2
-process.filterGenTop.addJetChannel = "TTBB" ## (TTBB, TTBJ, TTCC, TTJJ, none)
 
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string("ntuple.root"),
+    fileName = cms.string("hist.root"),
 )
 
 process.load("CATTools.CatAnalyzer.flatGenWeights_cfi")
@@ -34,42 +32,29 @@ process.agen = cms.EDAnalyzer("CATGenTopAnalysis",
     filterTaus = cms.bool(False),
 )
 
-process.el = process.eventsFCNC.clone(channel = cms.string("electron"))
-process.mu = process.eventsFCNC.clone(channel = cms.string("muon"))
-delattr(process, 'eventsFCNC')
+process.eventsTTLL.applyFilterAt = 1 ## save events from step 1, dilepton
 
 process.load("CATTools.CatAnalyzer.topPtWeightProducer_cfi")
 process.load("CATTools.CatAnalyzer.csvWeights_cfi")
-process.csvWeightsEL = process.csvWeights.clone(src = cms.InputTag("el:jets"))
-process.csvWeightsMU = process.csvWeights.clone(src = cms.InputTag("mu:jets"))
-delattr(process, "csvWeights")
+process.filterRECO = process.filterRECOMC.clone()
+delattr(process, 'filterRECOMC')
 
-process.ttLJ.puWeight = process.el.vertex.pileupWeight
-process.ntupleEL = process.ttLJ.clone(
-    src = cms.InputTag("el"),
-    csvWeight = cms.InputTag("csvWeightsEL"),
-    csvWeightSyst = cms.InputTag("csvWeightsEL:syst"),
-)
-process.ntupleMU = process.ttLJ.clone(
-    src = cms.InputTag("mu"),
-    csvWeight = cms.InputTag("csvWeightsMU"),
-    csvWeightSyst = cms.InputTag("csvWeightsMU:syst"),
-)
-delattr(process, 'ttLJ')
+from CATTools.CatAnalyzer.analyzers.ntuple_cff import *
+process = ntupler_load(process, "eventsTTLL")
+process = ntupler_addVarsTTLL(process, "eventsTTLL")
+process = ntupler_addVarsGen(process, "eventsTTLL")
+process = ntupler_addVarsTTGen(process)
+process = ntupler_addVarsGenTop(process)
 
-process.p_el = cms.Path(
-    process.agen + process.filterGenTop
-  * process.gen + process.rec
-  * process.el * process.ntupleEL
-)
-
-process.p_mu = cms.Path(
-    process.agen + process.filterGenTop
-  * process.gen + process.rec
-  * process.mu * process.ntupleMU
+process.pTTLL = cms.Path(
+    process.agen #+ process.filterParton
+  * process.gen# + process.rec
+  * process.eventsTTLL
+  * process.ntuple
 )
 
 ## Customise with cmd arguments
 import sys
 if len(sys.argv) > 2:
     for l in sys.argv[2:]: exec('process.'+l)
+

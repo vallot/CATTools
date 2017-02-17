@@ -21,8 +21,6 @@
 #include "TH1D.h"
 #include "TH2F.h"
 
-#define nCutstep 12
-
 using namespace std;
 
 namespace cat {
@@ -31,7 +29,13 @@ struct ControlPlotsTTLJ
 {
   ControlPlotsTTLJ() { isBooked = false; }
 
-  //const static int nCutstep;
+  static const int nCutstep = 12;
+  static constexpr const char* const stepNames[nCutstep] = {
+    "step0a", "step0b", "step0c",
+    "step1", "step2", "step3", "step4",
+    "step5a", "step5b", "step5c", "step5d", "step6"
+  };
+
   typedef TH1D* H1;
   typedef TH2D* H2;
 
@@ -65,11 +69,6 @@ struct ControlPlotsTTLJ
     const double maxeta = 3;
     const double pi = 3.141592;
 
-    const char* stepNames[nCutstep] = {
-      "step0a", "step0b", "step0c",
-      "step1", "step2", "step3", "step4",
-      "step5a", "step5b", "step5c", "step5d", "step6"
-    };
     const char* stepLabels[nCutstep] = {
       "S0a all event", "S0b Trigger", "S0c Event filter",
       "S1  One signal lepton", "S2  Veto muon", "S3  Veto electron", "S4  Conv. veto",
@@ -158,7 +157,8 @@ struct ControlPlotsTTLJ
     isBooked = true;
   };
 };
-//const static int ControlPlotsTTLJ::nCutstep = 12;
+const int ControlPlotsTTLJ::nCutstep;
+constexpr const char* const ControlPlotsTTLJ::stepNames[];
 
 class TTLJEventSelector : public edm::one::EDFilter<edm::one::SharedResources>
 {
@@ -221,7 +221,6 @@ private:
     if ( std::abs(mu.eta()) > 2.1 ) return false;
     if ( std::isnan(mu.pt()) or mu.pt() < 27 ) return false;
 
-    if ( mu.relIso(0.4) > 0.15 ) return false;
     if ( !mu.isTightMuon() ) return false;
     return true;
   }
@@ -232,7 +231,6 @@ private:
 
     if ( isMVAElectronSel_ and !el.isTrigMVAValid() ) return false;
 
-    //if ( el.relIso(0.3) >= 0.11 ) return false;
     if ( !el.electronID(elIdName_) ) return false;
     //if ( !el.isPF() or !el.passConversionVeto() ) return false;
     const double scEta = std::abs(el.scEta());
@@ -285,6 +283,7 @@ private:
   bool isSkipEleSmearing_;
   std::string bTagName_;
   std::string elIdName_, elVetoIdName_;
+  bool isIgnoreMuonIso_, isIgnoreElectronIso_;
   enum class BTagWP { CSVL, CSVM, CSVT } bTagWP_;
 
 private:
@@ -313,6 +312,7 @@ TTLJEventSelector::TTLJEventSelector(const edm::ParameterSet& pset):
                 muonSFSet.getParameter<vdouble>("values"),
                 muonSFSet.getParameter<vdouble>("errors"));
     muonSFShift_ = muonSet.getParameter<int>("efficiencySFDirection");
+    isIgnoreMuonIso_ = muonSet.getParameter<bool>("ignoreIso");
   }
 
   const auto electronSet = pset.getParameter<edm::ParameterSet>("electron");
@@ -328,6 +328,7 @@ TTLJEventSelector::TTLJEventSelector(const edm::ParameterSet& pset):
                     electronSFSet.getParameter<vdouble>("values"),
                     electronSFSet.getParameter<vdouble>("errors"));
     electronSFShift_ = electronSet.getParameter<int>("efficiencySFDirection");
+    isIgnoreElectronIso_ = electronSet.getParameter<bool>("ignoreIso"); // not effective for the cut based ID
   }
   isEcalCrackVeto_ = isMVAElectronSel_ = false;
   isSkipEleSmearing_ = electronSet.getParameter<bool>("skipSmearing");
@@ -395,11 +396,13 @@ TTLJEventSelector::TTLJEventSelector(const edm::ParameterSet& pset):
     h_mu.book(fs->mkdir("mu"));
   }
 
+  produces<int>("cutstep");
   produces<int>("channel");
   produces<float>("weight");
   produces<float>("met");
   produces<float>("metphi");
-  produces<std::vector<cat::Lepton> >("leptons");
+  produces<std::vector<cat::Electron> >("electrons");
+  produces<std::vector<cat::Muon> >("muons");
   produces<std::vector<cat::Jet> >("jets");
 }
 
@@ -426,7 +429,8 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   event.getByToken(nVertexToken_, nVertexHandle);
   const int nVertex = *nVertexHandle;
 
-  std::auto_ptr<std::vector<cat::Lepton> > out_leptons(new std::vector<cat::Lepton>());
+  std::auto_ptr<std::vector<cat::Electron> > out_electrons(new std::vector<cat::Electron>());
+  std::auto_ptr<std::vector<cat::Muon> > out_muons(new std::vector<cat::Muon>());
   std::auto_ptr<std::vector<cat::Jet> > out_jets(new std::vector<cat::Jet>());
 
   // Compute event weight - from generator, pileup, etc
@@ -485,7 +489,7 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
     cat::Muon lep(p);
     lep.setP4(p.p4()*scale);
-    if ( isGoodMuon(p) ) selMuons.push_back(lep);
+    if ( isGoodMuon(p) and (isIgnoreMuonIso_ or p.relIso(0.4) <= 0.15) ) selMuons.push_back(lep);
     else if ( isVetoMuon(p) ) vetoMuons.push_back(lep);
     else continue;
 
@@ -500,7 +504,7 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
     cat::Electron lep(p);
     lep.setP4(p.p4()*scale);
-    if ( isGoodElectron(p) ) selElectrons.push_back(lep);
+    if ( isGoodElectron(p) and (isIgnoreElectronIso_ or p.relIso(0.3) < 0.11) ) selElectrons.push_back(lep);
     else if ( isVetoElectron(p) ) vetoElectrons.push_back(lep);
     else continue;
 
@@ -514,7 +518,12 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   std::sort(selLeptons.begin(), selLeptons.end(),
             [&](const cat::Lepton* a, const cat::Lepton* b){return a->pt() > b->pt();});
   // Copy selLeptons to out_leptons
-  if ( !selLeptons.empty() ) out_leptons->push_back(*selLeptons.at(0));
+  if ( !selLeptons.empty() ) {
+    const cat::Electron* el = dynamic_cast<const cat::Electron*>(selLeptons.at(0));
+    const cat::Muon* mu = dynamic_cast<const cat::Muon*>(selLeptons.at(0));
+    if ( el ) out_electrons->push_back(*el);
+    else if ( mu ) out_muons->push_back(*mu);
+  }
   const int leptons_n = selLeptons.size();
   const cat::Lepton* lepton1 = 0;
   int channel = 0;
@@ -559,7 +568,7 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     metDpy += jet.py()-p.py();
     if ( jet.pt() < 30 ) continue;
 
-    if ( leptons_n >= 1 and deltaR(jet.p4(), out_leptons->at(0).p4()) < 0.4 ) continue;
+    if ( leptons_n >= 1 and deltaR(jet.p4(), lepton1->p4()) < 0.4 ) continue;
 
     jets_ht += jet.pt();
     if ( isBjet(p) ) ++bjets_n;
@@ -699,7 +708,7 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   // Check each cut steps
   int cutstep = -1;
   // bitset for the cut steps, fill the results only for events that pass step0a,0b,0c
-  std::bitset<nCutstep-2> cutstepBits(0);
+  std::bitset<ControlPlotsTTLJ::nCutstep-2> cutstepBits(0);
   //for ( auto x : cutstepBits ) x = false;
   if ( (channel == 11 and cutstep_el == 0) or
        (channel == 13 and cutstep_mu == 0) ) {
@@ -744,7 +753,7 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       // lepton1 should exist from step1
       const auto lepton1P4 = shiftedLepScale(*lepton1)*lepton1->p4();
 
-      for ( int i=3; i<nCutstep; ++i ) {
+      for ( int i=3; i<ControlPlotsTTLJ::nCutstep; ++i ) {
         const int icutstep = i-2; // icutstep starts from step 1
         if ( cutstep < icutstep ) break;
 
@@ -831,11 +840,13 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     }
   }
 
+  event.put(std::auto_ptr<int>(new int(cutstep)), "cutstep");
   event.put(std::auto_ptr<int>(new int((int)channel)), "channel");
   event.put(std::auto_ptr<float>(new float(weight)), "weight");
   event.put(std::auto_ptr<float>(new float(metP4.pt())), "met");
   event.put(std::auto_ptr<float>(new float(metP4.phi())), "metphi");
-  event.put(out_leptons, "leptons");
+  event.put(out_electrons, "electrons");
+  event.put(out_muons, "muons");
   event.put(out_jets, "jets");
 
   // Apply filter at the given step.

@@ -49,10 +49,15 @@ private:
   std::vector<std::vector<VmapToken> > vmapTokens_;
 
   std::vector<int> indices_;
-  std::vector<std::vector<CandFtn> > exprs_;
+  std::vector<std::vector<CandFtn> > exprsF_, exprsI_, exprsB_;
   std::vector<std::vector<CandSel> > boolexprs_;
 
-  std::vector<std::vector<vfloat*> > candVars_;
+  std::vector<unsigned short*> candSize_;
+  std::vector<std::vector<float*> > candVarsF_;
+  std::vector<std::vector<int*> > candVarsI_;
+  std::vector<std::vector<bool*> > candVarsB_;
+
+  static constexpr unsigned short maxSize_ = 255;
 };
 
 template<typename T>
@@ -69,16 +74,14 @@ public:
     if ( !gpset.existsAs<PSet>(psetName) ) return;
     const PSet pset = gpset.getParameter<PSet>(psetName);
     const auto names = pset.getParameterNamesForType<PSet>();
-    for ( auto& name : names )
-    {
+    for ( auto& name : names ) {
       const auto ipset = pset.getParameter<PSet>(name);
       tokens_.push_back(iC.consumes<std::vector<T> >(ipset.getParameter<edm::InputTag>("src")));
       values_.push_back(new std::vector<T>);
       if ( tree ) tree->Branch(name.c_str(), values_.back());
     }
     const auto labels = pset.getParameterNamesForType<edm::InputTag>();
-    for ( auto& name : labels )
-    {
+    for ( auto& name : labels ) {
       tokens_.push_back(iC.consumes<std::vector<T> >(pset.getParameter<edm::InputTag>(name)));
       values_.push_back(new std::vector<T>);
       if ( tree ) tree->Branch(name.c_str(), values_.back());
@@ -88,12 +91,10 @@ public:
   int load(const edm::Event& event, const bool doException)
   {
     int nFailure = 0;
-    for ( size_t i=0, n=tokens_.size(); i<n; ++i )
-    {
+    for ( size_t i=0, n=tokens_.size(); i<n; ++i ) {
       edm::Handle<std::vector<T> > handle;
       event.getByToken(tokens_[i], handle);
-      if ( !handle.isValid() )
-      {
+      if ( !handle.isValid() ) {
         if ( doException ) throw cms::Exception("DataError") << "Cannot load " << handle;
         ++nFailure;
       }
@@ -129,16 +130,14 @@ public:
     if ( !gpset.existsAs<PSet>(psetName) ) return;
     const PSet pset = gpset.getParameter<PSet>(psetName);
     const auto names = pset.getParameterNamesForType<PSet>();
-    for ( auto& name : names )
-    {
+    for ( auto& name : names ) {
       const auto ipset = pset.getParameter<PSet>(name);
       values_.push_back(new T);
       tokens_.push_back(iC.consumes<T>(ipset.getParameter<edm::InputTag>("src")));
       if ( tree ) tree->Branch(name.c_str(), values_.back(), (name+"/"+typeNameStr).c_str());
     }
     const auto labels = pset.getParameterNamesForType<edm::InputTag>();
-    for ( auto& name : labels )
-    {
+    for ( auto& name : labels ) {
       tokens_.push_back(iC.consumes<T>(pset.getParameter<edm::InputTag>(name)));
       values_.push_back(new T);
       if ( tree ) tree->Branch(name.c_str(), values_.back(), (name+"/"+typeNameStr).c_str());
@@ -148,13 +147,11 @@ public:
   int load(const edm::Event& event, const bool doException)
   {
     int nFailure = 0;
-    for ( size_t i=0, n=tokens_.size(); i<n; ++i )
-    {
+    for ( size_t i=0, n=tokens_.size(); i<n; ++i ) {
       edm::Handle<T> handle;
       event.getByToken(tokens_[i], handle);
       if ( handle.isValid() ) *values_[i] = *handle;
-      else
-      {
+      else {
         if ( doException ) throw cms::Exception("DataError") << "Cannot load " << handle;
         *values_[i] = -999;
         ++nFailure;

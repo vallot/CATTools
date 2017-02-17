@@ -24,14 +24,19 @@
 
 #include <fstream>
 
-#define nCutstep 11
-
 using namespace std;
 
 namespace cat {
 
 struct ControlPlotsFCNC
 {
+  static const int nCutstep = 11;
+  static constexpr const char* stepNames[nCutstep] = {
+    "step1", "step2", "step3", "step4",
+    "step5", "step6", "step7",
+    "step8a", "step8b", "step8c", "step9"
+  };
+
   typedef TH1D* H1;
   typedef TH2D* H2;
 
@@ -65,9 +70,6 @@ struct ControlPlotsFCNC
       "S5 lepton", "S6 other lepton veto", "S7 same lepton veto",
       "S8a nJet1", "S8b nJet2", "S8c nJet3", "S9  nBJet1"
     };
-    const char* stepNames[nCutstep] = {"step1", "step2", "step3", "step4",
-                                       "step5", "step6", "step7",
-                                       "step8a", "step8b", "step8c", "step9"};
 
     for ( int i=0; i<nCutstep; ++i ) {
       hCutstep->GetXaxis()->SetBinLabel(i+1, stepLabels[i]);
@@ -131,6 +133,8 @@ struct ControlPlotsFCNC
     }
   };
 };
+const int ControlPlotsFCNC::nCutstep;
+constexpr const char* ControlPlotsFCNC::stepNames[];
 
 class TopFCNCEventSelector : public edm::one::EDFilter<edm::one::SharedResources>
 {
@@ -544,7 +548,7 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   const double met_phi = atan2(metP4.py()-metDpy, metP4.px()-metDpx);
 
   // Check cut steps
-  std::vector<bool> cutsteps(nCutstep);
+  std::vector<bool> cutsteps(ControlPlotsFCNC::nCutstep);
   cutsteps[0] = true; // always true
   cutsteps[1] = (isUseGoodPV_ ? (nGoodVertex >= 1) : isGoodPV0);
   cutsteps[2] = isRECOFilterOK;
@@ -568,7 +572,7 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   // Run though the cut steps
   int cutstep = 0;
   double w = weight;
-  for ( cutstep = 0; cutstep < nCutstep; ++cutstep ) {
+  for ( cutstep = 0; cutstep < ControlPlotsFCNC::nCutstep; ++cutstep ) {
     if ( !cutsteps[cutstep] and !(cutstep == 3 and isIgnoreTrig_) ) break;
 
     if ( cutstep == 3 and !isIgnoreTrig_ ) w *= trigSF;
@@ -657,11 +661,11 @@ TopFCNCEventSelector::~TopFCNCEventSelector()
     if ( channel_ == 11 ) cout << "Electron channel:\n";
     else if ( channel_ == 13 ) cout << "Muon channel:\n";
     size_t fw = 8;
-    for ( int i=1; i<=nCutstep; ++i ) {
+    for ( int i=1; i<=ControlPlotsFCNC::nCutstep; ++i ) {
       fw = std::max(fw, strlen(h_ch.hCutstepNoweight->GetXaxis()->GetBinLabel(i)));
     }
     fw += 2;
-    for ( int i=1; i<=nCutstep; ++i ) {
+    for ( int i=1; i<=ControlPlotsFCNC::nCutstep; ++i ) {
       const string name(h_ch.hCutstepNoweight->GetXaxis()->GetBinLabel(i));
       cout << name;
       for ( size_t k=name.size(); k<fw; ++k ) cout << ' ';

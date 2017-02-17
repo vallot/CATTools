@@ -64,21 +64,20 @@ samples = {
         ## produce nominals only
         ## cmsRun analyze_sig_cfg.py
         ## do ttbar specific gen level analyzer, do ttbar-dilepton genFilters
-        #"TTJets_MG", "TTJets_aMC",
-        #"TT_powheg_herwig",
+        "TTJets_MG", "TTJets_aMC",
+        "TT_powheg_herwig",
 
-        #"TT_powheg_mtop1695", "TT_powheg_mtop1755",
-
-        #"TT_powheg_noCR", "TT_powheg_mpiOFF",
-
-        #"TTLJ_powheg_alphaS", "TT_powheg_alphaS",
-        #"TT_powheg_herwig_mpiOFF",
+        "TT_powheg_FSRdown","TT_powheg_FSRup",
+        "TT_powheg_ISRdown","TT_powheg_ISRup",
+        "TT_powheg_UEdown","TT_powheg_UEup",
+        "TT_powheg_mtop1665","TT_powheg_mtop1695","TT_powheg_mtop1715",
+        "TT_powheg_mtop1735","TT_powheg_mtop1755","TT_powheg_mtop1785",
     ],
 }
 for key in samples.keys():
     if key.split()[0] != 'sig': continue
     variations = ' '.join(key.split()[1:])
-    for i in ['ttbb', 'ttbj', 'ttcc', 'ttlf']:
+    for i in ['ttbb', 'ttbj', 'ttcc', 'ttlf', 'tt']:
         samples['sig.'+i+' '+variations] = samples[key]
 
 import sys, os
