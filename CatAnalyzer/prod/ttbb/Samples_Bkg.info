@@ -21,6 +21,7 @@ ttZ_Madgraph    dataset_ttZ.txt
 
 # -- W+Jets
 WJets_aMCatNLO dataset_WJets.txt
+WJets_Madgraph dataset_WJets_MG.txt
 
 # -- Drell-Yan
 ZJets_M10to50_aMCatNLO dataset_DYJets_10to50.txt

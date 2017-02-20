@@ -81,8 +81,8 @@ process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      # TriggerNames
                                      triggerNameDataEl = cms.untracked.vstring("HLT_Ele27_eta2p1_WPTight_Gsf_v","HLT_Ele32_eta2p1_WPTight_Gsf_v"), 
                                      triggerNameDataMu = cms.untracked.vstring("HLT_IsoMu24_v","HLT_IsoTkMu24_v"), 
-                                     triggerNameMCEl   = cms.untracked.vstring("notrigger","HLT_Ele32_eta2p1_WPTight_Gsf_v"), 
-                                     triggerNameMCMu   = cms.untracked.vstring("notrigger","HLT_IsoMu24_v","HLT_IsoTkMu24_v"), 
+                                     triggerNameMCEl   = cms.untracked.vstring("HLT_Ele32_eta2p1_WPTight_Gsf_v8"), 
+                                     triggerNameMCMu   = cms.untracked.vstring("HLT_IsoMu24_v4","HLT_IsoTkMu24_v4"), 
                                      # Input Tags
                                      genWeightLabel    = cms.InputTag("flatGenWeights"),
                                      genLabel          = cms.InputTag("prunedGenParticles"),
