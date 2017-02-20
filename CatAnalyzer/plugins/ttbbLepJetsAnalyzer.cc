@@ -218,7 +218,7 @@ private:
   //---------------------------------------------------------------------------
 
   // Histograms: Number of Events and Weights
-  TH1F *EventInfo, *ScaleWeights;
+  TH1D *EventInfo, *ScaleWeights;
   // Scale factor evaluators
   BTagWeightEvaluator SF_CSV_;
   ScaleFactorEvaluator SF_muon_, SF_elec_;
@@ -472,7 +472,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
     gentree->Branch("genjet_gencone_mom", "std::vector<int>",   &b_GenJet_GenConeMom);
   }
 
-  EventInfo = fs->make<TH1F>("EventInfo","Event Information",9,0,9);
+  EventInfo = fs->make<TH1D>("EventInfo","Event Information",9,0,9);
   EventInfo->GetXaxis()->SetBinLabel(1,"Number of Events");
   EventInfo->GetXaxis()->SetBinLabel(2,"Sum of Weights");
   EventInfo->GetXaxis()->SetBinLabel(3,"ttbb Events pT>20");
@@ -483,7 +483,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   EventInfo->GetXaxis()->SetBinLabel(8,"ttjj Lep (tau lep decay) Events pT>20");
   EventInfo->GetXaxis()->SetBinLabel(9,"Sum of PU Weights");
 
-  ScaleWeights = fs->make<TH1F>("ScaleWeights","Event Weights:",6,0,6);
+  ScaleWeights = fs->make<TH1D>("ScaleWeights","Event Weights:",6,0,6);
   ScaleWeights->GetXaxis()->SetBinLabel(1,"muR=Nom  muF=Up");
   ScaleWeights->GetXaxis()->SetBinLabel(2,"muR=Nom  muF=Down");
   ScaleWeights->GetXaxis()->SetBinLabel(3,"muR=Up   muF=Nom");
@@ -800,15 +800,13 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
     // Categorization based in the Full Ph-Sp
     // Requires ttjj events to be categorized
-    if(genttbarConeCat->begin()->NaddJets20() > 1){
-      Isttjj = true;
+    if(genttbarConeCat->begin()->NaddJets20() > 1) Isttjj = true;
 
-      if      (genttbarConeCat->begin()->NaddbJets20() > 1) Isttbb = true;
-      else if (genttbarConeCat->begin()->NaddbJets20() > 0) Isttb  = true;
-      else if (genttbarConeCat->begin()->NaddcJets20() > 1) Isttcc = true;
-      else if (genttbarConeCat->begin()->NaddJets20()  > 1) IsttLF = true;
-      else Istt = true;
-    }
+    if      (Isttjj && genttbarConeCat->begin()->NaddbJets20() > 1) Isttbb = true;
+    else if (Isttjj && genttbarConeCat->begin()->NaddbJets20() > 0) Isttb  = true;
+    else if (Isttjj && genttbarConeCat->begin()->NaddcJets20() > 1) Isttcc = true;
+    else if (Isttjj && genttbarConeCat->begin()->NaddJets20()  > 1) IsttLF = true;
+    else Istt = true;
 
     // Categorization based in the Visible Ph-Sp
     // if(genttbarConeCat->begin()->NbJets20() > 1 && 
@@ -1542,11 +1540,10 @@ bool ttbbLepJetsAnalyzer::IsSelectElectron(const cat::Electron & i_electron_cand
   // float relIso = ( chIso + std::max(0.0, nhIso + phIso - rhoIso*AEff) )/ ecalpt;
 
   // Isolation is already included in the cut-based cuts, it is not needed 
-  if ( !doLooseLepton_ ) {
-    if ( std::abs(i_electron_candidate.scEta()) <= 1.479)   GoodElectron &=( i_electron_candidate.relIso( 0.3 ) < 0.0695 );
-    else GoodElectron &= ( i_electron_candidate.relIso( 0.3 ) < 0.0821 );
-  }
-
+  // if ( !doLooseLepton_ ) {
+  //   if ( std::abs(i_electron_candidate.scEta()) <= 1.479)   GoodElectron &=( i_electron_candidate.relIso( 0.3 ) < 0.0695 );
+  //   else GoodElectron &= ( i_electron_candidate.relIso( 0.3 ) < 0.0821 );
+  // }
 
   // Effective Area Parametrization can be found in:
   // Last recommendation: https://twiki.cern.ch/twiki/bin/viewauth/CMS/SWGuideMuonId2015 Slide 8
@@ -1573,8 +1570,8 @@ bool ttbbLepJetsAnalyzer::IsVetoElectron(const cat::Electron & i_electron_candid
   //----------------------------------------------------------------------------------------------------
   //------------- The Relative Isolation is already calculated in the CAT object -----------------------
   //----------------------------------------------------------------------------------------------------
-  if ( std::abs(i_electron_candidate.scEta()) <= 1.479) GoodElectron &= ( i_electron_candidate.relIso( 0.3 ) < 0.175 );
-  else GoodElectron &= ( i_electron_candidate.relIso( 0.3 ) < 0.159 );
+  // if ( std::abs(i_electron_candidate.scEta()) <= 1.479) GoodElectron &= ( i_electron_candidate.relIso( 0.3 ) < 0.175 );
+  // else GoodElectron &= ( i_electron_candidate.relIso( 0.3 ) < 0.159 );
   //----------------------------------------------------------------------------------------------------
   //----------------------------------------------------------------------------------------------------
 
