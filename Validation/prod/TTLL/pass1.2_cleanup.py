@@ -9,7 +9,32 @@ import imp
 prefix = "hist"
 outDir = "pass1"
 
-def hadd(d):
+def hadd2(destDir, inputFiles):
+    ## First split files by prefix
+    inputFiles.sort(key = lambda x : int(x.split('_')[-1][:-5]))
+
+    ## estimate total size and merge not to exceed 1Gbytes
+    totalSize = sum([os.stat(f).st_size for f in inputFiles])
+    fSize = 1024.*1024*1024 # 1GB
+    nOutput = int(totalSize/fSize)+1
+
+    if nOutput == 1:
+        cmd = 'hadd -f %s.root ' % destDir
+        cmd += ' '.join(inputFiles)
+        os.system(cmd)
+    else:
+        nTotalFiles = len(inputFiles)
+        nFiles = nTotalFiles/nOutput
+
+        for i in range(nOutput):
+            print i
+            cmd = 'hadd -f %s_%d.root ' % (destDir, i)
+            if i == nOutput-1: cmd += ' '.join(inputFiles[i*nFiles:])
+            else: cmd += ' '.join(inputFiles[i*nFiles:(i+1)*nFiles])
+            os.system(cmd)
+    for x in inputFiles: os.system("rm -f %s" % (x))
+
+def cleanup(d):
     d = d.rstrip('/')
     if not isdir(d): return 
 
@@ -27,20 +52,15 @@ def hadd(d):
         rootFiles.append(x)
 
     if len(rootFiles) == nqueue:
-
-        cmd = 'hadd -f %s.root ' % d
-        cmd += ' '.join(rootFiles)
-
         print
         print "*"*40
         print "*", d, "is complete. Merge and clean up"
         print "*"*40
         print
-        os.system(cmd)
+        hadd2(d, rootFiles)
         os.system("rm -f %s/job.tar.gz" % d)
         os.system("tar czf %s/log.tgz %s/*.log %s/*.err %s/*.txt" % (d, d, d, d))
         os.system("rm -f %s/*.log %s/*.err %s/*.txt" % (d, d, d))
-        for x in rootFiles: os.system("rm -f %s" % (x))
     else:
         print
         print "+"*40
@@ -99,7 +119,7 @@ if __name__ == '__main__':
 
     outFiles = []
     for sample in jobsFinished:
-        pool.apply_async(hadd, [sample])
+        pool.apply_async(cleanup, [sample])
         outFiles.append(sample+'.root')
 
     pool.close()

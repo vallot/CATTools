@@ -27,12 +27,11 @@ process.el = process.eventsFCNC.clone(channel = cms.string("electron"))
 process.mu = process.eventsFCNC.clone(channel = cms.string("muon"))
 delattr(process, 'eventsFCNC')
 
-process.load("CATTools.CatAnalyzer.analyzers.topFCNCNtuple_cff")
-process.ntupleFCNC.puWeight = process.el.vertex.pileupWeight
-process.ntupleFCNC.isMC = False
-process.ntupleEL = process.ntupleFCNC.clone(src = cms.InputTag("el"))
-process.ntupleMU = process.ntupleFCNC.clone(src = cms.InputTag("mu"))
-delattr(process, 'ntupleFCNC')
+process.ttLJ.puWeight = process.el.vertex.pileupWeight
+process.ttLJ.isMC = False
+process.ntupleEL = process.ttLJ.clone(src = cms.InputTag("el"))
+process.ntupleMU = process.ttLJ.clone(src = cms.InputTag("mu"))
+delattr(process, 'ttLJ')
 
 process.p_el = cms.Path(
     process.filterLumi# * process.removeLumisWithL1TCert

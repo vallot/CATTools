@@ -18,17 +18,7 @@ process.TFileService = cms.Service("TFileService",
     fileName = cms.string("ntuple.root"),
 )
 
-process.load("CATTools.CatProducer.pileupWeight_cff")
-from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
-process.pileupWeight.weightingMethod = "RedoWeight"
-process.pileupWeight.pileupMC = pileupWeightMap["2016_25ns_SpringMC"]
-process.pileupWeight.pileupRD = pileupWeightMap["Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON"]
-process.pileupWeight.pileupUp = pileupWeightMap["Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON_Up"]
-process.pileupWeight.pileupDn = pileupWeightMap["Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON_Dn"]
-process.eventsFCNC.vertex.pileupWeight = "pileupWeight::CATeX"
-
 process.eventsFCNC.filters.filterRECO = "filterRECOMC"
-process.eventsFCNC.filters.ignoreTrig = True
 
 process.el = process.eventsFCNC.clone(channel = cms.string("electron"))
 process.mu = process.eventsFCNC.clone(channel = cms.string("muon"))
@@ -39,19 +29,18 @@ process.csvWeightsEL = process.csvWeights.clone(src = cms.InputTag("el:jets"))
 process.csvWeightsMU = process.csvWeights.clone(src = cms.InputTag("mu:jets"))
 delattr(process, "csvWeights")
 
-process.load("CATTools.CatAnalyzer.analyzers.topFCNCNtuple_cff")
-process.ntupleFCNC.puWeight = process.el.vertex.pileupWeight
-process.ntupleEL = process.ntupleFCNC.clone(
+process.ttLJ.puWeight = process.el.vertex.pileupWeight
+process.ntupleEL = process.ttLJ.clone(
     src = cms.InputTag("el"),
     csvWeight = cms.InputTag("csvWeightsEL"),
     csvWeightSyst = cms.InputTag("csvWeightsEL:syst"),
 )
-process.ntupleMU = process.ntupleFCNC.clone(
+process.ntupleMU = process.ttLJ.clone(
     src = cms.InputTag("mu"),
     csvWeight = cms.InputTag("csvWeightsMU"),
     csvWeightSyst = cms.InputTag("csvWeightsMU:syst"),
 )
-delattr(process, 'ntupleFCNC')
+delattr(process, 'ttLJ')
 
 process.p_el = cms.Path(
     process.gen + process.rec

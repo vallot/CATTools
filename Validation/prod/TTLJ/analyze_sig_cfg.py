@@ -15,6 +15,7 @@ process.load("CATTools.CatAnalyzer.filters_cff")
 process.load("CATTools.Validation.ttljEventSelector_cff")
 process.load("CATTools.CatAnalyzer.ttll.ttllGenFilters_cff")
 process.load("CATTools.Validation.validation_cff")
+process.filterParton.nLepton = 1
 
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string("hist.root"),
@@ -33,22 +34,14 @@ process.agen = cms.EDAnalyzer("CATGenTopAnalysis",
 )
 
 process.p = cms.Path(
-    process.agen + process.filterPartonTTLJ
+    process.agen + process.filterParton
   * process.gen + process.rec
   * process.eventsTTLJ
 )
 
-process.load("CATTools.CatProducer.pileupWeight_cff")
-from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
-process.pileupWeight.weightingMethod = "RedoWeight"
-process.pileupWeight.pileupMC = pileupWeightMap["2016_25ns_SpringMC"]
-process.pileupWeight.pileupRD = pileupWeightMap["Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON"]
-process.pileupWeight.pileupUp = pileupWeightMap["Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON_Up"]
-process.pileupWeight.pileupDn = pileupWeightMap["Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON_Dn"]
-process.eventsTTLJ.vertex.pileupWeight = "pileupWeight::CATeX"
-
 process.eventsTTLJ.filters.filterRECO = "filterRECOMC"
-process.eventsTTLJ.filters.ignoreTrig = True
+process.load("CATTools.CatAnalyzer.csvWeights_cfi")
+process.eventsTTLJ.extWeights.append(cms.InputTag("csvWeights"))
 
 ## Customise with cmd arguments
 import sys

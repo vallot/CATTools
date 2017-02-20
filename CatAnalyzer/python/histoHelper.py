@@ -118,23 +118,28 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
     leg.SetFillStyle(0)
     leg.AddEntry(data,"Data","lp")
     
-    hs = ROOT.THStack("hs_%s_mc"%(name), "hs_%s_mc"%(name))    
+    hs = ROOT.THStack("mcstack", "mcstack")    
+    hratio = mclist[0].Clone("hratio")
+    hratio.Reset()
+
     leghist = []
     for i, mc in enumerate(mclist):
         hnew = mc.Clone("hnew"+mc.GetName())
         hnew.Sumw2(False)
         hs.Add(hnew)
+        hratio.Add(mc)
         inversed = mclist[len(mclist)-1-i]
         if not any(inversed.GetTitle() == s for s in leghist):
             leg.AddEntry(inversed, inversed.GetTitle(), "f")
             leghist.append(inversed.GetTitle())
                         
-    hratio = hs.GetStack().Last()
+    #hratio = hs.GetStack().Last()
     hratio.Divide(data,hratio,1.,1.,"B")
 
     tdrstyle.setTDRStyle()
 
     setDefTH1Style(data, x_name, y_name)
+    data.SetName('data')
     data.SetMaximum(data.GetMaximum()*1.8)
     if doLog:
         data.SetMaximum(data.GetMaximum()*100)
@@ -277,14 +282,10 @@ def set_palette(name="", ncontours=999):
 def overFlow(hist):
     nbins = hist.GetNbinsX()
     hist.SetBinContent(nbins, hist.GetBinContent(nbins)+hist.GetBinContent(nbins+1))
+    hist.SetBinError(nbins, math.sqrt(hist.GetBinError(nbins)**2+hist.GetBinError(nbins+1)**2))
     hist.SetBinContent(1, hist.GetBinContent(1)+hist.GetBinContent(0))
+    hist.SetBinError(1, math.sqrt(hist.GetBinError(1)**2+hist.GetBinError(0)**2))
 
-def binNormalize(hist):
-    nbins = hist.GetNbinsX()
-    for i in range(1,nbins):
-        hist.SetBinContent(i, hist.GetBinContent(i)/hist.GetBinWidth(i))
-        hist.SetBinError(i, hist.GetBinError(i)/hist.GetBinWidth(i))
-    
 def extraText(canv, position, content):
     canv.cd()
     tex = ROOT.TLatex()
