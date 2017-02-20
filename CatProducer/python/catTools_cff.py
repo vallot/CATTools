@@ -132,15 +132,23 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         #process.catMETsNoHF = process.catMETs.clone(src = cms.InputTag("slimmedMETsNoHF","","CAT"))
         #del process.slimmedMETsNoHF.caloMET        
         #######################################################################
+        ## Electron regression
+        from CATTools.CatProducer.patTools.egmRegression_cff import enableElectronRegression
+        process = enableElectronRegression(process)
+
         ## Energy/Photon smearing and scale correction
         from CATTools.CatProducer.patTools.egmSmearing_cff import enableElectronSmearing, enablePhotonSmearing
-        enableElectronSmearing(process, runOnMC)
-        enablePhotonSmearing(process, runOnMC)
+        process = enableElectronSmearing(process, runOnMC)
+        process = enablePhotonSmearing(process, runOnMC)
         
         ## Electron/Photon VID
         from CATTools.CatProducer.patTools.egmVersionedID_cff import enableElectronVID, enablePhotonVID
-        enableElectronVID(process)
-        enablePhotonVID(process)
+        process = enableElectronVID(process)
+        process = enablePhotonVID(process)
+
+        ## Electron ID without isolation cuts
+        from CATTools.CatProducer.patTools.egmNoIsoID_cff import enableElectronNoIsoID
+        process = enableElectronNoIsoID(process)
        
         #######################################################################    
         # adding pfMVAMet https://twiki.cern.ch/twiki/bin/viewauth/CMS/MVAMet#Spring15_samples_with_25ns_50ns

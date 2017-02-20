@@ -7,7 +7,7 @@ eventsFCNC = cms.EDFilter("TopFCNCEventSelector",
     channel = cms.string("electron"),
     ## alwaysAcceptAfter : Accept event even though selection may fail _AFTER_ this step
     ## Use case: store ntuple only for events that passes step4
-    applyFilterAt = cms.int32(7),
+    applyFilterAt = cms.int32(9), ## 9 is nJet3
 
     # Physics objects
     muon = cms.PSet(

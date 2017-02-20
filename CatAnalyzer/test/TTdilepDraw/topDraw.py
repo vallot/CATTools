@@ -113,11 +113,11 @@ for i, mcname in enumerate(mcfilelist):
     mchist = makeTH1(rfname, tname, title, binning, plotvar, tcut, scale)
     mchist.SetLineColor(colour)
     mchist.SetFillColor(colour)
-    if overflow: overFlow(mchist)
-    mchistList.append(mchist)
     up_tmp, dn_tmp = sysUncertainty(rfname, tname, binning, title, scale, tcut, plotvar, mchist, sysList)
     sysErr_up.append(up_tmp)
     sysErr_dn.append(dn_tmp)
+    if overflow: overFlow(mchist)
+    mchistList.append(mchist)
     if 'TT' in mcname:
         mchist.SetTitle(mchist.GetTitle()+"-signal (visible)")
         N = getWeightedEntries(rfname, tname, 'tri', ttother_tcut)
@@ -149,39 +149,39 @@ else:
         rdhist.Add(makeTH1(rfname, tname, 'data', binning, plotvar, rdtcut))
 if overflow: overFlow(rdhist)
 rdhist.SetLineColor(1)
-rdhist.SetName('data')
 nbins = rdhist.GetNbinsX()
 
 #namming
 unit = ""
-if len(binning) == 3 and rdhist.GetBinWidth(0) != 1:
+if len(binning) == 3 and rdhist.GetBinWidth(1) != 1:
     if x_name.endswith(']'):
         unit = x_name.split('[')[1]
         unit = unit.split(']')[0]
-    y_name = y_name + " / %g %s"%(rdhist.GetBinWidth(0),unit)
+    y_name = y_name + " / %g %s"%(rdhist.GetBinWidth(1),unit)
 
-#error band
+#error band(sys)
 errorBand = copy.deepcopy(rdhist)
 errorBand.SetFillColor(14)
 errorBand.SetFillStyle(3001)
 errorBand.SetMarkerStyle(0)
-
 avrSys=[]
 for k in range(len(sysList)):
     sysErr_sum = 0
-    for j in range(1,nbins):
+    for j in range(1,nbins+2):
         sumh = 0
         suml = 0
         for i in range(len(mcfilelist)):
             sumh += sysErr_up[i][k].GetBinContent(j)**2
             suml += sysErr_dn[i][k].GetBinContent(j)**2
-        statErr = errorBand.GetBinError(j)
         sysErr = math.sqrt(max(sumh,suml))
-        statsysErr = math.sqrt(statErr**2+sysErr**2) 
-        errorBand.SetBinError(j, statsysErr)
+        Err = math.sqrt(errorBand.GetBinError(j)**2+sysErr**2)
+        errorBand.SetBinError(j, Err)
 
         if errorBand.GetBinContent(j) !=0: sysErr_sum += sysErr/errorBand.GetBinContent(j)*100
     avrSys.append(sysErr_sum/nbins/2)
+if overflow:
+    overflowErr = math.sqrt(errorBand.GetBinError(nbins)**2+errorBand.GetBinError(nbins+1)**2)
+    errorBand.SetBinError(nbins, overflowErr)
 
 for a in avrSys:
     print "%s%%"%a
@@ -192,12 +192,33 @@ for k in num.keys():
     print '%s  ~&~ $%8d \\pm %6.2f$'%(k, max(0,num[k]), err[k])
 print 'data  ~&~ $%8d           $ \n'%rdhist.Integral(0,nbins+1)
 
+#diff
+"""
+mcdiff = defTH1('MC (Simulation)', "mctotal", binning)
+for h in mchistList:
+    mcdiff.Add(h)
+mcdiff.Scale(1/float(mcdiff.Integral()))
+rdhist.Scale(1/float(rdhist.Integral()))
+errorBand.Scale(1/float(errorBand.Integral()))
+mcdiff.SetLineColor(2)
+mcdiff.SetFillColor(0)
+mchistList = [mcdiff]
+"""
+
 #bin normalize
-if binNormalize and len(binning)!=3:
+if binNormalize:
     for hist in mchistList:
-        binNormalize(hist)
-    binNormalize(rdhist)
-    y_name = y_name + "/%s"%(unit)
+        hist.Scale(1,"width")
+    rdhist.Scale(1,"width")
+    errorBand.Scale(1,"width")
+
+#errorBand(stat+sys)
+for i in range(1,nbins+1):
+    statErr = rdhist.GetBinError(i)
+    sysErr = errorBand.GetBinError(i)
+    statsysErr = math.sqrt(statErr**2+sysErr**2) 
+    errorBand.SetBinError(i, statsysErr)
+    errorBand.SetBinContent(i, rdhist.GetBinContent(i))
 
 #Drawing plots on canvas
 var = plotvar.split(',')[0]
@@ -215,6 +236,7 @@ mainPad = canv.GetPrimitive("mainPad")
 mainPad.cd()
 errorBand.Draw("e2same")
 mainPad.GetPrimitive("data").Draw("esamex0")
+extraText(canv, [0.3,0.85], outfile.split("_")[0])
 canv.Update()
 
 ratioPad = canv.GetPrimitive("ratioPad")
@@ -222,11 +244,10 @@ ratioPad.cd()
 sysErrRatio = errorBand.Clone()
 sysErrRatio.Divide(rdhist)
 sysErrRatio.Draw("e2same")
-ratioPad.GetPrimitive("hnewtmp").Draw("esame")
+ratioPad.GetPrimitive("hratio").Draw("esame")
 canv.Update()
 
 canv.SaveAs(outfile)
-#canv.SaveAs(outfile.replace(".png",".pdf"))
-print outfile
+canv.SaveAs(outfile.replace(".png",".pdf"))
 print outfile
 

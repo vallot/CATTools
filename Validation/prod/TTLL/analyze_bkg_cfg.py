@@ -24,18 +24,9 @@ process.p = cms.Path(
   * process.eventsTTLL
 )
 
-process.load("CATTools.CatProducer.pileupWeight_cff")
-from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
-process.pileupWeight.weightingMethod = "RedoWeight"
-process.pileupWeight.pileupMC = pileupWeightMap["2016_25ns_SpringMC"]
-process.pileupWeight.pileupRD = pileupWeightMap["Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON"]
-process.pileupWeight.pileupUp = pileupWeightMap["Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON_Up"]
-process.pileupWeight.pileupDn = pileupWeightMap["Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON_Dn"]
-process.eventsTTLL.vertex.pileupWeight = "pileupWeight::CATeX"
-
 process.eventsTTLL.filters.filterRECO = "filterRECOMC"
-process.eventsTTLL.filters.trigMUEL = "filterTrigMUELMC"
-process.eventsTTLL.filters.ignoreTrig = True
+process.load("CATTools.CatAnalyzer.csvWeights_cfi")
+process.eventsTTLL.extWeights.append(cms.InputTag("csvWeights"))
 
 ## Customise with cmd arguments
 import sys

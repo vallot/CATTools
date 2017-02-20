@@ -57,7 +57,8 @@ for d in ds:
         if ss['type'] != 'Data':
             xsec = ss['xsec']
             f = TFile(fName)
-            hh = f.Get("gen/hWeight")
+            hh = f.Get("agen/hWeight")
+            if hh == None: hh = f.Get("gen/hWeight")
             normFactor = hh.GetMean()*hh.GetEntries()
             if normFactor == 0: scale = 0
             else: scale = xsec/normFactor

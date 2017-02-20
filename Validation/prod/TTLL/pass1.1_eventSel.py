@@ -151,7 +151,7 @@ for key in samples:
     suffix = ""
     baseargs = []
     if 'noll' in modifiers:
-        baseargs += ["filterPartonTTLL.invert=True"]
+        baseargs += ["filterParton.invert=True"]
         suffix = "_Others"
 
     for name in samples[key]:

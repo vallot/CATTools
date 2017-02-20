@@ -160,8 +160,8 @@ void cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
       tightLepVetoJetID = false;
     }
     else if (std::abs(eta) > 2.7){
-      looseJetID = (NEMF<0.90 && NumNeutralParticle>2 && abs(eta)>2.7 && abs(eta)<=3.0 );
-      tightJetID = (NEMF<0.90 && NumNeutralParticle>2 && abs(eta)>2.7 && abs(eta)<=3.0 );
+      looseJetID = (NHF<0.98 && NEMF>0.01 && NumNeutralParticle>2 && abs(eta)>2.7 && abs(eta)<=3.0 );
+      tightJetID = (NHF<0.98 && NEMF>0.01 && NumNeutralParticle>2 && abs(eta)>2.7 && abs(eta)<=3.0 );
       tightLepVetoJetID = false;
     }
 

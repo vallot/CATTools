@@ -14,44 +14,8 @@ recipes = {
     'systMC':{
         'jet_res/up':['eventsFCNC.jet.resolDirection=1'],
         'jet_res/dn':['eventsFCNC.jet.resolDirection=-1'],
-        'pileup/up':['eventsFCNC.vertex.pileupWeight="pileupWeight:up"'],
-        'pileup/dn':['eventsFCNC.vertex.pileupWeight="pileupWeight:dn"'],
-        'mu_eff/up':['eventsFCNC.muon.efficiencySFDirection=1'],
-        'mu_eff/dn':['eventsFCNC.muon.efficiencySFDirection=-1'],
-        'el_eff/up':['eventsFCNC.electron.efficiencySFDirection=1'],
-        'el_eff/dn':['eventsFCNC.electron.efficiencySFDirection=-1'],
     },
-    'scaleup':{},
-    'scaledn':{},
-    'pdf':{},
 }
-
-## Scale up/down systematic uncertainty from LHE weight
-## This uncertainty have to be combined with envelope
-## Let us assume index1-10 are for the scale variations (muF & muR)
-## total 8 scale variations, 3 muF x 3 muR and one for nominal weight
-## Skip unphysical scale variation combinations, (muF=2, muR=0.5) and (muF=0.5, muR=2) should be skipped
-## and combine with PS level scale variations samples
-for i in range(3):
-    for ss in ("up", "dn"):
-        if ss == 'up':
-            s  = ['eventsFCNC.genWeight.src="flatGenWeights:scaleup"',
-                  'agen.weight="flatGenWeights:scaleup"']
-        else: s = ['eventsFCNC.genWeight.src="flatGenWeights:scaledown"',
-                   'agen.weight="flatGenWeights:scaledown"']
-
-        s.extend(['eventsFCNC.genWeight.index=%d' % i, 'agen.weightIndex=%d' % i])
-        recipes['scale'+ss]['gen_scale/%s_%d' % (ss, i)] = s[:]
-
-## PDF weights
-## Weight vector size differs to include different PDF considerations
-## -> 110 variations for aMC@NLO, 248 for POWHEG
-## Basically, (1+8 scale variations) + (1+100 NNPDF variations) + (other PDF variations) + (1+N hdamp variations)
-## NOTE: there is weight vector, but we don't do it for LO generator here.
-for i in range(100):
-    r = ['eventsFCNC.genWeight.src="flatGenWeights:pdf"', 'eventsFCNC.genWeight.index=%d' % i,
-         'agen.weight="flatGenWeights:pdf"', 'agen.weightIndex=%d' % i]
-    recipes['pdf']['gen_pdf/%d' % i] = r[:] 
 
 ## Define list of samples and their recipes
 samples = {
@@ -69,29 +33,22 @@ samples = {
         ## do MC common systematic variations
         ## No ttbar specific gen level analyzer, no ttbar genFilters
         "DYJets", "DYJets_10to50",
-        "SingleTop_s", "SingleTop_t", "SingleTbar_t", "SingleTop_tW", "SingleTbar_tW", 
-        "WJets", "WJets_MG", 
-        "WW", "WZ", "ZZ", 
-        "WWW", "WWZ", "WZZ", "ZZZ", 
+        "SingleTop_s", "SingleTop_t", "SingleTbar_t", "SingleTop_tW", "SingleTbar_tW",
+        "WJets", "WJets_MG",
+        "WW", "WZ", "ZZ",
+        "WWW", "WWZ", "WZZ", "ZZZ",
         "TT_AntitopLeptonicDecay_TH_1L3B_Eta_Hct", "TT_TopLeptonicDecay_TH_1L3B_Eta_Hct",
         "TT_AntitopLeptonicDecay_TH_1L3B_Eta_Hut", "TT_TopLeptonicDecay_TH_1L3B_Eta_Hut",
     ],
-    'bkg scaleup scaledn pdf':[
-        "TT_AntitopLeptonicDecay_TH_1L3B_Eta_Hct", "TT_TopLeptonicDecay_TH_1L3B_Eta_Hct",
-        "TT_AntitopLeptonicDecay_TH_1L3B_Eta_Hut", "TT_TopLeptonicDecay_TH_1L3B_Eta_Hut",
-    ],
-    'sig nominal syst systMC scaleup scaledn pdf':[
+    'sig nominal syst systMC':[
         ## MC Signal samples, select ttbar-dilepton at Gen.Level
         ## cmsRun analyze_sig_cfg.py
         ## do common systematic variations
         ## do MC common systematic variations
         ## do ttbar specific gen level analyzer, do ttbar-dilepton genFilters
         ## do PDF variations
-        "TTLJ_powheg", 
+        "TTLJ_powheg",
         #"ttbb",
-    ],
-    'sig nominal syst systMC':[
-        #"ttW", "ttZ",
     ],
     'sig.noll nominal syst systMC':[
         ## ttbar-others
@@ -99,35 +56,29 @@ samples = {
         ## do common systematic variations
         ## do MC common systematic variations
         ## do ttbar specific gen level analyzer, do ttbar-dilepton genFilters
-        "TT_powheg", 
+        "TT_powheg",
         #"ttW", "ttZ",
-    ],
-    'sig nominal scaleup':[
-        ## MC signal samples, for the systematic unc. variations
-        ## Therefore, produce nominals only
-        ## cmsRun analyze_sig_cfg.py
-        ## do ttbar specific gen level analyzer, do ttbar-dilepton genFilters
-        #"TTLJ_powheg_scaleup", "TT_powheg_scaleup",
-    ],
-    'sig nominal scaledn':[
-        #"TTLJ_powheg_scaledown", "TT_powheg_scaledown",
     ],
     'sig nominal':[
         ## Variation on generator choice
         ## produce nominals only
         ## cmsRun analyze_sig_cfg.py
         ## do ttbar specific gen level analyzer, do ttbar-dilepton genFilters
-        #"TTJets_MG", "TTJets_aMC", 
-        #"TT_powheg_herwig", 
+        "TTJets_MG", "TTJets_aMC",
+        "TT_powheg_herwig",
 
-        #"TT_powheg_mtop1695", "TT_powheg_mtop1755",
-
-        #"TT_powheg_noCR", "TT_powheg_mpiOFF", 
-
-        #"TTLJ_powheg_alphaS", "TT_powheg_alphaS", 
-        #"TT_powheg_herwig_mpiOFF", 
+        "TT_powheg_FSRdown","TT_powheg_FSRup",
+        "TT_powheg_ISRdown","TT_powheg_ISRup",
+        "TT_powheg_UEdown","TT_powheg_UEup",
+        "TT_powheg_mtop1665","TT_powheg_mtop1695","TT_powheg_mtop1715",
+        "TT_powheg_mtop1735","TT_powheg_mtop1755","TT_powheg_mtop1785",
     ],
 }
+for key in samples.keys():
+    if key.split()[0] != 'sig': continue
+    variations = ' '.join(key.split()[1:])
+    for i in ['ttbb', 'ttbj', 'ttcc', 'ttlf', 'tt']:
+        samples['sig.'+i+' '+variations] = samples[key]
 
 import sys, os
 outDir = "pass1"
@@ -156,8 +107,23 @@ for key in samples:
     suffix = ""
     baseargs = []
     if 'noll' in modifiers:
-        baseargs += ["filterPartonTTLJ.invert=True"]
+        baseargs += ["filterGenTop.invert=True"]
         suffix = "_Others"
+    if 'ttbb' in modifiers:
+        baseargs += ["filterGenTop.addJetChannel=\"TTBB\""]
+        suffix = "_TTBB"
+    elif 'ttbj' in modifiers:
+        baseargs += ["filterGenTop.addJetChannel=\"TTBJ\""]
+        suffix = "_TTBJ"
+    elif 'ttcc' in modifiers:
+        baseargs += ["filterGenTop.addJetChannel=\"TTCC\""]
+        suffix = "_TTCC"
+    elif 'ttlf' in modifiers:
+        baseargs += ["filterGenTop.addJetChannel=\"TTLF\""]
+        suffix = "_TTLF"
+    elif 'tt' in modifiers:
+        baseargs += ["filterGenTop.addJetChannel=\"none\""]
+        suffix = "_noAddJet"
 
     for name in samples[key]:
         for recipeToRun in recipesToRun:
