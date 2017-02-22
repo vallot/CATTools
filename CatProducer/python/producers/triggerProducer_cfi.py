@@ -30,6 +30,7 @@ catTrigger = cms.EDProducer("CATTriggerProducer",
             "Flag_HBHENoiseIsoFilter",
             "Flag_EcalDeadCellTriggerPrimitiveFilter",
             "Flag_eeBadScFilter",
+            "Flag_badMuons", "Flag_duplicateMuons", "Flag_noBadMuons",
         ),
         bools = cms.VInputTag(
             cms.InputTag("BadChargedCandidateFilter"),
