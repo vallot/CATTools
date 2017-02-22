@@ -35,6 +35,7 @@ catTrigger = cms.EDProducer("CATTriggerProducer",
         bools = cms.VInputTag(
             cms.InputTag("BadChargedCandidateFilter"),
             cms.InputTag("BadPFMuonFilter"),
+            cms.InputTag("badECALSlewRateMitigationFilter2016"),
         ),
     ),
 )
