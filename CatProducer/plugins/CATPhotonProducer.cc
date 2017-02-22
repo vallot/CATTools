@@ -58,7 +58,6 @@ namespace cat {
     edm::EDGetTokenT<reco::GenParticleCollection> mcLabel_;
     
     edm::EDGetTokenT<double> rhoLabel_;
-    edm::EDGetTokenT<edm::SortedCollection<EcalRecHit,edm::StrictWeakOrdering<EcalRecHit>>> ebRecHitsToken_;
 
     bool runOnMC_;
 
@@ -78,7 +77,6 @@ cat::CATPhotonProducer::CATPhotonProducer(const edm::ParameterSet & iConfig) :
   vertexLabel_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexLabel"))),
   mcLabel_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("mcLabel"))),
   rhoLabel_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoLabel"))),
-  ebRecHitsToken_(consumes<edm::SortedCollection<EcalRecHit,edm::StrictWeakOrdering<EcalRecHit>>>(iConfig.getParameter<edm::InputTag>("ebRecHits"))),
   photonIDs_(iConfig.getParameter<std::vector<std::string> >("photonIDs"))
 {
   produces<std::vector<cat::Photon> >();
@@ -111,14 +109,9 @@ cat::CATPhotonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
   iEvent.getByToken(rhoLabel_, rhoHandle);
   double rhoIso = std::max(*(rhoHandle.product()), 0.0);
 
-  edm::Handle<edm::SortedCollection<EcalRecHit,edm::StrictWeakOrdering<EcalRecHit>>> ebRecHitsHandle;
-
   Handle<reco::GenParticleCollection> genParticles;
   if (runOnMC_){
     iEvent.getByToken(mcLabel_,genParticles);
-  }
-  else {
-    iEvent.getByToken(ebRecHitsToken_, ebRecHitsHandle);
   }
 
   std::vector<edm::Handle<edm::ValueMap<bool> > > idhandles;
@@ -138,26 +131,6 @@ cat::CATPhotonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
     cat::Photon aPhoton(aPatPhoton);
     auto phosRef = src->refAt(j);
     auto unsmearedPhotRef = unsmearedPhotHandle->refAt(j);
-
-    // Redisual scale correction is needed for Moriond17 analysis. see https://twiki.cern.ch/twiki/bin/view/CMS/EGMSmearer
-    // this residual correction have to be applied ONLY FOR DATA with BARREL RecHits
-    if ( !runOnMC_ ) {
-      // FIXME: maybe it should be removed in the future
-      DetId detid = aPatPhoton.superCluster()->seed()->seed();
-      const EcalRecHit * rh = 0;
-      if (detid.subdetId() == EcalBarrel) {
-        auto rh_i =  ebRecHitsHandle->find(detid);
-        if( rh_i != ebRecHitsHandle->end()) rh =  &(*rh_i);
-        else rh = NULL;
-      }
-      if ( rh ) {
-        double Ecorr=1;
-        if(rh->energy() > 200 && rh->energy()<300)  Ecorr=1.0199;
-        else if(rh->energy()>300 && rh->energy()<400) Ecorr=  1.052;
-        else if(rh->energy()>400 && rh->energy()<500) Ecorr = 1.015;
-        aPhoton.setP4(Ecorr*aPhoton.p4());
-      }
-    }
 
     if (runOnMC_){
       aPhoton.setGenParticleRef(aPatPhoton.genParticleRef());
