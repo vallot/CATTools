@@ -52,9 +52,7 @@ cat::CATMETProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
   auto_ptr<vector<cat::MET> >  out(new vector<cat::MET>());
 
   const pat::MET & aPatMET = src->front();
-
   cat::MET aMET(aPatMET, aPatMET.sumEt() );
-
   if (setUnclusteredEn_){
     aMET.setUnclusteredEnUp(aPatMET.shiftedPx(pat::MET::UnclusteredEnUp),
 			    aPatMET.shiftedPy(pat::MET::UnclusteredEnUp),
