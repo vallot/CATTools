@@ -48,8 +48,6 @@ cat::CATMETProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
 {
   Handle<pat::METCollection> src;
   iEvent.getByToken(src_, src);
-  
-
 
   auto_ptr<vector<cat::MET> >  out(new vector<cat::MET>());
 
