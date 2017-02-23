@@ -48,11 +48,15 @@ cat::CATMETProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
 {
   Handle<pat::METCollection> src;
   iEvent.getByToken(src_, src);
+  
+
 
   auto_ptr<vector<cat::MET> >  out(new vector<cat::MET>());
 
   const pat::MET & aPatMET = src->front();
+
   cat::MET aMET(aPatMET, aPatMET.sumEt() );
+
   if (setUnclusteredEn_){
     aMET.setUnclusteredEnUp(aPatMET.shiftedPx(pat::MET::UnclusteredEnUp),
 			    aPatMET.shiftedPy(pat::MET::UnclusteredEnUp),
@@ -62,6 +66,10 @@ cat::CATMETProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
   			      aPatMET.shiftedSumEt(pat::MET::UnclusteredEnDown));
   }
   
+  aMET.setXYShiftedMET(aPatMET.shiftedPx(pat::MET::NoShift, pat::MET::Type1XY),
+		       aPatMET.shiftedPy(pat::MET::NoShift, pat::MET::Type1XY),
+		       aPatMET.shiftedSumEt(pat::MET::NoShift, pat::MET::Type1XY));
+
   aMET.setRawMET(aPatMET.MET::uncorP4().Pt());
 
   if (setjetMETSyst_){
