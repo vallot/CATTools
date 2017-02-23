@@ -14,6 +14,8 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         from FWCore.PythonUtilities.LumiList import LumiList
         process.lumiMask = cms.EDFilter("LumiMaskFilter",
             LumiSections = LumiList('%s/src/CATTools/CatProducer/data/LumiMask/%s.txt'%(os.environ['CMSSW_BASE'], cat.lumiJSON)).getVLuminosityBlockRange())
+
+        process.load("CATTools.CatProducer.eventCleaning.badECALSlewRateMitigationFilter2016_cfi")
     
     useJECfile = True
     jecFiles = cat.JetEnergyCorrection
