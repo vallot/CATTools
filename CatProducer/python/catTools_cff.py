@@ -126,7 +126,7 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         if runOnMC:
             from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
             runMetCorAndUncFromMiniAOD(process,
-                                       isData= not runOnMC
+                                       isData= not runOnMC,
                                        electronColl=cms.InputTag('calibratedPatElectrons')
                                        )
 
