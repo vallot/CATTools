@@ -9,13 +9,14 @@ process.options.allowUnscheduled = cms.untracked.bool(True)
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 from CATTools.Validation.commonTestInput_cff import commonTestCATTuples
-process.source.fileNames = ["root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/v8-0-4_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/170113_045423/0000/catTuple_983.root"]
 #process.source.fileNames = commonTestCATTuples["sig"]
+process.source.fileNames = ["root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/v8-0-4_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/170113_045423/0000/catTuple_98.root"]
 
 process.load("CATTools.CatAnalyzer.ttll.ttbarDileptonKinSolutionAlgos_cff")
 process.load("CATTools.CatAnalyzer.filters_cff")
 process.load("CATTools.CatAnalyzer.topPtWeightProducer_cfi")
 process.load("CATTools.CatAnalyzer.flatGenWeights_cfi")
+process.load("CATTools.CatProducer.mcTruthTop.partonTop_cfi")
 from CATTools.CatAnalyzer.leptonSF_cff import *
 
 process.ttbarDileptonKinAlgoPSetDESYSmeared.inputTemplatePath = cms.string("CATTools/CatAnalyzer/data/desyKinRecoInput.root")
@@ -53,8 +54,8 @@ process.cattree = cms.EDAnalyzer("dileptonCommon",
     ),
     jets = cms.InputTag("catJets"),
     mets = cms.InputTag("catMETs"),
+    mcLabel = cms.InputTag("prunedGenParticles"),
 
-    partonTop = cms.InputTag("prunedGenParticles"),
     partonTop_channel = cms.InputTag("partonTop","channel"),
     partonTop_modes = cms.InputTag("partonTop", "modes"),
     partonTop_genParticles = cms.InputTag("partonTop"),

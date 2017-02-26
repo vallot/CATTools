@@ -46,7 +46,6 @@ void dileptonCommon::parameterInit(const edm::ParameterSet& iConfig) {
       elecSFSet.getParameter<vdouble>("values"),
       elecSFSet.getParameter<vdouble>("errors"));
 
-  partonTop_ = consumes<vector<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("partonTop"));
   partonTop_channel_ = consumes<int>(iConfig.getParameter<edm::InputTag>("partonTop_channel"));
   partonTop_modes_   = consumes<vector<int> >(iConfig.getParameter<edm::InputTag>("partonTop_modes"));
   partonTop_genParticles_   = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("partonTop_genParticles"));
@@ -271,17 +270,12 @@ int dileptonCommon::eventSelection(const edm::Event& iEvent, const edm::EventSet
   const bool runOnMC = !iEvent.isRealData();
   bool keepTtbarSignal = false;
 
-  edm::Handle<edm::View<reco::Candidate> > pseudoTopLeptonHandle;
-  edm::Handle<edm::View<reco::Candidate> > pseudoTopNeutrinoHandle;
-  edm::Handle<edm::View<reco::Candidate> > pseudoTopJetHandle;
-  //if ( iEvent.getByToken(partonTop_channel_, partonTop_channel)){
-  if ( iEvent.getByToken(pseudoTop_leptons_, pseudoTopLeptonHandle) &&
-       iEvent.getByToken(pseudoTop_neutrinos_, pseudoTopNeutrinoHandle) &&
-       iEvent.getByToken(pseudoTop_jets_, pseudoTopJetHandle) ){
+  edm::Handle<int> partonTop_channel;
+  if ( iEvent.getByToken(partonTop_channel_, partonTop_channel)){
 
-    //edm::Handle<float> topPtWeightHandle;
-    //iEvent.getByToken(topPtWeight_, topPtWeightHandle);
-    //b_topPtWeight = *topPtWeightHandle;
+    edm::Handle<float> topPtWeightHandle;
+    iEvent.getByToken(topPtWeight_, topPtWeightHandle);
+    b_topPtWeight = *topPtWeightHandle;
 
     if (sys == sys_nom){
       edm::Handle<vector<float>> pdfweightHandle;
@@ -300,116 +294,84 @@ int dileptonCommon::eventSelection(const edm::Event& iEvent, const edm::EventSet
       }
     }
 
-    edm::Handle<vector<reco::GenParticle> > genParticleHandle;
-    iEvent.getByToken(partonTop_, genParticleHandle);
-
-    std::vector<const reco::Candidate*> tQuarks;
-    for ( size_t i=0, n=genParticleHandle->size(); i<n; ++i )
-    {
-      const reco::Candidate& gen = genParticleHandle->at(i);
-      const int status = gen.status();
-      if ( status == 1 ) continue;
- 
-      const int absPdgId = abs(gen.pdgId());
-      if ( absPdgId == 6 )
-      {
-        // top quark : select one 'after radiations'
-        bool toKeep = true;
-        if ( gen.numberOfDaughters() == 0 ) toKeep = false;
-        for ( size_t j=0, m=gen.numberOfDaughters(); j<m; ++j )
-        {
-          const int dauId = gen.daughter(j)->pdgId();
-          if ( dauId == gen.pdgId() ) { toKeep = false; break; }
-        }
-        if ( toKeep ) tQuarks.push_back(&gen);
-      }
+    edm::Handle<vector<int> > partonTop_modes;
+    edm::Handle<reco::GenParticleCollection> partonTop_genParticles;
+    iEvent.getByToken(partonTop_modes_, partonTop_modes);
+    iEvent.getByToken(partonTop_genParticles_, partonTop_genParticles);
+    if ( (*partonTop_modes).size() == 0 ) {
+      b_gen_partonMode1 = 0;
+      b_gen_partonMode2 = 0;
     }
+    else if ( (*partonTop_modes).size() == 1 ) { b_gen_partonMode2 = 0; }
+    else{
+      b_gen_partonChannel = *partonTop_channel;
+      b_gen_partonMode1 = (*partonTop_modes)[0];
+      b_gen_partonMode2 = (*partonTop_modes)[1];
+    }
+    if (b_gen_partonChannel == CH_FULLLEPTON) keepTtbarSignal = true;
 
-    vector<int> modes;
-    size_t nElectron = 0, nMuon = 0, nTau = 0, nTauToLepton = 0;
-    for ( int i=0, n=tQuarks.size(); i<n; ++i )
-    {
-      const reco::Candidate* tLast = getLast(tQuarks.at(i));
-      //reco::GenParticleRef tRef(partonRefHandle, i);
+    if(b_gen_partonMode1==1 && b_gen_partonMode2==2)b_gen_partonMode=1;
+    if(b_gen_partonMode1==2 && b_gen_partonMode2==1)b_gen_partonMode=1;
+    if(b_gen_partonMode1==1 && b_gen_partonMode2==1)b_gen_partonMode=3;
+    if(b_gen_partonMode1==2 && b_gen_partonMode2==2)b_gen_partonMode=2;
+    if(b_gen_partonMode1>3 || b_gen_partonMode2>3)b_gen_partonMode=4;
 
-      const reco::Candidate* w = 0;
-      const reco::Candidate* b = 0;
-      for ( int j=0, m=tLast->numberOfDaughters(); j<m; ++j )
-      {
-        const reco::Candidate* dau = tLast->daughter(j);
-        const unsigned int dauAbsId = abs(dau->pdgId());
-        if ( dauAbsId == 24 and !w ) w = dau;
-        else if ( dauAbsId < 6 and !b ) b = dau;
-      }
-      if ( !w or !b ) continue;
+    if ( !(partonTop_genParticles->empty()) ){
 
-      // W decay products
-      const reco::Candidate* wLast = getLast(w);
-      const reco::Candidate* wDau1 = 0;
-      const reco::Candidate* wDau2 = 0;
-      for ( int j=0, m=wLast->numberOfDaughters(); j<m; ++j )
-      {
-        const reco::Candidate* dau = wLast->daughter(j);
-        const unsigned int dauAbsId = abs(dau->pdgId());
-        if ( dauAbsId > 16 ) continue; // Consider quarks and leptons only for W decays
+      // Get Top quark pairs
+      auto parton1 = &partonTop_genParticles->at(0);
+      auto parton2 = &partonTop_genParticles->at(1);
+      if (parton1->charge() < 0) swap(parton1, parton2);
 
-        if ( !wDau1 ) wDau1 = dau;
-        else if ( !wDau2 ) wDau2 = dau;
-      }
-      if ( !wDau1 or !wDau2 ) continue;
-      if ( abs(wDau1->pdgId()) > abs(wDau2->pdgId()) ) swap(wDau1, wDau2);
+      b_gen_partontop1 = ToTLorentzVector(*parton1);
+      b_gen_partontop2 = ToTLorentzVector(*parton2);
+      b_gen_partonttbar = b_gen_partontop1 + b_gen_partontop2;
+      b_gen_partonttbar_dphi = b_gen_partontop1.DeltaPhi(b_gen_partontop2);
 
-      // Special care for tau->lepton decays
-      // Note : we do not keep neutrinos from tau decays (tau->W, nu_tau, W->l, nu_l)
-      // Note : Up to 6 neutrinos from top decays if both W decays to taus and all taus go into leptonic decay chain
-      const reco::Candidate* lepFromTau = 0;
-      if ( abs(wDau1->pdgId()) == 15 )
-      {
-        const reco::Candidate* tauLast = getLast(wDau1);
-        for ( int j=0, m=tauLast->numberOfDaughters(); j<m; ++j )
-        {
-          const reco::Candidate* dau = tauLast->daughter(j);
-          const unsigned int dauAbsId = abs(dau->pdgId());
-          if ( dauAbsId == 11 or dauAbsId == 13 )
-          {
-            if ( !lepFromTau ) lepFromTau = dau;
-          }
+      // Get W and b quarks
+      if ( parton1 and parton2 ) {
+        const auto partonW1 = parton1->daughter(0);
+        const auto partonB1 = parton1->daughter(1);
+        const auto partonW2 = parton2->daughter(0);
+        const auto partonB2 = parton2->daughter(1);
+
+        if ( (partonB1->pt() > 30 && std::abs(partonB1->eta()) < 2.4) &&
+            (partonB2->pt() > 30 && std::abs(partonB2->eta()) < 2.4))
+          b_gen_partonInPhaseJet = true;
+
+        // Get W daughters
+        if ( partonW1 and partonW2 and partonB1 and partonB2 ) {
+          const auto partonW11 = partonW1->daughter(0);
+          const auto partonW12 = partonW1->daughter(1);
+          const auto partonW21 = partonW2->daughter(0);
+          const auto partonW22 = partonW2->daughter(1);
+          if ( (partonW11->pt() > 20 && std::abs(partonW11->eta()) < 2.4 && (std::abs(partonW11->pdgId()) == 11 || std::abs(partonW11->pdgId()) == 13) ) &&
+              (partonW21->pt() > 20 && std::abs(partonW21->eta()) < 2.4 && (std::abs(partonW21->pdgId()) == 11 || std::abs(partonW21->pdgId()) == 13) ))
+            b_gen_partonInPhaseLep = true;
+
+          // Fill lepton informations
+          b_gen_partonnu1 = ToTLorentzVector(*partonW12);
+          b_gen_partonnu2 = ToTLorentzVector(*partonW22);
+          b_gen_partonlep1 = ToTLorentzVector(*partonW11);
+          b_gen_partonlep2 = ToTLorentzVector(*partonW21);
+          b_gen_partonlep1_pid = partonW11->pdgId();
+          b_gen_partonlep2_pid = partonW21->pdgId();
+          b_gen_partondilep = b_gen_partonlep1 + b_gen_partonlep2;
+          b_gen_partonjet1 = ToTLorentzVector(*partonB1);
+          b_gen_partonjet2 = ToTLorentzVector(*partonB2);
         }
       }
-      int mode = CH_HADRON;
-      switch ( abs(wDau1->pdgId()) )
-      {
-        case 11: ++nElectron; mode = CH_ELECTRON; break;
-        case 13: ++nMuon; mode = CH_MUON; break;
-        case 15:
-          ++nTau; mode = CH_TAU_HADRON;
-          if ( lepFromTau )
-          {
-            ++nTauToLepton;
-            if ( abs(lepFromTau->pdgId()) == 13 ) { mode += 1; ++nMuon; }
-            else { mode += 2; ++nElectron; }
-          } break;
-      } modes.push_back(mode);
-    }
-
-    if ( modes.size() == 2 )
-    {
-      const int nLepton = nElectron + nMuon;
-      if      ( nLepton == 0 ) b_gen_partonChannel = CH_FULLHADRON;
-      else if ( nLepton == 1 ) b_gen_partonChannel = CH_SEMILEPTON;
-      else if ( nLepton == 2 ) b_gen_partonChannel = CH_FULLLEPTON;
-
-      b_gen_partonMode1 = modes[0];
-      b_gen_partonMode2 = modes[1];
-      if(b_gen_partonMode1==1 && b_gen_partonMode2==2)b_gen_partonMode=1;
-      if(b_gen_partonMode1==2 && b_gen_partonMode2==1)b_gen_partonMode=1;
-      if(b_gen_partonMode1==1 && b_gen_partonMode2==1)b_gen_partonMode=3;
-      if(b_gen_partonMode1==2 && b_gen_partonMode2==2)b_gen_partonMode=2;
-      if(b_gen_partonMode1>3 || b_gen_partonMode2>3)b_gen_partonMode=4;
+      if (b_gen_partonInPhaseJet && b_gen_partonInPhaseLep) b_gen_partonInPhase = true;
     }
 
     // Start to build pseudo top
     b_gen_pseudoChannel = CH_NOLL;
+    edm::Handle<edm::View<reco::Candidate> > pseudoTopLeptonHandle;
+    edm::Handle<edm::View<reco::Candidate> > pseudoTopNeutrinoHandle;
+    edm::Handle<edm::View<reco::Candidate> > pseudoTopJetHandle;
+    iEvent.getByToken(pseudoTop_leptons_, pseudoTopLeptonHandle);
+    iEvent.getByToken(pseudoTop_neutrinos_, pseudoTopNeutrinoHandle);
+    iEvent.getByToken(pseudoTop_jets_, pseudoTopJetHandle);
     do {
       // Basic lepton, jet multiplicity
       if ( pseudoTopLeptonHandle->size() < 2 or pseudoTopJetHandle->size() < 2 or pseudoTopNeutrinoHandle->size() < 2 ) break;
