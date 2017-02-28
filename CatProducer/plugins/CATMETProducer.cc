@@ -62,6 +62,10 @@ cat::CATMETProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
   			      aPatMET.shiftedSumEt(pat::MET::UnclusteredEnDown));
   }
   
+  aMET.setXYShiftedMET(aPatMET.shiftedPx(pat::MET::NoShift, pat::MET::Type1XY),
+		       aPatMET.shiftedPy(pat::MET::NoShift, pat::MET::Type1XY),
+		       aPatMET.shiftedSumEt(pat::MET::NoShift, pat::MET::Type1XY));
+
   aMET.setRawMET(aPatMET.MET::uncorP4().Pt());
 
   if (setjetMETSyst_){

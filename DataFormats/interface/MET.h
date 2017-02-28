@@ -39,7 +39,10 @@ namespace cat {
     float JetResPy(int dir) const { if (dir == 1) return jetResUp_py_; else if (dir == -1) return jetResDown_py_; else return 0.;}
     float JetResSumEt(int dir) const { if (dir == 1) return jetResUp_sumet_; else if (dir == -1) return jetResDown_sumet_; else return 0.;}
     
-    
+    float XYShiftedPx() const {return xyshift_x;}
+    float XYShiftedPy() const {return xyshift_y;}
+    float XYShiftedsumEt() const {return xyshift_sumet;}
+
     void setRawMET(float m) {rawMET_=m;}
     void setUnclusteredEnUp (float x, float y, float s) {unclusteredEnUp_px_=x; unclusteredEnUp_py_=y; unclusteredEnUp_sumet_=s;}
     void setUnclusteredEnDown (float x, float y, float s) {unclusteredEnDown_px_=x; unclusteredEnDown_py_=y; unclusteredEnDown_sumet_=s;}
@@ -47,7 +50,7 @@ namespace cat {
     void setJetEnDown (float x, float y, float s) {jetEnDown_px_=x; jetEnDown_py_=y; jetEnDown_sumet_=s;}
     void setJetResUp (float x, float y, float s) {jetResUp_px_=x; jetResUp_py_=y; jetResUp_sumet_=s;}
     void setJetResDown (float x, float y, float s) {jetResDown_px_=x; jetResDown_py_=y; jetResDown_sumet_=s;}
-
+    void setXYShiftedMET (float x, float y, float s){ xyshift_x=x, xyshift_y=y, xyshift_sumet=s;}
   private:
     float sumEt_;
     float rawMET_;
@@ -57,7 +60,8 @@ namespace cat {
     float jetEnDown_px_, jetEnDown_py_, jetEnDown_sumet_;
     float jetResUp_px_, jetResUp_py_, jetResUp_sumet_;
     float jetResDown_px_, jetResDown_py_, jetResDown_sumet_;
-    
+    float xyshift_x, xyshift_y, xyshift_sumet;
+
   };
 }
 

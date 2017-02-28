@@ -11,7 +11,8 @@ MET::MET(const reco::LeafCandidate & aMet) :
   jetEnUp_px_(0),jetEnUp_py_(0),jetEnUp_sumet_(0),
   jetEnDown_px_(0),jetEnDown_py_(0),jetEnDown_sumet_(0),
   jetResUp_px_(0),jetResUp_py_(0),jetResUp_sumet_(0),
-  jetResDown_px_(0),jetResDown_py_(0),jetResDown_sumet_(0)
+  jetResDown_px_(0),jetResDown_py_(0),jetResDown_sumet_(0),
+  xyshift_x(0), xyshift_y(0), xyshift_sumet(0)
 {}
 
 MET::MET(const reco::LeafCandidate & aMet, float sumEt) :
@@ -23,5 +24,7 @@ MET::MET(const reco::LeafCandidate & aMet, float sumEt) :
   jetEnUp_px_(0),jetEnUp_py_(0),jetEnUp_sumet_(0),
   jetEnDown_px_(0),jetEnDown_py_(0),jetEnDown_sumet_(0),
   jetResUp_px_(0),jetResUp_py_(0),jetResUp_sumet_(0),
-  jetResDown_px_(0),jetResDown_py_(0),jetResDown_sumet_(0)
+  jetResDown_px_(0),jetResDown_py_(0),jetResDown_sumet_(0),
+  xyshift_x(0),xyshift_y(0), xyshift_sumet(0)
+
 {}
