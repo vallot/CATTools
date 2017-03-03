@@ -1,5 +1,69 @@
 import FWCore.ParameterSet.Config as cms
 
+def combineSF(set1, set2, additionalUnc1=0, additionalUnc2=0):
+    from bisect import bisect_right
+
+    ## build pt bins (x axis)
+    binsX1, binsX2 = set1.pt_bins[:], set2.pt_bins[:]
+    nbinsX1, nbinsX2 = len(binsX1), len(binsX2)
+    binsX = sorted(list(set().union(binsX1, binsX2)))
+
+    ## build (abs) eta bins (y axis)
+    isAbsEta1 = hasattr(set1, 'abseta_bins')
+    isAbsEta2 = hasattr(set2, 'abseta_bins')
+    binNameY, binNameY1, binNameY2 = 'eta_bins', 'eta_bins', 'eta_bins'
+    if isAbsEta1: binNameY1 = 'abseta_bins'
+    if isAbsEta2: binNameY2 = 'abseta_bins'
+    if isAbsEta1 == isAbsEta2 == True: binNameY = 'abseta_bins'
+
+    binsY1 = getattr(set1, binNameY1)[:]
+    binsY2 = getattr(set2, binNameY2)[:]
+    nbinsY1, nbinsY2 = len(binsY1), len(binsY2)
+    if isAbsEta1 == isAbsEta2:
+        binsY = sorted(list(set().union(binsY1, binsY2)))
+    else:
+        print "Expanding bins"
+        binsY = sorted(list(set().union(binsY1, [-y for y in binsY1],
+                                        binsY2, [-y for y in binsY2])))
+
+    values, errors = [], []
+    for y in binsY[:-1]:
+        y1, y2 = y, y
+        if isAbsEta1 and not isAbsEta2: y1 = abs(y)
+        if isAbsEta2 and not isAbsEta1: y2 = abs(y)
+
+        binY1 = bisect_right(binsY1, y1)
+        binY2 = bisect_right(binsY2, y2)
+        for x in binsX[:-1]:
+            binX1 = bisect_right(binsX1, x)
+            binX2 = bisect_right(binsX2, x)
+
+            value1, value2, error1, error2 = 1, 1, 0, 0
+
+            if 0 < binX1 < nbinsX1 and 0 < binY1 < nbinsY1:
+                bin1 = (binX1-1)+(binY1-1)*(nbinsX1-1)
+                value1 = set1.values[bin1]
+                error1 = set1.errors[bin1]
+            if 0 < binX2 < nbinsX2 and 0 < binY2 < nbinsY2:
+                bin2 = (binX2-1)+(binY2-1)*(nbinsX2-1)
+                value2 = set2.values[bin2]
+                error2 = set2.errors[bin2]
+
+            addErr1 = additionalUnc1*value1
+            addErr2 = additionalUnc2*value2
+
+            values.append(value1*value2)
+            errors.append((error1**2+error2**2+addErr1**2+addErr2**2)**0.5)
+
+    sfSet = cms.PSet(
+        pt_bins = cms.vdouble(binsX),
+        values = cms.vdouble(values),
+        errors = cms.vdouble(errors),
+    )
+    setattr(sfSet, binNameY, cms.vdouble(binsY))
+
+    return sfSet
+
 dummySF = cms.PSet(
     pt_bins = cms.vdouble(0,1e9),
     abseta_bins = cms.vdouble(0,1e9),
@@ -29,8 +93,8 @@ muonSFTightIdOnly = cms.PSet(
 
 ## SF for Run2016G-H, after HIP issue
 muonSFTightGHIdOnly = cms.PSet(
-    pt_bins = cms.vdouble(20.000000, 25.000000, 30.000000, 40.000000, 50.000000, 60.000000, 120.000000,)
-    abseta_bins = cms.vdouble(0.000000, 0.900000, 1.200000, 2.100000, 2.400000,)
+    pt_bins = cms.vdouble(20.000000, 25.000000, 30.000000, 40.000000, 50.000000, 60.000000, 120.000000,),
+    abseta_bins = cms.vdouble(0.000000, 0.900000, 1.200000, 2.100000, 2.400000,),
     values = cms.vdouble(
         0.993173, 0.986990, 0.987596, 0.989777, 0.984749, 0.991370,
         0.985596, 0.984686, 0.983914, 0.983265, 0.980582, 0.983879,
@@ -64,8 +128,8 @@ muonSFTightIsoOnly = cms.PSet(
 
 ## SF for Run2016G-H, after HIP issue
 muonSFTightGHIsoOnly = cms.PSet(
-    pt_bins = cms.vdouble(20.000000, 25.000000, 30.000000, 40.000000, 50.000000, 60.000000, 120.000000,)
-    abseta_bins = cms.vdouble(0.000000, 0.900000, 1.200000, 2.100000, 2.400000,)
+    pt_bins = cms.vdouble(20.000000, 25.000000, 30.000000, 40.000000, 50.000000, 60.000000, 120.000000,),
+    abseta_bins = cms.vdouble(0.000000, 0.900000, 1.200000, 2.100000, 2.400000,),
     values = cms.vdouble(
         0.981144, 0.992791, 0.993452, 0.995200, 0.996716, 0.999064,
         0.997662, 0.999726, 0.999598, 0.998324, 0.998887, 0.998908,
@@ -80,26 +144,6 @@ muonSFTightGHIsoOnly = cms.PSet(
     ),
 )
 
-## Retrieve data from the cmsdoc web page:
-##   https://cmsdoc.cern.ch/cms/Physics/muon/ReferenceEfficiencies/Run2016/25ns/proviSFs_2p6fb/MuonID_Z_2016runB_2p6fb.json
-##   https://cmsdoc.cern.ch/cms/Physics/muon/ReferenceEfficiencies/Run2016/25ns/proviSFs_2p6fb/MuonISO_Z_2016runB_2p6fb.json
-#muonSFTight = cms.PSet(
-#    # Values of "MC_NUM_TightIDandIPCut_DEN_genTracks_PAR_pt_spliteta_bin1 + MC_NUM_TightRelIso_DEN_TightID_PAR_pt_spliteta_bin1"
-#    pt_bins = cms.vdouble(20, 25, 30, 40, 50, 60, 100, 200),
-#    abseta_bins = cms.vdouble(0, 0.9, 1.2, 2.1, 2.4),
-#    values = cms.vdouble(
-#        0.941436, 0.959701, 0.968116, 0.970538, 0.968821, 0.972572, 0.987711,
-#        0.955623, 0.96175, 0.969717, 0.968784, 0.970868, 0.967741, 1.02273,
-#        0.97839, 0.983576, 0.987746, 0.988816, 0.990644, 0.988234, 1.01927,
-#        0.968935, 0.963683, 0.967626, 0.966395, 0.979048, 0.975934, 0.916776,
-#    ),
-#    errors = cms.vdouble(
-#        0.0155081, 0.0151449, 0.0150189, 0.0150086, 0.0150436, 0.0151513, 0.0221035,
-#        0.0161243, 0.0154153, 0.0150604, 0.0150198, 0.0151218, 0.0154361, 0.0273559,
-#        0.0152889, 0.0151052, 0.015018, 0.0150034, 0.015053, 0.0152429, 0.0179484,
-#        0.0159104, 0.0153603, 0.0150775, 0.0150447, 0.0154516, 0.0169014, 0.0812482,
-#    ),
-#)
 
 ## Muon SF reference https://twiki.cern.ch/twiki/bin/viewauth/CMS/MuonReferenceEffsRun2
 ## Retrieve data from the cmsdoc web page:
@@ -161,6 +205,7 @@ electronSFRecoOnly = cms.PSet(
         1.001037,
         0.989507,
         0.970519,
+        0.907,
         ),
     errors = cms.vdouble(
         0.018239,
@@ -315,4 +360,8 @@ electronSFCutBasedIDMediumWP74X = cms.PSet(
         0.617985, 0.0693681, 0.0293348, 0.024152, 0.0894748,
     ),
 )
+
+## Combined Scale factors
+muonSFTight = combineSF(muonSFTightIdOnly, muonSFTightIsoOnly)
+electronSFCutBasedIDMediumWP = combineSF(electronSFRecoOnly, electronSFCutBasedIDMediumWPIdOnly)
 
