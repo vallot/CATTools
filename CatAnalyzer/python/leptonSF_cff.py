@@ -362,7 +362,8 @@ electronSFCutBasedIDMediumWP74X = cms.PSet(
 )
 
 ## Combined Scale factors
-muonSFTight = combineSF(muonSFTightIdOnly, muonSFTightIsoOnly)
-muonSFTightGH = combineSF(muonSFTightGHIdOnly, muonSFTightGHIsoOnly)
+## id syst 1%+0.5%(quadrature), iso syst 1%
+muonSFTight = combineSF(muonSFTightIdOnly, muonSFTightIsoOnly, (0.01**2+0.005**2)**0.5, 0.01)
+muonSFTightGH = combineSF(muonSFTightGHIdOnly, muonSFTightGHIsoOnly, (0.01**2+0.005**2)**0.5, 0.01)
 electronSFCutBasedIDMediumWP = combineSF(electronSFRecoOnly, electronSFCutBasedIDMediumWPIdOnly)
 
