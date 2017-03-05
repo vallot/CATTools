@@ -9,7 +9,6 @@ catElectrons = cms.EDProducer("CATElectronProducer",
     pfSrc  = cms.InputTag("packedPFCandidates"),
     beamLineSrc = cms.InputTag("offlineBeamSpot"),
     rhoLabel = cms.InputTag("fixedGridRhoAll"),
-    ebRecHits = cms.InputTag("reducedEgamma","reducedEBRecHits"),
     electronIDSources = cms.PSet(),
     electronIDs = cms.vstring(), ## Defined in CatProducer/python/patTools/egmVersionedID_cff.py
 )

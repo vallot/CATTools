@@ -27,7 +27,6 @@ process.el = process.eventsFCNC.clone(channel = cms.string("electron"))
 process.mu = process.eventsFCNC.clone(channel = cms.string("muon"))
 delattr(process, 'eventsFCNC')
 
-process.load("CATTools.CatAnalyzer.analyzers.ttLJAnalyzer_cff")
 process.ttLJ.puWeight = process.el.vertex.pileupWeight
 process.ttLJ.isMC = False
 process.ntupleEL = process.ttLJ.clone(src = cms.InputTag("el"))

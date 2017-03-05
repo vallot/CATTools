@@ -14,6 +14,8 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         from FWCore.PythonUtilities.LumiList import LumiList
         process.lumiMask = cms.EDFilter("LumiMaskFilter",
             LumiSections = LumiList('%s/src/CATTools/CatProducer/data/LumiMask/%s.txt'%(os.environ['CMSSW_BASE'], cat.lumiJSON)).getVLuminosityBlockRange())
+
+        process.load("CATTools.CatProducer.eventCleaning.badECALSlewRateMitigationFilter2016_cfi")
     
     useJECfile = True
     jecFiles = cat.JetEnergyCorrection
@@ -120,9 +122,14 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
 
         ## #######################################################################
         ## # MET corrections from https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
-        #from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
+        from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
+        runMetCorAndUncFromMiniAOD(process, isData= not runOnMC, electronColl=cms.InputTag('calibratedPatElectrons'))
+        process.catMETs.src = cms.InputTag("slimmedMETs","","CAT")
+
+        from CATTools.CatProducer.patTools.metMuonRecoMitigation2016_cff import enableMETMuonRecoMitigation2016
+        process = enableMETMuonRecoMitigation2016(process, runOnMC) ## MET input object is overridden in the modifier function
+
         #runMetCorAndUncFromMiniAOD( process, isData= not runOnMC, jecUncFile=cat.JECUncertaintyFile, jetColl= process.catJets.src)
-        #process.catMETs.src = cms.InputTag("slimmedMETs","","CAT")
         #del process.slimmedMETs.caloMET
         ## redoing noHF met due to new correction
         #process.noHFCands = cms.EDFilter("CandPtrSelector",src=cms.InputTag("packedPFCandidates"),

@@ -1,28 +1,32 @@
 #!/usr/bin/env python
 
 import sys, os
+from urllib import urlopen
+import csv
+from pandas import DataFrame
 
-gidMap = {
-    'v8-0-5':'1789422560', 'v8-0-4':'1689385956', 'v8-0-3':'1456963899', 'v8-0-2':'1895591332', 'v8-0-1':'1981960528', 'v8-0-0':'1203220026',
-    'v7-6-6':'183143795',
-    'v7-6-1':'1617837617', 'v7-6-2':'1966334211', 'v7-6-3':'266478682', 'v7-6-4':'600658293', 'v7-6-5':'773772766',
-    'v7-4-6':'1087889200',
-    'v7-4-1':'212761185', 'v7-4-2':'398123591', 'v7-4-3':'512197961', 'v7-4-4':'1038794205', 'v7-4-5':'519625370',
-    'v7-3-4':'857222646',
-}
 gdocbase = "https://docs.google.com/spreadsheets/d/1rWM3AlFKO8IJVaeoQkWZYWwSvicQ1QCXYSzH74QyZqE/pub?gid=%s&single=true&output=csv"
+
+def getCampaignSummary():
+    url = gdocbase % "1509514319"
+    print "Retrieving campaign info..."
+    print "Source URL = ", url
+    return DataFrame.from_csv(urlopen(url))
+
+def getSampleSummary(url):
+    return DataFrame.from_csv(urlopen(url))
 
 url, era = '', ''
 if len(sys.argv) < 2:
-    era = sorted(gidMap)[-1]
-    gid = gidMap[era]
+    gidMap = getCampaignSummary()
+    era = gidMap.index[0]
     print "No argument is given, use latest official production, ", era
-    url = gdocbase % gid
-elif sys.argv[1] in gidMap:
-    era = sys.argv[1]
-    gid = gidMap[era]
-    url = gdocbase % gid
-elif sys.argv[1].beginswith("http"):
+    eraData = gidMap.ix[era]
+    print "="*80
+    print eraData
+    print "="*80
+    url = gdocbase % int(eraData["GID"])
+elif sys.argv[1].startswith("http"):
     url = sys.argv[1]
     print "Use cutom spreadsheet, ", url
     if len(sys.argv) < 3:
@@ -36,14 +40,20 @@ elif sys.argv[1].endswith(".csv") or sys.argv[1].endswith(".txt"):
         print "Please give name of this custom era, e.g, v8-0-0a"
         sys.exit(1)
     era = sys.argv[2]
+else:
+    gidMap = getCampaignSummary()
+    era = sys.argv[1]
+    eraData = gidMap.ix[era]
+    print "="*80
+    print eraData
+    print "="*80
+    url = gdocbase % int(eraData["GID"])
 
 print "Using =",era
 
 from ROOT import *
-import csv
 
 if url != '':
-    from urllib import urlopen
     print "Retrieving dataset info..."
     print "Source URL =", url
     content = list(csv.reader(urlopen(url).readlines()))
