@@ -35,7 +35,7 @@ js = json.loads(open("%s/dataset.json" % dataDir).read())
 
 ## Write script to run create-batch
 cmds = {}
-for type in samples:
+for type, sampleNames in samples.iteritems():
     modifiers = []
     if '.' in type:
         modifiers = type.split('.')[1:]
@@ -49,7 +49,7 @@ for type in samples:
     elif 'ttNoFilter' in modifiers:
         baseargs += ['filterParton.nLepton=-1']
 
-    for name in samples[type]:
+    for name in sampleNames:
         jobName = "%s%s" % (name, suffix)
 
         submitCmd  = "create-batch --cfg analyze_%s_cfg.py --maxFiles 25 " % type
