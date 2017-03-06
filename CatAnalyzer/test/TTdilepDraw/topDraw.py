@@ -7,7 +7,8 @@ ROOT.gROOT.SetBatch(True)
 topDraw.py -a 1 -s 1 -c 'tri==1&&filtered==1' -b [40,0,40] -p nvertex -x 'no. vertex' &
 topDraw.py -a 1 -s 1 -b [100,-3,3] -p lep1_eta,lep2_eta -x '#eta' &
 '''
-datalumi = 2.17 #Run2015 v765
+datalumi = 2.1114 #Run2015 v765
+#datalumi = 2.17 #Run2015 v765
 CMS_lumi.lumi_sqrtS = "%.1f fb^{-1}, #sqrt{s} = 13 TeV"%(datalumi)
 datalumi = datalumi*1000 # due to fb
 CMS_lumi.writeExtraText = False
@@ -81,7 +82,7 @@ rd_tcut = '%s&&%s'%(stepch_tcut,cut)
 print "TCut =",tcut
 
 title_l = ["t#bar{t}", "W+jets", "Single top", "Single top", "Diboson", "Diboson", "Diboson", "Z/#gamma^{*}#rightarrow#font[12]{l#lower[-0.4]{+}l#lower[-0.4]{#font[122]{\55}}}", "Z/#gamma^{*}#rightarrow#font[12]{l#lower[-0.4]{+}l#lower[-0.4]{#font[122]{\55}}}"]
-sysList = ['jer','jes','mu','el','puweight','mueffweight','eleffweight','btagweight']
+sysNameList = ['jer','jes','mu','el','puweight','mueffweight','eleffweight','btagweight']
 
 #DYEstimation
 if not os.path.exists('./DYFactor.json'):
@@ -93,6 +94,10 @@ errList = []
 mchistList = []
 sysErr_up = []
 sysErr_dn = []
+for sysname in sysNameList:
+    sysErr_up.append(defTH1(sysname+'_up', sysname+'_up', binning))
+    sysErr_dn.append(defTH1(sysname+'_dn', sysname+'_dn', binning))
+
 for i, mcname in enumerate(mcfilelist):
     data = findDataSet(mcname, datasets)
     scale = datalumi*data["xsec"]
@@ -111,11 +116,16 @@ for i, mcname in enumerate(mcfilelist):
     err = math.sqrt(abs(N))*scale
 
     mchist = makeTH1(rfname, tname, title, binning, plotvar, tcut, scale)
+    for i, sysname in enumerate(sysNameList):
+        if 'weight' in sysname:
+            sysErr_up[i].Add(makeTH1(rfname, tname, title, binning, plotvar, tcut.replace(sysname,sysname+'_up'), scale))
+            sysErr_dn[i].Add(makeTH1(rfname, tname, title, binning, plotvar, tcut.replace(sysname,sysname+'_dn'), scale))
+        else:
+            sysErr_up[i].Add(makeTH1(rfname, "cattree/%s_u"%sysname, title, binning, plotvar, tcut, scale))
+            sysErr_dn[i].Add(makeTH1(rfname, "cattree/%s_d"%sysname, title, binning, plotvar, tcut, scale))
+
     mchist.SetLineColor(colour)
     mchist.SetFillColor(colour)
-    up_tmp, dn_tmp = sysUncertainty(rfname, tname, binning, title, scale, tcut, plotvar, mchist, sysList)
-    sysErr_up.append(up_tmp)
-    sysErr_dn.append(dn_tmp)
     if overflow: overFlow(mchist)
     mchistList.append(mchist)
     if 'TT' in mcname:
@@ -164,27 +174,20 @@ errorBand = copy.deepcopy(rdhist)
 errorBand.SetFillColor(14)
 errorBand.SetFillStyle(3001)
 errorBand.SetMarkerStyle(0)
-avrSys=[]
-for k in range(len(sysList)):
-    sysErr_sum = 0
-    for j in range(1,nbins+2):
-        sumh = 0
-        suml = 0
-        for i in range(len(mcfilelist)):
-            sumh += sysErr_up[i][k].GetBinContent(j)**2
-            suml += sysErr_dn[i][k].GetBinContent(j)**2
-        sysErr = math.sqrt(max(sumh,suml))
-        Err = math.sqrt(errorBand.GetBinError(j)**2+sysErr**2)
-        errorBand.SetBinError(j, Err)
 
-        if errorBand.GetBinContent(j) !=0: sysErr_sum += sysErr/errorBand.GetBinContent(j)*100
-    avrSys.append(sysErr_sum/nbins/2)
-if overflow:
-    overflowErr = math.sqrt(errorBand.GetBinError(nbins)**2+errorBand.GetBinError(nbins+1)**2)
-    errorBand.SetBinError(nbins, overflowErr)
+h_nom = defTH1("nom", "nom", binning)
+for h in mchistList:
+    h_nom.Add(h)
 
-for a in avrSys:
-    print "%s%%"%a
+for i in range(len(sysNameList)):
+    overFlow(sysErr_up[i])
+    overFlow(sysErr_dn[i])
+    sysErr_up[i].Add(h_nom, -1)
+    sysErr_dn[i].Add(h_nom, -1)
+    for j in range(1,nbins+1):
+        maxErr = max(abs(sysErr_up[i].GetBinContent(j)), abs(sysErr_dn[i].GetBinContent(j)))
+        sumErr = math.sqrt(errorBand.GetBinError(j)**2+maxErr**2) 
+        errorBand.SetBinError(j, sumErr)
 
 #get event yeild table
 num, err = table(mchistList, errList, mchistList[0], errList[0])
@@ -211,14 +214,6 @@ if binNormalize:
         hist.Scale(1,"width")
     rdhist.Scale(1,"width")
     errorBand.Scale(1,"width")
-
-#errorBand(stat+sys)
-for i in range(1,nbins+1):
-    statErr = rdhist.GetBinError(i)
-    sysErr = errorBand.GetBinError(i)
-    statsysErr = math.sqrt(statErr**2+sysErr**2) 
-    errorBand.SetBinError(i, statsysErr)
-    errorBand.SetBinContent(i, rdhist.GetBinContent(i))
 
 #Drawing plots on canvas
 var = plotvar.split(',')[0]
