@@ -22,7 +22,7 @@ srcMCs = [
     ["SingleTop", 800],
     ["Dibosons", 432],
     ["Tribosons", 433],
-    ["W+Jets:MG", 416],
+    ["W+Jets", 416],
     ["Z/#gamma#rightarrow ll", 600],
 ]
 for s in srcMCs: s.append(dataset[s[0]]['hist'])
