@@ -31,7 +31,7 @@ for name in dsIn:
     if title not in ds:
         ds[title] = {
             'colour':x['colour'],
-            'hist':'pass2/nominal/%s.root' % safeTitle, ## Path to the merged histogram
+            'hist':'pass2/%s.root' % safeTitle, ## Path to the merged histogram
             'subsamples':[], ## List of input samples
         }
     normFactor = 1
@@ -49,7 +49,7 @@ for name in dsIn:
     if sstype not in checkedTypes or len(hists) == 0:
         print "Reading histogram contents of sample type", sstype
         hset = set()
-        f = TFile(x['hist'])
+        f = TFile('pass1/'+x['hist'])
         findHists(f, hset)
         f.Close()
         hists = hists.union(hset)

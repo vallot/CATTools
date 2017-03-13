@@ -12,14 +12,13 @@ dsIn = {}
 for x in js: dsIn[x['name']] = x
 
 ds = {}
-for d in sorted(os.listdir('pass1')):
-    if not os.path.isdir('pass1/'+d): continue
-    if not os.path.exists('pass1/'+d+'/nominal.root'): continue
-    fName = 'pass1/'+d+'/nominal.root'
-    f = TFile(fName)
+for fName in sorted(os.listdir('pass1')):
+    if not fName.endswith('.root'): continue
+    f = TFile('pass1/'+fName)
     if f == None:
         print "!!! root file under %s is invalid" % name
         continue
+    d = fName.replace('.root', '')
 
     if d in dsIn:
         ds[d] = dsIn[d]
@@ -37,7 +36,7 @@ for d in sorted(os.listdir('pass1')):
     normFactor = 1.0
     avgWgt = float(ds[d]['avgWgt'])
     nEvent = int(ds[d]['nevt'])
-    part_nEvent = 0
+    partNEvent = 0
     if h != None:
         xsec = ds[d]['xsec']
         partAvgWgt = h.GetMean()
