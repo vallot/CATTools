@@ -25,3 +25,4 @@ for sample in js:
     submitCmd += " --jobName {0} --fileList {1}/dataset_{0}.txt ".format(jobName, dataDir)
 
     print>>fout, submitCmd
+os.system("chmod +x %s/submit.sh" % outDir)

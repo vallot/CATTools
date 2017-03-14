@@ -9,14 +9,13 @@ from pandas import DataFrame
 dataDir = "%s/src/CATTools/CatAnalyzer/data/dataset" % os.environ["CMSSW_BASE"]
 dsets = DataFrame.from_dict(json.loads(open("%s/dataset.json" % dataDir).read()))
 
-fsets = DataFrame(columns=('hist', 'name', 'nevt', 'avgWgt', 'options'))
+fsets = DataFrame(columns=('hist', 'name', 'nevt', 'avgWgt'))
 for fName in os.listdir('pass1'):
     if not fName.endswith(".root"): continue
     f = TFile('pass1/'+fName)
     if f == None or f.IsZombie(): continue
 
-    tokens = fName[:-5].split('.')
-    name = tokens.pop(0)
+    name = fName.split('.')[0]
 
     h = f.Get("gen/hWeight_Norm")
     nevt, avgWgt = 0, 1
@@ -24,31 +23,34 @@ for fName in os.listdir('pass1'):
         nevt = h.GetEntries()
         avgWgt = h.GetMean()
 
-    fsets.loc[fsets.shape[0]] = [fName, name, nevt, avgWgt, tokens[:]]
+    fsets.loc[fsets.shape[0]] = [fName, name, nevt, avgWgt]
 
+dsets['nevt_new'] = [0.0]*dsets.shape[0]
+dsets['avgWgt_new'] = [1.0]*dsets.shape[0]
 dsOut = {}
 for dsIndex, dsRow in dsets.iterrows():
     name = dsRow['name']
     fsRows = fsets[fsets['name'].str.match('^'+name+'$')]
+    if fsRows.shape[0] == 0: continue
 
-    for fsIndex, fsRow in fsRows.iterrows():
-        fName = fsRow['hist']
-        newName = fName.split('/')[-1][:-5]
-
-        nevt, avgWgt = 0.0, 1.0
-        nevt_orig, avgWgt_orig = dsRow.nevt, dsRow.avgWgt
-        normFactor = 1.0
-
-        if dsRow.type != 'Data':
+    nevt, avgWgt = 0.0, 1.0
+    nevt_orig, avgWgt_orig = dsRow.nevt, dsRow.avgWgt
+    normFactor = 1.0
+    if dsRow.type != 'Data':
+        for fsIndex, fsRow in fsRows.iterrows():
             nevt += fsRow['nevt']
             avgWgt += fsRow['avgWgt']*fsRow['nevt']
         if nevt > 0: avgWgt /= nevt
         normFactor = nevt*avgWgt
 
-        dsOut[newName] = {}
-        dsOut[newName].update(dict(dsRow))
-        dsOut[newName].update({'hist':'pass1/'+fName, 'nevt':nevt, 'avgWgt':avgWgt, 'normFactor':normFactor})
-        if len(fsRow['options']) > 0:
-            dsOut[newName]['title'] += ':'+('+'.join(fsRow['options']))
+    dsOut[name] = {}
+    dsOut[name].update(dict(dsRow))
+    dsOut[name].update({'nevt':nevt, 'avgWgt':avgWgt, 'normFactor':normFactor})
+
+    dsets.loc[dsIndex, 'nevt_new'] = nevt
+    dsets.loc[dsIndex, 'avgWgt_new'] = avgWgt
+
+subds = dsets[['name', 'nevt', 'nevt_new', 'avgWgt', 'avgWgt_new']]
+print subds[(subds['nevt'] != subds['nevt_new']) | (abs(subds['avgWgt']-subds['avgWgt_new'])>1e-5)]
 
 open("pass1/dataset.json", "w").write(json.dumps(dsOut, sort_keys=True, indent=4))
