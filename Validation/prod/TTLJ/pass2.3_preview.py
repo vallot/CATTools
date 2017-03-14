@@ -204,7 +204,7 @@ for iplt, pltInfo in enumerate(plts):
     if not os.path.exists("preview/%s" % dirName):
         os.makedirs("preview/%s" % dirName)
     c.Print("preview/%s/%s.png" % (dirName, c.GetName()))
-    if grpRatio.GetN() > 0: c.Print("preview/%s/%s.C" % (dirName, c.GetName()))
+    #if grpRatio.GetN() > 0: c.Print("preview/%s/%s.C" % (dirName, c.GetName()))
 
     for h in (hRD, hMC, hsMC, hRatio, grpRatio, c): del(h)
 
