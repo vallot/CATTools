@@ -52,7 +52,7 @@ for d in ds:
 
     sses = []
     for ss in ds[d]['subsamples']:
-        fName = 'pass1/'+ss['hist']
+        fName = ss['hist']
         scale = 1
         if ss['type'] != 'Data':
             xsec = ss['xsec']

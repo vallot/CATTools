@@ -49,7 +49,7 @@ for name in dsIn:
     if sstype not in checkedTypes or len(hists) == 0:
         print "Reading histogram contents of sample type", sstype
         hset = set()
-        f = TFile('pass1/'+x['hist'])
+        f = TFile(x['hist'])
         findHists(f, hset)
         f.Close()
         hists = hists.union(hset)
