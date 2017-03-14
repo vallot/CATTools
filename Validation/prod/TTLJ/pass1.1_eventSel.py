@@ -45,7 +45,7 @@ for type, sampleNames in samples.iteritems():
     baseargs = []
     if 'ttOthers' in modifiers:
         baseargs += ["filterParton.invert=True"]
-        suffix = "_Others"
+        suffix = ".Others"
     elif 'ttNoFilter' in modifiers:
         baseargs += ['filterParton.nLepton=-1']
 
