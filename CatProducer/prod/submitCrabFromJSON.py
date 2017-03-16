@@ -46,6 +46,7 @@ for d in datasets:
         opts['globalTag'] = cat.globalTag_mc
         opts['runOnMC'] = "True"
         if dataset.startswith('/TT') or dataset.startswith("/tt"): opts['runGenTop'] = "True"
+        if dataset.startswith('/TTTT_'): opts['runGenTop'] = "False"
     else:
         opts['globalTag'] = cat.globalTag_rd
         opts['runOnMC'] = "False"
