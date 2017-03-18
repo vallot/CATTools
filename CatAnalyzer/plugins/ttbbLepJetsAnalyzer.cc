@@ -373,10 +373,8 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
 
   tree->Branch("lepton_SF",  "std::vector<float>", &b_Lepton_SF );
 
-  if ( doLooseLepton_ ) {
-    tree->Branch("lepton_relIso", &b_Lepton_relIso, "lepton_relIso/F");
-    tree->Branch("lepton_isIso",  &b_Lepton_isIso,  "lepton_isIso/O");
-  }
+  tree->Branch("lepton_relIso", &b_Lepton_relIso, "lepton_relIso/F");
+  tree->Branch("lepton_isIso",  &b_Lepton_isIso,  "lepton_isIso/O");
 
   tree->Branch("jet_pT",           "std::vector<float>", &b_Jet_pT);
   tree->Branch("jet_eta",          "std::vector<float>", &b_Jet_eta);
@@ -1029,20 +1027,11 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   Handle<cat::ElectronCollection> electrons;
   iEvent.getByToken(electronToken_, electrons);
 
-  if ( !doLooseLepton_ ) {
-    for (unsigned int i = 0; i < electrons->size() ; i++) {
-      const cat::Electron & electron = electrons->at(i);
+  for (unsigned int i = 0; i < electrons->size() ; i++) {
+    const cat::Electron & electron = electrons->at(i);
 
-      if( IsSelectElectron( electron ) ) selectedElectrons.push_back( electron );
-      else if( IsVetoElectron( electron ) ) vetoElectrons.push_back( electron ); // does not Include selected electrons
-    }
-  }
-  else if ( !electrons->empty() ) {
-    if ( IsSelectElectron(electrons->at(0)) ) selectedElectrons.push_back( electrons->at(0) );
-    for (unsigned int i = 1; i < electrons->size() ; i++) {
-      const cat::Electron & electron = electrons->at(i);
-      if ( IsVetoElectron(electron) ) vetoElectrons.push_back(electron);
-    }
+    if( IsSelectElectron( electron ) ) selectedElectrons.push_back( electron );
+    else if( IsVetoElectron( electron ) ) vetoElectrons.push_back( electron ); // does not Include selected electrons
   }
 
   //---------------------------------------------------------------------------
@@ -1057,20 +1046,11 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   Handle<cat::MuonCollection> muons;
   iEvent.getByToken(muonToken_, muons);
 
-  if ( !doLooseLepton_ ) {
-    for (unsigned int i = 0; i < muons->size() ; i++) {
-      const cat::Muon & muon = muons->at(i);
+  for (unsigned int i = 0; i < muons->size() ; i++) {
+    const cat::Muon & muon = muons->at(i);
 
-      if( IsSelectMuon( muon) ) selectedMuons.push_back( muon);
-      else if( IsVetoMuon( muon) ) vetoMuons.push_back( muon); // does not Include selected muons
-    }
-  }
-  else if ( !muons->empty() ) {
-    if ( IsSelectMuon(muons->at(0)) ) selectedMuons.push_back( muons->at(0) );
-    for (unsigned int i = 1; i < muons->size() ; i++) {
-      const cat::Muon & muon = muons->at(i);
-      if ( IsVetoMuon(muon) ) vetoMuons.push_back(muon);
-    }
+    if( IsSelectMuon( muon) ) selectedMuons.push_back( muon);
+    else if( IsVetoMuon( muon) ) vetoMuons.push_back( muon); // does not Include selected muons
   }
 
   //---------------------------------------------------------------------------
