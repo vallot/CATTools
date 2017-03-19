@@ -1,5 +1,17 @@
 import FWCore.ParameterSet.Config as cms
 
+def computeAverageSF(set1, lumi1, set2, lumi2):
+    sfSet = set1.clone()
+
+    w1 = lumi1/(lumi1+lumi2)
+    w2 = lumi2/(lumi1+lumi2)
+    for i in range(len(sfSet.values)):
+        ws1, ws2 = w1*set1.values[i], w2*set2.values[i]
+        sfSet.values[i] = ws1+ws2
+        sfSet.errors[i] = (ws1*ws1 + ws2*ws2)**0.5
+
+    return sfSet
+
 def combineSF(set1, set2, additionalUnc1=0, additionalUnc2=0):
     from bisect import bisect_right
 
@@ -75,6 +87,7 @@ dummySF = cms.PSet(
 ## Muon SF reference https://twiki.cern.ch/twiki/bin/view/CMS/MuonWorkInProgressAndPagResults
 ## SF for Run2016BCDE, before HIP issue
 muonSFTrackingOnly = cms.PSet(
+    pt_bins = cms.vdouble(10, 10000),
     eta_bins = cms.vdouble(-2.400000, -2.100000, -1.600000,-1.200000,-0.900000,-0.600000,-0.300000,-0.200000,0.200000,0.300000,0.600000,0.900000,1.200000,1.600000,2.100000,2.400000,),
     values = cms.vdouble(
         1.000085,
@@ -114,6 +127,7 @@ muonSFTrackingOnly = cms.PSet(
 
 ## SF for Run2016G-H, after HIP issue
 muonSFTrackingGHOnly = cms.PSet(
+    pt_bins = cms.vdouble(10, 10000),
     eta_bins = cms.vdouble(-2.400000, -2.100000, -1.600000,-1.200000,-0.900000,-0.600000,-0.300000,-0.200000,0.200000,0.300000,0.600000,0.900000,1.200000,1.600000,2.100000,2.400000,),
     values = cms.vdouble(
         0.982741,
@@ -442,7 +456,8 @@ electronSFCutBasedIDMediumWP74X = cms.PSet(
 
 ## Combined Scale factors
 ## id syst 1%+0.5%(quadrature), iso syst 1%
-muonSFTight = combineSF(muonSFTightIdOnly, muonSFTightIsoOnly, (0.01**2+0.005**2)**0.5, 0.01)
-muonSFTightGH = combineSF(muonSFTightGHIdOnly, muonSFTightGHIsoOnly, (0.01**2+0.005**2)**0.5, 0.01)
+muonSFTightBF = combineSF(combineSF(muonSFTightIdOnly, muonSFTightIsoOnly, (0.01**2+0.005**2)**0.5, 0.01), muonSFTrackingOnly)
+muonSFTightGH = combineSF(combineSF(muonSFTightGHIdOnly, muonSFTightGHIsoOnly, (0.01**2+0.005**2)**0.5, 0.01), muonSFTrackingGHOnly)
+muonSFTight = computeAverageSF(muonSFTightBF, 20.4, muonSFTightGH, 16.7)
 electronSFCutBasedIDMediumWP = combineSF(electronSFRecoOnly, electronSFCutBasedIDMediumWPIdOnly)
 
