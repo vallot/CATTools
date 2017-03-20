@@ -62,10 +62,10 @@ private:
   {
     const int aid = abs(p.pdgId());
     if ( aid == 13 ) {
-      const double pt = p.pt(), aeta = std::abs(p.eta());
-      if      ( sys == +1 ) return muonSF_(pt, aeta,  1);
-      else if ( sys == -1 ) return muonSF_(pt, aeta, -1);
-      else return muonSF_(pt, aeta, 0);
+      const double pt = p.pt(), eta = p.eta();
+      if      ( sys == +1 ) return muonSF_(pt, eta,  1);
+      else if ( sys == -1 ) return muonSF_(pt, eta, -1);
+      else return muonSF_(pt, eta, 0);
     }
     return 1;
   }
@@ -157,7 +157,7 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
   muonToken_ = consumes<cat::MuonCollection>(muonSet.getParameter<edm::InputTag>("src"));
   const auto muonSFSet = muonSet.getParameter<edm::ParameterSet>("effSF");
   muonSF_.set(muonSFSet.getParameter<vdouble>("pt_bins"),
-              muonSFSet.getParameter<vdouble>("abseta_bins"),
+              muonSFSet.getParameter<vdouble>("eta_bins"),
               muonSFSet.getParameter<vdouble>("values"),
               muonSFSet.getParameter<vdouble>("errors"));
 
