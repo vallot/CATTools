@@ -308,7 +308,7 @@ TTLJEventSelector::TTLJEventSelector(const edm::ParameterSet& pset):
     const auto muonSFSet = muonSet.getParameter<edm::ParameterSet>("efficiencySF");
     // FIXME : for muons, eta bins are folded - always double check this with cfg
     muonSF_.set(muonSFSet.getParameter<vdouble>("pt_bins"),
-                muonSFSet.getParameter<vdouble>("abseta_bins"),
+                muonSFSet.getParameter<vdouble>("eta_bins"),
                 muonSFSet.getParameter<vdouble>("values"),
                 muonSFSet.getParameter<vdouble>("errors"));
     muonSFShift_ = muonSet.getParameter<int>("efficiencySFDirection");
@@ -545,7 +545,7 @@ bool TTLJEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       if ( !isIgnoreTrig_ ) weight *= isTrigEl;
     }
     else if ( channel == 13 ) {
-      const double w1 = muonSF_(lepton1->pt(), std::abs(lepton1->eta()), muonSFShift_);
+      const double w1 = muonSF_(lepton1->pt(), lepton1->eta(), muonSFShift_);
       weight *= w1;
       if ( !isIgnoreTrig_ ) weight *= isTrigMu;
     }

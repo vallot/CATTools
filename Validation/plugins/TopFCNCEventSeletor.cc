@@ -296,7 +296,7 @@ TopFCNCEventSelector::TopFCNCEventSelector(const edm::ParameterSet& pset):
     const auto muonSFSet = muonSet.getParameter<edm::ParameterSet>("efficiencySF");
     // FIXME : for muons, eta bins are folded - always double check this with cfg
     muonSF_.set(muonSFSet.getParameter<vdouble>("pt_bins"),
-                muonSFSet.getParameter<vdouble>("abseta_bins"),
+                muonSFSet.getParameter<vdouble>("eta_bins"),
                 muonSFSet.getParameter<vdouble>("values"),
                 muonSFSet.getParameter<vdouble>("errors"));
     muonSFShift_ = muonSet.getParameter<int>("efficiencySFDirection");
@@ -504,7 +504,7 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   else if ( channel_ == 13 and !selMuons.empty() ) {
     const auto& mu = selMuons.at(0);
     lepton1 = &mu;
-    leptonSF = muonSF_(mu.pt(), std::abs(mu.eta()), muonSFShift_);
+    leptonSF = muonSF_(mu.pt(), mu.eta(), muonSFShift_);
   }
   int lepton1_id = 0;
   double lepton1_pt = -1, lepton1_eta = -999, lepton1_phi = -999;

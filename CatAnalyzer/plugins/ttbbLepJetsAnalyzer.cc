@@ -257,7 +257,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   
   const auto muonSFSet = iConfig.getParameter<edm::ParameterSet>("muonSF");
   SF_muon_.set(muonSFSet.getParameter<std::vector<double>>("pt_bins"    ),
-	       muonSFSet.getParameter<std::vector<double>>("abseta_bins"),
+	       muonSFSet.getParameter<std::vector<double>>("eta_bins"),
 	       muonSFSet.getParameter<std::vector<double>>("values"     ),
 	       muonSFSet.getParameter<std::vector<double>>("errors"     ));
   
@@ -1077,9 +1077,9 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
       if(isMC_) {
 	// Lepton SF (ID/ISO)
-	lepton_SF->push_back( SF_muon_( selectedMuons[0].pt(), std::abs(selectedMuons[0].eta()) ) );       // [0]-> SF
-	lepton_SF->push_back( SF_muon_( selectedMuons[0].pt(), std::abs(selectedMuons[0].eta()),  1.0 ) ); // [1]-> SF+Error
-	lepton_SF->push_back( SF_muon_( selectedMuons[0].pt(), std::abs(selectedMuons[0].eta()), -1.0 ) ); // [2]-> SF-Error
+	lepton_SF->push_back( SF_muon_( selectedMuons[0].pt(), selectedMuons[0].eta() ) );       // [0]-> SF
+	lepton_SF->push_back( SF_muon_( selectedMuons[0].pt(), selectedMuons[0].eta(),  1.0 ) ); // [1]-> SF+Error
+	lepton_SF->push_back( SF_muon_( selectedMuons[0].pt(), selectedMuons[0].eta(), -1.0 ) ); // [2]-> SF-Error
 	//LES
 	lepton_LES = selectedMuons[0].shiftedEn();
       }
