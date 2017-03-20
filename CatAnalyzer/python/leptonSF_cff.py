@@ -6,9 +6,10 @@ def computeAverageSF(set1, lumi1, set2, lumi2):
     w1 = lumi1/(lumi1+lumi2)
     w2 = lumi2/(lumi1+lumi2)
     for i in range(len(sfSet.values)):
-        ws1, ws2 = w1*set1.values[i], w2*set2.values[i]
+        wv1, wv2 = w1*set1.values[i], w2*set2.values[i]
+        we1, we2 = w1*set1.errors[i], w2*set2.errors[i]
         sfSet.values[i] = ws1+ws2
-        sfSet.errors[i] = (ws1*ws1 + ws2*ws2)**0.5
+        sfSet.errors[i] = (we1*we1 + we2*we2)**0.5
 
     return sfSet
 
