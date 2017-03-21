@@ -4,7 +4,7 @@ import os, time, socket, sys
 UserName       = os.environ["USER"]
 BaseDir        = os.environ["CMSSW_BASE"]+"/src"
 InputDB        = str(sys.argv[1])
-FileHeader     = "Tree_LepJets_TrMC_v8-0-4_Spring16-80X_36814pb-1"
+FileHeader     = "Tree_LepJets_Cat_v8-0-4_Spring16-80X_36814pb-1"
 OutputLocation = "/xrootd/store/user/brochero/v8-0-4/"
 
 DelayTime = 120. # Time in seconds

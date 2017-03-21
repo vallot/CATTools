@@ -37,8 +37,8 @@ process.source = cms.Source("PoolSource",
      # fileNames = cms.untracked.vstring()
      fileNames = cms.untracked.vstring(
         #'file:/afs/cern.ch/user/b/brochero/brochero_WorkArea/CATTuples_2017/CMSSW_8_0_20/src/CATTools/CatAnalyzer/prod/catTuple_ttbarLepJetsPowhegv803.root',
-        'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/v8-0-4_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/170113_045423/0000/catTuple_1.root',
-        #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/SingleElectron/v8-0-3_Run2016B-23Sep2016-v3/161203_235427/0000/catTuple_1.root',
+        #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/v8-0-4_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/170113_045423/0000/catTuple_1.root',
+        'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TTToSemilepton_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8/v8-0-6_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/170303_104856/0000/catTuple_106.root',
         #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/SingleElectron/v8-0-3_Run2016E-23Sep2016-v1/161207_134721/0000/catTuple_1.root'
         )
 )
