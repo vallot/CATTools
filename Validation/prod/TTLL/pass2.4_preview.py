@@ -22,16 +22,16 @@ srcMCs = [
     ["SingleTop", 800],
     ["Dibosons", 432],
     ["Tribosons", 433],
-    ["W+Jets:MG", 416],
+    ["W+Jets", 416],
     ["Z/#gamma#rightarrow ll", 600],
 ]
 for s in srcMCs: s.append(dataset[s[0]]['hist'])
 for s in srcMCs: s.append(TFile(s[-1]))
 
 fRD = {
-    'ee':TFile("pass2/nominal/DoubleEG.root"),
-    'mm':TFile("pass2/nominal/DoubleMuon.root"),
-    'em':TFile("pass2/nominal/MuonEG.root"),
+    'ee':TFile("pass2/DoubleEG.root"),
+    'mm':TFile("pass2/DoubleMuon.root"),
+    'em':TFile("pass2/MuonEG.root"),
 }
 
 ## Data driven corrections
@@ -247,7 +247,7 @@ f = open("pass2/plots.json", "w")
 f.write(json.dumps({'plots':plts}, indent=4, sort_keys=True))
 f.close()
 
-print "A preview root file for the nominal sample is produced"
+print "A preview root file is produced"
 print "Run `root -l pass2/preview.root' and browse into each directories to open canvases"
 print "You can also use dumpRoot command from the hep-tools, dumpRoot pass2/preview.root"
 print "Cutflow table is saved in JSON format, pass2/cutflow.json"

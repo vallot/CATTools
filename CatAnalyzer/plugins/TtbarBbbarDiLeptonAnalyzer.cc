@@ -80,10 +80,10 @@ private:
   {
     const int aid = abs(p.pdgId());
     if ( aid == 13 ) {
-      const double pt = p.pt(), aeta = std::abs(p.eta());
-      if      ( sys == +1 ) return muonSF_(pt, aeta,  1);
-      else if ( sys == -1 ) return muonSF_(pt, aeta, -1);
-      else return muonSF_(pt, aeta, 0);
+      const double pt = p.pt(), eta = p.eta();
+      if      ( sys == +1 ) return muonSF_(pt, eta,  1);
+      else if ( sys == -1 ) return muonSF_(pt, eta, -1);
+      else return muonSF_(pt, eta, 0);
     }
     return 1;
   }
@@ -349,13 +349,13 @@ TtbarBbbarDiLeptonAnalyzer::TtbarBbbarDiLeptonAnalyzer(const edm::ParameterSet& 
 
   const auto elecSFSet = iConfig.getParameter<edm::ParameterSet>("elecSF");
   elecSF_.set(elecSFSet.getParameter<std::vector<double>>("pt_bins"),
-              elecSFSet.getParameter<std::vector<double>>("abseta_bins"),
+              elecSFSet.getParameter<std::vector<double>>("eta_bins"),
               elecSFSet.getParameter<std::vector<double>>("values"),
               elecSFSet.getParameter<std::vector<double>>("errors"));
 
   const auto muonSFSet = iConfig.getParameter<edm::ParameterSet>("muonSF");
   muonSF_.set(muonSFSet.getParameter<std::vector<double>>("pt_bins"),
-              muonSFSet.getParameter<std::vector<double>>("abseta_bins"),
+              muonSFSet.getParameter<std::vector<double>>("eta_bins"),
               muonSFSet.getParameter<std::vector<double>>("values"),
               muonSFSet.getParameter<std::vector<double>>("errors"));
 

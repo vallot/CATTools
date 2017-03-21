@@ -4,7 +4,7 @@ from ROOT import *
 from math import sqrt
 import json
 
-rootfileDir = "pass2/nominal"
+rootfileDir = "pass2"
 
 hName = "eventsTTLL/%s/step%d/z_m_noveto"
 fDY = TFile.Open(rootfileDir+"/Z__gamma_rightarrow_ll.root")

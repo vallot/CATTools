@@ -11,5 +11,5 @@ VERSION=$1
 #dumpRoot pass2/preview.root
 cp pass2/plots.json preview/
 cp pass2/cutflow.json preview/
-ssh -p8022 higgs.hanyang.ac.kr "mkdir /var/www/html/CATTools/preview/$VERSION"
-scp -rP8022 preview/* higgs.hanyang.ac.kr:/var/www/html/CATTools/preview/$VERSION
+ssh gate.sscc.uos.ac.kr "mkdir /var/www/html/CATTools/preview/$VERSION"
+scp -r preview/* gate.sscc.uos.ac.kr:/var/www/html/CATTools/preview/$VERSION

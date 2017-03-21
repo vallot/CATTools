@@ -251,14 +251,12 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   const auto elecSFSet = iConfig.getParameter<edm::ParameterSet>("elecSF");
   SF_elec_.set(elecSFSet.getParameter<std::vector<double>>("pt_bins" ),
 	       elecSFSet.getParameter<std::vector<double>>("eta_bins"),
-	       //elecSFSet.getParameter<std::vector<double>>("abseta_bins"),
 	       elecSFSet.getParameter<std::vector<double>>("values"  ),
 	       elecSFSet.getParameter<std::vector<double>>("errors"  ));
   
   const auto muonSFSet = iConfig.getParameter<edm::ParameterSet>("muonSF");
   SF_muon_.set(muonSFSet.getParameter<std::vector<double>>("pt_bins"    ),
 	       muonSFSet.getParameter<std::vector<double>>("eta_bins"),
-	       //muonSFSet.getParameter<std::vector<double>>("abseta_bins"),
 	       muonSFSet.getParameter<std::vector<double>>("values"     ),
 	       muonSFSet.getParameter<std::vector<double>>("errors"     ));
   
@@ -374,10 +372,8 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
 
   tree->Branch("lepton_SF",  "std::vector<float>", &b_Lepton_SF );
 
-  if ( doLooseLepton_ ) {
-    tree->Branch("lepton_relIso", &b_Lepton_relIso, "lepton_relIso/F");
-    tree->Branch("lepton_isIso",  &b_Lepton_isIso,  "lepton_isIso/O");
-  }
+  tree->Branch("lepton_relIso", &b_Lepton_relIso, "lepton_relIso/F");
+  tree->Branch("lepton_isIso",  &b_Lepton_isIso,  "lepton_isIso/O");
 
   tree->Branch("jet_pT",           "std::vector<float>", &b_Jet_pT);
   tree->Branch("jet_eta",          "std::vector<float>", &b_Jet_eta);
@@ -1099,7 +1095,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       if(isMC_) {
 	// Lepton SF (ID/ISO)
 	lepton_SF->push_back( SF_muon_( selectedMuons[0].pt(), selectedMuons[0].eta() ) );       // [0]-> SF
-	lepton_SF->push_back( SF_muon_( selectedMuons[0].pt(), selectedMuons[0].eta()),  1.0 ); // [1]-> SF+Error
+	lepton_SF->push_back( SF_muon_( selectedMuons[0].pt(), selectedMuons[0].eta(),  1.0 ) ); // [1]-> SF+Error
 	lepton_SF->push_back( SF_muon_( selectedMuons[0].pt(), selectedMuons[0].eta(), -1.0 ) ); // [2]-> SF-Error
 	//LES
 	lepton_LES = selectedMuons[0].shiftedEn();

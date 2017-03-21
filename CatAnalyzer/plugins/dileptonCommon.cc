@@ -34,7 +34,7 @@ void dileptonCommon::parameterInit(const edm::ParameterSet& iConfig) {
   muonToken_ = consumes<cat::MuonCollection>(muonSet.getParameter<edm::InputTag>("src"));
   const auto muonSFSet = muonSet.getParameter<edm::ParameterSet>("effSF");
   muonSF_.set(muonSFSet.getParameter<vdouble>("pt_bins"),
-      muonSFSet.getParameter<vdouble>("abseta_bins"),
+      muonSFSet.getParameter<vdouble>("eta_bins"),
       muonSFSet.getParameter<vdouble>("values"),
       muonSFSet.getParameter<vdouble>("errors"));
 
