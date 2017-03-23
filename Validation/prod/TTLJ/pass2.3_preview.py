@@ -109,14 +109,14 @@ for iplt, pltInfo in enumerate(plts):
     hRatio.Reset()
     hRatio.SetTitle(";%s;Data/MC" % hRD.GetXaxis().GetTitle())
     grpRatio = TGraphErrors()
-    rMax = 2
+    rMin, rMax = 0.5, 1.5
     for b in range(nbinsX):
         yRD, yMC = hRD.GetBinContent(b+1), hMC.GetBinContent(b+1)
         eRD, eMC = hRD.GetBinError(b+1), hMC.GetBinError(b+1)
         r, e = 1e9, 1e9
         if yMC > 0:
             r = yRD/yMC
-            rMax = max(r, rMax)
+            #rMax = max(r, rMax)
         #if yMC > 0 and yRD > 0: e = r*hypot(eRD/yRD, eMC/yMC)
         if yRD > 0: e = r*abs(eRD/yRD)
         if r == 1e9 or e == 1e9: continue
@@ -128,7 +128,7 @@ for iplt, pltInfo in enumerate(plts):
         grpRatio.SetPointError(n, w/2, e)
     if rMax > 2: rMax = 3
     hRatio.SetStats(False)
-    hRatio.SetMinimum(0)
+    hRatio.SetMinimum(rMin)
     hRatio.SetMaximum(rMax)
 
     hRD.GetXaxis().SetLabelOffset(999)
