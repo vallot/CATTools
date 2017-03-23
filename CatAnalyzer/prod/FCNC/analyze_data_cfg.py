@@ -27,22 +27,22 @@ process.el = process.eventsFCNC.clone(channel = cms.string("electron"))
 process.mu = process.eventsFCNC.clone(channel = cms.string("muon"))
 delattr(process, 'eventsFCNC')
 
-process.ttLJ.puWeight = process.el.vertex.pileupWeight
-process.ttLJ.isMC = False
-process.ntupleEL = process.ttLJ.clone(src = cms.InputTag("el"))
-process.ntupleMU = process.ttLJ.clone(src = cms.InputTag("mu"))
-delattr(process, 'ttLJ')
+#process.ttLJ.puWeight = process.el.vertex.pileupWeight
+#process.ttLJ.isMC = False
+#process.ntupleEL = process.ttLJ.clone(src = cms.InputTag("el"))
+#process.ntupleMU = process.ttLJ.clone(src = cms.InputTag("mu"))
+#delattr(process, 'ttLJ')
 
 process.p_el = cms.Path(
     process.filterLumi# * process.removeLumisWithL1TCert
   * process.rec
-  * process.el * process.ntupleEL
+  * process.el# * process.ntupleEL
 )
 
 process.p_mu = cms.Path(
     process.filterLumi# * process.removeLumisWithL1TCert
   * process.rec
-  * process.mu * process.ntupleMU
+  * process.mu# * process.ntupleMU
 )
 
 ## Customise with cmd arguments

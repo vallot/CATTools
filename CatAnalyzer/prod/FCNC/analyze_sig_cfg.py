@@ -44,29 +44,29 @@ process.csvWeightsEL = process.csvWeights.clone(src = cms.InputTag("el:jets"))
 process.csvWeightsMU = process.csvWeights.clone(src = cms.InputTag("mu:jets"))
 delattr(process, "csvWeights")
 
-process.ttLJ.puWeight = process.el.vertex.pileupWeight
-process.ntupleEL = process.ttLJ.clone(
-    src = cms.InputTag("el"),
-    csvWeight = cms.InputTag("csvWeightsEL"),
-    csvWeightSyst = cms.InputTag("csvWeightsEL:syst"),
-)
-process.ntupleMU = process.ttLJ.clone(
-    src = cms.InputTag("mu"),
-    csvWeight = cms.InputTag("csvWeightsMU"),
-    csvWeightSyst = cms.InputTag("csvWeightsMU:syst"),
-)
-delattr(process, 'ttLJ')
+#process.ttLJ.puWeight = process.el.vertex.pileupWeight
+#process.ntupleEL = process.ttLJ.clone(
+#    src = cms.InputTag("el"),
+#    csvWeight = cms.InputTag("csvWeightsEL"),
+#    csvWeightSyst = cms.InputTag("csvWeightsEL:syst"),
+#)
+#process.ntupleMU = process.ttLJ.clone(
+#    src = cms.InputTag("mu"),
+#    csvWeight = cms.InputTag("csvWeightsMU"),
+#    csvWeightSyst = cms.InputTag("csvWeightsMU:syst"),
+#)
+#delattr(process, 'ttLJ')
 
 process.p_el = cms.Path(
     process.agen + process.filterGenTop
   * process.gen + process.rec
-  * process.el * process.ntupleEL
+  * process.el# * process.ntupleEL
 )
 
 process.p_mu = cms.Path(
     process.agen + process.filterGenTop
   * process.gen + process.rec
-  * process.mu * process.ntupleMU
+  * process.mu# * process.ntupleMU
 )
 
 ## Customise with cmd arguments
