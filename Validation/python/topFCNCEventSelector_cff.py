@@ -17,11 +17,13 @@ eventsFCNC = cms.EDFilter("TopFCNCEventSelector",
         #scaleDirection = cms.int32(+1),
         efficiencySF = muonSFTight,
         efficiencySFDirection = cms.int32(0),
+        applyAntiIso = cms.bool(False),
     ),
 
     electron = cms.PSet(
         src = cms.InputTag("catElectrons"),
-        idName = cms.string("cutBasedElectronID-Summer16-80X-V1-medium"),
+        idName = cms.string("cutBasedElectronID-Summer16-80X-V1-tight-noiso"),
+        isoIdName = cms.string("cutBasedElectronID-Summer16-80X-V1-tight"),
         vetoIdName = cms.string("cutBasedElectronID-Summer16-80X-V1-loose"),
 
         #idName = cms.string("mvaEleID-Spring15-25ns-Trig-V1-wp90"),
@@ -33,6 +35,7 @@ eventsFCNC = cms.EDFilter("TopFCNCEventSelector",
         #applyEcalCrackVeto = cms.bool(True),
         applyEcalCrackVeto = cms.bool(False),
         skipSmearing = cms.bool(False), # Needed for synchronization
+        applyAntiIso = cms.bool(False),
     ),
 
     jet = cms.PSet(

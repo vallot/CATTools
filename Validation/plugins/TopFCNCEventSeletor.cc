@@ -44,9 +44,8 @@ struct ControlPlotsFCNC
 
   H1 h_vertex_n[nCutstep];
   H1 h_met_pt[nCutstep], h_met_phi[nCutstep];
-  H1 h_leptons_n[nCutstep];
-  H1 h_lepton1_pt[nCutstep], h_lepton1_eta[nCutstep], h_lepton1_phi[nCutstep], h_lepton1_q[nCutstep];
-  H1 h_jets_n[nCutstep], h_jets_pt[nCutstep], h_jets_eta[nCutstep], h_jets_ht[nCutstep];
+  H1 h_lepton1_pt[nCutstep], h_lepton1_eta[nCutstep], h_lepton1_phi[nCutstep], h_lepton1_q[nCutstep], h_lepton1_relIso[nCutstep];
+  H1 h_jets_n[nCutstep], h_jets_pt[nCutstep], h_jets_eta[nCutstep];
 
   H1 h_jet_m[nCutstep][6];
   H1 h_jet_pt[nCutstep][6];
@@ -55,7 +54,6 @@ struct ControlPlotsFCNC
   H1 h_jet_btag[nCutstep][6];
 
   H1 h_bjets_n[nCutstep];
-  H1 h_event_st[nCutstep];
 
   void book(TFileDirectory&& dir)
   {
@@ -84,15 +82,14 @@ struct ControlPlotsFCNC
       h_vertex_n[i] = subdir.make<TH1D>("vertex_n", "vertex_n;Number of primary vertices;Events", 100, 0, 100);
       h_met_pt[i] = subdir.make<TH1D>("met_pt", "met_pt;Missing transverse momentum (GeV);Events/1GeV", 1000, 0, 1000);
       h_met_phi[i] = subdir.make<TH1D>("met_phi", "met_phi;Missing transverse momentum #phi;Events", 100, -pi, pi);
-      h_leptons_n[i] = subdir.make<TH1D>("leptons_n", "leptons_n;Lepton multiplicity;Events", 10, 0, 10);
       h_lepton1_pt[i]  = subdir.make<TH1D>("lepton1_pt", "lepton1_pt;1st leading lepton p_{T} (GeV);Events/1GeV", 1000, 0, 1000);
       h_lepton1_eta[i] = subdir.make<TH1D>("lepton1_eta", "lepton1_eta;1st leading lepton #eta;Events", 100, -maxeta, maxeta);
       h_lepton1_phi[i] = subdir.make<TH1D>("lepton1_phi", "lepton1_phi;1st leading lepton #phi;Events", 100, -pi, pi);
       h_lepton1_q[i]   = subdir.make<TH1D>("lepton1_q", "lepton1_q;1st leading lepton charge;Events", 3, -1.5, 1.5);
+      h_lepton1_relIso[i]   = subdir.make<TH1D>("lepton1_relIso", "lepton1_relIso;1st leading lepton relative isolation;Events", 100, 0, 1);
       h_jets_n[i] = subdir.make<TH1D>("jets_n", "jets_n;Jet multiplicity;Events", 10, 0, 10);
       h_jets_pt[i]  = subdir.make<TH1D>("jets_pt", "jets_pt;Jets p_{T} (GeV);Events/1GeV", 1000, 0, 1000);
       h_jets_eta[i] = subdir.make<TH1D>("jets_eta", "jets_eta;Jets #eta;Events", 100, -maxeta, maxeta);
-      h_jets_ht[i] = subdir.make<TH1D>("jets_ht", "jets_ht;Jets #Sigma p_{T} (GeV);Events/1GeV", 1000, 0, 1000);
       h_bjets_n[i] = subdir.make<TH1D>("bjets_n", "bjets_n;b-jet multiplicity;Events", 10, 0, 10);
     }
 
@@ -101,17 +98,16 @@ struct ControlPlotsFCNC
       h_vertex_n[i] = subdir.make<TH1D>("vertex_n", "vertex_n;Number of primary vertices;Events", 100, 0, 100);
       h_met_pt[i] = subdir.make<TH1D>("met_pt", "met_pt;Missing transverse momentum (GeV);Events/1GeV", 1000, 0, 1000);
       h_met_phi[i] = subdir.make<TH1D>("met_phi", "met_phi;Missing transverse momentum #phi;Events", 100, -pi, pi);
-      h_leptons_n[i] = subdir.make<TH1D>("leptons_n", "leptons_n;Lepton multiplicity;Events", 10, 0, 10);
 
       h_lepton1_pt[i]  = subdir.make<TH1D>("lepton1_pt", "lepton1_pt;1st leading lepton p_{T} (GeV);Events/1GeV", 1000, 0, 1000);
       h_lepton1_eta[i] = subdir.make<TH1D>("lepton1_eta", "lepton1_eta;1st leading lepton #eta;Events", 100, -maxeta, maxeta);
       h_lepton1_phi[i] = subdir.make<TH1D>("lepton1_phi", "lepton1_phi;1st leading lepton #phi;Events", 100, -pi, pi);
       h_lepton1_q[i]   = subdir.make<TH1D>("lepton1_q", "lepton1_q;1st leading lepton charge;Events", 3, -1.5, 1.5);
+      h_lepton1_relIso[i]   = subdir.make<TH1D>("lepton1_relIso", "lepton1_relIso;1st leading lepton relative isolation;Events", 100, 0, 1);
 
       h_jets_n[i] = subdir.make<TH1D>("jets_n", "jets_n;Jet multiplicity;Events", 10, 0, 10);
       h_jets_pt[i]  = subdir.make<TH1D>("jets_pt", "jets_pt;Jets p_{T} (GeV);Events/1GeV", 1000, 0, 1000);
       h_jets_eta[i] = subdir.make<TH1D>("jets_eta", "jets_eta;Jets #eta;Events", 100, -maxeta, maxeta);
-      h_jets_ht[i] = subdir.make<TH1D>("jets_ht", "jets_ht;Jets #Sigma p_{T} (GeV);Events/1GeV", 1000, 0, 1000);
 
       for ( int j=0; j<6; ++j ) {
         const string prefix = Form("jet%d_", j+1);
@@ -129,7 +125,6 @@ struct ControlPlotsFCNC
 
       h_bjets_n[i] = subdir.make<TH1D>("bjets_n", "bjets_n;b-jet multiplicity;Events", 10, 0, 10);
 
-      h_event_st[i] = subdir.make<TH1D>("event_st", "event_st;#Sigma p_{T} *(GeV);Events/1GeV", 1000, 0, 1000);
     }
   };
 };
@@ -192,27 +187,24 @@ private:
     if ( std::abs(mu.eta()) > 2.1 ) return false;
     if ( std::isnan(mu.pt()) or mu.pt() < 27 ) return false;
 
-    if ( mu.relIso(0.4) > 0.15 ) return false;
     if ( !mu.isTightMuon() ) return false;
     return true;
   }
   bool isGoodElectron(const cat::Electron& el)
   {
-    if ( std::abs(el.eta()) > 2.1 ) return false;
-    if ( std::isnan(el.pt()) or el.pt() < 35 ) return false;
+    if ( std::abs(el.eta()) > 2.5 ) return false;
+    if ( std::isnan(el.pt()) or el.pt() < 30 ) return false;
 
-    if ( isMVAElectronSel_ and !el.isTrigMVAValid() ) return false;
-
-    //if ( el.relIso(0.3) >= 0.11 ) return false;
     if ( !el.electronID(elIdName_) ) return false;
-    //if ( !el.isPF() or !el.passConversionVeto() ) return false;
     const double scEta = std::abs(el.scEta());
     if ( isEcalCrackVeto_ and scEta > 1.4442 and scEta < 1.566 ) return false;
-    //const double d0 = std::abs(el.dxy()), dz = std::abs(el.vz());
-    //if      ( scEta <= 1.479 and (d0 > 0.05 or dz > 0.1) ) return false;
-    //else if ( scEta >  1.479 and (d0 > 0.10 or dz > 0.2) ) return false;
+    const double d0 = std::abs(el.dxy()), dz = std::abs(el.vz());
+    if      ( scEta <= 1.479 and (d0 > 0.05 or dz > 0.1) ) return false;
+    else if ( scEta >  1.479 and (d0 > 0.10 or dz > 0.2) ) return false;
     return true;
   }
+  bool isIsoLepton(const cat::Muon& mu) const { return mu.relIso(0.4) < 0.15; }
+  bool isIsoLepton(const cat::Electron& el) const { return el.electronID(elIsoIdName_); }
   bool isVetoMuon(const cat::Muon& mu)
   {
     if ( std::abs(mu.eta()) > 2.4 ) return false;
@@ -260,10 +252,11 @@ private:
   const int applyFilterAt_;
 
   // ID variables
-  bool isEcalCrackVeto_, isMVAElectronSel_;
+  bool isEcalCrackVeto_;
+  bool isMuonAntiIso_, isElectronAntiIso_;
   bool isSkipEleSmearing_; // Do not apply energy smearing, needed to remove randomness during the synchronization
   std::string bTagName_;
-  std::string elIdName_, elVetoIdName_;
+  std::string elIdName_, elIsoIdName_, elVetoIdName_;
   enum class BTagWP { CSVL, CSVM, CSVT } bTagWP_;
 
 private:
@@ -301,10 +294,12 @@ TopFCNCEventSelector::TopFCNCEventSelector(const edm::ParameterSet& pset):
                 muonSFSet.getParameter<vdouble>("errors"));
     muonSFShift_ = muonSet.getParameter<int>("efficiencySFDirection");
   }
+  isMuonAntiIso_ = muonSet.getParameter<bool>("applyAntiIso");
 
   const auto electronSet = pset.getParameter<edm::ParameterSet>("electron");
   electronToken_ = consumes<cat::ElectronCollection>(electronSet.getParameter<edm::InputTag>("src"));
   elIdName_ = electronSet.getParameter<string>("idName");
+  elIsoIdName_ = electronSet.getParameter<string>("isoIdName");
   elVetoIdName_ = electronSet.getParameter<string>("vetoIdName");
   electronScale_ = electronSet.getParameter<int>("scaleDirection");
   if ( isMC_ ) {
@@ -316,14 +311,10 @@ TopFCNCEventSelector::TopFCNCEventSelector(const edm::ParameterSet& pset):
                     electronSFSet.getParameter<vdouble>("errors"));
     electronSFShift_ = electronSet.getParameter<int>("efficiencySFDirection");
   }
-  isEcalCrackVeto_ = isMVAElectronSel_ = false;
+  isEcalCrackVeto_ = false;
   isSkipEleSmearing_ = electronSet.getParameter<bool>("skipSmearing");
-  if ( elIdName_.substr(0,3) == "mva" ) {
-    isMVAElectronSel_ = true;
-  }
-  else {
-    isEcalCrackVeto_ = electronSet.getParameter<bool>("applyEcalCrackVeto");
-  }
+  isElectronAntiIso_ = muonSet.getParameter<bool>("applyAntiIso");
+  isEcalCrackVeto_ = electronSet.getParameter<bool>("applyEcalCrackVeto");
 
   const auto jetSet = pset.getParameter<edm::ParameterSet>("jet");
   jetToken_ = consumes<cat::JetCollection>(jetSet.getParameter<edm::InputTag>("src"));
@@ -455,8 +446,6 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   event.getByToken(trigMuToken_, trigHandle);
   const int isTrigMu = *trigHandle;
 
-  double event_st = 0, event_ht = 0;
-
   // Select good leptons
   cat::MuonCollection selMuons, vetoMuons;
   for ( int i=0, n=muonHandle->size(); i<n; ++i ) {
@@ -469,7 +458,6 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     else if ( isVetoMuon(lep) ) vetoMuons.push_back(lep);
     else continue;
 
-    event_st += lep.pt();
     metDpx += lep.px()-p.px();
     metDpy += lep.py()-p.py();
   }
@@ -484,7 +472,6 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     else if ( isVetoElectron(lep) ) vetoElectrons.push_back(lep);
     else continue;
 
-    event_st += lep.pt();
     metDpx += lep.px()-p.px()/(isSkipEleSmearing_ ? p.smearedScale() : 1);
     metDpy += lep.py()-p.py()/(isSkipEleSmearing_ ? p.smearedScale() : 1);
   }
@@ -493,26 +480,27 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   std::sort(selMuons.begin(), selMuons.end(),
             [&](const cat::Muon& a, const cat::Muon& b){ return a.pt() > b.pt(); });
 
-  const int leptons_n = selMuons.size() + selElectrons.size();
   const cat::Lepton* lepton1 = 0;
   double trigSF = 1, leptonSF = 1;
-  if ( channel_ == 11 and !selElectrons.empty() ) {
+  if ( channel_ == 11 and !selElectrons.empty() and (isElectronAntiIso_ xor isIsoLepton(selElectrons.at(0))) ) {
     const auto& el = selElectrons.at(0);
     lepton1 = &el;
     leptonSF = electronSF_(el.pt(), std::abs(el.scEta()), electronSFShift_);
   }
-  else if ( channel_ == 13 and !selMuons.empty() ) {
+  else if ( channel_ == 13 and !selMuons.empty() and (isMuonAntiIso_ xor isIsoLepton(selMuons.at(0))) ) {
     const auto& mu = selMuons.at(0);
     lepton1 = &mu;
     leptonSF = muonSF_(mu.pt(), mu.eta(), muonSFShift_);
   }
   int lepton1_id = 0;
   double lepton1_pt = -1, lepton1_eta = -999, lepton1_phi = -999;
+  double lepton1_relIso = -1;
   if ( lepton1 ) {
     lepton1_id = lepton1->pdgId();
     lepton1_pt = lepton1->pt();
     lepton1_eta = lepton1->eta();
     lepton1_phi = lepton1->phi();
+    lepton1_relIso = abs(lepton1_id) == 11 ? lepton1->relIso(0.3) : lepton1->relIso(0.4);
     out_leptons->push_back(*lepton1);
   }
 
@@ -533,12 +521,10 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
     if ( lepton1 and deltaR(jet.p4(), lepton1->p4()) < 0.4 ) continue;
 
-    event_ht += jet.pt();
     if ( isBjet(p) ) ++bjets_n;
 
     out_jets->push_back(jet);
   }
-  event_st += event_ht;
   const int jets_n = out_jets->size();
   std::sort(out_jets->begin(), out_jets->end(),
             [&](const cat::Jet& a, const cat::Jet& b){return a.pt() > b.pt();});
@@ -584,14 +570,13 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     if ( cutstep >= 1 ) {
       h_ch.h_met_pt[cutstep]->Fill(met_pt, w);
       h_ch.h_met_phi[cutstep]->Fill(met_phi, w);
-      h_ch.h_jets_ht[cutstep]->Fill(event_ht, w);
 
-      h_ch.h_leptons_n[cutstep]->Fill(leptons_n, w);
       if ( lepton1 ) {
         h_ch.h_lepton1_pt[cutstep]->Fill(lepton1->pt(), w);
         h_ch.h_lepton1_eta[cutstep]->Fill(lepton1->eta(), w);
         h_ch.h_lepton1_phi[cutstep]->Fill(lepton1->phi(), w);
         h_ch.h_lepton1_q[cutstep]->Fill(lepton1->charge(), w);
+        h_ch.h_lepton1_q[cutstep]->Fill(lepton1_relIso, w);
       }
 
       h_ch.h_jets_n[cutstep]->Fill(jets_n, w);
@@ -602,7 +587,6 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       h_ch.h_bjets_n[cutstep]->Fill(bjets_n, w);
     }
     if ( cutstep >= 4 ) {
-      h_ch.h_event_st[cutstep]->Fill(event_st, w);
       for ( int j=0, n=std::min(6, jets_n); j<n; ++j ) {
         h_ch.h_jet_m  [cutstep][j]->Fill(out_jets->at(j).mass(), w);
         h_ch.h_jet_pt [cutstep][j]->Fill(out_jets->at(j).pt(), w);
