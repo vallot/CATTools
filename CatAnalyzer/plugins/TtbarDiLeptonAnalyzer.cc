@@ -65,10 +65,10 @@ private:
   {
     const int aid = abs(p.pdgId());
     if ( aid == 13 ) {
-      const double pt = p.pt(), aeta = std::abs(p.eta());
-      if      ( sys == +1 ) return muonSF_(pt, aeta,  1);
-      else if ( sys == -1 ) return muonSF_(pt, aeta, -1);
-      else return muonSF_(pt, aeta, 0);
+      const double pt = p.pt(), eta = p.eta();
+      if      ( sys == +1 ) return muonSF_(pt, eta,  1);
+      else if ( sys == -1 ) return muonSF_(pt, eta, -1);
+      else return muonSF_(pt, eta, 0);
     }
     return 1;
   }
@@ -186,7 +186,7 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   muonToken_ = consumes<cat::MuonCollection>(muonSet.getParameter<edm::InputTag>("src"));
   const auto muonSFSet = muonSet.getParameter<edm::ParameterSet>("effSF");
   muonSF_.set(muonSFSet.getParameter<vdouble>("pt_bins"),
-              muonSFSet.getParameter<vdouble>("abseta_bins"),
+              muonSFSet.getParameter<vdouble>("eta_bins"),
               muonSFSet.getParameter<vdouble>("values"),
               muonSFSet.getParameter<vdouble>("errors"));
 
@@ -194,7 +194,7 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   elecToken_ = consumes<cat::ElectronCollection>(elecSet.getParameter<edm::InputTag>("src"));
   const auto elecSFSet = elecSet.getParameter<edm::ParameterSet>("effSF");
   elecSF_.set(elecSFSet.getParameter<vdouble>("pt_bins"),
-              elecSFSet.getParameter<vdouble>("abseta_bins"),
+              elecSFSet.getParameter<vdouble>("eta_bins"),
               elecSFSet.getParameter<vdouble>("values"),
               elecSFSet.getParameter<vdouble>("errors"));
 
