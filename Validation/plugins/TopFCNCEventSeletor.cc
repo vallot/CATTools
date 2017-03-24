@@ -557,13 +557,13 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   cutsteps[2] = isRECOFilterOK;
   if ( channel_ == 11 ) {
     cutsteps[3] = (!isIgnoreTrig_ and isTrigEl != 0);
-    cutsteps[4] = (selElectrons.size() == 1);
+    cutsteps[4] = (out_electrons->size() == 1);
     cutsteps[5] = (nVetoMuons == 0);
     cutsteps[6] = (nVetoElectrons == 0);
   }
   else if ( channel_ == 13 ) {
     cutsteps[3] = (!isIgnoreTrig_ and isTrigMu != 0);
-    cutsteps[4] = (selMuons.size() == 1);
+    cutsteps[4] = (out_muons->size() == 1);
     cutsteps[5] = (nVetoElectrons == 0);
     cutsteps[6] = (nVetoMuons == 0);
   }
