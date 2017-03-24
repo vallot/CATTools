@@ -15,7 +15,7 @@ process.load("CATTools.CatAnalyzer.filters_cff")
 process.load("CATTools.Validation.topFCNCEventSelector_cff")
 process.load("CATTools.CatAnalyzer.ttll.ttllGenFilters_cff")
 process.load("CATTools.Validation.validation_cff")
-process.filterGenTop.nLepton = 2
+process.filterGenTop.nLepton = 1
 process.filterGenTop.addJetChannel = "TTBB" ## (TTBB, TTBJ, TTCC, TTJJ, none)
 
 process.TFileService = cms.Service("TFileService",
@@ -34,9 +34,13 @@ process.agen = cms.EDAnalyzer("CATGenTopAnalysis",
     filterTaus = cms.bool(False),
 )
 
+process.filterTrigEL.triggersToMatch = ["HLT_Ele25_eta2p1_WPTight_Gsf_v", "HLT_Ele27_WPTight_Gsf_v"]
+process.eventsFCNC.filters.filterRECO = "filterRECOMC"
 process.el = process.eventsFCNC.clone(channel = cms.string("electron"))
 process.mu = process.eventsFCNC.clone(channel = cms.string("muon"))
 delattr(process, 'eventsFCNC')
+#process.el.electron.applyAntiIso = True
+#process.mu.muon.applyAntiIso = True
 
 process.load("CATTools.CatAnalyzer.topPtWeightProducer_cfi")
 process.load("CATTools.CatAnalyzer.csvWeights_cfi")
@@ -44,29 +48,24 @@ process.csvWeightsEL = process.csvWeights.clone(src = cms.InputTag("el:jets"))
 process.csvWeightsMU = process.csvWeights.clone(src = cms.InputTag("mu:jets"))
 delattr(process, "csvWeights")
 
-#process.ttLJ.puWeight = process.el.vertex.pileupWeight
-#process.ntupleEL = process.ttLJ.clone(
-#    src = cms.InputTag("el"),
-#    csvWeight = cms.InputTag("csvWeightsEL"),
-#    csvWeightSyst = cms.InputTag("csvWeightsEL:syst"),
-#)
-#process.ntupleMU = process.ttLJ.clone(
-#    src = cms.InputTag("mu"),
-#    csvWeight = cms.InputTag("csvWeightsMU"),
-#    csvWeightSyst = cms.InputTag("csvWeightsMU:syst"),
-#)
-#delattr(process, 'ttLJ')
+from CATTools.CatAnalyzer.analyzers.ntuple_cff import *
+process = ntupler_load(process, "el", "ntupleEL")
+process = ntupler_load(process, "mu", "ntupleMU")
+process = ntupler_addVarsGen(process, "el", "ntupleEL")
+process = ntupler_addVarsGen(process, "mu", "ntupleMU")
+process = ntupler_addVarsGenTop(process, "ntupleEL")
+process = ntupler_addVarsGenTop(process, "ntupleMU")
 
 process.p_el = cms.Path(
     process.agen + process.filterGenTop
   * process.gen + process.rec
-  * process.el# * process.ntupleEL
+  * process.el * process.ntupleEL
 )
 
 process.p_mu = cms.Path(
     process.agen + process.filterGenTop
   * process.gen + process.rec
-  * process.mu# * process.ntupleMU
+  * process.mu * process.ntupleMU
 )
 
 ## Customise with cmd arguments

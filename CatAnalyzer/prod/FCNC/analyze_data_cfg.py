@@ -23,26 +23,31 @@ process.TFileService = cms.Service("TFileService",
     fileName = cms.string("ntuple.root"),
 )
 
+process.filterTrigEL.triggersToMatch = ["HLT_Ele25_eta2p1_WPTight_Gsf_v", "HLT_Ele27_WPTight_Gsf_v"]
 process.el = process.eventsFCNC.clone(channel = cms.string("electron"))
 process.mu = process.eventsFCNC.clone(channel = cms.string("muon"))
 delattr(process, 'eventsFCNC')
+#process.el.electron.applyAntiIso = True
+#process.mu.muon.applyAntiIso = True
 
-#process.ttLJ.puWeight = process.el.vertex.pileupWeight
-#process.ttLJ.isMC = False
-#process.ntupleEL = process.ttLJ.clone(src = cms.InputTag("el"))
-#process.ntupleMU = process.ttLJ.clone(src = cms.InputTag("mu"))
-#delattr(process, 'ttLJ')
+from CATTools.CatAnalyzer.analyzers.ntuple_cff import *
+process = ntupler_load(process, "el", "ntupleEL")
+process = ntupler_load(process, "mu", "ntupleMU")
+#process = ntupler_addVarsGen(process, "el", "ntupleEL")
+#process = ntupler_addVarsGen(process, "mu", "ntupleMU")
+#process = ntupler_addVarsGenTop(process, "el", "ntupleEL")
+#process = ntupler_addVarsGenTop(process, "mu", "ntupleMU")
 
 process.p_el = cms.Path(
     process.filterLumi# * process.removeLumisWithL1TCert
   * process.rec
-  * process.el# * process.ntupleEL
+  * process.el * process.ntupleEL
 )
 
 process.p_mu = cms.Path(
     process.filterLumi# * process.removeLumisWithL1TCert
   * process.rec
-  * process.mu# * process.ntupleMU
+  * process.mu * process.ntupleMU
 )
 
 ## Customise with cmd arguments
