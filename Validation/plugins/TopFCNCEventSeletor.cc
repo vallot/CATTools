@@ -198,9 +198,9 @@ private:
     if ( !el.electronID(elIdName_) ) return false;
     const double scEta = std::abs(el.scEta());
     if ( isEcalCrackVeto_ and scEta > 1.4442 and scEta < 1.566 ) return false;
-    const double d0 = std::abs(el.dxy()), dz = std::abs(el.vz());
-    if      ( scEta <= 1.479 and (d0 > 0.05 or dz > 0.1) ) return false;
-    else if ( scEta >  1.479 and (d0 > 0.10 or dz > 0.2) ) return false;
+    //const double d0 = std::abs(el.dxy()), dz = std::abs(el.vz());
+    //if      ( scEta <= 1.479 and (d0 > 0.05 or dz > 0.1) ) return false;
+    //else if ( scEta >  1.479 and (d0 > 0.10 or dz > 0.2) ) return false;
     return true;
   }
   bool isIsoLepton(const cat::Muon& mu) const { return mu.relIso(0.4) < 0.15; }
@@ -313,7 +313,7 @@ TopFCNCEventSelector::TopFCNCEventSelector(const edm::ParameterSet& pset):
   }
   isEcalCrackVeto_ = false;
   isSkipEleSmearing_ = electronSet.getParameter<bool>("skipSmearing");
-  isElectronAntiIso_ = muonSet.getParameter<bool>("applyAntiIso");
+  isElectronAntiIso_ = electronSet.getParameter<bool>("applyAntiIso");
   isEcalCrackVeto_ = electronSet.getParameter<bool>("applyEcalCrackVeto");
 
   const auto jetSet = pset.getParameter<edm::ParameterSet>("jet");
@@ -365,11 +365,13 @@ TopFCNCEventSelector::TopFCNCEventSelector(const edm::ParameterSet& pset):
   const string channelStr = channel_ == 11 ? "el" : "mu";
   h_ch.book(fs->mkdir(channelStr));
 
+  produces<int>("cutstep");
   produces<int>("channel");
   produces<float>("weight");
   produces<float>("met");
   produces<float>("metphi");
-  produces<std::vector<cat::Lepton> >("leptons");
+  produces<std::vector<cat::Muon> >("muons");
+  produces<std::vector<cat::Electron> >("electrons");
   produces<std::vector<cat::Jet> >("jets");
 }
 
@@ -400,7 +402,8 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   // use the side-effect of catVertex producer: pv collection size == 1 only if the pv[0] is good vtx
   const bool isGoodPV0 = (nGoodVertex >= 1 and vertexHandle->size() == 1);
 
-  std::auto_ptr<std::vector<cat::Lepton> > out_leptons(new std::vector<cat::Lepton>());
+  std::auto_ptr<std::vector<cat::Electron> > out_electrons(new std::vector<cat::Electron>());
+  std::auto_ptr<std::vector<cat::Muon> > out_muons(new std::vector<cat::Muon>());
   std::auto_ptr<std::vector<cat::Jet> > out_jets(new std::vector<cat::Jet>());
 
   // Compute event weight - from generator, pileup, etc
@@ -482,26 +485,28 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
   const cat::Lepton* lepton1 = 0;
   double trigSF = 1, leptonSF = 1;
+  double lepton1_relIso = -1;
   if ( channel_ == 11 and !selElectrons.empty() and (isElectronAntiIso_ xor isIsoLepton(selElectrons.at(0))) ) {
     const auto& el = selElectrons.at(0);
     lepton1 = &el;
     leptonSF = electronSF_(el.pt(), std::abs(el.scEta()), electronSFShift_);
+    lepton1_relIso = lepton1->relIso(0.3);
+    out_electrons->push_back(el);
   }
   else if ( channel_ == 13 and !selMuons.empty() and (isMuonAntiIso_ xor isIsoLepton(selMuons.at(0))) ) {
     const auto& mu = selMuons.at(0);
     lepton1 = &mu;
     leptonSF = muonSF_(mu.pt(), mu.eta(), muonSFShift_);
+    lepton1_relIso = lepton1->relIso(0.4);
+    out_muons->push_back(mu);
   }
   int lepton1_id = 0;
   double lepton1_pt = -1, lepton1_eta = -999, lepton1_phi = -999;
-  double lepton1_relIso = -1;
   if ( lepton1 ) {
     lepton1_id = lepton1->pdgId();
     lepton1_pt = lepton1->pt();
     lepton1_eta = lepton1->eta();
     lepton1_phi = lepton1->phi();
-    lepton1_relIso = abs(lepton1_id) == 11 ? lepton1->relIso(0.3) : lepton1->relIso(0.4);
-    out_leptons->push_back(*lepton1);
   }
 
   // Select good jets
@@ -576,7 +581,7 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_ch.h_lepton1_eta[cutstep]->Fill(lepton1->eta(), w);
         h_ch.h_lepton1_phi[cutstep]->Fill(lepton1->phi(), w);
         h_ch.h_lepton1_q[cutstep]->Fill(lepton1->charge(), w);
-        h_ch.h_lepton1_q[cutstep]->Fill(lepton1_relIso, w);
+        h_ch.h_lepton1_relIso[cutstep]->Fill(lepton1_relIso, w);
       }
 
       h_ch.h_jets_n[cutstep]->Fill(jets_n, w);
@@ -606,11 +611,13 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     jet1_phi = jet.phi();
   }
 
+  event.put(std::auto_ptr<int>(new int(cutstep)), "cutstep");
   event.put(std::auto_ptr<int>(new int((int)channel_)), "channel");
   event.put(std::auto_ptr<float>(new float(weight)), "weight");
   event.put(std::auto_ptr<float>(new float(met_pt)), "met");
   event.put(std::auto_ptr<float>(new float(met_phi)), "metphi");
-  event.put(out_leptons, "leptons");
+  event.put(out_electrons, "electrons");
+  event.put(out_muons, "muons");
   event.put(out_jets, "jets");
 
   // Apply filter at the given step.
