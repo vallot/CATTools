@@ -457,12 +457,12 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
     cat::Muon lep(p);
     lep.setP4(p.p4()*scale);
-    if ( isGoodMuon(lep) ) selMuons.push_back(lep);
-    else if ( isVetoMuon(lep) ) vetoMuons.push_back(lep);
-    else continue;
-
-    metDpx += lep.px()-p.px();
-    metDpy += lep.py()-p.py();
+    if ( channel_ == 13 and isGoodMuon(lep) ) {
+      selMuons.push_back(lep);
+      metDpx += lep.px()-p.px();
+      metDpy += lep.py()-p.py();
+    }
+    if ( isVetoMuon(lep) ) vetoMuons.push_back(lep);
   }
   cat::ElectronCollection selElectrons, vetoElectrons;
   for ( int i=0, n=electronHandle->size(); i<n; ++i ) {
@@ -471,29 +471,41 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
     cat::Electron lep(p);
     lep.setP4(p.p4()*scale);
-    if ( isGoodElectron(lep) ) selElectrons.push_back(lep);
-    else if ( isVetoElectron(lep) ) vetoElectrons.push_back(lep);
-    else continue;
-
-    metDpx += lep.px()-p.px()/(isSkipEleSmearing_ ? p.smearedScale() : 1);
-    metDpy += lep.py()-p.py()/(isSkipEleSmearing_ ? p.smearedScale() : 1);
+    if ( channel_ == 11 and isGoodElectron(lep) ) {
+      selElectrons.push_back(lep);
+      metDpx += lep.px()-p.px()/(isSkipEleSmearing_ ? p.smearedScale() : 1);
+      metDpy += lep.py()-p.py()/(isSkipEleSmearing_ ? p.smearedScale() : 1);
+    }
+    if ( isVetoElectron(lep) ) vetoElectrons.push_back(lep);
   }
   std::sort(selElectrons.begin(), selElectrons.end(),
             [&](const cat::Electron& a, const cat::Electron& b){ return a.pt() > b.pt(); });
   std::sort(selMuons.begin(), selMuons.end(),
             [&](const cat::Muon& a, const cat::Muon& b){ return a.pt() > b.pt(); });
 
+  int nVetoMuons = vetoMuons.size(), nVetoElectrons = vetoElectrons.size();
+  for ( const auto& vmu : vetoMuons ) {
+    for ( const auto& mu : selMuons ) {
+      if ( vmu.p4() == mu.p4() ) { --nVetoMuons; break; }
+    }
+  }
+  for ( const auto& vel : vetoElectrons ) {
+    for ( const auto& el : selElectrons ) {
+      if ( vel.p4() == el.p4() ) { --nVetoElectrons; break; }
+    }
+  }
+
   const cat::Lepton* lepton1 = 0;
   double trigSF = 1, leptonSF = 1;
   double lepton1_relIso = -1;
-  if ( channel_ == 11 and !selElectrons.empty() and (isElectronAntiIso_ xor isIsoLepton(selElectrons.at(0))) ) {
+  if ( !selElectrons.empty() and (isElectronAntiIso_ xor isIsoLepton(selElectrons.at(0))) ) {
     const auto& el = selElectrons.at(0);
     lepton1 = &el;
     leptonSF = electronSF_(el.pt(), std::abs(el.scEta()), electronSFShift_);
     lepton1_relIso = lepton1->relIso(0.3);
     out_electrons->push_back(el);
   }
-  else if ( channel_ == 13 and !selMuons.empty() and (isMuonAntiIso_ xor isIsoLepton(selMuons.at(0))) ) {
+  else if ( !selMuons.empty() and (isMuonAntiIso_ xor isIsoLepton(selMuons.at(0))) ) {
     const auto& mu = selMuons.at(0);
     lepton1 = &mu;
     leptonSF = muonSF_(mu.pt(), mu.eta(), muonSFShift_);
@@ -546,14 +558,14 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   if ( channel_ == 11 ) {
     cutsteps[3] = (!isIgnoreTrig_ and isTrigEl != 0);
     cutsteps[4] = (selElectrons.size() == 1);
-    cutsteps[5] = (selMuons.size()+vetoMuons.size() == 0);
-    cutsteps[6] = vetoElectrons.empty();
+    cutsteps[5] = (nVetoMuons == 0);
+    cutsteps[6] = (nVetoElectrons == 0);
   }
   else if ( channel_ == 13 ) {
     cutsteps[3] = (!isIgnoreTrig_ and isTrigMu != 0);
     cutsteps[4] = (selMuons.size() == 1);
-    cutsteps[5] = (selElectrons.size()+vetoElectrons.size() == 0);
-    cutsteps[6] = vetoMuons.empty();
+    cutsteps[5] = (nVetoElectrons == 0);
+    cutsteps[6] = (nVetoMuons == 0);
   }
   cutsteps[ 7] = (jets_n >= 1);
   cutsteps[ 8] = (jets_n >= 2);
