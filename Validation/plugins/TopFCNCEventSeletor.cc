@@ -198,9 +198,9 @@ private:
     if ( !el.electronID(elIdName_) ) return false;
     const double scEta = std::abs(el.scEta());
     if ( isEcalCrackVeto_ and scEta > 1.4442 and scEta < 1.566 ) return false;
-    //const double d0 = std::abs(el.dxy()), dz = std::abs(el.vz());
-    //if      ( scEta <= 1.479 and (d0 > 0.05 or dz > 0.1) ) return false;
-    //else if ( scEta >  1.479 and (d0 > 0.10 or dz > 0.2) ) return false;
+    const double d0 = std::abs(el.dxy()), dz = std::abs(el.dz());
+    if      ( scEta <= 1.479 and (d0 > 0.05 or dz > 0.1) ) return false;
+    else if ( scEta >  1.479 and (d0 > 0.10 or dz > 0.2) ) return false;
     return true;
   }
   bool isIsoLepton(const cat::Muon& mu) const { return mu.relIso(0.4) < 0.15; }
@@ -219,10 +219,10 @@ private:
     if ( std::abs(el.eta()) > 2.5 ) return false;
     if ( std::isnan(el.pt()) or el.pt() < 10 ) return false;
     if ( !el.electronID(elVetoIdName_) ) return false;
-    //const double scEta = std::abs(el.scEta());
-    //const double d0 = std::abs(el.dxy()), dz = std::abs(el.vz());
-    //if      ( scEta <= 1.479 and (d0 > 0.05 or dz > 0.1) ) return false;
-    //else if ( scEta >  1.479 and (d0 > 0.10 or dz > 0.2) ) return false;
+    const double scEta = std::abs(el.scEta());
+    const double d0 = std::abs(el.dxy()), dz = std::abs(el.dz());
+    if      ( scEta <= 1.479 and (d0 > 0.05 or dz > 0.1) ) return false;
+    else if ( scEta >  1.479 and (d0 > 0.10 or dz > 0.2) ) return false;
     return true;
   }
   bool isBjet(const cat::Jet& jet)
