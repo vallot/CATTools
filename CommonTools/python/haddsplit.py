@@ -17,6 +17,8 @@ def haddsplit(srcDir, inputFiles, destDir):
     nFiles = nTotalFiles/nOutput
 
     prefix = '.'.join(os.path.basename(inputFiles[0]).split('.')[:-1])
+    if '_' in prefix and prefix.split('_')[-1].isdigit():
+        prefix = '_'.join(prefix.split('_')[:-1])
 
     for i in range(nOutput):
         cmd = 'hadd -f %s/%s_%d.root ' % (destDir, prefix, i)
