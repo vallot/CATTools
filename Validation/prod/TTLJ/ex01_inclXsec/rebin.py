@@ -50,7 +50,7 @@ cats = {
         'titles':['t#bar{t}+Jets#rightarrow l^{#pm}'],
     },
     'WJet':{
-        'titles':['W+Jets:MG'],
+        'titles':['W+Jets'],
     },
     'bkg':{
         'titles':["t#bar{t}+Jets:Others", "SingleTop",
