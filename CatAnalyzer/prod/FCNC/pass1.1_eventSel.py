@@ -105,10 +105,10 @@ for key in samples:
     suffix = ""
     baseargs = []
     if 'noll' in modifiers:
-        baseargs += ["filterGenTop.invert=True"]
+        baseargs += ["filterParton.invert=True"]
         suffix = ".Others"
     if 'nofilter' in modifiers:
-        baseargs += ["filterGenTop.nLepton=-1"]
+        baseargs += ["filterParton.nLepton=-1"]
 
     for name in samples[key]:
         for recipeToRun in recipesToRun:
