@@ -76,9 +76,9 @@ if __name__ == '__main__':
     if len(jobsFailed) > 0:
         print "@@ There are some failed jobs"
         print "@@ Please resubmit following jobs"
-        if os.path.exists("%s/resubmit" % outBase): os.system("rm -rf %s/resubmit" % outBase)
-        os.makedirs("%s/resubmit" % outBase)
-        fsubmit = open("%s/resubmit/submit.sh" % outBase, "w")
+        if os.path.exists("%s/resubmit" % srcBase): os.system("rm -rf %s/resubmit" % srcBase)
+        os.makedirs("%s/resubmit" % srcBase)
+        fsubmit = open("%s/resubmit/submit.sh" % srcBase, "w")
         for sample, jobs in jobsFailed:
             print sample, jobs
             files = []
@@ -87,18 +87,18 @@ if __name__ == '__main__':
                 process = imp.load_source("process", "%s/job_%03d_cfg.py" % (sample, job)).process
                 for file in process.source.fileNames:
                     files.append(file)
-            prefix = sample.replace("%s/" % outBase, "").replace("/", "_")
-            frerun = open("%s/resubmit/%s.txt" % (outBase, prefix), "w")
+            prefix = sample.replace("%s/" % srcBase, "").replace("/", "_")
+            frerun = open("%s/resubmit/%s.txt" % (srcBase, prefix), "w")
             for f in files: print>>frerun, f
             frerun.close()
-            frerun = open("%s/resubmit/%s_cfg.py" % (outBase, prefix), "w")
+            frerun = open("%s/resubmit/%s_cfg.py" % (srcBase, prefix), "w")
             frerun.write(process.dumpPython())
             frerun.close()
 
             print>>fsubmit, ("create-batch --jobName {0} --fileList {0}.txt --cfg {0}_cfg.py --maxFiles 1".format(prefix))
 
         fsubmit.close()
-        os.system("chmod +x %s/resubmit/submit.sh" % outBase)
+        os.system("chmod +x %s/resubmit/submit.sh" % srcBase)
 
     if nSub > 0:
         print "@@ Done, wait for the %d jobs to finish" % nSub
