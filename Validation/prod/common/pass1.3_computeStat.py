@@ -5,11 +5,12 @@ from ROOT import *
 
 ## Load JSON file and categorize datasets
 import json
-from pandas import DataFrame
+import pandas as pd
+pd.options.display.max_rows = 999
 dataDir = "%s/src/CATTools/CatAnalyzer/data/dataset" % os.environ["CMSSW_BASE"]
-dsets = DataFrame.from_dict(json.loads(open("%s/dataset.json" % dataDir).read()))
+dsets = pd.DataFrame.from_dict(json.loads(open("%s/dataset.json" % dataDir).read()))
 
-fsets = DataFrame(columns=('hist', 'name', 'nevt', 'avgWgt'))
+fsets = pd.DataFrame(columns=('hist', 'name', 'nevt', 'avgWgt'))
 for fName in os.listdir('pass1'):
     if not fName.endswith(".root"): continue
     f = TFile('pass1/'+fName)

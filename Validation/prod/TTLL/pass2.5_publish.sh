@@ -9,7 +9,9 @@ fi
 VERSION=$1
 
 #dumpRoot pass2/preview.root
+tar czf pass2.tgz pass2
 cp pass2/plots.json preview/
 cp pass2/cutflow.json preview/
 ssh gate.sscc.uos.ac.kr "mkdir /var/www/html/CATTools/preview/$VERSION"
 scp -r preview/* gate.sscc.uos.ac.kr:/var/www/html/CATTools/preview/$VERSION
+scp pass2.tgz gate.sscc.uos.ac.kr:/var/www/html/CATTools/preview/$VERSION/

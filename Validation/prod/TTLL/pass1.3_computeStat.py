@@ -51,4 +51,6 @@ for dsIndex, dsRow in dsets.iterrows():
         if len(fsRow['options']) > 0:
             dsOut[newName]['title'] += ':'+('+'.join(fsRow['options']))
 
+        print newName, nevt, avgWgt
+
 open("pass1/dataset.json", "w").write(json.dumps(dsOut, sort_keys=True, indent=4))

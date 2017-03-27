@@ -92,22 +92,3 @@ for d in ds:
     for ss in sses: ss[0].Close()
     sses = None
     fout.Close()
-
-"""
-    ## Merge histograms
-    allHists = {}
-    for sample in ds[d]['samples']:
-        fInName = sample['hist']
-        if not os.path.exists(fInName): continue
-        fin = TFile(fInName)
-        if fin == None: continue
-
-        normFactor = sample['normFactor']
-        mergeHist(fout, fin, normFactor, allHists)
-        fin.Close()
-
-        for path in allHists:
-            fout.GetDirectory('/'.join(path.split('/')[:-1])).cd()
-            allHists[path].Write()
-
-"""
