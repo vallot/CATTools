@@ -19,6 +19,7 @@ dataset = json.loads(open("pass2/dataset.json").read())
 srcMCs = [
     ["t#bar{t}+Jets#rightarrow l^{+}l^{-}", 632],
     ["t#bar{t}+Jets:Others", 632+3],
+    ["t#bar{t}+V", 632+5],
     ["SingleTop", 800],
     ["Dibosons", 432],
     ["Tribosons", 433],
