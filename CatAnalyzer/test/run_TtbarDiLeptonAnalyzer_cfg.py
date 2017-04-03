@@ -4,7 +4,6 @@ process = cms.Process("TtbarDiLeptonAnalyzer")
 process.load("FWCore.MessageService.MessageLogger_cfi")
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
-
 process.options.allowUnscheduled = cms.untracked.bool(True)
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
@@ -26,14 +25,14 @@ process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop.inputTemplatePath = cms.str
 process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop.maxLBMass = cms.double(360)
 process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop.mTopInput = cms.double(172.5)
 
-process.cattree = cms.EDAnalyzer("dileptonCommon",
+process.cattree = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     recoFilters = cms.InputTag("filterRECO"),
     nGoodVertex = cms.InputTag("catVertex","nGoodPV"),
     lumiSelection = cms.InputTag("lumiMask"),
     genweight = cms.InputTag("flatGenWeights"),
-    pdfweight = cms.InputTag("flatGenWeights","pdf"),
-    scaleupweight = cms.InputTag("flatGenWeights","scaleup"),
-    scaledownweight = cms.InputTag("flatGenWeights","scaledown"),
+    pdfweights = cms.InputTag("flatGenWeights","pdf"),
+    scaleupweights = cms.InputTag("flatGenWeights","scaleup"),
+    scaledownweights = cms.InputTag("flatGenWeights","scaledown"),
     topPtWeight = cms.InputTag("topPtWeight"),
     puweight = cms.InputTag("pileupWeight"),
     puweight_up = cms.InputTag("pileupWeight","up"),
@@ -42,6 +41,8 @@ process.cattree = cms.EDAnalyzer("dileptonCommon",
     trigMUMU = cms.InputTag("filterTrigMUMU"),
     trigELEL = cms.InputTag("filterTrigELEL"),
 
+    jets = cms.InputTag("catJets"),
+    mets = cms.InputTag("catMETs"),
     vertices = cms.InputTag("catVertex"),
     muon = cms.PSet(
         src = cms.InputTag("catMuons"),
@@ -51,8 +52,6 @@ process.cattree = cms.EDAnalyzer("dileptonCommon",
         src = cms.InputTag("catElectrons"),
         effSF = electronSFCutBasedIDMediumWP,#electronSFWP90,
     ),
-    jets = cms.InputTag("catJets"),
-    mets = cms.InputTag("catMETs"),
     mcLabel = cms.InputTag("prunedGenParticles"),
 
     partonTop_channel = cms.InputTag("partonTop","channel"),
@@ -76,10 +75,7 @@ if cms.string('DESYSmeared') == process.cattree.solver.algo:
     )
 
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string("cattree.root"
-))
+    fileName = cms.string("cattree.root"))
 
-process.p = cms.Path(
-    process.cattree
-)
-process.MessageLogger.cerr.FwkReport.reportEvery = 50000
+process.p = cms.Path(process.cattree)
+process.MessageLogger.cerr.FwkReport.reportEvery = 1000
