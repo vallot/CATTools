@@ -30,24 +30,24 @@ delattr(process, 'eventsFCNC')
 #process.el.electron.applyAntiIso = True
 #process.mu.muon.applyAntiIso = True
 
-from CATTools.CatAnalyzer.analyzers.ntuple_cff import *
-process = ntupler_load(process, "el", "ntupleEL")
-process = ntupler_load(process, "mu", "ntupleMU")
-#process = ntupler_addVarsGen(process, "el", "ntupleEL")
-#process = ntupler_addVarsGen(process, "mu", "ntupleMU")
-#process = ntupler_addVarsGenTop(process, "el", "ntupleEL")
-#process = ntupler_addVarsGenTop(process, "mu", "ntupleMU")
+#from CATTools.CatAnalyzer.analyzers.ntuple_cff import *
+#process = ntupler_load(process, "el", "ntupleEL")
+#process = ntupler_load(process, "mu", "ntupleMU")
+##process = ntupler_addVarsGen(process, "el", "ntupleEL")
+##process = ntupler_addVarsGen(process, "mu", "ntupleMU")
+##process = ntupler_addVarsGenTop(process, "el", "ntupleEL")
+##process = ntupler_addVarsGenTop(process, "mu", "ntupleMU")
 
 process.p_el = cms.Path(
     process.filterLumi# * process.removeLumisWithL1TCert
   * process.rec
-  * process.el * process.ntupleEL
+  * process.el #* process.ntupleEL
 )
 
 process.p_mu = cms.Path(
     process.filterLumi# * process.removeLumisWithL1TCert
   * process.rec
-  * process.mu * process.ntupleMU
+  * process.mu #* process.ntupleMU
 )
 
 ## Customise with cmd arguments

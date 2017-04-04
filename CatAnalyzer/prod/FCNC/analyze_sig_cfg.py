@@ -42,29 +42,25 @@ delattr(process, 'eventsFCNC')
 #process.mu.muon.applyAntiIso = True
 
 process.load("CATTools.CatAnalyzer.topPtWeightProducer_cfi")
-process.load("CATTools.CatAnalyzer.csvWeights_cfi")
-process.csvWeightsEL = process.csvWeights.clone(src = cms.InputTag("el:jets"))
-process.csvWeightsMU = process.csvWeights.clone(src = cms.InputTag("mu:jets"))
-delattr(process, "csvWeights")
 
-from CATTools.CatAnalyzer.analyzers.ntuple_cff import *
-process = ntupler_load(process, "el", "ntupleEL")
-process = ntupler_load(process, "mu", "ntupleMU")
-process = ntupler_addVarsGen(process, "el", "ntupleEL")
-process = ntupler_addVarsGen(process, "mu", "ntupleMU")
-process = ntupler_addVarsGenTop(process, "ntupleEL")
-process = ntupler_addVarsGenTop(process, "ntupleMU")
+#from CATTools.CatAnalyzer.analyzers.ntuple_cff import *
+#process = ntupler_load(process, "el", "ntupleEL")
+#process = ntupler_load(process, "mu", "ntupleMU")
+#process = ntupler_addVarsGen(process, "el", "ntupleEL")
+#process = ntupler_addVarsGen(process, "mu", "ntupleMU")
+#process = ntupler_addVarsGenTop(process, "ntupleEL")
+#process = ntupler_addVarsGenTop(process, "ntupleMU")
 
 process.p_el = cms.Path(
     process.agen + process.filterParton
   * process.gen + process.rec
-  * process.el * process.ntupleEL
+  * process.el #* process.ntupleEL
 )
 
 process.p_mu = cms.Path(
     process.agen + process.filterParton
   * process.gen + process.rec
-  * process.mu * process.ntupleMU
+  * process.mu #* process.ntupleMU
 )
 
 ## Customise with cmd arguments
