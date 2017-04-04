@@ -12,6 +12,7 @@
 #include "CATTools/CommonTools/interface/TTbarModeDefs.h"
 #include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
 #include "CATTools/CatAnalyzer/interface/TopTriggerSF.h"
+#include "CATTools/CatAnalyzer/interface/BTagWeightEvaluator.h"
 
 #include "DataFormats/Candidate/interface/LeafCandidate.h"
 
@@ -259,6 +260,9 @@ private:
   std::string elIdName_, elIsoIdName_, elVetoIdName_;
   enum class BTagWP { CSVL, CSVM, CSVT } bTagWP_;
 
+  BTagWeightEvaluator bTagWeight_;
+  int bTagSFUnc_;
+
 private:
   ControlPlotsFCNC h_ch;
 
@@ -327,6 +331,9 @@ TopFCNCEventSelector::TopFCNCEventSelector(const edm::ParameterSet& pset):
   else if ( bTagWPStr == "CSVT" ) bTagWP_ = BTagWP::CSVT;
   else edm::LogError("TopFCNCEventSelector") << "Wrong bTagWP parameter " << bTagWPStr;
   isSkipJER_ = jetSet.getParameter<bool>("skipJER");
+
+  bTagWeight_.initCSVWeight(true, "csvv2");
+  bTagSFUnc_ = jetSet.getParameter<unsigned int>("bTagSFUncType");
 
   const auto metSet = pset.getParameter<edm::ParameterSet>("met");
   metToken_ = consumes<cat::METCollection>(metSet.getParameter<edm::InputTag>("src"));
@@ -407,7 +414,7 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   std::auto_ptr<std::vector<cat::Jet> > out_jets(new std::vector<cat::Jet>());
 
   // Compute event weight - from generator, pileup, etc
-  double weight = 1.0;
+  float weight = 1.0;
   if ( isMC_ ) {
     edm::Handle<float> fHandle;
     edm::Handle<vfloat> vfHandle;
@@ -534,6 +541,7 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
     metDpx += jet.px()-p.px();
     metDpy += jet.py()-p.py();
+
     if ( jet.pt() < 30 ) continue;
 
     if ( lepton1 and deltaR(jet.p4(), lepton1->p4()) < 0.4 ) continue;
@@ -545,6 +553,8 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   const int jets_n = out_jets->size();
   std::sort(out_jets->begin(), out_jets->end(),
             [&](const cat::Jet& a, const cat::Jet& b){return a.pt() > b.pt();});
+  const double csvWeight = bTagWeight_.eventWeight(*out_jets, bTagSFUnc_);
+  weight *= csvWeight;
 
   // Update & calculate met
   const double met_pt = hypot(metP4.px()-metDpx, metP4.py()-metDpy);
@@ -570,7 +580,7 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   cutsteps[ 7] = (jets_n >= 1);
   cutsteps[ 8] = (jets_n >= 2);
   cutsteps[ 9] = (jets_n >= 3);
-  cutsteps[10] = (jets_n >= 4);
+  cutsteps[10] = (bjets_n >= 1);
 
   // Run though the cut steps
   int cutstep = 0;
@@ -614,15 +624,6 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     }
   }
 
-  // Fill n-dim histogram
-  double jet1_pt = -1, jet1_eta = -999, jet1_phi = -999;
-  if ( jets_n >= 1 ) {
-    const auto& jet = out_jets->at(0);
-    jet1_pt  = jet.pt();
-    jet1_eta = jet.eta();
-    jet1_phi = jet.phi();
-  }
-
   event.put(std::auto_ptr<int>(new int(cutstep)), "cutstep");
   event.put(std::auto_ptr<int>(new int((int)channel_)), "channel");
   event.put(std::auto_ptr<float>(new float(weight)), "weight");
@@ -635,6 +636,14 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   // Apply filter at the given step.
   if ( cutstep >= applyFilterAt_ ) {
     if ( eventListFile_.is_open() ) {
+      double jet1_pt = -1, jet1_eta = -999, jet1_phi = -999;
+      if ( jets_n >= 1 ) {
+        const auto& jet = out_jets->at(0);
+        jet1_pt  = jet.pt();
+        jet1_eta = jet.eta();
+        jet1_phi = jet.phi();
+      }
+
       const int run = event.id().run();
       const int lum = event.id().luminosityBlock();
       const int evt = event.id().event();

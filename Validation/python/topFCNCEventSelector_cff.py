@@ -47,6 +47,7 @@ eventsFCNC = cms.EDFilter("TopFCNCEventSelector",
         #resolDirection = cms.int32(-1),
         #resolDirection = cms.int32(+1),
         skipJER = cms.bool(False), # Needed for synchronization
+        bTagSFUncType = cms.uint32(0),
     ),
 
     met = cms.PSet(
