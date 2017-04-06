@@ -246,6 +246,7 @@ private:
   // Efficiency SF
   cat::ScaleFactorEvaluator muonSF_, electronSF_;
   double muonSFShift_, electronSFShift_;
+  cat::ScaleFactorEvaluator trigMuSF_, trigElSF_;
   double trigSFShift_;
 
   bool isMC_;
@@ -349,6 +350,16 @@ TopFCNCEventSelector::TopFCNCEventSelector(const edm::ParameterSet& pset):
   trigElToken_ = consumes<int>(filterSet.getParameter<edm::InputTag>("trigEL"));
   trigMuToken_ = consumes<int>(filterSet.getParameter<edm::InputTag>("trigMU"));
   isIgnoreTrig_ = filterSet.getParameter<bool>("ignoreTrig");
+  const auto trigMuSFSet = filterSet.getParameter<edm::ParameterSet>("efficiencySFMU");
+  trigMuSF_.set(trigMuSFSet.getParameter<vdouble>("pt_bins"),
+                trigMuSFSet.getParameter<vdouble>("abseta_bins"),
+                trigMuSFSet.getParameter<vdouble>("values"),
+                trigMuSFSet.getParameter<vdouble>("errors"));
+  const auto trigElSFSet = filterSet.getParameter<edm::ParameterSet>("efficiencySFEL");
+  trigElSF_.set(trigElSFSet.getParameter<vdouble>("pt_bins"),
+                trigElSFSet.getParameter<vdouble>("eta_bins"),
+                trigElSFSet.getParameter<vdouble>("values"),
+                trigElSFSet.getParameter<vdouble>("errors"));
   trigSFShift_ = filterSet.getParameter<int>("efficiencySFDirection");
 
   if ( isMC_ ) {
@@ -510,6 +521,7 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     lepton1 = &el;
     leptonSF = electronSF_(el.pt(), std::abs(el.scEta()), electronSFShift_);
     lepton1_relIso = lepton1->relIso(0.3);
+    if ( !isIgnoreTrig_ ) trigSF = trigElSF_(el.pt(), std::abs(el.scEta()), trigSFShift_);
     out_electrons->push_back(el);
   }
   else if ( !selMuons.empty() and (isMuonAntiIso_ xor isIsoLepton(selMuons.at(0))) ) {
@@ -517,6 +529,7 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     lepton1 = &mu;
     leptonSF = muonSF_(mu.pt(), mu.eta(), muonSFShift_);
     lepton1_relIso = lepton1->relIso(0.4);
+    if ( !isIgnoreTrig_ ) trigSF = trigMuSF_(mu.pt(), mu.eta(), trigSFShift_);
     out_muons->push_back(mu);
   }
   int lepton1_id = 0;

@@ -69,6 +69,8 @@ eventsFCNC = cms.EDFilter("TopFCNCEventSelector",
         trigEL = cms.InputTag("filterTrigEL"),
         ignoreTrig = cms.bool(False), # Accept event even if it does not pass HLT. Needed for synchronization
         efficiencySFDirection = cms.int32(0),
+        efficiencySFMU = trigSF_IsoMu24_OR_IsoTkMu24,
+        efficiencySFEL = trigSF_Ele25_eta2p1_WPTight_Gsf,
     ),
 
     # Event weights
