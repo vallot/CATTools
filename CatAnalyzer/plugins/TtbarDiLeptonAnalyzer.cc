@@ -294,16 +294,13 @@ TtbarDiLeptonAnalyzer::~TtbarDiLeptonAnalyzer()
   cout <<"      cut flow   emu    ee    mumu"<< endl;
   for ( int i=0; i<NCutflow; ++i ) {
     cout <<"step "<< i << "    "<< cutflow_[i][0] <<  "   "<< cutflow_[i][1] << "   " << cutflow_[i][2] << "   " << cutflow_[i][3]<< endl;
-    }  
-// #### check
-    cout <<"      step1     step2   step3   step4   step5"<< endl;
-  for ( int i=4; i<5; ++i ) {
-    cout << " MuEl   "<< cutflow_[i][1] <<  "       "<< cutflow_[i+1][1] << "       " << cutflow_[i+2][1] << "      " << cutflow_[i+3][1]<< "       " << cutflow_[i+4][1]<< endl;
-    cout << " ElEl   "<< cutflow_[i][2] <<  "       "<< cutflow_[i+1][2] << "       " << cutflow_[i+2][2] << "      " << cutflow_[i+3][2]<< "       " << cutflow_[i+4][2]<< endl;
-    cout << " MuMu   "<< cutflow_[i][3] <<  "       "<< cutflow_[i+1][3] << "       " << cutflow_[i+2][3] << "      " << cutflow_[i+3][3]<< "       " << cutflow_[i+4][3]<< endl;
-// ### check
-    }
+  }
+  cout << "          step1   step2      step3      step4     step5" << endl;
+  cout << "MuEl" <<"        "<< cutflow_[4][1] <<"    "<< cutflow_[5][1]<<"       "<<cutflow_[6][1]<<"        "<<cutflow_[7][1]<<"        "<<cutflow_[8][1]<<endl;
+  cout << "ElEl" <<"        "<< cutflow_[4][2] <<"    "<< cutflow_[5][2]<<"       "<<cutflow_[6][2]<<"        "<<cutflow_[7][2]<<"        "<<cutflow_[8][2]<<endl;
+  cout << "MuMu" <<"        "<< cutflow_[4][3] <<"    "<< cutflow_[5][3]<<"       "<<cutflow_[6][3]<<"        "<<cutflow_[7][3]<<"        "<<cutflow_[8][3]<<endl;
 }
+
 
 // #####################  Dstar begin  ########################
 
@@ -384,9 +381,6 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
 bool TtbarDiLeptonAnalyzer::eventSelection(const edm::Event& iEvent, systematic sys)
 {
-
-
-
   if (sys == syst_nom) cutflow_[0][0]++;
   b_run = iEvent.id().run();
   b_event = iEvent.id().event();
@@ -411,6 +405,316 @@ bool TtbarDiLeptonAnalyzer::eventSelection(const edm::Event& iEvent, systematic 
     
     h_nevents->Fill(0.5,b_weight);
   }  
+// #####################  Dstar begin  ########################
+  edm::Handle<cat::SecVertexCollection> d0s;       iEvent.getByToken(d0Token_,d0s);
+  edm::Handle<cat::SecVertexCollection> dstars;    iEvent.getByToken(dstarToken_,dstars);
+  edm::Handle<cat::SecVertexCollection> Jpsis;     iEvent.getByToken(JpsiToken_,Jpsis);
+
+  edm::Handle<edm::View<reco::GenParticle> > mcHandle;
+
+  if ( runOnMC ) {
+    iEvent.getByToken(mcSrc_, mcHandle);
+  }
+
+  vector<TLorentzVector> gen_d0s;
+  vector<TLorentzVector> gen_dstars;
+  vector<TLorentzVector> gen_Jpsis;
+
+  int nIDMother;
+
+  TLorentzVector vecSumMom;
+
+  if ( runOnMC ) {
+    for( const auto& aGenParticle : *mcHandle) {
+      //If genParticle is D0,
+      if ( std::abs(aGenParticle.pdgId()) == 421 ) {
+        gen_d0s.push_back( ToTLorentzVector(aGenParticle));
+
+        nIDMother = isFromtop(aGenParticle);
+
+        if ( /*0 == 1 &&*/ abs(nIDMother) != 6 ) {
+            continue;
+        }
+
+        //printf("Sign : %i\n", nIDMother * aGenParticle.pdgId() / abs(aGenParticle.pdgId()));
+        //printf("%s\n", ( aGenParticle.charge() * aGenParticle.pdgId() >= 0 ? "S" : "O" ));
+        vecSumMom = ToTLorentzVector(aGenParticle) +
+          ( nIDMother * b_lep1_pid < 0 ? b_lep1 : b_lep2 );
+        b_d0_lepSV_correctM.push_back(vecSumMom.M());
+      } else if ( std::abs(aGenParticle.pdgId()) ==  413 ) {
+        gen_dstars.push_back( ToTLorentzVector(aGenParticle));
+
+        nIDMother = isFromtop(aGenParticle);
+
+        if ( /*0 == 1 &&*/ abs(nIDMother) != 6 ) {
+            continue;
+        }
+
+        //printf("Sign : %i\n", nIDMother * aGenParticle.pdgId() / abs(aGenParticle.pdgId()));
+        //printf("%s\n", ( aGenParticle.charge() * aGenParticle.pdgId() >= 0 ? "S" : "O" ));
+
+        vecSumMom = ToTLorentzVector(aGenParticle) +
+          ( nIDMother * b_lep1_pid < 0 ? b_lep1 : b_lep2 );
+        b_dstar_lepSV_correctM.push_back(vecSumMom.M());
+      } else if ( std::abs(aGenParticle.pdgId()) ==  443 ) {
+        gen_Jpsis.push_back( ToTLorentzVector(aGenParticle));
+
+        nIDMother = isFromtop(aGenParticle);
+
+        if ( /*0 == 1 &&*/ abs(nIDMother) != 6 ) {
+            continue;
+        }
+
+        //printf("Sign : %i\n", nIDMother * aGenParticle.pdgId() / abs(aGenParticle.pdgId()));
+        //printf("%s\n", ( aGenParticle.charge() * aGenParticle.pdgId() >= 0 ? "S" : "O" ));
+
+        vecSumMom = ToTLorentzVector(aGenParticle) +
+          ( nIDMother * b_lep1_pid < 0 ? b_lep1 : b_lep2 );
+        b_Jpsi_lepSV_correctM.push_back(vecSumMom.M());
+      }
+    }
+  }
+  int d0_count=-1;
+  int dstar_count=-1;
+  int Jpsi_count=-1;
+
+  TClonesArray& br_d0 = *b_d0;
+  TClonesArray& br_d0_dau1 = *b_d0_dau1;
+  TClonesArray& br_d0_dau2 = *b_d0_dau2;
+
+  TClonesArray& br_dstar = *b_dstar;
+  TClonesArray& br_dstar_dau1 = *b_dstar_dau1;
+  TClonesArray& br_dstar_dau2 = *b_dstar_dau2;
+  TClonesArray& br_dstar_dau3 = *b_dstar_dau3;
+
+  TClonesArray& br_Jpsi = *b_Jpsi;
+  TClonesArray& br_Jpsi_dau1 = *b_Jpsi_dau1;
+  TClonesArray& br_Jpsi_dau2 = *b_Jpsi_dau2;
+
+  TLorentzVector vecDMMom, vecDau12;
+  float fQDau, fQDM;
+
+  TLorentzVector vecSumDMLep1, vecSumDMLep2;
+  float fMDMLep1, fMDMLep2;
+
+  float fDeltaEta, fDeltaPhi;
+  float fSqrtdRMLep1, fSqrtdRMLep2;
+
+  for( auto& x : *d0s) {
+    d0_count++;
+
+    auto d0_tlv = ToTLorentzVector(x);
+    new( br_d0[d0_count]) TLorentzVector(d0_tlv);
+    new( br_d0_dau1[d0_count]) TLorentzVector(ToTLorentzVector(*(x.daughter(0))));
+    new( br_d0_dau2[d0_count]) TLorentzVector(ToTLorentzVector(*(x.daughter(1))));
+
+    b_d0_dca.push_back( x.dca());
+    double d0_vProb = x.vProb();
+    b_d0_vProb.push_back(d0_vProb);
+
+    if ( abs( d0_vProb ) > 1e-5 ) {
+      b_d0_fit.push_back(true);
+      b_d0_L3D.push_back( x.l3D());
+      b_d0_LXY.push_back( x.lxy());
+    } else {
+      b_d0_fit.push_back(false);
+      b_d0_L3D.push_back( -9 );
+      b_d0_LXY.push_back( -9 );
+    }
+
+    if ( runOnMC ) {
+        shared_ptr<TLorentzVector> genMatched = mcMatching( gen_d0s, d0_tlv );
+        if ( genMatched != nullptr) {
+          b_d0_true.push_back( true );
+          b_d0_dRTrue.push_back( genMatched->DeltaR( d0_tlv ));
+          b_d0_relPtTrue.push_back( (genMatched->Pt()- d0_tlv.Pt())/genMatched->Pt());
+        }
+        else {
+          b_d0_true.push_back( false );
+          b_d0_dRTrue.push_back( -9);
+          b_d0_relPtTrue.push_back(-9);
+        }
+    }
+
+    fQDM = 0;
+
+    fQDau = x.daughter(0)->charge();
+    b_dstar_dau1_q.push_back(fQDau);
+    fQDM += fQDau;
+    fQDau = x.daughter(0)->charge();
+    b_dstar_dau1_q.push_back(fQDau);
+    fQDM += fQDau;
+
+    fQDau = x.daughter(1)->charge();
+    b_dstar_dau2_q.push_back(fQDau);
+    fQDM += fQDau;
+
+    vecDMMom = ToTLorentzVector(*(x.daughter(0))) + ToTLorentzVector(*(x.daughter(1)));
+
+    vecSumDMLep1 = b_lep1 + vecDMMom;
+    vecSumDMLep2 = b_lep2 + vecDMMom;
+
+    fMDMLep1 = vecSumDMLep1.M();
+    fMDMLep2 = vecSumDMLep2.M();
+
+    fDeltaEta = b_lep1.Eta() - vecDMMom.Eta();
+    fDeltaPhi = b_lep1.Phi() - vecDMMom.Phi();
+    fSqrtdRMLep1 = fDeltaEta * fDeltaEta + fDeltaPhi * fDeltaPhi;
+
+    fDeltaEta = b_lep2.Eta() - vecDMMom.Eta();
+    fDeltaPhi = b_lep2.Phi() - vecDMMom.Phi();
+    fSqrtdRMLep2 = fDeltaEta * fDeltaEta + fDeltaPhi * fDeltaPhi;
+
+    b_d0_lepSV_lowM.push_back(( fMDMLep1 >= fMDMLep2 ? fMDMLep1 : fMDMLep2 ));
+    b_d0_lepSV_dRM.push_back(( fSqrtdRMLep1 >= fSqrtdRMLep2 ? fMDMLep1 : fMDMLep2 ));
+  }
+  for( auto& x : *dstars) {
+    dstar_count++;
+
+    auto dstar_tlv = ToTLorentzVector(x);
+    new( br_dstar[dstar_count]) TLorentzVector( dstar_tlv );
+    new( br_dstar_dau1[dstar_count]) TLorentzVector(ToTLorentzVector(*(x.daughter(0))));
+    new( br_dstar_dau2[dstar_count]) TLorentzVector(ToTLorentzVector(*(x.daughter(1))));
+    new( br_dstar_dau3[dstar_count]) TLorentzVector(ToTLorentzVector(*(x.daughter(2))));
+
+    b_dstar_dca.push_back( x.dca());
+    b_dstar_dca2.push_back( x.dca(1));
+    b_dstar_dca3.push_back( x.dca(2));
+
+    double dstar_vProb = x.vProb();
+    b_dstar_vProb.push_back(dstar_vProb);
+
+    if ( abs( dstar_vProb) > 1e-5) {
+      b_dstar_fit.push_back(true);
+      b_dstar_L3D.push_back( x.l3D());
+      b_dstar_LXY.push_back( x.lxy());
+    } else {
+      b_dstar_fit.push_back(false);
+      b_dstar_L3D.push_back( -9 );
+      b_dstar_LXY.push_back( -9 );
+    }
+    if ( runOnMC ) {
+        shared_ptr<TLorentzVector> genMatched = mcMatching( gen_dstars, dstar_tlv );
+        if ( genMatched != nullptr) {
+          b_dstar_true.push_back( true );
+          b_dstar_dRTrue.push_back( genMatched->DeltaR( dstar_tlv));
+          b_dstar_relPtTrue.push_back( (genMatched->Pt()- dstar_tlv.Pt())/genMatched->Pt());
+        }
+        else {
+          b_dstar_true.push_back( false );
+          b_dstar_dRTrue.push_back( -9);
+          b_dstar_relPtTrue.push_back(-9);
+        }
+    }
+
+    fQDM = 0;
+
+    fQDau = x.daughter(0)->charge();
+    b_dstar_dau1_q.push_back(fQDau);
+    fQDM += fQDau;
+
+    fQDau = x.daughter(1)->charge();
+    b_dstar_dau2_q.push_back(fQDau);
+    fQDM += fQDau;
+
+    fQDau = x.daughter(2)->charge();
+    b_dstar_dau3_q.push_back(fQDau);
+    fQDM += fQDau;
+
+    vecDMMom = ToTLorentzVector(*(x.daughter(0))) +
+        ToTLorentzVector(*(x.daughter(1))) +
+        ToTLorentzVector(*(x.daughter(2)));
+
+    vecDau12 = ToTLorentzVector(*(x.daughter(0))) +
+        ToTLorentzVector(*(x.daughter(1)));
+    b_dstar_diffMass.push_back(vecDMMom.M() - vecDau12.M());
+
+    vecSumDMLep1 = b_lep1 + vecDMMom;
+    vecSumDMLep2 = b_lep2 + vecDMMom;
+
+    fMDMLep1 = vecSumDMLep1.M();
+    fMDMLep2 = vecSumDMLep2.M();
+
+    fDeltaEta = b_lep1.Eta() - vecDMMom.Eta();
+    fDeltaPhi = b_lep1.Phi() - vecDMMom.Phi();
+    fSqrtdRMLep1 = fDeltaEta * fDeltaEta + fDeltaPhi * fDeltaPhi;
+
+    fDeltaEta = b_lep2.Eta() - vecDMMom.Eta();
+    fDeltaPhi = b_lep2.Phi() - vecDMMom.Phi();
+    fSqrtdRMLep2 = fDeltaEta * fDeltaEta + fDeltaPhi * fDeltaPhi;
+
+    b_dstar_lepSV_lowM.push_back(( fMDMLep1 >= fMDMLep2 ? fMDMLep1 : fMDMLep2 ));
+    b_dstar_lepSV_dRM.push_back(( fSqrtdRMLep1 >= fSqrtdRMLep2 ? fMDMLep1 : fMDMLep2 ));
+    b_dstar_opCharge_M.push_back(( fQDM * b_lep1_pid <= 0.0 ? fMDMLep1 : fMDMLep2 ));
+  }
+  for( auto& x : *Jpsis) {
+    Jpsi_count++;
+
+    auto Jpsi_tlv = ToTLorentzVector(x);
+    new( br_Jpsi[Jpsi_count]) TLorentzVector( Jpsi_tlv );
+    new( br_Jpsi_dau1[Jpsi_count]) TLorentzVector(ToTLorentzVector(*(x.daughter(0))));
+    new( br_Jpsi_dau2[Jpsi_count]) TLorentzVector(ToTLorentzVector(*(x.daughter(1))));
+
+    b_Jpsi_dca.push_back( x.dca());
+
+    double Jpsi_vProb = x.vProb();
+    b_Jpsi_vProb.push_back(Jpsi_vProb);
+    if ( abs( Jpsi_vProb) > 1e-5) {
+      b_Jpsi_fit.push_back(true);
+      b_Jpsi_L3D.push_back( x.l3D());
+      b_Jpsi_LXY.push_back( x.lxy());
+    } else {
+      b_Jpsi_fit.push_back(false);
+      b_Jpsi_L3D.push_back( -9 );
+      b_Jpsi_LXY.push_back( -9 );
+    }
+
+    if ( runOnMC ) {
+        shared_ptr<TLorentzVector> genMatched = mcMatching( gen_Jpsis, Jpsi_tlv );
+        if ( genMatched != nullptr) {
+          b_Jpsi_true.push_back( true );
+          b_Jpsi_dRTrue.push_back( genMatched->DeltaR( Jpsi_tlv));
+          b_Jpsi_relPtTrue.push_back( (genMatched->Pt()- Jpsi_tlv.Pt())/genMatched->Pt());
+        }
+        else {
+          b_Jpsi_true.push_back( false );
+          b_Jpsi_dRTrue.push_back( -9);
+          b_Jpsi_relPtTrue.push_back(-9);
+        }
+    }
+
+    fQDM = 0;
+
+    fQDau = x.daughter(0)->charge();
+    b_Jpsi_dau1_q.push_back(fQDau);
+    fQDM += fQDau;
+
+    fQDau = x.daughter(1)->charge();
+    b_Jpsi_dau2_q.push_back(fQDau);
+    fQDM += fQDau;
+
+    b_Jpsi_dau_pid.push_back(x.daughter(0)->pdgId());
+
+    vecDMMom = ToTLorentzVector(*(x.daughter(0))) + ToTLorentzVector(*(x.daughter(1)));
+    vecSumDMLep1 = b_lep1 + vecDMMom;
+    vecSumDMLep2 = b_lep2 + vecDMMom;
+
+    fMDMLep1 = vecSumDMLep1.M();
+    fMDMLep2 = vecSumDMLep2.M();
+
+    fDeltaEta = b_lep1.Eta() - vecDMMom.Eta();
+    fDeltaPhi = b_lep1.Phi() - vecDMMom.Phi();
+    fSqrtdRMLep1 = fDeltaEta * fDeltaEta + fDeltaPhi * fDeltaPhi;
+
+    fDeltaEta = b_lep2.Eta() - vecDMMom.Eta();
+    fDeltaPhi = b_lep2.Phi() - vecDMMom.Phi();
+    fSqrtdRMLep2 = fDeltaEta * fDeltaEta + fDeltaPhi * fDeltaPhi;
+
+    b_Jpsi_lepSV_lowM.push_back(( fMDMLep1 >= fMDMLep2 ? fMDMLep1 : fMDMLep2 ));
+    b_Jpsi_lepSV_dRM.push_back(( fSqrtdRMLep1 >= fSqrtdRMLep2 ? fMDMLep1 : fMDMLep2 ));
+  }
+  
+
   edm::Handle<reco::VertexCollection> vertices;
   iEvent.getByToken(vtxToken_, vertices);
   if (vertices->empty()) // skip the event if no PV found
@@ -543,7 +847,7 @@ bool TtbarDiLeptonAnalyzer::eventSelection(const edm::Event& iEvent, systematic 
     for (auto & jet : selectedJets){
       jetslv.push_back(jet.p4());
       jetBtags.push_back(jet.bDiscriminator(BTAG_CSVv2));
-      if (jet.bDiscriminator(BTAG_CSVv2) > WP_BTAG_CSVv2L) bjetIndices.push_back(ijet);
+      if (jet.bDiscriminator(BTAG_CSVv2) > WP_BTAG_CSVv2M) bjetIndices.push_back(ijet);
       jetIndices.push_back(ijet);
       ++ijet;
     }
@@ -588,10 +892,12 @@ bool TtbarDiLeptonAnalyzer::eventSelection(const edm::Event& iEvent, systematic 
 
   for (auto jet1 = selectedJets.begin(), end = selectedJets.end(); jet1 != end; ++jet1){
     const auto recojet1= jet1->p4();
-    const bool isBjet1 = jet1->bDiscriminator(BTAG_CSVv2) >= WP_BTAG_CSVv2L;
+    //const bool isBjet1 = jet1->bDiscriminator(BTAG_CSVv2) >= WP_BTAG_CSVv2L;
+    const bool isBjet1 = jet1->bDiscriminator(BTAG_CSVv2) >= WP_BTAG_CSVv2M;
     for (auto jet2 = next(jet1); jet2 != end; ++jet2){
       const auto recojet2= jet2->p4();
-      const bool isBjet2 = jet2->bDiscriminator(BTAG_CSVv2) >= WP_BTAG_CSVv2L;
+      //const bool isBjet2 = jet2->bDiscriminator(BTAG_CSVv2) >= WP_BTAG_CSVv2L;
+      const bool isBjet2 = jet2->bDiscriminator(BTAG_CSVv2) >= WP_BTAG_CSVv2M;
 
       solver_->solve(met, recolepLV1, recolepLV2, recojet2, recojet1);
       const cat::KinematicSolution sol1 = solver_->solution();
@@ -654,319 +960,6 @@ bool TtbarDiLeptonAnalyzer::eventSelection(const edm::Event& iEvent, systematic 
     //  printf("maxweight %f, top1.M() %f, top2.M() %f \n",maxweight, top1.M(), top2.M() );
     // printf("%2d, %2d, %2d, %2d, %6.2f, %6.2f, %6.2f\n", b_njet, b_nbjet, b_step, b_channel, b_met, b_ll_mass, b_maxweight);
   }
-// ############ Dstar begin #######################
-  edm::Handle<cat::SecVertexCollection> d0s;       iEvent.getByToken(d0Token_,d0s);
-  edm::Handle<cat::SecVertexCollection> dstars;    iEvent.getByToken(dstarToken_,dstars);
-  edm::Handle<cat::SecVertexCollection> Jpsis;     iEvent.getByToken(JpsiToken_,Jpsis);
-  
-  edm::Handle<edm::View<reco::GenParticle> > mcHandle;
-  
-  if ( runOnMC ) {
-    iEvent.getByToken(mcSrc_, mcHandle);
-  }
-
-  vector<TLorentzVector> gen_d0s;
-  vector<TLorentzVector> gen_dstars;
-  vector<TLorentzVector> gen_Jpsis;
-  
-  int nIDMother;
-  
-  TLorentzVector vecSumMom;
-
-  if ( runOnMC ) {
-    for( const auto& aGenParticle : *mcHandle) {
-      //If genParticle is D0,
-      if ( std::abs(aGenParticle.pdgId()) == 421 ) {
-        gen_d0s.push_back( ToTLorentzVector(aGenParticle));
-        
-        nIDMother = isFromtop(aGenParticle);
-        
-        if ( /*0 == 1 &&*/ abs(nIDMother) != 6 ) {
-            continue;
-        }
-        
-        //printf("Sign : %i\n", nIDMother * aGenParticle.pdgId() / abs(aGenParticle.pdgId()));
-        //printf("%s\n", ( aGenParticle.charge() * aGenParticle.pdgId() >= 0 ? "S" : "O" ));
-        
-        vecSumMom = ToTLorentzVector(aGenParticle) + 
-          ( nIDMother * b_lep1_pid < 0 ? b_lep1 : b_lep2 );
-        b_d0_lepSV_correctM.push_back(vecSumMom.M());
-      } else if ( std::abs(aGenParticle.pdgId()) ==  413 ) {
-        gen_dstars.push_back( ToTLorentzVector(aGenParticle));
-        
-        nIDMother = isFromtop(aGenParticle);
-        
-        if ( /*0 == 1 &&*/ abs(nIDMother) != 6 ) {
-            continue;
-        }
-        
-        //printf("Sign : %i\n", nIDMother * aGenParticle.pdgId() / abs(aGenParticle.pdgId()));
-        //printf("%s\n", ( aGenParticle.charge() * aGenParticle.pdgId() >= 0 ? "S" : "O" ));
-        
-        vecSumMom = ToTLorentzVector(aGenParticle) + 
-          ( nIDMother * b_lep1_pid < 0 ? b_lep1 : b_lep2 );
-        b_dstar_lepSV_correctM.push_back(vecSumMom.M());
-      } else if ( std::abs(aGenParticle.pdgId()) ==  443 ) {
-        gen_Jpsis.push_back( ToTLorentzVector(aGenParticle));
-        
-        nIDMother = isFromtop(aGenParticle);
-        
-        if ( /*0 == 1 &&*/ abs(nIDMother) != 6 ) {
-            continue;
-        }
-        
-        //printf("Sign : %i\n", nIDMother * aGenParticle.pdgId() / abs(aGenParticle.pdgId()));
-        //printf("%s\n", ( aGenParticle.charge() * aGenParticle.pdgId() >= 0 ? "S" : "O" ));
-        
-        vecSumMom = ToTLorentzVector(aGenParticle) + 
-          ( nIDMother * b_lep1_pid < 0 ? b_lep1 : b_lep2 );
-        b_Jpsi_lepSV_correctM.push_back(vecSumMom.M());
-      }
-    }
-  } 
-
-  int d0_count=-1;
-  int dstar_count=-1;
-  int Jpsi_count=-1;
-
-  TClonesArray& br_d0 = *b_d0;
-  TClonesArray& br_d0_dau1 = *b_d0_dau1;
-  TClonesArray& br_d0_dau2 = *b_d0_dau2;
-
-  TClonesArray& br_dstar = *b_dstar;
-  TClonesArray& br_dstar_dau1 = *b_dstar_dau1;
-  TClonesArray& br_dstar_dau2 = *b_dstar_dau2;
-  TClonesArray& br_dstar_dau3 = *b_dstar_dau3;
-
-  TClonesArray& br_Jpsi = *b_Jpsi;
-  TClonesArray& br_Jpsi_dau1 = *b_Jpsi_dau1;
-  TClonesArray& br_Jpsi_dau2 = *b_Jpsi_dau2;
-  
-  TLorentzVector vecDMMom, vecDau12;
-  float fQDau, fQDM;
-  
-  TLorentzVector vecSumDMLep1, vecSumDMLep2;
-  float fMDMLep1, fMDMLep2;
-  
-  float fDeltaEta, fDeltaPhi;
-  float fSqrtdRMLep1, fSqrtdRMLep2;
-
-  for( auto& x : *d0s) {
-    d0_count++; 
-
-    auto d0_tlv = ToTLorentzVector(x);
-    new( br_d0[d0_count]) TLorentzVector(d0_tlv);
-    new( br_d0_dau1[d0_count]) TLorentzVector(ToTLorentzVector(*(x.daughter(0)))); 
-    new( br_d0_dau2[d0_count]) TLorentzVector(ToTLorentzVector(*(x.daughter(1))));
-    
-    b_d0_dca.push_back( x.dca());
-
-    double d0_vProb = x.vProb();
-    b_d0_vProb.push_back(d0_vProb);
-
-    if ( abs( d0_vProb ) > 1e-5 ) {
-      b_d0_fit.push_back(true);
-      b_d0_L3D.push_back( x.l3D());
-      b_d0_LXY.push_back( x.lxy());
-    } else {
-      b_d0_fit.push_back(false);
-      b_d0_L3D.push_back( -9 );
-      b_d0_LXY.push_back( -9 );
-    }        
-
-    if ( runOnMC ) {
-        shared_ptr<TLorentzVector> genMatched = mcMatching( gen_d0s, d0_tlv ); 
-        if ( genMatched != nullptr) {
-          b_d0_true.push_back( true );
-          b_d0_dRTrue.push_back( genMatched->DeltaR( d0_tlv ));
-          b_d0_relPtTrue.push_back( (genMatched->Pt()- d0_tlv.Pt())/genMatched->Pt());
-        }
-        else {
-          b_d0_true.push_back( false );
-          b_d0_dRTrue.push_back( -9);
-          b_d0_relPtTrue.push_back(-9);
-        }
-    }
-
-    fQDM = 0;
-
-    fQDau = x.daughter(0)->charge();
-    b_dstar_dau1_q.push_back(fQDau);
-    fQDM += fQDau;
-
-    fQDau = x.daughter(1)->charge();
-    b_dstar_dau2_q.push_back(fQDau);
-    fQDM += fQDau;
-    
-    vecDMMom = ToTLorentzVector(*(x.daughter(0))) + ToTLorentzVector(*(x.daughter(1)));
-    
-    vecSumDMLep1 = b_lep1 + vecDMMom;
-    vecSumDMLep2 = b_lep2 + vecDMMom;
-    
-    fMDMLep1 = vecSumDMLep1.M();
-    fMDMLep2 = vecSumDMLep2.M();
-    
-    fDeltaEta = b_lep1.Eta() - vecDMMom.Eta();
-    fDeltaPhi = b_lep1.Phi() - vecDMMom.Phi();
-    fSqrtdRMLep1 = fDeltaEta * fDeltaEta + fDeltaPhi * fDeltaPhi;
-    
-    fDeltaEta = b_lep2.Eta() - vecDMMom.Eta();
-    fDeltaPhi = b_lep2.Phi() - vecDMMom.Phi();
-    fSqrtdRMLep2 = fDeltaEta * fDeltaEta + fDeltaPhi * fDeltaPhi;
-    
-    b_d0_lepSV_lowM.push_back(( fMDMLep1 >= fMDMLep2 ? fMDMLep1 : fMDMLep2 ));
-    b_d0_lepSV_dRM.push_back(( fSqrtdRMLep1 >= fSqrtdRMLep2 ? fMDMLep1 : fMDMLep2 ));
-  }
-  for( auto& x : *dstars) {
-    dstar_count++;
-
-    auto dstar_tlv = ToTLorentzVector(x);
-    new( br_dstar[dstar_count]) TLorentzVector( dstar_tlv );
-    new( br_dstar_dau1[dstar_count]) TLorentzVector(ToTLorentzVector(*(x.daughter(0)))); 
-    new( br_dstar_dau2[dstar_count]) TLorentzVector(ToTLorentzVector(*(x.daughter(1))));
-    new( br_dstar_dau3[dstar_count]) TLorentzVector(ToTLorentzVector(*(x.daughter(2))));
-
-    b_dstar_dca.push_back( x.dca());
-    b_dstar_dca2.push_back( x.dca(1));
-    b_dstar_dca3.push_back( x.dca(2));
-
-    double dstar_vProb = x.vProb();
-    b_dstar_vProb.push_back(dstar_vProb);
-	
-    if ( abs( dstar_vProb) > 1e-5) {
-      b_dstar_fit.push_back(true);
-      b_dstar_L3D.push_back( x.l3D());
-      b_dstar_LXY.push_back( x.lxy());
-    } else {
-      b_dstar_fit.push_back(false);
-      b_dstar_L3D.push_back( -9 );
-      b_dstar_LXY.push_back( -9 );
-    }
-
-    if ( runOnMC ) {
-        shared_ptr<TLorentzVector> genMatched = mcMatching( gen_dstars, dstar_tlv ); 
-        if ( genMatched != nullptr) {
-          b_dstar_true.push_back( true );
-          b_dstar_dRTrue.push_back( genMatched->DeltaR( dstar_tlv));
-          b_dstar_relPtTrue.push_back( (genMatched->Pt()- dstar_tlv.Pt())/genMatched->Pt());
-        }
-        else {
-          b_dstar_true.push_back( false );
-          b_dstar_dRTrue.push_back( -9);
-          b_dstar_relPtTrue.push_back(-9);
-        }
-    }
-
-    fQDM = 0;
-
-    fQDau = x.daughter(0)->charge();
-    b_dstar_dau1_q.push_back(fQDau);
-    fQDM += fQDau;
-
-    fQDau = x.daughter(1)->charge();
-    b_dstar_dau2_q.push_back(fQDau);
-    fQDM += fQDau;
-
-    fQDau = x.daughter(2)->charge();
-    b_dstar_dau3_q.push_back(fQDau);
-    fQDM += fQDau;
-
-    vecDMMom = ToTLorentzVector(*(x.daughter(0))) + 
-        ToTLorentzVector(*(x.daughter(1))) + 
-        ToTLorentzVector(*(x.daughter(2)));
-
-    vecDau12 = ToTLorentzVector(*(x.daughter(0))) + 
-        ToTLorentzVector(*(x.daughter(1)));
-	
-    b_dstar_diffMass.push_back(vecDMMom.M() - vecDau12.M());
-    
-    vecSumDMLep1 = b_lep1 + vecDMMom;
-    vecSumDMLep2 = b_lep2 + vecDMMom;
-    
-    fMDMLep1 = vecSumDMLep1.M();
-    fMDMLep2 = vecSumDMLep2.M();
-    
-    fDeltaEta = b_lep1.Eta() - vecDMMom.Eta();
-    fDeltaPhi = b_lep1.Phi() - vecDMMom.Phi();
-    fSqrtdRMLep1 = fDeltaEta * fDeltaEta + fDeltaPhi * fDeltaPhi;
-    
-    fDeltaEta = b_lep2.Eta() - vecDMMom.Eta();
-    fDeltaPhi = b_lep2.Phi() - vecDMMom.Phi();
-    fSqrtdRMLep2 = fDeltaEta * fDeltaEta + fDeltaPhi * fDeltaPhi;
-    
-    b_dstar_lepSV_lowM.push_back(( fMDMLep1 >= fMDMLep2 ? fMDMLep1 : fMDMLep2 ));
-    b_dstar_lepSV_dRM.push_back(( fSqrtdRMLep1 >= fSqrtdRMLep2 ? fMDMLep1 : fMDMLep2 ));
-    b_dstar_opCharge_M.push_back(( fQDM * b_lep1_pid <= 0.0 ? fMDMLep1 : fMDMLep2 ));
-  }
-  for( auto& x : *Jpsis) {
-    Jpsi_count++;
-
-    auto Jpsi_tlv = ToTLorentzVector(x);
-    new( br_Jpsi[Jpsi_count]) TLorentzVector( Jpsi_tlv );
-    new( br_Jpsi_dau1[Jpsi_count]) TLorentzVector(ToTLorentzVector(*(x.daughter(0)))); 
-    new( br_Jpsi_dau2[Jpsi_count]) TLorentzVector(ToTLorentzVector(*(x.daughter(1))));
-
-    b_Jpsi_dca.push_back( x.dca());
-
-    double Jpsi_vProb = x.vProb();
-    b_Jpsi_vProb.push_back(Jpsi_vProb);
-	
-    if ( abs( Jpsi_vProb) > 1e-5) {
-      b_Jpsi_fit.push_back(true);
-      b_Jpsi_L3D.push_back( x.l3D());
-      b_Jpsi_LXY.push_back( x.lxy());
-    } else {
-      b_Jpsi_fit.push_back(false);
-      b_Jpsi_L3D.push_back( -9 );
-      b_Jpsi_LXY.push_back( -9 );
-    }
-
-    if ( runOnMC ) {
-        shared_ptr<TLorentzVector> genMatched = mcMatching( gen_Jpsis, Jpsi_tlv ); 
-        if ( genMatched != nullptr) {
-          b_Jpsi_true.push_back( true );
-          b_Jpsi_dRTrue.push_back( genMatched->DeltaR( Jpsi_tlv));
-          b_Jpsi_relPtTrue.push_back( (genMatched->Pt()- Jpsi_tlv.Pt())/genMatched->Pt());
-        }
-        else {
-          b_Jpsi_true.push_back( false );
-          b_Jpsi_dRTrue.push_back( -9);
-          b_Jpsi_relPtTrue.push_back(-9);
-        }
-    }
-
-    fQDM = 0;
-
-    fQDau = x.daughter(0)->charge();
-    b_Jpsi_dau1_q.push_back(fQDau);
-    fQDM += fQDau;
-
-    fQDau = x.daughter(1)->charge();
-    b_Jpsi_dau2_q.push_back(fQDau);
-    fQDM += fQDau;
-    
-    b_Jpsi_dau_pid.push_back(x.daughter(0)->pdgId());
-    
-    vecDMMom = ToTLorentzVector(*(x.daughter(0))) + ToTLorentzVector(*(x.daughter(1)));
-    
-    vecSumDMLep1 = b_lep1 + vecDMMom;
-    vecSumDMLep2 = b_lep2 + vecDMMom;
-    
-    fMDMLep1 = vecSumDMLep1.M();
-    fMDMLep2 = vecSumDMLep2.M();
-    
-    fDeltaEta = b_lep1.Eta() - vecDMMom.Eta();
-    fDeltaPhi = b_lep1.Phi() - vecDMMom.Phi();
-    fSqrtdRMLep1 = fDeltaEta * fDeltaEta + fDeltaPhi * fDeltaPhi;
-    
-    fDeltaEta = b_lep2.Eta() - vecDMMom.Eta();
-    fDeltaPhi = b_lep2.Phi() - vecDMMom.Phi();
-    fSqrtdRMLep2 = fDeltaEta * fDeltaEta + fDeltaPhi * fDeltaPhi;
-    
-    b_Jpsi_lepSV_lowM.push_back(( fMDMLep1 >= fMDMLep2 ? fMDMLep1 : fMDMLep2 ));
-    b_Jpsi_lepSV_dRM.push_back(( fSqrtdRMLep1 >= fSqrtdRMLep2 ? fMDMLep1 : fMDMLep2 ));
-  }
-// ############## Dstar end ########################
   return true;
 }
 const reco::Candidate* TtbarDiLeptonAnalyzer::getLast(const reco::Candidate* p) const
@@ -1007,14 +1000,13 @@ cat::ElectronCollection TtbarDiLeptonAnalyzer::selectElecs(const cat::ElectronCo
   for (auto& e : elecs) {
     cat::Electron el(e);
     if (std::abs(el.eta()) > 2.4) continue;
-    //if ( !el.isTight() ) continue;
+    if ( !el.isTight() ) continue;
     if ((std::abs(el.scEta()) > 1.4442) && (std::abs(el.scEta()) < 1.566)) continue;
     //if ( !el.electronID("cutBasedElectronID-Summer16-80X-V1-medium") ) continue;
     if ( !el.electronID("cutBasedElectronID-Summer16-80X-V1-tight") ) continue;
     //cout << el.bestTrack()->d0() << endl;
     //if (std::abs(el.bestTrack()->d0()) > 0.0739 ) continue;
-    //if (std::abs(el.bestTrack()->dz(vertices.product()->position()) > 0.0678 )) continue;
-    if (std::abs(el.dz() > 0.602)) continue;
+    //if (std::abs(el.bestTrack()->dz()) > 0.602 ) continue;
     
     if (sys == syst_el_u) el.setP4(e.p4() * e.shiftedEnUp());
     if (sys == syst_el_d) el.setP4(e.p4() * e.shiftedEnDown());
@@ -1071,7 +1063,8 @@ cat::JetCollection TtbarDiLeptonAnalyzer::selectBJets(const JetCollection& jets)
 {
   cat::JetCollection selBjets;
   for (auto& jet : jets) {
-    if (jet.bDiscriminator(BTAG_CSVv2) < WP_BTAG_CSVv2L) continue;
+    //if (jet.bDiscriminator(BTAG_CSVv2) < WP_BTAG_CSVv2L) continue;
+    if (jet.bDiscriminator(BTAG_CSVv2) < WP_BTAG_CSVv2M) continue;
     //if (jet.bDiscriminator(BTAG_CSVv2) < WP_BTAG_CSVv2M) continue;//forsync
     //printf("b jet with pt %4.1f\n", jet.pt());
     selBjets.push_back(jet);
