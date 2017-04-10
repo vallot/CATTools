@@ -653,7 +653,7 @@ bool h2muAnalyzer::bumpCat1(const cat::JetCollection& jets,const cat::MuonCollec
   for(auto& j:jets){
     cat::Jet jet(j);
     if (jet.bDiscriminator(BTAG_CSVv2) > WP_BTAG_CSVv2M) {
-      //cout<<(*a)[0]<<", "<<(*a)[1]<<", "<<(*a)[2]<<", "<<WP_BTAG_CSVv2T<<endl;
+      //cout<<(*a)[0]<<", "<<(*a)[1]<<", "<<(*a)[2]<<", "<<WP_BTAG_CSVv2M<<endl;
       if ( jet.pt() > 30. && jet.eta() < 2.4 ) btagpass++;
     }
     else {
