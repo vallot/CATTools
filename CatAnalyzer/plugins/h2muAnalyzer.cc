@@ -345,8 +345,12 @@ bool h2muAnalyzer::eventSelection(const edm::Event& iEvent, systematic sys)
     b_step = 6;
     if (sys == syst_nom) cutflow_[b_step][b_channel]++;
   }
-  
   b_njet = selectedJets.size();
+/*  if (b_njet >= 2){
+    b_jet1 = selectedJets[0].tlv();
+    b_jet2 = selectedJets[1].tlv();
+  } */
+  b_njet = selectedJets.size(); 
   if (b_njet > 0)
     b_jet1 = selectedJets[0].tlv();
   if (b_njet > 1){
@@ -374,7 +378,7 @@ cat::MuonCollection h2muAnalyzer::selectMuons(const cat::MuonCollection& muons, 
   for (auto& m : muons) {
     cat::Muon mu(m);
     if (std::abs(mu.eta()) > 2.4) continue;
-    if (!mu.isLooseMuon()) continue;
+    if (!mu.isMediumMuon()) continue;
     
     // TLorentzVector tmu(mu.tlv());
     // /*
@@ -439,7 +443,7 @@ cat::ElectronCollection h2muAnalyzer::selectElecs(const cat::ElectronCollection&
     if (sys == syst_el_d) el.setP4(e.p4() * e.shiftedEnDown());
 
     if (el.pt() < 20.) continue;
-    if (el.relIso(0.3) > 0.12) continue;
+    if (el.relIso(0.3) > 0.15) continue;
     //printf("electron with pt %4.1f\n", el.pt());
     selelecs.push_back(el);
   }
@@ -462,7 +466,7 @@ cat::JetCollection h2muAnalyzer::selectJets(const cat::JetCollection& jets, cat:
 
     bool hasOverLap = false;
     for (auto lep : recolep){
-      if (deltaR(jet.p4(),lep.p4()) < 0.3) hasOverLap = true;
+      if (deltaR(jet.p4(),lep.p4()) < 0.4) hasOverLap = true;
     }
     if (hasOverLap) continue;
     seljets.push_back(jet);
@@ -566,11 +570,11 @@ void h2muAnalyzer::resetBranch()
 int h2muAnalyzer::preSelect(const cat::JetCollection& seljets, float met) const
 {
   int njet = seljets.size();
-  if (njet == 2){
+  if (njet >= 2){
     if (seljets[0].pt()>40 && seljets[1].pt()>30 && met<40){
-      return 1; // pass preselection
-    }
-  }
+        return 1; // pass preselection
+    }   
+  }  
   return 0;// fail preselection
 }
 
@@ -579,7 +583,7 @@ int h2muAnalyzer::jetCategory(const cat::JetCollection& seljets, float met, floa
   int presel = preSelect(seljets, met);
   
   if (presel == 0){// fail preselection
-    if (ll_pt >= 10) return 4; // 0,1-jet Tight
+    if (ll_pt >= 25) return 4; // 0,1-jet Tight
     else             return 5; // 0,1-jet Loose
   }
   
@@ -648,7 +652,7 @@ bool h2muAnalyzer::bumpCat1(const cat::JetCollection& jets,const cat::MuonCollec
   int btagpass=0;
   for(auto& j:jets){
     cat::Jet jet(j);
-    if (jet.bDiscriminator(BTAG_CSVv2) > WP_BTAG_CSVv2T) {
+    if (jet.bDiscriminator(BTAG_CSVv2) > WP_BTAG_CSVv2M) {
       //cout<<(*a)[0]<<", "<<(*a)[1]<<", "<<(*a)[2]<<", "<<WP_BTAG_CSVv2T<<endl;
       if ( jet.pt() > 30. && jet.eta() < 2.4 ) btagpass++;
     }
@@ -682,11 +686,11 @@ bool h2muAnalyzer::bumpCat2(const cat::JetCollection& jets,const cat::MuonCollec
     if ( jet.pt() > 30. && jet.eta() > 2.4 && jet.eta() < 4.7 ) continue;
     if ( jet.pt() < 30. || jet.eta() > 2.4 ) continue;
     cond+=1;
-    if ( jet.bDiscriminator(BTAG_CSVv2) > WP_BTAG_CSVv2T ){
+    if ( jet.bDiscriminator(BTAG_CSVv2) > WP_BTAG_CSVv2M ){
       btag+=1;
       dijet+=jet.tlv();
     }
-    else if ( jet.bDiscriminator(BTAG_CSVv2) < WP_BTAG_CSVv2T ){
+    else if ( jet.bDiscriminator(BTAG_CSVv2) < WP_BTAG_CSVv2M ){
       dijet+=jet.tlv();
     }
   }
