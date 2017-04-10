@@ -345,11 +345,6 @@ bool h2muAnalyzer::eventSelection(const edm::Event& iEvent, systematic sys)
     b_step = 6;
     if (sys == syst_nom) cutflow_[b_step][b_channel]++;
   }
-  b_njet = selectedJets.size();
-/*  if (b_njet >= 2){
-    b_jet1 = selectedJets[0].tlv();
-    b_jet2 = selectedJets[1].tlv();
-  } */
   b_njet = selectedJets.size(); 
   if (b_njet > 0)
     b_jet1 = selectedJets[0].tlv();
