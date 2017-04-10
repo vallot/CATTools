@@ -8,7 +8,8 @@ process.options.allowUnscheduled = cms.untracked.bool(True)
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 from CATTools.Validation.commonTestInput_cff import commonTestCATTuples
-process.source.fileNames = commonTestCATTuples["sig"]
+#process.source.fileNames = commonTestCATTuples["sig"]
+process.source.fileNames = ["file:/cms/scratch/quark2930/Work/production/catTuple_TT_powheg.root"]
 
 process.load("CATTools.CatAnalyzer.ttll.ttbarDileptonKinSolutionAlgos_cff")
 process.load("CATTools.CatAnalyzer.filters_cff")
@@ -59,6 +60,12 @@ process.cattree = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     partonTop_genParticles = cms.InputTag("partonTop"),
 
     pseudoTop = cms.InputTag("pseudoTop"),
+
+    # input collection
+    d0s    = cms.InputTag("catDstars","D0Cand"),
+    dstars = cms.InputTag("catDstars","DstarCand"),
+    Jpsis  = cms.InputTag("catDstars","JpsiCand"),
+    matchingDeltaR = cms.double(0.15),
 
     #solver = process.ttbarDileptonKinAlgoPSetCMSKin,
     solver = process.ttbarDileptonKinAlgoPSetDESYSmeared,
