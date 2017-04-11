@@ -647,36 +647,42 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   event.put(out_jets, "jets");
 
   // Apply filter at the given step.
-  if ( cutstep >= applyFilterAt_ ) {
-    if ( eventListFile_.is_open() ) {
-      double jet1_pt = -1, jet1_eta = -999, jet1_phi = -999;
-      if ( jets_n >= 1 ) {
-        const auto& jet = out_jets->at(0);
-        jet1_pt  = jet.pt();
-        jet1_eta = jet.eta();
-        jet1_phi = jet.phi();
-      }
+  // "cutstep" variable is set to the failed cut step when exiting the previous loop.
+  // therefore, the expression below requires event to pass the given cut step number.
+  // example: 1) if applyFilterAt_=0 then cutsteps[0] is always true, cutstep is always greater than 0
+  //             -> never return false, always accept events
+  //          2) if applyFilterAt_=7 and cutsteps[7]=false -> cutstep loop breaks when cutstep=7
+  //             -> returns false because the cutstep and applyFilterAt_ are same
+  //          3) if applyFilterAt_=very large number then cutstep cannot exceed the given requirement, filtering everything
+  if ( cutstep <= applyFilterAt_ ) return false;
 
-      const int run = event.id().run();
-      const int lum = event.id().luminosityBlock();
-      const int evt = event.id().event();
-      char buffer[101];
-      snprintf(buffer, 100, "%6d %6d %10d", run, lum, evt);
-      eventListFile_ << buffer;
-      snprintf(buffer, 100, "  %+2d  %6.2f %+4.2f %+4.2f", lepton1_id, lepton1_pt, lepton1_eta, lepton1_phi);
-      eventListFile_ << buffer;
-      snprintf(buffer, 100, "    %6.1f  %+4.2f", met_pt, met_phi);
-      eventListFile_ << buffer;
-      snprintf(buffer, 100, "    %d %d", jets_n, bjets_n);
-      eventListFile_ << buffer;
-      snprintf(buffer, 100, "  %6.2f %+4.2f %+4.2f  \n", jet1_pt, jet1_eta, jet1_phi);
-      eventListFile_ << buffer;
+  // Dump this event information if requested
+  if ( eventListFile_.is_open() ) {
+    double jet1_pt = -1, jet1_eta = -999, jet1_phi = -999;
+    if ( jets_n >= 1 ) {
+      const auto& jet = out_jets->at(0);
+      jet1_pt  = jet.pt();
+      jet1_eta = jet.eta();
+      jet1_phi = jet.phi();
     }
 
-    return true;
+    const int run = event.id().run();
+    const int lum = event.id().luminosityBlock();
+    const int evt = event.id().event();
+    char buffer[101];
+    snprintf(buffer, 100, "%6d %6d %10d", run, lum, evt);
+    eventListFile_ << buffer;
+    snprintf(buffer, 100, "  %+2d  %6.2f %+4.2f %+4.2f", lepton1_id, lepton1_pt, lepton1_eta, lepton1_phi);
+    eventListFile_ << buffer;
+    snprintf(buffer, 100, "    %6.1f  %+4.2f", met_pt, met_phi);
+    eventListFile_ << buffer;
+    snprintf(buffer, 100, "    %d %d", jets_n, bjets_n);
+    eventListFile_ << buffer;
+    snprintf(buffer, 100, "  %6.2f %+4.2f %+4.2f  \n", jet1_pt, jet1_eta, jet1_phi);
+    eventListFile_ << buffer;
   }
 
-  return false;
+  return true;
 }
 
 TopFCNCEventSelector::~TopFCNCEventSelector()
