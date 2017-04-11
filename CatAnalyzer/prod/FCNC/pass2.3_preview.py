@@ -14,8 +14,9 @@ setTDRStyle()
 gStyle.SetOptTitle(0)
 gStyle.SetOptStat(0)
 
-#variation = "nominal"
-variation = "antiIso"
+variation = "nominal"
+#variation = "antiIso"
+lumi = 36.8*1000
 
 srcMCs = [
     ["t_bar_t__Jets_rightarrow_l___pm_", 632],
@@ -72,7 +73,6 @@ for iplt, pltInfo in enumerate(plts):
 
     dataName = variation+'/'+os.path.basename(fRD[mode].GetName())[:-5]
     #lumi = 1000*sum(x['lumi'] for x in dataset[dataName]['subsamples'])
-    lumi = 36.8*1000
 
     hRD = fRD[mode].Get(plt).Clone()
     nbinsX = hRD.GetNbinsX()
