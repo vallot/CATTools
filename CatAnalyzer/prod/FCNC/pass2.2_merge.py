@@ -14,7 +14,7 @@ def rootmkdirs(f, path):
         else: d = d.mkdir(t)
     return d
 
-def mergeHist(dout, din, normFactor, allHists):
+def mergeHist(dout, din, scale, allHists):
     if din == None or dout == None: return allHists
 
     dNames, hNames = [], []
@@ -28,47 +28,39 @@ def mergeHist(dout, din, normFactor, allHists):
     for dName in dNames:
         dNext = dout.GetDirectory(dName)
         if dNext == None: dNext = dout.mkdir(dName)
-        mergeHist(dNext, din.GetDirectory(dName), normFactor, allHists)
+        mergeHist(dNext, din.GetDirectory(dName), scale, allHists)
 
     for hName in hNames:
         hPath = dout.GetPath()+"/"+hName
         if hPath not in allHists:
             dout.cd()
             h = din.Get(hName).Clone()
-            h.Scale(1./normFactor)
+            h.Reset()
             allHists[hPath] = h
-        else:
-            h = allHists[hPath]
-            h.Add(din.Get(hName), 1./normFactor)
 
-ds = json.loads(open("pass2/dataset.json").read())
-hs = json.loads(open("pass2/hists.json").read())
+        h = allHists[hPath]
+        h.Add(din.Get(hName), scale)
+
+ds = json.loads(open("pass3/dataset.json").read())
+hs = json.loads(open("pass3/hists.json").read())
 
 for d in ds:
     print "Processing dataset", d
     foutName = ds[d]['hist']
     outPath = os.path.dirname(foutName)
-    if not os.path.isdir(outPath): os.mkdir(outPath)
+
+    if not os.path.isdir(outPath): os.makedirs(outPath)
 
     sses = []
     for ss in ds[d]['subsamples']:
-        fName = ss['hist']
-        scale = 1
-        if ss['type'] != 'Data':
-            xsec = ss['xsec']
-            f = TFile(fName)
-            hh = f.Get("agen/hWeight")
-            if hh == None: hh = f.Get("gen/hWeight")
-            normFactor = hh.GetMean()*hh.GetEntries()
-            if normFactor == 0: scale = 0
-            else: scale = xsec/normFactor
-        sses.append( (TFile(fName), scale) )
+        scale = ss['scale']
+        sses.append( ([TFile(fName) for fName in ss['files']], scale) )
 
     fout = TFile(foutName, "RECREATE")
     for hName in hs:
         hName = str(hName)
         ## Check the histogram exists in the source root file
-        if sses[0][0].Get(hName) == None: continue
+        if sses[0][0][0].Get(hName) == None: continue
 
         ## Prepare output directory
         p = '/'.join(hName.split('/')[:-1])
@@ -76,19 +68,21 @@ for d in ds:
         dout.cd()
 
         ## Prepare output histogram
-        h = sses[0][0].Get(hName).Clone()
+        h = sses[0][0][0].Get(hName).Clone()
         h.SetDirectory(dout)
         h.Reset()
         #h.Sumw2()
         ## Merge histograms
-        for ss in sses:
-            hin = ss[0].Get(hName)
-            if not hin.IsA().InheritsFrom("TH1"): continue
-            h.Add(hin, ss[1])
-            hin.Delete()
+        for files, scale in sses:
+            for fin in files:
+                hin = fin.Get(hName)
+                if not hin.IsA().InheritsFrom("TH1"): continue
+                h.Add(hin, scale)
+                hin.Delete()
         dout.cd()
         h.Write()
 
-    for ss in sses: ss[0].Close()
+    for ss in sses:
+        for f in ss[0]: f.Close()
     sses = None
     fout.Close()

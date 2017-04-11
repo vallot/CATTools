@@ -56,15 +56,16 @@ for fsIndex, fset in fsets.iterrows():
 
     avgWgt = 1
     if fset['nevt'] != 0: avgWgt = fset['sumW']/fset['nevt']
+    if "." in fset['name']: title += ":"+" ".join(fset['name'].split('.')[1:])
 
-    dsOut[fset['name']] = {
+    newName = '%s/%s' % (fset['syst'], fset['name'])
+    dsOut[newName] = {
         'dsName':fset['dsName'],
-        'syst':fset['syst'],
         'files':fset['files'],
         'nevt':fset['nevt'], 'sumW':fset['sumW'], 'avgWgt':avgWgt,
         'orig_nevt':orig_nevt, 'orig_avgWgt':orig_avgWgt,
         'title':title, 'colour':colour, 'type':dtype,
-        'lumi':lumi, 'xsec':xsec, 'normFactor':1./sumW,
+        'lumi':lumi, 'xsec':xsec,
     }
 
 open("pass2/dataset.json", "w").write(json.dumps(dsOut, sort_keys=True, indent=4))

@@ -24,24 +24,25 @@ dsIn = json.loads(open("pass2/dataset.json").read())
 hists = set()
 for name in dsIn:
     x = dsIn[name]
-    title = x["title"]
+    syst = os.path.dirname(name)
+    title = "%s/%s" % (syst, x["title"])
     stype = x["type"]
-    safeTitle = title
+    safeTitle = x["title"]
     for i in " ;:!@#$%^&*()-+=/<>?[]{}|": safeTitle = safeTitle.replace(i,'_')
     if title not in ds:
         ds[title] = {
             'colour':x['colour'],
-            'hist':'pass3/%s.root' % safeTitle, ## Path to the merged histogram
+            'hist':'pass3/%s/%s.root' % (syst, safeTitle), ## Path to the merged histogram
             'subsamples':[], ## List of input samples
         }
-    normFactor = 1
-    if stype != 'Data': normFactor = x['normFactor']
-    if normFactor == 0: normFactor = 1
+    scale = 1
+    if stype != 'Data' and x['sumW'] != 0: scale = x['xsec']/x['sumW']
+    if scale == 0: scale = 1
 
     ds[title]['subsamples'].append({
         'type':stype,
         'avgWgt':x['avgWgt'], 'nevt':x['nevt'],
-        'xsec':x['xsec'], 'lumi':x['lumi'], 'normFactor':normFactor,
+        'xsec':x['xsec'], 'lumi':x['lumi'], 'sumW':x['sumW'], 'scale':scale,
         'files':x['files'],
     })
 

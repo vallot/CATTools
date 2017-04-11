@@ -7,12 +7,15 @@ sys.argv.append("-b")
 from math import hypot
 from ROOT import *
 import imp
-printCutflow = imp.load_source("printCutflow", "../submacros/printCutflow.py").printCutflow
+printCutflow = imp.load_source("printCutflow", "../../../Validation/prod/submacros/printCutflow.py").printCutflow
 #st = imp.load_source("st", "submacros/tdrstyle.py")
-gROOT.LoadMacro("../submacros/tdrstyle.C")
+gROOT.LoadMacro("../../../Validation/prod/submacros/tdrstyle.C")
 setTDRStyle()
 gStyle.SetOptTitle(0)
 gStyle.SetOptStat(0)
+
+#variation = "nominal"
+variation = "antiIso"
 
 srcMCs = [
     ["t_bar_t__Jets_rightarrow_l___pm_", 632],
@@ -20,22 +23,22 @@ srcMCs = [
     ["SingleTop", 800,],
     ["Dibosons", 432,],
     ["Tribosons", 433],
-    ["W_Jets_MG", 416],
     ["Z__gamma_rightarrow_ll", 600],
+    ["W_Jets", 416],
 ]
-for s in srcMCs: s.append(TFile("pass2/nominal/%s.root" % s[0]))
+for s in srcMCs: s.append(TFile("pass3/%s/%s.root" % (variation, s[0])))
 
 fRD = {
-    'el':TFile("pass2/nominal/SingleElectron.root"),
-    'mu':TFile("pass2/nominal/SingleMuon.root"),
+    'el':TFile("pass3/%s/SingleElectron.root" % variation),
+    'mu':TFile("pass3/%s/SingleMuon.root" % variation),
 }
 
 ## Data driven corrections
-dataset = json.loads(open("pass2/dataset.json").read())
+dataset = json.loads(open("pass3/dataset.json").read())
 
 ## Pick the first root file to get full list of plots
 plts = []
-f = TFile("pass2/nominal/%s.root" % srcMCs[0][0])
+f = TFile("pass3/%s/%s.root" % (variation, srcMCs[0][0]))
 for ch in ("el", "mu"):
     moddir = f.Get(ch)
     chdir = moddir.GetDirectory(ch)
@@ -53,7 +56,7 @@ for ch in ("el", "mu"):
                 plts.append({'name':"%s/%s/%s/%s" % (ch, ch, step, plt)})
 
 ## Start loop
-fout = TFile("pass2/preview.root", "recreate")
+fout = TFile("pass3/preview.root", "recreate")
 for iplt, pltInfo in enumerate(plts):
     plt = pltInfo['name']
     print "Plotting", plt
@@ -67,8 +70,9 @@ for iplt, pltInfo in enumerate(plts):
     if mode not in fRD: continue
     if fRD[mode].Get(plt) == None: continue
 
-    dataName = os.path.basename(fRD[mode].GetName())[:-5]
-    lumi = 1000*sum(x['lumi'] for x in dataset[dataName]['subsamples'])
+    dataName = variation+'/'+os.path.basename(fRD[mode].GetName())[:-5]
+    #lumi = 1000*sum(x['lumi'] for x in dataset[dataName]['subsamples'])
+    lumi = 36.8*1000
 
     hRD = fRD[mode].Get(plt).Clone()
     nbinsX = hRD.GetNbinsX()
@@ -165,9 +169,10 @@ for iplt, pltInfo in enumerate(plts):
     pad1.SetPad(0, 1.0*padH[1]/canH, 1, 1)
     pad1.SetMargin(1.*margin[0]/canW, 1.*margin[1]/canW, 0.05, 1.*margin[3]/padH[0])
 
-    pad1.SetLogy()
-    hRD.SetMaximum(hRD.GetMaximum()*100)
-    hRD.SetMinimum(1e-3)
+    #pad1.SetLogy()
+    #hRD.SetMaximum(hRD.GetMaximum()*100)
+    hRD.SetMaximum(hRD.GetMaximum()*1.2)
+    hRD.SetMinimum(0)
     hRD.Draw("")
     hsMC.Draw("samehist")
     hRD.Draw("same,e")
@@ -187,7 +192,7 @@ for iplt, pltInfo in enumerate(plts):
     if not os.path.exists("preview/%s" % dirName):
         os.makedirs("preview/%s" % dirName)
     c.Print("preview/%s/%s.png" % (dirName, c.GetName()))
-    if grpRatio.GetN() > 0: c.Print("preview/%s/%s.C" % (dirName, c.GetName()))
+    #if grpRatio.GetN() > 0: c.Print("preview/%s/%s.C" % (dirName, c.GetName()))
 
     for h in (hRD, hMC, hsMC, hRatio, grpRatio, c): del(h)
 
@@ -215,16 +220,16 @@ cutflow["nstep"] = nstep
 printCutflow(cutflow)
 
 ## Save cut flow
-f = open("pass2/cutflow.json", "w")
+f = open("pass3/cutflow.json", "w")
 f.write(json.dumps(cutflow, indent=4, sort_keys=True))
 f.close()
 
 ## Save plot list
-f = open("pass2/plots.json", "w")
+f = open("pass3/plots.json", "w")
 f.write(json.dumps({'plots':plts}, indent=4, sort_keys=True))
 f.close()
 
-print "A preview root file for the nominal sample is produced"
-print "Run `root -l pass2/preview.root' and browse into each directories to open canvases"
-print "You can also use dumpRoot command from the hep-tools, dumpRoot pass2/preview.root"
-print "Cutflow table is saved in JSON format, pass2/cutflow.json"
+print "A preview root file for the %s sample is produced" % variation
+print "Run `root -l pass3/preview.root' and browse into each directories to open canvases"
+print "You can also use dumpRoot command from the hep-tools, dumpRoot pass3/preview.root"
+print "Cutflow table is saved in JSON format, pass3/cutflow.json"
