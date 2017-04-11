@@ -13,49 +13,61 @@
 
 namespace cat {
 
-TLorentzVector ToTLorentzVector(const math::XYZTLorentzVector& t);
-TLorentzVector ToTLorentzVector(const reco::Candidate& t);
+  TLorentzVector ToTLorentzVector(const math::XYZTLorentzVector& t);
+  TLorentzVector ToTLorentzVector(const reco::Candidate& t);
 
-typedef GreaterByPt<reco::Candidate> GtByCandPt;
-bool GtByTLVPt( TLorentzVector & t1, TLorentzVector & t2 );
+  enum systematic{
+    syst_nom,
+    syst_jes_u, syst_jes_d, syst_jer_u, syst_jer_d,
+    syst_mu_u, syst_mu_d, syst_el_u, syst_el_d,
+    syst_total};
+  
+  const std::string systematicName[syst_total] = {
+    "nom",
+    "jes_u", "jes_d", "jer_u", "jer_d",
+    "mu_u", "mu_d", "el_u", "el_d",
+  };  
+  
+  typedef GreaterByPt<reco::Candidate> GtByCandPt;
+  bool GtByTLVPt( TLorentzVector & t1, TLorentzVector & t2 );
 
-class AnalysisHelper {
- public:
-  AnalysisHelper(){triggerInfoSet_ = false;}
-  AnalysisHelper(const edm::TriggerNames& triggerNames, edm::Handle<edm::TriggerResults> triggerResults, edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects){triggerNames_ = triggerNames; triggerResults_ = triggerResults; triggerObjects_ = triggerObjects; triggerInfoSet_ = true;}
-  ~AnalysisHelper(){}
+  class AnalysisHelper {
+  public:
+    AnalysisHelper(){triggerInfoSet_ = false;}
+    AnalysisHelper(const edm::TriggerNames& triggerNames, edm::Handle<edm::TriggerResults> triggerResults, edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects){triggerNames_ = triggerNames; triggerResults_ = triggerResults; triggerObjects_ = triggerObjects; triggerInfoSet_ = true;}
+    ~AnalysisHelper(){}
 
-  bool triggerNotSet();
-  bool triggerFired(const std::string& trigname);
-  bool triggerMatched(const std::string& trigname, const cat::Particle & recoObj, const float dR = 0.1);
-  void listFiredTriggers();
+    bool triggerNotSet();
+    bool triggerFired(const std::string& trigname);
+    bool triggerMatched(const std::string& trigname, const cat::Particle & recoObj, const float dR = 0.1);
+    void listFiredTriggers();
+  
+  private:
 
- private:
+    edm::TriggerNames triggerNames_;
+    edm::Handle<edm::TriggerResults> triggerResults_;
+    edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects_;
+    bool triggerInfoSet_;
+  };
 
-  edm::TriggerNames triggerNames_;
-  edm::Handle<edm::TriggerResults> triggerResults_;
-  edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects_;
-  bool triggerInfoSet_;
-};
+  math::XYZTLorentzVector getLVFromPtPhi(const double pt, const double phi);
 
-math::XYZTLorentzVector getLVFromPtPhi(const double pt, const double phi);
+  template<typename T1, typename T2>
+    math::XYZTLorentzVector computeMETVariation(const math::XYZTLorentzVector& metP4, T1 corrBegin, T1 corrEnd, T2 rawBegin, T2 rawEnd)
+  {
+    // Calculate effect of energy correction
+    // correctedPx - rawPx, correctedPy - rawPy of visible particle are calculated
+    double dpx = 0, dpy = 0;
+    for ( auto x = corrBegin; x != corrEnd; ++x ) { dpx += x->px(); dpy += x->py(); }
+    for ( auto x = rawBegin; x != rawEnd; ++x ) { dpx -= x->px(); dpy -= x->py(); }
 
-template<typename T1, typename T2>
-math::XYZTLorentzVector computeMETVariation(const math::XYZTLorentzVector& metP4, T1 corrBegin, T1 corrEnd, T2 rawBegin, T2 rawEnd)
-{
-  // Calculate effect of energy correction
-  // correctedPx - rawPx, correctedPy - rawPy of visible particle are calculated
-  double dpx = 0, dpy = 0;
-  for ( auto x = corrBegin; x != corrEnd; ++x ) { dpx += x->px(); dpy += x->py(); }
-  for ( auto x = rawBegin; x != rawEnd; ++x ) { dpx -= x->px(); dpy -= x->py(); }
+    // MET is shifted by -(dpx, dpy)
+    const double px = metP4.px() - dpx;
+    const double py = metP4.py() - dpy;
+    const double energy = std::hypot(px, py);
 
-  // MET is shifted by -(dpx, dpy)
-  const double px = metP4.px() - dpx;
-  const double py = metP4.py() - dpy;
-  const double energy = std::hypot(px, py);
-
-  return math::XYZTLorentzVector(px, py, 0, energy);
-};
+    return math::XYZTLorentzVector(px, py, 0, energy);
+  };
 
 }
 
