@@ -18,7 +18,7 @@ variation = "nominal"
 #variation = "antiIso"
 lumi = 36.8*1000
 
-srcMCs = [
+bkgMCs = [
     ["t_bar_t__Jets_rightarrow_l___pm_", 632],
     ["t_bar_t__Jets_Others", 632+3],
     ["SingleTop", 800,],
@@ -27,7 +27,15 @@ srcMCs = [
     ["Z__gamma_rightarrow_ll", 600],
     ["W_Jets", 416],
 ]
-for s in srcMCs: s.append(TFile("pass3/%s/%s.root" % (variation, s[0])))
+sigMCs = [
+    ["tH_rightarrow_t_bar_t_c", kBlue],
+    ["tH_rightarrow_t_bar_t_u", kBlue],
+]
+for s in bkgMCs+sigMCs:
+    if os.path.exists("pass3/%s/%s.root" % (variation, s[0])):
+        s.append(TFile("pass3/%s/%s.root" % (variation, s[0])))
+    else:
+        s.append(TFile("pass3/%s/%s.root" % ("nominal", s[0])))
 
 fRD = {
     'el':TFile("pass3/%s/SingleElectron.root" % variation),
@@ -39,7 +47,7 @@ dataset = json.loads(open("pass3/dataset.json").read())
 
 ## Pick the first root file to get full list of plots
 plts = []
-f = TFile("pass3/%s/%s.root" % (variation, srcMCs[0][0]))
+f = TFile("pass3/%s/%s.root" % (variation, bkgMCs[0][0]))
 for ch in ("el", "mu"):
     moddir = f.Get(ch)
     chdir = moddir.GetDirectory(ch)
@@ -91,7 +99,7 @@ for iplt, pltInfo in enumerate(plts):
     hsMC = THStack("hsMC", "")
     hMC = hRD.Clone()
     hMC.Reset()
-    for finName, color, f in srcMCs:
+    for finName, color, f in bkgMCs:
         h = f.Get(plt)
         h.Scale(lumi)
         hMC.Add(h)
@@ -103,6 +111,17 @@ for iplt, pltInfo in enumerate(plts):
         h.SetLineColor(color)
         #h.SetLineStyle(0)
         hsMC.Add(h)
+    hsSig = THStack("hsSig", "")
+    for finName, color, f in sigMCs:
+        h = f.Get(plt)
+        h.Scale(lumi)
+        h.GetStats(stats)
+        h.AddBinContent(nbinsX, h.GetBinContent(nbinsX+1))
+        h.PutStats(stats)
+        h.SetOption("hist")
+        h.SetLineColor(color)
+        h.SetLineStyle(1)
+        hsSig.Add(h)
     hRatio = hRD.Clone()
     hRatio.Reset()
     hRatio.SetTitle(";%s;Data/MC" % hRD.GetXaxis().GetTitle())
@@ -174,8 +193,9 @@ for iplt, pltInfo in enumerate(plts):
     hRD.SetMaximum(hRD.GetMaximum()*1.2)
     hRD.SetMinimum(0)
     hRD.Draw("")
-    hsMC.Draw("samehist")
+    hsMC.Draw("same,hist")
     hRD.Draw("same,e")
+    hsSig.Draw("same,hist,nostack")
     pad1.RedrawAxis()
 
     fout.cd(dirName)
@@ -212,7 +232,12 @@ for mode in cutflow["count"].keys():
     if cutflow["step"] == None:
         cutflow["step"] = [h.GetXaxis().GetBinLabel(i) for i in range(1, nstep+1)]
 
-    for finName, color, f in srcMCs:
+    for finName, color, f in bkgMCs:
+        h = f.Get("%s/%s/cutstep" % (mode, mode))
+        cutflow["count"][mode][finName] = [h.GetBinContent(i) for i in range(1, nstep+1)]
+        cutflow["error"][mode][finName] = [h.GetBinError(i) for i in range(1, nstep+1)]
+
+    for finName, color, f in sigMCs:
         h = f.Get("%s/%s/cutstep" % (mode, mode))
         cutflow["count"][mode][finName] = [h.GetBinContent(i) for i in range(1, nstep+1)]
         cutflow["error"][mode][finName] = [h.GetBinError(i) for i in range(1, nstep+1)]
