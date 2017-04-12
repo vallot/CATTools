@@ -40,8 +40,8 @@ process.p = cms.Path(
 )
 
 process.eventsTTLJ.filters.filterRECO = "filterRECOMC"
-process.load("CATTools.CatAnalyzer.csvWeights_cfi")
-process.eventsTTLJ.extWeights.append(cms.InputTag("csvWeights"))
+#process.load("CATTools.CatAnalyzer.csvWeights_cfi")
+#process.eventsTTLJ.extWeights.append(cms.InputTag("csvWeights"))
 
 ## Customise with cmd arguments
 import sys

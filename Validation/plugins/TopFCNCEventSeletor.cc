@@ -12,6 +12,7 @@
 #include "CATTools/CommonTools/interface/TTbarModeDefs.h"
 #include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
 #include "CATTools/CatAnalyzer/interface/TopTriggerSF.h"
+#include "CATTools/CatAnalyzer/interface/BTagWeightEvaluator.h"
 
 #include "DataFormats/Candidate/interface/LeafCandidate.h"
 
@@ -44,9 +45,8 @@ struct ControlPlotsFCNC
 
   H1 h_vertex_n[nCutstep];
   H1 h_met_pt[nCutstep], h_met_phi[nCutstep];
-  H1 h_leptons_n[nCutstep];
-  H1 h_lepton1_pt[nCutstep], h_lepton1_eta[nCutstep], h_lepton1_phi[nCutstep], h_lepton1_q[nCutstep];
-  H1 h_jets_n[nCutstep], h_jets_pt[nCutstep], h_jets_eta[nCutstep], h_jets_ht[nCutstep];
+  H1 h_lepton1_pt[nCutstep], h_lepton1_eta[nCutstep], h_lepton1_phi[nCutstep], h_lepton1_q[nCutstep], h_lepton1_relIso[nCutstep];
+  H1 h_jets_n[nCutstep], h_jets_pt[nCutstep], h_jets_eta[nCutstep];
 
   H1 h_jet_m[nCutstep][6];
   H1 h_jet_pt[nCutstep][6];
@@ -55,7 +55,6 @@ struct ControlPlotsFCNC
   H1 h_jet_btag[nCutstep][6];
 
   H1 h_bjets_n[nCutstep];
-  H1 h_event_st[nCutstep];
 
   void book(TFileDirectory&& dir)
   {
@@ -84,15 +83,14 @@ struct ControlPlotsFCNC
       h_vertex_n[i] = subdir.make<TH1D>("vertex_n", "vertex_n;Number of primary vertices;Events", 100, 0, 100);
       h_met_pt[i] = subdir.make<TH1D>("met_pt", "met_pt;Missing transverse momentum (GeV);Events/1GeV", 1000, 0, 1000);
       h_met_phi[i] = subdir.make<TH1D>("met_phi", "met_phi;Missing transverse momentum #phi;Events", 100, -pi, pi);
-      h_leptons_n[i] = subdir.make<TH1D>("leptons_n", "leptons_n;Lepton multiplicity;Events", 10, 0, 10);
       h_lepton1_pt[i]  = subdir.make<TH1D>("lepton1_pt", "lepton1_pt;1st leading lepton p_{T} (GeV);Events/1GeV", 1000, 0, 1000);
       h_lepton1_eta[i] = subdir.make<TH1D>("lepton1_eta", "lepton1_eta;1st leading lepton #eta;Events", 100, -maxeta, maxeta);
       h_lepton1_phi[i] = subdir.make<TH1D>("lepton1_phi", "lepton1_phi;1st leading lepton #phi;Events", 100, -pi, pi);
       h_lepton1_q[i]   = subdir.make<TH1D>("lepton1_q", "lepton1_q;1st leading lepton charge;Events", 3, -1.5, 1.5);
+      h_lepton1_relIso[i]   = subdir.make<TH1D>("lepton1_relIso", "lepton1_relIso;1st leading lepton relative isolation;Events", 100, 0, 1);
       h_jets_n[i] = subdir.make<TH1D>("jets_n", "jets_n;Jet multiplicity;Events", 10, 0, 10);
       h_jets_pt[i]  = subdir.make<TH1D>("jets_pt", "jets_pt;Jets p_{T} (GeV);Events/1GeV", 1000, 0, 1000);
       h_jets_eta[i] = subdir.make<TH1D>("jets_eta", "jets_eta;Jets #eta;Events", 100, -maxeta, maxeta);
-      h_jets_ht[i] = subdir.make<TH1D>("jets_ht", "jets_ht;Jets #Sigma p_{T} (GeV);Events/1GeV", 1000, 0, 1000);
       h_bjets_n[i] = subdir.make<TH1D>("bjets_n", "bjets_n;b-jet multiplicity;Events", 10, 0, 10);
     }
 
@@ -101,17 +99,16 @@ struct ControlPlotsFCNC
       h_vertex_n[i] = subdir.make<TH1D>("vertex_n", "vertex_n;Number of primary vertices;Events", 100, 0, 100);
       h_met_pt[i] = subdir.make<TH1D>("met_pt", "met_pt;Missing transverse momentum (GeV);Events/1GeV", 1000, 0, 1000);
       h_met_phi[i] = subdir.make<TH1D>("met_phi", "met_phi;Missing transverse momentum #phi;Events", 100, -pi, pi);
-      h_leptons_n[i] = subdir.make<TH1D>("leptons_n", "leptons_n;Lepton multiplicity;Events", 10, 0, 10);
 
       h_lepton1_pt[i]  = subdir.make<TH1D>("lepton1_pt", "lepton1_pt;1st leading lepton p_{T} (GeV);Events/1GeV", 1000, 0, 1000);
       h_lepton1_eta[i] = subdir.make<TH1D>("lepton1_eta", "lepton1_eta;1st leading lepton #eta;Events", 100, -maxeta, maxeta);
       h_lepton1_phi[i] = subdir.make<TH1D>("lepton1_phi", "lepton1_phi;1st leading lepton #phi;Events", 100, -pi, pi);
       h_lepton1_q[i]   = subdir.make<TH1D>("lepton1_q", "lepton1_q;1st leading lepton charge;Events", 3, -1.5, 1.5);
+      h_lepton1_relIso[i]   = subdir.make<TH1D>("lepton1_relIso", "lepton1_relIso;1st leading lepton relative isolation;Events", 100, 0, 1);
 
       h_jets_n[i] = subdir.make<TH1D>("jets_n", "jets_n;Jet multiplicity;Events", 10, 0, 10);
       h_jets_pt[i]  = subdir.make<TH1D>("jets_pt", "jets_pt;Jets p_{T} (GeV);Events/1GeV", 1000, 0, 1000);
       h_jets_eta[i] = subdir.make<TH1D>("jets_eta", "jets_eta;Jets #eta;Events", 100, -maxeta, maxeta);
-      h_jets_ht[i] = subdir.make<TH1D>("jets_ht", "jets_ht;Jets #Sigma p_{T} (GeV);Events/1GeV", 1000, 0, 1000);
 
       for ( int j=0; j<6; ++j ) {
         const string prefix = Form("jet%d_", j+1);
@@ -129,7 +126,6 @@ struct ControlPlotsFCNC
 
       h_bjets_n[i] = subdir.make<TH1D>("bjets_n", "bjets_n;b-jet multiplicity;Events", 10, 0, 10);
 
-      h_event_st[i] = subdir.make<TH1D>("event_st", "event_st;#Sigma p_{T} *(GeV);Events/1GeV", 1000, 0, 1000);
     }
   };
 };
@@ -192,27 +188,24 @@ private:
     if ( std::abs(mu.eta()) > 2.1 ) return false;
     if ( std::isnan(mu.pt()) or mu.pt() < 27 ) return false;
 
-    if ( mu.relIso(0.4) > 0.15 ) return false;
     if ( !mu.isTightMuon() ) return false;
     return true;
   }
   bool isGoodElectron(const cat::Electron& el)
   {
-    if ( std::abs(el.eta()) > 2.1 ) return false;
-    if ( std::isnan(el.pt()) or el.pt() < 35 ) return false;
+    if ( std::abs(el.eta()) > 2.5 ) return false;
+    if ( std::isnan(el.pt()) or el.pt() < 30 ) return false;
 
-    if ( isMVAElectronSel_ and !el.isTrigMVAValid() ) return false;
-
-    //if ( el.relIso(0.3) >= 0.11 ) return false;
     if ( !el.electronID(elIdName_) ) return false;
-    //if ( !el.isPF() or !el.passConversionVeto() ) return false;
     const double scEta = std::abs(el.scEta());
     if ( isEcalCrackVeto_ and scEta > 1.4442 and scEta < 1.566 ) return false;
-    //const double d0 = std::abs(el.dxy()), dz = std::abs(el.vz());
-    //if      ( scEta <= 1.479 and (d0 > 0.05 or dz > 0.1) ) return false;
-    //else if ( scEta >  1.479 and (d0 > 0.10 or dz > 0.2) ) return false;
+    const double d0 = std::abs(el.dxy()), dz = std::abs(el.dz());
+    if      ( scEta <= 1.479 and (d0 > 0.05 or dz > 0.1) ) return false;
+    else if ( scEta >  1.479 and (d0 > 0.10 or dz > 0.2) ) return false;
     return true;
   }
+  bool isIsoLepton(const cat::Muon& mu) const { return mu.relIso(0.4) < 0.15; }
+  bool isIsoLepton(const cat::Electron& el) const { return el.electronID(elIsoIdName_); }
   bool isVetoMuon(const cat::Muon& mu)
   {
     if ( std::abs(mu.eta()) > 2.4 ) return false;
@@ -227,10 +220,10 @@ private:
     if ( std::abs(el.eta()) > 2.5 ) return false;
     if ( std::isnan(el.pt()) or el.pt() < 10 ) return false;
     if ( !el.electronID(elVetoIdName_) ) return false;
-    //const double scEta = std::abs(el.scEta());
-    //const double d0 = std::abs(el.dxy()), dz = std::abs(el.vz());
-    //if      ( scEta <= 1.479 and (d0 > 0.05 or dz > 0.1) ) return false;
-    //else if ( scEta >  1.479 and (d0 > 0.10 or dz > 0.2) ) return false;
+    const double scEta = std::abs(el.scEta());
+    const double d0 = std::abs(el.dxy()), dz = std::abs(el.dz());
+    if      ( scEta <= 1.479 and (d0 > 0.05 or dz > 0.1) ) return false;
+    else if ( scEta >  1.479 and (d0 > 0.10 or dz > 0.2) ) return false;
     return true;
   }
   bool isBjet(const cat::Jet& jet)
@@ -253,6 +246,7 @@ private:
   // Efficiency SF
   cat::ScaleFactorEvaluator muonSF_, electronSF_;
   double muonSFShift_, electronSFShift_;
+  cat::ScaleFactorEvaluator trigMuSF_, trigElSF_;
   double trigSFShift_;
 
   bool isMC_;
@@ -260,11 +254,15 @@ private:
   const int applyFilterAt_;
 
   // ID variables
-  bool isEcalCrackVeto_, isMVAElectronSel_;
+  bool isEcalCrackVeto_;
+  bool isMuonAntiIso_, isElectronAntiIso_;
   bool isSkipEleSmearing_; // Do not apply energy smearing, needed to remove randomness during the synchronization
   std::string bTagName_;
-  std::string elIdName_, elVetoIdName_;
+  std::string elIdName_, elIsoIdName_, elVetoIdName_;
   enum class BTagWP { CSVL, CSVM, CSVT } bTagWP_;
+
+  BTagWeightEvaluator bTagWeight_;
+  int bTagSFUnc_;
 
 private:
   ControlPlotsFCNC h_ch;
@@ -301,10 +299,12 @@ TopFCNCEventSelector::TopFCNCEventSelector(const edm::ParameterSet& pset):
                 muonSFSet.getParameter<vdouble>("errors"));
     muonSFShift_ = muonSet.getParameter<int>("efficiencySFDirection");
   }
+  isMuonAntiIso_ = muonSet.getParameter<bool>("applyAntiIso");
 
   const auto electronSet = pset.getParameter<edm::ParameterSet>("electron");
   electronToken_ = consumes<cat::ElectronCollection>(electronSet.getParameter<edm::InputTag>("src"));
   elIdName_ = electronSet.getParameter<string>("idName");
+  elIsoIdName_ = electronSet.getParameter<string>("isoIdName");
   elVetoIdName_ = electronSet.getParameter<string>("vetoIdName");
   electronScale_ = electronSet.getParameter<int>("scaleDirection");
   if ( isMC_ ) {
@@ -316,14 +316,10 @@ TopFCNCEventSelector::TopFCNCEventSelector(const edm::ParameterSet& pset):
                     electronSFSet.getParameter<vdouble>("errors"));
     electronSFShift_ = electronSet.getParameter<int>("efficiencySFDirection");
   }
-  isEcalCrackVeto_ = isMVAElectronSel_ = false;
+  isEcalCrackVeto_ = false;
   isSkipEleSmearing_ = electronSet.getParameter<bool>("skipSmearing");
-  if ( elIdName_.substr(0,3) == "mva" ) {
-    isMVAElectronSel_ = true;
-  }
-  else {
-    isEcalCrackVeto_ = electronSet.getParameter<bool>("applyEcalCrackVeto");
-  }
+  isElectronAntiIso_ = electronSet.getParameter<bool>("applyAntiIso");
+  isEcalCrackVeto_ = electronSet.getParameter<bool>("applyEcalCrackVeto");
 
   const auto jetSet = pset.getParameter<edm::ParameterSet>("jet");
   jetToken_ = consumes<cat::JetCollection>(jetSet.getParameter<edm::InputTag>("src"));
@@ -336,6 +332,9 @@ TopFCNCEventSelector::TopFCNCEventSelector(const edm::ParameterSet& pset):
   else if ( bTagWPStr == "CSVT" ) bTagWP_ = BTagWP::CSVT;
   else edm::LogError("TopFCNCEventSelector") << "Wrong bTagWP parameter " << bTagWPStr;
   isSkipJER_ = jetSet.getParameter<bool>("skipJER");
+
+  bTagWeight_.initCSVWeight(true, "csvv2");
+  bTagSFUnc_ = jetSet.getParameter<unsigned int>("bTagSFUncType");
 
   const auto metSet = pset.getParameter<edm::ParameterSet>("met");
   metToken_ = consumes<cat::METCollection>(metSet.getParameter<edm::InputTag>("src"));
@@ -351,6 +350,16 @@ TopFCNCEventSelector::TopFCNCEventSelector(const edm::ParameterSet& pset):
   trigElToken_ = consumes<int>(filterSet.getParameter<edm::InputTag>("trigEL"));
   trigMuToken_ = consumes<int>(filterSet.getParameter<edm::InputTag>("trigMU"));
   isIgnoreTrig_ = filterSet.getParameter<bool>("ignoreTrig");
+  const auto trigMuSFSet = filterSet.getParameter<edm::ParameterSet>("efficiencySFMU");
+  trigMuSF_.set(trigMuSFSet.getParameter<vdouble>("pt_bins"),
+                trigMuSFSet.getParameter<vdouble>("abseta_bins"),
+                trigMuSFSet.getParameter<vdouble>("values"),
+                trigMuSFSet.getParameter<vdouble>("errors"));
+  const auto trigElSFSet = filterSet.getParameter<edm::ParameterSet>("efficiencySFEL");
+  trigElSF_.set(trigElSFSet.getParameter<vdouble>("pt_bins"),
+                trigElSFSet.getParameter<vdouble>("eta_bins"),
+                trigElSFSet.getParameter<vdouble>("values"),
+                trigElSFSet.getParameter<vdouble>("errors"));
   trigSFShift_ = filterSet.getParameter<int>("efficiencySFDirection");
 
   if ( isMC_ ) {
@@ -374,11 +383,13 @@ TopFCNCEventSelector::TopFCNCEventSelector(const edm::ParameterSet& pset):
   const string channelStr = channel_ == 11 ? "el" : "mu";
   h_ch.book(fs->mkdir(channelStr));
 
+  produces<int>("cutstep");
   produces<int>("channel");
   produces<float>("weight");
   produces<float>("met");
   produces<float>("metphi");
-  produces<std::vector<cat::Lepton> >("leptons");
+  produces<std::vector<cat::Muon> >("muons");
+  produces<std::vector<cat::Electron> >("electrons");
   produces<std::vector<cat::Jet> >("jets");
 }
 
@@ -409,11 +420,12 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   // use the side-effect of catVertex producer: pv collection size == 1 only if the pv[0] is good vtx
   const bool isGoodPV0 = (nGoodVertex >= 1 and vertexHandle->size() == 1);
 
-  std::auto_ptr<std::vector<cat::Lepton> > out_leptons(new std::vector<cat::Lepton>());
+  std::auto_ptr<std::vector<cat::Electron> > out_electrons(new std::vector<cat::Electron>());
+  std::auto_ptr<std::vector<cat::Muon> > out_muons(new std::vector<cat::Muon>());
   std::auto_ptr<std::vector<cat::Jet> > out_jets(new std::vector<cat::Jet>());
 
   // Compute event weight - from generator, pileup, etc
-  double weight = 1.0;
+  float weight = 1.0;
   if ( isMC_ ) {
     edm::Handle<float> fHandle;
     edm::Handle<vfloat> vfHandle;
@@ -455,8 +467,6 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   event.getByToken(trigMuToken_, trigHandle);
   const int isTrigMu = *trigHandle;
 
-  double event_st = 0, event_ht = 0;
-
   // Select good leptons
   cat::MuonCollection selMuons, vetoMuons;
   for ( int i=0, n=muonHandle->size(); i<n; ++i ) {
@@ -465,13 +475,12 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
     cat::Muon lep(p);
     lep.setP4(p.p4()*scale);
-    if ( isGoodMuon(lep) ) selMuons.push_back(lep);
-    else if ( isVetoMuon(lep) ) vetoMuons.push_back(lep);
-    else continue;
-
-    event_st += lep.pt();
-    metDpx += lep.px()-p.px();
-    metDpy += lep.py()-p.py();
+    if ( channel_ == 13 and isGoodMuon(lep) ) {
+      selMuons.push_back(lep);
+      metDpx += lep.px()-p.px();
+      metDpy += lep.py()-p.py();
+    }
+    if ( isVetoMuon(lep) ) vetoMuons.push_back(lep);
   }
   cat::ElectronCollection selElectrons, vetoElectrons;
   for ( int i=0, n=electronHandle->size(); i<n; ++i ) {
@@ -480,31 +489,48 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
     cat::Electron lep(p);
     lep.setP4(p.p4()*scale);
-    if ( isGoodElectron(lep) ) selElectrons.push_back(lep);
-    else if ( isVetoElectron(lep) ) vetoElectrons.push_back(lep);
-    else continue;
-
-    event_st += lep.pt();
-    metDpx += lep.px()-p.px()/(isSkipEleSmearing_ ? p.smearedScale() : 1);
-    metDpy += lep.py()-p.py()/(isSkipEleSmearing_ ? p.smearedScale() : 1);
+    if ( channel_ == 11 and isGoodElectron(lep) ) {
+      selElectrons.push_back(lep);
+      metDpx += lep.px()-p.px()/(isSkipEleSmearing_ ? p.smearedScale() : 1);
+      metDpy += lep.py()-p.py()/(isSkipEleSmearing_ ? p.smearedScale() : 1);
+    }
+    if ( isVetoElectron(lep) ) vetoElectrons.push_back(lep);
   }
   std::sort(selElectrons.begin(), selElectrons.end(),
             [&](const cat::Electron& a, const cat::Electron& b){ return a.pt() > b.pt(); });
   std::sort(selMuons.begin(), selMuons.end(),
             [&](const cat::Muon& a, const cat::Muon& b){ return a.pt() > b.pt(); });
 
-  const int leptons_n = selMuons.size() + selElectrons.size();
+  int nVetoMuons = vetoMuons.size(), nVetoElectrons = vetoElectrons.size();
+  for ( const auto& vmu : vetoMuons ) {
+    for ( const auto& mu : selMuons ) {
+      if ( vmu.p4() == mu.p4() ) { --nVetoMuons; break; }
+    }
+  }
+  for ( const auto& vel : vetoElectrons ) {
+    for ( const auto& el : selElectrons ) {
+      if ( vel.p4() == el.p4() ) { --nVetoElectrons; break; }
+    }
+  }
+
   const cat::Lepton* lepton1 = 0;
   double trigSF = 1, leptonSF = 1;
-  if ( channel_ == 11 and !selElectrons.empty() ) {
+  double lepton1_relIso = -1;
+  if ( !selElectrons.empty() and (isElectronAntiIso_ xor isIsoLepton(selElectrons.at(0))) ) {
     const auto& el = selElectrons.at(0);
     lepton1 = &el;
     leptonSF = electronSF_(el.pt(), std::abs(el.scEta()), electronSFShift_);
+    lepton1_relIso = lepton1->relIso(0.3);
+    if ( !isIgnoreTrig_ ) trigSF = trigElSF_(el.pt(), std::abs(el.scEta()), trigSFShift_);
+    out_electrons->push_back(el);
   }
-  else if ( channel_ == 13 and !selMuons.empty() ) {
+  else if ( !selMuons.empty() and (isMuonAntiIso_ xor isIsoLepton(selMuons.at(0))) ) {
     const auto& mu = selMuons.at(0);
     lepton1 = &mu;
     leptonSF = muonSF_(mu.pt(), mu.eta(), muonSFShift_);
+    lepton1_relIso = lepton1->relIso(0.4);
+    if ( !isIgnoreTrig_ ) trigSF = trigMuSF_(mu.pt(), mu.eta(), trigSFShift_);
+    out_muons->push_back(mu);
   }
   int lepton1_id = 0;
   double lepton1_pt = -1, lepton1_eta = -999, lepton1_phi = -999;
@@ -513,7 +539,6 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     lepton1_pt = lepton1->pt();
     lepton1_eta = lepton1->eta();
     lepton1_phi = lepton1->phi();
-    out_leptons->push_back(*lepton1);
   }
 
   // Select good jets
@@ -529,19 +554,20 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
 
     metDpx += jet.px()-p.px();
     metDpy += jet.py()-p.py();
+
     if ( jet.pt() < 30 ) continue;
 
     if ( lepton1 and deltaR(jet.p4(), lepton1->p4()) < 0.4 ) continue;
 
-    event_ht += jet.pt();
     if ( isBjet(p) ) ++bjets_n;
 
     out_jets->push_back(jet);
   }
-  event_st += event_ht;
   const int jets_n = out_jets->size();
   std::sort(out_jets->begin(), out_jets->end(),
             [&](const cat::Jet& a, const cat::Jet& b){return a.pt() > b.pt();});
+  const double csvWeight = bTagWeight_.eventWeight(*out_jets, bTagSFUnc_);
+  weight *= csvWeight;
 
   // Update & calculate met
   const double met_pt = hypot(metP4.px()-metDpx, metP4.py()-metDpy);
@@ -554,20 +580,20 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   cutsteps[2] = isRECOFilterOK;
   if ( channel_ == 11 ) {
     cutsteps[3] = (!isIgnoreTrig_ and isTrigEl != 0);
-    cutsteps[4] = (selElectrons.size() == 1);
-    cutsteps[5] = (selMuons.size()+vetoMuons.size() == 0);
-    cutsteps[6] = vetoElectrons.empty();
+    cutsteps[4] = (out_electrons->size() == 1);
+    cutsteps[5] = (nVetoMuons == 0);
+    cutsteps[6] = (nVetoElectrons == 0);
   }
   else if ( channel_ == 13 ) {
     cutsteps[3] = (!isIgnoreTrig_ and isTrigMu != 0);
-    cutsteps[4] = (selMuons.size() == 1);
-    cutsteps[5] = (selElectrons.size()+vetoElectrons.size() == 0);
-    cutsteps[6] = vetoMuons.empty();
+    cutsteps[4] = (out_muons->size() == 1);
+    cutsteps[5] = (nVetoElectrons == 0);
+    cutsteps[6] = (nVetoMuons == 0);
   }
   cutsteps[ 7] = (jets_n >= 1);
   cutsteps[ 8] = (jets_n >= 2);
   cutsteps[ 9] = (jets_n >= 3);
-  cutsteps[10] = (jets_n >= 4);
+  cutsteps[10] = (bjets_n >= 1);
 
   // Run though the cut steps
   int cutstep = 0;
@@ -584,14 +610,13 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     if ( cutstep >= 1 ) {
       h_ch.h_met_pt[cutstep]->Fill(met_pt, w);
       h_ch.h_met_phi[cutstep]->Fill(met_phi, w);
-      h_ch.h_jets_ht[cutstep]->Fill(event_ht, w);
 
-      h_ch.h_leptons_n[cutstep]->Fill(leptons_n, w);
       if ( lepton1 ) {
         h_ch.h_lepton1_pt[cutstep]->Fill(lepton1->pt(), w);
         h_ch.h_lepton1_eta[cutstep]->Fill(lepton1->eta(), w);
         h_ch.h_lepton1_phi[cutstep]->Fill(lepton1->phi(), w);
         h_ch.h_lepton1_q[cutstep]->Fill(lepton1->charge(), w);
+        h_ch.h_lepton1_relIso[cutstep]->Fill(lepton1_relIso, w);
       }
 
       h_ch.h_jets_n[cutstep]->Fill(jets_n, w);
@@ -602,7 +627,6 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       h_ch.h_bjets_n[cutstep]->Fill(bjets_n, w);
     }
     if ( cutstep >= 4 ) {
-      h_ch.h_event_st[cutstep]->Fill(event_st, w);
       for ( int j=0, n=std::min(6, jets_n); j<n; ++j ) {
         h_ch.h_jet_m  [cutstep][j]->Fill(out_jets->at(j).mass(), w);
         h_ch.h_jet_pt [cutstep][j]->Fill(out_jets->at(j).pt(), w);
@@ -613,45 +637,52 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     }
   }
 
-  // Fill n-dim histogram
-  double jet1_pt = -1, jet1_eta = -999, jet1_phi = -999;
-  if ( jets_n >= 1 ) {
-    const auto& jet = out_jets->at(0);
-    jet1_pt  = jet.pt();
-    jet1_eta = jet.eta();
-    jet1_phi = jet.phi();
-  }
-
+  event.put(std::auto_ptr<int>(new int(cutstep)), "cutstep");
   event.put(std::auto_ptr<int>(new int((int)channel_)), "channel");
   event.put(std::auto_ptr<float>(new float(weight)), "weight");
   event.put(std::auto_ptr<float>(new float(met_pt)), "met");
   event.put(std::auto_ptr<float>(new float(met_phi)), "metphi");
-  event.put(out_leptons, "leptons");
+  event.put(out_electrons, "electrons");
+  event.put(out_muons, "muons");
   event.put(out_jets, "jets");
 
   // Apply filter at the given step.
-  if ( cutstep >= applyFilterAt_ ) {
-    if ( eventListFile_.is_open() ) {
-      const int run = event.id().run();
-      const int lum = event.id().luminosityBlock();
-      const int evt = event.id().event();
-      char buffer[101];
-      snprintf(buffer, 100, "%6d %6d %10d", run, lum, evt);
-      eventListFile_ << buffer;
-      snprintf(buffer, 100, "  %+2d  %6.2f %+4.2f %+4.2f", lepton1_id, lepton1_pt, lepton1_eta, lepton1_phi);
-      eventListFile_ << buffer;
-      snprintf(buffer, 100, "    %6.1f  %+4.2f", met_pt, met_phi);
-      eventListFile_ << buffer;
-      snprintf(buffer, 100, "    %d %d", jets_n, bjets_n);
-      eventListFile_ << buffer;
-      snprintf(buffer, 100, "  %6.2f %+4.2f %+4.2f  \n", jet1_pt, jet1_eta, jet1_phi);
-      eventListFile_ << buffer;
+  // "cutstep" variable is set to the failed cut step when exiting the previous loop.
+  // therefore, the expression below requires event to pass the given cut step number.
+  // example: 1) if applyFilterAt_=0 then cutsteps[0] is always true, cutstep is always greater than 0
+  //             -> never return false, always accept events
+  //          2) if applyFilterAt_=7 and cutsteps[7]=false -> cutstep loop breaks when cutstep=7
+  //             -> returns false because the cutstep and applyFilterAt_ are same
+  //          3) if applyFilterAt_=very large number then cutstep cannot exceed the given requirement, filtering everything
+  if ( cutstep <= applyFilterAt_ ) return false;
+
+  // Dump this event information if requested
+  if ( eventListFile_.is_open() ) {
+    double jet1_pt = -1, jet1_eta = -999, jet1_phi = -999;
+    if ( jets_n >= 1 ) {
+      const auto& jet = out_jets->at(0);
+      jet1_pt  = jet.pt();
+      jet1_eta = jet.eta();
+      jet1_phi = jet.phi();
     }
 
-    return true;
+    const int run = event.id().run();
+    const int lum = event.id().luminosityBlock();
+    const int evt = event.id().event();
+    char buffer[101];
+    snprintf(buffer, 100, "%6d %6d %10d", run, lum, evt);
+    eventListFile_ << buffer;
+    snprintf(buffer, 100, "  %+2d  %6.2f %+4.2f %+4.2f", lepton1_id, lepton1_pt, lepton1_eta, lepton1_phi);
+    eventListFile_ << buffer;
+    snprintf(buffer, 100, "    %6.1f  %+4.2f", met_pt, met_phi);
+    eventListFile_ << buffer;
+    snprintf(buffer, 100, "    %d %d", jets_n, bjets_n);
+    eventListFile_ << buffer;
+    snprintf(buffer, 100, "  %6.2f %+4.2f %+4.2f  \n", jet1_pt, jet1_eta, jet1_phi);
+    eventListFile_ << buffer;
   }
 
-  return false;
+  return true;
 }
 
 TopFCNCEventSelector::~TopFCNCEventSelector()

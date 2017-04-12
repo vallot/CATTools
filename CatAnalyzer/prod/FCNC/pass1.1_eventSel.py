@@ -3,30 +3,31 @@
 ## Define recipes
 recipes = {
     'nominal':{'nominal':[]},
+    'antiIso':{'antiIso':['mu.muon.applyAntiIso=True', 'el.electron.applyAntiIso=True']},
     'syst':{
-        'mu_pt/up':['eventsFCNC.muon.scaleDirection=1'],
-        'mu_pt/dn':['eventsFCNC.muon.scaleDirection=-1'],
-        'el_pt/up':['eventsFCNC.electron.scaleDirection=1'],
-        'el_pt/dn':['eventsFCNC.electron.scaleDirection=-1'],
-        'jet_cor/up':['eventsFCNC.jet.scaleDirection=1'],
-        'jet_cor/dn':['eventsFCNC.jet.scaleDirection=-1'],
+        'mu_pt/up':['mu.muon.scaleDirection=1', 'el.muon.scaleDirection=1'],
+        'mu_pt/dn':['mu.muon.scaleDirection=-1', 'el.muon.scaleDirection=-1'],
+        'el_pt/up':['el.electron.scaleDirection=1', 'el.electron.scaleDirection=1'],
+        'el_pt/dn':['el.electron.scaleDirection=-1', 'el.electron.scaleDirection=-1'],
+        'jet_cor/up':['mu.jet.scaleDirection=1', 'el.jet.scaleDirection=1'],
+        'jet_cor/dn':['mu.jet.scaleDirection=-1', 'el.jet.scaleDirection=-1'],
     },
     'systMC':{
-        'jet_res/up':['eventsFCNC.jet.resolDirection=1'],
-        'jet_res/dn':['eventsFCNC.jet.resolDirection=-1'],
+        'jet_res/up':['mu.jet.resolDirection=1', 'el.jet.resolDirection=1'],
+        'jet_res/dn':['mu.jet.resolDirection=-1', 'mu.jet.resolDirection=-1'],
     },
 }
 
 ## Define list of samples and their recipes
 samples = {
-    'data nominal syst':[
+    'data nominal syst antiIso':[
         ## Real data
         ## cmsRun analyze_dat_cfg.py
         ## do common systematic variations
         "SingleElectron_Run2016B", "SingleElectron_Run2016C", "SingleElectron_Run2016D", "SingleElectron_Run2016E", "SingleElectron_Run2016F", "SingleElectron_Run2016G", "SingleElectron_Run2016H_v2", "SingleElectron_Run2016H_v3",
         "SingleMuon_Run2016B", "SingleMuon_Run2016C", "SingleMuon_Run2016D", "SingleMuon_Run2016E", "SingleMuon_Run2016F", "SingleMuon_Run2016G", "SingleMuon_Run2016H_v2", "SingleMuon_Run2016H_v3",
     ],
-    'bkg nominal syst systMC':[
+    'bkg nominal syst systMC antiIso':[
         ## MC samples without ttbar genFilter
         ## cmsRun analyze_bkg_cfg.py
         ## do common systematic variations
@@ -37,10 +38,8 @@ samples = {
         "WJets", "WJets_MG",
         "WW", "WZ", "ZZ",
         "WWW", "WWZ", "WZZ", "ZZZ",
-        "TT_AntitopLeptonicDecay_TH_1L3B_Eta_Hct", "TT_TopLeptonicDecay_TH_1L3B_Eta_Hct",
-        "TT_AntitopLeptonicDecay_TH_1L3B_Eta_Hut", "TT_TopLeptonicDecay_TH_1L3B_Eta_Hut",
     ],
-    'sig nominal syst systMC':[
+    'sig nominal syst systMC antiIso':[
         ## MC Signal samples, select ttbar-dilepton at Gen.Level
         ## cmsRun analyze_sig_cfg.py
         ## do common systematic variations
@@ -50,7 +49,7 @@ samples = {
         "TTLJ_powheg",
         #"ttbb",
     ],
-    'sig.noll nominal syst systMC':[
+    'sig.noll nominal syst systMC antiIso':[
         ## ttbar-others
         ## cmsRun analyze_sig_cfg.py
         ## do common systematic variations
@@ -73,12 +72,11 @@ samples = {
         "TT_powheg_mtop1665","TT_powheg_mtop1695","TT_powheg_mtop1715",
         "TT_powheg_mtop1735","TT_powheg_mtop1755","TT_powheg_mtop1785",
     ],
+    'sig.nofilter nominal syst systMC':[
+        "TT_AntitopLeptonicDecay_TH_1L3B_Eta_Hct", "TT_TopLeptonicDecay_TH_1L3B_Eta_Hct",
+        "TT_AntitopLeptonicDecay_TH_1L3B_Eta_Hut", "TT_TopLeptonicDecay_TH_1L3B_Eta_Hut",
+    ],
 }
-for key in samples.keys():
-    if key.split()[0] != 'sig': continue
-    variations = ' '.join(key.split()[1:])
-    for i in ['ttbb', 'ttbj', 'ttcc', 'ttlf', 'tt']:
-        samples['sig.'+i+' '+variations] = samples[key]
 
 import sys, os
 outDir = "pass1"
@@ -107,23 +105,10 @@ for key in samples:
     suffix = ""
     baseargs = []
     if 'noll' in modifiers:
-        baseargs += ["filterGenTop.invert=True"]
-        suffix = "_Others"
-    if 'ttbb' in modifiers:
-        baseargs += ["filterGenTop.addJetChannel=\"TTBB\""]
-        suffix = "_TTBB"
-    elif 'ttbj' in modifiers:
-        baseargs += ["filterGenTop.addJetChannel=\"TTBJ\""]
-        suffix = "_TTBJ"
-    elif 'ttcc' in modifiers:
-        baseargs += ["filterGenTop.addJetChannel=\"TTCC\""]
-        suffix = "_TTCC"
-    elif 'ttlf' in modifiers:
-        baseargs += ["filterGenTop.addJetChannel=\"TTLF\""]
-        suffix = "_TTLF"
-    elif 'tt' in modifiers:
-        baseargs += ["filterGenTop.addJetChannel=\"none\""]
-        suffix = "_noAddJet"
+        baseargs += ["filterParton.invert=True"]
+        suffix = ".Others"
+    if 'nofilter' in modifiers:
+        baseargs += ["filterParton.nLepton=-1"]
 
     for name in samples[key]:
         for recipeToRun in recipesToRun:
@@ -139,14 +124,18 @@ for key in samples:
                 cmds[jobName] = submitCmd
 
 out = open("%s/submit_nominal.sh" % outDir, "w")
-for cmd in sorted([x for x in cmds if 'nominal' in x]): print>>out, cmds[cmd]
+for cmd in sorted([x for x in cmds if 'nominal' in x and 'antiIso' not in x]): print>>out, cmds[cmd]
 out.close()
 out = open("%s/submit_unc.sh" % outDir, "w")
-for cmd in sorted([x for x in cmds if 'nominal' not in x]): print>>out, cmds[cmd]
+for cmd in sorted([x for x in cmds if 'nominal' not in x and 'antiIso' not in x]): print>>out, cmds[cmd]
+out.close()
+out = open("%s/submit_antiIso.sh" % outDir, "w")
+for cmd in sorted([x for x in cmds if 'antiIso' in x]): print>>out, cmds[cmd]
 out.close()
 
 os.system("chmod +x %s/submit_nominal.sh" % outDir)
 os.system("chmod +x %s/submit_unc.sh" % outDir)
+os.system("chmod +x %s/submit_antiIso.sh" % outDir)
 
 print "Prepared to submit cmsRun jobs."
 print "Submit jobs using helper script under pass1 directory yourself."

@@ -19,6 +19,7 @@ dataset = json.loads(open("pass2/dataset.json").read())
 srcMCs = [
     ["t#bar{t}+Jets#rightarrow l^{#pm}", 632],
     ["t#bar{t}+Jets:Others", 632+3],
+    ["t#bar{t}+V", 632+5],
     ["SingleTop", 800],
     ["Dibosons", 432],
     ["Tribosons", 433],
@@ -109,14 +110,14 @@ for iplt, pltInfo in enumerate(plts):
     hRatio.Reset()
     hRatio.SetTitle(";%s;Data/MC" % hRD.GetXaxis().GetTitle())
     grpRatio = TGraphErrors()
-    rMax = 2
+    rMin, rMax = 0.5, 1.5
     for b in range(nbinsX):
         yRD, yMC = hRD.GetBinContent(b+1), hMC.GetBinContent(b+1)
         eRD, eMC = hRD.GetBinError(b+1), hMC.GetBinError(b+1)
         r, e = 1e9, 1e9
         if yMC > 0:
             r = yRD/yMC
-            rMax = max(r, rMax)
+            #rMax = max(r, rMax)
         #if yMC > 0 and yRD > 0: e = r*hypot(eRD/yRD, eMC/yMC)
         if yRD > 0: e = r*abs(eRD/yRD)
         if r == 1e9 or e == 1e9: continue
@@ -128,7 +129,7 @@ for iplt, pltInfo in enumerate(plts):
         grpRatio.SetPointError(n, w/2, e)
     if rMax > 2: rMax = 3
     hRatio.SetStats(False)
-    hRatio.SetMinimum(0)
+    hRatio.SetMinimum(rMin)
     hRatio.SetMaximum(rMax)
 
     hRD.GetXaxis().SetLabelOffset(999)
@@ -204,7 +205,7 @@ for iplt, pltInfo in enumerate(plts):
     if not os.path.exists("preview/%s" % dirName):
         os.makedirs("preview/%s" % dirName)
     c.Print("preview/%s/%s.png" % (dirName, c.GetName()))
-    if grpRatio.GetN() > 0: c.Print("preview/%s/%s.C" % (dirName, c.GetName()))
+    #if grpRatio.GetN() > 0: c.Print("preview/%s/%s.C" % (dirName, c.GetName()))
 
     for h in (hRD, hMC, hsMC, hRatio, grpRatio, c): del(h)
 

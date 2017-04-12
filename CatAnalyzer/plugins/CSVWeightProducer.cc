@@ -19,6 +19,7 @@ public:
 private:
   const double minPt_, maxEta_;
   typedef std::vector<float> vfloat;
+  edm::EDGetTokenT<edm::View<reco::Candidate>> lepToken_;
   edm::EDGetTokenT<cat::JetCollection> jetToken_;
 
   std::unique_ptr<CSVHelper> helper_;
@@ -29,6 +30,7 @@ CSVWeightProducer::CSVWeightProducer(const edm::ParameterSet& pset):
   maxEta_(pset.getParameter<double>("maxEta"))
 {
   jetToken_ = consumes<cat::JetCollection>(pset.getParameter<edm::InputTag>("src"));
+  lepToken_ = consumes<edm::View<reco::Candidate> >(pset.getParameter<edm::InputTag>("leptons"));
   auto csvFileNameHF = pset.getParameter<std::string>("csvSFHF");
   auto csvFileNameLF = pset.getParameter<std::string>("csvSFLF");
   auto csvFileHF = edm::FileInPath("CATTools/CatAnalyzer/data/scaleFactors/"+csvFileNameHF).fullPath();
@@ -51,9 +53,21 @@ void CSVWeightProducer::produce(edm::Event& event, const edm::EventSetup&)
     edm::Handle<cat::JetCollection> jetHandle;
     event.getByToken(jetToken_, jetHandle);
 
+    edm::Handle<edm::View<reco::Candidate>> lepHandle;
+    event.getByToken(lepToken_, lepHandle);
+
     cat::JetCollection jets;
     for ( auto& jet : *jetHandle) {
       if ( jet.pt() < minPt_ or std::abs(jet.eta()) > maxEta_ ) continue;
+      const bool isOverlap = [&](){
+        if ( !lepHandle.isValid() ) return false;
+        for ( auto& lep : *lepHandle ) {
+          if ( deltaR(lep, jet) < 0.3 ) return true;
+        }
+        return false;
+      }();
+      if ( isOverlap ) continue;
+
       jets.push_back(jet);
     }
 
