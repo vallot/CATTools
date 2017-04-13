@@ -42,10 +42,10 @@ private:
   bool eventSelection(const edm::Event& iEvent, systematic sys);
   
   cat::MuonCollection selectMuons(const cat::MuonCollection& muons, systematic sys);
-  cat::ElectronCollection selectElecs(const cat::ElectronCollection& elecs, cat::MuonCollection& recolep, systematic sys);
+  cat::ElectronCollection selectElectrons(const cat::ElectronCollection& elecs, cat::MuonCollection& recolep, systematic sys);
   cat::JetCollection selectJets(const cat::JetCollection& jets, cat::MuonCollection& recolep, systematic sys);
-  cat::JetCollection selectBJets(const cat::JetCollection& jets) const;
-  int preSelect(const cat::JetCollection& seljets, float MET) const;
+  cat::JetCollection selectBJets(const cat::JetCollection& jets);
+  bool preSelection(const cat::JetCollection& seljets, float MET) const;
   int jetCategory(const cat::JetCollection& seljets, float MET, float ll_pt) const;
   int etaCategory(float lep1_eta, float lep2_eta) const;
   bool bumpCategory(const cat::JetCollection& jets, const cat::MuonCollection& recolep);
@@ -71,7 +71,7 @@ private:
   bool runOnMC;
   
   std::vector<TTree*> ttree_;
-  TH1D * h_nevents;
+  TH1D *h_nevents, *h_cutflow, *h_cutflowCat;
   int b_run, b_lumi, b_event;
   int b_nvertex, b_step, b_channel, b_njet;
   bool b_step1, b_step2, b_step3, b_step4, b_step5, b_step6, b_filtered;
@@ -94,12 +94,7 @@ private:
   TLorentzVector b_lep1; int b_lep1_pid;
   TLorentzVector b_lep2; int b_lep2_pid;
   TLorentzVector b_jet1, b_jet2, b_dilep, b_dijet;
-  
-  TLorentzVector M_Muon;
 
-  const static int NCutflow = 7;
-  std::vector<std::vector<int> > cutflow_;
-  int bumpcut[7]={0,0,0,0,0,0,0};
 };
 
 h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
@@ -144,30 +139,27 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
   usesResource("TFileService");
   edm::Service<TFileService> fs;
   h_nevents = fs->make<TH1D>("nevents","nevents",1,0,1);       
+  h_cutflow = fs->make<TH1D>("cutflow","cutflow",15,0,15);       
+  h_cutflowCat = fs->make<TH1D>("cutflowCat","cutflowCat",6,0,6);       
   for (int sys = 0; sys < syst_total; ++sys){
     ttree_.push_back(fs->make<TTree>(systematicName[systematic(sys)].c_str(), systematicName[systematic(sys)].c_str()));
     auto tr = ttree_.back();
     setBranch(tr, systematic(sys));
   }
   
-  for (int i = 0; i < NCutflow; i++) cutflow_.push_back({0,0,0,0});
   rocCor = new RoccoR("../data/rcdata.2016.v3");  
 
 }
 
 h2muAnalyzer::~h2muAnalyzer()
 {
-  cout <<"     cut flow   emu    ee    mumu"<< endl;
-  for ( int i=0; i<NCutflow; ++i ) {
-    cout <<"step"<< i << "    "<< cutflow_[i][0] <<  "   "<< cutflow_[i][1] << "   " << cutflow_[i][2] << "   " << cutflow_[i][3]<< endl;
+  cout <<"     cut flow "<< endl;
+  for ( int i=1; i<12; ++i ) {
+    cout <<"step "<< i << "    "<< h_cutflow->GetBinContent(i+1) << endl;
   }
-  cout <<setw(15)<<"nocut"<<setw(15)<<"cut_charge"<<setw(15)<<"cut_pt"<<setw(15)<<"cut_eta"<<setw(15)<<"cut_nopassbtag"<<setw(15)<<"pass_bumpcat1"<<setw(15)<<"pass_bumpcat2"<<endl;
-  int bumpcutsize = int(sizeof(bumpcut)/sizeof(bumpcut[0]));
-  
-  for (int i=0;i<bumpcutsize;i++){
-    cout <<setw(15)<<bumpcut[i];
-  }
-  cout<<endl;
+  for ( int i=1; i<6; ++i ) {
+    cout <<"Categories "<< i << "    "<< h_cutflowCat->GetBinContent(i+1) << endl;
+  }  
 }
 
 void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -190,7 +182,7 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 
 bool h2muAnalyzer::eventSelection(const edm::Event& iEvent, systematic sys)
 {
-  if (sys == syst_nom) cutflow_[0][0]++;
+  if (sys == syst_nom) h_cutflow->Fill(0);
   b_run = iEvent.id().run();
   b_event = iEvent.id().event();
     
@@ -252,7 +244,7 @@ bool h2muAnalyzer::eventSelection(const edm::Event& iEvent, systematic sys)
   }
   b_step1 = true;
   b_step = 1;
-  if (sys == syst_nom) cutflow_[b_step][b_channel]++;
+  if (sys == syst_nom) h_cutflow->Fill(1);
   
   ////////////////////////////////////////////////////////////////////////////////
   // filters
@@ -268,7 +260,7 @@ bool h2muAnalyzer::eventSelection(const edm::Event& iEvent, systematic sys)
   }  
   b_step2 = true;
   b_step = 2;
-  if (sys == syst_nom) cutflow_[b_step][b_channel]++;
+  if (sys == syst_nom) h_cutflow->Fill(2);
   
   // const reco::Vertex &PV = vertices->front();
   edm::Handle<int> nGoodVertexHandle;
@@ -280,17 +272,19 @@ bool h2muAnalyzer::eventSelection(const edm::Event& iEvent, systematic sys)
   edm::Handle<cat::MuonCollection> muons; iEvent.getByToken(muonToken_, muons);
   cat::MuonCollection selectedMuons = selectMuons(*muons, sys);
   if ( selectedMuons.size() < 2 ) return false;
+  if (sys == syst_nom) h_cutflow->Fill(3);
+  
   const cat::Muon &mu1 = selectedMuons[0], &mu2 = selectedMuons[1];
   if (mu1.charge()*mu2.charge() > 0) return false;
+  if (sys == syst_nom) h_cutflow->Fill(4);
   b_step3 = true;
   b_step = 3;
-  if (sys == syst_nom) cutflow_[b_step][b_channel]++;
 
   b_lep1 = mu1.tlv();b_lep1_pid = mu1.pdgId();
   b_lep2 = mu2.tlv();b_lep2_pid = mu2.pdgId();
   b_dilep = b_lep1 + b_lep2;
-  M_Muon = selectedMuons[0].tlv() + selectedMuons[1].tlv();
-  if (M_Muon.M() <= 12) return false; 
+  if (b_dilep.M() < 12) return false; 
+  if (sys == syst_nom) h_cutflow->Fill(5);
 
   b_isLoose = (mu1.isLooseMuon() && mu2.isLooseMuon());
   b_isMedium = (mu1.isMediumMuon() && mu2.isMediumMuon());
@@ -299,19 +293,13 @@ bool h2muAnalyzer::eventSelection(const edm::Event& iEvent, systematic sys)
   b_mueffweight    = muonSF_.getScaleFactor(mu1, 13, 0)*muonSF_.getScaleFactor(mu2, 13,  0);
   b_mueffweight_up = muonSF_.getScaleFactor(mu1, 13, +1)*muonSF_.getScaleFactor(mu2, 13, +1);
   b_mueffweight_dn = muonSF_.getScaleFactor(mu1, 13, -1)*muonSF_.getScaleFactor(mu2, 13, -1);
-  
-  if (!b_isMedium){
-    return false;
-  }
-  b_step4 = true;
-  b_step = 4;
-  if (sys == syst_nom) cutflow_[b_step][b_channel]++;
-  
+    
   ///////////////////////////////////////////////////////////////////////////////
   //electron veto
   edm::Handle<cat::ElectronCollection> elecs; iEvent.getByToken(elecToken_, elecs);
-  cat::ElectronCollection selectedElecs = selectElecs(*elecs, selectedMuons, sys);
-  if (selectedElecs.size() > 0) return false;
+  cat::ElectronCollection selectedElecs = selectElectrons(*elecs, selectedMuons, sys);
+  if (selectedElecs.size() > 0) return true;
+  if (sys == syst_nom) h_cutflow->Fill(6);
   
   ////////////////////////////////////////////////////////////////////////////////
   //b-jet veto
@@ -319,7 +307,8 @@ bool h2muAnalyzer::eventSelection(const edm::Event& iEvent, systematic sys)
   cat::JetCollection selectedJets = selectJets(*jets, selectedMuons, sys);
   cat::JetCollection selectedBJets = selectBJets(selectedJets);
 
-  if (selectedBJets.size() > 0 ) return false;
+  if (selectedBJets.size() > 0 ) return true;
+  if (sys == syst_nom) h_cutflow->Fill(7);
   ////////////////////////////////////////////////////////////////////////////////
   // trigger
   edm::Handle<edm::TriggerResults> triggerBits;
@@ -332,9 +321,11 @@ bool h2muAnalyzer::eventSelection(const edm::Event& iEvent, systematic sys)
   AnalysisHelper trigHelper = AnalysisHelper(triggerNames, triggerBits, triggerObjects);
 
   if (!trigHelper.triggerFired("HLT_IsoMu24_v") && !trigHelper.triggerFired("HLT_IsoTkMu24_v")){
-    return true;
-  
+    return true;  
   }
+  if (sys == syst_nom) h_cutflow->Fill(8);
+  b_step4 = true;
+  b_step = 4;  
 
   ////////////////////////////////////////////////////////////////////////////////
   // trigger matching
@@ -350,18 +341,11 @@ bool h2muAnalyzer::eventSelection(const edm::Event& iEvent, systematic sys)
     triggerMatching = true;
   
   if (!triggerMatching) return true;
-
+  if (sys == syst_nom) h_cutflow->Fill(9);
   b_step5 = true;
   b_step = 5;
-  if (sys == syst_nom) cutflow_[b_step][b_channel]++;
   ////////////////////////////////////////////////////////////////////////////////
-  // jets
-  if (selectedJets.size() <= 2){
-    b_step6 = true;
-    b_step = 6;
-    if (sys == syst_nom) cutflow_[b_step][b_channel]++;
-  }
-  
+  // jets  
   b_njet = selectedJets.size(); 
   if (b_njet > 0)
     b_jet1 = selectedJets[0].tlv();
@@ -375,11 +359,12 @@ bool h2muAnalyzer::eventSelection(const edm::Event& iEvent, systematic sys)
   b_met = met.pt();
   b_cat_eta = etaCategory(b_lep1.Eta(), b_lep2.Eta());
   b_cat = jetCategory(selectedJets, b_met, b_dilep.Pt());
+  h_cutflowCat->Fill(b_cat);
 
-  if (b_njet > 1){
-    b_bumpcat1 = bumpCat1(selectedJets, selectedMuons);
-    b_bumpcat2 = bumpCat2(selectedJets, selectedMuons, b_met); 
-  }
+  // if (b_njet > 1){
+  //   b_bumpcat1 = bumpCat1(selectedJets, selectedMuons);
+  //   b_bumpcat2 = bumpCat2(selectedJets, selectedMuons, b_met); 
+  // }
   return true;
 }
 
@@ -388,7 +373,7 @@ cat::MuonCollection h2muAnalyzer::selectMuons(const cat::MuonCollection& muons, 
   cat::MuonCollection selmuons;
   for (auto& m : muons) {
     cat::Muon mu(m);
-    if (!mu.isGlobalMuon()) continue;
+    //if (!mu.isGlobalMuon()) continue;
     //if (!mu.isTrackerMuon()) continue;
     if (std::abs(mu.eta()) > 2.4) continue;
     if (!mu.isMediumMuon()) continue;
@@ -441,12 +426,12 @@ cat::MuonCollection h2muAnalyzer::selectMuons(const cat::MuonCollection& muons, 
   return selmuons;
 }
 
-cat::ElectronCollection h2muAnalyzer::selectElecs(const cat::ElectronCollection& elecs, cat::MuonCollection& recolep, systematic sys)
+cat::ElectronCollection h2muAnalyzer::selectElectrons(const cat::ElectronCollection& elecs, cat::MuonCollection& recolep, systematic sys)
 {
   cat::ElectronCollection selelecs;
   for (auto& e : elecs) {
     cat::Electron el(e);
-    if (std::abs(el.eta()) > 2.5) continue;
+    if (std::abs(el.scEta()) > 2.5) continue;
     if ((std::abs(el.scEta()) > 1.4442) && (std::abs(el.scEta()) < 1.566)) continue;
     if (!el.electronID("cutBasedElectronID-Summer16-80X-V1-medium") ) continue;
     
@@ -471,14 +456,15 @@ cat::JetCollection h2muAnalyzer::selectJets(const cat::JetCollection& jets, cat:
   cat::JetCollection seljets;
   for (auto& j : jets) {
     cat::Jet jet(j);
+    if (std::abs(jet.eta()) > 4.7) continue;
+    if (!jet.LooseId()) continue;
+    
     if (sys == syst_jes_u) jet.setP4(j.p4() * j.shiftedEnUp());
     if (sys == syst_jes_d) jet.setP4(j.p4() * j.shiftedEnDown());
     if (sys == syst_jer_u) jet.setP4(j.p4() * j.smearedResUp());
     if (sys == syst_jer_d) jet.setP4(j.p4() * j.smearedResDown());
 
     if (jet.pt() < 30.) continue;
-    if (std::abs(jet.eta()) > 4.7)  continue;
-    if (!jet.LooseId()) continue;
 
     bool hasOverLap = false;
     for (auto lep : recolep){
@@ -488,9 +474,9 @@ cat::JetCollection h2muAnalyzer::selectJets(const cat::JetCollection& jets, cat:
     seljets.push_back(jet);
   }
   return seljets;
-
 }
-cat::JetCollection h2muAnalyzer::selectBJets(const JetCollection& jets) const
+
+cat::JetCollection h2muAnalyzer::selectBJets(const JetCollection& jets)
 {
     cat::JetCollection selBjets;
     for (auto& jet : jets) { 
@@ -596,39 +582,47 @@ void h2muAnalyzer::resetBranch()
   b_dilep = TLorentzVector(); b_dijet = TLorentzVector();
 }
 
-int h2muAnalyzer::preSelect(const cat::JetCollection& seljets, float met) const
+bool h2muAnalyzer::preSelection(const cat::JetCollection& seljets, float met) const
 {
   int njet = seljets.size();
-  if (njet > 1){
-    if (seljets[0].pt()>40 && seljets[1].pt()>30 , met < 40){
-        return 1; // pass preselection
-    } 
-  }
-  //cout << "Fail Preselection  Event:" << event << "     Jet1.PT:"<< seljets[0].pt()<< "     Jet2.PT:"<< seljets[1].pt() << "    Met:"<< met<< endl;   
-  return 0;// fail preselection
+  if (njet < 2) return false;
+
+  if (seljets[0].pt() < 40.0) return false;
+  
+  if (seljets[1].pt() < 30.0) return false;
+    
+  //if (met > 40) return false;
+  return true;
 }
 
 int h2muAnalyzer::jetCategory(const cat::JetCollection& seljets, float met, float ll_pt) const
-{
-  int presel = preSelect(seljets, met);  
-  if (presel == 0){// fail preselection
-    if (ll_pt >= 25) return 4; // 0,1-jet Tight
-    else             return 5; // 0,1-jet Loose
+{  
+  if (preSelection(seljets, met)){// pass preselection
+    //VBF Tight selection
+    for (auto& j1 : seljets) {
+      for (auto& j2 : seljets) {
+	if (&j1 != &j2){
+	  TLorentzVector dijets = j1.tlv() + j2.tlv();
+	  double delta_eta =  abs(j1.eta() - j2.eta());
+	  if (dijets.M() > 650 && abs(delta_eta) > 3.5)
+	    return 1;
+	}
+      }
+    }
+    // ggF Tight selection
+    TLorentzVector dijets = seljets[0].tlv() + seljets[1].tlv();    
+    if (dijets.M() > 250. && ll_pt >= 50.)
+      return 2;
+
+    return 3; // VBF Loose selection    
+  }
+  else {
+    if (ll_pt >= 25.)
+      return 4; // 0,1-jet Tight
+    else
+      return 5; // 0,1-jet Loose
   }
   
-  if (presel == 1){// pass preselection
-    TLorentzVector M_jets = seljets[0].tlv() + seljets[1].tlv();
-    double delta_eta = seljets[0].eta()-seljets[1].eta();
-
-    bool VBF_Tight = (M_jets.M() > 650 && abs(delta_eta) > 3.5);
-    bool ggF_Tight = (M_jets.M() > 250 && ll_pt > 50);
-
-    if (VBF_Tight) return 1; // VBF Tight selection
-    else {
-      if (ggF_Tight) return 2; // ggF Tight selection
-      else return 3; // VBF Loose selection
-    }
-  }
   return -1;
 }
 
@@ -664,13 +658,9 @@ bool h2muAnalyzer::bumpCategory(const cat::JetCollection& jets,const cat::MuonCo
     }
     sort(jet2d.begin(),jet2d.end(), [](std::vector<double> a, std::vector<double> b){return a[0] > b[0];});//sort by jet pt()
   */
-  bumpcut[0]+=1;
   if (recolep[0].charge() * recolep[1].charge() > 0) return false;
-  bumpcut[1]+=1;
   if (recolep[0].pt() < 25 || recolep[1].pt() < 25) return false;
-  bumpcut[2]+=1;
   if (recolep[0].eta() > 2.1 || recolep[1].eta() > 2.1) return false;
-  bumpcut[3]+=1;
   return true;
 } 
 
@@ -689,7 +679,6 @@ bool h2muAnalyzer::bumpCat1(const cat::JetCollection& jets,const cat::MuonCollec
       if( jet.pt() > 30. && jet.eta() < 2.4 ) return false;
       if( jet.pt() > 30. && jet.eta() > 2.4 && jet.eta() < 4.7){
 	event_cat=true;
-	bumpcut[4]+=1;
       }
     }
   }
@@ -697,7 +686,6 @@ bool h2muAnalyzer::bumpCat1(const cat::JetCollection& jets,const cat::MuonCollec
     return false;
   }
   else {
-    bumpcut[5]+=1;
     return event_cat;
   }
 }
@@ -732,7 +720,6 @@ bool h2muAnalyzer::bumpCat2(const cat::JetCollection& jets,const cat::MuonCollec
     if (met<40 && delta_phi>2.5){
       event_cat=true;
       //cout<<delta_phi<<endl;
-      bumpcut[6]+=1;
     }
   }
   return event_cat; 
