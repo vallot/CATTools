@@ -55,7 +55,10 @@ struct ControlPlotsFCNC
   H1 h_jet_btag[nCutstep][6];
 
   H1 h_bjets_n[nCutstep];
-  H1 h_kin_mT[nCutstep];
+  H1 h_event_mT[nCutstep];
+
+  H2 h_event_mT_cosDphi[nCutstep];
+  H2 h_event_ABCD[nCutstep];
 
   void book(TFileDirectory&& dir)
   {
@@ -111,7 +114,9 @@ struct ControlPlotsFCNC
       h_jets_pt[i]  = subdir.make<TH1D>("jets_pt", "jets_pt;Jets p_{T} (GeV);Events/2GeV", 100, 0, 200);
       h_jets_eta[i] = subdir.make<TH1D>("jets_eta", "jets_eta;Jets #eta;Events", 100, -maxeta, maxeta);
 
-      h_kin_mT[i] = subdir.make<TH1D>("kin_mT", "transverse mass;Transverse mass (GeV);Events/2GeV", 100, 0, 200);
+      h_event_mT[i] = subdir.make<TH1D>("event_mT", "transverse mass;Transverse mass (GeV);Events/2GeV", 100, 0, 200);
+      h_event_mT_cosDphi[i] = subdir.make<TH2D>("event_mT_cosDphi", "transverse mass vs #delta#phi;Transverse mass (GeV);cos(#Delta#phi(lepton,MET));Events/2GeV", 100, 0, 200,100,0,1);
+      h_event_ABCD[i] = subdir.make<TH2D>("event_ABCD", "ABCD;isIso;isQCDLike;Events", 2, 0, 2, 2, 0, 2);
 
       for ( int j=0; j<6; ++j ) {
         const string prefix = Form("jet%d_", j+1);
@@ -516,6 +521,11 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     }
   }
 
+  // Compute the isIso flag - to be used in the QCD estimation
+  bool lepton1_isIso = false;
+  if ( channel_ == 11 and !selElectrons.empty() ) lepton1_isIso = isIsoLepton(selElectrons.at(0));
+  else if ( channel_ == 13 and !selMuons.empty() ) lepton1_isIso = isIsoLepton(selMuons.at(0));
+
   const cat::Lepton* lepton1 = 0;
   double trigSF = 1, leptonSF = 1;
   double lepton1_relIso = -1;
@@ -576,7 +586,8 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   const double met_pt = hypot(metP4.px()-metDpx, metP4.py()-metDpy);
   const double met_phi = atan2(metP4.py()-metDpy, metP4.px()-metDpx);
 
-  const double mT = !lepton1 ? -1 : std::sqrt(std::max(0., 2*lepton1_pt*met_pt*(1-cos(deltaPhi(lepton1_phi, met_phi)))));
+  const double cosDphi = !lepton1 ? -1 : std::cos(deltaPhi(lepton1_phi, met_phi));
+  const double mT = !lepton1 ? -1 : std::sqrt(std::max(0., 2*lepton1_pt*met_pt*(1-cosDphi)));
 
   // Check cut steps
   std::vector<bool> cutsteps(ControlPlotsFCNC::nCutstep);
@@ -632,6 +643,7 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       h_ch.h_bjets_n[cutstep]->Fill(bjets_n, w);
     }
     if ( cutstep >= 4 ) {
+      const bool isQCDLike = mT < 10 and cosDphi < cos(1.0) and met_pt < 30;
       for ( int j=0, n=std::min(6, jets_n); j<n; ++j ) {
         h_ch.h_jet_m  [cutstep][j]->Fill(out_jets->at(j).mass(), w);
         h_ch.h_jet_pt [cutstep][j]->Fill(out_jets->at(j).pt(), w);
@@ -639,7 +651,9 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
         h_ch.h_jet_phi[cutstep][j]->Fill(out_jets->at(j).phi(), w);
         h_ch.h_jet_btag[cutstep][j]->Fill(out_jets->at(j).bDiscriminator(bTagName_), w);
 
-        h_ch.h_kin_mT[cutstep]->Fill(mT, w);
+        h_ch.h_event_mT[cutstep]->Fill(mT, w);
+        h_ch.h_event_mT_cosDphi[cutstep]->Fill(mT, cosDphi, w);
+        h_ch.h_event_ABCD[cutstep]->Fill(lepton1_isIso, isQCDLike, w);
       }
     }
   }
