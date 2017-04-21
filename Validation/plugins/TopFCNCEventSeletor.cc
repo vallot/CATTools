@@ -643,7 +643,7 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
       h_ch.h_bjets_n[cutstep]->Fill(bjets_n, w);
     }
     if ( cutstep >= 4 ) {
-      const bool isQCDLike = mT < 10 and cosDphi < cos(1.0) and met_pt < 30;
+      const bool isQCDLike = mT < 10 and cosDphi < cos(1.0) and met_pt < 10;
       for ( int j=0, n=std::min(6, jets_n); j<n; ++j ) {
         h_ch.h_jet_m  [cutstep][j]->Fill(out_jets->at(j).mass(), w);
         h_ch.h_jet_pt [cutstep][j]->Fill(out_jets->at(j).pt(), w);
