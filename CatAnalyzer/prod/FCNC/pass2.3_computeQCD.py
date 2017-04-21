@@ -28,8 +28,8 @@ fRD_QCD = {
 ## Load list of datasets, histograms
 dataset = json.loads(open("pass3/dataset.json").read())
 hists = {
-    "el":[x for x in json.loads(open("pass3/hists.json").read()) if x.startswith("el/el/step")],
-    "mu":[x for x in json.loads(open("pass3/hists.json").read()) if x.startswith("mu/mu/step")],
+    "el":[x for x in json.loads(open("pass3/hists.json").read()) if x.startswith("el/el")],
+    "mu":[x for x in json.loads(open("pass3/hists.json").read()) if x.startswith("mu/mu")],
 }
 
 bkgMCs = [
@@ -52,82 +52,52 @@ dNames = {
     "mu":sorted(list(set([os.path.dirname(x) for x in hists["mu"]]))),
 }
 
-## Make mT/dphi histograms to be used in the ABCD method
+## Compute scales, 
+scales = {}
+counts = {}
 f = TFile("pass3/nominal/sel_ABCD.root", "recreate")
 for ch in ("el", "mu"):
     for dName in dNames[ch]:
         dout = rootGetDir(f, dName)
-        for hName in ("kin_mT", "kin_mT_cosDphi"):
-            hName = str(dName+'/'+hName)
-            hRD     = fRD[ch].Get(hName)
-            hRD_QCD = fRD_QCD[ch].Get(hName)
-            if None in (hRD, hRD_QCD): continue
+        ## Make ABCD 
+        dout.cd()
+        hABCD = TH2D("event_ABCD", "ABCD;isIso;isQCD", 2, 0, 2, 2, 0, 2)
 
-            ## Compute (B/D) for each steps
-            ##        
-            ## QCDSel |  B  |  D
-            ## SigSel |  A  |  C 
-            ##        +-----+-----
-            ##         Iso   NonIso
+        hName = str(dName+"/event_ABCD")
+        hAB, hCD = fRD[ch].Get(hName), fRD_QCD[ch].Get(hName)
+        if None in (hAB, hCD): continue
 
-            dout.cd()
-            h_AB = hRD.Clone()
-            h_CD = hRD_QCD.Clone()
-            h_CD_MC = h_CD.Clone()
-            h_AB.SetName(hRD.GetName()+"_AB")
-            h_CD.SetName(hRD_QCD.GetName()+"_CD")
-            h_CD_MC.Reset()
-            h_CD_MC.SetName(hRD_QCD.GetName()+"_CD_MC")
-            for title, colour, files in bkgMCs:
-                if len(files) < 2: continue
-                h_AB.Add(files[0].Get(hName), -lumi)
-                h_CD.Add(files[1].Get(hName), -lumi)
-                h_CD_MC.Add(files[1].Get(hName), lumi)
-            h_AB.Write()
-            h_CD.Write()
-            h_CD_MC.Write()
-f.Close()
-
-"""
-## Compute scales, 
-scales = {}
-for ch in ("el", "mu"):
-    for dName in dNames[ch]:
-        ## Compute (B/D) for each steps
-        ##        
-        ## mT>20 |  A  |  C
-        ## mT<20 |  B  |  D 
-        ##       +-----+-----
-        ##         Iso   NonIso
-
-        hName = str(dName+'/kin_mT')
-        hRD     = fRD[ch].Get(hName)
-        hRD_QCD = fRD_QCD[ch].Get(hName)
-        if None in (hRD, hRD_QCD):
-            scales[dName] = 1
-            continue
-
-        iBinMTCut = hRD.GetXaxis().FindBin(20) ## 20GeV cut
-        #nRD_A = hRD.Integral(iBinMTCut, hRD.GetNbinsX()+1) ## High mT, non isolated
-        nRD_B = hRD.Integral(0, iBinMTCut-1) ## Low mT, isolated
-        #nRD_C = hRD_QCD.Integral(iBinMTCut, hRD.GetNbinsX()+1) ## High mT, non isolated
-        nRD_D = hRD_QCD.Integral(0, iBinMTCut-1) ## Low mT, non isolated
-
-        nMC_B, nMC_D = 0., 0.,
+        hABCD.Add(hAB)
+        hABCD.Add(hCD)
         for title, colour, files in bkgMCs:
             if len(files) < 2: continue
-            nMC_B += files[0].Get(hName).Integral(0, iBinMTCut-1)
-            nMC_D += files[1].Get(hName).Integral(0, iBinMTCut-1)
+            hABCD.Add(files[0].Get(hName), -lumi)
+            hABCD.Add(files[1].Get(hName), -lumi)
+        hABCD.Write()
 
-        scales[dName] = (nRD_B-lumi*nMC_B)/(nRD_D-lumi*nMC_D)
+        ## Set the default scale
+        scale = 0
+
+        nA = max(0, hABCD.GetBinContent(2,1))
+        nB = max(0, hABCD.GetBinContent(2,2))
+        nC = max(0, hABCD.GetBinContent(1,1))
+        nD = max(0, hABCD.GetBinContent(1,2))
+        if nB > 0 and nD > 0: scale = nB/nD
+
+        scales[dName] = scale
+        counts[dName] = scale*(nC+nD)
+f.Close()
 
 ## Do the subtraction to get the shapes
 f = TFile("pass3/nominal/QCD_Data.root", "recreate")
 for ch in ("el", "mu"):
     for hName in hists[ch]:
-        dName = os.path.dirname(hName)
-        hName = str(hName)
+        if hName.endswith("_ABCD"): continue
+        dName = str(os.path.dirname(hName))
+        if dName not in scales: continue
+
         scale = scales[dName]
+        hName = str(hName)
 
         hQCD = fRD_QCD[ch].Get(hName)
         if hQCD == None: continue
@@ -143,4 +113,6 @@ for ch in ("el", "mu"):
         hQCD.Write()
 f.Close()
 
-"""
+## Print out event counts
+for dName in sorted(counts.keys()):
+    print dName, counts[dName]
