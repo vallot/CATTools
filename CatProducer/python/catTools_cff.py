@@ -71,6 +71,28 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         #######################################################################
         ## applying new jec on the fly
         process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
+        if not runOnMC:
+            process.updatedPatJetCorrFactors.levels = cms.vstring('L1FastJet','L2Relative','L3Absolute','L2L3Residual')
+
+     
+        #######################################################################
+        ## applying new jec on the fly
+        from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
+        if runOnMC:
+            updateJetCollection(
+                process,
+                jetSource = cms.InputTag('slimmedJets'),
+                jetCorrections = ('AK4PFchs', cms.vstring(['L1FastJet', 'L2Relative', 'L3Absolute']), 'None'),
+                )
+            
+        else :
+            updateJetCollection(
+                process,
+                jetSource = cms.InputTag('slimmedJets'),
+                jetCorrections = ('AK4PFchs', cms.vstring(['L1FastJet', 'L2Relative', 'L3Absolute', 'L2L3Residual']), 'None'),
+                )
+            
+
         process.patJetCorrFactors.primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices")
         process.catJets.src = cms.InputTag("updatedPatJets")
         ### updating puppi jet jec
