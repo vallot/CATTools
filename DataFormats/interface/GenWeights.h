@@ -74,7 +74,7 @@ public:
   void addWeight(const float w) { weights_.push_back(w); }
 
 private:
-  int id1_, id2_;
+  char id1_, id2_;
   float x1_, x2_, qScale_;
 
   float genWeight_, lheWeight_;

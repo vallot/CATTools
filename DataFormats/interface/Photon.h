@@ -41,15 +41,15 @@ namespace cat {
     float neutralHadronIsoWithEA(); 
     float photonIsoWithEA(); 
     
-    bool isPF() const{ return isPF_; }
-    bool isTight() const { return isTight_; }
-    bool isMedium() const { return isMedium_; }
-    bool isLoose() const { return isLoose_; }
+    bool isPF() const{ return idBits_[0]; }
+    bool isTight() const { return idBits_[1]; }
+    bool isMedium() const { return idBits_[2]; }
+    bool isLoose() const { return idBits_[3]; }
     
-    bool passMVA() const  { return passMVA_; }
+    bool passMVA() const  { return idBits_[4]; }
     
-    bool PassElectronVeto() const { return passElVeto_;}
-    bool HasPixelSeed() const { return hasPixSeed_;}
+    bool PassElectronVeto() const { return idBits_[5];}
+    bool HasPixelSeed() const { return idBits_[6];}
     
     float SigmaiEtaiEta() const {return iEtaiEta_;}
     float r9() const {return r9_;}
@@ -61,7 +61,7 @@ namespace cat {
 
     float smearedScale() const { return smearedScale_; }
 
-    bool mcMatched() const { return mcMatched_; }
+    bool mcMatched() const { return idBits_[7]; }
 
     float getEffArea(IsoType iso_type, float scEta) ;
     /// Set class variables
@@ -77,13 +77,13 @@ namespace cat {
     void setpuhargedHadronIso(float pu) {puChargedHadronIso_ = pu;} 
     
     // ID variables
-    void setIsPF(bool d) { isPF_ = d ; }
-    void setIsTight(bool d) { isTight_ = d; }
-    void setIsMedium(bool d) { isMedium_ = d; }
-    void setIsLoose(bool d) { isLoose_ = d; }
-    void setPassMVA(bool d) { passMVA_ = d; }
-    void setPassElectronVeto(bool pass){ passElVeto_ = pass;}
-    void setHasPixelSeed(bool hasPixSeed){hasPixSeed_ = hasPixSeed;}
+    void setIsPF(bool d) { idBits_[0] = d ; }
+    void setIsTight(bool d) { idBits_[1] = d; }
+    void setIsMedium(bool d) { idBits_[2] = d; }
+    void setIsLoose(bool d) { idBits_[3] = d; }
+    void setPassMVA(bool d) { idBits_[4] = d; }
+    void setPassElectronVeto(bool pass){ idBits_[5] = pass;}
+    void setHasPixelSeed(bool hasPixSeed){ idBits_[6] = hasPixSeed;}
 
     // Shower shape
     void setSigmaiEtaiEta(float ieteieta){ iEtaiEta_ = ieteieta;}
@@ -98,21 +98,14 @@ namespace cat {
 
     void setSmearedScale(const float scale) { smearedScale_ = scale; }
 
-    void setMCMatched(bool m) { mcMatched_ = m; }
+    void setMCMatched(bool m) { idBits_[7] = m; }
     
   private:
 
 
     std::vector<pat::Photon::IdPair> photonIDs_;
 
-    bool isPF_;
-    bool isTight_;
-    bool isMedium_;
-    bool isLoose_;
-    bool passMVA_;
-
-    bool passElVeto_;
-    bool hasPixSeed_;
+    std::bitset<8> idBits_; // isPF, isTight, isMedium, isLoose, passMVA, passElVeto, hasPixSeed, mcMatched
     
     float rhoIso_;
     float chargedHadronIso_;
@@ -126,9 +119,6 @@ namespace cat {
     float scEta_, scPhi_, scRawE_, scPreShE_;
 
     float smearedScale_;
-
-    bool mcMatched_;
-    
   };
 }
 

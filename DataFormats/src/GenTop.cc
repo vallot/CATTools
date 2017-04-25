@@ -24,6 +24,8 @@ GenTop::GenTop(){
   addbJetsHad_ = {null, null};
   addcJetsHad_ = {null, null};
   addJets_ = {null, null};
+
+  chBit_.reset();
 }
 
 // GenTop::GenTop(const reco::GenParticle & aGenTop) : reco::LeafCandidate(aGenTop) {
@@ -50,6 +52,8 @@ GenTop::GenTop(const reco::Candidate & aGenTop) : reco::LeafCandidate(aGenTop) {
   addbJetsHad_ = {null, null};
   addcJetsHad_ = {null, null};
   addJets_ = {null, null};
+
+  chBit_.reset();
 }
 
 /// destructor
@@ -60,6 +64,7 @@ GenTop::~GenTop() {
 void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenParticleCollection> genParticles, 
                       Handle<std::vector<int> > genBHadFlavour, Handle<std::vector<int> > genBHadJetIndex, 
                       Handle<std::vector<int> > genCHadFlavour, Handle<std::vector<int> > genCHadJetIndex){
+  chBit_.reset();
 
   math::XYZTLorentzVector null(0,0,0,0);
 
@@ -253,55 +258,42 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
      is2tops_=true;
   } else is2tops_ =false;
 
-  allHadronic_ = false;
-  semiLeptonic_ = false;
-  semiLeptonicEle_ = false;
-  semiLeptonicMuo_ = false;
-  semiLeptonicTau_ = false;
-  diLeptonic_ = false;
-  diLeptonicMuoMuo_ = false;
-  diLeptonicMuoEle_ = false;
-  diLeptonicEleEle_ = false;
-  diLeptonicTauMuo_ = false;
-  diLeptonicTauEle_ = false;
-  diLeptonicTauTau_ = false;
-
-  if ( hadronic[0] == true && hadronic[1] == true) allHadronic_ = true;
+  if ( hadronic[0] == true && hadronic[1] == true) chBit_[CHKeys::allHadronic] = true;
 
   if ( ( hadronic[0] == true &&  hadronic[1] == false ) ||
           ( hadronic[0] == false &&  hadronic[1] == true) )  {
     // All semi leptonic decays
-    semiLeptonic_ = true;
+    chBit_[CHKeys::semiLeptonic] = true;
     // Electron
     if ( ( hadronic[0] == true && electronic[1] == true) ||
-            ( hadronic[1] == true && electronic[0] == true ) )  semiLeptonicEle_ = true;
+            ( hadronic[1] == true && electronic[0] == true ) )  chBit_[CHKeys::semiLeptonicEle] = true;
     // Muon
     if ( ( hadronic[0] == true && muonic[1] == true ) ||
-            ( hadronic[1] == true && muonic[0] == true ) )  semiLeptonicMuo_ = true;
+            ( hadronic[1] == true && muonic[0] == true ) )  chBit_[CHKeys::semiLeptonicMuo] = true;
     // Tau
     if ( ( hadronic[0] == true && taunic[1] == true ) ||
-            ( hadronic[1] == true && taunic[0] == true ) )  semiLeptonicTau_ = true;
+            ( hadronic[1] == true && taunic[0] == true ) )  chBit_[CHKeys::semiLeptonicTau] = true;
   }
 
   // Di-Leptonic
   if ( hadronic[0] == false && hadronic[1] == false ) {
-    diLeptonic_ = true;
+    chBit_[CHKeys::diLeptonic] = true;
     // All di-leptonic decays
     // Electron-Electron
-    if ( electronic[0] == true && electronic[1] == true ) diLeptonicEleEle_ = true;
+    if ( electronic[0] == true && electronic[1] == true ) chBit_[CHKeys::diLeptonicEleEle] = true;
     // Muon-Muon
-    if ( muonic[0] == true && muonic[1] == true ) diLeptonicMuoMuo_ = true;
+    if ( muonic[0] == true && muonic[1] == true ) chBit_[CHKeys::diLeptonicMuoMuo] = true;
     // Electron-Muon
     if ( ( muonic[0] == true && electronic[1] == true ) ||
-      ( muonic[1] == true && electronic[0] == true ) )  diLeptonicMuoEle_ = true;
+      ( muonic[1] == true && electronic[0] == true ) )  chBit_[CHKeys::diLeptonicMuoEle] = true;
     // Tau-Muon
     if ( ( taunic[0] == true && muonic[1] == true ) ||
-      ( taunic[1] == true && muonic[0] == true ) )  diLeptonicTauMuo_ = true;
+      ( taunic[1] == true && muonic[0] == true ) )  chBit_[CHKeys::diLeptonicTauMuo] = true;
     // Tau-Electron
     if ( ( taunic[0] == true && electronic[1] == true ) ||
-      ( taunic[1] == true && electronic[0] == true ) ) diLeptonicTauEle_ = true;
+      ( taunic[1] == true && electronic[0] == true ) ) chBit_[CHKeys::diLeptonicTauEle] = true;
     // Tau-Tau
-    if ( taunic[0] == true && taunic[1] == true ) diLeptonicTauTau_ = true;
+    if ( taunic[0] == true && taunic[1] == true ) chBit_[CHKeys::diLeptonicTauTau] = true;
   }
 
   // debug
@@ -313,8 +305,8 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
   //cout << "diLeptonicTauEle= " << diLeptonicTauEle_ << endl;
   //cout << "diLeptonicTauTau= " << diLeptonicTauTau_ << endl;
 
-  taunic1_ = taunic[0];
-  taunic2_ = taunic[1];
+  chBit_[CHKeys::taunic1] = taunic[0];
+  chBit_[CHKeys::taunic2] = taunic[1];
 
   //sort b-quarks from top since the leading two quarks must be from top.
   std::sort(bquarksfromtop.begin(), bquarksfromtop.end(), GreaterByPt<reco::Candidate::LorentzVector>());

@@ -11,9 +11,6 @@ Jet::Jet():
 
 Jet::Jet(const reco::LeafCandidate & aJet) :
   Particle( aJet ),
-  looseJetID_(false),
-  tightJetID_(false),
-  tightLepVetoJetID_(false),
   pileupJetId_(0),
   chargedEmEnergyFraction_(0),
   vtxMass_(0),
@@ -27,7 +24,9 @@ Jet::Jet(const reco::LeafCandidate & aJet) :
   shiftedEnUp_(1),					     
   fJER_(1), fJERUp_(1), fJERDown_(1),
   qgLikelihood_(-2)
-{}
+{
+  jetIdBits_.reset();
+}
 
 /// destructor
 Jet::~Jet() {

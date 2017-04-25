@@ -22,8 +22,8 @@ namespace cat {
     Muon(const reco::LeafCandidate & aMuon);
     virtual ~Muon();
     
-    bool isGlobalMuon() const { return isGlobalMuon_; }
-    bool isSoftMuon() const { return isSoftMuon_; }
+    bool isGlobalMuon() const { return idBits_[0]; }
+    bool isSoftMuon() const { return idBits_[1]; }
     bool isPFMuon() const { return this->isPF(); }
     bool isTightMuon() const { return this->isTight(); }
     bool isMediumMuon() const { return this->isMedium(); }
@@ -43,8 +43,8 @@ namespace cat {
     float shiftedEnDown() const {return 1-shiftedEn();}
     float shiftedEnUp() const {return  1+shiftedEn();}
 
-    void setIsGlobalMuon(bool d) { isGlobalMuon_ = d; }
-    void setIsSoftMuon(bool d) { isSoftMuon_ = d; }
+    void setIsGlobalMuon(bool d) { idBits_[0] = d; }
+    void setIsSoftMuon(bool d) { idBits_[1] = d; }
 
     void setNormalizedChi2(float d) { normalizedChi2_ = d; }
     void setNumberOfValidHits(int i) { numberOfValidHits_ = i; }
@@ -59,17 +59,17 @@ namespace cat {
     
   private:
 
-    bool isGlobalMuon_;
-    bool isSoftMuon_;
+    std::bitset<2> idBits_; // isGlobalMuon, isSoftMuon
 
     float normalizedChi2_;
     float ipsig_;
 
-    int numberOfValidHits_;
-    int numberOfValidMuonHits_;
-    int numberOfMatchedStations_;
-    int numberOfValidPixelHits_;
-    int trackerLayersWithMeasurement_;
+    typedef unsigned char uchar;
+    uchar numberOfValidHits_;
+    uchar numberOfValidMuonHits_;
+    uchar numberOfMatchedStations_;
+    uchar numberOfValidPixelHits_;
+    uchar trackerLayersWithMeasurement_;
   };
 }
 

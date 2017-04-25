@@ -23,6 +23,7 @@ namespace cat {
   typedef std::vector<GenTop>              GenTopCollection;
   typedef edm::Ref<GenTopCollection>       GenTopRef;
   typedef edm::RefVector<GenTopCollection> GenTopRefVector;
+
 }
 
 namespace cat {
@@ -35,6 +36,18 @@ namespace cat {
     virtual ~GenTop();
 
     typedef std::vector<math::XYZTLorentzVector> LorentzVectors;
+
+    struct CHKeys {
+      enum {
+        allHadronic = 0,
+        semiLeptonic, semiLeptonicMuo, semiLeptonicEle, semiLeptonicTau,
+        diLeptonic, diLeptonicMuoMuo, diLeptonicMuoEle, diLeptonicEleEle,
+        diLeptonicTauMuo, diLeptonicTauEle, diLeptonicTauTau, 
+        ttbbDecay,
+        taunic1, taunic2,
+        SIZE
+      };
+    };
 
     // status 3
     const math::XYZTLorentzVector topquark1() const { return tops_[0]; }
@@ -119,40 +132,40 @@ namespace cat {
 
     bool taunic(int i = -1) const {
       bool hasTau = false;
-      if( i == -1) hasTau = taunic1_ || taunic2_;
-      if( i == 0 ) hasTau = taunic1_;
-      if( i == 1 ) hasTau = taunic2_;
+      if( i == -1) hasTau = chBit_[CHKeys::taunic1] || chBit_[CHKeys::taunic2];
+      if( i == 0 ) hasTau = chBit_[CHKeys::taunic1];
+      if( i == 1 ) hasTau = chBit_[CHKeys::taunic2];
       return hasTau;
     }
 
-    bool allHadronic() const { return allHadronic_; }
+    bool allHadronic() const { return chBit_[CHKeys::allHadronic]; }
 
     bool semiLeptonic(int i = -1) const {
       bool decay = false;
-      if( i == -1) decay = semiLeptonic_;
-      if( i == 0) decay = semiLeptonicMuo_ || semiLeptonicEle_;
-      if( i == 1) decay = ( semiLeptonicMuo_ || semiLeptonicEle_ ) && !semiLeptonicTau_;
+      if( i == -1) decay = chBit_[CHKeys::semiLeptonic];
+      if( i == 0) decay = chBit_[CHKeys::semiLeptonicMuo] || chBit_[CHKeys::semiLeptonicEle];
+      if( i == 1) decay = ( chBit_[CHKeys::semiLeptonicMuo] || chBit_[CHKeys::semiLeptonicEle] ) && !chBit_[CHKeys::semiLeptonicTau];
       return decay;
     }
 
-    bool semiLeptonicMuo() const { return semiLeptonicMuo_; }
-    bool semiLeptonicEle() const { return semiLeptonicEle_; }
-    bool semiLeptonicTau() const { return semiLeptonicTau_; }
+    bool semiLeptonicMuo() const { return chBit_[CHKeys::semiLeptonicMuo]; }
+    bool semiLeptonicEle() const { return chBit_[CHKeys::semiLeptonicEle]; }
+    bool semiLeptonicTau() const { return chBit_[CHKeys::semiLeptonicTau]; }
 
     bool diLeptonic(int i = -1) const {
       bool decay = false;
-      if( i == -1) decay = diLeptonic_;
-      if( i == 0) decay = diLeptonicMuoMuo_ || diLeptonicMuoEle_ || diLeptonicEleEle_;
-      if( i == 1) decay = ( diLeptonicMuoMuo_ || diLeptonicMuoEle_ || diLeptonicEleEle_) && !( diLeptonicTauMuo_ || diLeptonicTauEle_ || diLeptonicTauTau_);
+      if( i == -1) decay = chBit_[CHKeys::diLeptonic];
+      if( i == 0) decay = chBit_[CHKeys::diLeptonicMuoMuo] || chBit_[CHKeys::diLeptonicMuoEle] || chBit_[CHKeys::diLeptonicEleEle];
+      if( i == 1) decay = ( chBit_[CHKeys::diLeptonicMuoMuo] || chBit_[CHKeys::diLeptonicMuoEle] || chBit_[CHKeys::diLeptonicEleEle]) && !( chBit_[CHKeys::diLeptonicTauMuo] || chBit_[CHKeys::diLeptonicTauEle] || chBit_[CHKeys::diLeptonicTauTau]);
       return decay;
     }
 
-    bool diLeptonicMuoMuo() const { return diLeptonicMuoMuo_; }
-    bool diLeptonicMuoEle() const { return diLeptonicMuoEle_; }
-    bool diLeptonicEleEle() const { return diLeptonicEleEle_; }
-    bool diLeptonicTauMuo() const { return diLeptonicTauMuo_; }
-    bool diLeptonicTauEle() const { return diLeptonicTauEle_; }
-    bool diLeptonicTauTau() const { return diLeptonicTauTau_; }
+    bool diLeptonicMuoMuo() const { return chBit_[CHKeys::diLeptonicMuoMuo]; }
+    bool diLeptonicMuoEle() const { return chBit_[CHKeys::diLeptonicMuoEle]; }
+    bool diLeptonicEleEle() const { return chBit_[CHKeys::diLeptonicEleEle]; }
+    bool diLeptonicTauMuo() const { return chBit_[CHKeys::diLeptonicTauMuo]; }
+    bool diLeptonicTauEle() const { return chBit_[CHKeys::diLeptonicTauEle]; }
+    bool diLeptonicTauTau() const { return chBit_[CHKeys::diLeptonicTauTau]; }
 
     int NbQuarksTop() const { return NbQuarksTop_ ; }
     int NbQuarksNoTop() const { return NbQuarksNoTop_ ; }
@@ -299,115 +312,100 @@ namespace cat {
     LorentzVectors bJets_;
     LorentzVectors bJetsFromTop_;
     LorentzVectors JetsFromW_;
-    std::vector<int> JetsFlavourFromW_;
+    std::vector<short> JetsFlavourFromW_;
     LorentzVectors addbJets_;
     LorentzVectors addcJets_;
     LorentzVectors addbJetsHad_;
     LorentzVectors addcJetsHad_;
     LorentzVectors addJets_;
     LorentzVectors quarksfromW_;
-    std::vector<int> qflavourfromW_;
+    std::vector<short> qflavourfromW_;
 
     float ttbarmass_;
 
-    bool allHadronic_;
-    bool semiLeptonic_;
-    bool semiLeptonicMuo_;
-    bool semiLeptonicEle_;
-    bool semiLeptonicTau_;
-    bool diLeptonic_;
-    bool diLeptonicMuoMuo_;
-    bool diLeptonicMuoEle_;
-    bool diLeptonicEleEle_;
-    bool diLeptonicTauMuo_;
-    bool diLeptonicTauEle_;
-    bool diLeptonicTauTau_;
+    std::bitset<CHKeys::SIZE> chBit_;
 
-    bool ttbbDecay_;
+    typedef unsigned char uchar;
+    uchar NbJets_;
+    uchar NbJets10_;
+    uchar NbJets15_;
+    uchar NbJets20_;
+    uchar NbJets25_;
+    uchar NbJets30_;
+    uchar NbJets40_;
 
-    bool taunic1_;
-    bool taunic2_;
+    uchar NbJetsBHad_;
+    uchar NbJets10BHad_;
+    uchar NbJets15BHad_;
+    uchar NbJets20BHad_;
+    uchar NbJets25BHad_;
+    uchar NbJets30BHad_;
+    uchar NbJets40BHad_;
 
-    int NbJets_;
-    int NbJets10_;
-    int NbJets15_;
-    int NbJets20_;
-    int NbJets25_;
-    int NbJets30_;
-    int NbJets40_;
+    uchar NaddbJetsBHad_;
+    uchar NaddbJets20BHad_;
+    uchar NaddbJets40BHad_;
 
-    int NbJetsBHad_;
-    int NbJets10BHad_;
-    int NbJets15BHad_;
-    int NbJets20BHad_;
-    int NbJets25BHad_;
-    int NbJets30BHad_;
-    int NbJets40BHad_;
+    uchar NaddcJetsCHad_;
+    uchar NaddcJets20CHad_;
+    uchar NaddcJets40CHad_;
 
-    int NaddbJetsBHad_;
-    int NaddbJets20BHad_;
-    int NaddbJets40BHad_;
-
-    int NaddcJetsCHad_;
-    int NaddcJets20CHad_;
-    int NaddcJets40CHad_;
-
-    int NbJetsNoTop_;
-    int NbJets10NoTop_;
-    int NbJets15NoTop_;
-    int NbJets20NoTop_;
-    int NbJets25NoTop_;
-    int NbJets30NoTop_;
-    int NbJets40NoTop_;
+    uchar NbJetsNoTop_;
+    uchar NbJets10NoTop_;
+    uchar NbJets15NoTop_;
+    uchar NbJets20NoTop_;
+    uchar NbJets25NoTop_;
+    uchar NbJets30NoTop_;
+    uchar NbJets40NoTop_;
 
 
-    int NcJets_;
-    int NcJets10_;
-    int NcJets15_;
-    int NcJets20_;
-    int NcJets25_;
-    int NcJets30_;
-    int NcJets40_;
+    uchar NcJets_;
+    uchar NcJets10_;
+    uchar NcJets15_;
+    uchar NcJets20_;
+    uchar NcJets25_;
+    uchar NcJets30_;
+    uchar NcJets40_;
 
-    int NaddcJets_;
-    int NaddcJets10_;
-    int NaddcJets20_;
-    int NaddcJets30_;
-    int NaddcJets40_;
+    uchar NaddcJets_;
+    uchar NaddcJets10_;
+    uchar NaddcJets20_;
+    uchar NaddcJets30_;
+    uchar NaddcJets40_;
 
-    int NcJetsCHad_;
-    int NcJets10CHad_;
-    int NcJets15CHad_;
-    int NcJets20CHad_;
-    int NcJets25CHad_;
-    int NcJets30CHad_;
-    int NcJets40CHad_;
+    uchar NcJetsCHad_;
+    uchar NcJets10CHad_;
+    uchar NcJets15CHad_;
+    uchar NcJets20CHad_;
+    uchar NcJets25CHad_;
+    uchar NcJets30CHad_;
+    uchar NcJets40CHad_;
 
-    int NbQuarks_;
-    int NbQuarksNoTop_;
-    int NbQuarksTop_;
-    int NbQuarks20_;
-    int NbQuarks40_;
-    int NaddbQuarks20_;
-    int NaddbQuarks40_;
+    uchar NbQuarks_;
+    uchar NbQuarksNoTop_;
+    uchar NbQuarksTop_;
+    uchar NbQuarks20_;
+    uchar NbQuarks40_;
+    uchar NaddbQuarks20_;
+    uchar NaddbQuarks40_;
 
-    int NcQuarks_;
-    int NaddcQuarks_;
-    //int NaddcQuarks20_;
-    //int NaddcQuarks40_;
+    uchar NcQuarks_;
+    uchar NaddcQuarks_;
+    //uchar NaddcQuarks20_;
+    //uchar NaddcQuarks40_;
 
-    int NJets_;
-    int NJets10_;
-    int NJets15_;
-    int NJets20_;
-    int NJets25_;
-    int NJets30_;
-    int NJets40_;
+    uchar NJets_;
+    uchar NJets10_;
+    uchar NJets15_;
+    uchar NJets20_;
+    uchar NJets25_;
+    uchar NJets30_;
+    uchar NJets40_;
 
-    int NaddJets20_;
-    int NaddJets40_;
+    uchar NaddJets20_;
+    uchar NaddJets40_;
 
-    int NWJets_;
+    uchar NWJets_;
 
     float dRaddJets_;
 

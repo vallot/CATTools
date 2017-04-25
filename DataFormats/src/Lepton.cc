@@ -8,10 +8,6 @@ Lepton::Lepton() {
 
 Lepton::Lepton(const reco::LeafCandidate & aLepton) :
   Particle( aLepton ),
-  isPF_(false),
-  isTight_(false),
-  isMedium_(false),
-  isLoose_(false),
   dz_(0),
   dxy_(0),
   chargedHadronIso03_(0),
@@ -22,9 +18,10 @@ Lepton::Lepton(const reco::LeafCandidate & aLepton) :
   puChargedHadronIso04_(0),
   neutralHadronIso04_(0),
   photonIso04_(0),
-  relMiniIso_(0),
-  mcMatched_(false)
-{}
+  relMiniIso_(0)
+{
+  idBits_.reset();
+}
 
 /// destructor
 Lepton::~Lepton() {

@@ -40,8 +40,8 @@ namespace cat {
 
     MCParticle hadron_;
     //parton flavour
-    int partonFlavour_;
-    int partonPdgId_;
+    short partonFlavour_;
+    short partonPdgId_;
 
   };
 }

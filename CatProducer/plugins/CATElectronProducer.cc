@@ -51,7 +51,7 @@ namespace cat {
   private:
     
     float getEffArea( float dR, float scEta );
-    int getSNUID(float, float, float, float, float, float, int, bool, float);
+    std::bitset<4> getSNUID(float, float, float, float, float, float, int, bool, float);
     edm::EDGetTokenT<edm::View<pat::Electron> > src_;
     edm::EDGetTokenT<edm::View<pat::Electron> > unsmearedElecToken_;
     edm::EDGetTokenT<reco::VertexCollection> vertexLabel_;
@@ -305,7 +305,7 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
       eoverp = std::abs(1.0/aPatElectron.ecalEnergy() - aPatElectron.eSuperClusterOverP()/aPatElectron.ecalEnergy() ) ;
     }
 
-    int snu_id = getSNUID(aPatElectron.full5x5_sigmaIetaIeta(), abs(aPatElectron.deltaEtaSuperClusterTrackAtVtx() ), abs(aPatElectron.deltaPhiSuperClusterTrackAtVtx() ), aPatElectron.hcalOverEcal(), eoverp, abs(aElectron.dz()) , aPatElectron.gsfTrack()->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS), aPatElectron.passConversionVeto(),aPatElectron.superCluster()->eta() );
+    auto snu_id = getSNUID(aPatElectron.full5x5_sigmaIetaIeta(), abs(aPatElectron.deltaEtaSuperClusterTrackAtVtx() ), abs(aPatElectron.deltaPhiSuperClusterTrackAtVtx() ), aPatElectron.hcalOverEcal(), eoverp, abs(aElectron.dz()) , aPatElectron.gsfTrack()->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS), aPatElectron.passConversionVeto(),aPatElectron.superCluster()->eta() );
     aElectron.setSNUID(snu_id);
 
     // Fill the validity flag of triggered MVA
@@ -347,7 +347,7 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
 }
 
 
-int cat::CATElectronProducer::getSNUID(float full5x5_sigmaIetaIeta, float deltaEtaSuperClusterTrackAtVtx, float deltaPhiSuperClusterTrackAtVtx, float hoverE, float eoverp, float dz, int exp_miss_innerhits, bool pass_conversion_veto, float sceta){
+std::bitset<4> cat::CATElectronProducer::getSNUID(float full5x5_sigmaIetaIeta, float deltaEtaSuperClusterTrackAtVtx, float deltaPhiSuperClusterTrackAtVtx, float hoverE, float eoverp, float dz, int exp_miss_innerhits, bool pass_conversion_veto, float sceta){
 
   //----------------------------------------------------------------------
   // Barrel electron cut values
@@ -373,7 +373,7 @@ int cat::CATElectronProducer::getSNUID(float full5x5_sigmaIetaIeta, float deltaE
   double l_e_ep      [4] = { 0.15, 0.14, 0.13,0.0129};
   int    l_e_missHits[4] = { 3, 1, 1, 1};
 
-  int flag_id=0;
+  std::bitset<4> idBit;
   for(int i=0; i < 4; i++){
     bool pass_id=true;
     if ( std::abs(sceta) < 1.479 ){
@@ -394,10 +394,10 @@ int cat::CATElectronProducer::getSNUID(float full5x5_sigmaIetaIeta, float deltaE
       if(exp_miss_innerhits > l_e_missHits[i])pass_id = false;
       if(!pass_conversion_veto) pass_id = false;
     }
-    if(pass_id)flag_id += pow(10,i);
+    if(pass_id) idBit[i] = 1;
   }
 
-  return flag_id;
+  return idBit;
 }
 
 float
