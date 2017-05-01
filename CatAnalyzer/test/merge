@@ -7,41 +7,39 @@ import sys, os
 # ///      otherwise only specific dir name where root files are in       ///
 # ///////////////////////////////////////////////////////////////////////////
 
-user_input = sys.argv[1]
+#user_input = sys.argv[1]
 """
 if "results_merged" not in os.listdir(os.getcwd()):
     os.system("mkdir results_merged")
     print "'results_merged' has been created."
 """
-#version="v7-6-6/"
-version="%s_bump2"%os.environ["CMSSW_VERSION"]
-pstored="/xrootd/store/user/pseudotop/ntuples/"
-pstored2=pstored+"%s/"%version
+
+version="%s"%os.environ["CMSSW_VERSION"]
+pstored="/xrootd/store/user/%s/cattree/%s/"%(os.environ['USER'],os.environ["CMSSW_VERSION"])
 pmerged=pstored+"results_merged/" 
 
-if pmerged+version not in os.listdir(pstored):
-    os.system("mkdir -p "+pmerged+version)
+if pmerged not in os.listdir(pstored):
+    os.system("mkdir -p "+pmerged)
     print "'results_merged' has been created."
 
 #pwd = os.getcwd()+'/'
-print pstored2, pmerged, os.listdir(pstored2)
-if user_input == "all":
-    dir_list = [x for x in os.listdir(pstored2) if (os.path.isdir(pstored2+x) and x != "results_merged")]
-else: dir_list = os.listdir(pwd+user_input)
+print pstored, pmerged, os.listdir(pstored)
+dir_list = [x for x in os.listdir(pstored) if (os.path.isdir(pstored+x) and x != "results_merged")]
 print dir_list
 
 failed_list = []
 for d in dir_list:
-    print pstored2+d
-    root_list = [x for x in os.listdir(pstored2+d) if (("cattree" in x) and x.endswith(".root"))]
+    print pstored+d
+    root_list = [x for x in os.listdir(pstored+d) if (("cattree" in x) and x.endswith(".root"))]
     file_names = ""
     for x in root_list:
-        file_names += " %s/%s"%(pstored2+d,x)
+        file_names += " %s/%s"%(pstored+d,x)
     if len(root_list) == 0:
         failed_list.append(d)
     else:
-        #os.system("hadd -f %s.root %s"%(pmerged+version+"h2muAnalyzer_"+d,file_names))
-        os.system("hadd -f %s.root %s"%(pmerged+version+"/h2muAnalyzer_"+d,file_names))
+        #os.system("hadd -f %s.root %s"%(pmerged+"h2muAnalyzer_"+d,file_names))
+        print "hadd -f %s.root %s"%(pmerged+"h2muAnalyzer_"+d,file_names)
+        os.system("hadd -f %s.root %s"%(pmerged+"h2muAnalyzer_"+d,file_names))
 
 if len(failed_list) > 0:
     print
