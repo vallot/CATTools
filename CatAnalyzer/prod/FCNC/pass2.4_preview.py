@@ -7,16 +7,16 @@ sys.argv.append("-b")
 from math import hypot
 from ROOT import *
 import imp
-#printCutflow = imp.load_source("printCutflow", "../../../Validation/prod/submacros/printCutflow.py").printCutflow
+printCutflow = imp.load_source("printCutflow", "submacros/printCutflow.py").printCutflow
 #st = imp.load_source("st", "submacros/tdrstyle.py")
-gROOT.LoadMacro("../../../../Validation/prod/submacros/tdrstyle.C")
+gROOT.LoadMacro("submacros/tdrstyle.C")
 setTDRStyle()
 gStyle.SetOptTitle(0)
 gStyle.SetOptStat(0)
 
 variation = "nominal"
 #variation = "antiIso"
-lumi = 36.8*1000
+lumi = 35.87*1000
 
 bkgMCs = [
     ["t_bar_t__Jets_rightarrow_l___pm_", "t#bar{t}+Jets#rightarrow l^{#pm}", 632],
