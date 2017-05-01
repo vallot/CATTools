@@ -4,12 +4,14 @@ process = cms.Process("TtbarDiLeptonAnalyzer")
 process.load("FWCore.MessageService.MessageLogger_cfi")
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
-process.options.allowUnscheduled = cms.untracked.bool(True)
+process.options.allowUnscheduled = cms.untracked.bool(False)
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 from CATTools.Validation.commonTestInput_cff import commonTestCATTuples
 #process.source.fileNames = commonTestCATTuples["sig"]
-process.source.fileNames = ["file:/cms/scratch/quark2930/Work/production/catTuple_TT_powheg.root"]
+#process.source.fileNames = ["file:/cms/scratch/quark2930/Work/production/catTuple_TT_powheg.root"]
+#process.source.fileNames = ["file:/xrd/store/group/CAT/DoubleEG/v8-0-6_Run2016B-03Feb2017_ver2-v2/170303_094015/0000/catTuple_1.root"]
+process.source.fileNames = ["root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/DoubleEG/v8-0-6_Run2016B-03Feb2017_ver2-v2/170303_094015/0000/catTuple_1.root"]
 
 process.load("CATTools.CatAnalyzer.ttll.ttbarDileptonKinSolutionAlgos_cff")
 process.load("CATTools.CatAnalyzer.filters_cff")
@@ -54,7 +56,9 @@ process.cattree = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
         effSF = electronSFCutBasedIDMediumWP,#electronSFWP90,
     ),
     mcLabel = cms.InputTag("prunedGenParticles"),
-
+########
+    #partonTop = cms.InputTag("prunedGenParticles"),
+########
     partonTop_channel = cms.InputTag("partonTop","channel"),
     partonTop_modes = cms.InputTag("partonTop", "modes"),
     partonTop_genParticles = cms.InputTag("partonTop"),
