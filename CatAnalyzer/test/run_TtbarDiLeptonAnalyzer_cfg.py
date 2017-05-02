@@ -10,7 +10,9 @@ process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 from CATTools.Validation.commonTestInput_cff import commonTestCATTuples
 process.source.fileNames = commonTestCATTuples["data"]
 
-realData = True
+######## with RunData ,  realData = True
+######## with McData ,   realData = Flase
+realData = False
 
 process.load("CATTools.CatAnalyzer.ttll.ttbarDileptonKinSolutionAlgos_cff")
 process.load("CATTools.CatAnalyzer.filters_cff")
@@ -60,6 +62,12 @@ process.cattree = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     partonTop_modes = cms.InputTag("partonTop", "modes"),
     partonTop_genParticles = cms.InputTag("partonTop"),
 
+## Dstar begin
+    d0s    = cms.InputTag("catDstars","D0Cand"),
+    dstars = cms.InputTag("catDstars","DstarCand"),
+    Jpsis  = cms.InputTag("catDstars","JpsiCand"),
+    matchingDeltaR = cms.double(0.15),
+## Dstar end
     pseudoTop = cms.InputTag("pseudoTop"),
 
     #solver = process.ttbarDileptonKinAlgoPSetCMSKin,
