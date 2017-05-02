@@ -14,7 +14,7 @@
 #include "CATTools/DataFormats/interface/MET.h"
 
 #include "CATTools/CommonTools/interface/TTbarModeDefs.h"
-//#include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
+#include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
 #include "CATTools/CatAnalyzer/interface/BTagWeightEvaluator.h"
 //#include "TopQuarkAnalysis/TopKinFitter/interface/TtFullLepKinSolver.h"
 #include "CATTools/CatAnalyzer/interface/TopTriggerSF.h"
@@ -38,7 +38,6 @@
 
 using namespace std;
 using namespace cat;
-using namespace dileptonCommonGlobal;
 
 //########### Dstar end
 
