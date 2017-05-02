@@ -8,7 +8,11 @@ process.options.allowUnscheduled = cms.untracked.bool(True)
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 from CATTools.Validation.commonTestInput_cff import commonTestCATTuples
-process.source.fileNames = commonTestCATTuples["sig"]
+process.source.fileNames = commonTestCATTuples["data"]
+
+######## with RunData ,  realData = True
+######## with McData ,   realData = Flase
+realData = False
 
 process.load("CATTools.CatAnalyzer.ttll.ttbarDileptonKinSolutionAlgos_cff")
 process.load("CATTools.CatAnalyzer.filters_cff")
@@ -33,7 +37,6 @@ process.cattree = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     pdfweights = cms.InputTag("flatGenWeights","pdf"),
     scaleupweights = cms.InputTag("flatGenWeights","scaleup"),
     scaledownweights = cms.InputTag("flatGenWeights","scaledown"),
-    topPtWeight = cms.InputTag("topPtWeight"),
     puweight = cms.InputTag("pileupWeight"),
     puweight_up = cms.InputTag("pileupWeight","up"),
     puweight_dn = cms.InputTag("pileupWeight","dn"),
@@ -54,10 +57,17 @@ process.cattree = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     ),
     mcLabel = cms.InputTag("prunedGenParticles"),
 
+    topPtWeight = cms.InputTag("topPtWeight"),
     partonTop_channel = cms.InputTag("partonTop","channel"),
     partonTop_modes = cms.InputTag("partonTop", "modes"),
     partonTop_genParticles = cms.InputTag("partonTop"),
 
+## Dstar begin
+    d0s    = cms.InputTag("catDstars","D0Cand"),
+    dstars = cms.InputTag("catDstars","DstarCand"),
+    Jpsis  = cms.InputTag("catDstars","JpsiCand"),
+    matchingDeltaR = cms.double(0.15),
+## Dstar end
     pseudoTop = cms.InputTag("pseudoTop"),
 
     #solver = process.ttbarDileptonKinAlgoPSetCMSKin,
@@ -65,6 +75,14 @@ process.cattree = cms.EDAnalyzer("TtbarDiLeptonAnalyzer",
     solverPseudoTop = process.ttbarDileptonKinAlgoPSetDESYSmearedPseudoTop,
     #solver = process.ttbarDileptonKinAlgoPSetDESYMassLoop,
 )
+
+if realData:
+    process.cattree.topPtWeight = cms.InputTag("")
+    process.cattree.partonTop_channel = cms.InputTag("")
+    process.cattree.partonTop_modes = cms.InputTag("")
+    process.cattree.partonTop_genParticles = cms.InputTag("")
+    process.cattree.pseudoTop = cms.InputTag("")
+    
 #process.cattree.solver.tMassStep = 1
 if cms.string('DESYSmeared') == process.cattree.solver.algo:
     process.RandomNumberGeneratorService = cms.Service("RandomNumberGeneratorService",
