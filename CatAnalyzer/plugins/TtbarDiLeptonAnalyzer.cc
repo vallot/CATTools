@@ -415,7 +415,7 @@ bool TtbarDiLeptonAnalyzer::eventSelection(const edm::Event& iEvent, systematic 
   if ( runOnMC ) {
     iEvent.getByToken(mcSrc_, mcHandle);
   }
-// song -->>  mcHandle -> be prunedGen
+
   vector<TLorentzVector> gen_d0s;
   vector<TLorentzVector> gen_dstars;
   vector<TLorentzVector> gen_Jpsis;
@@ -432,7 +432,7 @@ bool TtbarDiLeptonAnalyzer::eventSelection(const edm::Event& iEvent, systematic 
 
         nIDMother = isFromtop(aGenParticle);
 
-        if ( abs(nIDMother) != 6 ) {
+        if ( /*0 == 1 &&*/ abs(nIDMother) != 6 ) {
             continue;
         }
 
@@ -446,7 +446,7 @@ bool TtbarDiLeptonAnalyzer::eventSelection(const edm::Event& iEvent, systematic 
 
         nIDMother = isFromtop(aGenParticle);
 
-        if (abs(nIDMother) != 6 ) {
+        if ( /*0 == 1 &&*/ abs(nIDMother) != 6 ) {
             continue;
         }
 
@@ -461,7 +461,7 @@ bool TtbarDiLeptonAnalyzer::eventSelection(const edm::Event& iEvent, systematic 
 
         nIDMother = isFromtop(aGenParticle);
 
-        if (abs(nIDMother) != 6 ) {
+        if ( /*0 == 1 &&*/ abs(nIDMother) != 6 ) {
             continue;
         }
 
@@ -713,7 +713,7 @@ bool TtbarDiLeptonAnalyzer::eventSelection(const edm::Event& iEvent, systematic 
     b_Jpsi_lepSV_lowM.push_back(( fMDMLep1 >= fMDMLep2 ? fMDMLep1 : fMDMLep2 ));
     b_Jpsi_lepSV_dRM.push_back(( fSqrtdRMLep1 >= fSqrtdRMLep2 ? fMDMLep1 : fMDMLep2 ));
   }
- 
+  
 
   edm::Handle<reco::VertexCollection> vertices;
   iEvent.getByToken(vtxToken_, vertices);
