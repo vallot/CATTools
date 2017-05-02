@@ -25,8 +25,9 @@ datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset/dataset.json
 #defalts
 step = 1
 channel = 1 #combined: channel = 0
-cut = 'tri!=0&&filtered==1&&is3lep==2'
-weight = 'genweight*puweight*mueffweight*eleffweight*tri'
+#cut = 'tri!=0&&filtered==1&&is3lep==2'
+cut = 'tri!=0&&filtered==1'
+wieight = 'genweight*puweight*mueffweight*eleffweight*tri'
 binning = [60, 20, 320]
 plotvar = 'dilep.M()'
 x_name = 'mass [GeV]'
@@ -83,7 +84,8 @@ ttother_tcut = '(%s&&%s&&%s)*(%s)'%(stepch_tcut,cut,ttother_tcut,weight)
 rd_tcut = '%s&&%s'%(stepch_tcut,cut)
 print "TCut =",tcut
 
-title_l = ["t#bar{t}", "W+jets", "Single top", "Single top", "Diboson", "Diboson", "Diboson", "Z/#gamma^{*}#rightarrow#font[12]{l#lower[-0.4]{+}l#lower[-0.4]{#font[122]{\55}}}", "Z/#gamma^{*}#rightarrow#font[12]{l#lower[-0.4]{+}l#lower[-0.4]{#font[122]{\55}}}"]
+#title_l = ["t#bar{t}", "W+jets", "Single top", "Single top", "Diboson", "Diboson", "Diboson", "Z/#gamma^{*}#rightarrow#font[12]{l#lower[-0.4]{+}l#lower[-0.4]{#font[122]{\55}}}", "Z/#gamma^{*}#rightarrow#font[12]{l#lower[-0.4]{+}l#lower[-0.4]{#font[122]{\55}}}"]
+title_l = ["t#bar{t}", "W+jets", "Diboson", "Diboson", "Diboson", "Z/#gamma^{*}#rightarrow#font[12]{l#lower[-0.4]{+}l#lower[-0.4]{#font[122]{\55}}}", "Z/#gamma^{*}#rightarrow#font[12]{l#lower[-0.4]{+}l#lower[-0.4]{#font[122]{\55}}}"]
 sysNameList = ['jer','jes','mu','el','puweight','mueffweight','eleffweight','btagweight']
 
 #DYEstimation
