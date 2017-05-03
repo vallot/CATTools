@@ -1,3 +1,7 @@
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Muon is global muon
+// ggF Tight also loops through all possible dijet combinations
+
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
@@ -616,20 +620,28 @@ int h2muAnalyzer::jetCategory(const JetCollection& seljets, float met, float ll_
   if (preSelection(seljets, met)){// pass preselection
     //VBF Tight selection
     for (auto& j1 : seljets) {
-      for (auto& j2 : seljets) {
-	if (&j1 != &j2){
-	  TLorentzVector dijets = j1.tlv() + j2.tlv();
-	  double delta_eta =  abs(j1.eta() - j2.eta());
-	  if (dijets.M() > 650 && abs(delta_eta) > 3.5)
-	    return 1;
-	}
-      }
+        for (auto& j2 : seljets) {
+	        if (&j1 != &j2){
+	            TLorentzVector dijets = j1.tlv() + j2.tlv();
+	            double delta_eta =  abs(j1.eta() - j2.eta());
+	            if (dijets.M() > 650 && abs(delta_eta) > 3.5)
+  	                return 1;
+            }
+        }
+    }
+    for (auto& j3 : seljets) {
+        for (auto& j4 : seljets) {
+            if (&j3 !=  &j4) {
+                TLorentzVector dijets = j3.tlv() + j4.tlv();
+                if (dijets.M() > 250. && ll_pt >= 50.)
+                    return 2;
+        	}
+        }
     }
     // ggF Tight selection
-    TLorentzVector dijets = seljets[0].tlv() + seljets[1].tlv();    
-    if (dijets.M() > 250. && ll_pt >= 50.)
-      return 2;
-
+    //TLorentzVector dijets = seljets[0].tlv() + seljets[1].tlv();    
+    //if (dijets.M() > 250. && ll_pt >= 50.)
+    //    return 2;
     return 3; // VBF Loose selection    
   }
   else {
