@@ -51,26 +51,14 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         process = enableAdditionalMETFilters(process, runOnMC)
 
         #######################################################################
-        # adding puppi https://twiki.cern.ch/twiki/bin/view/CMS/PUPPI        
-        #process.catJetsPuppi.src = cms.InputTag("slimmedJetsPuppi")
-        #process.catMETsPuppi.src = cms.InputTag("slimmedMETsPuppi")
-        # for puppi isolation
-        ## process.packedPFCandidatesWoMuon  = cms.EDFilter("CandPtrSelector", src = cms.InputTag("packedPFCandidates"), cut = cms.string("fromPV>=2 && abs(pdgId)!=13 " ) )
-        ## process.particleFlowNoMuonPUPPI.candName         = 'packedPFCandidatesWoMuon'
-        ## process.particleFlowNoMuonPUPPI.vertexName       = 'offlineSlimmedPrimaryVertices'
-        
-        ########################################################################
-        ## Setup to acess quark/gluon likelihood value
-
-        #from JMEAnalysis.JetToolbox.jetToolbox_cff import jetToolbox
-        #jetToolbox( process, 'ak4', 'ak4JetSubs', 'out', PUMethod='CHS', updateCollection='slimmedJets',  JETCorrPayload='AK8PFchs', miniAOD=True, addQGTagger=True )   ### For example
-        #jetToolbox( process, 'ak4', 'ak4JetSubs', 'out', PUMethod='CHS', miniAOD=True, addQGTagger=True )   ### For example
-
-#process.options.allowUnscheduled = cms.untracked.bool(True)
-
+        # puppi https://twiki.cern.ch/twiki/bin/view/CMS/PUPPI
+        # using default
         #######################################################################
         ## applying new jec on the fly
         process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
+        if not runOnMC:
+            process.updatedPatJetCorrFactors.levels = cms.vstring('L1FastJet','L2Relative','L3Absolute','L2L3Residual')
+            
         process.patJetCorrFactors.primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices")
         process.catJets.src = cms.InputTag("updatedPatJets")
         ### updating puppi jet jec
@@ -129,15 +117,6 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         from CATTools.CatProducer.patTools.metMuonRecoMitigation2016_cff import enableMETMuonRecoMitigation2016
         process = enableMETMuonRecoMitigation2016(process, runOnMC) ## MET input object is overridden in the modifier function
 
-        #runMetCorAndUncFromMiniAOD( process, isData= not runOnMC, jecUncFile=cat.JECUncertaintyFile, jetColl= process.catJets.src)
-        #del process.slimmedMETs.caloMET
-        ## redoing noHF met due to new correction
-        #process.noHFCands = cms.EDFilter("CandPtrSelector",src=cms.InputTag("packedPFCandidates"),
-        #                                 cut=cms.string("abs(pdgId)!=1 && abs(pdgId)!=2 && abs(eta)<3.0"))
-        #runMetCorAndUncFromMiniAOD(process,isData=not runOnMC,pfCandColl=cms.InputTag("noHFCands"),postfix="NoHF",
-        #                           jecUncFile=cat.JECUncertaintyFile, jetColl= process.catJets.src)
-        #process.catMETsNoHF = process.catMETs.clone(src = cms.InputTag("slimmedMETsNoHF","","CAT"))
-        #del process.slimmedMETsNoHF.caloMET        
         #######################################################################
         ## Electron regression
         from CATTools.CatProducer.patTools.egmRegression_cff import enableElectronRegression
@@ -157,35 +136,3 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         from CATTools.CatProducer.patTools.egmNoIsoID_cff import enableElectronNoIsoID
         process = enableElectronNoIsoID(process)
        
-        #######################################################################    
-        # adding pfMVAMet https://twiki.cern.ch/twiki/bin/viewauth/CMS/MVAMet#Spring15_samples_with_25ns_50ns
-        # https://github.com/cms-sw/cmssw/blob/CMSSW_7_4_X/RecoMET/METPUSubtraction/test/mvaMETOnMiniAOD_cfg.py
-    ##     process.load("RecoJets.JetProducers.ak4PFJets_cfi")
-    ##     process.ak4PFJets.src = cms.InputTag("packedPFCandidates")
-    ##     process.ak4PFJets.doAreaFastjet = cms.bool(True)
-
-    ## from JetMETCorrections.Configuration.DefaultJEC_cff import ak4PFJetsL1FastL2L3
-
-    ## process.load("RecoMET.METPUSubtraction.mvaPFMET_cff")
-    ## #process.pfMVAMEt.srcLeptons = cms.VInputTag("slimmedElectrons")
-    ## process.pfMVAMEt.srcPFCandidates = cms.InputTag("packedPFCandidates")
-    ## process.pfMVAMEt.srcVertices = cms.InputTag("offlineSlimmedPrimaryVertices")
-
-    ## process.puJetIdForPFMVAMEt.jec =  cms.string('AK4PF')
-    ## #process.puJetIdForPFMVAMEt.jets = cms.InputTag("ak4PFJets")
-    ## process.puJetIdForPFMVAMEt.vertexes = cms.InputTag("offlineSlimmedPrimaryVertices")
-    ## process.puJetIdForPFMVAMEt.rho = cms.InputTag("fixedGridRhoFastjetAll")
-
-    ## process.pfMVAMEt.inputFileNames = cms.PSet(
-    ##     U     = cms.FileInPath('RecoMET/METPUSubtraction/data/gbru_7_4_X_miniAOD_25NS_July2015.root'),
-    ##     DPhi  = cms.FileInPath('RecoMET/METPUSubtraction/data/gbrphi_7_4_X_miniAOD_25NS_July2015.root'),
-    ##     CovU1 = cms.FileInPath('RecoMET/METPUSubtraction/data/gbru1cov_7_4_X_miniAOD_25NS_July2015.root'),
-    ##     CovU2 = cms.FileInPath('RecoMET/METPUSubtraction/data/gbru2cov_7_4_X_miniAOD_25NS_July2015.root')
-    ## )
-        
-    ## process.load("PhysicsTools.PatAlgos.producersLayer1.metProducer_cfi")
-    ## process.patMETsPfMva = process.patMETs.clone(addGenMET = cms.bool(False), metSource  = cms.InputTag("pfMVAMEt"))
-    ## process.catMETsPfMva = process.catMETs.clone(src = cms.InputTag("patMETsPfMva"))
-    ## process.catMETsPfMva.setUnclusteredEn = cms.bool(False)
-    ## process.catMETsPfMva.setJetMETSyst = cms.bool(False)
-    
