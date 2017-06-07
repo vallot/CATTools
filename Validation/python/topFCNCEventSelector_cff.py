@@ -17,22 +17,23 @@ eventsFCNC = cms.EDFilter("TopFCNCEventSelector",
         #scaleDirection = cms.int32(+1),
         efficiencySF = muonSFTight,
         efficiencySFDirection = cms.int32(0),
+        applyAntiIso = cms.bool(False),
     ),
 
     electron = cms.PSet(
         src = cms.InputTag("catElectrons"),
-        idName = cms.string("cutBasedElectronID-Summer16-80X-V1-medium"),
+        idName     = cms.string("cutBasedElectronID-Summer16-80X-V1-tight-noiso"),
+        isoIdName  = cms.string("cutBasedElectronID-Summer16-80X-V1-tight"),
         vetoIdName = cms.string("cutBasedElectronID-Summer16-80X-V1-loose"),
 
-        #idName = cms.string("mvaEleID-Spring15-25ns-Trig-V1-wp90"),
         scaleDirection = cms.int32(0),
         #scaleDirection = cms.int32(-1),
         #scaleDirection = cms.int32(+1),
         efficiencySF = electronSFCutBasedIDMediumWP,
         efficiencySFDirection = cms.int32(0),
-        #applyEcalCrackVeto = cms.bool(True),
-        applyEcalCrackVeto = cms.bool(False),
+        applyEcalCrackVeto = cms.bool(True),
         skipSmearing = cms.bool(False), # Needed for synchronization
+        applyAntiIso = cms.bool(False),
     ),
 
     jet = cms.PSet(
@@ -46,6 +47,7 @@ eventsFCNC = cms.EDFilter("TopFCNCEventSelector",
         #resolDirection = cms.int32(-1),
         #resolDirection = cms.int32(+1),
         skipJER = cms.bool(False), # Needed for synchronization
+        bTagSFUncType = cms.uint32(0),
     ),
 
     met = cms.PSet(
@@ -67,6 +69,8 @@ eventsFCNC = cms.EDFilter("TopFCNCEventSelector",
         trigEL = cms.InputTag("filterTrigEL"),
         ignoreTrig = cms.bool(False), # Accept event even if it does not pass HLT. Needed for synchronization
         efficiencySFDirection = cms.int32(0),
+        efficiencySFMU = trigSF_IsoMu24_OR_IsoTkMu24,
+        efficiencySFEL = trigSF_Ele25_eta2p1_WPTight_Gsf,
     ),
 
     # Event weights

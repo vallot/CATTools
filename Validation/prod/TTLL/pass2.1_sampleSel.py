@@ -31,7 +31,7 @@ for name in dsIn:
     if title not in ds:
         ds[title] = {
             'colour':x['colour'],
-            'hist':'pass2/nominal/%s.root' % safeTitle, ## Path to the merged histogram
+            'hist':'pass2/%s.root' % safeTitle, ## Path to the merged histogram
             'subsamples':[], ## List of input samples
         }
     normFactor = 1

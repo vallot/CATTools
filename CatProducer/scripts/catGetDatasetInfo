@@ -113,7 +113,7 @@ print>>f, json.dumps(ds, indent=4, sort_keys=True)
 f.close()
 
 print "Trying to verify file list..."
-from CATTools.CatAnalyzer.libxrd import *
+from CATTools.CommonTools.libxrd import *
 cmd, xrdbase = guessxrd()
 
 ## A hack to add prefix for the sites

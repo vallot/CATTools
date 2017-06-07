@@ -58,46 +58,41 @@ private:
   // Electrons
   H1 hElectron_n_;
   H1 hElectron_pt_, hElectron_eta_, hElectron_phi_, hElectron_mass_;
-  H1 hElectron_chIso_, hElectron_nhIso_, hElectron_phIso_, hElectron_puIso_;
+  H1 hElectron_chIso_, hElectron_nhIso_, hElectron_phIso_, hElectron_puIso_, hElectron_relIso_;
   H1 hElectron_ids_, hElectron_enUp_, hElectron_enDn_;
 
   H1 hElectron1_pt_, hElectron1_eta_, hElectron1_phi_, hElectron1_mass_;
-  H1 hElectron1_chIso_, hElectron1_nhIso_, hElectron1_phIso_, hElectron1_puIso_;
+  H1 hElectron1_chIso_, hElectron1_nhIso_, hElectron1_phIso_, hElectron1_puIso_, hElectron1_relIso_;
   H1 hElectron1_ids_, hElectron1_enUp_, hElectron1_enDn_;
   H1 hElectron2_pt_, hElectron2_eta_, hElectron2_phi_, hElectron2_mass_;
-  H1 hElectron2_chIso_, hElectron2_nhIso_, hElectron2_phIso_, hElectron2_puIso_;
+  H1 hElectron2_chIso_, hElectron2_nhIso_, hElectron2_phIso_, hElectron2_puIso_, hElectron2_relIso_;
   H1 hElectron2_ids_, hElectron2_enUp_, hElectron2_enDn_;
 
   // Muons
   H1 hMuon_n_;
   H1 hMuon_pt_, hMuon_eta_, hMuon_phi_, hMuon_mass_;
-  H1 hMuon_chIso_, hMuon_nhIso_, hMuon_phIso_, hMuon_puIso_;
+  H1 hMuon_chIso_, hMuon_nhIso_, hMuon_phIso_, hMuon_puIso_, hMuon_relIso_;
   H1 hMuon_ids_, hMuon_enUp_, hMuon_enDn_;
 
   H1 hMuon1_pt_, hMuon1_eta_, hMuon1_phi_, hMuon1_mass_;
-  H1 hMuon1_chIso_, hMuon1_nhIso_, hMuon1_phIso_, hMuon1_puIso_;
+  H1 hMuon1_chIso_, hMuon1_nhIso_, hMuon1_phIso_, hMuon1_puIso_, hMuon1_relIso_;
   H1 hMuon1_ids_, hMuon1_enUp_, hMuon1_enDn_;
   H1 hMuon2_pt_, hMuon2_eta_, hMuon2_phi_, hMuon2_mass_;
-  H1 hMuon2_chIso_, hMuon2_nhIso_, hMuon2_phIso_, hMuon2_puIso_;
+  H1 hMuon2_chIso_, hMuon2_nhIso_, hMuon2_phIso_, hMuon2_puIso_, hMuon2_relIso_;
   H1 hMuon2_ids_, hMuon2_enUp_, hMuon2_enDn_;
 
   // Jets
   H1 hJet_n_;
   H1 hJet_pt_, hJet_eta_, hJet_phi_, hJet_mass_;
-  H1 hJet_chIso_, hJet_nhIso_, hJet_phIso_, hJet_puIso_;
   H1 hJet_jesUp_, hJet_jesDn_, hJet_jer_, hJet_jerUp_, hJet_jerDn_, hJet_CSV_;
 
   H1 hJet1_pt_, hJet1_eta_, hJet1_phi_, hJet1_mass_;
-  H1 hJet1_chIso_, hJet1_nhIso_, hJet1_phIso_, hJet1_puIso_;
   H1 hJet1_jesUp_, hJet1_jesDn_, hJet1_jer_, hJet1_jerUp_, hJet1_jerDn_, hJet1_CSV_;
   H1 hJet2_pt_, hJet2_eta_, hJet2_phi_, hJet2_mass_;
-  H1 hJet2_chIso_, hJet2_nhIso_, hJet2_phIso_, hJet2_puIso_;
   H1 hJet2_jesUp_, hJet2_jesDn_, hJet2_jer_, hJet2_jerUp_, hJet2_jerDn_, hJet2_CSV_;
   H1 hJet3_pt_, hJet3_eta_, hJet3_phi_, hJet3_mass_;
-  H1 hJet3_chIso_, hJet3_nhIso_, hJet3_phIso_, hJet3_puIso_;
   H1 hJet3_jesUp_, hJet3_jesDn_, hJet3_jer_, hJet3_jerUp_, hJet3_jerDn_, hJet3_CSV_;
   H1 hJet4_pt_, hJet4_eta_, hJet4_phi_, hJet4_mass_;
-  H1 hJet4_chIso_, hJet4_nhIso_, hJet4_phIso_, hJet4_puIso_;
   H1 hJet4_jesUp_, hJet4_jesDn_, hJet4_jer_, hJet4_jerUp_, hJet4_jerDn_, hJet4_CSV_;
 
   // MET
@@ -151,6 +146,7 @@ CATHisAnalysis::CATHisAnalysis(const edm::ParameterSet& pset):
   hElectron_nhIso_ = dirElectron.make<TH1D>("h_nhIso","nhIso;Isolation #Delta R<0.4",400,0,4);
   hElectron_phIso_ = dirElectron.make<TH1D>("h_phIso","phIso;Isolation #Delta R<0.4",400,0,4);
   hElectron_puIso_ = dirElectron.make<TH1D>("h_puIso","puIso;Isolation #Delta R<0.4",400,0,4);
+  hElectron_relIso_ = dirElectron.make<TH1D>("h_relIso","relIso",400,0,4);
   hElectron_ids_  = dirElectron.make<TH1D>("h_id","id;ids",8,1,9);
   hElectron_ids_->GetXaxis()->SetBinLabel(1, "Veto");
   hElectron_ids_->GetXaxis()->SetBinLabel(2, "MediumMVA");
@@ -171,6 +167,7 @@ CATHisAnalysis::CATHisAnalysis(const edm::ParameterSet& pset):
   hElectron1_nhIso_ = dirElectron.make<TH1D>("h1_nhIso","nhIso",400,0,4);
   hElectron1_phIso_ = dirElectron.make<TH1D>("h1_phIso","phIso",400,0,4);
   hElectron1_puIso_ = dirElectron.make<TH1D>("h1_puIso","puIso",400,0,4);
+  hElectron1_relIso_ = dirElectron.make<TH1D>("h2_relIso","relIso",400,0,4);
   hElectron1_ids_  = dirElectron.make<TH1D>("h1_id","id;ids",8,1,9);
   hElectron1_ids_->GetXaxis()->SetBinLabel(1, "Veto");
   hElectron1_ids_->GetXaxis()->SetBinLabel(2, "MediumMVA");
@@ -191,6 +188,7 @@ CATHisAnalysis::CATHisAnalysis(const edm::ParameterSet& pset):
   hElectron2_nhIso_ = dirElectron.make<TH1D>("h2_nhIso","nhIso",400,0,4);
   hElectron2_phIso_ = dirElectron.make<TH1D>("h2_phIso","phIso",400,0,4);
   hElectron2_puIso_ = dirElectron.make<TH1D>("h2_puIso","puIso",400,0,4);
+  hElectron2_relIso_ = dirElectron.make<TH1D>("h2_relIso","relIso",400,0,4);
   hElectron2_ids_  = dirElectron.make<TH1D>("h2_id","id;ids",8,1,9);
   hElectron2_ids_->GetXaxis()->SetBinLabel(1, "Veto");
   hElectron2_ids_->GetXaxis()->SetBinLabel(2, "MediumMVA");
@@ -213,6 +211,7 @@ CATHisAnalysis::CATHisAnalysis(const edm::ParameterSet& pset):
   hMuon_nhIso_ = dirMuon.make<TH1D>("h_nhIso","nhIso",400,0,4);
   hMuon_phIso_ = dirMuon.make<TH1D>("h_phIso","phIso",400,0,4);
   hMuon_puIso_ = dirMuon.make<TH1D>("h_puIso","puIso",400,0,4);
+  hMuon_relIso_ = dirMuon.make<TH1D>("h_relIso","relIso",400,0,4);
   hMuon_ids_  = dirMuon.make<TH1D>("h_id","id;ids",2,1,3);
   hMuon_ids_->GetXaxis()->SetBinLabel(1, "Loose");
   hMuon_ids_->GetXaxis()->SetBinLabel(2, "Tight");
@@ -227,6 +226,7 @@ CATHisAnalysis::CATHisAnalysis(const edm::ParameterSet& pset):
   hMuon1_nhIso_ = dirMuon.make<TH1D>("h1_nhIso","nhIso",400,0,4);
   hMuon1_phIso_ = dirMuon.make<TH1D>("h1_phIso","phIso",400,0,4);
   hMuon1_puIso_ = dirMuon.make<TH1D>("h1_puIso","puIso",400,0,4);
+  hMuon1_relIso_ = dirMuon.make<TH1D>("h1_relIso","relIso",400,0,4);
   hMuon1_ids_  = dirMuon.make<TH1D>("h1_id","id;ids",2,1,3);
   hMuon1_ids_->GetXaxis()->SetBinLabel(1, "Loose");
   hMuon1_ids_->GetXaxis()->SetBinLabel(2, "Tight");
@@ -240,6 +240,7 @@ CATHisAnalysis::CATHisAnalysis(const edm::ParameterSet& pset):
   hMuon2_nhIso_ = dirMuon.make<TH1D>("h2_nhIso","nhIso",400,0,4);
   hMuon2_phIso_ = dirMuon.make<TH1D>("h2_phIso","phIso",400,0,4);
   hMuon2_puIso_ = dirMuon.make<TH1D>("h2_puIso","puIso",400,0,4);
+  hMuon2_relIso_ = dirMuon.make<TH1D>("h2_relIso","relIso",400,0,4);
   hMuon2_ids_  = dirMuon.make<TH1D>("h2_id","id;ids",2,1,3);
   hMuon2_ids_->GetXaxis()->SetBinLabel(1, "Loose");
   hMuon2_ids_->GetXaxis()->SetBinLabel(2, "Tight");
@@ -407,6 +408,7 @@ void CATHisAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&)
     hElectron_nhIso_->Fill( electron.neutralHadronIso() , weight);
     hElectron_phIso_->Fill( electron.photonIso() , weight);
     hElectron_puIso_->Fill( electron.puChargedHadronIso() , weight);
+    hElectron_relIso_->Fill( electron.relIso(0.3), weight);
 
     if ( electron.isVeto()      ) hElectron_ids_->Fill(1, weight);
     if ( electron.isMediumMVA() ) hElectron_ids_->Fill(2, weight);
@@ -430,6 +432,7 @@ void CATHisAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&)
     hElectron1_nhIso_->Fill( electron.neutralHadronIso() , weight);
     hElectron1_phIso_->Fill( electron.photonIso() , weight);
     hElectron1_puIso_->Fill( electron.puChargedHadronIso() , weight);
+    hElectron1_relIso_->Fill( electron.relIso(0.3), weight);
 
     if ( electron.isVeto()      ) hElectron1_ids_->Fill(1, weight);
     if ( electron.isMediumMVA() ) hElectron1_ids_->Fill(2, weight);
@@ -453,6 +456,7 @@ void CATHisAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&)
     hElectron2_nhIso_->Fill( electron.neutralHadronIso() , weight);
     hElectron2_phIso_->Fill( electron.photonIso() , weight);
     hElectron2_puIso_->Fill( electron.puChargedHadronIso() , weight);
+    hElectron2_relIso_->Fill( electron.relIso(0.3), weight);
 
     if ( electron.isVeto()      ) hElectron2_ids_->Fill(1, weight);
     if ( electron.isMediumMVA() ) hElectron2_ids_->Fill(2, weight);
@@ -482,6 +486,7 @@ void CATHisAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&)
     hMuon_nhIso_->Fill( muon.neutralHadronIso() , weight);
     hMuon_phIso_->Fill( muon.photonIso() , weight);
     hMuon_puIso_->Fill( muon.puChargedHadronIso() , weight);
+    hMuon_relIso_->Fill( muon.relIso(0.4), weight);
 
     if ( muon.isLooseMuon() ) hMuon_ids_->Fill(1, weight);
     if ( muon.isTightMuon() ) hMuon_ids_->Fill(2, weight);
@@ -499,6 +504,7 @@ void CATHisAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&)
     hMuon1_nhIso_->Fill( muon.neutralHadronIso() , weight);
     hMuon1_phIso_->Fill( muon.photonIso() , weight);
     hMuon1_puIso_->Fill( muon.puChargedHadronIso() , weight);
+    hMuon1_relIso_->Fill( muon.relIso(0.4), weight);
 
     if ( muon.isLooseMuon() ) hMuon1_ids_->Fill(1, weight);
     if ( muon.isTightMuon() ) hMuon1_ids_->Fill(2, weight);
@@ -516,6 +522,7 @@ void CATHisAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&)
     hMuon2_nhIso_->Fill( muon.neutralHadronIso() , weight);
     hMuon2_phIso_->Fill( muon.photonIso() , weight);
     hMuon2_puIso_->Fill( muon.puChargedHadronIso() , weight);
+    hMuon2_relIso_->Fill( muon.relIso(0.4), weight);
 
     if ( muon.isLooseMuon() ) hMuon2_ids_->Fill(1, weight);
     if ( muon.isTightMuon() ) hMuon2_ids_->Fill(2, weight);

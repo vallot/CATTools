@@ -2,7 +2,7 @@
 import sys, os
 
 if len(sys.argv) < 2 or '-h' in sys.argv or '--help' in sys.argv:
-    print "Usage: %s vX-Y-Z"
+    print "Usage: %s vX-Y-Z" % sys.argv[0]
     print "or, you can put your own 'catGetDatasetInfo'-compatible json file"
     sys.exit(0)
 
@@ -46,6 +46,7 @@ for d in datasets:
         opts['globalTag'] = cat.globalTag_mc
         opts['runOnMC'] = "True"
         if dataset.startswith('/TT') or dataset.startswith("/tt"): opts['runGenTop'] = "True"
+        if dataset.startswith('/TTTT_'): opts['runGenTop'] = "False"
     else:
         opts['globalTag'] = cat.globalTag_rd
         opts['runOnMC'] = "False"

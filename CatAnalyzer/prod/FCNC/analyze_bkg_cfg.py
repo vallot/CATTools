@@ -18,29 +18,21 @@ process.TFileService = cms.Service("TFileService",
     fileName = cms.string("ntuple.root"),
 )
 
+process.filterTrigEL.triggersToMatch = ["HLT_Ele25_eta2p1_WPTight_Gsf_v", "HLT_Ele27_WPTight_Gsf_v"]
 process.eventsFCNC.filters.filterRECO = "filterRECOMC"
-
 process.el = process.eventsFCNC.clone(channel = cms.string("electron"))
 process.mu = process.eventsFCNC.clone(channel = cms.string("muon"))
 delattr(process, 'eventsFCNC')
+#process.el.electron.applyAntiIso = True
+#process.mu.muon.applyAntiIso = True
 
-process.load("CATTools.CatAnalyzer.csvWeights_cfi")
-process.csvWeightsEL = process.csvWeights.clone(src = cms.InputTag("el:jets"))
-process.csvWeightsMU = process.csvWeights.clone(src = cms.InputTag("mu:jets"))
-delattr(process, "csvWeights")
-
-process.ttLJ.puWeight = process.el.vertex.pileupWeight
-process.ntupleEL = process.ttLJ.clone(
-    src = cms.InputTag("el"),
-    csvWeight = cms.InputTag("csvWeightsEL"),
-    csvWeightSyst = cms.InputTag("csvWeightsEL:syst"),
-)
-process.ntupleMU = process.ttLJ.clone(
-    src = cms.InputTag("mu"),
-    csvWeight = cms.InputTag("csvWeightsMU"),
-    csvWeightSyst = cms.InputTag("csvWeightsMU:syst"),
-)
-delattr(process, 'ttLJ')
+from CATTools.CatAnalyzer.analyzers.ntuple_cff import *
+process = ntupler_load(process, "el", "ntupleEL")
+process = ntupler_load(process, "mu", "ntupleMU")
+process = ntupler_addVarsGen(process, "el", "ntupleEL")
+process = ntupler_addVarsGen(process, "mu", "ntupleMU")
+#process = ntupler_addVarsGenTop(process, "el", "ntupleEL")
+#process = ntupler_addVarsGenTop(process, "mu", "ntupleMU")
 
 process.p_el = cms.Path(
     process.gen + process.rec
@@ -56,3 +48,5 @@ process.p_mu = cms.Path(
 import sys
 if len(sys.argv) > 2:
     for l in sys.argv[2:]: exec('process.'+l)
+
+process.source.fileNames = ["/store/group/CAT/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/v8-0-6_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/170303_103306/0000/catTuple_1.root"]

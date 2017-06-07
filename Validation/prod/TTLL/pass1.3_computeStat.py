@@ -5,50 +5,52 @@ from ROOT import *
 
 ## Load JSON file and categorize datasets
 import json
+from pandas import DataFrame
 dataDir = "%s/src/CATTools/CatAnalyzer/data/dataset" % os.environ["CMSSW_BASE"]
-js = json.loads(open("%s/dataset.json" % dataDir).read())
+dsets = DataFrame.from_dict(json.loads(open("%s/dataset.json" % dataDir).read()))
 
-dsIn = {}
-for x in js: dsIn[x['name']] = x
+fsets = DataFrame(columns=('hist', 'name', 'nevt', 'avgWgt', 'options'))
+for fName in os.listdir('pass1'):
+    if not fName.endswith(".root"): continue
+    f = TFile('pass1/'+fName)
+    if f == None or f.IsZombie(): continue
 
-ds = {}
-for d in sorted(os.listdir('pass1')):
-    if not os.path.isdir('pass1/'+d): continue
-    if not os.path.exists('pass1/'+d+'/nominal.root'): continue
-    fName = 'pass1/'+d+'/nominal.root'
-    f = TFile(fName)
-    if f == None:
-        print "!!! root file under %s is invalid" % name
-        continue
-
-    if d in dsIn:
-        ds[d] = dsIn[d]
-    elif '_' in d:
-        origName = '_'.join(d.split('_')[:-1])
-        ds[d] = dict(dsIn[origName])
-        ds[d]['title'] += ":"+d.split('_')[-1]
-    if d not in ds:
-        print "Cannot find corresponding histogram for", d
-
-    ds[d]['hist'] = fName
+    tokens = fName[:-5].split('.')
+    name = tokens.pop(0)
 
     h = f.Get("gen/hWeight_Norm")
-    xsec = 1.0
-    normFactor = 1.0
-    avgWgt = float(ds[d]['avgWgt'])
-    nEvent = int(ds[d]['nevt'])
-    part_nEvent = 0
+    nevt, avgWgt = 0, 1
     if h != None:
-        xsec = ds[d]['xsec']
-        partAvgWgt = h.GetMean()
-        partNEvent = h.GetEntries()
-        if partNEvent != nEvent or abs(avgWgt-partAvgWgt) > 1e-5:
-            print "!!! Inconsistent stats %s" % d
-            print "    new(%10f, %d) orig(%10f, %d)" % (partAvgWgt, partNEvent, avgWgt, nEvent)
-        normFactor = h.GetEntries()*avgWgt
-    ds[d]['normFactor'] = avgWgt*nEvent
-    ds[d]['part_normFactor'] = normFactor
-    ds[d]['part_nevt'] = partNEvent
+        nevt = h.GetEntries()
+        avgWgt = h.GetMean()
 
-open("pass1/dataset.json", "w").write(json.dumps(ds, sort_keys=True, indent=4))
+    fsets.loc[fsets.shape[0]] = [fName, name, nevt, avgWgt, tokens[:]]
 
+dsOut = {}
+for dsIndex, dsRow in dsets.iterrows():
+    name = dsRow['name']
+    fsRows = fsets[fsets['name'].str.match('^'+name+'$')]
+
+    for fsIndex, fsRow in fsRows.iterrows():
+        fName = fsRow['hist']
+        newName = fName.split('/')[-1][:-5]
+
+        nevt, avgWgt = 0.0, 1.0
+        nevt_orig, avgWgt_orig = dsRow.nevt, dsRow.avgWgt
+        normFactor = 1.0
+
+        if dsRow.type != 'Data':
+            nevt += fsRow['nevt']
+            avgWgt += fsRow['avgWgt']*fsRow['nevt']
+        if nevt > 0: avgWgt /= nevt
+        normFactor = nevt*avgWgt
+
+        dsOut[newName] = {}
+        dsOut[newName].update(dict(dsRow))
+        dsOut[newName].update({'hist':'pass1/'+fName, 'nevt':nevt, 'avgWgt':avgWgt, 'normFactor':normFactor})
+        if len(fsRow['options']) > 0:
+            dsOut[newName]['title'] += ':'+('+'.join(fsRow['options']))
+
+        print newName, nevt, avgWgt
+
+open("pass1/dataset.json", "w").write(json.dumps(dsOut, sort_keys=True, indent=4))

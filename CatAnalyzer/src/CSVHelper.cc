@@ -30,8 +30,8 @@
 */
 CSVHelper::CSVHelper(std::string hf, std::string lf, int nHFptBins_):nHFptBins(nHFptBins_)
 {
-    if ( hf.empty() ) hf = std::string(getenv("CMSSW_BASE"))+"/src/CATTools/CatAnalyzer/data/scaleFactors/csv_rwt_fit_hf_v2_final_2016_06_30test.root";
-    if ( lf.empty() ) lf = std::string(getenv("CMSSW_BASE"))+"/src/CATTools/CatAnalyzer/data/scaleFactors/csv_rwt_fit_lf_v2_final_2016_06_30test.root";
+    if ( hf.empty() ) hf = std::string(getenv("CMSSW_BASE"))+"/src/CATTools/CatAnalyzer/data/scaleFactors/csv_rwt_fit_hf_v2_final_2017_1_10test.root";
+    if ( lf.empty() ) lf = std::string(getenv("CMSSW_BASE"))+"/src/CATTools/CatAnalyzer/data/scaleFactors/csv_rwt_fit_lf_v2_final_2017_1_10test.root";
 
     TFile *f_CSVwgt_HF = new TFile(hf.c_str());
     TFile *f_CSVwgt_LF = new TFile(lf.c_str());
@@ -231,7 +231,7 @@ CSVHelper::getCSVWeight(cat::JetCollection jets, int iSys)//, double &csvWgtHF, 
         double csv = jet1->bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
         double jetPt = jet1->p4().pt();
         double jetAbsEta = std::fabs(jet1->p4().eta());
-        int flavor = jet1->partonFlavour();
+        int flavor = jet1->hadronFlavour();
 
         //std::cout << "pt:" << jetPt << ", abseta:" << jetAbsEta <<", csv:" << csv << ", flavor" << flavor << std::endl;
         int iPt = -1;
