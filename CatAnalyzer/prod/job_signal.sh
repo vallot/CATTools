@@ -1,0 +1,1 @@
+create-batch --jobName TT_TopLeptonicDecay_TH_1L3B_Eta_Hct_V1 --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TT_TopLeptonicDecay_TH_1L3B_Eta_Hct.txt --cfg topAnalyzer_cfg.py --transferDest /store/user/tjkim/ntuples/hep2017/V1/dataset_TT_TopLeptonicDecay_TH_1L3B_Eta_Hct --maxFiles 10
