@@ -17,6 +17,9 @@ GenTop::GenTop(){
   cJets_ = {null, null};
   bJets_ = {null, null, null, null};
   bJetsFromTop_ = {null, null};
+  upJet_ = {null};
+  HbJets_ = {null, null};
+  Higgs_ = {null};
   JetsFromW_= {null, null, null, null};
   JetsFlavourFromW_= {0,0,0,0};
   addbJets_ = {null, null};
@@ -45,6 +48,9 @@ GenTop::GenTop(const reco::Candidate & aGenTop) : reco::LeafCandidate(aGenTop) {
   addbJets_ = {null, null};
   addcJets_ = {null, null};
   bJetsFromTop_ = {null, null};
+  upJet_ = {null};
+  HbJets_ = {null, null};
+  Higgs_ = {null};
   JetsFromW_= {null, null, null, null};
   JetsFlavourFromW_= {0,0,0,0};
   addbJetsHad_ = {null, null};
@@ -125,10 +131,33 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
 
     const unsigned int nDaughters = p.numberOfDaughters();
     int nW = 0;
+
     for ( unsigned iDaughter=0; iDaughter<nDaughters; ++iDaughter ) {
       if ( nW == 1 ) break;
-
+ 
+      // FCNH decay side 
       const reco::Candidate* daugh = p.daughter(iDaughter);
+      if ( abs(daugh->pdgId()) == 25 ) {
+        Higgs_[0] = daugh->p4();
+        daugh = getLast(*daugh);
+        const unsigned int nHDaughters = daugh->numberOfDaughters();
+        int nHbquarkDaughters = 0;
+        for ( unsigned iHDaughter=0; iHDaughter<nHDaughters; ++iHDaughter ) {
+          if( nHbquarkDaughters == 2) continue;
+          const reco::Candidate* decay = daugh->daughter(iHDaughter);
+          int decayId = abs(decay->pdgId());
+          if ( decayId == 5 ) {
+            HbJets_[nHbquarkDaughters] = decay->p4();
+            nHbquarkDaughters++;
+          }
+        }
+        continue;
+      }
+      if ( abs(daugh->pdgId()) == 2 || abs(daugh->pdgId()) ==  4 ) {
+        upJet_[0] = daugh->p4();  
+      }
+      // end of FCNH side
+
       if ( abs(daugh->pdgId()) != 24 ) continue;
       daugh = getLast(*daugh);
       const unsigned int nWDaughters = daugh->numberOfDaughters();
@@ -244,8 +273,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     }
     ++ntop;
   }
-  
-
+ 
   //assign top quark four-momentum
   if(topquarks.size()>1){
      tops_[0] = topquarks[0];

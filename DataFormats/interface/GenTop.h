@@ -70,6 +70,12 @@ namespace cat {
     const math::XYZTLorentzVector bJets3() const { return bJets_[2]; }
     const math::XYZTLorentzVector bJets4() const { return bJets_[3]; }
 
+    const math::XYZTLorentzVector upJet() const { return upJet_[0] ; }
+    const math::XYZTLorentzVector HbJets1() const { return HbJets_[0]; }
+    const math::XYZTLorentzVector HbJets2() const { return HbJets_[1]; }
+    const math::XYZTLorentzVector Higgs() const { return Higgs_[0]; }
+    
+
     const math::XYZTLorentzVector addbJets1(int i = 0) const {
       if( i == 0) return addbJetsHad_[0];
       else return addbJets_[0];
@@ -298,6 +304,9 @@ namespace cat {
     LorentzVectors cJets_;
     LorentzVectors bJets_;
     LorentzVectors bJetsFromTop_;
+    LorentzVectors upJet_;
+    LorentzVectors HbJets_;
+    LorentzVectors Higgs_;
     LorentzVectors JetsFromW_;
     std::vector<int> JetsFlavourFromW_;
     LorentzVectors addbJets_;
