@@ -182,6 +182,7 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
 
     aMuon.setMiniRelIso(getMiniRelIso( pfcands, aMuon.p4(), 0.05, 0.2, 10.));
     aMuon.setIsGlobalMuon( aPatMuon.isGlobalMuon() );
+    aMuon.setIsTrackerMuon( aPatMuon.isTrackerMuon() );
     aMuon.setIsPF( aPatMuon.isPFMuon() );
     aMuon.setIsTight( aPatMuon.isTightMuon(pv) );
     aMuon.setIsMedium( aPatMuon.isMediumMuon() );

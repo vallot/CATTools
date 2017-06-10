@@ -25,6 +25,7 @@ namespace cat {
     bool isGlobalMuon() const { return isGlobalMuon_; }
     bool isSoftMuon() const { return isSoftMuon_; }
     bool isPFMuon() const { return this->isPF(); }
+    bool isTrackerMuon() const { return isTrackerMuon_; }
     bool isTightMuon() const { return this->isTight(); }
     bool isMediumMuon() const { return this->isMedium(); }
     bool isLooseMuon() const { return this->isLoose(); }
@@ -45,6 +46,7 @@ namespace cat {
 
     void setIsGlobalMuon(bool d) { isGlobalMuon_ = d; }
     void setIsSoftMuon(bool d) { isSoftMuon_ = d; }
+    void setIsTrackerMuon(bool d) { isTrackerMuon_ = d; }
 
     void setNormalizedChi2(float d) { normalizedChi2_ = d; }
     void setNumberOfValidHits(int i) { numberOfValidHits_ = i; }
@@ -61,7 +63,8 @@ namespace cat {
 
     bool isGlobalMuon_;
     bool isSoftMuon_;
-
+    bool isTrackerMuon_;
+    
     float normalizedChi2_;
     float ipsig_;
 

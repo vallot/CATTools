@@ -11,6 +11,11 @@ def enableDeepFlavour(process):
         cms.InputTag("deepFlavourJetTags:probc"),
         cms.InputTag("deepFlavourJetTags:probbb"),
         cms.InputTag("deepFlavourJetTags:probcc"),
+        cms.InputTag("deepFlavourCMVAJetTags:probudsg"),
+        cms.InputTag("deepFlavourCMVAJetTags:probb"),
+        cms.InputTag("deepFlavourCMVAJetTags:probc"),
+        cms.InputTag("deepFlavourCMVAJetTags:probbb"),
+        cms.InputTag("deepFlavourCMVAJetTags:probcc"),
     ])
 
     return process
