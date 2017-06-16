@@ -429,8 +429,8 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
     tree->Branch("gencone_gjetIndex" , "std::vector<int>",   &b_GenCone_gJetIndex);
     tree->Branch("gencone_gJetFlavW" , "std::vector<int>",   &b_GenCone_gJetFlavW);
 
-    tree->Branch("gencone_NgjetsW", &b_GenCone_NgJetsW, "b_GenCone_NgJetsW/I");
-    tree->Branch("draddjets",       &b_DRAddJets,       "DRAddJets/F");
+    tree->Branch("gencone_NgjetsW", &b_GenCone_NgJetsW, "gencone_NgjetsW/I");
+    tree->Branch("draddjets",       &b_DRAddJets,       "draddjets/F");
     tree->Branch("genhiggscatid",   &b_GenHiggsCatID,   "genhiggscatid/I");
 
     tree->Branch("genchannel",    &b_GenChannel,    "genchannel/I");
