@@ -15,7 +15,11 @@ before_install:
 
 script:
  # Run tests in Container
- - sudo docker run --rm=true -v `pwd`:/CATTools:rw --privileged --device /dev/fuse hepsw/cvmfs-cms:latest /bin/bash -c "/CATTools/setup.sh"
+ - sudo docker run --rm=true -v `pwd`:/CATTools:rw --privileged \
+    --device /dev/fuse hepsw/cvmfs-cms:latest \
+    -e PR_SLUG=$TRAVIS_PULL_REQUEST_SLUG \
+    -e PR_BRANCH=$TRAVIS_PULL_REQUEST_BRANCH \
+    /bin/bash -c "/CATTools/setup.sh"
 
 notifications:
   email: false
