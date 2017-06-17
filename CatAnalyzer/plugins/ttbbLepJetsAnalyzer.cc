@@ -39,7 +39,7 @@
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
 // Kinematic Reconstruction
-#include "CATTools/CatAnalyzer/interface/LepJets_Fitter.h"
+#include "CATTools/CatAnalyzer/interface/LepJetsFitter.h"
 
 #include "TH1.h"
 #include "TTree.h"
@@ -1378,7 +1378,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 	KinJets.push_back(kjet);
       }
       
-      FindHadronicTop(KinLep, KinJets, KinMET, KFUsebtag_, CSVPosConKF_, KinBestIndices, bestchi2, Kinnu, Kinblrefit, Kinbjrefit, Kinj1refit, Kinj2refit);
+      ttbb::FindHadronicTop(KinLep, KinJets, KinMET, KFUsebtag_, CSVPosConKF_, KinBestIndices, bestchi2, Kinnu, Kinblrefit, Kinbjrefit, Kinj1refit, Kinj2refit);
       
       // for (unsigned int iin =0; iin<KinBestIndices.size(); iin++) std::cout << KinBestIndices.at(iin) << std::endl;
       // std::cout << "Best Chi2 = " << bestchi2 << std::endl;
