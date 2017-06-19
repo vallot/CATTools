@@ -7,7 +7,6 @@
 #include <vector>
 
 /*
-#include "DataFormats/Math/interface/deltaR.h"
 #include "CommonTools/Utils/interface/PtComparator.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
 */
@@ -18,6 +17,8 @@ std::vector<reco::GenParticleRef> selectGenParticles(const edm::Handle<reco::Gen
                                                      const unsigned int pdgId, const std::vector<unsigned int>& motherIds);
 
 bool isMatchedByDRDPt(const reco::Candidate::LorentzVector& a, const reco::Candidate::LorentzVector& b, bool exact);
+
+bool isLast(const reco::GenParticle& p);
 
 }
 

@@ -826,16 +826,6 @@ void dileptonCommon::analyzeCustom(const edm::Event& iEvent, const edm::EventSet
   }
 }
 
-const reco::Candidate* dileptonCommon::getLast(const reco::Candidate* p) const
-{
-  for ( size_t i=0, n=p->numberOfDaughters(); i<n; ++i )
-  {
-    const reco::Candidate* dau = p->daughter(i);
-    if ( p->pdgId() == dau->pdgId() ) return getLast(dau);
-  }
-  return p;
-}
-
 float dileptonCommon::selectMuons(const cat::MuonCollection& muons, cat::MuonCollection& selmuons, sys_e sys) const
 {
   float weight = 1.;

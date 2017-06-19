@@ -34,3 +34,19 @@ bool cat::isMatchedByDRDPt(const reco::Candidate::LorentzVector& a, const reco::
   return (dR < 0.025 and dPt < 0.025);
 }
 
+bool cat::isLast(const reco::GenParticle& p)
+{
+  const unsigned int nDau = p.numberOfDaughters();
+  if ( nDau == 0 ) return true;
+
+  const int id = p.pdgId();
+
+  for ( size_t i=0; i<nDau; ++i ) {
+    const reco::Candidate* dau = p.daughter(i);
+    if ( !dau ) continue;
+    if( dau->pdgId() == id) return false;
+  }
+
+  return true;
+}
+
