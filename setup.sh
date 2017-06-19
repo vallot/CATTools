@@ -7,11 +7,8 @@ eval `scramv1 runtime -sh`
 gcc -v
 ln -s /CATTools .
 cd CATTools
-git submodule init
-git submodule update
-cd CommonTools/scripts
 git checkout master
 git pull
-cd ../../..
+cd ..
 
 scram b -j2
