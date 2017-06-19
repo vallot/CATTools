@@ -27,6 +27,7 @@
 
 using namespace std;
 using namespace edm;
+
 using namespace cat;
 
 class GenericNtupleMaker : public edm::EDAnalyzer

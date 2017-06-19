@@ -3,8 +3,8 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "CATTools/DataFormats/interface/GenJet.h"
-#include "CATTools/DataFormats/interface/MCParticle.h"
+#include "DataFormats/JetReco/interface/GenJet.h"
+#include "DataFormats/JetReco/interface/GenJetCollection.h"
 
 #include "SimDataFormats/JetMatching/interface/JetFlavourInfo.h"
 #include "SimDataFormats/JetMatching/interface/JetFlavourInfoMatching.h"
@@ -12,13 +12,11 @@
 using namespace edm;
 using namespace std;
 
-namespace cat {
-
 class GenJetHadronMatchProducer : public edm::stream::EDProducer<>
 {
 public:
   GenJetHadronMatchProducer(const edm::ParameterSet& pset);
-  virtual ~GenJetHadronMatchProducer() { }
+  ~GenJetHadronMatchProducer() = default;
 
   void produce(edm::Event & event, const edm::EventSetup&) override;
 
@@ -30,10 +28,6 @@ private:
   edm::EDGetTokenT<reco::JetFlavourInfoMatchingCollection> genJetFlavourToken_;
 
 };
-
-} // namespace
-
-using namespace cat;
 
 typedef std::vector<int> vint;
 typedef std::vector<vint> vvint;
@@ -136,5 +130,4 @@ void GenJetHadronMatchProducer::collectAncestorPartons(const reco::Candidate* ca
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"
-using namespace cat;
 DEFINE_FWK_MODULE(GenJetHadronMatchProducer);
