@@ -3,6 +3,7 @@
 <library   name="CATToolsCatProducer_plugins" file="*.cc">
   <use   name="FWCore/Framework"/>
   <use   name="CATTools/DataFormats"/>
+  <use   name="CATTools/CommonTools"/>
   <use   name="RecoVertex/KalmanVertexFit"/>
   <use   name="TrackingTools/IPTools"/>
   <use   name="TrackingTools/TransientTrack"/>
