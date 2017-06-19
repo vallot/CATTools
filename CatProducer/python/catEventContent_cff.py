@@ -3,6 +3,7 @@ import FWCore.ParameterSet.Config as cms
 catEventContent = cms.untracked.vstring()
 catEventContentMC = cms.untracked.vstring()
 catEventContentRD = cms.untracked.vstring()
+catEventContentMCSignal = cms.untracked.vstring()
 catEventContentTOPMC = cms.untracked.vstring()
 catEventContentSecVertexs = cms.untracked.vstring()
 
@@ -33,7 +34,6 @@ catEventContentRD.extend([
     ])
 
 catEventContentMC.extend([
-    'keep recoGenParticles_prunedGenParticles_*_*',
     'keep *_slimmedGenJets_*_*',
     'keep *_genWeight_*_*',
     'keep *_pileupWeight*_*_*',
@@ -41,8 +41,11 @@ catEventContentMC.extend([
     #'keep *_matchGenCHadron_*_*',
     ])
 
+catEventContentMCSignal.extend([
+    'keep recoGenParticles_prunedGenParticles_*_*',
+    ])
+
 catEventContentTOPMC.extend([
-    'keep *_GenTtbarCategories_*_*',
     'keep *_GenTtbarCategories*_*_*',
     'keep *_catGenTops_*_*',
     #'keep *_partonTop_*_*', ## Can be built on the fly from prunedGenParticles

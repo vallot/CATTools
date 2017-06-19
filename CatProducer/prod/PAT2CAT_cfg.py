@@ -10,6 +10,7 @@ options.register('runOnMC', True, VarParsing.multiplicity.singleton, VarParsing.
 options.register('useMiniAOD', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "useMiniAOD: 1  default")
 options.register('globalTag', '', VarParsing.multiplicity.singleton, VarParsing.varType.string, "globalTag: 1  default")
 options.register('runGenTop', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runGenTop: 1  default")
+options.register('isSignal', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "isSignal: 1 default")
 
 options.parseArguments()
 runOnMC = options.runOnMC
@@ -17,6 +18,7 @@ useMiniAOD = options.useMiniAOD
 globalTag = options.globalTag
 if runOnMC: runGenTop = options.runGenTop
 else: runGenTop = False
+isMCSignal = (runOnMC and options.isSignal == True)
 
 ####################################################################
 #### setting up global tag
@@ -42,6 +44,10 @@ if runOnMC:
     process.load("CATTools.CatProducer.pileupWeight_cff")
     process.load("CATTools.CatProducer.producers.genWeight_cff")
     process.catOut.outputCommands.extend(catEventContentMC)
+
+    if isMCSignal:
+        process.genWeight.keepFirstOnly = False
+        process.catOut.outputCommands.extend(catEventContentMCSignal)
 else: 
     process.catOut.outputCommands.extend(catEventContentRD)
     
