@@ -115,7 +115,8 @@ void GenJetHadronMatchProducer::produce(edm::Event& event, const edm::EventSetup
 
 }
 
-void GenJetHadronMatchProducer::collectAncestorPartons(const reco::Candidate* cand, std::set<int>& partonIds) const {
+void GenJetHadronMatchProducer::collectAncestorPartons(const reco::Candidate* cand, std::set<int>& partonIds) const
+{
   if ( !cand ) return;
 
   for ( int i=0, n=cand->numberOfMothers(); i<n; ++i ) {
