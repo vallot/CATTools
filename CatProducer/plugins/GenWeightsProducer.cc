@@ -1,6 +1,6 @@
 #include "FWCore/Framework/interface/Frameworkfwd.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/one/EDProducer.h"
-#include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
@@ -376,6 +376,7 @@ void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& event
 
 }
 
+#include "FWCore/Framework/interface/MakerMacros.h"
 DEFINE_FWK_MODULE(GenWeightsProducer);
 DEFINE_FWK_MODULE(GenWeightsToFlatWeights);
 
