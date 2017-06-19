@@ -36,7 +36,7 @@ namespace cat {
     void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
 
     bool mcMatch( const reco::Candidate::LorentzVector& lepton, const std::vector<reco::GenParticleRef>& genParticles ) const;
-    double getMiniRelIso(edm::Handle<pat::PackedCandidateCollection> pfcands,  const reco::Candidate::LorentzVector& ptcl, double  r_iso_min, double r_iso_max , double kt_scale);
+    double getMiniRelIso(edm::Handle<pat::PackedCandidateCollection> pfcands,  const reco::Candidate::LorentzVector& ptcl, double  r_iso_min, double r_iso_max , double kt_scale) const;
 
   private:
     edm::EDGetTokenT<pat::MuonCollection> src_;
@@ -57,66 +57,50 @@ cat::CATMuonProducer::CATMuonProducer(const edm::ParameterSet & iConfig) :
   pfSrc_(consumes<pat::PackedCandidateCollection>(iConfig.getParameter<edm::InputTag>("pfSrc")))
   //beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc")))
 {
-  produces<std::vector<cat::Muon> >();
+  produces<cat::MuonCollection>();
 }
 
 
 
 double cat::CATMuonProducer::getMiniRelIso(edm::Handle<pat::PackedCandidateCollection> pfcands,
 					   const reco::Candidate::LorentzVector& ptcl,
-					   double r_iso_min, double r_iso_max, double kt_scale){
+					   double r_iso_min, double r_iso_max, double kt_scale) const
+{
 
   if (ptcl.pt()<5.) return 99999.;
 
-  double deadcone_nh(0.), deadcone_ch(0.), deadcone_ph(0.), deadcone_pu(0.);
-  deadcone_ch = 0.0001; deadcone_pu = 0.01; deadcone_ph = 0.01;deadcone_nh = 0.01;
+  const double deadcone_ch = 0.0001, deadcone_pu = 0.01, deadcone_ph = 0.01, deadcone_nh = 0.01;
+  const double ptThresh(0.5);
+  const double r_iso = max(r_iso_min,min(r_iso_max, kt_scale/ptcl.pt()));
 
-  double iso_nh(0.); double iso_ch(0.);
-  double iso_ph(0.); double iso_pu(0.);
-  double ptThresh(0.5);
-  double r_iso = max(r_iso_min,min(r_iso_max, kt_scale/ptcl.pt()));
+  double iso_nh(0.), iso_ch(0.), iso_ph(0.), iso_pu(0.);
   for (const pat::PackedCandidate &pfc : *pfcands) {
-    if (abs(pfc.pdgId())<7) continue;
-    double dr = deltaR(pfc, ptcl);
+    const unsigned int absId = std::abs(pfc.pdgId());
+    if ( absId<7 ) continue;
+
+    const double dr = deltaR(pfc, ptcl);
     if (dr > r_iso) continue;
 
+    if ( pfc.charge()==0 ) {
+      if ( pfc.pt()<=ptThresh ) continue;
 
-    //////////////////  NEUTRALS  /////////////////////////
-    if (pfc.charge()==0){
-      if (pfc.pt()>ptThresh) {
-        /////////// PHOTONS ////////////
-        if (abs(pfc.pdgId())==22) {
-          if(dr < deadcone_ph) continue;
-          iso_ph += pfc.pt();
-          /////////// NEUTRAL HADRONS ////////////
-        } else if (abs(pfc.pdgId())==130) {
-          if(dr < deadcone_nh) continue;
-          iso_nh += pfc.pt();
-        }
+      if ( absId==22 ) {
+        if ( dr >= deadcone_ph ) iso_ph += pfc.pt();
       }
-      //////////////////  CHARGED from PV  /////////////////////////
-    } else if (pfc.fromPV()>1){
-      if (abs(pfc.pdgId())==211) {
-        if(dr < deadcone_ch) continue;
-        iso_ch += pfc.pt();
-      }
-      //////////////////  CHARGED from PU  /////////////////////////
-    } else {
-      if (pfc.pt()>ptThresh){
-        if(dr < deadcone_pu) continue;
-        iso_pu += pfc.pt();
+      else if ( absId==130 ) {
+        if ( dr >= deadcone_nh ) iso_nh += pfc.pt();
       }
     }
+    else if ( pfc.fromPV()>1 ) {
+      if ( absId==211 and dr >= deadcone_ch ) iso_ch += pfc.pt();
+    }
+    else {
+      if ( pfc.pt()>ptThresh and dr >= deadcone_pu ) iso_pu += pfc.pt();
+    }
   }
-  double iso(0.);
-  iso = iso_ph + iso_nh;
-  iso -= 0.5*iso_pu;
-  if (iso>0) iso += iso_ch;
-  else iso = iso_ch;
 
-  iso = iso/ptcl.pt();
-
-  return iso;
+  const double iso = iso_ch + std::max(0.0, iso_ph + iso_nh - 0.5*iso_pu);
+  return iso/ptcl.pt();
 }
 
 

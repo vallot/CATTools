@@ -67,7 +67,7 @@ cat::CATFatJetProducer::CATFatJetProducer(const edm::ParameterSet & iConfig) :
   jetResSFFilePath_(edm::FileInPath(iConfig.getParameter<std::string>("jetResSFFile")).fullPath()),
   setGenParticle_(iConfig.getParameter<bool>("setGenParticle"))
 {
-  produces<std::vector<cat::FatJet> >();
+  produces<cat::FatJetCollection>();
   ///  pfjetIDFunctor = PFJetIDSelectionFunctor(PFJetIDSelectionFunctor::FIRSTDATA,PFJetIDSelectionFunctor::LOOSE);
 }
 
@@ -103,7 +103,7 @@ void cat::CATFatJetProducer::produce(edm::Event & iEvent, const edm::EventSetup 
   iEvent.getByToken(rhoToken_, rhoHandle);
   const double rho = *rhoHandle;
 
-  unique_ptr<vector<cat::FatJet> >  out(new vector<cat::FatJet>());
+  std::unique_ptr<cat::FatJetCollection>  out(new cat::FatJetCollection());
   for (const pat::Jet &aPatJet : *src) {
 
     cat::FatJet aJet(aPatJet);

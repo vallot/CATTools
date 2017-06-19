@@ -46,7 +46,7 @@ namespace cat {
 
     void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
     bool mcMatch( const reco::Candidate::LorentzVector& lepton, const std::vector<reco::GenParticleRef>& genParticles ) const;
-    double getMiniRelIso(edm::Handle<pat::PackedCandidateCollection> pfcands,  const reco::Candidate::LorentzVector& ptcl, double  r_iso_min, double r_iso_max, double kt_scale,double rhoIso, double AEff);
+    double getMiniRelIso(edm::Handle<pat::PackedCandidateCollection> pfcands,  const reco::Candidate::LorentzVector& ptcl, double  r_iso_min, double r_iso_max, double kt_scale,double rhoIso, double AEff) const;
 
   private:
 
@@ -77,61 +77,46 @@ namespace cat {
 
 double cat::CATElectronProducer::getMiniRelIso(edm::Handle<pat::PackedCandidateCollection> pfcands,
 					       const reco::Candidate::LorentzVector& ptcl,
-					       double r_iso_min, double r_iso_max, double kt_scale, double rhoIso, double AEff){
+					       double r_iso_min, double r_iso_max, double kt_scale, double rhoIso, double AEff) const
+{
 
   if (ptcl.pt()<5.) return 99999.;
 
   double deadcone_nh(0.), deadcone_ch(0.), deadcone_ph(0.), deadcone_pu(0.);
   if (fabs(ptcl.eta())>1.479) {deadcone_ch = 0.015; deadcone_pu = 0.015; deadcone_ph = 0.08;}
+  const double ptThresh(0.);
+  const double r_iso = max(r_iso_min,min(r_iso_max, kt_scale/ptcl.pt()));
 
-  double iso_nh(0.); double iso_ch(0.);
-  double iso_ph(0.); double iso_pu(0.);
-  double ptThresh(0.);
-
-  double r_iso = max(r_iso_min,min(r_iso_max, kt_scale/ptcl.pt()));
+  double iso_nh(0.), iso_ch(0.), iso_ph(0.), iso_pu(0.);
   for (const pat::PackedCandidate &pfc : *pfcands) {
-    if (abs(pfc.pdgId())<7) continue;
-    double dr = deltaR(pfc, ptcl);
+    const unsigned int absId = std::abs(pfc.pdgId());
+    if ( absId<7 ) continue;
+
+    const double dr = deltaR(pfc, ptcl);
     if (dr > r_iso) continue;
 
-    //////////////////  NEUTRALS  /////////////////////////
     if (pfc.charge()==0){
-      if (pfc.pt()>ptThresh) {
-	/////////// PHOTONS ////////////
-	if (abs(pfc.pdgId())==22) {
-	  if(dr < deadcone_ph) continue;
-	  iso_ph += pfc.pt();
-	  /////////// NEUTRAL HADRONS ////////////
-	} else if (abs(pfc.pdgId())==130) {
-	  if(dr < deadcone_nh) continue;
-	  iso_nh += pfc.pt();
-	}
+      if (pfc.pt() <= ptThresh) continue;
+
+      if (abs(pfc.pdgId())==22) {
+        if(dr >= deadcone_ph) iso_ph += pfc.pt();
       }
-      //////////////////  CHARGED from PV  /////////////////////////
-    } else if (pfc.fromPV()>1){
-      if (abs(pfc.pdgId())==211) {
-	if(dr < deadcone_ch) continue;
-	iso_ch += pfc.pt();
-      }
-      //////////////////  CHARGED from PU  /////////////////////////
-    } else {
-      if (pfc.pt()>ptThresh){
-	if(dr < deadcone_pu) continue;
-	iso_pu += pfc.pt();
+      else if (abs(pfc.pdgId())==130) {
+        if(dr >= deadcone_nh) iso_nh += pfc.pt();
       }
     }
+    else if (pfc.fromPV()>1){
+      if (abs(pfc.pdgId())==211 and dr >= deadcone_ch ) iso_ch += pfc.pt();
+    }
+    else {
+      if (pfc.pt()>ptThresh and dr >= deadcone_pu) iso_pu += pfc.pt();
+    }
   }
-  double iso(0.);
-  double conesize_correction= pow((r_iso/0.3),2.);
 
-  iso = ( iso_ch  + std::max(0.0, iso_nh + iso_ph - rhoIso*AEff*conesize_correction) )/ ptcl.pt();
-
-  return iso;
+  const double conesize_correction = r_iso*r_iso/0.09;
+  const double iso = iso_ch  + std::max(0.0, iso_nh + iso_ph - rhoIso*AEff*conesize_correction);
+  return iso/ptcl.pt();
 }
-
-
-
-
 
 cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig) :
   src_(consumes<edm::View<pat::Electron> >(iConfig.getParameter<edm::InputTag>("src"))),
@@ -228,7 +213,7 @@ void cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetu
     aElectron.setPhotonIso03( aPatElectron.pfIsolationVariables().sumPhotonEt );
     aElectron.setPUChargedHadronIso03( aPatElectron.pfIsolationVariables().sumPUPt );
 
-    float scEta = aPatElectron.superCluster()->eta();
+    const float scEta = aPatElectron.superCluster()->eta();
     double ecalpt = aPatElectron.ecalDrivenMomentum().pt();
 
     double elEffArea04 = getEffArea( 0.4, scEta);
@@ -246,7 +231,7 @@ void cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetu
     aElectron.setMiniRelIso(getMiniRelIso( pfcands, aElectron.p4(), 0.05, 0.2, 10., rhoIso,elEffArea03));
 
 
-    aElectron.setscEta( aPatElectron.superCluster()->eta());
+    aElectron.setscEta(scEta);
     aElectron.setPassConversionVeto( aPatElectron.passConversionVeto() );
 
     if (elecIDSrcs_.size()){// for remade electron IDs
@@ -293,14 +278,14 @@ void cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetu
       eoverp = std::abs(1.0/aPatElectron.ecalEnergy() - aPatElectron.eSuperClusterOverP()/aPatElectron.ecalEnergy() ) ;
     }
 
-    int snu_id = getSNUID(aPatElectron.full5x5_sigmaIetaIeta(), abs(aPatElectron.deltaEtaSuperClusterTrackAtVtx() ), abs(aPatElectron.deltaPhiSuperClusterTrackAtVtx() ), aPatElectron.hcalOverEcal(), eoverp, abs(aElectron.dz()) , aPatElectron.gsfTrack()->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS), aPatElectron.passConversionVeto(),aPatElectron.superCluster()->eta() );
+    int snu_id = getSNUID(aPatElectron.full5x5_sigmaIetaIeta(), abs(aPatElectron.deltaEtaSuperClusterTrackAtVtx() ), abs(aPatElectron.deltaPhiSuperClusterTrackAtVtx() ), aPatElectron.hcalOverEcal(), eoverp, abs(aElectron.dz()) , aPatElectron.gsfTrack()->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS), aPatElectron.passConversionVeto(),scEta);
     aElectron.setSNUID(snu_id);
 
     // Fill the validity flag of triggered MVA
     bool isTrigMVAValid = false;
     const double pt = aElectron.pt();
     if ( pt > 15 ) {
-      const double abseta = std::abs(aPatElectron.superCluster()->eta());
+      const double abseta = std::abs(scEta);
       const double full5x5_sigmaIetaIeta = aPatElectron.full5x5_sigmaIetaIeta();
       const double hcalOverEcal =  aPatElectron.hcalOverEcal();
       const double ecalPFClusterIso = aPatElectron.ecalPFClusterIso();

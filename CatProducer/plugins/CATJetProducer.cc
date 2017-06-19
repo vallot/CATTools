@@ -81,7 +81,7 @@ cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
     flavTagTokens_.push_back(consumes<edm::ValueMap<float>>(label));
   }
 
-  produces<std::vector<cat::Jet> >();
+  produces<cat::JetCollection>();
 }
 
 void cat::CATJetProducer::beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&)
@@ -128,7 +128,7 @@ void cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     iEvent.getByToken(token, flavTagHandles.back());
   }
 
-  unique_ptr<vector<cat::Jet> >  out(new vector<cat::Jet>());
+  std::unique_ptr<cat::JetCollection>  out(new cat::JetCollection());
 
   for (auto aPatJetPointer = src->begin(); aPatJetPointer != src->end(); ++aPatJetPointer) {
 
