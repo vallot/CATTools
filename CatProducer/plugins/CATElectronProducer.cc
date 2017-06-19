@@ -143,9 +143,8 @@ cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig)
   rhoLabel_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoLabel"))),
   electronIDs_(iConfig.getParameter<std::vector<std::string> >("electronIDs"))
 {
+  produces<cat::ElectronCollection>();
 
-
-  produces<std::vector<cat::Electron> >();
   if (iConfig.existsAs<edm::ParameterSet>("electronIDSources")) {
     edm::ParameterSet idps = iConfig.getParameter<edm::ParameterSet>("electronIDSources");
     std::vector<std::string> names = idps.getParameterNamesForType<edm::InputTag>();
@@ -202,9 +201,9 @@ void cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetu
     ids[i].first = elecIDSrcs_[i].first;
   }
 
-  std::unique_ptr<vector<cat::Electron> >  out(new vector<cat::Electron>());
-  int j = 0;
-  for (const pat::Electron &aPatElectron : *src){
+  std::unique_ptr<cat::ElectronCollection>  out(new cat::ElectronCollection());
+  for ( int j=0, n=src->size(); j<n; ++j ) {
+    const auto aPatElectron = src->at(j);
     cat::Electron aElectron(aPatElectron);
     auto elecsRef = src->refAt(j);
     auto unsmearedElecRef = unsmearedElecHandle->refAt(j);
@@ -276,9 +275,8 @@ void cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetu
     aElectron.setDz( theTrack->dz(pv.position()) );
     aElectron.setVertex(Point(theTrack->vx(),theTrack->vy(),theTrack->vz()));
 
-    TrajectoryStateOnSurface eleTSOS;
     reco::TransientTrack eletranstrack = trackBuilder->build(theTrack);
-    eleTSOS = IPTools::transverseExtrapolate(eletranstrack.impactPointState(), pVertex, eletranstrack.field());
+    TrajectoryStateOnSurface eleTSOS = IPTools::transverseExtrapolate(eletranstrack.impactPointState(), pVertex, eletranstrack.field());
     if (eleTSOS.isValid()) {
       std::pair<bool, Measurement1D>     eleIPpair = IPTools::signedTransverseImpactParameter(eletranstrack, eleTSOS.globalDirection(), pv);
 
@@ -287,15 +285,11 @@ void cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetu
     }
 
 
-    float eoverp = -999.;
     // |1/E-1/p| = |1/E - EoverPinner/E| is computed below
     // The if protects against ecalEnergy == inf or zero
     // (always the case for miniAOD for electrons <5 GeV)
-    if( aPatElectron.ecalEnergy() == 0 ){
-      eoverp = 1e30;
-    }else if( !std::isfinite(aPatElectron.ecalEnergy())){
-      eoverp = 1e30;
-    }else{
+    float eoverp = 1e30;
+    if( aPatElectron.ecalEnergy() != 0 and std::isfinite(aPatElectron.ecalEnergy()) ) {
       eoverp = std::abs(1.0/aPatElectron.ecalEnergy() - aPatElectron.eSuperClusterOverP()/aPatElectron.ecalEnergy() ) ;
     }
 
@@ -334,8 +328,6 @@ void cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetu
     aElectron.setTrigMVAValid(isTrigMVAValid);
 
     out->push_back(aElectron);
-
-    ++j;
   }
   iEvent.put(std::move(out));
 }
