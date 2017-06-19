@@ -40,7 +40,6 @@ namespace cat {
   class CATElectronProducer : public edm::stream::EDProducer<> {
   public:
     explicit CATElectronProducer(const edm::ParameterSet & iConfig);
-    virtual ~CATElectronProducer() { }
 
     void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
     bool mcMatch( const reco::Candidate::LorentzVector& lepton, const edm::Handle<reco::GenParticleCollection> & genParticles );
@@ -200,7 +199,7 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     ids[i].first = elecIDSrcs_[i].first;
   }
 
-  auto_ptr<vector<cat::Electron> >  out(new vector<cat::Electron>());
+  unique_ptr<vector<cat::Electron> >  out(new vector<cat::Electron>());
   int j = 0;
   for (const pat::Electron &aPatElectron : *src){
     cat::Electron aElectron(aPatElectron);
@@ -343,7 +342,7 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
 
     ++j;
   }
-  iEvent.put(out);
+  iEvent.put(std::move(out));
 }
 
 

@@ -21,7 +21,7 @@ public:
 private:
   const reco::Candidate* getLast(const reco::Candidate* p) const;
   reco::GenParticleRef buildGenParticle(const reco::Candidate* p, reco::GenParticleRefProd& refHandle,
-                                        std::auto_ptr<reco::GenParticleCollection>& outColl) const;
+                                        std::unique_ptr<reco::GenParticleCollection>& outColl) const;
 
   typedef reco::Particle::LorentzVector LorentzVector;
 
@@ -55,13 +55,13 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
   edm::Handle<edm::View<reco::Candidate> > genParticleHandle;
   event.getByToken(genParticleToken_, genParticleHandle);
 
-  std::auto_ptr<reco::GenParticleCollection> partons(new reco::GenParticleCollection);
+  std::unique_ptr<reco::GenParticleCollection> partons(new reco::GenParticleCollection);
   auto partonRefHandle = event.getRefBeforePut<reco::GenParticleCollection>();
 
-  std::auto_ptr<int> channel(new int(cat::CH_NOTT));
-  std::auto_ptr<std::vector<int> > modes(new std::vector<int>());
+  std::unique_ptr<int> channel(new int(cat::CH_NOTT));
+  std::unique_ptr<std::vector<int> > modes(new std::vector<int>());
 
-  std::auto_ptr<reco::GenJetCollection> qcdJets(new reco::GenJetCollection);
+  std::unique_ptr<reco::GenJetCollection> qcdJets(new reco::GenJetCollection);
 
   // Collect top quarks and unstable B-hadrons
   std::vector<const reco::Candidate*> tQuarks;
@@ -262,10 +262,10 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
     qcdJets->push_back(qcdJet);
   }
 
-  event.put(partons);
-  event.put(channel, "channel");
-  event.put(modes, "modes");
-  event.put(qcdJets, "qcdJets");
+  event.put(std::move(partons));
+  event.put(std::move(channel), "channel");
+  event.put(std::move(modes), "modes");
+  event.put(std::move(qcdJets), "qcdJets");
 }
 
 const reco::Candidate* PartonTopProducer::getLast(const reco::Candidate* p) const
@@ -291,7 +291,7 @@ const reco::Candidate* PartonTopProducer::getLast(const reco::Candidate* p) cons
 }
 
 reco::GenParticleRef PartonTopProducer::buildGenParticle(const reco::Candidate* p, reco::GenParticleRefProd& refHandle,
-                                                               std::auto_ptr<reco::GenParticleCollection>& outColl) const
+                                                         std::unique_ptr<reco::GenParticleCollection>& outColl) const
 {
   reco::GenParticle pOut(*dynamic_cast<const reco::GenParticle*>(p));
   pOut.clearMothers();

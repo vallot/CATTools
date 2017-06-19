@@ -11,7 +11,6 @@ namespace cat {
   class CATVertexProducer : public edm::stream::EDProducer<> {
   public:
     explicit CATVertexProducer(const edm::ParameterSet & iConfig);
-    virtual ~CATVertexProducer() { }
 
     void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
 
@@ -58,7 +57,7 @@ void cat::CATVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup 
     ++nGoodPV;
   }
 
-  std::auto_ptr<reco::VertexCollection> out(new reco::VertexCollection());
+  std::unique_ptr<reco::VertexCollection> out(new reco::VertexCollection());
   if ( igoodpv0 >= 0 ) {
     out->push_back(recVtxs->at(igoodpv0));
     out->back().removeTracks();
@@ -68,9 +67,9 @@ void cat::CATVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup 
     out->back().removeTracks();
   }
 
-  iEvent.put(std::auto_ptr<int>(new int (nGoodPV)), "nGoodPV");
-  iEvent.put(std::auto_ptr<int>(new int (nPV)), "nPV");
-  iEvent.put(out);
+  iEvent.put(std::move(std::unique_ptr<int>(new int (nGoodPV))), "nGoodPV");
+  iEvent.put(std::move(std::unique_ptr<int>(new int (nPV))), "nPV");
+  iEvent.put(std::move(out));
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"

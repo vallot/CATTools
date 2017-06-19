@@ -31,7 +31,6 @@ namespace cat {
   class CATMuonProducer : public edm::stream::EDProducer<> {
   public:
     explicit CATMuonProducer(const edm::ParameterSet & iConfig);
-    virtual ~CATMuonProducer() { }
 
     void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
 
@@ -154,7 +153,7 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
   GlobalPoint pVertex(pv.position().x(),pv.position().y(),pv.position().z());
 
 
-  auto_ptr<vector<cat::Muon> >  out(new vector<cat::Muon>());
+  unique_ptr<vector<cat::Muon> >  out(new vector<cat::Muon>());
   for (const pat::Muon & aPatMuon : *src) {
     cat::Muon aMuon(aPatMuon);
 
@@ -224,7 +223,7 @@ cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     out->push_back(aMuon);
   }
 
-  iEvent.put(out);
+  iEvent.put(std::move(out));
 }
 
 bool cat::CATMuonProducer::mcMatch( const reco::Candidate::LorentzVector& lepton, Handle<reco::GenParticleCollection> genParticles ){

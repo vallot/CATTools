@@ -33,7 +33,6 @@ namespace cat {
   class CATPhotonProducer : public edm::stream::EDProducer<> {
   public:
     explicit CATPhotonProducer(const edm::ParameterSet & iConfig);
-    virtual ~CATPhotonProducer() { }
 
     void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
     int  mcMatch( const reco::Candidate::LorentzVector& lepton, const edm::Handle<reco::GenParticleCollection> & genParticles );
@@ -124,7 +123,7 @@ cat::CATPhotonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
   }
   
 
-  auto_ptr<vector<cat::Photon> >  out(new vector<cat::Photon>());
+  unique_ptr<vector<cat::Photon> >  out(new vector<cat::Photon>());
   int j = 0;
 
   for (const pat::Photon & aPatPhoton : *src){
@@ -196,7 +195,7 @@ cat::CATPhotonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
     ++j;
   }
 
-  iEvent.put(out);
+  iEvent.put(std::move(out));
 }
 
 

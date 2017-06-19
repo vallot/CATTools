@@ -37,7 +37,6 @@ namespace cat {
   class CATFatJetProducer : public edm::stream::EDProducer<> {
   public:
     explicit CATFatJetProducer(const edm::ParameterSet & iConfig);
-    virtual ~CATFatJetProducer() { }
 
     void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
     void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&) override;
@@ -104,7 +103,7 @@ void cat::CATFatJetProducer::produce(edm::Event & iEvent, const edm::EventSetup 
   iEvent.getByToken(rhoToken_, rhoHandle);
   const double rho = *rhoHandle;
 
-  auto_ptr<vector<cat::FatJet> >  out(new vector<cat::FatJet>());
+  unique_ptr<vector<cat::FatJet> >  out(new vector<cat::FatJet>());
   for (const pat::Jet &aPatJet : *src) {
 
     cat::FatJet aJet(aPatJet);
@@ -245,7 +244,7 @@ void cat::CATFatJetProducer::produce(edm::Event & iEvent, const edm::EventSetup 
 
   if (jecUnc) delete jecUnc;
 
-  iEvent.put(out);
+  iEvent.put(std::move(out));
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"

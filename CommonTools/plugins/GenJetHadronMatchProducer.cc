@@ -16,7 +16,6 @@ class GenJetHadronMatchProducer : public edm::stream::EDProducer<>
 {
 public:
   GenJetHadronMatchProducer(const edm::ParameterSet& pset);
-  ~GenJetHadronMatchProducer() = default;
 
   void produce(edm::Event & event, const edm::EventSetup&) override;
 
@@ -89,9 +88,9 @@ void GenJetHadronMatchProducer::produce(edm::Event& event, const edm::EventSetup
     std::copy(partonIds.begin(), partonIds.end(), std::back_inserter(vPartonIds));
   }
 
-  std::auto_ptr<vint> out_nBHadron(new vint), out_nCHadron(new vint);
-  std::auto_ptr<vvint> out_ancestors(new vvint);
-  std::auto_ptr<vvint> out_hAncestors(new vvint);
+  std::unique_ptr<vint> out_nBHadron(new vint), out_nCHadron(new vint);
+  std::unique_ptr<vvint> out_ancestors(new vvint);
+  std::unique_ptr<vvint> out_hAncestors(new vvint);
   for ( int i=0, n=genJetHandle->size(); i<n; ++i ) {
     auto nbitr = jetToNBHadron.find(i);
     if ( nbitr == jetToNBHadron.end() ) out_nBHadron->push_back(0);
@@ -109,10 +108,10 @@ void GenJetHadronMatchProducer::produce(edm::Event& event, const edm::EventSetup
     if ( hitr == jetToHPartonIds.end() ) out_hAncestors->push_back(vint());
     else out_hAncestors->push_back(hitr->second);
   }
-  event.put(out_nBHadron, "nBHadron");
-  event.put(out_nCHadron, "nCHadron");
-  event.put(out_ancestors, "ancestors");
-  event.put(out_hAncestors, "hadronAncestors");
+  event.put(std::move(out_nBHadron), "nBHadron");
+  event.put(std::move(out_nCHadron), "nCHadron");
+  event.put(std::move(out_ancestors), "ancestors");
+  event.put(std::move(out_hAncestors), "hadronAncestors");
 
 }
 

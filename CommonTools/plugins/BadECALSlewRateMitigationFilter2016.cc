@@ -21,7 +21,6 @@ class BadECALSlewRateMitigationFilter2016 : public edm::stream::EDFilter<>
 {
 public:
   BadECALSlewRateMitigationFilter2016(const edm::ParameterSet& pset);
-  ~BadECALSlewRateMitigationFilter2016() {};
 
   bool filter(edm::Event& event, const edm::EventSetup& eventSetup) override;
 

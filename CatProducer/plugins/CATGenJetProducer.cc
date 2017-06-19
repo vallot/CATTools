@@ -14,7 +14,6 @@ namespace cat {
   class CATGenJetProducer : public edm::stream::EDProducer<> {
   public:
     explicit CATGenJetProducer(const edm::ParameterSet & iConfig);
-    virtual ~CATGenJetProducer() { }
 
     void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
 
@@ -49,7 +48,7 @@ cat::CATGenJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
   Handle<reco::GenJetCollection> src;
   iEvent.getByToken(src_, src);
 
-  auto_ptr<vector<cat::GenJet> >  out(new vector<cat::GenJet>());
+  unique_ptr<vector<cat::GenJet> >  out(new vector<cat::GenJet>());
 
   for (const reco::GenJet & aGenJet : *src) {
     if ( aGenJet.pt() < pt_ || std::abs(aGenJet.eta()) > eta_ ) continue;
@@ -95,7 +94,7 @@ cat::CATGenJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
 
   }
 
-  iEvent.put(out);
+  iEvent.put(std::move(out));
 }
 
 std::vector<const reco::Candidate *> cat::CATGenJetProducer::getAncestors(const reco::Candidate &c)

@@ -33,7 +33,6 @@ class CATJetProducer : public edm::stream::EDProducer<>
 {
 public:
   explicit CATJetProducer(const edm::ParameterSet & iConfig);
-  virtual ~CATJetProducer() { }
 
   void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
   void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&) override;
@@ -129,7 +128,7 @@ void cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     iEvent.getByToken(token, flavTagHandles.back());
   }
 
-  auto_ptr<vector<cat::Jet> >  out(new vector<cat::Jet>());
+  unique_ptr<vector<cat::Jet> >  out(new vector<cat::Jet>());
 
   for (auto aPatJetPointer = src->begin(); aPatJetPointer != src->end(); ++aPatJetPointer) {
 
@@ -271,7 +270,7 @@ void cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
 
   if (jecUnc) delete jecUnc;
 
-  iEvent.put(out);
+  iEvent.put(std::move(out));
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"
