@@ -26,7 +26,7 @@ catEventContent.extend([
     'keep patPackedTriggerPrescales_patTrigger__*', ## do we need this collection, where?
     'keep *_lumiMask*_*_*',
     'keep *_fixedGridRhoAll_*_', 'keep *_fixedGridRhoFastjetAll_*_*',
-    'keep *_BadChargedCandidateFilter_*_*', 'keep *_BadPFMuonFilter_*_*',
+    #'keep *_BadChargedCandidateFilter_*_*', 'keep *_BadPFMuonFilter_*_*',
     ])
 
 catEventContentRD.extend([
@@ -34,15 +34,15 @@ catEventContentRD.extend([
     ])
 
 catEventContentMC.extend([
-    'keep *_slimmedGenJets_*_*',
     'keep *_genWeight_*_*',
     'keep *_pileupWeight*_*_*',
-    #'keep *_matchGenBHadron_*_*',
-    #'keep *_matchGenCHadron_*_*',
     ])
 
 catEventContentMCSignal.extend([
+    'keep *_slimmedGenJets_*_*',
     'keep recoGenParticles_prunedGenParticles_*_*',
+    #'keep *_matchGenBHadron_*_*',
+    #'keep *_matchGenCHadron_*_*',
     ])
 
 catEventContentTOPMC.extend([
