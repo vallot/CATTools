@@ -49,6 +49,7 @@ catEventContentTOPMC.extend([
     'keep *_particleLevel_*_*',
     'drop *_particleLevel_consts_*',
     'drop *_particleLevel_photons_*',
+    'drop *_particleLevel_fatjets_*',
     'keep *_genJetHadronFlavour_*_*',
     ])
 
