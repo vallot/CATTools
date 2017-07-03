@@ -1,0 +1,8 @@
+# -- TTbar Leptonic
+ttbar_LepJetsPowhegPythiattbb                dataset_TTLJ_powheg.txt           runOnTTbarMC=1 TTbarCatMC=1
+ttbar_LepJetsPowhegPythiattbj                dataset_TTLJ_powheg.txt           runOnTTbarMC=1 TTbarCatMC=2
+ttbar_LepJetsPowhegPythiattcc                dataset_TTLJ_powheg.txt           runOnTTbarMC=1 TTbarCatMC=3
+ttbar_LepJetsPowhegPythiattLF                dataset_TTLJ_powheg.txt           runOnTTbarMC=1 TTbarCatMC=4
+ttbar_LepJetsPowhegPythiatt                  dataset_TTLJ_powheg.txt           runOnTTbarMC=1 TTbarCatMC=5
+
+ttbar_LepJetsPowhegPythiattjj                dataset_TTLJ_powheg.txt           runOnTTbarMC=1 TTbarCatMC=6

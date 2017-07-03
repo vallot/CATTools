@@ -268,7 +268,6 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   const auto elecSFSet = iConfig.getParameter<edm::ParameterSet>("elecSF");
   SF_elec_.set(elecSFSet.getParameter<std::vector<double>>("pt_bins" ),
 	       elecSFSet.getParameter<std::vector<double>>("eta_bins"),
-	       //elecSFSet.getParameter<std::vector<double>>("abseta_bins"),
 	       elecSFSet.getParameter<std::vector<double>>("values"  ),
 	       elecSFSet.getParameter<std::vector<double>>("errors"  ));
   
@@ -1083,11 +1082,20 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   Handle<cat::ElectronCollection> electrons;
   iEvent.getByToken(electronToken_, electrons);
 
-  for (unsigned int i = 0; i < electrons->size() ; i++) {
-    const cat::Electron & electron = electrons->at(i);
+  if ( !doLooseLepton_ ) {
+    for (unsigned int i = 0; i < electrons->size() ; i++) {
+      const cat::Electron & electron = electrons->at(i);
 
-    if( IsSelectElectron( electron ) ) selectedElectrons.push_back( electron );
-    else if( IsVetoElectron( electron ) ) vetoElectrons.push_back( electron ); // does not Include selected electrons
+      if( IsSelectElectron( electron ) ) selectedElectrons.push_back( electron );
+      else if( IsVetoElectron( electron ) ) vetoElectrons.push_back( electron ); // does not Include selected electrons
+    }
+  }
+  else if ( !electrons->empty() ) {
+    if ( IsSelectElectron(electrons->at(0)) ) selectedElectrons.push_back( electrons->at(0) );
+    for (unsigned int i = 1; i < electrons->size() ; i++) {
+      const cat::Electron & electron = electrons->at(i);
+      if ( IsVetoElectron(electron) ) vetoElectrons.push_back(electron);
+    }
   }
 
   //---------------------------------------------------------------------------
@@ -1102,11 +1110,20 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   Handle<cat::MuonCollection> muons;
   iEvent.getByToken(muonToken_, muons);
 
-  for (unsigned int i = 0; i < muons->size() ; i++) {
-    const cat::Muon & muon = muons->at(i);
+  if ( !doLooseLepton_ ) {
+    for (unsigned int i = 0; i < muons->size() ; i++) {
+      const cat::Muon & muon = muons->at(i);
 
-    if( IsSelectMuon( muon) ) selectedMuons.push_back( muon);
-    else if( IsVetoMuon( muon) ) vetoMuons.push_back( muon); // does not Include selected muons
+      if( IsSelectMuon( muon) ) selectedMuons.push_back( muon);
+      else if( IsVetoMuon( muon) ) vetoMuons.push_back( muon); // does not Include selected muons
+    }
+  }
+  else if ( !muons->empty() ) {
+    if ( IsSelectMuon(muons->at(0)) ) selectedMuons.push_back( muons->at(0) );
+    for (unsigned int i = 1; i < muons->size() ; i++) {
+      const cat::Muon & muon = muons->at(i);
+      if ( IsVetoMuon(muon) ) vetoMuons.push_back(muon);
+    }
   }
 
   //---------------------------------------------------------------------------
@@ -1152,9 +1169,9 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
      if(isMC_) {
        // Lepton SF (ID/ISO)
-       lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), std::abs(selectedElectrons[0].scEta()) ) );       // [0]-> SF
-       lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), std::abs(selectedElectrons[0].scEta()),  1.0 ) ); // [1]-> SF+Error
-       lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), std::abs(selectedElectrons[0].scEta()), -1.0 ) ); // [2]-> SF-Error
+       lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), selectedElectrons[0].scEta() ) );       // [0]-> SF
+       lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), selectedElectrons[0].scEta()),  1.0 ); // [1]-> SF+Error
+       lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), selectedElectrons[0].scEta()), -1.0 ); // [2]-> SF-Error
        //LES
        lepton_LES = selectedElectrons[0].shiftedEn();
      }
@@ -1626,7 +1643,8 @@ bool ttbbLepJetsAnalyzer::IsSelectElectron(const cat::Electron & i_electron_cand
 
   // Electron cut based selection
   // From https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2
-  GoodElectron &= i_electron_candidate.electronID("cutBasedElectronID-Summer16-80X-V1-medium") > 0.0;
+  if ( !doLooseLepton_ ) GoodElectron &= i_electron_candidate.electronID("cutBasedElectronID-Summer16-80X-V1-medium") > 0.0;
+  else                   GoodElectron &= i_electron_candidate.electronID("cutBasedElectronID-Summer16-80X-V1-medium-noiso") > 0.0;
 
   // Electron MVA selection (Tight: WP80)
   // From https://twiki.cern.ch/twiki/bin/viewauth/CMS/MultivariateElectronIdentificationRun2#Recipes_for_7_4_12_Spring15_MVA
