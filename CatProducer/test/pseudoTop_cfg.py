@@ -12,11 +12,10 @@ process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 process.MessageLogger.cerr.FwkReport.reportEvery = 10000
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
-process.source.fileNames = [
-'/store/mc/Phys14DR/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU20bx25_PHYS14_25_V1-v1/00000/00C90EFC-3074-E411-A845-002590DB9262.root',
-]
+from CATTools.Validation.commonTestInput_cff import *
+process.source.fileNames = commonTestMiniAODs["sig"]
 
-process.load("CATTools.CatProducer.pseudoTop_cff")
+process.load("CATTools.CatProducer.mcTruthTop.mcTruthTop_cff")
 
 process.out = cms.OutputModule("PoolOutputModule", 
     fileName = cms.untracked.string("out.root"),
@@ -29,7 +28,7 @@ process.out = cms.OutputModule("PoolOutputModule",
 process.outPath = cms.EndPath(process.out)
 
 process.printTree = cms.EDAnalyzer("ParticleTreeDrawer",
-    src = cms.InputTag("pseudoTop", "partons"),
+    src = cms.InputTag("particleLevel"),
     printP4 = cms.untracked.bool(False),
     printPtEtaPhi = cms.untracked.bool(False),
     printVertex = cms.untracked.bool(False),
@@ -39,7 +38,7 @@ process.printTree = cms.EDAnalyzer("ParticleTreeDrawer",
 )
 
 process.printDecay = cms.EDAnalyzer("ParticleDecayDrawer",
-    src = cms.InputTag("pseudoTop", "partons"),
+    src = cms.InputTag("particleLevel"),
     printP4 = cms.untracked.bool(False),
     printPtEtaPhi = cms.untracked.bool(False),
     printVertex = cms.untracked.bool(False),
@@ -48,8 +47,7 @@ process.printDecay = cms.EDAnalyzer("ParticleDecayDrawer",
 )
 
 process.printList = cms.EDAnalyzer("ParticleListDrawer",
-    src = cms.InputTag("pseudoTop", "partons"),
-    #src = cms.InputTag("pseudoTop"),
+    src = cms.InputTag("particleLevel"),
     maxEventsToPrint  = cms.untracked.int32(-1)
 )
 
@@ -58,9 +56,9 @@ process.TFileService = cms.Service("TFileService",
 )
 
 process.p = cms.Path(
-    process.partonTop + process.pseudoTop
+    process.mergedGenParticles * process.genParticles2HepMC * process.particleLevel
   #* process.printTree
   #* process.printDecay
-  #* process.printList
+  * process.printList
 )
 
