@@ -22,6 +22,7 @@ process = cms.Process("ttbbLepJets")
 
 # initialize MessageLogger and output report
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
+process.MessageLogger.cerr.FwkReport.reportEvery = 50000
 # process.MessageLogger.cerr.threshold = 'INFO'
 # process.MessageLogger.categories.append('ttbbLepJets')
 # process.MessageLogger.cerr.INFO = cms.untracked.PSet(
@@ -36,8 +37,8 @@ process.source = cms.Source("PoolSource",
      # fileNames = cms.untracked.vstring()
      fileNames = cms.untracked.vstring(
         #'file:/afs/cern.ch/user/b/brochero/brochero_WorkArea/CATTuples_2017/CMSSW_8_0_20/src/CATTools/CatAnalyzer/prod/catTuple_ttbarLepJetsPowhegv803.root',
-        'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/v8-0-4_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/170113_045423/0000/catTuple_1.root',
-        #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/SingleElectron/v8-0-3_Run2016B-23Sep2016-v3/161203_235427/0000/catTuple_1.root',
+        #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/v8-0-4_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/170113_045423/0000/catTuple_1.root',
+        'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/TTToSemilepton_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8/v8-0-6_RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/170303_104856/0000/catTuple_106.root',
         #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/SingleElectron/v8-0-3_Run2016E-23Sep2016-v1/161207_134721/0000/catTuple_1.root'
         )
 )
@@ -45,12 +46,13 @@ process.source = cms.Source("PoolSource",
 # process.source.fileNames = commonTestCATTuples["sig"]
 
 # PUReWeight
-# process.load("CATTools.CatProducer.pileupWeight_cff")
-# from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
-# process.pileupWeight.weightingMethod = "RedoWeight"
-# process.pileupWeight.pileupRD = pileupWeightMap["Run2015_25nsV1"]
-# process.pileupWeight.pileupUp = pileupWeightMap["Run2015Up_25nsV1"]
-# process.pileupWeight.pileupDn = pileupWeightMap["Run2015Dn_25nsV1"]
+process.load("CATTools.CatProducer.pileupWeight_cff")
+from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
+process.pileupWeight.weightingMethod = "RedoWeight"
+process.pileupWeight.pileupMC = pileupWeightMap["2016_25ns_Moriond17MC"]
+process.pileupWeight.pileupRD = pileupWeightMap["Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON"]
+process.pileupWeight.pileupUp = pileupWeightMap["Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON_Up"]
+process.pileupWeight.pileupDn = pileupWeightMap["Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON_Dn"]
 
 # json file (Only Data)
 if options.UserJSON:
@@ -77,10 +79,10 @@ process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      KFUsebtag         = cms.untracked.bool(True),
                                      CSVPosConKF       = cms.untracked.bool(True),
                                      # TriggerNames
-                                     triggerNameDataEl = cms.untracked.vstring("HLT_Ele32_eta2p1_WPTight_Gsf_v"), 
+                                     triggerNameDataEl = cms.untracked.vstring("HLT_Ele27_eta2p1_WPTight_Gsf_v","HLT_Ele32_eta2p1_WPTight_Gsf_v"), 
                                      triggerNameDataMu = cms.untracked.vstring("HLT_IsoMu24_v","HLT_IsoTkMu24_v"), 
-                                     triggerNameMCEl   = cms.untracked.vstring("notrigger","HLT_Ele32_eta2p1_WPTight_Gsf_v"), 
-                                     triggerNameMCMu   = cms.untracked.vstring("notrigger","HLT_IsoMu24_v","HLT_IsoTkMu24_v"), 
+                                     triggerNameMCEl   = cms.untracked.vstring("HLT_Ele32_eta2p1_WPTight_Gsf_v8"), 
+                                     triggerNameMCMu   = cms.untracked.vstring("HLT_IsoMu24_v4","HLT_IsoTkMu24_v4"), 
                                      # Input Tags
                                      genWeightLabel    = cms.InputTag("flatGenWeights"),
                                      genLabel          = cms.InputTag("prunedGenParticles"),
@@ -101,6 +103,10 @@ process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      JetMother         = cms.InputTag("genJetHadronFlavour:ancestors"),
                                      )
 
+process.ttbbLepJetsQCD = process.ttbbLepJets.clone(
+    doLooseLepton = cms.untracked.bool(True),
+)
+
 process.TFileService = cms.Service("TFileService",
                                    fileName = cms.string('Tree_ttbbLepJets.root')
                                    )
@@ -113,4 +119,5 @@ process.TFileService = cms.Service("TFileService",
 #                      process.ttbarSingleLepton)
 process.p = cms.Path(process.flatGenWeights +
                      process.csvWeights +
-                     process.ttbbLepJets)
+                     process.pileupWeight +
+                     process.ttbbLepJets + process.ttbbLepJetsQCD)
