@@ -1,54 +1,7 @@
 #include "CATTools/CatAnalyzer/interface/TTbarFCNCFitter.h"
+#include "CATTools/CatAnalyzer/interface/KinematicFitters.h"
 
-// relative jet energy resolution : this is from Delphes, needs to be changed for CMS analysis
-double fcnc::JetEResolution(double energy){ 
-  return TMath::Sqrt(TMath::Power(0.05*energy,2.0) + TMath::Power(1.5*sqrt(energy),2.0))/energy;
-}
-
-// met phi resolution as a function of reconstructed met from Delphes
-double fcnc::METPhiResolution(double met){
-  return 0.05539 - 0.5183*exp(-0.01507*met);
-}
-
-double fcnc::METResolution(double met){
-  return 15.0;
-}
-
-double fcnc::TwoObjectMassResolution(TLorentzVector &j1, double releres1, TLorentzVector &j2, double releres2){
-
-  using namespace fcnc;
-
-  // crude, but OK
-  float massnominal = (j1+j2).M();
-  TLorentzVector j1smeared = (1.0+releres1)*j1;
-  TLorentzVector j2smeared = (1.0+releres2)*j2;
-  
-  float deltamass1up = (j1smeared+j2).M()-massnominal;
-  float deltamass2up = (j1+j2smeared).M()-massnominal;
-  return TMath::Hypot(deltamass1up, deltamass2up)/massnominal;
-}
-
-// relative mass resolution
-double fcnc::TwoJetMassResolution(TLorentzVector &j1, TLorentzVector &j2){
-
-  using namespace fcnc;
-
-  float releres1 = JetEResolution(j1.E());
-  float releres2 = JetEResolution(j2.E());
-  
-  return TwoObjectMassResolution(j1, releres1, j2, releres2);
-}
-
-
-void fcnc::fcn(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag){
-
-  using namespace fcnc;
-
-  //calculate chisquare 
-  tmpnu.SetPz(par[0]);
-  float massres = TwoObjectMassResolution(tmplep, 0.0, tmpnu, 15.0/tmpnu.Pt())*80.4;
-  f = TMath::Power(((tmpnu+tmplep).M()-80.4)/massres, 2.0);
-}
+using namespace cat;
 
 // full solution
 // par[0] - neutrino Pz
@@ -160,7 +113,7 @@ void fcnc::FindHadronicTop(TLorentzVector &lepton, std::vector<cat::Jet> &jets, 
   bestindices[3]=-1;
   
   nusol.SetPtEtaPhiM(met.pt(), 0.0, met.phi(), 0.0);
-  // metres = METResolution(nusol.Pt())/nusol.Pt();
+  // metres = KinematicFitter::metReolution(nusol.Pt())/nusol.Pt();
   // float wlmassrelres;
   // wlmassrelres = TwoObjectMassResolution(lepton, 0.0, nusol, 15.0/nusol.Pt());
   
@@ -191,10 +144,10 @@ void fcnc::FindHadronicTop(TLorentzVector &lepton, std::vector<cat::Jet> &jets, 
 		tmpj1  = trialWjet1;
 		tmpj2  = trialWjet2;
 		
-		blres = JetEResolution(tmpbl.E());
-		bjres = JetEResolution(tmpbj.E());
-		j1res = JetEResolution(tmpj1.E());
-		j2res = JetEResolution(tmpj2.E());
+		blres = KinematicFitter::jetEResolution(tmpbl.E());
+		bjres = KinematicFitter::jetEResolution(tmpbj.E());
+		j1res = KinematicFitter::jetEResolution(tmpj1.E());
+		j2res = KinematicFitter::jetEResolution(tmpj2.E());
 		
 		double nupz, metscale, blscale, bjscale, j1scale, j2scale;
 		
@@ -260,7 +213,7 @@ void fcnc::FindHadronicTop(TLorentzVector &lepton, std::vector<cat::Jet> &jets, 
 		  trialtoplepton    = trialwlepton + trialblepton;
 		  
 		  // float bjetreleres;
-		  // bjetreleres= JetEResolution(trialb.E());
+		  // bjetreleres= KinematicFitter::JetEResolution(trialb.E());
 		  
 		  // set global variables - ugly!
 		  tmplep = lepton;
@@ -270,10 +223,10 @@ void fcnc::FindHadronicTop(TLorentzVector &lepton, std::vector<cat::Jet> &jets, 
 		  tmpj1  = trialWjet1;
 		  tmpj2  = trialWjet2;
 		  
-		  blres  = JetEResolution(tmpbl.E());
-		  bjres  = JetEResolution(tmpbj.E());
-		  j1res  = JetEResolution(tmpj1.E());
-		  j2res  = JetEResolution(tmpj2.E());
+		  blres  = KinematicFitter::jetEResolution(tmpbl.E());
+		  bjres  = KinematicFitter::jetEResolution(tmpbj.E());
+		  j1res  = KinematicFitter::jetEResolution(tmpj1.E());
+		  j2res  = KinematicFitter::jetEResolution(tmpj2.E());
 		  
 
 		  double nupz, metscale, blscale, bjscale, j1scale, j2scale;
