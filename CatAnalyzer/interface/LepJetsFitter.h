@@ -23,12 +23,12 @@ namespace ttbb{
 
   void InitMinuit();
 
-  TMinuit *tm = 0;
+  extern TMinuit *tm;
 
-  TLorentzVector tmplep, tmpnu, tmpbl, tmpbj, tmpj1, tmpj2;
-  float blres, bjres, j1res, j2res, metres;
+  extern TLorentzVector tmplep, tmpnu, tmpbl, tmpbj, tmpj1, tmpj2;
+  extern float blres, bjres, j1res, j2res, metres;
 
-  float CSVWP = 0.9535;
+  extern const float CSVWP;
 
 }
 

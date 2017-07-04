@@ -1,6 +1,18 @@
 #include "CATTools/CatAnalyzer/interface/LepJetsFitterFCNH.h"
 #include "CATTools/CatAnalyzer/interface/KinematicFitters.h"
+#include "CATTools/DataFormats/interface/Jet.h"
+
 using namespace cat;
+
+namespace fcnh
+{
+  TMinuit *tm = 0;
+
+  TLorentzVector tmplep, tmpnu, tmpbl, tmpbj, tmpj1, tmpj2;
+  float blres, bjres, j1res, j2res, metres;
+
+  const float CSVWP = cat::WP_BTAG_CSVv2M;
+}
 
 // full solution
 // par[0] - neutrino Pz

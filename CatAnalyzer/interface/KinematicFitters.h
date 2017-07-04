@@ -9,15 +9,6 @@ namespace cat {
 
 struct KinematicFitter
 {
-  KinematicFitter()
-  {
-    tm_.reset(new TMinuit(6));
-    tm_->SetPrintLevel(-1);
-    double arglist[10] = {1,0,};
-    int ierflg = 0;
-    tm_->mnexcm("SET ERR", arglist, 1, ierflg);
-  }
-
   static double jetEResolution(double energy)
   {
     return std::hypot(0.05, 1.5/std::sqrt(energy));
