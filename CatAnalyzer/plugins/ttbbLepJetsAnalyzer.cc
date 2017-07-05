@@ -165,6 +165,18 @@ private:
   std::vector<float> *b_GenJet_eta;
   std::vector<float> *b_GenJet_phi;
   std::vector<float> *b_GenJet_E;
+
+  // additional b jets 
+  float b_addbjet1_pt; 
+  float b_addbjet1_eta; 
+  float b_addbjet1_phi; 
+  float b_addbjet1_e; 
+
+  float b_addbjet2_pt;
+  float b_addbjet2_eta;
+  float b_addbjet2_phi;
+  float b_addbjet2_e; 
+
   // Jet Mother (MC Studies)
   std::vector<int> *b_GenJet_mom, *b_GenJet_GenConeMom;
   // Jets
@@ -452,8 +464,6 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("fcnhkinjet_E",     "std::vector<float>", &b_fcnhKinJet_E);
   tree->Branch("fcnhkinjet_index", "std::vector<int>",   &b_fcnhKinJet_Index);
 
-
- 
   // GEN Variables (only ttbarSignal)
   if(TTbarMC_ == 1){
     tree->Branch("pdfweight",   "std::vector<float>", &b_PDFWeight );
@@ -490,6 +500,16 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
     tree->Branch("genjet_mom", "std::vector<int>",   &b_GenJet_mom);
 
     tree->Branch("genjet_gencone_mom", "std::vector<int>",  &b_GenJet_GenConeMom);
+
+    tree->Branch("addbjet1_pt", &b_addbjet1_pt, "addbjet1_pt/F"); 
+    tree->Branch("addbjet1_eta", &b_addbjet1_eta, "addbjet1_eta/F"); 
+    tree->Branch("addbjet1_phi", &b_addbjet1_phi, "addbjet1_phi/F"); 
+    tree->Branch("addbjet1_e", &b_addbjet1_e, "addbjet1_e/F"); 
+
+    tree->Branch("addbjet2_pt", &b_addbjet2_pt, "addbjet2_pt/F");
+    tree->Branch("addbjet2_eta", &b_addbjet2_eta, "addbjet2_eta/F");
+    tree->Branch("addbjet2_phi", &b_addbjet2_phi, "addbjet2_phi/F");
+    tree->Branch("addbjet2_e", &b_addbjet2_e, "addbjet2_e/F");  
 
     //GEN TREE
     gentree = fs->make<TTree>("gentree", "TopGENTree");
@@ -674,6 +694,16 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
  
   b_fcnhKinJet_Index->clear();
 
+  b_addbjet1_pt = -1.0;
+  b_addbjet1_eta = -1.0;
+  b_addbjet1_phi = -1.0;
+  b_addbjet1_e = -1.0;
+
+  b_addbjet2_pt = -1.0;
+  b_addbjet2_eta = -1.0;
+  b_addbjet2_phi = -1.0;
+  b_addbjet2_e = -1.0;
+
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   // Event Info
@@ -821,6 +851,17 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       b_GenCone_gJet_phi ->push_back(gJetGenCone[ijGT].Phi());
       b_GenCone_gJet_E   ->push_back(gJetGenCone[ijGT].E());
     }
+
+    // adding additional b jet four-momentum
+    b_addbjet1_pt = genttbarConeCat->begin()->addbJets1().Pt();
+    b_addbjet1_eta = genttbarConeCat->begin()->addbJets1().Eta();
+    b_addbjet1_phi = genttbarConeCat->begin()->addbJets1().Phi();
+    b_addbjet1_e = genttbarConeCat->begin()->addbJets1().E();
+
+    b_addbjet2_pt = genttbarConeCat->begin()->addbJets2().Pt();
+    b_addbjet2_eta = genttbarConeCat->begin()->addbJets2().Eta();
+    b_addbjet2_phi = genttbarConeCat->begin()->addbJets2().Phi();
+    b_addbjet2_e = genttbarConeCat->begin()->addbJets2().E();
 
     // DR 
     b_DRAddJets = genttbarConeCat->begin()->dRaddJets();
