@@ -111,7 +111,7 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
     for ( int j=0, m=tLast->numberOfDaughters(); j<m; ++j ) {
       const reco::Candidate* dau = tLast->daughter(j);
       const unsigned int dauAbsId = abs(dau->pdgId());
-      if ( (dauAbsId == 24 or dauAbsId == 25) and !w ) w = dau;
+      if ( (dauAbsId == 24 or dauAbsId == 25 or dauAbsId == 23) and !w ) w = dau; // Include top-FCNC
       else if ( dauAbsId < 6 and !b ) b = dau;
     }
     if ( !w or !b ) continue;
@@ -129,7 +129,9 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
     for ( int j=0, m=wLast->numberOfDaughters(); j<m; ++j ) {
       const reco::Candidate* dau = wLast->daughter(j);
       const unsigned int dauAbsId = abs(dau->pdgId());
-      if ( dauAbsId > 16 ) continue; // Consider quarks and leptons only for W decays
+      if ( abs(wLast->pdgId()) != 25 and dauAbsId > 16 ) continue; // Consider quarks and leptons only for W/Z decays
+      // With the line above, we allow H->ff/GG/ZZ/WW.
+      // wLast should be W/Z/H, nothing else.
 
       if ( !wDau1 ) wDau1 = dau;
       else if ( !wDau2 ) wDau2 = dau;
@@ -152,29 +154,22 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
     // Special care for tau->lepton decays
     // Note : we do not keep neutrinos from tau decays (tau->W, nu_tau, W->l, nu_l)
     // Note : Up to 6 neutrinos from top decays if both W decays to taus and all taus go into leptonic decay chain
-    const reco::Candidate* lepFromTau = 0;
+    std::vector<const reco::Candidate*> lepsFromTau;
     if ( abs(wDau1->pdgId()) == 15 ) {
       const reco::Candidate* tauLast = getLast(wDau1);
       for ( int j=0, m=tauLast->numberOfDaughters(); j<m; ++j ) {
         const reco::Candidate* dau = tauLast->daughter(j);
         const unsigned int dauAbsId = abs(dau->pdgId());
-        if ( dauAbsId == 11 or dauAbsId == 13 ) {
-          if ( !lepFromTau ) lepFromTau = dau;
-          else {
-            cout << "--------------------------------------" << endl;
-            cout << "TAU decay with more than 1 leptons!!!, nDau=" << tauLast->numberOfDaughters() << endl;
-            cout << " dau : " << lepFromTau->pdgId() << ", pt=" << lepFromTau->pt() << " eta=" << lepFromTau->eta() << " phi=" << lepFromTau->phi() << endl;
-            if ( lepFromTau->pt() > dau->pt() ) cout << " skipped ";
-            else {
-              cout << " switching to ";
-              lepFromTau = dau;
-            }
-            cout << j << "th lepton : " << dau->pdgId() << ", pt=" << dau->pt() << " eta=" << dau->eta() << " phi=" << dau->phi() << endl;
-            cout << "--------------------------------------" << endl;
-          }
-        }
+        if ( dauAbsId == 11 or dauAbsId == 13 ) lepsFromTau.push_back(dau);
       }
-      if ( lepFromTau ) {
+      // Cleanup the daughter lepton if net charge is zero. This happens if a conversion photon is radiated (tau->gamma+X, gamma->e+e-)
+      // This happens in sub-per-mil level (observed 6 among 10000 events)
+      const int sumQ = std::accumulate(lepsFromTau.begin(), lepsFromTau.end(), 0, [](int b, const reco::Candidate* a){return a->charge()+b;});
+      if ( sumQ == 0 ) lepsFromTau.clear();
+      // Sort daughter leptons, largest pT with consistent electric charge to the original tau at the front.
+      std::sort(lepsFromTau.begin(), lepsFromTau.end(), [](const reco::Candidate* a, const reco::Candidate* b){return a->pt() > b->pt();});
+      std::stable_sort(lepsFromTau.begin(), lepsFromTau.end(), [&](const reco::Candidate* a, const reco::Candidate* b){return a->charge() == tauLast->charge();});
+      for ( auto lepFromTau : lepsFromTau ) {
         reco::GenParticleRef lepRef = buildGenParticle(lepFromTau, partonRefHandle, partons);
         partons->at(lepRef.key()).addMother(wDauRef1);
         partons->at(wDauRef1.key()).addDaughter(lepRef);
@@ -186,7 +181,9 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
       case 13: ++nMuon; mode = cat::CH_MUON; break;
       case 15:
         ++nTau; mode = cat::CH_TAU_HADRON;
-        if ( lepFromTau ) {
+        if ( !lepsFromTau.empty() ) {
+
+          const reco::Candidate* lepFromTau = lepsFromTau.front();
           ++nTauToLepton;
           if ( abs(lepFromTau->pdgId()) == 13 ) {
             mode += 1;
