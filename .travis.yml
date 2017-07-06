@@ -1,0 +1,21 @@
+sudo: required
+env:
+  #matrix:
+
+branches:
+  only:
+  - cat80x
+
+services:
+  - docker
+
+before_install:
+  - echo 'DOCKER_OPTS="-H tcp://127.0.0.1:2375 -H unix:///var/run/docker.sock -s devicemapper"' | sudo tee /etc/default/docker > /dev/null
+  - sudo docker pull hepsw/cvmfs-cms:latest
+
+script:
+ # Run tests in Container
+ - sudo docker run --rm=true -v `pwd`:/CATTools:rw --privileged --device /dev/fuse hepsw/cvmfs-cms:latest /bin/bash -c "/CATTools/setup.sh"
+
+notifications:
+  email: false

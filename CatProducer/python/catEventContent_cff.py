@@ -20,8 +20,9 @@ catEventContent.extend([
     'keep *_catMETs*_*_*',
     'keep *_catVertex_*_*',
     'keep *_catTrigger_*_*',
-    'keep edmTriggerResults_TriggerResults__*',
-    'keep patPackedTriggerPrescales_patTrigger__*',
+    'keep edmTriggerResults_TriggerResults__HLT',
+    'keep edmTriggerResults_TriggerResults__HLT2',
+    'keep patPackedTriggerPrescales_patTrigger__*', ## do we need this collection, where?
     'keep *_lumiMask*_*_*',
     'keep *_fixedGridRhoAll_*_', 'keep *_fixedGridRhoFastjetAll_*_*',
     'keep *_BadChargedCandidateFilter_*_*', 'keep *_BadPFMuonFilter_*_*',

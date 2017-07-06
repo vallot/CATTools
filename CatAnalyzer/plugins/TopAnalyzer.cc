@@ -23,6 +23,9 @@
 #include "CATTools/CatAnalyzer/interface/BTagWeightEvaluator.h"
 #include "CATTools/CommonTools/interface/AnalysisHelper.h"
 
+// Kinematic Reconstruction
+#include "CATTools/CatAnalyzer/interface/TTbarFCNCFitter.h"
+
 #include "TH1.h"
 #include "TTree.h"
 
@@ -170,10 +173,17 @@ private:
   float GenLepton2_Pt;
   float GenLepton2_Eta;
 
-  float WMuon_MT[kMax];
-  float WMuon_Phi[kMax];
-  float WElectron_MT[kMax];
-  float WElectron_Phi[kMax]; 
+  float MT_MuonMET[kMax];
+  float Phi_MuonMET[kMax];
+  float MT_ElectronMET[kMax];
+  float Phi_ElectronMET[kMax]; 
+
+  float Kin_Hmass;
+  float Kin_HdRbb;
+  float Kin_Chi2;
+  float Kin_TopMHc;
+  float Kin_TopMWb;
+  float Kin_Wmass;
 
   int IsMuonTrig;
   int IsElectronTrig; 
@@ -326,8 +336,8 @@ void TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     Muon_Iso04[nmuons] = muon.relIso(0.4);
     Muon_Charge[nmuons] = muon.charge();
 
-    WMuon_MT[nmuons] = transverseMass( muon.p4(), METHandle->begin()->p4() );
-    WMuon_Phi[nmuons] = fabs(deltaPhi( muon.phi(), METHandle->begin()->p4().phi()));
+    MT_MuonMET[nmuons] = transverseMass( muon.p4(), METHandle->begin()->p4() );
+    Phi_MuonMET[nmuons] = fabs(deltaPhi( muon.phi(), METHandle->begin()->p4().phi()));
     nmuons++;
 
   }
@@ -353,10 +363,10 @@ void TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     LooseElectron_Charge[nlooseelectrons] = electron.charge();
     nlooseelectrons++;
 
-    bool passMediumElectron = electron.pt() > 30 && fabs(electron.eta()) < 2.1 && electron.electronID("cutBasedElectronID-Summer16-80X-V1-medium") > 0;
+    bool passTightElectron = electron.pt() > 30 && fabs(electron.eta()) < 2.1 && electron.electronID("cutBasedElectronID-Summer16-80X-V1-tight") > 0;
     //bool passIso = electron.relIso() < 0.12;
 
-    if ( !passMediumElectron ) continue;
+    if ( !passTightElectron ) continue;
 
     Electron_Pt[nelectrons] = electron.pt();
     Electron_Eta[nelectrons] = electron.eta();
@@ -366,8 +376,8 @@ void TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     Electron_Iso04[nelectrons] = electron.relIso(0.4);
     Electron_Charge[nelectrons] = electron.charge();
 
-    WElectron_MT[nelectrons] = transverseMass( electron.p4(), METHandle->begin()->p4() );
-    WElectron_Phi[nelectrons] = fabs(deltaPhi( electron.phi(), METHandle->begin()->p4().phi()));
+    MT_ElectronMET[nelectrons] = transverseMass( electron.p4(), METHandle->begin()->p4() );
+    Phi_ElectronMET[nelectrons] = fabs(deltaPhi( electron.phi(), METHandle->begin()->p4().phi()));
     nelectrons++;
 
   }
@@ -385,6 +395,8 @@ void TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
   int nJets = 0;
   int nbJets = 0;
+
+  std::vector<cat::Jet> selectedJets;
 
   for (unsigned int i = 0; i < jets->size() ; i++) {
 
@@ -442,6 +454,8 @@ void TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
     mapJetBDiscriminator[nJets] = bDiscriminator;
 
+    selectedJets.push_back( jet ); 
+
     nJets++;
   }
 
@@ -459,12 +473,64 @@ void TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     ncsvid++;
   }
 
+  //---------------------------------------------------------------------------
+  // Kinematic Reconstruction
+  //---------------------------------------------------------------------------
+  TLorentzVector Kinnu, Kinblrefit, Kinbjrefit, Kinj1refit, Kinj2refit;
+  Kinnu.SetPtEtaPhiE(0,0,0,0);
+  Kinblrefit.SetPtEtaPhiE(0,0,0,0);
+  Kinbjrefit.SetPtEtaPhiE(0,0,0,0);
+  Kinj1refit.SetPtEtaPhiE(0,0,0,0);
+  Kinj2refit.SetPtEtaPhiE(0,0,0,0);
+
+  std::vector<int> KinBestIndices;
+  KinBestIndices.push_back(-999);
+  KinBestIndices.push_back(-999);
+  KinBestIndices.push_back(-999);
+  KinBestIndices.push_back(-999);
+  float bestchi2 = 0;
+
+  if(NJet > 3){
+
+    TLorentzVector leptonp4;
+    if( NMuon == 1){
+      leptonp4.SetPtEtaPhiE(Muon_Pt[0],Muon_Eta[0],Muon_Phi[0],Muon_E[0]);
+    }else if (NElectron == 1){
+      leptonp4.SetPtEtaPhiE(Electron_Pt[0],Electron_Eta[0],Electron_Phi[0],Electron_E[0]);
+    }
+
+    const cat::MET & catmet = METHandle->at(0);
+    bool usebtaginfo = true; 
+    fcnc::FindHadronicTop(leptonp4, selectedJets, catmet, usebtaginfo, csvid,  KinBestIndices, bestchi2, Kinnu, Kinblrefit, Kinbjrefit, Kinj1refit, Kinj2refit);
+
+    if( bestchi2 < 1.0e6 ){
+
+      TLorentzVector Higgs = Kinj1refit + Kinj2refit;
+      TLorentzVector TopHc = Higgs + Kinbjrefit ;
+      TLorentzVector W = leptonp4 + Kinnu;
+      TLorentzVector TopWb = W + Kinblrefit;
+
+      Kin_Hmass = Higgs.M(); 
+      Kin_HdRbb = Kinj1refit.DeltaR( Kinj2refit );
+      Kin_Chi2 = bestchi2; 
+      Kin_TopMHc =TopHc.M();
+      Kin_TopMWb =TopWb.M();
+      Kin_Wmass = W.M();
+
+    }
+  
+  }
+
+  
+  
+  
+
 #ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
   ESHandle<SetupData> pSetup;
   iSetup.get<SetupRecord>().get(pSetup);
 #endif
 
-   if (NMuon == 1 || NElectron == 1 ) {
+   if ( (NMuon + NElectron) == 1 ) {
      tree->Fill();
    }
 }
@@ -559,10 +625,17 @@ void TopAnalyzer::beginJob()
   tree->Branch("GenLepton2_Pt",&GenLepton2_Pt, "GenLepton2_Pt/f");
   tree->Branch("GenLepton2_Eta",&GenLepton2_Eta, "GenLepton2_Eta/f");
 
-  tree->Branch("WMuon_MT",WMuon_MT,"WMuon_MT[NMuon]/F"); 
-  tree->Branch("WMuon_Phi",WMuon_Phi,"WMuon_Phi[NMuon]/F"); 
-  tree->Branch("WElectron_MT",WElectron_MT,"WElectron_MT[NElectron]/F"); 
-  tree->Branch("WElectron_Phi",WElectron_Phi,"WElectron_Phi[NElectron]/F"); 
+  tree->Branch("MT_MuonMET",MT_MuonMET,"MT_MuonMET[NMuon]/F"); 
+  tree->Branch("Phi_MuonMET",Phi_MuonMET,"Phi_MuonMET[NMuon]/F"); 
+  tree->Branch("MT_ElectronMET",MT_ElectronMET,"MT_ElectronMET[NElectron]/F"); 
+  tree->Branch("Phi_ElectronMET",Phi_ElectronMET,"Phi_ElectronMET[NElectron]/F"); 
+
+  tree->Branch("Kin_Hmass",&Kin_Hmass,"Kin_Hmass/F");
+  tree->Branch("Kin_HdRbb",&Kin_HdRbb,"Kin_HdRbb/F");
+  tree->Branch("Kin_Chi2",&Kin_Chi2,"Kin_Chi2/F"); 
+  tree->Branch("Kin_TopMHc",&Kin_TopMHc,"Kin_TopMHc/F"); 
+  tree->Branch("Kin_TopMWb",&Kin_TopMWb,"Kin_TopMWb/F"); 
+  tree->Branch("Kin_Wmass",&Kin_Wmass,"Kin_Wmass/F"); 
 
   tree->Branch("IsMuonTrig",&IsMuonTrig,"IsMuonTrig/i"); 
   tree->Branch("IsElectronTrig",&IsElectronTrig,"IsElectronTrig/i"); 
@@ -597,6 +670,13 @@ void TopAnalyzer::clear()
   GenLepton1_Eta = -9.0;
   GenLepton2_Pt = -9.0;
   GenLepton2_Eta = -9.0;
+
+  Kin_Hmass = -1.0;
+  Kin_HdRbb = -1.0;
+  Kin_Chi2 = -1.0;
+  Kin_TopMHc = -1.0;
+  Kin_TopMWb = -1.0;
+  Kin_Wmass = -1.0;
 
   IsMuonTrig = 0;
   IsElectronTrig = 0;

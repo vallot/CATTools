@@ -1,27 +1,23 @@
-#include "CATTools/CatAnalyzer/interface/LepJets_Fitter.h"
+#include "CATTools/CatAnalyzer/interface/TTbarFCNCFitter.h"
 
-TMinuit *tm = 0;
-
-TLorentzVector tmplep, tmpnu, tmpbl, tmpbj, tmpj1, tmpj2;
-float blres, bjres, j1res, j2res, metres;
-
-float CSVWP = 0.800;
-
-// relative jet energy resolution
-double JetEResolution(double energy){ 
+// relative jet energy resolution : this is from Delphes, needs to be changed for CMS analysis
+double fcnc::JetEResolution(double energy){ 
   return TMath::Sqrt(TMath::Power(0.05*energy,2.0) + TMath::Power(1.5*sqrt(energy),2.0))/energy;
 }
 
 // met phi resolution as a function of reconstructed met from Delphes
-double METPhiResolution(double met){
+double fcnc::METPhiResolution(double met){
   return 0.05539 - 0.5183*exp(-0.01507*met);
 }
 
-double METResolution(double met){
+double fcnc::METResolution(double met){
   return 15.0;
 }
 
-double TwoObjectMassResolution(TLorentzVector &j1, double releres1, TLorentzVector &j2, double releres2){
+double fcnc::TwoObjectMassResolution(TLorentzVector &j1, double releres1, TLorentzVector &j2, double releres2){
+
+  using namespace fcnc;
+
   // crude, but OK
   float massnominal = (j1+j2).M();
   TLorentzVector j1smeared = (1.0+releres1)*j1;
@@ -33,7 +29,10 @@ double TwoObjectMassResolution(TLorentzVector &j1, double releres1, TLorentzVect
 }
 
 // relative mass resolution
-double TwoJetMassResolution(TLorentzVector &j1, TLorentzVector &j2){
+double fcnc::TwoJetMassResolution(TLorentzVector &j1, TLorentzVector &j2){
+
+  using namespace fcnc;
+
   float releres1 = JetEResolution(j1.E());
   float releres2 = JetEResolution(j2.E());
   
@@ -41,7 +40,10 @@ double TwoJetMassResolution(TLorentzVector &j1, TLorentzVector &j2){
 }
 
 
-void fcn(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag){
+void fcnc::fcn(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag){
+
+  using namespace fcnc;
+
   //calculate chisquare 
   tmpnu.SetPz(par[0]);
   float massres = TwoObjectMassResolution(tmplep, 0.0, tmpnu, 15.0/tmpnu.Pt())*80.4;
@@ -55,28 +57,34 @@ void fcn(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag){
 // par[3] - b-jet energy scale factor (hadronic side)
 // par[4] - jet energy scale factor for jet 1
 // par[5] - jet energy scale factor for jet 2
-void fcnfull(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag){
+void fcnc::fcnfull(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag){
+
+  using namespace fcnc;
   
-  TLorentzVector nuscaled = tmpnu*par[1];
+  //TLorentzVector nuscaled = tmpnu*par[1];
+  TLorentzVector nuscaled = tmpnu;
   nuscaled.SetPz(par[0]);
   TLorentzVector blscaled = tmpbl*par[2];
   TLorentzVector bjscaled = tmpbj*par[3];
   TLorentzVector j1scaled = tmpj1*par[4];
   TLorentzVector j2scaled = tmpj2*par[5];
   
-  //calculate chisquare 
+  //calculate chisquare : top quark width = 1.41 GeV, W boson width = 2.085 GeV, Higgs boson width < 0.013 GeV according to 2017 PDG.  
   f = TMath::Power(((nuscaled+tmplep).M()-80.4)/2.085, 2.0)
-    + TMath::Power(((blscaled + nuscaled+tmplep).M()-172.0)/1.5, 2.0)
-    + TMath::Power(((j1scaled+j2scaled).M()-80.4)/2.085, 2.0)
-    + TMath::Power(((bjscaled + j1scaled+j2scaled).M()-172.0)/1.5, 2.0)
-    + TMath::Power((par[1]-1.0)/metres, 2.0)
-    + TMath::Power((par[2]-1.0)/blres,  2.0)
-    + TMath::Power((par[3]-1.0)/bjres,  2.0)
-    + TMath::Power((par[4]-1.0)/j1res,  2.0)
-    + TMath::Power((par[5]-1.0)/j2res,  2.0);
+    + TMath::Power(((blscaled + nuscaled+tmplep).M()-172.44)/1.41, 2.0)
+    + TMath::Power(((j1scaled+j2scaled).M()-125.09)/0.013, 2.0)
+    + TMath::Power(((bjscaled + j1scaled+j2scaled).M()-172.44)/1.41, 2.0);
+    //+ TMath::Power((par[1]-1.0)/metres, 2.0)
+    //+ TMath::Power((par[2]-1.0)/blres,  2.0)
+    //+ TMath::Power((par[3]-1.0)/bjres,  2.0)
+    //+ TMath::Power((par[4]-1.0)/j1res,  2.0)
+    //+ TMath::Power((par[5]-1.0)/j2res,  2.0);
 }
 
-void InitMinuit(){
+void fcnc::InitMinuit(){
+
+  using namespace fcnc;
+
   tm = new TMinuit(Int_t(6));
   tm->SetFCN(fcnfull);
   tm->SetPrintLevel(-1);
@@ -89,13 +97,16 @@ void InitMinuit(){
 }
 
 
-Double_t SolvettbarLepJets(Double_t &nupz, Double_t &metscale, Double_t &blscale, Double_t &bjscale, Double_t &j1scale, Double_t &j2scale){
-  
+Double_t fcnc::SolvettbarLepJets(Double_t &nupz, Double_t &metscale, Double_t &blscale, Double_t &bjscale, Double_t &j1scale, Double_t &j2scale){
+
+  using namespace fcnc;
+
   if (tm==0) InitMinuit();
   
   // Set starting values and step sizes for parameters
   static Double_t vstart[6] = {0.0, 1.0, 1.0, 1.0, 1.0, 1.0};
-  static Double_t step  [6] = {0.1, 0.1, 0.1, 0.1, 0.1, 0.1};
+  //static Double_t step  [6] = {0.1, 0.1, 0.1, 0.1, 0.1, 0.1};
+  static Double_t step  [6] = {0.1, 0.0, 0.0, 0.0, 0.0, 0.0}; //fix parameters for scales
   int ierflg;
 
   tm->mnparm(0, "nupz",    vstart[0], step[0], 0,0, ierflg);
@@ -129,7 +140,9 @@ Double_t SolvettbarLepJets(Double_t &nupz, Double_t &metscale, Double_t &blscale
 }
 
 
-void FindHadronicTop(TLorentzVector &lepton, std::vector<cat::ComJet> &jets, TLorentzVector &met, bool usebtaginfo, bool useCSVOrderinfo, std::vector<int> &bestindices, float &bestchi2, TLorentzVector &nusol, TLorentzVector &blrefit, TLorentzVector &bjrefit, TLorentzVector &j1refit, TLorentzVector &j2refit){
+void fcnc::FindHadronicTop(TLorentzVector &lepton, std::vector<cat::Jet> &jets, const cat::MET & met, bool usebtaginfo, int *csvid, std::vector<int> &bestindices, float &bestchi2, TLorentzVector &nusol, TLorentzVector &blrefit, TLorentzVector &bjrefit, TLorentzVector &j1refit, TLorentzVector &j2refit){
+
+  using namespace fcnc;
 
   int njets = jets.size();
   
@@ -146,8 +159,8 @@ void FindHadronicTop(TLorentzVector &lepton, std::vector<cat::ComJet> &jets, TLo
   bestindices[2]=-1;
   bestindices[3]=-1;
   
-  nusol.SetPtEtaPhiM(met.E(), 0.0, met.Phi(), 0.0);
-  metres = METResolution(nusol.Pt())/nusol.Pt();
+  nusol.SetPtEtaPhiM(met.pt(), 0.0, met.phi(), 0.0);
+  // metres = METResolution(nusol.Pt())/nusol.Pt();
   // float wlmassrelres;
   // wlmassrelres = TwoObjectMassResolution(lepton, 0.0, nusol, 15.0/nusol.Pt());
   
@@ -162,12 +175,12 @@ void FindHadronicTop(TLorentzVector &lepton, std::vector<cat::ComJet> &jets, TLo
 	      
 	      if (i2 != i1 && i3 != i1 && i4!=i1 && i4 != i2 && i4 != i3){
 		
-		trialb         = jets[i1];
-		trialWjet1     = jets[i2];
-		trialWjet2     = jets[i3];
+		trialb         = jets[i1].tlv();
+		trialWjet1     = jets[i2].tlv();
+		trialWjet2     = jets[i3].tlv();
 		trialW         = trialWjet1 + trialWjet2;
 		trialtop       = trialb + trialW;
-		trialblepton   = jets[i4];
+		trialblepton   = jets[i4].tlv();
 		trialtoplepton = trialwlepton + trialblepton;
 		
 		// set global variables - ugly!
@@ -207,9 +220,9 @@ void FindHadronicTop(TLorentzVector &lepton, std::vector<cat::ComJet> &jets, TLo
 	}
       }
       
-      bestindices[0]=bestidx1; // b for hadronic side
-      bestindices[1]=bestidx2; // W jet
-      bestindices[2]=bestidx3; // W jet
+      bestindices[0]=bestidx1; // c(u) for FCNC side
+      bestindices[1]=bestidx2; // H jet
+      bestindices[2]=bestidx3; // H jet
       bestindices[3]=bestidx4; // b for leptonic side
     }
   }
@@ -218,46 +231,38 @@ void FindHadronicTop(TLorentzVector &lepton, std::vector<cat::ComJet> &jets, TLo
   else {
     // at least there should be 4 hadronic jets
     if (njets>=4){
-      int nbjets=0;
-      for (int i1=0; i1<njets; i1++){
-	if (jets[i1].CSV > CSVWP) nbjets++;
-      }
-      
-      int bjCandidateIndex = njets;
-      if (useCSVOrderinfo){
-	bjCandidateIndex = 2;
-      }  
 
-      for (int i1 = 0; i1 < bjCandidateIndex; i1++){
-	for (int i2 = 0; i2 < njets-1; i2++){
-	  for (int i3 = i2+1; i3 < njets; i3++){
-	    for (int i4 = 0; i4 < bjCandidateIndex; i4++){
+      int nbjets = 0;
+      for (int i1=0; i1<njets; i1++){
+	if (jets[i1].CSVv2M() ) nbjets++;
+      }
+
+      nbjets = 3; 
+
+      //use three highest b-tag output jets 
+      for (int i1 = 0; i1 < njets; i1++){
+	for (int i2 = 0; i2 < nbjets-1; i2++){
+	  for (int i3 = i2+1; i3 < nbjets; i3++){
+	    for (int i4 = 0; i4 < nbjets; i4++){
 	      
-	      if (i2 != i1 && i3 != i1 && i4!=i1 && i4 != i2 && i4 != i3 ){
+	      if ( csvid[i2] != i1 && csvid[i3] != i1 && csvid[i4]!=i1 && csvid[i4] != csvid[i2] && csvid[i4] != csvid[i3] ){
 		
 		//std::cout << i1 << " " << i2 << " " << i3 << " " << i4 << std::endl; 
 		
-		if(((lepton + jets[i4]).M() < 170.0) &&
-		   ( nbjets==0 || // To be checked
-		     (nbjets==1 && (jets[i2].CSV < CSVWP && jets[i3].CSV < CSVWP)) ||
-		     (nbjets==2 && (jets[i2].CSV < CSVWP && jets[i3].CSV < CSVWP)) ||
-		     (nbjets==3 && (jets[i2].CSV < CSVWP || jets[i3].CSV < CSVWP)) ||
-		     (nbjets >3 && (jets[i2].CSV > CSVWP || jets[i3].CSV > CSVWP))
-		     )
-		   ){
+		if(((lepton + jets[ csvid[i4] ].tlv() ).M() < 170.0)){
 		  
-		  trialb            = jets[i1];
-		  trialWjet1        = jets[i2];
-		  trialWjet2        = jets[i3];
+		  trialb            = jets[i1].tlv();
+		  trialWjet1        = jets[ csvid[i2] ].tlv();
+		  trialWjet2        = jets[ csvid[i3] ].tlv();
 		  trialW            = trialWjet1 + trialWjet2;
 		  trialtop          = trialb + trialW;
-		  trialblepton      = jets[i4];
+		  trialblepton      = jets[ csvid[i4] ].tlv();
 		  trialtoplepton    = trialwlepton + trialblepton;
 		  
 		  // float bjetreleres;
 		  // bjetreleres= JetEResolution(trialb.E());
 		  
-		// set global variables - ugly!
+		  // set global variables - ugly!
 		  tmplep = lepton;
 		  tmpnu  = nusol;
 		  tmpbl  = trialblepton;
@@ -285,9 +290,9 @@ void FindHadronicTop(TLorentzVector &lepton, std::vector<cat::ComJet> &jets, TLo
 		    j1refit = tmpj1*j1scale;
 		    j2refit = tmpj2*j2scale;
 		    bestidx1 = i1;
-		    bestidx2 = i2;
-		    bestidx3 = i3;
-		    bestidx4 = i4;		  
+		    bestidx2 = csvid[i2];
+		    bestidx3 = csvid[i3];
+		    bestidx4 = csvid[i4];		  
 		  }
 		}
 	      }
@@ -296,9 +301,9 @@ void FindHadronicTop(TLorentzVector &lepton, std::vector<cat::ComJet> &jets, TLo
 	}
       }
       
-      bestindices[0]=bestidx1; // b for hadronic side
-      bestindices[1]=bestidx2; // W jet
-      bestindices[2]=bestidx3; // W jet
+      bestindices[0]=bestidx1; // c(u) for FCNC side
+      bestindices[1]=bestidx2; // H jet
+      bestindices[2]=bestidx3; // H jet
       bestindices[3]=bestidx4; // b for leptonic side
     }
   }
