@@ -111,7 +111,7 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
     for ( int j=0, m=tLast->numberOfDaughters(); j<m; ++j ) {
       const reco::Candidate* dau = tLast->daughter(j);
       const unsigned int dauAbsId = abs(dau->pdgId());
-      if ( dauAbsId == 24 and !w ) w = dau;
+      if ( (dauAbsId == 24 or dauAbsId == 25) and !w ) w = dau;
       else if ( dauAbsId < 6 and !b ) b = dau;
     }
     if ( !w or !b ) continue;

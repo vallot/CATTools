@@ -165,6 +165,18 @@ private:
   std::vector<float> *b_GenJet_eta;
   std::vector<float> *b_GenJet_phi;
   std::vector<float> *b_GenJet_E;
+
+  // additional b jets 
+  float b_addbjet1_pt; 
+  float b_addbjet1_eta; 
+  float b_addbjet1_phi; 
+  float b_addbjet1_e; 
+
+  float b_addbjet2_pt;
+  float b_addbjet2_eta;
+  float b_addbjet2_phi;
+  float b_addbjet2_e; 
+
   // Jet Mother (MC Studies)
   std::vector<int> *b_GenJet_mom, *b_GenJet_GenConeMom;
   // Jets
@@ -268,7 +280,6 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   const auto elecSFSet = iConfig.getParameter<edm::ParameterSet>("elecSF");
   SF_elec_.set(elecSFSet.getParameter<std::vector<double>>("pt_bins" ),
 	       elecSFSet.getParameter<std::vector<double>>("eta_bins"),
-	       //elecSFSet.getParameter<std::vector<double>>("abseta_bins"),
 	       elecSFSet.getParameter<std::vector<double>>("values"  ),
 	       elecSFSet.getParameter<std::vector<double>>("errors"  ));
   
@@ -453,8 +464,6 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("fcnhkinjet_E",     "std::vector<float>", &b_fcnhKinJet_E);
   tree->Branch("fcnhkinjet_index", "std::vector<int>",   &b_fcnhKinJet_Index);
 
-
- 
   // GEN Variables (only ttbarSignal)
   if(TTbarMC_ == 1){
     tree->Branch("pdfweight",   "std::vector<float>", &b_PDFWeight );
@@ -491,6 +500,16 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
     tree->Branch("genjet_mom", "std::vector<int>",   &b_GenJet_mom);
 
     tree->Branch("genjet_gencone_mom", "std::vector<int>",  &b_GenJet_GenConeMom);
+
+    tree->Branch("addbjet1_pt", &b_addbjet1_pt, "addbjet1_pt/F"); 
+    tree->Branch("addbjet1_eta", &b_addbjet1_eta, "addbjet1_eta/F"); 
+    tree->Branch("addbjet1_phi", &b_addbjet1_phi, "addbjet1_phi/F"); 
+    tree->Branch("addbjet1_e", &b_addbjet1_e, "addbjet1_e/F"); 
+
+    tree->Branch("addbjet2_pt", &b_addbjet2_pt, "addbjet2_pt/F");
+    tree->Branch("addbjet2_eta", &b_addbjet2_eta, "addbjet2_eta/F");
+    tree->Branch("addbjet2_phi", &b_addbjet2_phi, "addbjet2_phi/F");
+    tree->Branch("addbjet2_e", &b_addbjet2_e, "addbjet2_e/F");  
 
     //GEN TREE
     gentree = fs->make<TTree>("gentree", "TopGENTree");
@@ -675,6 +694,16 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
  
   b_fcnhKinJet_Index->clear();
 
+  b_addbjet1_pt = -1.0;
+  b_addbjet1_eta = -1.0;
+  b_addbjet1_phi = -1.0;
+  b_addbjet1_e = -1.0;
+
+  b_addbjet2_pt = -1.0;
+  b_addbjet2_eta = -1.0;
+  b_addbjet2_phi = -1.0;
+  b_addbjet2_e = -1.0;
+
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   // Event Info
@@ -822,6 +851,17 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       b_GenCone_gJet_phi ->push_back(gJetGenCone[ijGT].Phi());
       b_GenCone_gJet_E   ->push_back(gJetGenCone[ijGT].E());
     }
+
+    // adding additional b jet four-momentum
+    b_addbjet1_pt = genttbarConeCat->begin()->addbJets1().Pt();
+    b_addbjet1_eta = genttbarConeCat->begin()->addbJets1().Eta();
+    b_addbjet1_phi = genttbarConeCat->begin()->addbJets1().Phi();
+    b_addbjet1_e = genttbarConeCat->begin()->addbJets1().E();
+
+    b_addbjet2_pt = genttbarConeCat->begin()->addbJets2().Pt();
+    b_addbjet2_eta = genttbarConeCat->begin()->addbJets2().Eta();
+    b_addbjet2_phi = genttbarConeCat->begin()->addbJets2().Phi();
+    b_addbjet2_e = genttbarConeCat->begin()->addbJets2().E();
 
     // DR 
     b_DRAddJets = genttbarConeCat->begin()->dRaddJets();
@@ -1083,11 +1123,20 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   Handle<cat::ElectronCollection> electrons;
   iEvent.getByToken(electronToken_, electrons);
 
-  for (unsigned int i = 0; i < electrons->size() ; i++) {
-    const cat::Electron & electron = electrons->at(i);
+  if ( !doLooseLepton_ ) {
+    for (unsigned int i = 0; i < electrons->size() ; i++) {
+      const cat::Electron & electron = electrons->at(i);
 
-    if( IsSelectElectron( electron ) ) selectedElectrons.push_back( electron );
-    else if( IsVetoElectron( electron ) ) vetoElectrons.push_back( electron ); // does not Include selected electrons
+      if( IsSelectElectron( electron ) ) selectedElectrons.push_back( electron );
+      else if( IsVetoElectron( electron ) ) vetoElectrons.push_back( electron ); // does not Include selected electrons
+    }
+  }
+  else if ( !electrons->empty() ) {
+    if ( IsSelectElectron(electrons->at(0)) ) selectedElectrons.push_back( electrons->at(0) );
+    for (unsigned int i = 1; i < electrons->size() ; i++) {
+      const cat::Electron & electron = electrons->at(i);
+      if ( IsVetoElectron(electron) ) vetoElectrons.push_back(electron);
+    }
   }
 
   //---------------------------------------------------------------------------
@@ -1102,11 +1151,20 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   Handle<cat::MuonCollection> muons;
   iEvent.getByToken(muonToken_, muons);
 
-  for (unsigned int i = 0; i < muons->size() ; i++) {
-    const cat::Muon & muon = muons->at(i);
+  if ( !doLooseLepton_ ) {
+    for (unsigned int i = 0; i < muons->size() ; i++) {
+      const cat::Muon & muon = muons->at(i);
 
-    if( IsSelectMuon( muon) ) selectedMuons.push_back( muon);
-    else if( IsVetoMuon( muon) ) vetoMuons.push_back( muon); // does not Include selected muons
+      if( IsSelectMuon( muon) ) selectedMuons.push_back( muon);
+      else if( IsVetoMuon( muon) ) vetoMuons.push_back( muon); // does not Include selected muons
+    }
+  }
+  else if ( !muons->empty() ) {
+    if ( IsSelectMuon(muons->at(0)) ) selectedMuons.push_back( muons->at(0) );
+    for (unsigned int i = 1; i < muons->size() ; i++) {
+      const cat::Muon & muon = muons->at(i);
+      if ( IsVetoMuon(muon) ) vetoMuons.push_back(muon);
+    }
   }
 
   //---------------------------------------------------------------------------
@@ -1152,9 +1210,9 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
      if(isMC_) {
        // Lepton SF (ID/ISO)
-       lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), std::abs(selectedElectrons[0].scEta()) ) );       // [0]-> SF
-       lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), std::abs(selectedElectrons[0].scEta()),  1.0 ) ); // [1]-> SF+Error
-       lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), std::abs(selectedElectrons[0].scEta()), -1.0 ) ); // [2]-> SF-Error
+       lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), selectedElectrons[0].scEta() ) );       // [0]-> SF
+       lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(),  1.0 ) ); // [1]-> SF+Error
+       lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(), -1.0 ) ); // [2]-> SF-Error
        //LES
        lepton_LES = selectedElectrons[0].shiftedEn();
      }
@@ -1626,7 +1684,8 @@ bool ttbbLepJetsAnalyzer::IsSelectElectron(const cat::Electron & i_electron_cand
 
   // Electron cut based selection
   // From https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2
-  GoodElectron &= i_electron_candidate.electronID("cutBasedElectronID-Summer16-80X-V1-medium") > 0.0;
+  if ( !doLooseLepton_ ) GoodElectron &= i_electron_candidate.electronID("cutBasedElectronID-Summer16-80X-V1-medium") > 0.0;
+  else                   GoodElectron &= i_electron_candidate.electronID("cutBasedElectronID-Summer16-80X-V1-medium-noiso") > 0.0;
 
   // Electron MVA selection (Tight: WP80)
   // From https://twiki.cern.ch/twiki/bin/viewauth/CMS/MultivariateElectronIdentificationRun2#Recipes_for_7_4_12_Spring15_MVA

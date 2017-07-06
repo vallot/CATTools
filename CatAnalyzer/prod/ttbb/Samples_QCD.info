@@ -1,0 +1,21 @@
+# QCD Mu Enriched
+QCD_MuEnr_20to30    dataset_QCD_Pt-20to30_MuEnriched.txt
+QCD_MuEnr_30to50    dataset_QCD_Pt-30to50_MuEnriched.txt
+QCD_MuEnr_50to80    dataset_QCD_Pt-50to80_MuEnriched.txt
+QCD_MuEnr_80to120   dataset_QCD_Pt-80to120_MuEnriched.txt
+QCD_MuEnr_120to170  dataset_QCD_Pt-120to170_MuEnriched.txt
+QCD_MuEnr_170to300  dataset_QCD_Pt-170to300_MuEnriched.txt
+QCD_MuEnr_300to470  dataset_QCD_Pt-300to470_MuEnriched.txt
+QCD_MuEnr_470to600  dataset_QCD_Pt-470to600_MuEnriched.txt
+QCD_MuEnr_600to800  dataset_QCD_Pt-600to800_MuEnriched.txt
+QCD_MuEnr_800to1000 dataset_QCD_Pt-800to1000_MuEnriched.txt
+QCD_MuEnr_1000toInf dataset_QCD_Pt-1000toInf_MuEnriched.txt
+
+# QCD EG Enriched
+QCD_EGEnr_20to30   dataset_QCD_Pt-20to30_EMEnriched.txt
+QCD_EGEnr_30to50   dataset_QCD_Pt-30to50_EMEnriched.txt
+QCD_EGEnr_50to80   dataset_QCD_Pt-50to80_EMEnriched.txt
+QCD_EGEnr_80to120  dataset_QCD_Pt-80to120_EMEnriched.txt
+QCD_EGEnr_120to170 dataset_QCD_Pt-120to170_EMEnriched.txt
+QCD_EGEnr_170to300 dataset_QCD_Pt-170to300_EMEnriched.txt
+QCD_EGEnr_300toInf dataset_QCD_Pt-300toInf_EMEnriched.txt
