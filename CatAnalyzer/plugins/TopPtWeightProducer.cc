@@ -38,7 +38,6 @@ TopPtWeightProducer::TopPtWeightProducer(const edm::ParameterSet& pset)
 
 void TopPtWeightProducer::produce(edm::Event& event, const edm::EventSetup& eventSetup)
 {
-  if (event.isRealData()) return;
   edm::Handle<reco::GenParticleCollection> srcHandle;
   edm::Handle<vint> modes;
   if ( event.isRealData() or

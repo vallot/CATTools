@@ -36,8 +36,6 @@
 //########### Dstar begin
 #include "CATTools/DataFormats/interface/SecVertex.h"
 #include<TClonesArray.h>
-//#include"dileptonCommon.h"
-
 
 using namespace std;
 using namespace cat;
@@ -204,13 +202,6 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   mcSrc_ = consumes<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("mcLabel"));
   matchingDeltaR_  = iConfig.getParameter<double>("matchingDeltaR");
 
-
-//  for (int sys = 0; sys < nsys_e; ++sys){
-//    auto tr = ttree_[sys];
-//    setBranch(tr, sys);
-//  }
-
-
 // ############## Dstar end #####################
   recoFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("recoFilters"));
   nGoodVertexToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("nGoodVertex"));
@@ -307,9 +298,6 @@ TtbarDiLeptonAnalyzer::~TtbarDiLeptonAnalyzer()
 // #####################  Dstar begin  ########################
 
 int TtbarDiLeptonAnalyzer::isFromtop( const reco::GenParticle& p){
-  int nIDMother;
-
-  int nTopMother = 0;
 
   //  string pt = Form("%f", p.pt());
   //  string pdgid = Form("%i",p.pdgId());
@@ -317,17 +305,16 @@ int TtbarDiLeptonAnalyzer::isFromtop( const reco::GenParticle& p){
   while( mother != nullptr ) {
     //    string id = Form("%i", mother->pdgId());
     //    string mopt = Form("%f", mother->pt());
-    nIDMother = mother->pdgId();
+    int nIDMother = mother->pdgId();
 
     if( abs(nIDMother) == 6 ) {
-      nTopMother = nIDMother;
-      break;
+      return nIDMother;
     }
 
     mother = dynamic_cast<const reco::GenParticle*>(mother->mother());
   }
 
-  return nTopMother;
+  return 0;
 }
 
 shared_ptr<TLorentzVector> TtbarDiLeptonAnalyzer::mcMatching( vector<TLorentzVector>& aGens, TLorentzVector& aReco) {
@@ -1003,7 +990,7 @@ cat::ElectronCollection TtbarDiLeptonAnalyzer::selectElecs(const cat::ElectronCo
   for (auto& e : elecs) {
     cat::Electron el(e);
     if (std::abs(el.eta()) > 2.4) continue;
-    if ( !el.isTight() ) continue;
+    //if ( !el.isTight() ) continue;
     if ((std::abs(el.scEta()) > 1.4442) && (std::abs(el.scEta()) < 1.566)) continue;
     //if ( !el.electronID("cutBasedElectronID-Summer16-80X-V1-medium") ) continue;
     if ( !el.electronID("cutBasedElectronID-Summer16-80X-V1-tight") ) continue;
@@ -1015,7 +1002,7 @@ cat::ElectronCollection TtbarDiLeptonAnalyzer::selectElecs(const cat::ElectronCo
     if (sys == syst_el_d) el.setP4(e.p4() * e.shiftedEnDown());
 
     if (el.pt() < 20.) continue;
-    if (el.relIso(0.3) > 0.0678) continue;
+    //if (el.relIso(0.3) > 0.0678) continue;
     //printf("electron with pt %4.1f\n", el.pt());
     selelecs.push_back(el);
   }

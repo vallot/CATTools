@@ -624,7 +624,7 @@ int h2muAnalyzer::jetCategory(const JetCollection& seljets, float met, float ll_
 	        if (&j1 != &j2){
 	            TLorentzVector dijets = j1.tlv() + j2.tlv();
 	            double delta_eta =  abs(j1.eta() - j2.eta());
-	            if (dijets.M() > 650 && abs(delta_eta) > 3.5)
+	            if (dijets.M() > 650 && delta_eta > 3.5)
   	                return 1;
             }
         }
