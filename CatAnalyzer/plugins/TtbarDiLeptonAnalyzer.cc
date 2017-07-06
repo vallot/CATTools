@@ -16,7 +16,9 @@
 #include "CATTools/CommonTools/interface/TTbarModeDefs.h"
 #include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
 #include "CATTools/CatAnalyzer/interface/BTagWeightEvaluator.h"
-//#include "TopQuarkAnalysis/TopKinFitter/interface/TtFullLepKinSolver.h"
+// no TtFullLepKinSolver.h at first
+#include "TopQuarkAnalysis/TopKinFitter/interface/TtFullLepKinSolver.h"
+//
 #include "CATTools/CatAnalyzer/interface/TopTriggerSF.h"
 #include "CATTools/CatAnalyzer/interface/KinematicSolvers.h"
 
@@ -28,12 +30,13 @@
 #include "DataFormats/Math/interface/deltaPhi.h"
 #include "TTree.h"
 #include "TH1D.h"
-//#include "TLorentzVector.h"
-
+//no TLoretzVector.h at first
+#include "TLorentzVector.h"
+//
 //########### Dstar begin
 #include "CATTools/DataFormats/interface/SecVertex.h"
 #include<TClonesArray.h>
-#include"dileptonCommon.h"
+//#include"dileptonCommon.h"
 
 
 using namespace std;
@@ -402,7 +405,8 @@ bool TtbarDiLeptonAnalyzer::eventSelection(const edm::Event& iEvent, systematic 
     b_genweight = (*genweightHandle);
     b_weight = b_genweight*b_puweight;
     
-    h_nevents->Fill(0.5,b_weight);
+    //h_nevents->Fill(0.5,b_weight);
+    h_nevents->Fill(0.5,b_genweight*b_puweight);
   }  
 // #####################  Dstar begin  ########################
   edm::Handle<cat::SecVertexCollection> d0s;       iEvent.getByToken(d0Token_,d0s);

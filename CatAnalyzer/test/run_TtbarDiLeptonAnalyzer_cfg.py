@@ -12,7 +12,8 @@ process.source.fileNames = commonTestCATTuples["data"]
 
 ######## with RunData ,  realData = True
 ######## with McData ,   realData = Flase
-realData = False
+realData = True
+#realData = Flase
 
 process.load("CATTools.CatAnalyzer.ttll.ttbarDileptonKinSolutionAlgos_cff")
 process.load("CATTools.CatAnalyzer.filters_cff")
