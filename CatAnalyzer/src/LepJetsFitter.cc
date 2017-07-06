@@ -1,53 +1,16 @@
 #include "CATTools/CatAnalyzer/interface/LepJetsFitter.h"
+#include "CATTools/DataFormats/interface/Jet.h"
 
-// relative jet energy resolution
-double ttbb::JetEResolution(double energy){ 
-  return TMath::Sqrt(TMath::Power(0.05*energy,2.0) + TMath::Power(1.5*sqrt(energy),2.0))/energy;
-}
+using namespace cat;
 
-// met phi resolution as a function of reconstructed met from Delphes
-double ttbb::METPhiResolution(double met){
-  return 0.05539 - 0.5183*exp(-0.01507*met);
-}
+namespace ttbb
+{
+  TMinuit *tm = 0;
 
-double ttbb::METResolution(double met){
-  return 15.0;
-}
+  TLorentzVector tmplep, tmpnu, tmpbl, tmpbj, tmpj1, tmpj2;
+  float blres, bjres, j1res, j2res, metres;
 
-double ttbb::TwoObjectMassResolution(TLorentzVector &j1, double releres1, TLorentzVector &j2, double releres2){
-
-  using namespace ttbb;
-
-  // crude, but OK
-  float massnominal = (j1+j2).M();
-  TLorentzVector j1smeared = (1.0+releres1)*j1;
-  TLorentzVector j2smeared = (1.0+releres2)*j2;
-  
-  float deltamass1up = (j1smeared+j2).M()-massnominal;
-  float deltamass2up = (j1+j2smeared).M()-massnominal;
-  return TMath::Hypot(deltamass1up, deltamass2up)/massnominal;
-}
-
-// relative mass resolution
-double ttbb::TwoJetMassResolution(TLorentzVector &j1, TLorentzVector &j2){
-
-  using namespace ttbb;
-
-  float releres1 = JetEResolution(j1.E());
-  float releres2 = JetEResolution(j2.E());
-  
-  return TwoObjectMassResolution(j1, releres1, j2, releres2);
-}
-
-
-void ttbb::fcn(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag){
-  
-  using namespace ttbb;
-
-  //calculate chisquare 
-  tmpnu.SetPz(par[0]);
-  float massres = TwoObjectMassResolution(tmplep, 0.0, tmpnu, 15.0/tmpnu.Pt())*80.4;
-  f = TMath::Power(((tmpnu+tmplep).M()-80.4)/massres, 2.0);
+  const float CSVWP = cat::WP_BTAG_CSVv2T;
 }
 
 // full solution
@@ -150,7 +113,6 @@ void ttbb::FindHadronicTop(TLorentzVector &lepton, std::vector<cat::ComJet> &jet
   int bestidx1=-1, bestidx2=-1, bestidx3=-1, bestidx4=-1;
   
   bestchi2=1.0e6;
-  Double_t chi2;
   
   bestindices[0]=-1;
   bestindices[1]=-1;
@@ -158,7 +120,7 @@ void ttbb::FindHadronicTop(TLorentzVector &lepton, std::vector<cat::ComJet> &jet
   bestindices[3]=-1;
   
   nusol.SetPtEtaPhiM(met.E(), 0.0, met.Phi(), 0.0);
-  metres = METResolution(nusol.Pt())/nusol.Pt();
+  metres = KinematicFitter::metResolution(nusol.Pt())/nusol.Pt();
   // float wlmassrelres;
   // wlmassrelres = TwoObjectMassResolution(lepton, 0.0, nusol, 15.0/nusol.Pt());
   
@@ -167,146 +129,146 @@ void ttbb::FindHadronicTop(TLorentzVector &lepton, std::vector<cat::ComJet> &jet
     // at least there should be 4 hadronic jets
     if (njets>=4){
       for (int i1=0; i1<njets; i1++){
-	for (int i2=0; i2<njets-1 ; i2++){
-	  for (int i3=i2+1; i3<njets; i3++){
-	    for (int i4=0; i4<njets; i4++){
-	      
-	      if (i2 != i1 && i3 != i1 && i4!=i1 && i4 != i2 && i4 != i3){
-		
-		trialb         = jets[i1];
-		trialWjet1     = jets[i2];
-		trialWjet2     = jets[i3];
-		trialW         = trialWjet1 + trialWjet2;
-		trialtop       = trialb + trialW;
-		trialblepton   = jets[i4];
-		trialtoplepton = trialwlepton + trialblepton;
-		
-		// set global variables - ugly!
-		tmplep = lepton;
-		tmpnu  = nusol;
-		tmpbl  = trialblepton;
-		tmpbj  = trialb;
-		tmpj1  = trialWjet1;
-		tmpj2  = trialWjet2;
-		
-		blres = JetEResolution(tmpbl.E());
-		bjres = JetEResolution(tmpbj.E());
-		j1res = JetEResolution(tmpj1.E());
-		j2res = JetEResolution(tmpj2.E());
-		
-		double nupz, metscale, blscale, bjscale, j1scale, j2scale;
-		
-		// dynamic resolutions
-		chi2 = SolvettbarLepJets(nupz, metscale, blscale, bjscale, j1scale, j2scale);
-		
-		if(chi2 < bestchi2){
-		  bestchi2 = chi2;
-		  nusol = tmpnu*metscale;
-		  nusol.SetPz(nupz);
-		  blrefit = tmpbl*blscale;
-		  bjrefit = tmpbj*bjscale;
-		  j1refit = tmpj1*j1scale;
-		  j2refit = tmpj2*j2scale;
-		  bestidx1 = i1;
-		  bestidx2 = i2;
-		  bestidx3 = i3;
-		  bestidx4 = i4;
-		}
-	      }
-	    }
-	  }
-	}
+        for (int i2=0; i2<njets-1 ; i2++){
+          if ( i1 == i2 ) continue;
+          for (int i3=i2+1; i3<njets; i3++){
+            if ( i3 == i1 ) continue;
+            for (int i4=0; i4<njets; i4++){
+              if ( i4 == i1 or i4 == i2 or i4 == i3 ) continue;
+
+              trialb         = jets[i1];
+              trialWjet1     = jets[i2];
+              trialWjet2     = jets[i3];
+              trialW         = trialWjet1 + trialWjet2;
+              trialtop       = trialb + trialW;
+              trialblepton   = jets[i4];
+              trialtoplepton = trialwlepton + trialblepton;
+
+              // set global variables - ugly!
+              tmplep = lepton;
+              tmpnu  = nusol;
+              tmpbl  = trialblepton;
+              tmpbj  = trialb;
+              tmpj1  = trialWjet1;
+              tmpj2  = trialWjet2;
+
+              blres = KinematicFitter::jetEResolution(tmpbl.E());
+              bjres = KinematicFitter::jetEResolution(tmpbj.E());
+              j1res = KinematicFitter::jetEResolution(tmpj1.E());
+              j2res = KinematicFitter::jetEResolution(tmpj2.E());
+
+              double nupz, metscale, blscale, bjscale, j1scale, j2scale;
+
+              // dynamic resolutions
+              const double chi2 = SolvettbarLepJets(nupz, metscale, blscale, bjscale, j1scale, j2scale);
+
+              if(chi2 < bestchi2){
+                bestchi2 = chi2;
+                nusol = tmpnu*metscale;
+                nusol.SetPz(nupz);
+                blrefit = tmpbl*blscale;
+                bjrefit = tmpbj*bjscale;
+                j1refit = tmpj1*j1scale;
+                j2refit = tmpj2*j2scale;
+                bestidx1 = i1;
+                bestidx2 = i2;
+                bestidx3 = i3;
+                bestidx4 = i4;
+              }
+            }
+          }
+        }
       }
-      
+
       bestindices[0]=bestidx1; // b for hadronic side
       bestindices[1]=bestidx2; // W jet
       bestindices[2]=bestidx3; // W jet
       bestindices[3]=bestidx4; // b for leptonic side
     }
   }
-  
+
   // use b-tagging information
   else {
     // at least there should be 4 hadronic jets
     if (njets>=4){
       int nbjets=0;
       for (int i1=0; i1<njets; i1++){
-	if (jets[i1].CSV > CSVWP) nbjets++;
+        if (jets[i1].CSV > CSVWP) nbjets++;
       }
-      
+
       int bjCandidateIndex = njets;
       if (useCSVOrderinfo){
-	bjCandidateIndex = 2;
+        bjCandidateIndex = 2;
       }  
 
       for (int i1 = 0; i1 < bjCandidateIndex; i1++){
-	for (int i2 = 0; i2 < njets-1; i2++){
-	  for (int i3 = i2+1; i3 < njets; i3++){
-	    for (int i4 = 0; i4 < bjCandidateIndex; i4++){
-	      
-	      if (i2 != i1 && i3 != i1 && i4!=i1 && i4 != i2 && i4 != i3 ){
-		
-		//std::cout << i1 << " " << i2 << " " << i3 << " " << i4 << std::endl; 
-		
-		if(((lepton + jets[i4]).M() < 170.0) &&
-		   ( nbjets==0 || // To be checked
-		     (nbjets==1 && (jets[i2].CSV < CSVWP && jets[i3].CSV < CSVWP)) ||
-		     (nbjets==2 && (jets[i2].CSV < CSVWP && jets[i3].CSV < CSVWP)) ||
-		     (nbjets==3 && (jets[i2].CSV < CSVWP || jets[i3].CSV < CSVWP)) ||
-		     (nbjets >3 && (jets[i2].CSV > CSVWP || jets[i3].CSV > CSVWP))
-		     )
-		   ){
-		  
-		  trialb            = jets[i1];
-		  trialWjet1        = jets[i2];
-		  trialWjet2        = jets[i3];
-		  trialW            = trialWjet1 + trialWjet2;
-		  trialtop          = trialb + trialW;
-		  trialblepton      = jets[i4];
-		  trialtoplepton    = trialwlepton + trialblepton;
-		  
-		  // float bjetreleres;
-		  // bjetreleres= JetEResolution(trialb.E());
-		  
-		// set global variables - ugly!
-		  tmplep = lepton;
-		  tmpnu  = nusol;
-		  tmpbl  = trialblepton;
-		  tmpbj  = trialb;
-		  tmpj1  = trialWjet1;
-		  tmpj2  = trialWjet2;
-		  
-		  blres  = JetEResolution(tmpbl.E());
-		  bjres  = JetEResolution(tmpbj.E());
-		  j1res  = JetEResolution(tmpj1.E());
-		  j2res  = JetEResolution(tmpj2.E());
-		  
+        for (int i2 = 0; i2 < njets-1; i2++){
+          if ( i2 == i1 ) continue;
+          for (int i3 = i2+1; i3 < njets; i3++){
+            if ( i3 == i1 ) continue;
+            for (int i4 = 0; i4 < bjCandidateIndex; i4++){
 
-		  double nupz, metscale, blscale, bjscale, j1scale, j2scale;
-		  
-		  // dynamic resolutions
-		  chi2 = SolvettbarLepJets(nupz, metscale, blscale, bjscale, j1scale, j2scale);
-		  
-		  if (chi2 < bestchi2){
-		    bestchi2 = chi2;
-		    nusol = tmpnu*metscale;
-		    nusol.SetPz(nupz);
-		    blrefit = tmpbl*blscale;
-		    bjrefit = tmpbj*bjscale;
-		    j1refit = tmpj1*j1scale;
-		    j2refit = tmpj2*j2scale;
-		    bestidx1 = i1;
-		    bestidx2 = i2;
-		    bestidx3 = i3;
-		    bestidx4 = i4;		  
-		  }
-		}
-	      }
-	    }
-	  }
-	}
+              if ( i4==i1 or i4 == i2 or i4 == i3 ) continue;
+
+              //std::cout << i1 << " " << i2 << " " << i3 << " " << i4 << std::endl; 
+
+              if(((lepton + jets[i4]).M() < 170.0) &&
+                  ( nbjets==0 || // To be checked
+                    (nbjets==1 && (jets[i2].CSV < CSVWP && jets[i3].CSV < CSVWP)) ||
+                    (nbjets==2 && (jets[i2].CSV < CSVWP && jets[i3].CSV < CSVWP)) ||
+                    (nbjets==3 && (jets[i2].CSV < CSVWP || jets[i3].CSV < CSVWP)) ||
+                    (nbjets >3 && (jets[i2].CSV > CSVWP || jets[i3].CSV > CSVWP))
+                  )
+                ){
+
+                trialb            = jets[i1];
+                trialWjet1        = jets[i2];
+                trialWjet2        = jets[i3];
+                trialW            = trialWjet1 + trialWjet2;
+                trialtop          = trialb + trialW;
+                trialblepton      = jets[i4];
+                trialtoplepton    = trialwlepton + trialblepton;
+
+                // float bjetreleres;
+                // bjetreleres= KinematicFitter::jetEResolution(trialb.E());
+
+                // set global variables - ugly!
+                tmplep = lepton;
+                tmpnu  = nusol;
+                tmpbl  = trialblepton;
+                tmpbj  = trialb;
+                tmpj1  = trialWjet1;
+                tmpj2  = trialWjet2;
+
+                blres  = KinematicFitter::jetEResolution(tmpbl.E());
+                bjres  = KinematicFitter::jetEResolution(tmpbj.E());
+                j1res  = KinematicFitter::jetEResolution(tmpj1.E());
+                j2res  = KinematicFitter::jetEResolution(tmpj2.E());
+
+                double nupz, metscale, blscale, bjscale, j1scale, j2scale;
+
+                // dynamic resolutions
+                const double chi2 = SolvettbarLepJets(nupz, metscale, blscale, bjscale, j1scale, j2scale);
+
+                if (chi2 < bestchi2){
+                  bestchi2 = chi2;
+                  nusol = tmpnu*metscale;
+                  nusol.SetPz(nupz);
+                  blrefit = tmpbl*blscale;
+                  bjrefit = tmpbj*bjscale;
+                  j1refit = tmpj1*j1scale;
+                  j2refit = tmpj2*j2scale;
+                  bestidx1 = i1;
+                  bestidx2 = i2;
+                  bestidx3 = i3;
+                  bestidx4 = i4;		  
+                }
+              }
+            }
+          }
+        }
       }
-      
+
       bestindices[0]=bestidx1; // b for hadronic side
       bestindices[1]=bestidx2; // W jet
       bestindices[2]=bestidx3; // W jet

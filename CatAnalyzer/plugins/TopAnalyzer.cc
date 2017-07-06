@@ -24,7 +24,8 @@
 #include "CATTools/CommonTools/interface/AnalysisHelper.h"
 
 // Kinematic Reconstruction
-#include "CATTools/CatAnalyzer/interface/TTbarFCNCFitter.h"
+#include "CATTools/CatAnalyzer/interface/LepJetsFitterFCNH.h"
+#include "CATTools/CatAnalyzer/interface/analysisUtils.h"
 
 #include "TH1.h"
 #include "TTree.h"
@@ -501,7 +502,8 @@ void TopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
     const cat::MET & catmet = METHandle->at(0);
     bool usebtaginfo = true; 
-    fcnc::FindHadronicTop(leptonp4, selectedJets, catmet, usebtaginfo, csvid,  KinBestIndices, bestchi2, Kinnu, Kinblrefit, Kinbjrefit, Kinj1refit, Kinj2refit);
+    auto metLV = common::LVtoTLV(catmet.p4());
+    fcnh::FindHadronicTop(leptonp4, selectedJets, metLV, usebtaginfo, csvid,  KinBestIndices, bestchi2, Kinnu, Kinblrefit, Kinbjrefit, Kinj1refit, Kinj2refit);
 
     if( bestchi2 < 1.0e6 ){
 
