@@ -7,15 +7,17 @@ ROOT.gROOT.SetBatch(True)
 topDraw.py -a 1 -s 1 -c 'tri==1&&filtered==1' -b [40,0,40] -p nvertex -x 'no. vertex' &
 topDraw.py -a 1 -s 1 -b [100,-3,3] -p lep1_eta,lep2_eta -x '#eta' &
 '''
-datalumi = 2.1114 #Run2015 v765
+datalumi = 37.06 #Run2016 v806
 #datalumi = 2.17 #Run2015 v765
 CMS_lumi.lumi_sqrtS = "%.1f fb^{-1}, #sqrt{s} = 13 TeV"%(datalumi)
 datalumi = datalumi*1000 # due to fb
 CMS_lumi.writeExtraText = False
 
-mcfilelist = ['TT_powheg', 'WJets', 'SingleTbar_tW', 'SingleTop_tW', 'ZZ', 'WW', 'WZ', 'DYJets', 'DYJets_10to50']
-rdfilelist = ['MuonEG_Run2015','DoubleEG_Run2015','DoubleMuon_Run2015']
-rootfileDir = "/xrootd/store/user/tt8888tt/v765/TtbarDiLeptonAnalyzer_"
+#mcfilelist = ['TT_powheg', 'WJets', 'SingleTbar_tW', 'SingleTop_tW', 'ZZ', 'WW', 'WZ', 'DYJets', 'DYJets_10to50']
+mcfilelist = ['TT_powheg', 'WJets', 'ZZ', 'WW', 'WZ', 'DYJets', 'DYJets_10to50']
+rdfilelist = ['MuonEG_Run2016','DoubleEG_Run2016','DoubleMuon_Run2016']
+#rootfileDir = "/xrootd/store/user/tt8888tt/v765/TtbarDiLeptonAnalyzer_"
+rootfileDir = "/xrootd/store/user/king11kr/ntuples_TtbarDstar_v806/CMSSW_8_0_26_patch1/"
 channel_name = ['MuEl', 'ElEl', 'MuMu']
 
 datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset/dataset.json" % os.environ['CMSSW_BASE']))
@@ -23,8 +25,9 @@ datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset/dataset.json
 #defalts
 step = 1
 channel = 1 #combined: channel = 0
-cut = 'tri!=0&&filtered==1&&is3lep==2'
-weight = 'genweight*puweight*mueffweight*eleffweight*tri'
+#cut = 'tri!=0&&filtered==1&&is3lep==2'
+cut = 'tri!=0&&filtered==1'
+wieight = 'genweight*puweight*mueffweight*eleffweight*tri'
 binning = [60, 20, 320]
 plotvar = 'dilep.M()'
 x_name = 'mass [GeV]'
@@ -81,7 +84,8 @@ ttother_tcut = '(%s&&%s&&%s)*(%s)'%(stepch_tcut,cut,ttother_tcut,weight)
 rd_tcut = '%s&&%s'%(stepch_tcut,cut)
 print "TCut =",tcut
 
-title_l = ["t#bar{t}", "W+jets", "Single top", "Single top", "Diboson", "Diboson", "Diboson", "Z/#gamma^{*}#rightarrow#font[12]{l#lower[-0.4]{+}l#lower[-0.4]{#font[122]{\55}}}", "Z/#gamma^{*}#rightarrow#font[12]{l#lower[-0.4]{+}l#lower[-0.4]{#font[122]{\55}}}"]
+#title_l = ["t#bar{t}", "W+jets", "Single top", "Single top", "Diboson", "Diboson", "Diboson", "Z/#gamma^{*}#rightarrow#font[12]{l#lower[-0.4]{+}l#lower[-0.4]{#font[122]{\55}}}", "Z/#gamma^{*}#rightarrow#font[12]{l#lower[-0.4]{+}l#lower[-0.4]{#font[122]{\55}}}"]
+title_l = ["t#bar{t}", "W+jets", "Diboson", "Diboson", "Diboson", "Z/#gamma^{*}#rightarrow#font[12]{l#lower[-0.4]{+}l#lower[-0.4]{#font[122]{\55}}}", "Z/#gamma^{*}#rightarrow#font[12]{l#lower[-0.4]{+}l#lower[-0.4]{#font[122]{\55}}}"]
 sysNameList = ['jer','jes','mu','el','puweight','mueffweight','eleffweight','btagweight']
 
 #DYEstimation
@@ -243,6 +247,6 @@ ratioPad.GetPrimitive("hratio").Draw("esame")
 canv.Update()
 
 canv.SaveAs(outfile)
-canv.SaveAs(outfile.replace(".png",".pdf"))
+#canv.SaveAs(outfile.replace(".png",".pdf"))
 print outfile
 
