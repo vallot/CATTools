@@ -994,8 +994,8 @@ cat::ElectronCollection TtbarDiLeptonAnalyzer::selectElecs(const cat::ElectronCo
     if (std::abs(el.eta()) > 2.4) continue;
     //if ( !el.isTight() ) continue;
     if ((std::abs(el.scEta()) > 1.4442) && (std::abs(el.scEta()) < 1.566)) continue;
-    //if ( !el.electronID("cutBasedElectronID-Summer16-80X-V1-medium") ) continue;
-    if ( !el.electronID("cutBasedElectronID-Summer16-80X-V1-tight") ) continue;
+    if ( !el.electronID("cutBasedElectronID-Summer16-80X-V1-medium") ) continue;
+    //if ( !el.electronID("cutBasedElectronID-Summer16-80X-V1-tight") ) continue;
     //cout << el.bestTrack()->d0() << endl;
     //if (std::abs(el.bestTrack()->d0()) > 0.0739 ) continue;
     //if (std::abs(el.bestTrack()->dz()) > 0.602 ) continue;
