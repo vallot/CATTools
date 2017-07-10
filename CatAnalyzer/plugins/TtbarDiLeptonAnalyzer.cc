@@ -193,7 +193,7 @@ private:
 
 TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
 {
-// ############## Dstar begin #####################
+  // ############## Dstar begin #####################
   //parameterInit(iConfig);
 
   d0Token_  = consumes<cat::SecVertexCollection>(iConfig.getParameter<edm::InputTag>("d0s"));
@@ -202,7 +202,7 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   mcSrc_ = consumes<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("mcLabel"));
   matchingDeltaR_  = iConfig.getParameter<double>("matchingDeltaR");
 
-// ############## Dstar end #####################
+  // ############## Dstar end #####################
   recoFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("recoFilters"));
   nGoodVertexToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("nGoodVertex"));
   lumiSelectionToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("lumiSelection"));
@@ -210,7 +210,9 @@ TtbarDiLeptonAnalyzer::TtbarDiLeptonAnalyzer(const edm::ParameterSet& iConfig)
   pdfweightsToken_ = consumes<vector<float>>(iConfig.getParameter<edm::InputTag>("pdfweights"));	
   scaleupweightsToken_ = consumes<vector<float>>(iConfig.getParameter<edm::InputTag>("scaleupweights"));
   scaledownweightsToken_ = consumes<vector<float>>(iConfig.getParameter<edm::InputTag>("scaledownweights"));
+  cout <<"TtbarDiLeptonAnalyzer::topPtWeight start"<< endl;
   topPtWeight_ = consumes<float>(iConfig.getParameter<edm::InputTag>("topPtWeight"));
+  cout <<"TtbarDiLeptonAnalyzer::topPtWeight end"<< endl;
   puweightToken_ = consumes<float>(iConfig.getParameter<edm::InputTag>("puweight"));
   puweightToken_up_ = consumes<float>(iConfig.getParameter<edm::InputTag>("puweight_up"));
   puweightToken_dn_ = consumes<float>(iConfig.getParameter<edm::InputTag>("puweight_dn"));
@@ -356,7 +358,7 @@ void TtbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   for (int sys = 0; sys < syst_total; ++sys){
     if (sys != syst_nom && !runOnMC) break;
     resetBranch();
-    
+
     if (runOnMC && sys == syst_nom)
       keepGenSignal = genInformation(iEvent);
     
@@ -394,8 +396,8 @@ bool TtbarDiLeptonAnalyzer::eventSelection(const edm::Event& iEvent, systematic 
     
     //h_nevents->Fill(0.5,b_weight);
     h_nevents->Fill(0.5,b_genweight*b_puweight);
-  }  
-// #####################  Dstar begin  ########################
+  }
+  // #####################  Dstar begin  ########################
   edm::Handle<cat::SecVertexCollection> d0s;       iEvent.getByToken(d0Token_,d0s);
   edm::Handle<cat::SecVertexCollection> dstars;    iEvent.getByToken(dstarToken_,dstars);
   edm::Handle<cat::SecVertexCollection> Jpsis;     iEvent.getByToken(JpsiToken_,Jpsis);
@@ -423,7 +425,7 @@ bool TtbarDiLeptonAnalyzer::eventSelection(const edm::Event& iEvent, systematic 
         nIDMother = isFromtop(aGenParticle);
 
         if ( /*0 == 1 &&*/ abs(nIDMother) != 6 ) {
-            continue;
+	  continue;
         }
 
         //printf("Sign : %i\n", nIDMother * aGenParticle.pdgId() / abs(aGenParticle.pdgId()));
@@ -437,7 +439,7 @@ bool TtbarDiLeptonAnalyzer::eventSelection(const edm::Event& iEvent, systematic 
         nIDMother = isFromtop(aGenParticle);
 
         if ( /*0 == 1 &&*/ abs(nIDMother) != 6 ) {
-            continue;
+	  continue;
         }
 
         //printf("Sign : %i\n", nIDMother * aGenParticle.pdgId() / abs(aGenParticle.pdgId()));
@@ -452,7 +454,7 @@ bool TtbarDiLeptonAnalyzer::eventSelection(const edm::Event& iEvent, systematic 
         nIDMother = isFromtop(aGenParticle);
 
         if ( /*0 == 1 &&*/ abs(nIDMother) != 6 ) {
-            continue;
+	  continue;
         }
 
         //printf("Sign : %i\n", nIDMother * aGenParticle.pdgId() / abs(aGenParticle.pdgId()));
@@ -513,17 +515,17 @@ bool TtbarDiLeptonAnalyzer::eventSelection(const edm::Event& iEvent, systematic 
     }
 
     if ( runOnMC ) {
-        shared_ptr<TLorentzVector> genMatched = mcMatching( gen_d0s, d0_tlv );
-        if ( genMatched != nullptr) {
-          b_d0_true.push_back( true );
-          b_d0_dRTrue.push_back( genMatched->DeltaR( d0_tlv ));
-          b_d0_relPtTrue.push_back( (genMatched->Pt()- d0_tlv.Pt())/genMatched->Pt());
-        }
-        else {
-          b_d0_true.push_back( false );
-          b_d0_dRTrue.push_back( -9);
-          b_d0_relPtTrue.push_back(-9);
-        }
+      shared_ptr<TLorentzVector> genMatched = mcMatching( gen_d0s, d0_tlv );
+      if ( genMatched != nullptr) {
+	b_d0_true.push_back( true );
+	b_d0_dRTrue.push_back( genMatched->DeltaR( d0_tlv ));
+	b_d0_relPtTrue.push_back( (genMatched->Pt()- d0_tlv.Pt())/genMatched->Pt());
+      }
+      else {
+	b_d0_true.push_back( false );
+	b_d0_dRTrue.push_back( -9);
+	b_d0_relPtTrue.push_back(-9);
+      }
     }
 
     fQDM = 0;
@@ -584,17 +586,17 @@ bool TtbarDiLeptonAnalyzer::eventSelection(const edm::Event& iEvent, systematic 
       b_dstar_LXY.push_back( -9 );
     }
     if ( runOnMC ) {
-        shared_ptr<TLorentzVector> genMatched = mcMatching( gen_dstars, dstar_tlv );
-        if ( genMatched != nullptr) {
-          b_dstar_true.push_back( true );
-          b_dstar_dRTrue.push_back( genMatched->DeltaR( dstar_tlv));
-          b_dstar_relPtTrue.push_back( (genMatched->Pt()- dstar_tlv.Pt())/genMatched->Pt());
-        }
-        else {
-          b_dstar_true.push_back( false );
-          b_dstar_dRTrue.push_back( -9);
-          b_dstar_relPtTrue.push_back(-9);
-        }
+      shared_ptr<TLorentzVector> genMatched = mcMatching( gen_dstars, dstar_tlv );
+      if ( genMatched != nullptr) {
+	b_dstar_true.push_back( true );
+	b_dstar_dRTrue.push_back( genMatched->DeltaR( dstar_tlv));
+	b_dstar_relPtTrue.push_back( (genMatched->Pt()- dstar_tlv.Pt())/genMatched->Pt());
+      }
+      else {
+	b_dstar_true.push_back( false );
+	b_dstar_dRTrue.push_back( -9);
+	b_dstar_relPtTrue.push_back(-9);
+      }
     }
 
     fQDM = 0;
@@ -612,11 +614,11 @@ bool TtbarDiLeptonAnalyzer::eventSelection(const edm::Event& iEvent, systematic 
     fQDM += fQDau;
 
     vecDMMom = ToTLorentzVector(*(x.daughter(0))) +
-        ToTLorentzVector(*(x.daughter(1))) +
-        ToTLorentzVector(*(x.daughter(2)));
+      ToTLorentzVector(*(x.daughter(1))) +
+      ToTLorentzVector(*(x.daughter(2)));
 
     vecDau12 = ToTLorentzVector(*(x.daughter(0))) +
-        ToTLorentzVector(*(x.daughter(1)));
+      ToTLorentzVector(*(x.daughter(1)));
     b_dstar_diffMass.push_back(vecDMMom.M() - vecDau12.M());
 
     vecSumDMLep1 = b_lep1 + vecDMMom;
@@ -660,17 +662,17 @@ bool TtbarDiLeptonAnalyzer::eventSelection(const edm::Event& iEvent, systematic 
     }
 
     if ( runOnMC ) {
-        shared_ptr<TLorentzVector> genMatched = mcMatching( gen_Jpsis, Jpsi_tlv );
-        if ( genMatched != nullptr) {
-          b_Jpsi_true.push_back( true );
-          b_Jpsi_dRTrue.push_back( genMatched->DeltaR( Jpsi_tlv));
-          b_Jpsi_relPtTrue.push_back( (genMatched->Pt()- Jpsi_tlv.Pt())/genMatched->Pt());
-        }
-        else {
-          b_Jpsi_true.push_back( false );
-          b_Jpsi_dRTrue.push_back( -9);
-          b_Jpsi_relPtTrue.push_back(-9);
-        }
+      shared_ptr<TLorentzVector> genMatched = mcMatching( gen_Jpsis, Jpsi_tlv );
+      if ( genMatched != nullptr) {
+	b_Jpsi_true.push_back( true );
+	b_Jpsi_dRTrue.push_back( genMatched->DeltaR( Jpsi_tlv));
+	b_Jpsi_relPtTrue.push_back( (genMatched->Pt()- Jpsi_tlv.Pt())/genMatched->Pt());
+      }
+      else {
+	b_Jpsi_true.push_back( false );
+	b_Jpsi_dRTrue.push_back( -9);
+	b_Jpsi_relPtTrue.push_back(-9);
+      }
     }
 
     fQDM = 0;
@@ -1169,7 +1171,7 @@ void TtbarDiLeptonAnalyzer::setBranch(TTree* tr, systematic sys)
   tr->Branch("pseudottbar_dphi", &b_pseudottbar_dphi, "pseudottbar_dphi/F");
 
 
-// ############### Dstar begin #######################
+  // ############### Dstar begin #######################
 
   b_d0         = new TClonesArray("TLorentzVector",100);
   b_d0_dau1    = new TClonesArray("TLorentzVector",100);
@@ -1253,7 +1255,7 @@ void TtbarDiLeptonAnalyzer::setBranch(TTree* tr, systematic sys)
   tr->Branch("Jpsi_lepSV_correctM","std::vector<float>",&b_Jpsi_lepSV_correctM); // for test
 
 
-// ############### Dstar end  #######################
+  // ############### Dstar end  #######################
 
 }
 
@@ -1310,7 +1312,7 @@ void TtbarDiLeptonAnalyzer::resetBranch()
   b_dstar->Clear(); b_dstar_dau1->Clear(); b_dstar_dau2->Clear(); b_dstar_dau3->Clear();
   b_Jpsi->Clear();    b_Jpsi_dau1->Clear();    b_Jpsi_dau2->Clear();
 
-// ##################### Dstar begin ######################
+  // ##################### Dstar begin ######################
   // D0
   b_d0_true.clear() ;
   b_d0_LXY.clear(); b_d0_L3D.clear(); b_d0_fit.clear(); b_d0_dRTrue.clear(); b_d0_relPtTrue.clear(); b_d0_dca.clear();
@@ -1351,7 +1353,7 @@ void TtbarDiLeptonAnalyzer::resetBranch()
   b_Jpsi_lepSV_correctM.clear();
 
 
-// ############################ Dstar end ##########################
+  // ############################ Dstar end ##########################
 }
 
 bool TtbarDiLeptonAnalyzer::genInformation(const edm::Event& iEvent)

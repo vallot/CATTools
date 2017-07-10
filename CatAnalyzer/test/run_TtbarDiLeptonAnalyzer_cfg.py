@@ -8,7 +8,7 @@ process.options.allowUnscheduled = cms.untracked.bool(True)
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring())
 from CATTools.Validation.commonTestInput_cff import commonTestCATTuples
-process.source.fileNames = commonTestCATTuples["sig"]
+process.source.fileNames = commonTestCATTuples["data"]
 
 process.load("CATTools.CatAnalyzer.ttll.ttbarDileptonKinSolutionAlgos_cff")
 process.load("CATTools.CatAnalyzer.filters_cff")
