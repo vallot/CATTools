@@ -10,7 +10,6 @@
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
 #include "CATTools/DataFormats/interface/GenWeights.h"
-#include "CATTools/CommonTools/interface/GenParticleHelper.h"
 
 #include "TH1F.h"
 #include "TH2F.h"
@@ -34,6 +33,17 @@ private:
       const reco::Candidate* mo = p.mother(i);
       if ( !mo ) continue;
       if ( mo->pdgId() == p.pdgId() ) return false;
+    }
+    return true;
+  };
+  bool isLast(const reco::Candidate& p) const {
+    const int nDa = p.numberOfDaughters();
+    if ( nDa == 0 ) return true;
+
+    for ( int i=0; i<nDa; ++i ) {
+      const reco::Candidate* da = p.daughter(i);
+      if ( !da ) continue;
+      if ( da->pdgId() == p.pdgId() ) return false;
     }
     return true;
   };
@@ -162,7 +172,7 @@ void CATGenValidation::analyze(const edm::Event& event, const edm::EventSetup& e
     if ( x.pt() < 1e-3 and std::abs(x.pz()) > 100 ) continue; // Rough selection to skip incident beams and partons
     if ( x.numberOfDaughters() == 0 ) fsParticles.push_back(&x);
     if ( isFirst(x) ) firstCopies.push_back(&x);
-    if ( cat::isLast(x) ) lastCopies.push_back(&x);
+    if ( isLast(x) ) lastCopies.push_back(&x);
   }
   int nUnstableFinal = 0; // This should be zero
   for ( const auto x : fsParticles ) {

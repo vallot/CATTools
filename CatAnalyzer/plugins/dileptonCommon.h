@@ -76,6 +76,7 @@ public:
   float selectElecs(const cat::ElectronCollection& elecs, cat::ElectronCollection& selelecs, sys_e sys) const;
   cat::JetCollection selectJets(const cat::JetCollection& jets, const LeptonPtrs& recolep, sys_e sys);
   cat::JetCollection selectBJets(const cat::JetCollection& jets) const;
+  const reco::Candidate* getLast(const reco::Candidate* p) const;
   float getMuEffSF(const cat::Lepton& p, int sys) const
   {
     const int aid = abs(p.pdgId());

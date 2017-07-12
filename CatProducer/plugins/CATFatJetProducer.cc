@@ -37,6 +37,7 @@ namespace cat {
   class CATFatJetProducer : public edm::stream::EDProducer<> {
   public:
     explicit CATFatJetProducer(const edm::ParameterSet & iConfig);
+    virtual ~CATFatJetProducer() { }
 
     void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
     void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&) override;
@@ -67,7 +68,7 @@ cat::CATFatJetProducer::CATFatJetProducer(const edm::ParameterSet & iConfig) :
   jetResSFFilePath_(edm::FileInPath(iConfig.getParameter<std::string>("jetResSFFile")).fullPath()),
   setGenParticle_(iConfig.getParameter<bool>("setGenParticle"))
 {
-  produces<cat::FatJetCollection>();
+  produces<std::vector<cat::FatJet> >();
   ///  pfjetIDFunctor = PFJetIDSelectionFunctor(PFJetIDSelectionFunctor::FIRSTDATA,PFJetIDSelectionFunctor::LOOSE);
 }
 
@@ -103,7 +104,7 @@ void cat::CATFatJetProducer::produce(edm::Event & iEvent, const edm::EventSetup 
   iEvent.getByToken(rhoToken_, rhoHandle);
   const double rho = *rhoHandle;
 
-  std::unique_ptr<cat::FatJetCollection>  out(new cat::FatJetCollection());
+  auto_ptr<vector<cat::FatJet> >  out(new vector<cat::FatJet>());
   for (const pat::Jet &aPatJet : *src) {
 
     cat::FatJet aJet(aPatJet);
@@ -244,7 +245,7 @@ void cat::CATFatJetProducer::produce(edm::Event & iEvent, const edm::EventSetup 
 
   if (jecUnc) delete jecUnc;
 
-  iEvent.put(std::move(out));
+  iEvent.put(out);
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"
