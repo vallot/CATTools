@@ -11,6 +11,7 @@
 #include "CATTools/CommonTools/interface/TTbarModeDefs.h"
 
 using namespace std;
+using namespace cat;
 
 class PartonTopProducer : public edm::stream::EDProducer<>
 {
@@ -58,7 +59,7 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
   std::unique_ptr<reco::GenParticleCollection> partons(new reco::GenParticleCollection);
   auto partonRefHandle = event.getRefBeforePut<reco::GenParticleCollection>();
 
-  std::unique_ptr<int> channel(new int(cat::CH_NOTT));
+  std::unique_ptr<int> channel(new int(CH_NOTT));
   std::unique_ptr<std::vector<int> > modes(new std::vector<int>());
 
   std::unique_ptr<reco::GenJetCollection> qcdJets(new reco::GenJetCollection);
@@ -175,12 +176,12 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
         partons->at(wDauRef1.key()).addDaughter(lepRef);
       }
     }
-    int mode = cat::CH_HADRON;
+    int mode = CH_HADRON;
     switch ( abs(wDau1->pdgId()) ) {
-      case 11: ++nElectron; mode = cat::CH_ELECTRON; break;
-      case 13: ++nMuon; mode = cat::CH_MUON; break;
+      case 11: ++nElectron; mode = CH_ELECTRON; break;
+      case 13: ++nMuon; mode = CH_MUON; break;
       case 15:
-        ++nTau; mode = cat::CH_TAU_HADRON;
+        ++nTau; mode = CH_TAU_HADRON;
         if ( !lepsFromTau.empty() ) {
 
           const reco::Candidate* lepFromTau = lepsFromTau.front();
@@ -201,9 +202,9 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
 
   if ( modes->size() == 2 ) {
     const int nLepton = nElectron + nMuon;
-    if      ( nLepton == 0 ) *channel = cat::CH_FULLHADRON;
-    else if ( nLepton == 1 ) *channel = cat::CH_SEMILEPTON;
-    else if ( nLepton == 2 ) *channel = cat::CH_FULLLEPTON;
+    if      ( nLepton == 0 ) *channel = CH_FULLHADRON;
+    else if ( nLepton == 1 ) *channel = CH_SEMILEPTON;
+    else if ( nLepton == 2 ) *channel = CH_FULLLEPTON;
   }
 
   // Make genJets using particles after PS, but before hadronization

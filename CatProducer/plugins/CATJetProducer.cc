@@ -33,6 +33,7 @@ class CATJetProducer : public edm::stream::EDProducer<>
 {
 public:
   explicit CATJetProducer(const edm::ParameterSet & iConfig);
+  virtual ~CATJetProducer() { }
 
   void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
   void beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&) override;
@@ -81,7 +82,7 @@ cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
     flavTagTokens_.push_back(consumes<edm::ValueMap<float>>(label));
   }
 
-  produces<cat::JetCollection>();
+  produces<std::vector<cat::Jet> >();
 }
 
 void cat::CATJetProducer::beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup&)
@@ -128,7 +129,7 @@ void cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     iEvent.getByToken(token, flavTagHandles.back());
   }
 
-  std::unique_ptr<cat::JetCollection>  out(new cat::JetCollection());
+  auto_ptr<vector<cat::Jet> >  out(new vector<cat::Jet>());
 
   for (auto aPatJetPointer = src->begin(); aPatJetPointer != src->end(); ++aPatJetPointer) {
 
@@ -270,7 +271,7 @@ void cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
 
   if (jecUnc) delete jecUnc;
 
-  iEvent.put(std::move(out));
+  iEvent.put(out);
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"

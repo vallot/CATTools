@@ -22,6 +22,7 @@ namespace cat {
   class CATMCParticleProducer : public edm::stream::EDProducer<> {
   public:
     explicit CATMCParticleProducer(const edm::ParameterSet & iConfig);
+    virtual ~CATMCParticleProducer() { }
 
     void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
 
@@ -49,7 +50,7 @@ cat::CATMCParticleProducer::produce(edm::Event & iEvent, const edm::EventSetup &
   Handle<reco::GenParticleCollection> genParticles;
   iEvent.getByToken(src_,genParticles);
 
-  unique_ptr<vector<cat::MCParticle> >  out(new vector<cat::MCParticle>());
+  auto_ptr<vector<cat::MCParticle> >  out(new vector<cat::MCParticle>());
 
   for (const reco::GenParticle & aGenParticle : *genParticles) {
     // fix me!! have better pruning of mc particles
@@ -62,7 +63,7 @@ cat::CATMCParticleProducer::produce(edm::Event & iEvent, const edm::EventSetup &
 
   }
 
-  iEvent.put(std::move(out));
+  iEvent.put(out);
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"

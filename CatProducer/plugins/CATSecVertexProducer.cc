@@ -33,6 +33,7 @@ namespace cat {
   class CATSecVertexProducer : public edm::stream::EDProducer<> {
     public:
       explicit CATSecVertexProducer(const edm::ParameterSet & iConfig);
+      virtual ~CATSecVertexProducer() { }
 
       void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
 
@@ -122,8 +123,8 @@ cat::CATSecVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & 
   out_ = new std::vector<cat::SecVertex>();
 
   if ( recVtxs->empty() ) {
-    unique_ptr<cat::SecVertexCollection> out(out_);
-    iEvent.put(std::move(out));
+    auto_ptr<cat::SecVertexCollection> out(out_);
+    iEvent.put(out);
     return;
   }
   reco::Vertex pv = recVtxs->at(0);
@@ -261,8 +262,8 @@ cat::CATSecVertexProducer::produce(edm::Event & iEvent, const edm::EventSetup & 
     }
   }
   else { std::cerr<<"Can not found mode variable.Skip this event : "<<iEvent.id()<< std::endl; return ;}
-  unique_ptr<cat::SecVertexCollection > out(out_);
-  iEvent.put(std::move(out));
+  auto_ptr<cat::SecVertexCollection > out(out_);
+  iEvent.put(out);
 }
 
 void cat::CATSecVertexProducer::fitTransientTracks(cat::SecVertexCollection* out_, reco::Vertex& goodPV, reco::TransientTrack& ttrack1, reco::TransientTrack& ttrack2, int pdgId)
@@ -326,8 +327,8 @@ void cat::CATSecVertexProducer::fitTransientTracks(cat::SecVertexCollection* out
   const double rVtxMag3D = ROOT::Math::Mag(distanceVector3D);
 
   // Cuts finished, now we create the candidates and push them back into the collections.
-  std::unique_ptr<TrajectoryStateClosestToPoint> traj1;
-  std::unique_ptr<TrajectoryStateClosestToPoint> traj2;
+  std::auto_ptr<TrajectoryStateClosestToPoint> traj1;
+  std::auto_ptr<TrajectoryStateClosestToPoint> traj2;
 
   try{
     if ( refittedTracks.empty() )
