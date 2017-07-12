@@ -3,8 +3,8 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "CATTools/DataFormats/interface/GenJet.h"
-#include "CATTools/DataFormats/interface/MCParticle.h"
+#include "DataFormats/JetReco/interface/GenJet.h"
+#include "DataFormats/JetReco/interface/GenJetCollection.h"
 
 #include "SimDataFormats/JetMatching/interface/JetFlavourInfo.h"
 #include "SimDataFormats/JetMatching/interface/JetFlavourInfoMatching.h"
@@ -12,13 +12,10 @@
 using namespace edm;
 using namespace std;
 
-namespace cat {
-
 class GenJetHadronMatchProducer : public edm::stream::EDProducer<>
 {
 public:
   GenJetHadronMatchProducer(const edm::ParameterSet& pset);
-  virtual ~GenJetHadronMatchProducer() { }
 
   void produce(edm::Event & event, const edm::EventSetup&) override;
 
@@ -30,10 +27,6 @@ private:
   edm::EDGetTokenT<reco::JetFlavourInfoMatchingCollection> genJetFlavourToken_;
 
 };
-
-} // namespace
-
-using namespace cat;
 
 typedef std::vector<int> vint;
 typedef std::vector<vint> vvint;
@@ -95,9 +88,9 @@ void GenJetHadronMatchProducer::produce(edm::Event& event, const edm::EventSetup
     std::copy(partonIds.begin(), partonIds.end(), std::back_inserter(vPartonIds));
   }
 
-  std::auto_ptr<vint> out_nBHadron(new vint), out_nCHadron(new vint);
-  std::auto_ptr<vvint> out_ancestors(new vvint);
-  std::auto_ptr<vvint> out_hAncestors(new vvint);
+  std::unique_ptr<vint> out_nBHadron(new vint), out_nCHadron(new vint);
+  std::unique_ptr<vvint> out_ancestors(new vvint);
+  std::unique_ptr<vvint> out_hAncestors(new vvint);
   for ( int i=0, n=genJetHandle->size(); i<n; ++i ) {
     auto nbitr = jetToNBHadron.find(i);
     if ( nbitr == jetToNBHadron.end() ) out_nBHadron->push_back(0);
@@ -115,14 +108,15 @@ void GenJetHadronMatchProducer::produce(edm::Event& event, const edm::EventSetup
     if ( hitr == jetToHPartonIds.end() ) out_hAncestors->push_back(vint());
     else out_hAncestors->push_back(hitr->second);
   }
-  event.put(out_nBHadron, "nBHadron");
-  event.put(out_nCHadron, "nCHadron");
-  event.put(out_ancestors, "ancestors");
-  event.put(out_hAncestors, "hadronAncestors");
+  event.put(std::move(out_nBHadron), "nBHadron");
+  event.put(std::move(out_nCHadron), "nCHadron");
+  event.put(std::move(out_ancestors), "ancestors");
+  event.put(std::move(out_hAncestors), "hadronAncestors");
 
 }
 
-void GenJetHadronMatchProducer::collectAncestorPartons(const reco::Candidate* cand, std::set<int>& partonIds) const {
+void GenJetHadronMatchProducer::collectAncestorPartons(const reco::Candidate* cand, std::set<int>& partonIds) const
+{
   if ( !cand ) return;
 
   for ( int i=0, n=cand->numberOfMothers(); i<n; ++i ) {
@@ -136,5 +130,4 @@ void GenJetHadronMatchProducer::collectAncestorPartons(const reco::Candidate* ca
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"
-using namespace cat;
 DEFINE_FWK_MODULE(GenJetHadronMatchProducer);

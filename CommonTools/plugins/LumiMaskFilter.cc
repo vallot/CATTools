@@ -20,7 +20,6 @@ class LumiMaskFilter : public edm::stream::EDFilter<>
 {
 public:
   LumiMaskFilter(const edm::ParameterSet& pset);
-  ~LumiMaskFilter() {};
 
   bool filter(edm::Event& event, const edm::EventSetup& eventSetup) override;
 
@@ -39,7 +38,7 @@ LumiMaskFilter::LumiMaskFilter(const edm::ParameterSet& pset):
 
 bool LumiMaskFilter::filter(edm::Event& event, const edm::EventSetup& eventSetup)
 {
-  std::auto_ptr<int> passLumiSelection(new int(0));
+  std::unique_ptr<int> passLumiSelection(new int(0));
   if ( event.isRealData() ) {
     edm::RunNumber_t             kRun  = event.id().run();
     edm::LuminosityBlockNumber_t kLumi = event.id().luminosityBlock();
@@ -53,7 +52,7 @@ bool LumiMaskFilter::filter(edm::Event& event, const edm::EventSetup& eventSetup
     }
   }
   const bool isPassing = (*passLumiSelection == 1);
-  event.put(passLumiSelection, "");
+  event.put(std::move(passLumiSelection));
   if ( doFilter_ ) {
     // XOR selection, but let us keep the logic to be simple to everybody
     if      ( isPassing and !acceptOnFail_ ) return true;
