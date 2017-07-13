@@ -54,8 +54,10 @@ PartonTopProducer::PartonTopProducer(const edm::ParameterSet& pset):
 void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventSetup)
 {
   edm::Handle<edm::View<reco::Candidate> > genParticleHandle;
-  event.getByToken(genParticleToken_, genParticleHandle);
-
+  if ( event.isRealData() or !event.getByToken(genParticleToken_, genParticleHandle) ) {
+    return;
+  }
+  
   std::unique_ptr<reco::GenParticleCollection> partons(new reco::GenParticleCollection);
   auto partonRefHandle = event.getRefBeforePut<reco::GenParticleCollection>();
 

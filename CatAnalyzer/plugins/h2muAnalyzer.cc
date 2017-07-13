@@ -1,3 +1,6 @@
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+//only jets that pass though the jet selection are considered for the b-jet veto 
+
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
@@ -22,6 +25,7 @@
 #include "TTree.h"
 #include "TH1D.h"
 #include "CATTools/CatAnalyzer/src/RoccoR.cc"
+//#include "CATTools/CatAnalyzer/src/RoccoR.h"
 //#include "TLorentzVector.h"
 
 using namespace std;
@@ -51,7 +55,6 @@ private:
   bool bumpCategory(const JetCollection& jets, const MuonCollection& recolep);
   bool bumpCat1(const JetCollection& jets, const MuonCollection& recolep);
   bool bumpCat2(const JetCollection& jets, const MuonCollection& recolep, float met);
-
   ScaleFactorEvaluator muonSF_, elecSF_;
   
   edm::EDGetTokenT<int> recoFiltersToken_, nGoodVertexToken_, lumiSelectionToken_;
@@ -68,23 +71,26 @@ private:
   edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjects_;
 
   RoccoR *rocCor;
+
   bool runOnMC;
-  
   vector<TTree*> ttree_;
-  TH1D *h_nevents, *h_cutflow, *h_cutflowCat;
+  TH1D *h_nevents, *h_cutflow, *h_cutflowCat, *h_Tgenweight ;
   int b_run, b_lumi, b_event;
   int b_nvertex, b_step, b_channel, b_njet;
   bool b_step1, b_step2, b_step3, b_step4, b_step5, b_step6, b_filtered;
   float b_tri;
   float b_met, b_weight, b_puweight, b_puweight_up, b_puweight_dn, b_genweight,
-    b_mueffweight, b_mueffweight_up, b_mueffweight_dn,
-    b_eleffweight, b_eleffweight_up, b_eleffweight_dn;
+    b_mueffweight, b_mueffweight_up, b_mueffweight_dn,b_beffweight, b_trigeffweight,
+    b_eleffweight, b_eleffweight_up, b_eleffweight_dn, b_genweightT;
   vector<float> b_pdfWeights, b_scaleWeights;
 
+  int size;
   int b_cat;
   int b_cat_eta;
   bool b_isLoose, b_isMedium, b_isTight;
-
+  
+  double scaleFactor;
+  double u1, u2;
   bool b_bumpcat1, b_bumpcat2;
   int event;
   TLorentzVector b_genlep1; int b_genlep1_pid;
@@ -138,16 +144,17 @@ h2muAnalyzer::h2muAnalyzer(const edm::ParameterSet& iConfig)
 
   usesResource("TFileService");
   edm::Service<TFileService> fs;
-  h_nevents = fs->make<TH1D>("nevents","nevents",1,0,1);       
+  h_nevents = fs->make<TH1D>("nevents","nevents",4,0,4);       
   h_cutflow = fs->make<TH1D>("cutflow","cutflow",15,0,15);       
-  h_cutflowCat = fs->make<TH1D>("cutflowCat","cutflowCat",6,0,6);       
+  h_cutflowCat = fs->make<TH1D>("cutflowCat","cutflowCat",6,0,6);     
   for (int sys = 0; sys < syst_total; ++sys){
     ttree_.push_back(fs->make<TTree>(systematicName[systematic(sys)].c_str(), systematicName[systematic(sys)].c_str()));
     auto tr = ttree_.back();
     setBranch(tr, systematic(sys));
   }
   
-  rocCor = new RoccoR("../data/rcdata.2016.v3");  
+ //rocCor = new RoccoR(edm::FileInPath("CATTools/CatAnalyzer/data/rcdata.2016.v3/").fullPath());  
+ rocCor = new RoccoR(std::string(std::getenv("CMSSW_BASE"))+"/src/CATTools/CatAnalyzer/data/rcdata.2016.v3/");
 
 }
 
@@ -164,7 +171,6 @@ h2muAnalyzer::~h2muAnalyzer()
 
 void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-  event ++;  
   runOnMC = !iEvent.isRealData();
   bool keepEvent = false;
   
@@ -185,7 +191,6 @@ bool h2muAnalyzer::eventSelection(const edm::Event& iEvent, systematic sys)
   if (sys == syst_nom) h_cutflow->Fill(0);
   b_run = iEvent.id().run();
   b_event = iEvent.id().event();
-    
   if (runOnMC && sys == syst_nom){
     edm::Handle<float> puweightHandle;
     iEvent.getByToken(puweightToken_, puweightHandle);
@@ -203,9 +208,12 @@ bool h2muAnalyzer::eventSelection(const edm::Event& iEvent, systematic sys)
     iEvent.getByToken(genweightToken_, genweightHandle);
     b_genweight = (*genweightHandle);
     b_weight = b_genweight*b_puweight;
-
+    b_trigeffweight = 1;
+    b_beffweight = 1;
     h_nevents->Fill(0.5,b_weight);
-    
+    h_nevents->Fill(2.5,b_genweight);
+    h_nevents->Fill(3.5,1);
+
     edm::Handle<reco::GenParticleCollection> genParticles;
     iEvent.getByToken(mcLabel_,genParticles);
     bool bosonSample = false;
@@ -236,7 +244,7 @@ bool h2muAnalyzer::eventSelection(const edm::Event& iEvent, systematic sys)
       b_gendilep = b_genlep1 + b_genlep2;
     }
   }
-  
+  //if (b_event != 112520) return false; 
   edm::Handle<int> lumiSelectionHandle;
   iEvent.getByToken(lumiSelectionToken_, lumiSelectionHandle);
   if (!runOnMC){
@@ -245,12 +253,13 @@ bool h2muAnalyzer::eventSelection(const edm::Event& iEvent, systematic sys)
   b_step1 = true;
   b_step = 1;
   if (sys == syst_nom) h_cutflow->Fill(1);
-  
+ 
   ////////////////////////////////////////////////////////////////////////////////
   // filters
   edm::Handle<int> recoFiltersHandle;
   iEvent.getByToken(recoFiltersToken_, recoFiltersHandle);
   b_filtered = *recoFiltersHandle == 0 ? false : true;
+
   ////////////////////////////////////////////////////////////////////////////////
   // vertex
   edm::Handle<reco::VertexCollection> vertices;
@@ -261,19 +270,19 @@ bool h2muAnalyzer::eventSelection(const edm::Event& iEvent, systematic sys)
   b_step2 = true;
   b_step = 2;
   if (sys == syst_nom) h_cutflow->Fill(2);
-  
+
   // const reco::Vertex &PV = vertices->front();
   edm::Handle<int> nGoodVertexHandle;
   iEvent.getByToken(nGoodVertexToken_, nGoodVertexHandle);
   b_nvertex = *nGoodVertexHandle;
-      
+
   ////////////////////////////////////////////////////////////////////////////////
   // muon selection
   edm::Handle<MuonCollection> muons; iEvent.getByToken(muonToken_, muons);
   MuonCollection selectedMuons = selectMuons(*muons, sys);
   if ( selectedMuons.size() != 2 ) return false;
   if (sys == syst_nom) h_cutflow->Fill(3);
-  
+
   const Muon &mu1 = selectedMuons[0], &mu2 = selectedMuons[1];
   if (mu1.charge()*mu2.charge() > 0) return false;
   if (sys == syst_nom) h_cutflow->Fill(4);
@@ -283,17 +292,17 @@ bool h2muAnalyzer::eventSelection(const edm::Event& iEvent, systematic sys)
   b_lep1 = mu1.tlv();b_lep1_pid = mu1.pdgId();
   b_lep2 = mu2.tlv();b_lep2_pid = mu2.pdgId();
   b_dilep = b_lep1 + b_lep2;
-  if (b_dilep.M() < 12) return false; 
-  if (sys == syst_nom) h_cutflow->Fill(5);
 
+  if (b_dilep.M() < 12) return false; 
+  if (sys == syst_nom) h_cutflow->Fill(4);
   b_isLoose = (mu1.isLooseMuon() && mu2.isLooseMuon());
   b_isMedium = (mu1.isMediumMuon() && mu2.isMediumMuon());
   b_isTight = (mu1.isTightMuon() && mu2.isTightMuon());
-
-  b_mueffweight    = muonSF_.getScaleFactor(mu1, 13, 0)*muonSF_.getScaleFactor(mu2, 13,  0);
-  b_mueffweight_up = muonSF_.getScaleFactor(mu1, 13, +1)*muonSF_.getScaleFactor(mu2, 13, +1);
-  b_mueffweight_dn = muonSF_.getScaleFactor(mu1, 13, -1)*muonSF_.getScaleFactor(mu2, 13, -1);
     
+   b_mueffweight    = muonSF_.getScaleFactor(mu1, 13, 0)*muonSF_.getScaleFactor(mu2, 13,  0);
+   b_mueffweight_up = muonSF_.getScaleFactor(mu1, 13, +1)*muonSF_.getScaleFactor(mu2, 13, +1);
+   b_mueffweight_dn = muonSF_.getScaleFactor(mu1, 13, -1)*muonSF_.getScaleFactor(mu2, 13, -1);
+  
   ///////////////////////////////////////////////////////////////////////////////
   //electron veto
   edm::Handle<ElectronCollection> elecs; iEvent.getByToken(elecToken_, elecs);
@@ -305,10 +314,11 @@ bool h2muAnalyzer::eventSelection(const edm::Event& iEvent, systematic sys)
   //b-jet veto
   edm::Handle<JetCollection> jets; iEvent.getByToken(jetToken_, jets);
   JetCollection selectedJets = selectJets(*jets, selectedMuons, sys);
-  JetCollection selectedBJets = selectBJets(*jets);
-
+  JetCollection selectedBJets = selectBJets(selectedJets);
+      
   if (selectedBJets.size() > 0 ) return true;
   if (sys == syst_nom) h_cutflow->Fill(7);
+  
   ////////////////////////////////////////////////////////////////////////////////
   // trigger
   edm::Handle<edm::TriggerResults> triggerBits;
@@ -320,33 +330,35 @@ bool h2muAnalyzer::eventSelection(const edm::Event& iEvent, systematic sys)
   const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
   AnalysisHelper trigHelper = AnalysisHelper(triggerNames, triggerBits, triggerObjects);
 
- if (!trigHelper.triggerFired("HLT_IsoMu24_v") && !trigHelper.triggerFired("HLT_IsoTkMu24_v")){
-   return true;  
- }
+  if (!trigHelper.triggerFired("HLT_IsoMu24_v") && !trigHelper.triggerFired("HLT_IsoTkMu24_v")){
+    return true;  
+  }
   if (sys == syst_nom) h_cutflow->Fill(8);
   b_step4 = true;
   b_step = 4;  
-
+  
   ////////////////////////////////////////////////////////////////////////////////
   // trigger matching
   bool triggerMatching = false;
   if ( mu1.pt() > 26 &&
        (trigHelper.triggerMatched("HLT_IsoMu24_v", mu1) ||
-	trigHelper.triggerMatched("HLT_IsoTkMu24_v", mu1)))
+        trigHelper.triggerMatched("HLT_IsoTkMu24_v", mu1)))
     triggerMatching = true;
     
   if ( mu2.pt() > 26 &&
        (trigHelper.triggerMatched("HLT_IsoMu24_v", mu2) ||
-	trigHelper.triggerMatched("HLT_IsoTkMu24_v", mu2)))
+        trigHelper.triggerMatched("HLT_IsoTkMu24_v", mu2)))
     triggerMatching = true;
-  
-  if (!triggerMatching) return true;
+
+  if (!triggerMatching) return true;                            
   if (sys == syst_nom) h_cutflow->Fill(9);
   b_step5 = true;
   b_step = 5;
+
+  
   ////////////////////////////////////////////////////////////////////////////////
   // jets  
-  b_njet = selectedJets.size(); 
+  b_njet = selectedJets.size();
   if (b_njet > 0)
     b_jet1 = selectedJets[0].tlv();
   if (b_njet > 1){
@@ -360,38 +372,28 @@ bool h2muAnalyzer::eventSelection(const edm::Event& iEvent, systematic sys)
   b_cat_eta = etaCategory(b_lep1.Eta(), b_lep2.Eta());
   b_cat = jetCategory(selectedJets, b_met, b_dilep.Pt());
   h_cutflowCat->Fill(b_cat);
-  
-  // if (b_event == 7393){
-  //   cout << "selectedElecs.size() "<< selectedElecs.size() <<endl;
-  //   cout << "selectedBJets.size() "<< selectedBJets.size() <<endl;
-  //   cout << "trigHelper.triggerFired(HLT_IsoMu24_v) "<< trigHelper.triggerFired("HLT_IsoMu24_v") <<endl;
-  //   cout << "trigHelper.triggerFired(HLT_IsoTkMu24_v) "<< trigHelper.triggerFired("HLT_IsoTkMu24_v") <<endl;
-  //   cout << "triggerMatching "<< triggerMatching <<endl;
-  //   cout << "b_cat "<< b_cat <<endl;
-  //   TLorentzVector dijets = selectedJets[0].tlv() + selectedJets[1].tlv();    
-  //   cout << "dijets.M() "<< dijets.M() <<endl;
-  //   cout << "b_dilep.Pt() "<< b_dilep.Pt() <<endl;
-  // }
-    
-  // if (b_cat == 2){
-  //   cout << " 1 "<< b_run << " "<< b_event <<endl;
-  // }
-  // if (b_njet > 1){
-  //   b_bumpcat1 = bumpCat1(selectedJets, selectedMuons);
-  //   b_bumpcat2 = bumpCat2(selectedJets, selectedMuons, b_met); 
-  // }
+  h_nevents->Fill(1.5,b_genweight);
+  ofstream eventdump;
+  eventdump.open("Event_Dump.txt", ios::app);
+  for (int i = 0; i < b_njet; i++)
+    {
+    eventdump<< "check jets1 "<<b_event<< " jet"<<i<<"->pt():" << selectedJets[i].tlv().Pt() << " jet"<<i<<"->eta():" << selectedJets[i].tlv().Eta() <<" jet"<<i<<"->phi():" << selectedJets[i].tlv().Phi()<<endl;
+    }
+    eventdump<<""<<endl;
+  eventdump.close();
+
   return true;
 }
-
 MuonCollection h2muAnalyzer::selectMuons(const MuonCollection& muons, systematic sys)
 {
   MuonCollection selmuons;
   for (auto& m : muons) {
     Muon mu(m);
-    //if (!mu.isGlobalMuon()) continue;
-    //if (!mu.isTrackerMuon()) continue;
+    if (!mu.isGlobalMuon()) continue;
+    if (!mu.isTrackerMuon()) continue;
     if (abs(mu.eta()) > 2.4) continue;
-    if (!mu.isMediumMuon()) continue;
+    if (!mu.isMediumMuon()) continue;  //<------------!
+
     // TLorentzVector tmu(mu.tlv());
     // /*
     //   cout << "\n initial   " << mu.tlv().Pt()
@@ -402,12 +404,36 @@ MuonCollection h2muAnalyzer::selectMuons(const MuonCollection& muons, systematic
     //   << " mu.numberOfValidHits() " << mu.numberOfValidHits()
     //   <<endl;
     // */
-    // double scaleFactor = 1.0;
-    // double u1 = gRandom->Rndm(), u2 = gRandom->Rndm();
-    // if (!runOnMC) scaleFactor = rocCor->kScaleDT(mu.charge(), mu.pt(), mu.eta(), mu.phi(), 0, 0);
-    // else {
-    //   scaleFactor = rocCor->kScaleAndSmearMC(mu.charge(), mu.pt(), mu.eta(), mu.phi(), mu.trackerLayersWithMeasurement(), u1, u2, 0, 0);
-    // }
+    scaleFactor = 1.0;
+    u1 = gRandom->Rndm();
+    u2 = gRandom->Rndm();
+    if (!runOnMC){ 
+        scaleFactor = rocCor -> kScaleDT(mu.charge(), mu.pt(), mu.eta(), mu.phi(), 0, 0);
+    }
+    else{
+        if (mu.pt() == b_genlep1.Pt())
+            scaleFactor = rocCor -> kScaleFromGenMC(mu.charge(), mu.pt(), mu.eta(), mu.phi(), mu.trackerLayersWithMeasurement(), b_genlep1.Pt(), u1, 0, 0);
+        if (mu.pt() == b_genlep2.Pt())
+            scaleFactor = rocCor -> kScaleFromGenMC(mu.charge(), mu.pt(), mu.eta(), mu.phi(), mu.trackerLayersWithMeasurement(), b_genlep2.Pt(), u1, 0, 0);
+        else {
+            scaleFactor = rocCor -> kScaleAndSmearMC(mu.charge(), mu.pt(), mu.eta(), mu.phi(), mu.trackerLayersWithMeasurement(), u1, u2, 0, 0);
+        }
+    } 
+    mu.setP4(m.p4() * scaleFactor);
+
+    //cout << " before   " << mu.tlv().Pt()
+    //<< ", " << mu.tlv().Eta()
+    //<< ", " << mu.tlv().Phi()
+    //<< ", " << mu.tlv().M()
+    //<<endl;
+
+    //cout << "initial pt:     "<<mu.tlv().Pt()<< endl;
+    
+    //cout << " applied1   " << mu.pt()
+    //<< ", " << mu.tlv().Eta()
+    //<< ", " << mu.tlv().Phi()
+    //<< ", " << mu.tlv().M()
+    //<<endl;
 
     // float qter = 1.0;
     // if (runOnMC)
@@ -433,8 +459,8 @@ MuonCollection h2muAnalyzer::selectMuons(const MuonCollection& muons, systematic
     */
     if (sys == syst_mu_u) mu.setP4(m.p4() * m.shiftedEnUp());
     if (sys == syst_mu_d) mu.setP4(m.p4() * m.shiftedEnDown());
-
     if (mu.pt() < 10.) continue;
+    if (mu.pt() > 20.) continue;
     if (mu.relIso(0.4) > 0.25) continue;
     selmuons.push_back(mu);
   }
@@ -449,13 +475,11 @@ ElectronCollection h2muAnalyzer::selectElectrons(const ElectronCollection& elecs
     if (abs(el.scEta()) > 2.5) continue;
     if ((abs(el.scEta()) > 1.4442) && (abs(el.scEta()) < 1.566)) continue;
     if (!el.electronID("cutBasedElectronID-Summer16-80X-V1-medium") ) continue;
-    
     if (sys == syst_el_u) el.setP4(e.p4() * e.shiftedEnUp());
     if (sys == syst_el_d) el.setP4(e.p4() * e.shiftedEnDown());
 
     if (el.pt() < 10.) continue;
     if (el.relIso(0.3) > 0.15) continue;
-    //printf("electron with pt %4.1f\n", el.pt());
     bool hasOverLap1 = false;
     for (auto muon : recolep){
       if (deltaR(el.p4(),muon.p4()) < 0.4) hasOverLap1 = true;
@@ -486,7 +510,6 @@ JetCollection h2muAnalyzer::selectJets(const JetCollection& jets, MuonCollection
       if (deltaR(jet.p4(),lep.p4()) < 0.4) hasOverLap = true;
     }
     if (hasOverLap) continue;
-    
     seljets.push_back(jet);
   }
   return seljets;
@@ -497,11 +520,10 @@ JetCollection h2muAnalyzer::selectBJets(const JetCollection& jets)
     JetCollection selBjets;
     for (auto& jet : jets) { 
         //if (jet.bDiscriminator(BTAG_CSVv2) < WP_BTAG_CSVv2L) continue;
-        if (abs(jet.eta()) > 2.4) continue;
+        if (abs(jet.eta()) > 2.4)  continue; 
         if (jet.bDiscriminator(BTAG_CSVv2) < WP_BTAG_CSVv2M) continue;//forsync
-        if (jet.pt() < 30.) continue;
+        if (jet.pt() < 30.) continue;                                    
         //printf("b jet with pt %4.1f\n", jet.pt());
-     
         selBjets.push_back(jet);
     }
     return selBjets;
@@ -550,7 +572,9 @@ void h2muAnalyzer::setBranch(TTree* tr, systematic sys)
   tr->Branch("genweight", &b_genweight, "genweight/F");
   tr->Branch("mueffweight", &b_mueffweight, "mueffweight/F");
   tr->Branch("eleffweight", &b_eleffweight, "eleffweight/F");
-
+  tr->Branch("trigeffweight", &b_trigeffweight, "trigeffweight/F");
+  tr->Branch("beffweight", &b_beffweight, "beffweight/F");
+  tr->Branch("genweightT",&b_genweightT, "genweightT/F");
   // only save for nomial ttree 
   if (sys != syst_nom) return;
   tr->Branch("run", &b_run, "run/I");
@@ -577,12 +601,12 @@ void h2muAnalyzer::resetBranch()
   b_nvertex = 0;b_step = 0;b_channel = 0;b_njet = 0;
   b_step1 = 0;b_step2 = 0;b_step3 = 0;b_step4 = 0;b_step5 = 0;b_step6 = 0;b_tri = 0;b_filtered = 0;
   b_met = 0;
-  b_weight = 1; b_puweight = 0; b_puweight_up = 0; b_puweight_dn = 0; b_genweight = 0;
+  b_weight = 1; b_puweight = 0; b_puweight_up = 0; b_puweight_dn = 0; b_genweight = 0; b_beffweight = 0; b_trigeffweight = 0;
   b_mueffweight = 0;b_mueffweight_up = 0;b_mueffweight_dn = 0;
   b_eleffweight = 0;b_eleffweight_up = 0;b_eleffweight_dn = 0;
   b_pdfWeights.clear();
   b_scaleWeights.clear();
-
+  
   b_cat = 0; b_cat_eta = 0;
   b_isLoose = 0; b_isMedium = 0; b_isTight = 0;
 
@@ -614,29 +638,89 @@ bool h2muAnalyzer::preSelection(const JetCollection& seljets, float met) const
 int h2muAnalyzer::jetCategory(const JetCollection& seljets, float met, float ll_pt) const
 {  
   if (preSelection(seljets, met)){// pass preselection
+    ofstream eventl;
+    eventl.open("UOS_Event_List.txt", ios::app);
+    eventl << b_event << endl;
+    eventl.close();
+    int a = seljets.size();
     //VBF Tight selection
     for (auto& j1 : seljets) {
-      for (auto& j2 : seljets) {
-	if (&j1 != &j2){
-	  TLorentzVector dijets = j1.tlv() + j2.tlv();
-	  double delta_eta =  abs(j1.eta() - j2.eta());
-	  if (dijets.M() > 650 && abs(delta_eta) > 3.5)
-	    return 1;
-	}
-      }
+        ofstream z;
+        z.open("preselpass_dump.txt", ios::app);
+        for (int i = 0; i < a; i++)
+            {
+            z<< "check jets1 "<<b_event<< " jet"<<i<<"->pt():" << seljets[i].pt() << " jet"<<i<<"->eta():" << seljets[i].eta() <<" jet"<<i<<"->phi():" << seljets[i].phi()<<endl;
+            }
+        z<<""<<endl;
+        z.close();
+        for (auto& j2 : seljets) {
+	        if (&j1 != &j2) {//&& (j1.tlv().Pt() > 40.0) && (j2.tlv().Pt() > 30.0)){
+	            TLorentzVector dijets = j1.tlv() + j2.tlv();
+	            double delta_eta =  abs(j1.eta() - j2.eta());
+                
+	            if ((dijets.M() > 650 && abs(delta_eta) > 3.5)&& (j1.pt() >= 40 || j2.pt() >= 40)) {
+                    ofstream file; 
+                    file.open("UOS_VBF_Tight.txt", ios::app);
+                    file << b_event<< endl;
+                    file.close();
+                    //int j = seljets.size();
+                    ofstream VBFT;
+                    VBFT.open("vbf-Event_Dump.txt", ios::app);
+                    //VBFT<<"------------------------------------------------------------------"<<endl;
+                    //VBFT<<b_event<<endl;
+                    //VBFT<<""<<endl;
+                    //for (int f = 0; f < j; f++){
+                    //    VBFT<< "check jets1 "<<b_event<< " jet"<<f<<"->pt():" << seljets[f].pt() << " jet"<<f<<"->eta():" << seljets[f].eta() <<" jet"<<f<<"->phi():" << seljets[f].phi()<<endl;
+                    //}
+                    //VBFT<<""<<endl;
+                    //VBFT<<"VBF_Tight "<<b_event<<" j1 pT:"<<j1.pt()<<" j2 pT:"<<j2.pt()<<" massJJ:"<<dijets.M()<<" DeltaJJ:"<<delta_eta<<endl;
+                    VBFT<<b_event<<endl;
+                    //VBFT<< " "<<endl;
+                    VBFT.close();
+  	                return 1; // VBF Tight selection
+                }
+            }
+        }
     }
-    // ggF Tight selection
-    TLorentzVector dijets = seljets[0].tlv() + seljets[1].tlv();    
-    if (dijets.M() > 250. && ll_pt >= 50.)
-      return 2;
-
+    for (auto& j3 : seljets) {
+        for (auto& j4 : seljets) {
+            if (&j3 !=  &j4){ 
+                TLorentzVector dijets = j3.tlv() + j4.tlv();
+                if ((dijets.M() > 250. && ll_pt >= 50.)&& (j3.pt() >= 40 || j4.pt() >= 40)){
+                    ofstream file; 
+                    file.open("UOS_ggF_Tight.txt", ios::app);
+                    file << b_event<< endl;
+                    file.close(); 
+                    return 2; // GGF Tight selection 
+                }
+        	}
+        }
+    }
+    ofstream file; 
+    file.open("UOS_VBF_Loose.txt", ios::app);
+    file << b_event<< endl;
+    file.close(); 
     return 3; // VBF Loose selection    
   }
   else {
-    if (ll_pt >= 25.)
+    ofstream eventl;
+    eventl.open("UOS_Event_List.txt", ios::app);
+    eventl << b_event << endl;
+    eventl.close();
+    if (ll_pt >= 25.){
+      ofstream file; 
+      file.open("UOS_01Jets_Tight.txt", ios::app);
+      file << b_event<< endl;
+      file.close(); 
       return 4; // 0,1-jet Tight
-    else
+    }
+    else {
+      ofstream file; 
+      file.open("UOS_01Jets_Loose.txt", ios::app);
+      file << b_event<< endl;
+      file.close(); 
       return 5; // 0,1-jet Loose
+    }
   }
   
   return -1;

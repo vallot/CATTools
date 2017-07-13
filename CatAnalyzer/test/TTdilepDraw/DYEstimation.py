@@ -6,6 +6,7 @@ def getK(rootfileDir, tname, cut, rdfilelist):
 	dycut = "(step1==1)*"
 	rfname = rootfileDir + rdfilelist[2-1] +".root"
 	rd_ee_in = makeTH1(rfname, tname,'rd_ee_in', [2,0,2], 'tri', dycut+'(%s && channel==2 && step2 ==0)'%(cut))
+	print "Cut in DY : ", dycut+'(%s && channel==2 && step2 ==0)'%(cut)
 	rfname = rootfileDir + rdfilelist[3-1] +".root"
 	rd_mm_in = makeTH1(rfname, tname,'rd_mm_in', [2,0,2], 'tri', dycut+'(%s && channel==3 && step2 ==0)'%(cut))
 
