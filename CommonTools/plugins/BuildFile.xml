@@ -1,7 +1,9 @@
 <library name="CATToolsCommonTools_plugins" file="*.cc">
   <use name="FWCore/Framework"/>
-  <use name="CATTools/DataFormats"/>
   <use name="CATTools/CommonTools"/>
   <use name="CommonTools/UtilAlgos"/>
+  <use name="PhysicsTools/Utilities"/>
+  <use name="RecoJets/JetProducers" />
+  <use name="fastjet" />
   <use name="root"/>
 </library>

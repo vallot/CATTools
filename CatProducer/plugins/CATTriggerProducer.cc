@@ -217,7 +217,7 @@ void CATTriggerProducer::produce(edm::Event& event, const edm::EventSetup&)
     }
   }
 
-  event.put(std::auto_ptr<cat::TriggerBits>(new cat::TriggerBits(filterBits_)));
+  event.put(std::move(std::unique_ptr<cat::TriggerBits>(new cat::TriggerBits(filterBits_))));
   event.put(std::move(out_trigObjs));
 }
 

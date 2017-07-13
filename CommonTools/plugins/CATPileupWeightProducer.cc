@@ -24,7 +24,6 @@ class CATPileupWeightProducer : public edm::stream::EDProducer<>
 {
 public:
   CATPileupWeightProducer(const edm::ParameterSet& pset);
-  ~CATPileupWeightProducer() {};
 
   void produce(edm::Event& event, const edm::EventSetup& eventSetup) override;
 
@@ -105,10 +104,10 @@ CATPileupWeightProducer::CATPileupWeightProducer(const edm::ParameterSet& pset)
 
 void CATPileupWeightProducer::produce(edm::Event& event, const edm::EventSetup& eventSetup)
 {
-  std::auto_ptr<int> nTrueIntr(new int(-1));
-  std::auto_ptr<float> weight(new float(1.));
-  std::auto_ptr<float> weightUp(new float(1.));
-  std::auto_ptr<float> weightDn(new float(1.));
+  std::unique_ptr<int> nTrueIntr(new int(-1));
+  std::unique_ptr<float> weight(new float(1.));
+  std::unique_ptr<float> weightUp(new float(1.));
+  std::unique_ptr<float> weightDn(new float(1.));
 
   if ( !event.isRealData() ){
     if ( weightingMethod_ == WeightingMethod::NVertex) {
@@ -151,10 +150,10 @@ void CATPileupWeightProducer::produce(edm::Event& event, const edm::EventSetup& 
     }
   }
 
-  event.put(nTrueIntr, "nTrueInteraction");
-  event.put(weight  , "");
-  event.put(weightUp, "up");
-  event.put(weightDn, "dn");
+  event.put(std::move(nTrueIntr), "nTrueInteraction");
+  event.put(std::move(weight)  , "");
+  event.put(std::move(weightUp), "up");
+  event.put(std::move(weightDn), "dn");
 }
 
 DEFINE_FWK_MODULE(CATPileupWeightProducer);

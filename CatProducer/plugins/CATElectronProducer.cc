@@ -32,24 +32,24 @@
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "EgammaAnalysis/ElectronTools/interface/ElectronEffectiveArea.h"
 
+#include "CATTools/CommonTools/interface/GenParticleHelper.h"
+
 using namespace edm;
 using namespace std;
 
 namespace cat {
 
-  class CATElectronProducer : public edm::stream::EDProducer<> {
+  class CATElectronProducer : public edm::stream::EDProducer<>
+  {
   public:
     explicit CATElectronProducer(const edm::ParameterSet & iConfig);
-    virtual ~CATElectronProducer() { }
 
     void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
-    bool mcMatch( const reco::Candidate::LorentzVector& lepton, const edm::Handle<reco::GenParticleCollection> & genParticles );
-    bool MatchObjects( const reco::Candidate::LorentzVector& pasObj, const reco::Candidate::LorentzVector& proObj, bool exact );
-    double getMiniRelIso(edm::Handle<pat::PackedCandidateCollection> pfcands,  const reco::Candidate::LorentzVector& ptcl, double  r_iso_min, double r_iso_max, double kt_scale,double rhoIso, double AEff);
+    bool mcMatch( const reco::Candidate::LorentzVector& lepton, const std::vector<reco::GenParticleRef>& genParticles ) const;
+    double getMiniRelIso(edm::Handle<pat::PackedCandidateCollection> pfcands,  const reco::Candidate::LorentzVector& ptcl, double  r_iso_min, double r_iso_max, double kt_scale,double rhoIso, double AEff) const;
 
-    
   private:
-    
+
     float getEffArea( float dR, float scEta );
     int getSNUID(float, float, float, float, float, float, int, bool, float);
     edm::EDGetTokenT<edm::View<pat::Electron> > src_;
@@ -77,61 +77,46 @@ namespace cat {
 
 double cat::CATElectronProducer::getMiniRelIso(edm::Handle<pat::PackedCandidateCollection> pfcands,
 					       const reco::Candidate::LorentzVector& ptcl,
-					       double r_iso_min, double r_iso_max, double kt_scale, double rhoIso, double AEff){
+					       double r_iso_min, double r_iso_max, double kt_scale, double rhoIso, double AEff) const
+{
 
   if (ptcl.pt()<5.) return 99999.;
-  
+
   double deadcone_nh(0.), deadcone_ch(0.), deadcone_ph(0.), deadcone_pu(0.);
   if (fabs(ptcl.eta())>1.479) {deadcone_ch = 0.015; deadcone_pu = 0.015; deadcone_ph = 0.08;}
-  
-  double iso_nh(0.); double iso_ch(0.); 
-  double iso_ph(0.); double iso_pu(0.);
-  double ptThresh(0.);
+  const double ptThresh(0.);
+  const double r_iso = max(r_iso_min,min(r_iso_max, kt_scale/ptcl.pt()));
 
-  double r_iso = max(r_iso_min,min(r_iso_max, kt_scale/ptcl.pt()));
+  double iso_nh(0.), iso_ch(0.), iso_ph(0.), iso_pu(0.);
   for (const pat::PackedCandidate &pfc : *pfcands) {
-    if (abs(pfc.pdgId())<7) continue;
-    double dr = deltaR(pfc, ptcl);
+    const unsigned int absId = std::abs(pfc.pdgId());
+    if ( absId<7 ) continue;
+
+    const double dr = deltaR(pfc, ptcl);
     if (dr > r_iso) continue;
-        
-    //////////////////  NEUTRALS  /////////////////////////
+
     if (pfc.charge()==0){
-      if (pfc.pt()>ptThresh) {
-	/////////// PHOTONS ////////////
-	if (abs(pfc.pdgId())==22) {
-	  if(dr < deadcone_ph) continue;
-	  iso_ph += pfc.pt();
-	  /////////// NEUTRAL HADRONS ////////////
-	} else if (abs(pfc.pdgId())==130) {
-	  if(dr < deadcone_nh) continue;
-	  iso_nh += pfc.pt();
-	}
+      if (pfc.pt() <= ptThresh) continue;
+
+      if (abs(pfc.pdgId())==22) {
+        if(dr >= deadcone_ph) iso_ph += pfc.pt();
       }
-      //////////////////  CHARGED from PV  /////////////////////////
-    } else if (pfc.fromPV()>1){
-      if (abs(pfc.pdgId())==211) {
-	if(dr < deadcone_ch) continue;
-	iso_ch += pfc.pt();
-      }
-      //////////////////  CHARGED from PU  /////////////////////////
-    } else {
-      if (pfc.pt()>ptThresh){
-	if(dr < deadcone_pu) continue;
-	iso_pu += pfc.pt();
+      else if (abs(pfc.pdgId())==130) {
+        if(dr >= deadcone_nh) iso_nh += pfc.pt();
       }
     }
+    else if (pfc.fromPV()>1){
+      if (abs(pfc.pdgId())==211 and dr >= deadcone_ch ) iso_ch += pfc.pt();
+    }
+    else {
+      if (pfc.pt()>ptThresh and dr >= deadcone_pu) iso_pu += pfc.pt();
+    }
   }
-  double iso(0.);
-  double conesize_correction= pow((r_iso/0.3),2.);
-  
-  iso = ( iso_ch  + std::max(0.0, iso_nh + iso_ph - rhoIso*AEff*conesize_correction) )/ ptcl.pt();
 
-  return iso;
+  const double conesize_correction = r_iso*r_iso/0.09;
+  const double iso = iso_ch  + std::max(0.0, iso_nh + iso_ph - rhoIso*AEff*conesize_correction);
+  return iso/ptcl.pt();
 }
-
-
-
-
 
 cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig) :
   src_(consumes<edm::View<pat::Electron> >(iConfig.getParameter<edm::InputTag>("src"))),
@@ -143,9 +128,8 @@ cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig)
   rhoLabel_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoLabel"))),
   electronIDs_(iConfig.getParameter<std::vector<std::string> >("electronIDs"))
 {
-  
+  produces<cat::ElectronCollection>();
 
-  produces<std::vector<cat::Electron> >();
   if (iConfig.existsAs<edm::ParameterSet>("electronIDSources")) {
     edm::ParameterSet idps = iConfig.getParameter<edm::ParameterSet>("electronIDSources");
     std::vector<std::string> names = idps.getParameterNamesForType<edm::InputTag>();
@@ -157,39 +141,41 @@ cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig)
   }
 }
 
-void
-cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup) {
+void cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup)
+{
   using namespace edm;
   using namespace std;
 
   runOnMC_ = !iEvent.isRealData();
 
-  Handle<edm::View<pat::Electron> > src;
+  edm::Handle<edm::View<pat::Electron> > src;
   iEvent.getByToken(src_, src);
 
   edm::Handle<edm::View<pat::Electron> > unsmearedElecHandle;
   iEvent.getByToken(unsmearedElecToken_, unsmearedElecHandle);
 
-  Handle<reco::GenParticleCollection> genParticles;
+  edm::Handle<reco::GenParticleCollection> genParticles;
+  std::vector<reco::GenParticleRef> genElectrons;
+  if (runOnMC_){
+    iEvent.getByToken(mcLabel_,genParticles);
+    genElectrons = cat::selectGenParticles(genParticles, 11, {23,24});
+  }
 
-  Handle<reco::VertexCollection> recVtxs;
+  edm::ESHandle<TransientTrackBuilder> trackBuilder;
+  iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",trackBuilder);
+
+  edm::Handle<reco::VertexCollection> recVtxs;
   iEvent.getByToken(vertexLabel_, recVtxs);
   reco::Vertex pv;
   if (recVtxs->size()) pv = recVtxs->at(0);
+  const GlobalPoint pVertex(pv.position().x(),pv.position().y(),pv.position().z());
 
-  Handle<double> rhoHandle;
+  edm::Handle<pat::PackedCandidateCollection> pfcands;
+  iEvent.getByToken(pfSrc_, pfcands);
+
+  edm::Handle<double> rhoHandle;
   iEvent.getByToken(rhoLabel_, rhoHandle);
   double rhoIso = std::max(*(rhoHandle.product()), 0.0);
-
-  GlobalPoint pVertex(pv.position().x(),pv.position().y(),pv.position().z());
-
-  if (runOnMC_){
-    iEvent.getByToken(mcLabel_,genParticles);
-  }
-
-  ESHandle<TransientTrackBuilder> trackBuilder;
-  iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",trackBuilder);
-
 
   std::vector<edm::Handle<edm::ValueMap<bool> > > idhandles;
   std::vector<pat::Electron::IdPair>               ids;
@@ -200,9 +186,9 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     ids[i].first = elecIDSrcs_[i].first;
   }
 
-  auto_ptr<vector<cat::Electron> >  out(new vector<cat::Electron>());
-  int j = 0;
-  for (const pat::Electron &aPatElectron : *src){
+  std::unique_ptr<cat::ElectronCollection>  out(new cat::ElectronCollection());
+  for ( int j=0, n=src->size(); j<n; ++j ) {
+    const auto aPatElectron = src->at(j);
     cat::Electron aElectron(aPatElectron);
     auto elecsRef = src->refAt(j);
     auto unsmearedElecRef = unsmearedElecHandle->refAt(j);
@@ -211,7 +197,7 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
 
     if (runOnMC_){
       aElectron.setGenParticleRef(aPatElectron.genParticleRef());
-      aElectron.setMCMatched( mcMatch( aElectron.p4(), genParticles ) );
+      aElectron.setMCMatched( mcMatch( aElectron.p4(), genElectrons ) );
       aElectron.setSmearedScale(aElectron.pt()/unsmearedElecRef->pt());
     }
     aElectron.setIsGsfCtfScPixChargeConsistent( aPatElectron.isGsfCtfScPixChargeConsistent() );
@@ -227,7 +213,7 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     aElectron.setPhotonIso03( aPatElectron.pfIsolationVariables().sumPhotonEt );
     aElectron.setPUChargedHadronIso03( aPatElectron.pfIsolationVariables().sumPUPt );
 
-    float scEta = aPatElectron.superCluster()->eta();
+    const float scEta = aPatElectron.superCluster()->eta();
     double ecalpt = aPatElectron.ecalDrivenMomentum().pt();
 
     double elEffArea04 = getEffArea( 0.4, scEta);
@@ -235,12 +221,6 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     double nhIso04 = aElectron.neutralHadronIso(0.4);
     double phIso04 = aElectron.photonIso(0.4);
     aElectron.setrelIso(0.4, chIso04, nhIso04, phIso04, elEffArea04, rhoIso, ecalpt);
-
-
-    //////////////// pfcands  //////////////////                                                                                                                                                                                                                       
-    edm::Handle<pat::PackedCandidateCollection> pfcands;
-    iEvent.getByToken(pfSrc_, pfcands);
-
 
 
     double elEffArea03 = getEffArea( 0.3, scEta);
@@ -251,7 +231,7 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     aElectron.setMiniRelIso(getMiniRelIso( pfcands, aElectron.p4(), 0.05, 0.2, 10., rhoIso,elEffArea03));
 
 
-    aElectron.setscEta( aPatElectron.superCluster()->eta());
+    aElectron.setscEta(scEta);
     aElectron.setPassConversionVeto( aPatElectron.passConversionVeto() );
 
     if (elecIDSrcs_.size()){// for remade electron IDs
@@ -280,39 +260,32 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     aElectron.setDz( theTrack->dz(pv.position()) );
     aElectron.setVertex(Point(theTrack->vx(),theTrack->vy(),theTrack->vz()));
 
-
-
-    TrajectoryStateOnSurface eleTSOS;
     reco::TransientTrack eletranstrack = trackBuilder->build(theTrack);
-    eleTSOS = IPTools::transverseExtrapolate(eletranstrack.impactPointState(), pVertex, eletranstrack.field());
+    TrajectoryStateOnSurface eleTSOS = IPTools::transverseExtrapolate(eletranstrack.impactPointState(), pVertex, eletranstrack.field());
     if (eleTSOS.isValid()) {
       std::pair<bool, Measurement1D>     eleIPpair = IPTools::signedTransverseImpactParameter(eletranstrack, eleTSOS.globalDirection(), pv);
-      
+
       float eleSignificanceIP = eleIPpair.second.significance();
       aElectron.setIpSignficance(eleSignificanceIP);
     }
 
-    
-    float eoverp = -999.;
+
     // |1/E-1/p| = |1/E - EoverPinner/E| is computed below
     // The if protects against ecalEnergy == inf or zero
     // (always the case for miniAOD for electrons <5 GeV)
-    if( aPatElectron.ecalEnergy() == 0 ){
-      eoverp = 1e30;
-    }else if( !std::isfinite(aPatElectron.ecalEnergy())){
-      eoverp = 1e30;
-    }else{
+    float eoverp = 1e30;
+    if( aPatElectron.ecalEnergy() != 0 and std::isfinite(aPatElectron.ecalEnergy()) ) {
       eoverp = std::abs(1.0/aPatElectron.ecalEnergy() - aPatElectron.eSuperClusterOverP()/aPatElectron.ecalEnergy() ) ;
     }
 
-    int snu_id = getSNUID(aPatElectron.full5x5_sigmaIetaIeta(), abs(aPatElectron.deltaEtaSuperClusterTrackAtVtx() ), abs(aPatElectron.deltaPhiSuperClusterTrackAtVtx() ), aPatElectron.hcalOverEcal(), eoverp, abs(aElectron.dz()) , aPatElectron.gsfTrack()->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS), aPatElectron.passConversionVeto(),aPatElectron.superCluster()->eta() );
+    int snu_id = getSNUID(aPatElectron.full5x5_sigmaIetaIeta(), abs(aPatElectron.deltaEtaSuperClusterTrackAtVtx() ), abs(aPatElectron.deltaPhiSuperClusterTrackAtVtx() ), aPatElectron.hcalOverEcal(), eoverp, abs(aElectron.dz()) , aPatElectron.gsfTrack()->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS), aPatElectron.passConversionVeto(),scEta);
     aElectron.setSNUID(snu_id);
 
     // Fill the validity flag of triggered MVA
     bool isTrigMVAValid = false;
     const double pt = aElectron.pt();
     if ( pt > 15 ) {
-      const double abseta = std::abs(aPatElectron.superCluster()->eta());
+      const double abseta = std::abs(scEta);
       const double full5x5_sigmaIetaIeta = aPatElectron.full5x5_sigmaIetaIeta();
       const double hcalOverEcal =  aPatElectron.hcalOverEcal();
       const double ecalPFClusterIso = aPatElectron.ecalPFClusterIso();
@@ -340,10 +313,8 @@ cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     aElectron.setTrigMVAValid(isTrigMVAValid);
 
     out->push_back(aElectron);
-
-    ++j;
   }
-  iEvent.put(out);
+  iEvent.put(std::move(out));
 }
 
 
@@ -365,7 +336,7 @@ int cat::CATElectronProducer::getSNUID(float full5x5_sigmaIetaIeta, float deltaE
   //----------------------------------------------------------------------
   // Endcap electron cut values
   //----------------------------------------------------------------------
-  
+
   double l_e_sieie   [4] = { 0.037, 0.0314, 0.0298, 0.0292};
   double l_e_dEtaIn  [4] = { 0.00895, 0.00868, 0.00609, 0.00605};
   double l_e_dPhiIn  [4] = { 0.213, 0.213, 0.045, 0.0394};
@@ -423,45 +394,12 @@ cat::CATElectronProducer::getEffArea( float dR, float scEta)
   return 0;
 }
 
-bool
-cat::CATElectronProducer::mcMatch( const reco::Candidate::LorentzVector& lepton, const edm::Handle<reco::GenParticleCollection> & genParticles )
+bool cat::CATElectronProducer::mcMatch( const reco::Candidate::LorentzVector& lepton, const std::vector<reco::GenParticleRef>& genElectrons) const
 {
-  bool out = false;
-
-  for (const reco::GenParticle & aGenPart : *genParticles){
-    if( abs(aGenPart.pdgId()) != 11 ) continue;
-
-    bool match = MatchObjects(lepton, aGenPart.p4(), false);
-    if( match != true) continue;
-
-    const reco::Candidate* mother = aGenPart.mother();
-    while( mother != 0 ){
-      if( abs(mother->pdgId()) == 23 || abs(mother->pdgId()) == 24 ) {
-	out = true;
-      }
-      mother = mother->mother();
-    }
+  for (const auto& aGenPart : genElectrons){
+    if ( cat::isMatchedByDRDPt(lepton, aGenPart->p4(), false) ) return true;
   }
-  return out;
-}
-
-bool
-cat::CATElectronProducer::MatchObjects( const reco::Candidate::LorentzVector& pasObj, const reco::Candidate::LorentzVector& proObj, bool exact )
-{
-  double proEta = proObj.eta();
-  double proPhi = proObj.phi();
-  double proPt = proObj.pt();
-  double pasEta = pasObj.eta();
-  double pasPhi = pasObj.phi();
-  double pasPt = pasObj.pt();
-
-  double dRval = deltaR(proEta, proPhi, pasEta, pasPhi);
-  double dPtRel = 999.0;
-  if( proPt > 0.0 ) dPtRel = std::abs( pasPt - proPt )/proPt;
-  // If we are comparing two objects for which the candidates should
-  // be exactly the same, cut hard. Otherwise take cuts from user.
-  if( exact ) return ( dRval < 1e-3 && dPtRel < 1e-3 );
-  else return ( dRval < 0.025 && dPtRel < 0.025 );
+  return false;
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"

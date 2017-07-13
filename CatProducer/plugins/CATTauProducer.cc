@@ -22,7 +22,6 @@ namespace cat {
   class CATTauProducer : public edm::stream::EDProducer<> {
   public:
     explicit CATTauProducer(const edm::ParameterSet & iConfig);
-    virtual ~CATTauProducer() { }
 
     void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
 
@@ -35,7 +34,7 @@ namespace cat {
 cat::CATTauProducer::CATTauProducer(const edm::ParameterSet & iConfig) :
   src_(consumes<pat::TauCollection>(iConfig.getParameter<edm::InputTag>("src")))
 {
-  produces<std::vector<cat::Tau> >();
+  produces<cat::TauCollection>();
 }
 
 void
@@ -46,7 +45,7 @@ cat::CATTauProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
   Handle<pat::TauCollection> src;
   iEvent.getByToken(src_, src);
 
-  auto_ptr<vector<cat::Tau> >  out(new vector<cat::Tau>());
+  unique_ptr<cat::TauCollection>  out(new cat::TauCollection());
 
   for (const pat::Tau & aPatTau : *src){
     cat::Tau aTau(aPatTau);
@@ -56,7 +55,7 @@ cat::CATTauProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
     out->push_back(aTau);
   }
 
-  iEvent.put(out);
+  iEvent.put(std::move(out));
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"
