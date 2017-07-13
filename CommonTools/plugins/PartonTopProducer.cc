@@ -52,11 +52,6 @@ PartonTopProducer::PartonTopProducer(const edm::ParameterSet& pset):
 
 void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventSetup)
 {
-  edm::Handle<edm::View<reco::Candidate> > genParticleHandle;
-  if ( event.isRealData() or !event.getByToken(genParticleToken_, genParticleHandle) ) {
-    return;
-  }
-  
   std::unique_ptr<reco::GenParticleCollection> partons(new reco::GenParticleCollection);
   auto partonRefHandle = event.getRefBeforePut<reco::GenParticleCollection>();
 
@@ -65,6 +60,15 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
 
   std::unique_ptr<reco::GenJetCollection> qcdJets(new reco::GenJetCollection);
 
+  edm::Handle<edm::View<reco::Candidate> > genParticleHandle;
+  if ( event.isRealData() or !event.getByToken(genParticleToken_, genParticleHandle) ) {
+    event.put(std::move(partons));
+    event.put(std::move(channel), "channel");
+    event.put(std::move(modes), "modes");
+    event.put(std::move(qcdJets), "qcdJets");
+    return;
+  }
+  
   // Collect top quarks and unstable B-hadrons
   std::vector<const reco::Candidate*> tQuarks;
   std::vector<int> qcdParticleIdxs;
