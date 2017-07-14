@@ -311,3 +311,48 @@ def sysUncertainty(filename, treename, binning, title, scale, cut, plotvar, h_no
         sysErrs_dn[i].Add(h_nom, -1)
 
     return sysErrs_up, sysErrs_dn
+
+
+def drawRatioPlot(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=True, ratioRange=0.45, legx=0.68, legfontsize=0.030):
+    leg = ROOT.TLegend(legx,0.68,legx+0.2,0.91)
+    leg.SetBorderSize(0)
+    #leg.SetNColumns(2)
+    leg.SetTextSize(legfontsize)
+    leg.SetTextFont(42)
+    leg.SetLineColor(0)
+    leg.SetFillColor(0)
+    leg.SetFillStyle(0)
+    leg.AddEntry(data,"Data","lp")
+    
+    hs = ROOT.THStack("mcstack", "mcstack")    
+    hAllMC = mclist[0].Clone("hratio")
+    hAllMC.Reset()
+
+    leghist = []
+    for i, mc in enumerate(mclist):
+        hnew = mc.Clone("hnew"+mc.GetName())
+        hnew.Sumw2(False)
+        hs.Add(hnew)
+        hAllMC.Add(mc)
+        inversed = mclist[len(mclist)-1-i]
+        if not any(inversed.GetTitle() == s for s in leghist):
+            leg.AddEntry(inversed, inversed.GetTitle(), "f")
+            leghist.append(inversed.GetTitle())
+                        
+    #hratio = hs.GetStack().Last()
+    hratio = ROOT.TRatioPlot(data,hAllMC)
+    hratio.SetSeparationMargin(0.0)
+
+    tdrstyle.setTDRStyle()
+    
+    setDefTH1Style(hratio, x_name, y_name)
+
+    canv = makeCanvas(name, False)
+    hratio.Draw("")
+    leg.Draw("same")
+
+    cmsLumi.CMS_lumi(pads[0], 0, iPos)
+
+    canv.Modified()
+    canv.Update()
+    return copy.deepcopy(canv)

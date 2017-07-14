@@ -1,6 +1,6 @@
 #include "FWCore/Framework/interface/Frameworkfwd.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/one/EDProducer.h"
-#include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
@@ -137,11 +137,11 @@ void GenWeightsToFlatWeights::beginRun(const edm::Run& run, const edm::EventSetu
 
 void GenWeightsToFlatWeights::produce(edm::Event& event, const edm::EventSetup&)
 {
-  std::auto_ptr<float> out_weight(new float(1));
-  std::auto_ptr<vfloat> out_sup(new vfloat);
-  std::auto_ptr<vfloat> out_sdn(new vfloat);
-  std::auto_ptr<vfloat> out_pdf(new vfloat);
-  std::auto_ptr<vfloat> out_oth(new vfloat);
+  std::unique_ptr<float> out_weight(new float(1));
+  std::unique_ptr<vfloat> out_sup(new vfloat);
+  std::unique_ptr<vfloat> out_sdn(new vfloat);
+  std::unique_ptr<vfloat> out_pdf(new vfloat);
+  std::unique_ptr<vfloat> out_oth(new vfloat);
 
   edm::Handle<cat::GenWeights> srcHandle;
   event.getByToken(srcToken_, srcHandle);
@@ -158,11 +158,11 @@ void GenWeightsToFlatWeights::produce(edm::Event& event, const edm::EventSetup&)
     }
   }
 
-  event.put(out_weight);
-  event.put(out_sup, "scaleup");
-  event.put(out_sdn, "scaledown");
-  event.put(out_pdf, "pdf");
-  if ( doSaveOthers_ ) event.put(out_oth, "others");
+  event.put(std::move(out_weight));
+  event.put(std::move(out_sup), "scaleup");
+  event.put(std::move(out_sdn), "scaledown");
+  event.put(std::move(out_pdf), "pdf");
+  if ( doSaveOthers_ ) event.put(std::move(out_oth), "others");
 }
 
 class GenWeightsProducer : public edm::one::EDProducer<edm::one::SharedResources, edm::BeginRunProducer>
@@ -289,12 +289,12 @@ void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
 void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& eventSetup)
 {
   float lheWeight = 1, genWeight = 1;
-  std::auto_ptr<cat::GenWeights> out_genWeights(new cat::GenWeights);
+  std::unique_ptr<cat::GenWeights> out_genWeights(new cat::GenWeights);
 
   if ( event.isRealData() ) {
     out_genWeights->setLHEWeight(lheWeight);
     out_genWeights->setGenWeight(genWeight);
-    event.put(out_genWeights);
+    event.put(std::move(out_genWeights));
   }
 
   edm::Handle<LHEEventProduct> lheHandle;
@@ -372,10 +372,11 @@ void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& event
     }
   }
 
-  event.put(out_genWeights);
+  event.put(std::move(out_genWeights));
 
 }
 
+#include "FWCore/Framework/interface/MakerMacros.h"
 DEFINE_FWK_MODULE(GenWeightsProducer);
 DEFINE_FWK_MODULE(GenWeightsToFlatWeights);
 

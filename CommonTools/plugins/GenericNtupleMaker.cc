@@ -27,6 +27,7 @@
 
 using namespace std;
 using namespace edm;
+
 using namespace cat;
 
 class GenericNtupleMaker : public edm::EDAnalyzer
@@ -136,8 +137,7 @@ void GenericNtupleMaker::analyze(const edm::Event& event, const edm::EventSetup&
   nFailure += candCSet_.load(event, doException);
 
   if ( nFailure == 0 or failureMode_ == FAILUREMODE::KEEP ) tree_->Fill();
-  else if ( failureMode_ == FAILUREMODE::ERROR )
-  {
+  else if ( failureMode_ == FAILUREMODE::ERROR ) {
     edm::LogError("GenericNtupleMaker") << "Failed to get " << nFailure << " items";
     throw cms::Exception("DataError") << "Cannot get object from data";
   }
@@ -155,11 +155,9 @@ void GenericNtupleMaker::analyze(const edm::Event& event, const edm::EventSetup&
 
 void GenericNtupleMaker::endLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup& eventSetup)
 {
-  for ( size_t i=0, n=eventCounterTokens_.size(); i<n; ++i )
-  {
+  for ( size_t i=0, n=eventCounterTokens_.size(); i<n; ++i ) {
     edm::Handle<edm::MergeableCounter> eventCounterHandle;
-    if ( lumi.getByToken(eventCounterTokens_[i], eventCounterHandle) )
-    {
+    if ( lumi.getByToken(eventCounterTokens_[i], eventCounterHandle) ) {
       hNEvent_->Fill(i, double(eventCounterHandle->value));
     }
   }

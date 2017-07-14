@@ -27,7 +27,6 @@ namespace cat {
   class CATGenTopProducer : public edm::stream::EDProducer<> {
   public:
     explicit CATGenTopProducer(const edm::ParameterSet & iConfig);
-    virtual ~CATGenTopProducer() { }
 
     void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
 
@@ -83,11 +82,11 @@ cat::CATGenTopProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
   cat::GenTop aGenTop;
   aGenTop.building( genJets, mcParticles, genBHadFlavour, genBHadJetIndex, genCHadFlavour, genCHadJetIndex );
 
-  auto_ptr<vector<cat::GenTop> >  out(new vector<cat::GenTop>());
+  unique_ptr<vector<cat::GenTop> >  out(new vector<cat::GenTop>());
 
   out->push_back(aGenTop);
 
-  iEvent.put(out);
+  iEvent.put(std::move(out));
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"
