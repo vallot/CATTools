@@ -30,7 +30,6 @@ namespace cat {
   class CATDStarProducer : public edm::stream::EDProducer<> {
     public:
       explicit CATDStarProducer(const edm::ParameterSet & iConfig);
-      virtual ~CATDStarProducer() { }
 
       void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
     private:
@@ -73,14 +72,14 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
   iEvent.getByToken(vertexLabel_,recVtxs);
   float dca;
 
-  auto_ptr<vector<cat::SecVertex> >    D0_Out(new vector<cat::SecVertex>());
-  auto_ptr<vector<cat::SecVertex> > Dstar_Out(new std::vector<cat::SecVertex>());
-  auto_ptr<vector<cat::SecVertex> >  Jpsi_Out(new std::vector<cat::SecVertex>());
+  unique_ptr<vector<cat::SecVertex> >    D0_Out(new vector<cat::SecVertex>());
+  unique_ptr<vector<cat::SecVertex> > Dstar_Out(new std::vector<cat::SecVertex>());
+  unique_ptr<vector<cat::SecVertex> >  Jpsi_Out(new std::vector<cat::SecVertex>());
 
   if ( recVtxs->empty() ) {
-    iEvent.put(D0_Out   , "D0Cand");
-    iEvent.put(Dstar_Out, "DstarCand");
-    iEvent.put(Jpsi_Out, "JpsiCand");
+    iEvent.put(std::move(D0_Out)   , "D0Cand");
+    iEvent.put(std::move(Dstar_Out), "DstarCand");
+    iEvent.put(std::move(Jpsi_Out), "JpsiCand");
     return ; 
   }
   reco::Vertex pv = recVtxs->at(0);
@@ -376,9 +375,9 @@ cat::CATDStarProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSet
     if ( flag_d0    )    D0_Out->push_back(bestD0);
   }
   //std::cout<<"nJet : "<<njet<<" Jpsi : "<<Jpsi_Out->size()<< " D0 : "<<D0_Out->size()<<"  D* : "<<Dstar_Out->size()<<std::endl;
-  iEvent.put(D0_Out   , "D0Cand");
-  iEvent.put(Dstar_Out, "DstarCand");
-  iEvent.put(Jpsi_Out, "JpsiCand");
+  iEvent.put(std::move(D0_Out)   , "D0Cand");
+  iEvent.put(std::move(Dstar_Out), "DstarCand");
+  iEvent.put(std::move(Jpsi_Out), "JpsiCand");
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"

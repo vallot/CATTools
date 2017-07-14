@@ -23,6 +23,7 @@
 #include "CATTools/CatAnalyzer/interface/TopTriggerSF.h"
 
 #include "CATTools/CommonTools/interface/AnalysisHelper.h"
+#include "CATTools/CommonTools/interface/GenParticleHelper.h"
 #include "DataFormats/Math/interface/deltaR.h"
 #include "TTree.h"
 
@@ -65,8 +66,6 @@ private:
   cat::JetCollection selectJets(const cat::JetCollection& jets, const LeptonPtrs& recolep, TtbarBbbarDiLeptonAnalyzer::sys_e sys);
   cat::JetCollection selectBJets(const cat::JetCollection& jets, double workingpoint) const;
   cat::JetCollection selectBJetsMVA(const cat::JetCollection& jets, double workingpoint) const;
-  const reco::Candidate* getLast(const reco::Candidate* p) const;
-  const bool isLastP( const reco::GenParticle& p) const;
   //float MuonSF(float pt, float eta);
   void book(TTree* tree);
 
@@ -801,8 +800,7 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     for ( auto  aParticle = genParticles->begin(),end = genParticles->end(); aParticle != end; ++aParticle ) {
       const reco::GenParticle& p = *aParticle;
       if ( !(abs(p.pdgId()) > 21 && abs(p.pdgId()) << 26)  ) continue;
-      bool isLast = isLastP(p);
-      if(isLast != true) continue;
+      if ( !cat::isLast(p) ) continue;
       unsigned int nDaughters = p.numberOfDaughters();
       for ( unsigned iDaughter=0; iDaughter<nDaughters; ++iDaughter ) {
         const reco::Candidate* daugh = p.daughter(iDaughter);
@@ -1139,33 +1137,6 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     //else if (sys==13) ttree15_->Fill();
 
   }
-}
-const bool TtbarBbbarDiLeptonAnalyzer::isLastP( const reco::GenParticle& p) const
-{
-
-  bool out = true;
-
-  int id = abs( p.pdgId() );
-
-  unsigned int nDaughters = p.numberOfDaughters();
-  for ( unsigned iDaughter=0; iDaughter<nDaughters; ++iDaughter ) {
-    const reco::Candidate* daugh = p.daughter(iDaughter);
-    if( abs(daugh->pdgId()) == id) {
-      out = false;
-      break;
-    }
-  }
-
-  return out;
-}
-const reco::Candidate* TtbarBbbarDiLeptonAnalyzer::getLast(const reco::Candidate* p) const
-{
-  for ( size_t i=0, n=p->numberOfDaughters(); i<n; ++i )
-  {
-    const reco::Candidate* dau = p->daughter(i);
-    if ( p->pdgId() == dau->pdgId() ) return getLast(dau);
-  }
-  return p;
 }
 
 void TtbarBbbarDiLeptonAnalyzer::selectMuons(const cat::MuonCollection& muons, cat::MuonCollection& selmuons,sys_e sys) const

@@ -62,7 +62,6 @@ private:
   typedef std::vector<const cat::Lepton*> LeptonPtrs;
   cat::JetCollection selectJets(const cat::JetCollection& jets, const LeptonPtrs& recolep, systematic sys);
   cat::JetCollection selectBJets(const cat::JetCollection& jets) const;
-  const reco::Candidate* getLast(const reco::Candidate* p) const;
   int isFromtop( const reco::GenParticle& p);
   shared_ptr<TLorentzVector> mcMatching( vector<TLorentzVector>& , TLorentzVector& ) ;
 
@@ -954,18 +953,6 @@ bool TtbarDiLeptonAnalyzer::eventSelection(const edm::Event& iEvent, systematic 
   }
   return true;
 }
-const reco::Candidate* TtbarDiLeptonAnalyzer::getLast(const reco::Candidate* p) const
-{
-  for ( size_t i=0, n=p->numberOfDaughters(); i<n; ++i )
-    {
-      const reco::Candidate* dau = p->daughter(i);
-      if ( p->pdgId() == dau->pdgId() ) return getLast(dau);
-    }
-  return p;
-}
-
-
-
 
 cat::MuonCollection TtbarDiLeptonAnalyzer::selectMuons(const cat::MuonCollection& muons, systematic sys)
 {

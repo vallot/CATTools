@@ -3,22 +3,20 @@
 <library   name="CATToolsCatProducer_plugins" file="*.cc">
   <use   name="FWCore/Framework"/>
   <use   name="CATTools/DataFormats"/>
+  <use   name="CATTools/CommonTools"/>
   <use   name="RecoVertex/KalmanVertexFit"/>
   <use   name="TrackingTools/IPTools"/>
   <use   name="TrackingTools/TransientTrack"/>
   <use   name="HLTrigger/HLTcore"/>
-  <use   name="PhysicsTools/Utilities"/>
   <use   name="SimDataFormats/Track"/>
   <use   name="SimDataFormats/Vertex"/>
   <use   name="SimGeneral/HepPDTRecord"/>
   <use   name="RecoMET/METAlgorithms"/>
   <use   name="RecoEgamma/EgammaTools"/>
-  <use   name="RecoJets/JetProducers" />
   <use   name="CondFormats/JetMETObjects"/>
   <use   name="JetMETCorrections/Objects"/>
   <use   name="JetMETCorrections/Modules"/>
   <use   name="root"/>
   <use   name="rootxml"/>
-  <use   name="fastjet" />
   <use   name="lhapdf"/>
 </library>

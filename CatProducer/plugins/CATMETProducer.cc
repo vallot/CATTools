@@ -22,7 +22,6 @@ namespace cat {
   class CATMETProducer : public edm::stream::EDProducer<> {
   public:
     explicit CATMETProducer(const edm::ParameterSet & iConfig);
-    virtual ~CATMETProducer() { }
 
     void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
 
@@ -40,7 +39,7 @@ cat::CATMETProducer::CATMETProducer(const edm::ParameterSet & iConfig) :
   setjetMETSyst_(iConfig.getParameter<bool>("setJetMETSyst"))
   
 {
-  produces<std::vector<cat::MET> >();
+  produces<cat::METCollection>();
 }
 
 void
@@ -49,7 +48,7 @@ cat::CATMETProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
   Handle<pat::METCollection> src;
   iEvent.getByToken(src_, src);
 
-  auto_ptr<vector<cat::MET> >  out(new vector<cat::MET>());
+  unique_ptr<cat::METCollection>  out(new cat::METCollection());
 
   const pat::MET & aPatMET = src->front();
   cat::MET aMET(aPatMET, aPatMET.sumEt() );
@@ -88,7 +87,7 @@ cat::CATMETProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSetup
   
   out->push_back(aMET);
 
-  iEvent.put(out);
+  iEvent.put(std::move(out));
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"

@@ -33,7 +33,6 @@ namespace cat {
   class CATPhotonProducer : public edm::stream::EDProducer<> {
   public:
     explicit CATPhotonProducer(const edm::ParameterSet & iConfig);
-    virtual ~CATPhotonProducer() { }
 
     void produce(edm::Event & iEvent, const edm::EventSetup & iSetup) override;
     int  mcMatch( const reco::Candidate::LorentzVector& lepton, const edm::Handle<reco::GenParticleCollection> & genParticles );
@@ -79,7 +78,7 @@ cat::CATPhotonProducer::CATPhotonProducer(const edm::ParameterSet & iConfig) :
   rhoLabel_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoLabel"))),
   photonIDs_(iConfig.getParameter<std::vector<std::string> >("photonIDs"))
 {
-  produces<std::vector<cat::Photon> >();
+  produces<cat::PhotonCollection>();
   if (iConfig.existsAs<edm::ParameterSet>("photonIDSources")) {
     edm::ParameterSet idps = iConfig.getParameter<edm::ParameterSet>("photonIDSources");
     std::vector<std::string> names = idps.getParameterNamesForType<edm::InputTag>();
@@ -124,7 +123,7 @@ cat::CATPhotonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
   }
   
 
-  auto_ptr<vector<cat::Photon> >  out(new vector<cat::Photon>());
+  std::unique_ptr<cat::PhotonCollection>  out(new cat::PhotonCollection());
   int j = 0;
 
   for (const pat::Photon & aPatPhoton : *src){
@@ -196,7 +195,7 @@ cat::CATPhotonProducer::produce(edm::Event & iEvent, const edm::EventSetup & iSe
     ++j;
   }
 
-  iEvent.put(out);
+  iEvent.put(std::move(out));
 }
 
 
