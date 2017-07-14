@@ -21,7 +21,7 @@ TTLJKinFitFtn::IBaseFunctionMultiDim* TTLJKinFitFtn::Clone() const
   return obj;
 }
 
-unsigned int TTLJKinFitFtn::NDim() const { return 1; }
+unsigned int TTLJKinFitFtn::NDim() const { return 2; }
 
 double TTLJKinFitFtn::DoEval(const double* x) const
 {
@@ -34,7 +34,9 @@ double TTLJKinFitFtn::DoEval(const double* x) const
   const double wHadDm = (wj1+wj2).M()-hadW_m_;
   const double tHadDm = (wj1+wj2+hb).M()-hadT_m_;
 
-  return wLepDm*wLepDm + tLepDm*tLepDm + wHadDm*wHadDm + tHadDm*tHadDm;
+  double chi2 = (nu-lvs_[0]).Perp2() + wLepDm*wLepDm + tLepDm*tLepDm + tHadDm*tHadDm;
+  if ( hadW_m_ > 0 ) chi2 += wHadDm*wHadDm;
+  return chi2;
 }
 
 TLorentzVector TTLJKinFitFtn::solveLepTopNu(TLorentzVector nu, const TLorentzVector& lep, const TLorentzVector& lb) const
@@ -45,8 +47,6 @@ TLorentzVector TTLJKinFitFtn::solveLepTopNu(TLorentzVector nu, const TLorentzVec
   const double a = pp*lep.Pz()/lep.Perp2();
   const double det = a*a + (pp*pp - lep.P()*lep.P()*nu.Perp2())/lep.Perp2();
   const double b = sqrt(max(0., det));
-  //const double wpx = nu.Px()+lep.Px();
-  //const double wpy = nu.Py()+lep.Py();
   TLorentzVector nuPos, nuNeg;
   nuPos.SetXYZM(nu.Px(), nu.Py(), a+b, 0);
   nuNeg.SetXYZM(nu.Px(), nu.Py(), a-b, 0);
@@ -63,6 +63,7 @@ TLorentzVector TTLJKinFitFtn::solveLepTopNu(TLorentzVector nu, const TLorentzVec
 std::vector<TLorentzVector> TTLJKinFitFtn::getSolution(const double* x) const
 {
   const double scale_jet = x[0];
+  const double eta = x[1];
   std::vector<TLorentzVector> out;
   out.push_back(lvs_[0]); // MET
   out.push_back(lvs_[1]); // Lepton
@@ -72,8 +73,8 @@ std::vector<TLorentzVector> TTLJKinFitFtn::getSolution(const double* x) const
     dx += out[i].X() - lvs_[i].X();
     dy += out[i].Y() - lvs_[i].Y();
   }
-  out[0].SetXYZM(out[0].Px()-dx, out[0].Py()-dy, 0, 0); // MET correction by JEC FIXME: this is an approximation, does not consider additional jets
-  out[0] = solveLepTopNu(out[0], out[1], out[2]);
+  out[0].SetXYZM(out[0].Px()-dx, out[0].Py()-dy, out[0].Pt()*sinh(eta), 0); // MET correction by JEC FIXME: this is an approximation, does not consider additional jets
+  //out[0] = solveLepTopNu(out[0], out[1], out[2]);
 
   return out;
 }
@@ -81,11 +82,17 @@ std::vector<TLorentzVector> TTLJKinFitFtn::getSolution(const double* x) const
 TTLJKinFit::TTLJKinFit(const double hadW_m, const double hadT_m, const double lepW_m, const double lepT_m):
   ftn_(hadW_m, hadT_m, lepW_m, lepT_m)
 {
+  min0_.reset(new ROOT::Minuit2::Minuit2Minimizer(ROOT::Minuit2::kSimplex));
   min_.reset(new ROOT::Minuit2::Minuit2Minimizer(ROOT::Minuit2::kMigrad));
+  min0_->SetPrintLevel(0);
+  min_->SetPrintLevel(0);
+  gErrorIgnoreLevel = 1001;
   //min_.reset(new ROOT::Minuit2::Minuit2Minimizer(ROOT::Minuit2::kCombined));
-  //min_.reset(new ROOT::Minuit2::Minuit2Minimizer(ROOT::Minuit2::kScan));
-  min_->SetVariable(0, "jes", 1, 0.01);
-  //min_->SetLimitedVariable(0, "jes", 1, 0.1, 0.5, 1.5);
+  min0_->SetLimitedVariable(0, "jes", 1.0, 0.1, 0.0, 2);
+  min0_->SetLimitedVariable(1, "eta", 0.0, 0.1, -5, 5);
+  min_->SetLimitedVariable(0, "jes", 1.0, 0.001, 0.0, 2);
+  min_->SetLimitedVariable(1, "eta", 0.0, 0.001, -5, 5);
+  min0_->SetFunction(ftn_);
   min_->SetFunction(ftn_);
 }
 
@@ -104,13 +111,21 @@ double TTLJKinFit::compute(const TLorentzVector metP4, const TLorentzVector l1, 
   ftn_.lvs_[4] = wj2;
   ftn_.lvs_[5] = hb;
 
-  min_->SetVariableValue(0, 1.0);
-  //min_->SetPrecision(1e-2);
-  bool isValid = false;
-  for ( int i=0; i<4; ++i ) {
-    isValid = min_->Minimize();
-    if ( isValid ) break;
-  }
+  min0_->SetVariableValue(0, 1.0);
+  min0_->SetVariableValue(1, 0.0);
+  min0_->SetVariableStepSize(0, 0.1);
+  min0_->SetVariableStepSize(1, 0.1);
+  min0_->Minimize();
+  min_->SetVariableValue(0, min0_->X()[0]);
+  min_->SetVariableValue(1, min0_->X()[1]);
+  min_->SetVariableStepSize(0, 0.01);
+  min_->SetVariableStepSize(1, 0.01);
+  min_->Minimize();
+  min_->SetVariableValue(0, min_->X()[0]);
+  min_->SetVariableValue(1, min_->X()[1]);
+  min_->SetVariableStepSize(0, 0.001);
+  min_->SetVariableStepSize(1, 0.001);
+  const bool isValid = min_->Minimize();
   chi2_ = !isValid ? 1e9 : ftn_.DoEval(min_->X());
 
   return chi2_;

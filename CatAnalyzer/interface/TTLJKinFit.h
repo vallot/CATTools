@@ -32,7 +32,7 @@ struct TTLJKinFit
 
   std::vector<TLorentzVector> getSolution() const;
 
-  std::unique_ptr<ROOT::Math::Minimizer> min_;
+  std::unique_ptr<ROOT::Math::Minimizer> min0_, min_;
   TTLJKinFitFtn ftn_;
   double chi2_;
 
