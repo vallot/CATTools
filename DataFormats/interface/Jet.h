@@ -8,7 +8,7 @@
 #include "DataFormats/PatCandidates/interface/JetCorrFactors.h"
 
 #include <string>
-#include <boost/array.hpp>
+#include <memory>
 
 // Define typedefs for convenience
 namespace cat {
@@ -136,9 +136,21 @@ namespace cat {
 
     void setQGLikelihood(float f) { qgLikelihood_ = f; }
 
+    void addConstituent(const float pt, const float eta, const float phi, const int pdgId) {
+      const int aid = abs(pdgId);
+      const std::array<float, 3> val = {{pt, eta, phi}};
+      if      ( aid == 211 ) con_ch_.emplace_back(val);
+      else if ( aid == 130 ) con_nh_.emplace_back(val);
+      else if ( aid == 22  ) con_ph_.emplace_back(val);
+    }
+    std::vector<std::array<float,3>> getConstituentCHsPtEtaPhi() { return con_ch_; }
+    std::vector<std::array<float,3>> getConstituentNHsPtEtaPhi() { return con_nh_; }
+    std::vector<std::array<float,3>> getConstituentPHsPtEtaPhi() { return con_ph_; }
+
   private:
 
     edm::FwdRef<reco::GenJetCollection>  genJetFwdRef_;
+    std::vector<std::array<float,3>> con_ch_, con_ph_, con_nh_;
 
     bool looseJetID_;
     bool tightJetID_;

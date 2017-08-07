@@ -205,6 +205,11 @@ void cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     int partonPdgId = aPatJet.genParton() ? aPatJet.genParton()->pdgId() : 0;
     aJet.setPartonPdgId(partonPdgId);
 
+    for ( size_t i=0; i<aPatJet.numberOfDaughters(); ++i ) {
+      const auto p = aPatJet.daughter(i);
+      aJet.addConstituent(p->pt(), p->eta(), p->phi(), p->pdgId());
+    }
+
     // calculate quark/gluon likelihood but only for AK4
     aJet.setQGLikelihood(-2.0);
     if ( qgHandle.isValid() ) {
