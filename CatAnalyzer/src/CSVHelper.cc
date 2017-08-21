@@ -30,8 +30,8 @@
 */
 CSVHelper::CSVHelper(std::string hf, std::string lf, int nHFptBins_):nHFptBins(nHFptBins_)
 {
-    if ( hf.empty() ) hf = std::string(getenv("CMSSW_BASE"))+"/src/CATTools/CatAnalyzer/data/scaleFactors/csv_rwt_fit_hf_v2_final_2017_1_10test.root";
-    if ( lf.empty() ) lf = std::string(getenv("CMSSW_BASE"))+"/src/CATTools/CatAnalyzer/data/scaleFactors/csv_rwt_fit_lf_v2_final_2017_1_10test.root";
+    if ( hf.empty() ) hf = std::string(getenv("CMSSW_BASE"))+"/src/CATTools/CatAnalyzer/data/scaleFactors/csv_rwt_fit_hf_v2_final_2017_6_7_all.root";
+    if ( lf.empty() ) lf = std::string(getenv("CMSSW_BASE"))+"/src/CATTools/CatAnalyzer/data/scaleFactors/csv_rwt_fit_lf_v2_final_2017_6_7_all.root";
 
     TFile *f_CSVwgt_HF = new TFile(hf.c_str());
     TFile *f_CSVwgt_LF = new TFile(lf.c_str());
