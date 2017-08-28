@@ -182,6 +182,7 @@ private:
   const bool enforceUnitGenWeight_;
   const bool doLOPDFReweight_;
   bool reweightToNewPDF_;
+  const bool doKeepFirstOnly_;
   const edm::EDGetTokenT<LHEEventProduct> lheToken_;
   const edm::EDGetTokenT<GenEventInfoProduct> genInfoToken_;
 
@@ -191,6 +192,7 @@ GenWeightsProducer::GenWeightsProducer(const edm::ParameterSet& pset):
   lheLabel_(pset.getParameter<edm::InputTag>("lheEvent")),
   enforceUnitGenWeight_(pset.getParameter<bool>("enforceUnitGenWeight")),
   doLOPDFReweight_(pset.getParameter<bool>("doLOPDFReweight")),
+  doKeepFirstOnly_(pset.getParameter<bool>("keepFirstOnly")),
   lheToken_(consumes<LHEEventProduct>(pset.getParameter<edm::InputTag>("lheEvent"))),
   genInfoToken_(consumes<GenEventInfoProduct>(pset.getParameter<edm::InputTag>("genEventInfo")))
 {
@@ -330,44 +332,39 @@ void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& event
   out_genWeights->setLHEWeight(lheWeight);
   out_genWeights->setGenWeight(genWeight);
 
-  if ( doLOPDFReweight_ )
-  {
-    const int generatedPdfIdx = reweightToNewPDF_ ? 2 : 1;
-    const float xpdf1 = LHAPDF::xfx(generatedPdfIdx, x1, q, id1);
-    const float xpdf2 = LHAPDF::xfx(generatedPdfIdx, x2, q, id2);
-    const float w0 = xpdf1*xpdf2;
+  if ( !doKeepFirstOnly_ ) {
+    if ( doLOPDFReweight_ ) {
+      const int generatedPdfIdx = reweightToNewPDF_ ? 2 : 1;
+      const float xpdf1 = LHAPDF::xfx(generatedPdfIdx, x1, q, id1);
+      const float xpdf2 = LHAPDF::xfx(generatedPdfIdx, x2, q, id2);
+      const float w0 = xpdf1*xpdf2;
 
-    const float xpdf1_new = LHAPDF::xfx(1, x1, q, id1);
-    const float xpdf2_new = LHAPDF::xfx(1, x2, q, id2);
-    const float w_new = xpdf1_new*xpdf2_new;
-    out_genWeights->addWeight(w_new/w0);
+      const float xpdf1_new = LHAPDF::xfx(1, x1, q, id1);
+      const float xpdf2_new = LHAPDF::xfx(1, x2, q, id2);
+      const float w_new = xpdf1_new*xpdf2_new;
+      out_genWeights->addWeight(w_new/w0);
 
-    for ( unsigned int i=1, n=LHAPDF::numberPDF(1); i<=n; ++i )
-    {
-      LHAPDF::usePDFMember(1, i);
-      const float xpdf1_syst = LHAPDF::xfx(1, x1, q, id1);
-      const float xpdf2_syst = LHAPDF::xfx(1, x2, q, id2);
-      out_genWeights->addWeight(xpdf1_syst*xpdf2_syst/w0);
-    }
-  }
-  else
-  {
-    if ( lheHandle.isValid() )
-    {
-      for ( size_t i=0; i<lheHandle->weights().size(); ++i )
-      {
-        const double w0 = lheHandle->weights().at(i).wgt;
-        const double w = w0/(enforceUnitGenWeight_ ? std::abs(lheWeight) : originalWeight);
-        out_genWeights->addWeight(w);
+      for ( unsigned int i=1, n=LHAPDF::numberPDF(1); i<=n; ++i ) {
+        LHAPDF::usePDFMember(1, i);
+        const float xpdf1_syst = LHAPDF::xfx(1, x1, q, id1);
+        const float xpdf2_syst = LHAPDF::xfx(1, x2, q, id2);
+        out_genWeights->addWeight(xpdf1_syst*xpdf2_syst/w0);
       }
     }
-    else
-    {
-      for ( size_t i=0; i<genInfoHandle->weights().size(); ++i )
-      {
-        const double w0 = genInfoHandle->weights().at(i);
-        const double w = w0/(enforceUnitGenWeight_ ? std::abs(genWeight) : originalWeight);
-        out_genWeights->addWeight(w);
+    else {
+      if ( lheHandle.isValid() ) {
+        for ( size_t i=0; i<lheHandle->weights().size(); ++i ) {
+          const double w0 = lheHandle->weights().at(i).wgt;
+          const double w = w0/(enforceUnitGenWeight_ ? std::abs(lheWeight) : originalWeight);
+          out_genWeights->addWeight(w);
+        }
+      }
+      else {
+        for ( size_t i=0; i<genInfoHandle->weights().size(); ++i ) {
+          const double w0 = genInfoHandle->weights().at(i);
+          const double w = w0/(enforceUnitGenWeight_ ? std::abs(genWeight) : originalWeight);
+          out_genWeights->addWeight(w);
+        }
       }
     }
   }
