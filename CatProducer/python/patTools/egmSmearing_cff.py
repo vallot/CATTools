@@ -4,7 +4,7 @@ import FWCore.ParameterSet.Config as cms
 ## https://twiki.cern.ch/twiki/bin/view/CMS/EGMSmearer
 
 def enableElectronSmearing(process, runOnMC=True):
-    process.load('EgammaAnalysis.ElectronTools.calibratedElectronsRun2_cfi')
+    process.load('EgammaAnalysis.ElectronTools.calibratedPatElectronsRun2_cfi')
 
     process.RandomNumberGeneratorService.calibratedPatElectrons = cms.PSet(
         initialSeed = cms.untracked.uint32(81),
@@ -19,7 +19,7 @@ def enableElectronSmearing(process, runOnMC=True):
     return process
 
 def enablePhotonSmearing(process, runOnMC=True):
-    process.load('EgammaAnalysis.ElectronTools.calibratedPhotonsRun2_cfi')
+    process.load('EgammaAnalysis.ElectronTools.calibratedPatPhotonsRun2_cfi')
 
     process.RandomNumberGeneratorService.calibratedPatPhotons = cms.PSet(
         initialSeed = cms.untracked.uint32(81),
