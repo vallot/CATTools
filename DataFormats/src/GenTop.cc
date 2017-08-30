@@ -882,6 +882,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
   dRaddcJetsHad_ = 0;
   dRcJets_ = 0;
   dRcJetsHad_ = 0;
+  dRbJetsFromHiggs_ = 0;
 
   if( addJets.size() >= 2) dRaddJets_ = reco::deltaR(addJets[0], addJets[1]);
   if( addbJetsBHad.size() >= 2) dRaddbJetsHad_ = reco::deltaR(addbJetsBHad[0], addbJetsBHad[1]);
@@ -890,7 +891,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
   if( addbJets.size() >= 2) dRaddbJets_ = reco::deltaR(addbJets[0], addbJets[1]);
   if( addcJets.size() >= 2) dRaddcJets_ = reco::deltaR(addcJets[0], addcJets[1]);
   if( cJets.size() >= 2) dRcJets_ = reco::deltaR(cJets[0], cJets[1]);
-
+  if( HbJets.size() >= 2) dRbJetsFromHiggs_ = reco::deltaR(HbJets[0], HbJets[1]);
   //debug
   //cout << "NJetsW = " << JetsFromW.size() << endl;
   //for (unsigned int iW =0; iW < JetsFromW.size(); iW ++) cout << iW << " " << JetsFromW[iW].pt() << " - " << JetsFlavourFromW[iW] << endl;

@@ -119,6 +119,10 @@ namespace cat {
       if( i == 0){ return dRaddcJetsHad_; }
       else return dRaddcJets_;
     }
+
+    float dRbJetsFromHiggs() const{
+      return dRbJetsFromHiggs_; 
+    }
  
     float dRcJets(int i=0) const {
       if( i == 0){ return dRcJetsHad_; }
@@ -430,6 +434,8 @@ namespace cat {
     float dRaddbJetsHad_;
     float dRaddcJetsHad_;
     float dRcJetsHad_;
+   
+    float dRbJetsFromHiggs_;
 
 
   };
