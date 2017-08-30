@@ -17,7 +17,8 @@ GenTop::GenTop(){
   cJets_ = {null, null};
   bJets_ = {null, null, null, null};
   bJetsFromTop_ = {null, null};
-  upJet_ = {null};
+  Hbquarks_ = {null, null};
+  upquark_ = {null};
   HbJets_ = {null, null};
   Higgs_ = {null};
   JetsFromW_= {null, null, null, null};
@@ -48,7 +49,9 @@ GenTop::GenTop(const reco::Candidate & aGenTop) : reco::LeafCandidate(aGenTop) {
   addbJets_ = {null, null};
   addcJets_ = {null, null};
   bJetsFromTop_ = {null, null};
-  upJet_ = {null};
+  
+  Hbquarks_ = {null, null};
+  upquark_ = {null};
   HbJets_ = {null, null};
   Higgs_ = {null};
   JetsFromW_= {null, null, null, null};
@@ -66,7 +69,6 @@ GenTop::~GenTop() {
 void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenParticleCollection> genParticles, 
                       Handle<std::vector<int> > genBHadFlavour, Handle<std::vector<int> > genBHadJetIndex, 
                       Handle<std::vector<int> > genCHadFlavour, Handle<std::vector<int> > genCHadJetIndex){
-
   math::XYZTLorentzVector null(0,0,0,0);
 
   std::vector<bool> electronic = {false, false};
@@ -143,18 +145,18 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
         const unsigned int nHDaughters = daugh->numberOfDaughters();
         int nHbquarkDaughters = 0;
         for ( unsigned iHDaughter=0; iHDaughter<nHDaughters; ++iHDaughter ) {
-          if( nHbquarkDaughters == 2) continue;
+          if( nHbquarkDaughters == 2) break;
           const reco::Candidate* decay = daugh->daughter(iHDaughter);
           int decayId = abs(decay->pdgId());
           if ( decayId == 5 ) {
-            HbJets_[nHbquarkDaughters] = decay->p4();
+            Hbquarks_[nHbquarkDaughters] = decay->p4();
             nHbquarkDaughters++;
           }
         }
         continue;
       }
       if ( abs(daugh->pdgId()) == 2 || abs(daugh->pdgId()) ==  4 ) {
-        upJet_[0] = daugh->p4();  
+        upquark_[0] = daugh->p4();
       }
       // end of FCNH side
 
@@ -406,6 +408,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
   std::vector<math::XYZTLorentzVector> cJetsCHad;
   std::vector<math::XYZTLorentzVector> addcJetsCHad;
   std::vector<math::XYZTLorentzVector> addJets;
+  std::vector<math::XYZTLorentzVector> HbJets;
 
   NJets_ = 0;
   NJets10_ = 0;
@@ -426,6 +429,8 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
   std::map<int, int> cJetAdditionalIds;
   std::map<int, int> bJetIds;
   std::map<int, int> cJetIds;
+  // B jets with b hadrns from Higgs decay
+  std::map<int, int> bJetFromHiggsIds;
 
   // Count number of specific b hadrons in each c jet
   for(size_t hadronId = 0; hadronId < genBHadJetIndex->size(); ++hadronId) {
@@ -449,6 +454,13 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
       else bJetFromWIds[jetIndex]++;
       continue;
     }
+    // Jet from Higgs->bbbar decay [pdgId(W)=25]
+    if(std::abs(flavour) == 25) {
+      if(bJetFromHiggsIds.count(jetIndex) < 1) bJetFromHiggsIds[jetIndex] = 1;
+      else bJetFromHiggsIds[jetIndex]++;
+      continue;
+    }    
+
     // Identify jets with b hadrons not from top-quark or W-boson decay
     if(bJetAdditionalIds.count(jetIndex) < 1) bJetAdditionalIds[jetIndex] = 1;
     else bJetAdditionalIds[jetIndex]++;
@@ -594,6 +606,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
 	JetsFromW.push_back( gJet.p4() );
 	JetsFlavourFromW.push_back( 5 );
       }    
+      if( bJetFromHiggsIds.count(idx) > 0) HbJets.push_back( gJet.p4() );
     }
     
     if(cJetIds.count(idx) > 0){
@@ -740,6 +753,10 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
 
   for( unsigned int i = 0 ; i < bJetsFromTop.size() ; i++){
     bJetsFromTop_[i] = bJetsFromTop[i];
+  }
+
+  for( unsigned int i = 0 ; i < HbJets.size() ; i++){
+    HbJets_[i] = HbJets[i];
   }
 
   for( unsigned int i = 0 ; i < JetsFromW.size() ; i++){
