@@ -14,6 +14,8 @@ def enableElectronSmearing(process, runOnMC=True):
     process.calibratedPatElectrons.isMC = runOnMC
     process.catElectrons.src = "calibratedPatElectrons"
 
+    process.calibratedPatElectrons.correctionFile = "EgammaAnalysis/ElectronTools/data/ScalesSmearings/Moriond17_23Jan_ele"
+
     return process
 
 def enablePhotonSmearing(process, runOnMC=True):
@@ -26,6 +28,8 @@ def enablePhotonSmearing(process, runOnMC=True):
 
     process.calibratedPatPhotons.isMC = runOnMC
     process.catPhotons.src = "calibratedPatPhotons"
+
+    process.calibratedPatPhotons.correctionFile = "EgammaAnalysis/ElectronTools/data/ScalesSmearings/Moriond17_74x_pho"
 
     return process
 
