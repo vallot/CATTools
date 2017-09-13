@@ -1,7 +1,7 @@
 scram project -n cattools CMSSW_8_0_29
 cd cattools/src
 cmsenv
-git-cms-init
+git-cms-init -q
 git checkout -b cat80x
 
 git-cms-addpkg RecoEgamma/ElectronIdentification
