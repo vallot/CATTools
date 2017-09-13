@@ -11,9 +11,14 @@ git-cms-addpkg RecoBTag/DeepFlavour
 
 sed -i 's/badGlobalMuonTagger.clone/badGlobalMuonTaggerMAOD.clone/g' RecoMET/METFilters/python/badGlobalMuonTaggersMiniAOD_cff.py
 
-git cms-merge-topic -u Sam-Harper:HEEPV70VID_8010_ReducedCheckout  #brings in HEEP V70 into VID
-git cms-merge-topic -u ikrav:egm_id_80X_v3 #for other E/gamma IDs in VID if you wish to have them
-git cms-merge-topic -u Sam-Harper:PackedCandNoPuppi #only necessary to run HEEP V70 on AOD
+#brings in HEEP V70 into VID
+git cms-merge-topic -u Sam-Harper:HEEPV70VID_8010_ReducedCheckout
+
+#for other E/gamma IDs in VID if you wish to have them
+git cms-merge-topic -u ikrav:egm_id_80X_v3
+
+#only necessary to run HEEP V70 on AOD
+git cms-merge-topic -u Sam-Harper:PackedCandNoPuppi 
 git-cms-merge-topic -u cms-egamma:EGM_gain_v1
 git-cms-merge-topic -u ikrav:egm_id_80X_v3_photons
 
@@ -37,7 +42,7 @@ rm -rf data1 data2 data3
 
 git clone https://github.com/vallot/CATTools
 cd CATTools
-git checkout -b v8-0-7 master ## should be changed
+git checkout -b v8-0-7 v8-0-7
 git submodule init
 git submodule update
 cd ..
