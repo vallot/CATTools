@@ -1,5 +1,5 @@
-scram project -n v807 CMSSW_8_0_29
-cd v807/src
+scram project -n cattools CMSSW_8_0_29
+cd cattools/src
 cmsenv
 git-cms-init
 git checkout -b cat80x
