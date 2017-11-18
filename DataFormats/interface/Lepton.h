@@ -65,6 +65,25 @@ namespace cat {
     // to be undated with shifts on the fly!
     /* float shiftedEnDown() const {return  shiftedEnDown_;} */
     /* float shiftedEnUp() const {return  shiftedEnUp_;} */
+    const std::vector<reco::Particle::LorentzVector> chIsoCandidates(){
+      return chIsoCandidates_;
+    }
+    const std::vector<reco::Particle::LorentzVector> nhIsoCandidates(){
+      return nhIsoCandidates_;
+    }
+    const std::vector<reco::Particle::LorentzVector> phIsoCandidates(){
+      return phIsoCandidates_;
+    }
+
+    void setChIsoCandidates( std::vector<reco::Particle::LorentzVector> chIsoCandidates ){
+      chIsoCandidates_ = chIsoCandidates;
+    }
+    void setNhIsoCandidates( std::vector<reco::Particle::LorentzVector> nhIsoCandidates ){
+      nhIsoCandidates_ = nhIsoCandidates;
+    }
+    void setPhIsoCandidates( std::vector<reco::Particle::LorentzVector> phIsoCandidates ){
+      phIsoCandidates_ = phIsoCandidates;
+    }
 
     bool mcMatched() const { return mcMatched_; }
 
@@ -99,6 +118,10 @@ namespace cat {
 
     float dz_;
     float dxy_;
+
+    std::vector<reco::Particle::LorentzVector> chIsoCandidates_;
+    std::vector<reco::Particle::LorentzVector> nhIsoCandidates_;
+    std::vector<reco::Particle::LorentzVector> phIsoCandidates_;
 
     float chargedHadronIso03_;
     float puChargedHadronIso03_;
