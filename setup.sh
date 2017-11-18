@@ -1,6 +1,3 @@
-scram project -n cattools CMSSW_8_0_29
-cd cattools/src
-cmsenv
 git-cms-init -q
 git checkout -b cat80x
 
@@ -42,7 +39,7 @@ rm -rf data1 data2 data3
 
 git clone https://github.com/vallot/CATTools
 cd CATTools
-git checkout -b v8-0-7 v8-0-7
+git checkout -b cat80x  
 git submodule init
 git submodule update
 cd ..
