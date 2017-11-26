@@ -11,6 +11,7 @@ options.register('useMiniAOD', True, VarParsing.multiplicity.singleton, VarParsi
 options.register('globalTag', '', VarParsing.multiplicity.singleton, VarParsing.varType.string, "globalTag: 1  default")
 options.register('runGenTop', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runGenTop: 1  default")
 options.register('isSignal', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "isSignal: 1 default")
+options.register('doSkim', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "doSkim: 0 default")
 
 options.parseArguments()
 runOnMC = options.runOnMC
@@ -48,11 +49,13 @@ if runOnMC:
     if isMCSignal:
         process.genWeight.keepFirstOnly = False
         process.catOut.outputCommands.extend(catEventContentMCSignal)
-        process.catSkimEvent.minNJets = 2
-        process.catSkimEvent.minNLeptons = 1
 else: 
     process.catOut.outputCommands.extend(catEventContentRD)
-    
+
+if options.doSkim:
+    process.catSkimEvent.minNJets = 2
+    process.catSkimEvent.minNLeptons = 1
+
 if runGenTop:
     process.load("CATTools.CatProducer.mcTruthTop.mcTruthTop_cff")
     process.catOut.outputCommands.extend(catEventContentTOPMC)
