@@ -48,6 +48,8 @@ if runOnMC:
     if isMCSignal:
         process.genWeight.keepFirstOnly = False
         process.catOut.outputCommands.extend(catEventContentMCSignal)
+        process.catSkimEvent.minNJets = 2
+        process.catSkimEvent.minNLeptons = 1
 else: 
     process.catOut.outputCommands.extend(catEventContentRD)
     

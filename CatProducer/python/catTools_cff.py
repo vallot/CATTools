@@ -135,4 +135,6 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         ## Electron ID without isolation cuts
         from CATTools.CatProducer.patTools.egmNoIsoID_cff import enableElectronNoIsoID
         process = enableElectronNoIsoID(process)
-       
+
+        process.catSkimEvent.electronIdNames = process.catElectrons.electronIDs
+
