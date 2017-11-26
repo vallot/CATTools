@@ -45,8 +45,6 @@ for d in datasets:
     if runOnMC:
         opts['globalTag'] = cat.globalTag_mc
         opts['runOnMC'] = "True"
-        if dataset.startswith('/TT') or dataset.startswith("/tt"): opts['runGenTop'] = "True"
-        if dataset.startswith('/TTTT_'): opts['runGenTop'] = "False"
     else:
         opts['globalTag'] = cat.globalTag_rd
         opts['runOnMC'] = "False"
@@ -65,7 +63,7 @@ for d in datasets:
 
 ## Now job configuration is almost ready. Use CrabAPI to configure jobs
 from WMCore.Configuration import Configuration
-def initConfig(runOnMC):
+def initConfig(runOnMC, reqName):
     config = Configuration()
 
     config.section_("General")
@@ -82,15 +80,11 @@ def initConfig(runOnMC):
 
     config.section_("Site")
     config.Site.storageSite = 'T3_KR_KISTI'
-    config.Data.outLFNDirBase = '/store/group/CAT/' 
+    config.Data.outLFNDirBase = '/store/group/CAT/%s' % reqName
 
-    if runOnMC:
-        config.Data.splitting='FileBased'
-        config.Data.unitsPerJob=1 
-    else:
-        config.Data.splitting = 'LumiBased'
-        config.Data.unitsPerJob = 40
-        config.Data.lumiMask = os.environ['CMSSW_BASE']+'/src/CATTools/CatProducer/data/LumiMask/'+cat.lumiJSON+".txt"
+    config.Data.splitting='FileBased'
+    config.Data.unitsPerJob=1 
+
     return config
 
 ## Start job submission
@@ -102,10 +96,10 @@ from tempfile import mkstemp
 for name, dataset, opts in queuesRD:
     print "@@@ Creating", name
     label = dataset.split('/')[1]+'_'+dataset.split('/')[2]
-    config = initConfig(False)
+    config = initConfig(False, reqName)
     config.General.requestName = '%s_%s' % (reqName, label)
     config.Data.inputDataset = dataset
-    config.Data.outputDatasetTag = '%s_%s' % (reqName, dataset.split('/')[2])
+    config.Data.outputDatasetTag = dataset.split('/')[2]
     config.JobType.pyCfgParams = opts
     fd, fName = mkstemp(suffix='.py')
     f = os.fdopen(fd, 'w')
@@ -123,10 +117,10 @@ for name, dataset, opts in queuesRD:
 for name, dataset, opts in queuesMC:
     print "@@@ Creating", name
     label = dataset.split('/')[1]
-    config = initConfig(True)
+    config = initConfig(True, reqName)
     config.General.requestName = '%s_%s' % (reqName, label)
     config.Data.inputDataset = dataset
-    config.Data.outputDatasetTag = '%s_%s' % (reqName, dataset.split('/')[2])
+    config.Data.outputDatasetTag = dataset.split('/')[2]
     config.JobType.pyCfgParams = opts
     fd, fName = mkstemp(suffix='.py')
     f = os.fdopen(fd, 'w')
