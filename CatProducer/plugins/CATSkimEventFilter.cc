@@ -54,6 +54,8 @@ using namespace std;
 
 bool CATSkimEventFilter::filter(edm::Event& event, const edm::EventSetup&)
 {
+  if ( minNLeptons_ == 0 and minNJets_ == 0 ) return true;
+
   edm::Handle<cat::ElectronCollection> electronsHandle;
   event.getByToken(electronsToken_, electronsHandle);
 
@@ -73,7 +75,7 @@ bool CATSkimEventFilter::filter(edm::Event& event, const edm::EventSetup&)
     const double pt = ele.pt()*ele.shiftedEnDown()*std::min(1.F, ele.smearedScale());
     if ( pt < minLeptonPt_ ) continue;
 
-    bool passId = (ele.isVeto() or !ele.isMediumMVA() or !ele.isTightMVA());
+    bool passId = false; //(ele.isVeto() or !ele.isMediumMVA() or !ele.isTightMVA());
     passId = (passId or ele.snuID());
     for ( auto& idName : electronIdNames_ ) {
       if ( ele.electronID(idName) != 0 ) {
@@ -106,7 +108,7 @@ bool CATSkimEventFilter::filter(edm::Event& event, const edm::EventSetup&)
     const double pt = jet.pt()*jet.shiftedEnDown()*jet.smearedResDown();
     if ( pt < minJetPt_ ) continue;
 
-    bool passId = (jet.looseJetID() or jet.tightJetID() or jet.tightLepVetoJetID() or jet.pileupJetId());
+    bool passId = (jet.looseJetID() or jet.tightJetID() or jet.tightLepVetoJetID() );
     
     if ( !passId ) continue;
     ++nJets;
