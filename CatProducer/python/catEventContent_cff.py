@@ -6,6 +6,7 @@ catEventContentRD = cms.untracked.vstring()
 catEventContentMCSignal = cms.untracked.vstring()
 catEventContentTOPMC = cms.untracked.vstring()
 catEventContentSecVertexs = cms.untracked.vstring()
+catEventContentTOPParticleLevel = cms.untracked.vstring()
 
 catEventContent.extend([
     'drop *',
@@ -48,13 +49,16 @@ catEventContentMCSignal.extend([
 catEventContentTOPMC.extend([
     'keep *_GenTtbarCategories*_*_*',
     'keep *_catGenTops_*_*',
+    'keep *_genJetHadronFlavour_*_*',
+])
+
+catEventContentTOPParticleLevel.extend([
     #'keep *_partonTop_*_*', ## Can be built on the fly from prunedGenParticles
     'keep *_particleLevel_*_*',
     'drop *_particleLevel_consts_*',
     'drop *_particleLevel_photons_*',
     'drop *_particleLevel_fatjets_*',
-    'keep *_genJetHadronFlavour_*_*',
-    ])
+])
 
 catEventContentSecVertexs.extend([
     'keep *_catSecVertexs_*_*',
