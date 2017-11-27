@@ -31,11 +31,11 @@ import json
 datasets = json.load(open(js))
 queuesRD, queuesMC = [], []
 for d in datasets:
+    name = d['name']
     dataset = d['DataSetName']
     if len(dataset) == 0: continue
     pdName, sdName = dataset.split('/')[1], dataset.split('/')[2]
-    if os.path.exists('crab_%s_%s' % (reqName, pdName)): continue
-    elif os.path.exists('crab_%s_%s_%s' % (reqName, pdName, sdName)): continue
+    if os.path.exists('crab_%s_%s' % (reqName, name)): continue
     if len(d['path']) != 0: continue
 
     runOnMC = (d['type'] != 'Data')
@@ -58,8 +58,8 @@ for d in datasets:
     ## List-fy opts to use in crab API
     opts = [str("%s=%s" % (key, opts[key])) for key in opts]
 
-    if d['type'] == 'Data': queuesRD.append((d['name'], dataset, opts))
-    else: queuesMC.append((d['name'], dataset, opts))
+    if d['type'] == 'Data': queuesRD.append((name, dataset, opts))
+    else: queuesMC.append((name, dataset, opts))
 
 ## Now job configuration is almost ready. Use CrabAPI to configure jobs
 from WMCore.Configuration import Configuration
@@ -95,9 +95,8 @@ import time
 from tempfile import mkstemp
 for name, dataset, opts in queuesRD:
     print "@@@ Creating", name
-    label = dataset.split('/')[1]+'_'+dataset.split('/')[2]
     config = initConfig(False, reqName)
-    config.General.requestName = '%s_%s' % (reqName, label)
+    config.General.requestName = '%s_%s' % (reqName, name)
     config.Data.inputDataset = dataset
     config.Data.outputDatasetTag = dataset.split('/')[2]
     config.JobType.pyCfgParams = opts
@@ -116,9 +115,8 @@ for name, dataset, opts in queuesRD:
 ## Submit MC jobs
 for name, dataset, opts in queuesMC:
     print "@@@ Creating", name
-    label = dataset.split('/')[1]
     config = initConfig(True, reqName)
-    config.General.requestName = '%s_%s' % (reqName, label)
+    config.General.requestName = '%s_%s' % (reqName, name)
     config.Data.inputDataset = dataset
     config.Data.outputDatasetTag = dataset.split('/')[2]
     config.JobType.pyCfgParams = opts
