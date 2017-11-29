@@ -153,7 +153,7 @@ for d in ds:
         if currentVersion > tempVersion:
             tempVersion = currentVersion
             pathname = ll 
-    print pathname
+    if len(pathname) == 0: print pathname
 
     pp = d['path']
     d['files'] = []
@@ -178,7 +178,7 @@ for d in ds:
     if not pathname in pp:
         unmatching.append(pathname)
     if len(d['files']) == 0:
-        emptydirectory.append(pdName)
+        emptydirectory.append(d['name'])
 print "-"*80
 
 if len(unmatching) > 0:
