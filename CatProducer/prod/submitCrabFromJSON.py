@@ -4,6 +4,7 @@ import sys, os
 if len(sys.argv) < 2 or '-h' in sys.argv or '--help' in sys.argv:
     print "Usage: %s vX-Y-Z" % sys.argv[0]
     print "or, you can put your own 'catGetDatasetInfo'-compatible json file"
+    print "       %s dataset.json vX-Y-Z" % sys.argv[0]
     sys.exit(0)
 
 doSubmit = True 
