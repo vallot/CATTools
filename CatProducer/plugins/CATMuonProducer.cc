@@ -156,6 +156,43 @@ void cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & 
     aMuon.setPhotonIso03( aPatMuon.pfIsolationR03().sumPhotonEt );
     aMuon.setPUChargedHadronIso03( aPatMuon.pfIsolationR03().sumPUPt );
 
+    std::vector<reco::Particle::LorentzVector> chIsoTmp;
+    for (const pat::PackedCandidate &pfc : *pfcands){
+      const unsigned int absId = std::abs(pfc.pdgId());
+      if( absId ==  211 ) {
+        double dR = deltaR( aPatMuon.p4(), pfc.p4() );
+        if( dR < 0.3 ){
+          chIsoTmp.push_back(pfc.p4());
+        }
+      }
+    }
+    aMuon.setChIsoCandidates( chIsoTmp );
+
+    std::vector<reco::Particle::LorentzVector> nhIsoTmp;
+    for (const pat::PackedCandidate &pfc : *pfcands){
+      const unsigned int absId = std::abs(pfc.pdgId());
+      if( absId ==  130 ) {
+        double dR = deltaR( aPatMuon.p4(), pfc.p4() );
+        if( dR < 0.3 ){
+          if( pfc.p4().pt() > 0.5) nhIsoTmp.push_back(pfc.p4());
+        }
+      }
+    }
+    aMuon.setNhIsoCandidates( nhIsoTmp );
+
+    std::vector<reco::Particle::LorentzVector> phIsoTmp;
+    for (const pat::PackedCandidate &pfc : *pfcands){
+      const unsigned int absId = std::abs(pfc.pdgId());
+      if( absId ==  22 ) {
+        double dR = deltaR( aPatMuon.p4(), pfc.p4() );
+        if( dR < 0.3 ){
+          if( pfc.p4().pt() > 0.5) phIsoTmp.push_back(pfc.p4());
+        }
+      }
+    }
+    aMuon.setPhIsoCandidates( phIsoTmp );
+
+ 
     aMuon.setMiniRelIso(getMiniRelIso( pfcands, aMuon.p4(), 0.05, 0.2, 10.));
     aMuon.setIsGlobalMuon( aPatMuon.isGlobalMuon() );
     aMuon.setIsTrackerMuon( aPatMuon.isTrackerMuon() );
