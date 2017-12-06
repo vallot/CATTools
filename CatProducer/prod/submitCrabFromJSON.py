@@ -4,6 +4,7 @@ import sys, os
 if len(sys.argv) < 2 or '-h' in sys.argv or '--help' in sys.argv:
     print "Usage: %s vX-Y-Z" % sys.argv[0]
     print "or, you can put your own 'catGetDatasetInfo'-compatible json file"
+    print "       %s dataset.json vX-Y-Z" % sys.argv[0]
     sys.exit(0)
 
 doSubmit = True 
@@ -31,11 +32,11 @@ import json
 datasets = json.load(open(js))
 queuesRD, queuesMC = [], []
 for d in datasets:
+    name = d['name']
     dataset = d['DataSetName']
     if len(dataset) == 0: continue
     pdName, sdName = dataset.split('/')[1], dataset.split('/')[2]
-    if os.path.exists('crab_%s_%s' % (reqName, pdName)): continue
-    elif os.path.exists('crab_%s_%s_%s' % (reqName, pdName, sdName)): continue
+    if os.path.exists('crab_%s_%s' % (reqName, name)): continue
     if len(d['path']) != 0: continue
 
     runOnMC = (d['type'] != 'Data')
@@ -45,8 +46,6 @@ for d in datasets:
     if runOnMC:
         opts['globalTag'] = cat.globalTag_mc
         opts['runOnMC'] = "True"
-        if dataset.startswith('/TT') or dataset.startswith("/tt"): opts['runGenTop'] = "True"
-        if dataset.startswith('/TTTT_'): opts['runGenTop'] = "False"
     else:
         opts['globalTag'] = cat.globalTag_rd
         opts['runOnMC'] = "False"
@@ -60,12 +59,12 @@ for d in datasets:
     ## List-fy opts to use in crab API
     opts = [str("%s=%s" % (key, opts[key])) for key in opts]
 
-    if d['type'] == 'Data': queuesRD.append((d['name'], dataset, opts))
-    else: queuesMC.append((d['name'], dataset, opts))
+    if d['type'] == 'Data': queuesRD.append((name, dataset, opts))
+    else: queuesMC.append((name, dataset, opts))
 
 ## Now job configuration is almost ready. Use CrabAPI to configure jobs
 from WMCore.Configuration import Configuration
-def initConfig(runOnMC):
+def initConfig(runOnMC, reqName):
     config = Configuration()
 
     config.section_("General")
@@ -82,15 +81,11 @@ def initConfig(runOnMC):
 
     config.section_("Site")
     config.Site.storageSite = 'T3_KR_KISTI'
-    config.Data.outLFNDirBase = '/store/group/CAT/' 
+    config.Data.outLFNDirBase = '/store/group/CAT/%s' % reqName
 
-    if runOnMC:
-        config.Data.splitting='FileBased'
-        config.Data.unitsPerJob=1 
-    else:
-        config.Data.splitting = 'LumiBased'
-        config.Data.unitsPerJob = 40
-        config.Data.lumiMask = os.environ['CMSSW_BASE']+'/src/CATTools/CatProducer/data/LumiMask/'+cat.lumiJSON+".txt"
+    config.Data.splitting='FileBased'
+    config.Data.unitsPerJob=1 
+
     return config
 
 ## Start job submission
@@ -101,11 +96,10 @@ import time
 from tempfile import mkstemp
 for name, dataset, opts in queuesRD:
     print "@@@ Creating", name
-    label = dataset.split('/')[1]+'_'+dataset.split('/')[2]
-    config = initConfig(False)
-    config.General.requestName = '%s_%s' % (reqName, label)
+    config = initConfig(False, reqName)
+    config.General.requestName = '%s_%s' % (reqName, name)
     config.Data.inputDataset = dataset
-    config.Data.outputDatasetTag = '%s_%s' % (reqName, dataset.split('/')[2])
+    config.Data.outputDatasetTag = dataset.split('/')[2]
     config.JobType.pyCfgParams = opts
     fd, fName = mkstemp(suffix='.py')
     f = os.fdopen(fd, 'w')
@@ -122,11 +116,10 @@ for name, dataset, opts in queuesRD:
 ## Submit MC jobs
 for name, dataset, opts in queuesMC:
     print "@@@ Creating", name
-    label = dataset.split('/')[1]
-    config = initConfig(True)
-    config.General.requestName = '%s_%s' % (reqName, label)
+    config = initConfig(True, reqName)
+    config.General.requestName = '%s_%s' % (reqName, name)
     config.Data.inputDataset = dataset
-    config.Data.outputDatasetTag = '%s_%s' % (reqName, dataset.split('/')[2])
+    config.Data.outputDatasetTag = dataset.split('/')[2]
     config.JobType.pyCfgParams = opts
     fd, fName = mkstemp(suffix='.py')
     f = os.fdopen(fd, 'w')

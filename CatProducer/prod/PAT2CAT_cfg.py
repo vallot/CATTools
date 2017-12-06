@@ -10,7 +10,9 @@ options.register('runOnMC', True, VarParsing.multiplicity.singleton, VarParsing.
 options.register('useMiniAOD', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "useMiniAOD: 1  default")
 options.register('globalTag', '', VarParsing.multiplicity.singleton, VarParsing.varType.string, "globalTag: 1  default")
 options.register('runGenTop', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runGenTop: 1  default")
+options.register('runParticleTop', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runParticleTop: 0  default")
 options.register('isSignal', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "isSignal: 1 default")
+options.register('doSkim', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "doSkim: 0 default")
 
 options.parseArguments()
 runOnMC = options.runOnMC
@@ -18,6 +20,8 @@ useMiniAOD = options.useMiniAOD
 globalTag = options.globalTag
 if runOnMC: runGenTop = options.runGenTop
 else: runGenTop = False
+runParticleTop = False
+if runOnMC and options.runParticleTop: runParticleTop = True
 isMCSignal = (runOnMC and options.isSignal == True)
 
 ####################################################################
@@ -35,7 +39,7 @@ print "process.GlobalTag.globaltag =",process.GlobalTag.globaltag
 ####################################################################
 #### cat tools output
 ####################################################################
-process.load("CATTools.CatProducer.catCandidates_cff")    
+process.load("CATTools.CatProducer.catCandidates_cff")
 process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
 from CATTools.CatProducer.catEventContent_cff import *
 process.catOut.outputCommands = catEventContent
@@ -50,13 +54,20 @@ if runOnMC:
         process.catOut.outputCommands.extend(catEventContentMCSignal)
 else: 
     process.catOut.outputCommands.extend(catEventContentRD)
-    
+
+if options.doSkim:
+    process.catSkimEvent.minNJets = 2
+    process.catSkimEvent.minNLeptons = 1
+
 if runGenTop:
     process.load("CATTools.CatProducer.mcTruthTop.mcTruthTop_cff")
     process.catOut.outputCommands.extend(catEventContentTOPMC)
     # for GenTtbarCategories
     from CATTools.CatProducer.Tools.tools import *
     genHFTool(process, useMiniAOD)
+    if runParticleTop:
+        process.load("CATTools.CatProducer.mcTruthTop.particleTop_cff")
+        process.catOut.outputCommands.extend(catEventContentTOPParticleLevel)
 
 if doSecVertex:
     process.catOut.outputCommands.extend(catEventContentSecVertexs)

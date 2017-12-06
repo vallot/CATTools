@@ -138,7 +138,10 @@ for d in ds:
     if len(dataSetName) < 4: continue
 
     pdName, sdName = dataSetName[1], dataSetName[2]
-    path = "%s/%s/%s_%s" % (storageprefix, pdName, era, sdName)
+    if [int(x) for x in era[1:].split('-')] >= [8,0,8]:
+        path = "%s/%s/%s/%s" % (storageprefix, era, pdName, sdName)
+    else:
+        path = "%s/%s/%s_%s" % (storageprefix, pdName, era, sdName)
     pathname = ''
     ## #pathnames = map( lambda x: x, listxrd(path)[0] )
     ## pathnames = listxrd(path)[0]
@@ -150,7 +153,7 @@ for d in ds:
         if currentVersion > tempVersion:
             tempVersion = currentVersion
             pathname = ll 
-    print pathname
+    if len(pathname) == 0: print pathname
 
     pp = d['path']
     d['files'] = []
@@ -175,7 +178,7 @@ for d in ds:
     if not pathname in pp:
         unmatching.append(pathname)
     if len(d['files']) == 0:
-        emptydirectory.append(pdName)
+        emptydirectory.append(d['name'])
 print "-"*80
 
 if len(unmatching) > 0:
