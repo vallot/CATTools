@@ -56,7 +56,7 @@ bool CATTriggerBitCombiner::filter(edm::Event& event, const edm::EventSetup&)
     std::cout << "Inconsistent number of trig bits\n";
     std::cout << "From names = " << trigNamesHandle->names().size() << '\n';
     std::cout << "From bits  = " << trigBitsHandle->values().size() << '\n';
-    event.put(std::auto_ptr<int>(new int(0)));
+    event.put(std::unique_ptr<int>(new int(0)));
     return false;
   }
 
@@ -92,7 +92,7 @@ bool CATTriggerBitCombiner::filter(edm::Event& event, const edm::EventSetup&)
   //   combine by and, anything not fired => 0
   //   combine by and, everything fired => ps1*ps2*...
 
-  event.put(std::auto_ptr<int>(new int(result)));
+  event.put(std::unique_ptr<int>(new int(result)));
 
   if ( !doFilter_ ) return true;
   return (result != 0);

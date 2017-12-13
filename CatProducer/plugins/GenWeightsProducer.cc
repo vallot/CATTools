@@ -219,7 +219,7 @@ GenWeightsProducer::GenWeightsProducer(const edm::ParameterSet& pset):
 
 void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
 {
-  std::auto_ptr<cat::GenWeightInfo> out_genWeightInfo(new cat::GenWeightInfo);
+  std::unique_ptr<cat::GenWeightInfo> out_genWeightInfo(new cat::GenWeightInfo);
 
   do {
     // Workaround found in HN, physicstools #3437
@@ -285,7 +285,7 @@ void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
 
   } while ( false );
 
-  run.put(out_genWeightInfo);
+  run.put(std::move(out_genWeightInfo));
 }
 
 void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& eventSetup)

@@ -92,15 +92,15 @@ void TTLLKinSolutionProducer::beginLuminosityBlock(const edm::LuminosityBlock& l
 
 void TTLLKinSolutionProducer::produce(edm::Event& event, const edm::EventSetup&)
 {
-  std::auto_ptr<CandColl> cands(new CandColl);
+  std::unique_ptr<CandColl> cands(new CandColl);
   //auto candsRefProd = event.getRefBeforePut<CRCandColl>();
 
-  std::auto_ptr<floats> out_aux(new floats);
-  std::auto_ptr<floats> out_mLL(new floats);
-  std::auto_ptr<floats> out_mLB(new floats);
-  std::auto_ptr<floats> out_mAddJJ(new floats);
-  std::auto_ptr<floats> out_dphi(new floats);
-  std::auto_ptr<floats> out_quality(new floats);
+  std::unique_ptr<floats> out_aux(new floats);
+  std::unique_ptr<floats> out_mLL(new floats);
+  std::unique_ptr<floats> out_mLB(new floats);
+  std::unique_ptr<floats> out_mAddJJ(new floats);
+  std::unique_ptr<floats> out_dphi(new floats);
+  std::unique_ptr<floats> out_quality(new floats);
 
   std::vector<reco::CandidatePtr> leptons;
   edm::Handle<edm::View<reco::CandidatePtr> > leptonPtrHandle;
@@ -246,13 +246,13 @@ void TTLLKinSolutionProducer::produce(edm::Event& event, const edm::EventSetup&)
     }
   } while (false);
 
-  event.put(cands);
-  event.put(out_aux, "aux");
-  event.put(out_mLL, "mLL");
-  event.put(out_mLB, "mLB");
-  event.put(out_mAddJJ, "mAddJJ");
-  event.put(out_dphi, "dphi");
-  event.put(out_quality, "quality");
+  event.put(std::move(cands));
+  event.put(std::move(out_aux), "aux");
+  event.put(std::move(out_mLL), "mLL");
+  event.put(std::move(out_mLB), "mLB");
+  event.put(std::move(out_mAddJJ), "mAddJJ");
+  event.put(std::move(out_dphi), "dphi");
+  event.put(std::move(out_quality), "quality");
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"
