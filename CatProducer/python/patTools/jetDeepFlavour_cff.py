@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 # https://twiki.cern.ch/twiki/bin/view/CMS/DeepFlavour
 
-from CondCore.DBCommon.CondDBSetup_cfi import *
+from CondCore.CondDB.CondDB_cfi import *
 def enableDeepFlavour(process):
     process.load("RecoBTag.Combined.deepFlavour_cff")
 

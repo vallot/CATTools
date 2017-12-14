@@ -18,7 +18,6 @@ from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
 
 ## Options and Output Report
 process.options = cms.untracked.PSet(
-    allowUnscheduled = cms.untracked.bool(True),
     wantSummary = cms.untracked.bool(True)
 )
 
@@ -39,4 +38,4 @@ process.catOut = cms.OutputModule("PoolOutputModule",
     outputCommands = cms.untracked.vstring('drop *')
 )
 
-process.schedule = cms.Schedule()    
+process.schedule = cms.Schedule()
