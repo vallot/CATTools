@@ -18,4 +18,5 @@ def patTool(process, runOnMC=True, useMiniAOD = True):
         
         process.patJetsPuppi.embedGenPartonMatch = cms.bool(False)
         process.patJetCorrFactorsPuppi.useRho = cms.bool(False)
-    process.schedule.append(process.p)
+
+    return process

@@ -37,5 +37,10 @@ process.catOut = cms.OutputModule("PoolOutputModule",
     fileName = cms.untracked.string('catTuple.root'),
     outputCommands = cms.untracked.vstring('drop *')
 )
+process.catOutPath = cms.EndPath(process.catOut)
+process.catObjectTask = cms.Task()
+process.schedule = cms.Schedule(
+    process.p, process.catOutPath,
+    tasks = process.catObjectTask
+)
 
-process.schedule = cms.Schedule()

@@ -12,9 +12,6 @@ def enableAdditionalMETFilters(process, runOnMC=True):
     process.BadChargedCandidateFilter.muons = cms.InputTag("slimmedMuons")
     process.BadChargedCandidateFilter.PFCandidates = cms.InputTag("packedPFCandidates")
  
-    if not hasattr(process, 'nEventsFiltered'):
-        process.nEventsFiltered = cms.EDProducer("EventCountProducer")
-        process.p += process.nEventsFiltered
-    process.p += (process.BadPFMuonFilter*process.BadChargedCandidateFilter*process.nEventsFiltered)
+    process.p += (process.BadPFMuonFilter*process.BadChargedCandidateFilter)
 
     return process
