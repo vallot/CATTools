@@ -15,7 +15,7 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         process.lumiMask = cms.EDFilter("LumiMaskFilter",
             LumiSections = LumiList('%s/src/CATTools/CatProducer/data/LumiMask/%s.txt'%(os.environ['CMSSW_BASE'], cat.lumiJSON)).getVLuminosityBlockRange())
 
-        process.load("CATTools.CatProducer.eventCleaning.badECALSlewRateMitigationFilter2016_cfi")
+        #process.load("CATTools.CatProducer.eventCleaning.badECALSlewRateMitigationFilter2016_cfi")
     
     useJECfile = True
     jecFiles = cat.JetEnergyCorrection
@@ -84,21 +84,6 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         process.catJetsPuppi.src = cms.InputTag("patJetsPuppiUpdated")
         process.catJetsPuppi.setGenParticle = cms.bool(False)
         ## #######################################################################
-        ## Setup JER
-        ## JER needs random numbers
-        process.RandomNumberGeneratorService.catJets = cms.PSet(
-            engineName = cms.untracked.string('TRandom3'),
-            initialSeed = cms.untracked.uint32(1),
-        )
-        process.RandomNumberGeneratorService.catFatJets = cms.PSet(
-            engineName = cms.untracked.string('TRandom3'),
-            initialSeed = cms.untracked.uint32(1),
-        )
-        process.RandomNumberGeneratorService.catJetsPuppi = cms.PSet(
-            engineName = cms.untracked.string('TRandom3'),
-            initialSeed = cms.untracked.uint32(1),
-        )
-
         ## qg-likelihood
         # check https://twiki.cern.ch/twiki/bin/viewauth/CMS/QGDataBaseVersion
         from CATTools.CatProducer.patTools.jetQGLikelihood_cff import enableQGLikelihood
@@ -114,18 +99,18 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         runMetCorAndUncFromMiniAOD(process, isData= not runOnMC, electronColl=cms.InputTag('calibratedPatElectrons'))
         process.catMETs.src = cms.InputTag("slimmedMETs","","CAT")
 
-        from CATTools.CatProducer.patTools.metMuonRecoMitigation2016_cff import enableMETMuonRecoMitigation2016
-        process = enableMETMuonRecoMitigation2016(process, runOnMC) ## MET input object is overridden in the modifier function
+        #from CATTools.CatProducer.patTools.metMuonRecoMitigation2016_cff import enableMETMuonRecoMitigation2016
+        #process = enableMETMuonRecoMitigation2016(process, runOnMC) ## MET input object is overridden in the modifier function
 
         #######################################################################
         ## Electron regression
-        from CATTools.CatProducer.patTools.egmRegression_cff import enableElectronRegression
-        process = enableElectronRegression(process)
+        #from CATTools.CatProducer.patTools.egmRegression_cff import enableElectronRegression
+        #process = enableElectronRegression(process)
 
         ## Energy/Photon smearing and scale correction
-        from CATTools.CatProducer.patTools.egmSmearing_cff import enableElectronSmearing, enablePhotonSmearing
-        process = enableElectronSmearing(process, runOnMC)
-        process = enablePhotonSmearing(process, runOnMC)
+        #from CATTools.CatProducer.patTools.egmSmearing_cff import enableElectronSmearing, enablePhotonSmearing
+        #process = enableElectronSmearing(process, runOnMC)
+        #process = enablePhotonSmearing(process, runOnMC)
         
         ## Electron/Photon VID
         from CATTools.CatProducer.patTools.egmVersionedID_cff import enableElectronVID, enablePhotonVID

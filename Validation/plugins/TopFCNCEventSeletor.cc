@@ -428,9 +428,9 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
   // use the side-effect of catVertex producer: pv collection size == 1 only if the pv[0] is good vtx
   const bool isGoodPV0 = (nGoodVertex >= 1 and vertexHandle->size() == 1);
 
-  std::auto_ptr<std::vector<cat::Electron> > out_electrons(new std::vector<cat::Electron>());
-  std::auto_ptr<std::vector<cat::Muon> > out_muons(new std::vector<cat::Muon>());
-  std::auto_ptr<std::vector<cat::Jet> > out_jets(new std::vector<cat::Jet>());
+  std::unique_ptr<std::vector<cat::Electron> > out_electrons(new std::vector<cat::Electron>());
+  std::unique_ptr<std::vector<cat::Muon> > out_muons(new std::vector<cat::Muon>());
+  std::unique_ptr<std::vector<cat::Jet> > out_jets(new std::vector<cat::Jet>());
 
   // Compute event weight - from generator, pileup, etc
   float weight = 1.0;
@@ -658,14 +658,14 @@ bool TopFCNCEventSelector::filter(edm::Event& event, const edm::EventSetup&)
     }
   }
 
-  event.put(std::auto_ptr<int>(new int(cutstep)), "cutstep");
-  event.put(std::auto_ptr<int>(new int((int)channel_)), "channel");
-  event.put(std::auto_ptr<float>(new float(weight)), "weight");
-  event.put(std::auto_ptr<float>(new float(met_pt)), "met");
-  event.put(std::auto_ptr<float>(new float(met_phi)), "metphi");
-  event.put(out_electrons, "electrons");
-  event.put(out_muons, "muons");
-  event.put(out_jets, "jets");
+  event.put(std::unique_ptr<int>(new int(cutstep)), "cutstep");
+  event.put(std::unique_ptr<int>(new int((int)channel_)), "channel");
+  event.put(std::unique_ptr<float>(new float(weight)), "weight");
+  event.put(std::unique_ptr<float>(new float(met_pt)), "met");
+  event.put(std::unique_ptr<float>(new float(met_phi)), "metphi");
+  event.put(std::move(out_electrons), "electrons");
+  event.put(std::move(out_muons), "muons");
+  event.put(std::move(out_jets), "jets");
 
   // Apply filter at the given step.
   // "cutstep" variable is set to the failed cut step when exiting the previous loop.

@@ -123,7 +123,7 @@ void CATTriggerProducer::beginLuminosityBlockProduce(edm::LuminosityBlock& lumi,
     filterBits_[name] = 0;
   }
 
-  lumi.put(std::auto_ptr<cat::TriggerNames>(new cat::TriggerNames(filterBits_)));
+  lumi.put(std::unique_ptr<cat::TriggerNames>(new cat::TriggerNames(filterBits_)));
 }
 
 void CATTriggerProducer::produce(edm::Event& event, const edm::EventSetup&)

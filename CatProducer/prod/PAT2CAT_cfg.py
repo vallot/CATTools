@@ -39,58 +39,38 @@ print "process.GlobalTag.globaltag =",process.GlobalTag.globaltag
 ####################################################################
 #### cat tools output
 ####################################################################
-process.load("CATTools.CatProducer.catCandidates_cff")
-process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
-from CATTools.CatProducer.catEventContent_cff import *
-process.catOut.outputCommands = catEventContent
+from CATTools.CatProducer.catCandidates_cff import *
+#process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
 
-if runOnMC:
-    process.load("CATTools.CatProducer.pileupWeight_cff")
-    process.load("CATTools.CatProducer.producers.genWeight_cff")
-    process.catOut.outputCommands.extend(catEventContentMC)
-
-    if isMCSignal:
-        process.genWeight.keepFirstOnly = False
-        process.catOut.outputCommands.extend(catEventContentMCSignal)
-else: 
-    process.catOut.outputCommands.extend(catEventContentRD)
+process = addCatCommonObjects(process)
+if runOnMC: process = addCatCommonMCObjects(process)
+if runParticleTop: process = addCatParticleTopObjects(process)
+if doSecVertex   : process = addCatSecVertexObjects(process)
+if doDstar       : process = addCatDstarObjects(process)
+if isMCSignal:
+    process.genWeight.keepFirstOnly = False
+    process.catOut.outputCommands.extend(catEventContentMCSignal)
 
 if options.doSkim:
     process.catSkimEvent.minNJets = 2
     process.catSkimEvent.minNLeptons = 1
 
-if runGenTop:
-    process.load("CATTools.CatProducer.mcTruthTop.mcTruthTop_cff")
-    process.catOut.outputCommands.extend(catEventContentTOPMC)
-    # for GenTtbarCategories
-    from CATTools.CatProducer.Tools.tools import *
-    genHFTool(process, useMiniAOD)
-    if runParticleTop:
-        process.load("CATTools.CatProducer.mcTruthTop.particleTop_cff")
-        process.catOut.outputCommands.extend(catEventContentTOPParticleLevel)
-
-if doSecVertex:
-    process.catOut.outputCommands.extend(catEventContentSecVertexs)
-
-if doDstar :
-    process.catOut.outputCommands.extend(['keep *_catDstars_*_*',])
-
 from PhysicsTools.PatAlgos.slimming.miniAOD_tools import miniAOD_customizeOutput
 miniAOD_customizeOutput(process.catOut)
     
-process.catOutpath = cms.EndPath(process.catOut)    
-process.schedule.append(process.catOutpath)
-
 ####################################################################
 #### setting up cat tools
 ####################################################################
-from CATTools.CatProducer.catTools_cff import *
-catTool(process, runOnMC, useMiniAOD)
+#from CATTools.CatProducer.catTools_cff import *
+#catTool(process, runOnMC, useMiniAOD)
 ####################################################################
 #### setting up pat tools - miniAOD step or correcting miniAOD
 ####################################################################
 from CATTools.CatProducer.patTools.patTools_cff import *
 patTool(process, runOnMC, useMiniAOD)
+#### Finish Paths and Tasks
+process.nEventsFiltered = cms.EDProducer("EventCountProducer")
+process.p += process.nEventsFiltered
 ####################################################################
 #### cmsRun options
 ####################################################################
@@ -117,7 +97,6 @@ process.MessageLogger.cerr.threshold = 'ERROR'
 process.MessageLogger.suppressWarning = cms.untracked.vstring(["JetPtMismatchAtLowPt", "NullTransverseMomentum"])
 
 ## for debugging
-#process.options.wantSummary = True
 #process.source.skipEvents = cms.untracked.uint32(3000)
 #process.SimpleMemoryCheck = cms.Service("SimpleMemoryCheck",ignoreTotal = cms.untracked.int32(1) )
 #print "process.catOut.outputCommands", process.catOut.outputCommands

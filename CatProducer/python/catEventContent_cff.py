@@ -9,7 +9,6 @@ catEventContentSecVertexs = cms.untracked.vstring()
 catEventContentTOPParticleLevel = cms.untracked.vstring()
 
 catEventContent.extend([
-    'drop *',
     'keep *_nEventsTotal_*_*',
     'keep *_nEventsFiltered_*_*',
     'keep *_catMuons_*_*',
@@ -28,10 +27,6 @@ catEventContent.extend([
     'keep *_lumiMask*_*_*',
     'keep *_fixedGridRhoAll_*_', 'keep *_fixedGridRhoFastjetAll_*_*',
     #'keep *_BadChargedCandidateFilter_*_*', 'keep *_BadPFMuonFilter_*_*',
-    ])
-
-catEventContentRD.extend([
-    'keep *_lumiMask*_*_*',
     ])
 
 catEventContentMC.extend([

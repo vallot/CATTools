@@ -6,7 +6,7 @@ catTrigger = cms.EDProducer("CATTriggerProducer",
 #            cms.InputTag("TriggerResults","","HLT2"),# due to reHLT, this is the first choice
             cms.InputTag("TriggerResults","","HLT"),# if above is not found, falls to default
         ),
-        objects = cms.InputTag("selectedPatTrigger"),
+        objects = cms.InputTag("slimmedPatTrigger"),
         prescales = cms.InputTag("patTrigger"),
         prefix = cms.vstring(
             "HLT_Ele", "HLT_DoubleEle",
