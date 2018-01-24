@@ -19,5 +19,5 @@ commonTestMiniAODs80X = {
 }
 
 commonTestMiniAODs = {
-    "data":cms.untracked.vstring("root://cms-xrd-global.cern.ch//store/data/Run2017H/SingleMuon/MINIAOD/PromptReco-v1/000/306/896/00000/E6B313CF-55D0-E711-A7D0-02163E019CCB.root",),
+    "data":cms.untracked.vstring("/store/data/Run2017C/SingleMuon/MINIAOD/PromptReco-v2/000/300/636/00000/EAE678CC-CD7D-E711-BB81-02163E011A37.root",),
 }
