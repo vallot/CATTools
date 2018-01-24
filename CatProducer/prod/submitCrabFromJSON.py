@@ -53,6 +53,8 @@ for d in datasets:
     ## Override options if it is set from the dataset JSON file
     if 'options' in d:
         for opt in d['options'].split(','):
+            opt = opt.strip()
+            if opt == "": continue
             key, val = opt.split('=')
             opts[key] = val
 
