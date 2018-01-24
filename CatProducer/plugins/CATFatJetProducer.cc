@@ -216,20 +216,20 @@ void cat::CATFatJetProducer::produce(edm::Event & iEvent, const edm::EventSetup 
     } // for MC
 
     // Jet substructure stuff
-    double tau1 = aPatJet.userFloat("NjettinessAK8:tau1");    //
-    double tau2 = aPatJet.userFloat("NjettinessAK8:tau2");    //  Access the n-subjettiness variables
-    double tau3 = aPatJet.userFloat("NjettinessAK8:tau3");    // 
+    double tau1 = aPatJet.userFloat("ak8PFJetsCHSValueMap:NjettinessAK8CHSTau1");    //
+    double tau2 = aPatJet.userFloat("ak8PFJetsCHSValueMap:NjettinessAK8CHSTau2");    //  Access the n-subjettiness variables
+    double tau3 = aPatJet.userFloat("ak8PFJetsCHSValueMap:NjettinessAK8CHSTau3");    // 
 
-    double softdrop_mass = aPatJet.userFloat("ak8PFJetsCHSSoftDropMass"); // access to soft drop mass
-    double pruned_mass = aPatJet.userFloat("ak8PFJetsCHSPrunedMass");     // access to pruned mass
+    double softdrop_mass = aPatJet.userFloat("ak8PFJetsCHSValueMap:ak8PFJetsCHSSoftDropMass"); // access to soft drop mass
+    double pruned_mass = aPatJet.userFloat("ak8PFJetsCHSValueMap:ak8PFJetsCHSPrunedMass");     // access to pruned mass
 
-    double puppi_pt    = aPatJet.userFloat("ak8PFJetsPuppiValueMap:pt");
-    double puppi_mass  = aPatJet.userFloat("ak8PFJetsPuppiValueMap:mass");
-    double puppi_eta   = aPatJet.userFloat("ak8PFJetsPuppiValueMap:eta");
-    double puppi_phi   = aPatJet.userFloat("ak8PFJetsPuppiValueMap:phi");
-    double puppi_tau1  = aPatJet.userFloat("ak8PFJetsPuppiValueMap:NjettinessAK8PuppiTau1");
-    double puppi_tau2  = aPatJet.userFloat("ak8PFJetsPuppiValueMap:NjettinessAK8PuppiTau2");
-    double puppi_tau3  = aPatJet.userFloat("ak8PFJetsPuppiValueMap:NjettinessAK8PuppiTau3");
+    double puppi_pt    = 0; //aPatJet.userFloat("ak8PFJetsPuppiValueMap:pt");
+    double puppi_mass  = 0; //aPatJet.userFloat("ak8PFJetsPuppiValueMap:mass");
+    double puppi_eta   = 0; //aPatJet.userFloat("ak8PFJetsPuppiValueMap:eta");
+    double puppi_phi   = 0; //aPatJet.userFloat("ak8PFJetsPuppiValueMap:phi");
+    double puppi_tau1  = aPatJet.userFloat("NjettinessAK8Puppi:tau1");
+    double puppi_tau2  = aPatJet.userFloat("NjettinessAK8Puppi:tau2");
+    double puppi_tau3  = aPatJet.userFloat("NjettinessAK8Puppi:tau3");
 
     // set
     aJet.set_taus(tau1, tau2, tau3);
