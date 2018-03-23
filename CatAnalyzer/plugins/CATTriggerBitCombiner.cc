@@ -8,6 +8,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <numeric>
 
 class CATTriggerBitCombiner : public edm::stream::EDFilter<>
 {

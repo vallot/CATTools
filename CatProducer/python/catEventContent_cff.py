@@ -17,7 +17,7 @@ catEventContent.extend([
     'keep *_catPhotons_*_*',
     #'keep *_catTaus_*_*', 
     'keep *_catJets*_*_*',
-    'keep *_catFatJets*_*_*',
+    #'keep *_catFatJets*_*_*', //not working with 94X 
     'keep *_catMETs*_*_*',
     'keep *_catVertex_*_*',
     'keep *_catTrigger_*_*',

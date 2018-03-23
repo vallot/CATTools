@@ -9,6 +9,7 @@
 #include "RecoJets/JetProducers/interface/JetSpecific.h"
 
 #include "CATTools/CommonTools/interface/TTbarModeDefs.h"
+#include <numeric>
 
 using namespace std;
 
