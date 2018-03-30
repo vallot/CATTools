@@ -6,26 +6,20 @@ def enableElectronVID(process):
     switchOnVIDElectronIdProducer(process, DataFormat.MiniAOD)
 
     electron_ids = [
-        'cutBasedElectronHLTPreselecition_Summer16_V1_cff',
-        'cutBasedElectronID_Summer16_80X_V1_cff',
-        'heepElectronID_HEEPV70_cff',
-        'mvaElectronID_Spring16_GeneralPurpose_V1_cff',
-        'mvaElectronID_Spring16_HZZ_V1_cff',
+        'mvaElectronID_Fall17_noIso_V1_cff', 
+        'mvaElectronID_Fall17_iso_V1_cff',
     ]
     for idmod in electron_ids:
         idmod = "RecoEgamma.ElectronIdentification.Identification."+idmod
         setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
 
     electron_idNames = [
-        "egmGsfElectronIDs:cutBasedElectronID-Summer16-80X-V1-veto",
-        "egmGsfElectronIDs:cutBasedElectronID-Summer16-80X-V1-loose",
-        "egmGsfElectronIDs:cutBasedElectronID-Summer16-80X-V1-medium",
-        "egmGsfElectronIDs:cutBasedElectronID-Summer16-80X-V1-tight",
-        "egmGsfElectronIDs:cutBasedElectronHLTPreselection-Summer16-V1",
-        "egmGsfElectronIDs:heepElectronID-HEEPV70",
-        "egmGsfElectronIDs:mvaEleID-Spring16-GeneralPurpose-V1-wp90",
-        "egmGsfElectronIDs:mvaEleID-Spring16-GeneralPurpose-V1-wp80",
-        "egmGsfElectronIDs:mvaEleID-Spring16-HZZ-V1-wpLoose",
+        "egmGsfElectronIDs:mvaEleID-Fall17-iso-V1-wp90",
+        "egmGsfElectronIDs:mvaEleID-Fall17-iso-V1-wp80",
+        "egmGsfElectronIDs:mvaEleID-Fall17-iso-V1-wpLoose",        
+        "egmGsfElectronIDs:mvaEleID-Fall17-noIso-V1-wp90",
+        "egmGsfElectronIDs:mvaEleID-Fall17-noIso-V1-wp80",
+        "egmGsfElectronIDs:mvaEleID-Fall17-noIso-V1-wpLoose",
     ]
     process.catElectrons.electronIDSources = cms.PSet()
     for idName in electron_idNames:
