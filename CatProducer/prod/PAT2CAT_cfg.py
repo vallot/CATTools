@@ -61,8 +61,10 @@ miniAOD_customizeOutput(process.catOut)
 ####################################################################
 #### setting up cat tools
 ####################################################################
-#from CATTools.CatProducer.catTools_cff import *
+from CATTools.CatProducer.catTools_cff import *
 #catTool(process, runOnMC, useMiniAOD)
+#### add electron ID
+addEgmID(process, runOnMC)
 ####################################################################
 #### setting up pat tools - miniAOD step or correcting miniAOD
 ####################################################################

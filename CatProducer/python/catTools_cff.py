@@ -102,6 +102,9 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         #from CATTools.CatProducer.patTools.metMuonRecoMitigation2016_cff import enableMETMuonRecoMitigation2016
         #process = enableMETMuonRecoMitigation2016(process, runOnMC) ## MET input object is overridden in the modifier function
 
+        process.catSkimEvent.electronIdNames = process.catElectrons.electronIDs
+
+def addEgmID(process, runOnMC):
         #######################################################################
         ## Electron regression
         #from CATTools.CatProducer.patTools.egmRegression_cff import enableElectronRegression
@@ -115,11 +118,10 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         ## Electron/Photon VID
         from CATTools.CatProducer.patTools.egmVersionedID_cff import enableElectronVID, enablePhotonVID
         process = enableElectronVID(process)
-        process = enablePhotonVID(process)
+        process.p += process.egmGsfElectronIDSequence
+        #process = enablePhotonVID(process)
 
         ## Electron ID without isolation cuts
-        from CATTools.CatProducer.patTools.egmNoIsoID_cff import enableElectronNoIsoID
-        process = enableElectronNoIsoID(process)
-
-        process.catSkimEvent.electronIdNames = process.catElectrons.electronIDs
+        #from CATTools.CatProducer.patTools.egmNoIsoID_cff import enableElectronNoIsoID
+        #process = enableElectronNoIsoID(process)
 

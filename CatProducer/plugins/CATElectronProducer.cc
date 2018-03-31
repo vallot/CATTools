@@ -251,9 +251,9 @@ void cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetu
     }
 
     aElectron.setIsPF( aPatElectron.isPF() );
-    aElectron.setIsTight( aElectron.electronID("tight") );
-    aElectron.setIsMedium( aElectron.electronID("medium") );
-    aElectron.setIsLoose( aElectron.electronID("loose") );
+    aElectron.setIsTight( aElectron.electronID("mvaEleID-Fall17-noIso-V1-wp80") );
+    aElectron.setIsMedium( aElectron.electronID("mvaEleID-Fall17-noIso-V1-wp90") );
+    aElectron.setIsLoose( aElectron.electronID("mvaEleID-Fall17-noIso-V1-wpLoose") );
 
     reco::GsfTrackRef theTrack = aPatElectron.gsfTrack();
     aElectron.setDxy( theTrack->dxy(pv.position()) );
