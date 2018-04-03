@@ -14,4 +14,3 @@
 /SingleElectron/Run2017D-PromptReco-v1/MINIAOD
 /SingleElectron/Run2017E-PromptReco-v1/MINIAOD
 /SingleElectron/Run2017F-PromptReco-v1/MINIAOD
-

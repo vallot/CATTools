@@ -1,12 +1,8 @@
 import FWCore.ParameterSet.Config as cms
 #from   FWCore.PythonUtilities.LumiList import LumiList
-from   CATTools.CatProducer.pileupWeight.pileupWeightRunI_cff import pileupWeightMap as pileupWeightRunI
-from   CATTools.CatProducer.pileupWeight.pileupWeight2015_cff import pileupWeightMap as pileupWeight2015
-from   CATTools.CatProducer.pileupWeight.pileupWeight2016_cff import pileupWeightMap as pileupWeight2016
+from   CATTools.CatProducer.pileupWeight.pileupWeight2017_cff import pileupWeightMap as pileupWeight2017
 pileupWeightMap = {}
-pileupWeightMap.update(pileupWeightRunI)
-pileupWeightMap.update(pileupWeight2015)
-pileupWeightMap.update(pileupWeight2016)
+pileupWeightMap.update(pileupWeight2017)
 
 pileupWeight = cms.EDProducer("CATPileupWeightProducer",
     #weightingMethod = cms.string("NVertex"), # Simple bin-by-bin correction of nVertex distribution. Non standard

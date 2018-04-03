@@ -55,11 +55,12 @@ def submitjob(requestName, dataset, globalTag, lumiMask, submit):
     if requestName:
         dataRequestName = '%s_%s'%(requestName,label)
         outputDatasetTag = '%s_%s'%(requestName,dataset.split("/")[2])
+        outLFNDirBase = '/store/group/CAT/%s'%(requestName) 
 
     if submit:
-        sendjob = "crab submit -c crab.py Data.outputDatasetTag='%s' General.requestName='%s' Data.inputDataset='%s'"%(outputDatasetTag,dataRequestName,dataset) + dataSplitting + dataUnitsPerJob + dataLumiMask
+        sendjob = "crab submit -c crab.py Data.outputDatasetTag='%s' General.requestName='%s' Data.inputDataset='%s' Data.outLFNDirBase='%s'"%(outputDatasetTag,dataRequestName,dataset,outLFNDirBase) + dataSplitting + dataUnitsPerJob + dataLumiMask
     else :
-        sendjob = "crab submit --dryrun -c crab.py Data.outputDatasetTag='%s' General.requestName='%s' Data.inputDataset='%s'"%(outputDatasetTag,dataRequestName,dataset) + dataSplitting + dataUnitsPerJob + dataLumiMask
+        sendjob = "crab submit --dryrun -c crab.py Data.outputDatasetTag='%s' General.requestName='%s' Data.inputDataset='%s' Data.outLFNDirBase='%s'"%(outputDatasetTag,dataRequestName,dataset,outLFNDirBase) + dataSplitting + dataUnitsPerJob + dataLumiMask
 
     print sendjob
     print "submiting job"

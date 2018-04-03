@@ -17,77 +17,77 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
 
         #process.load("CATTools.CatProducer.eventCleaning.badECALSlewRateMitigationFilter2016_cfi")
     
-    useJECfile = True
-    jecFiles = cat.JetEnergyCorrection
-    if runOnMC:
-        jecFile = jecFiles[1]
-    else:
-        jecFile = jecFiles[0]
-    if useJECfile:
-        from CondCore.CondDB.CondDB_cfi import CondDB
-        if hasattr(CondDB, 'connect'): delattr(CondDB, 'connect')
-        process.jec = cms.ESSource("PoolDBESSource",CondDB,
-            connect = cms.string('sqlite_fip:CATTools/CatProducer/data/JEC/%s.db'%jecFile),            
-            toGet = cms.VPSet(
-                cms.PSet(
-                    record = cms.string("JetCorrectionsRecord"),
-                    tag = cms.string("JetCorrectorParametersCollection_%s_AK4PF"%jecFile),
-                    label= cms.untracked.string("AK4PF")),
-                cms.PSet(
-                    record = cms.string("JetCorrectionsRecord"),
-                    tag = cms.string("JetCorrectorParametersCollection_%s_AK4PFchs"%jecFile),
-                    label= cms.untracked.string("AK4PFchs")),
-                cms.PSet(
-                    record = cms.string("JetCorrectionsRecord"),
-                    tag = cms.string("JetCorrectorParametersCollection_%s_AK4PFPuppi"%jecFile),
-                    label= cms.untracked.string("AK4PFPuppi")),
-            )
-        )
-        process.es_prefer_jec = cms.ESPrefer("PoolDBESSource","jec")
-        print "JEC based on", process.jec.connect
+#    useJECfile = True
+#    jecFiles = cat.JetEnergyCorrection
+#    if runOnMC:
+#        jecFile = jecFiles[1]
+#    else:
+#        jecFile = jecFiles[0]
+#    if useJECfile:
+#        from CondCore.CondDB.CondDB_cfi import CondDB
+#        if hasattr(CondDB, 'connect'): delattr(CondDB, 'connect')
+#        process.jec = cms.ESSource("PoolDBESSource",CondDB,
+#            connect = cms.string('sqlite_fip:CATTools/CatProducer/data/JEC/%s.db'%jecFile),            
+#            toGet = cms.VPSet(
+#                cms.PSet(
+#                    record = cms.string("JetCorrectionsRecord"),
+#                    tag = cms.string("JetCorrectorParametersCollection_%s_AK4PF"%jecFile),
+#                    label= cms.untracked.string("AK4PF")),
+#                cms.PSet(
+#                    record = cms.string("JetCorrectionsRecord"),
+#                    tag = cms.string("JetCorrectorParametersCollection_%s_AK4PFchs"%jecFile),
+#                    label= cms.untracked.string("AK4PFchs")),
+#                cms.PSet(
+#                    record = cms.string("JetCorrectionsRecord"),
+#                    tag = cms.string("JetCorrectorParametersCollection_%s_AK4PFPuppi"%jecFile),
+#                    label= cms.untracked.string("AK4PFPuppi")),
+#            )
+#        )
+#        process.es_prefer_jec = cms.ESPrefer("PoolDBESSource","jec")
+#        print "JEC based on", process.jec.connect
     
-    if useMiniAOD: ## corrections when using miniAOD
-        from CATTools.CatProducer.patTools.metFilters_cff import enableAdditionalMETFilters
-        process = enableAdditionalMETFilters(process, runOnMC)
+#    if useMiniAOD: ## corrections when using miniAOD
+#        from CATTools.CatProducer.patTools.metFilters_cff import enableAdditionalMETFilters
+#        process = enableAdditionalMETFilters(process, runOnMC)
 
         #######################################################################
         # puppi https://twiki.cern.ch/twiki/bin/view/CMS/PUPPI
         # using default
         #######################################################################
         ## applying new jec on the fly
-        process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
-        if not runOnMC:
-            process.updatedPatJetCorrFactors.levels = cms.vstring('L1FastJet','L2Relative','L3Absolute','L2L3Residual')
+#        process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
+#        if not runOnMC:
+#            process.updatedPatJetCorrFactors.levels = cms.vstring('L1FastJet','L2Relative','L3Absolute','L2L3Residual')
             
-        process.patJetCorrFactors.primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices")
-        process.catJets.src = cms.InputTag("updatedPatJets")
+#        process.patJetCorrFactors.primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices")
+#        process.catJets.src = cms.InputTag("updatedPatJets")
         ### updating puppi jet jec
-        process.patJetPuppiCorrFactorsUpdated = process.updatedPatJetCorrFactors.clone(
-            src = process.catJetsPuppi.src,
-            payload = cms.string('AK4PFPuppi'),
-            levels = cms.vstring('L2Relative','L3Absolute'),
-            useRho = cms.bool(False))
+#        process.patJetPuppiCorrFactorsUpdated = process.updatedPatJetCorrFactors.clone(
+#            src = process.catJetsPuppi.src,
+#            payload = cms.string('AK4PFPuppi'),
+#            levels = cms.vstring('L2Relative','L3Absolute'),
+#            useRho = cms.bool(False))
         
-        process.patJetsPuppiUpdated = process.updatedPatJets.clone(
-            jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetPuppiCorrFactorsUpdated")),
-            jetSource = process.catJetsPuppi.src )
+#        process.patJetsPuppiUpdated = process.updatedPatJets.clone(
+#            jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetPuppiCorrFactorsUpdated")),
+#            jetSource = process.catJetsPuppi.src )
         ### updating pile Jet.
-        process.load("RecoJets.JetProducers.PileupJetID_cfi")
-        process.pileupJetIdUpdated = process.pileupJetId.clone(
-          jets=cms.InputTag("slimmedJets"),
-          inputIsCorrected=True,
-          applyJec=True,
-          vertexes=cms.InputTag("offlineSlimmedPrimaryVertices")
-        )
+#        process.load("RecoJets.JetProducers.PileupJetID_cfi")
+#        process.pileupJetIdUpdated = process.pileupJetId.clone(
+#          jets=cms.InputTag("slimmedJets"),
+#          inputIsCorrected=True,
+#          applyJec=True,
+#          vertexes=cms.InputTag("offlineSlimmedPrimaryVertices")
+#        )
         #process.patJetsUpdated.userData.userFloats.src +=['pileupJetIdUpdated:fullDiscriminant']
 
-        process.catJetsPuppi.src = cms.InputTag("patJetsPuppiUpdated")
-        process.catJetsPuppi.setGenParticle = cms.bool(False)
+#        process.catJetsPuppi.src = cms.InputTag("patJetsPuppiUpdated")
+#        process.catJetsPuppi.setGenParticle = cms.bool(False)
         ## #######################################################################
         ## qg-likelihood
         # check https://twiki.cern.ch/twiki/bin/viewauth/CMS/QGDataBaseVersion
-        from CATTools.CatProducer.patTools.jetQGLikelihood_cff import enableQGLikelihood
-        process = enableQGLikelihood(process, qgDatabaseVersion="v2b", runOnMC=runOnMC, useMiniAOD=useMiniAOD)
+#        from CATTools.CatProducer.patTools.jetQGLikelihood_cff import enableQGLikelihood
+#        process = enableQGLikelihood(process, qgDatabaseVersion="v2b", runOnMC=runOnMC, useMiniAOD=useMiniAOD)
 
         ## DeepFlavour
         from CATTools.CatProducer.patTools.jetDeepFlavour_cff import enableDeepFlavour

@@ -2,13 +2,19 @@
 import sys, os
 from getopt import getopt
 
-year = 16
+year = 17
 
 baseAFS = "/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification"
 baseURL = "https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification"
 baseCAT = "%s/src/CATTools/CatProducer/data/LumiMask" % os.environ["CMSSW_BASE"]
 
 configs = {
+    17:{
+        "lumiJSON":"Collisions17/13TeV/Final",
+        "pileupJSON":"Collisions17/13TeV/PileUp/pileup_latest.txt",
+        "minBiasXsec":69200.,
+        "minBiasXsecUnc":0.046,
+    },
     16:{
         "lumiJSON":"Collisions16/13TeV/ReReco",
         "pileupJSON":"Collisions16/13TeV/PileUp/pileup_latest.txt",
@@ -87,7 +93,7 @@ for jsonFile in jsonFiles:
         command  = "pileupCalc.py -i %s/%s " % (baseCAT, jsonFile)
         command += "--inputLumiJSON %s/%s " % (baseCAT, puJSON)
         command += "--minBiasXsec %i " % int(minBiasXsec)
-        command += "--calcMode true --maxPileupBin 75 --numPileupBins 75 "
+        command += "--calcMode true --maxPileupBin 100 --numPileupBins 100 "
         command += fPU
 
         print command
