@@ -1,0 +1,1 @@
+pileupCalc.py -i Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt --inputLumiJSON pileup_latest.txt --calcMode true --minBiasXsec 69200 --maxPileupBin 100 --numPileupBins 100  MyDataPileupHistogram.root
