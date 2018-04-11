@@ -20,40 +20,51 @@ namespace cat {
 
 namespace cat {
 
-  // pfJetProbabilityBJetTags
-  const std::string BTAG_JP = "pfJetProbabilityBJetTags";
-  //                         ICHEP16// 2015
-  const double WP_BTAG_JPL = 0.245; // 0.275
-  const double WP_BTAG_JPM = 0.515; // 0.545
-  const double WP_BTAG_JPT = 0.760; // 0.790
   // pfCombinedInclusiveSecondaryVertexV2BJetTags
   const std::string BTAG_CSVv2 = "pfCombinedInclusiveSecondaryVertexV2BJetTags";
-  //                            Moriond17//ICHEP16//2015
-  const double WP_BTAG_CSVv2L = 0.5426; // 0.460; // 0.605
-  const double WP_BTAG_CSVv2M = 0.8484; // 0.800; // 0.89
-  const double WP_BTAG_CSVv2T = 0.9535; // 0.935; // 0.97
+  //                            2017//Moriond17//ICHEP16//2015
+  const double WP_BTAG_CSVv2L = 0.5803; // 0.5426 // 0.460 // 0.605
+  const double WP_BTAG_CSVv2M = 0.8838; // 0.8484 // 0.800 // 0.89
+  const double WP_BTAG_CSVv2T = 0.9693; // 0.9535 // 0.935 // 0.97
+  // pfCombinedCvsLJetTags
+  const std::string CTAG_CvsL = "pfCombinedCvsLJetTags";
+  //                           2017//Moriond17=ICHEP16
+  const double WP_CTAG_CvsLL = -0.53; // -0.48 // -
+  const double WP_CTAG_CvsLM =  0.07; // -0.1 // -
+  const double WP_CTAG_CvsLT =  0.87; // 0.69 // -
+  // pfCombinedCvsBJetTags
+  const std::string CTAG_CvsB = "pfCombinedCvsBJetTags";
+  //                           2017//Moriond17=ICHEP16
+  const double WP_CTAG_CvsBL = -0.26; // -0.17 // -
+  const double WP_CTAG_CvsBM = -0.10; // 0.08 // -
+  const double WP_CTAG_CvsBT = -0.3; // -0.45 // -
+  // DeepCSV BvsAll
+  const std::string BTAG_DeepCSV = "pfDeepCSVDiscriminatorsJetTags:BvsAll";
+  const std::string BTAG_DeepCSVb = "pfDeepCSVJetTags:probb";
+  const std::string BTAG_DeepCSVbb = "pfDeepCSVJetTags:probbb";
+  //                              2017//80xRereco
+  const double WP_BTAG_DeepCSVL = 0.1522; //0.2219
+  const double WP_BTAG_DeepCSVM = 0.4941; //0.6324
+  const double WP_BTAG_DeepCSVT = 0.8001; //0.8958
+  // DeepCSV CvsL
+  const std::string CTAG_DeepCSV_CvsL = "pfDeepCSVDiscriminatorsJetTags:CvsL";
+  //                                   2017
+  const double WP_CTAG_DeepCSV_CvsLL = 0.05;
+  const double WP_CTAG_DeepCSV_CvsLM = 0.15;
+  const double WP_CTAG_DeepCSV_CvsLT = 0.8;
+  // DeepCSV CvsB
+  const std::string CTAG_DeepCSV_CvsB = "pfDeepCSVDiscriminatorsJetTags:CvsL";
+  //                                   2017
+  const double WP_CTAG_DeepCSV_CvsBL = 0.33;
+  const double WP_CTAG_DeepCSV_CvsBM = 0.28;
+  const double WP_CTAG_DeepCSV_CvsBT = 0.1;
   // pfCombinedMVAV2BJetTags
   const std::string BTAG_cMVAv2 = "pfCombinedMVAV2BJetTags";
   //                             Moriond17//ICHEP16
   const double WP_BTAG_cMVAv2L = -0.5884; // -0.715; // -
   const double WP_BTAG_cMVAv2M =  0.4432; //  0.185; // -
   const double WP_BTAG_cMVAv2T =  0.9432; //  0.875; // -
-  // pfCombinedCvsLJetTags
-  const std::string CTAG_CvsL = "pfCombinedCvsLJetTags";
-  //                           Moriond17=ICHEP16
-  const double WP_CTAG_CvsLL = -0.48;// -
-  const double WP_CTAG_CvsLM = -0.1; // -
-  const double WP_CTAG_CvsLT =  0.69; // -
-  const std::string CTAG_CvsB = "pfCombinedCvsBJetTags";
-  //                           Moriond17=ICHEP16
-  const double WP_CTAG_CvsBL = -0.17; // -
-  const double WP_CTAG_CvsBM = 0.08; // -
-  const double WP_CTAG_CvsBT = -0.45; // -
-  // DeepCSV
-  const std::string BTAG_DeepCSV = "DeepCSV";
-  const double WP_BTAG_DeepCSVL = 0.2219;
-  const double WP_BTAG_DeepCSVM = 0.6324;
-  const double WP_BTAG_DeepCSVT = 0.8958;
+
 
   class Jet : public Particle{
   public:

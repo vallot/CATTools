@@ -81,8 +81,9 @@ process.maxEvents.input = options.maxEvents
 # Default file here for test purpose
 if not options.inputFiles:
     if useMiniAOD:
-        process.source.fileNames = cms.untracked.vstring('file:/eos/user/t/tjkim/store/MiniAOD/004C666D-C0E0-E711-AADB-0CC47A6C183A.root')
-        #process.source.fileNames = cms.untracked.vstring('root://cms-xrd-global.cern.ch//store/mc/RunIIFall17MiniAOD/TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8/MINIAODSIM/94X_mc2017_realistic_v10-v1/50000/004C666D-C0E0-E711-AADB-0CC47A6C183A.root')
+        #process.source.fileNames = cms.untracked.vstring('file:/afs/cern.ch/user/j/jipark/work/public/catToolsSamples/SingleMuonRun2017B_0642CEAB-80D8-E711-8960-FA163E9B4C1A.root')
+        #process.source.fileNames = cms.untracked.vstring('file:/afs/cern.ch/user/j/jipark/work/public/catToolsSamples/SingleMuonRun2017_PromptReco_46EB4C7E-5056-E711-B936-02163E019C19.root')
+        process.source.fileNames = cms.untracked.vstring('file:/afs/cern.ch/user/j/jipark/work/public/catToolsSamples/TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8_004C666D-C0E0-E711-AADB-0CC47A6C183A.root')
         # out of date for 94X below: 
         #from CATTools.Validation.commonTestInput_cff import commonTestMiniAODs
         #if runOnMC and runGenTop: process.source.fileNames = commonTestMiniAODs["sig"]
