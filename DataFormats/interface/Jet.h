@@ -101,7 +101,7 @@ namespace cat {
     // sys 0 = central, 1 = up, -1 = down
     // flav 0 = b, 1 = c, 2 = light
     
-    void bDiscriminatorPrint() const;
+    int bDiscriminatorPrint() const;
     // combinedSecondaryVertexBJetTags
     float vtxMass() const { return vtxMass_ ; }
     int vtxNtracks() const { return vtxNtracks_ ; }
