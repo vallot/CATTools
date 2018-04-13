@@ -3,7 +3,7 @@ import FWCore.ParameterSet.Config as cms
 catJets = cms.EDProducer('CATJetProducer',
     src = cms.InputTag('slimmedJets'),
     rho = cms.InputTag('fixedGridRhoFastjetAll'),
-    btagNames = cms.vstring('pfCombinedInclusiveSecondaryVertexV2BJetTags','pfCombinedMVAV2BJetTags',"inclusiveCandidateSecondaryVerticesCvsL","pfCombinedCvsLJetTags","pfCombinedCvsBJetTags"),
+    btagNames = cms.vstring('pfCombinedInclusiveSecondaryVertexV2BJetTags',"pfDeepCSVDiscriminatorsJetTags:BvsAll","pfDeepCSVJetTags:probb","pfDeepCSVJetTags:probbb","pfDeepCSVDiscriminatorsJetTags:CvsB","pfDeepCSVDiscriminatorsJetTags:CvsL","pfCombinedCvsLJetTags","pfCombinedCvsBJetTags"),
     payloadName = cms.string('AK4PFchs'),
     jetResFile   = cms.string("CATTools/CatProducer/data/JER/Spring16_25nsV6_MC_PtResolution_AK4PFchs.txt"),
     jetResSFFile = cms.string("CATTools/CatProducer/data/JER/Spring16_25nsV6_MC_SF_AK4PFchs.txt"),

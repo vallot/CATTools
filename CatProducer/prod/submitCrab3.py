@@ -34,9 +34,9 @@ def submitjob(requestName, dataset, globalTag, lumiMask, submit):
     pyCfgParams     = "config.JobType.pyCfgParams = ['runOnMC=True','useMiniAOD=%s','globalTag=%s','runGenTop=%s']"%(isMiniAOD,globalTag,doGenTop)
     ### MC or Data?
     if isMC == False:
-        dataSplitting   = " Data.splitting='LumiBased' "
-        dataUnitsPerJob = " Data.unitsPerJob=40 "
-        dataLumiMask    = " Data.lumiMask='%s'"%(lumiMask)
+        dataSplitting   = " Data.splitting='FileBased' "
+        dataUnitsPerJob = " Data.unitsPerJob=1 "#40
+        #dataLumiMask    = " Data.lumiMask='%s'"%(lumiMask)
         pyCfgParams     = "config.JobType.pyCfgParams = ['runOnMC=False','useMiniAOD=%s','globalTag=%s']"%(isMiniAOD,globalTag)
 
     ## pyCfgParams cannot be set from cmd line yet
@@ -55,7 +55,8 @@ def submitjob(requestName, dataset, globalTag, lumiMask, submit):
     if requestName:
         dataRequestName = '%s_%s'%(requestName,label)
         outputDatasetTag = '%s_%s'%(requestName,dataset.split("/")[2])
-        outLFNDirBase = '/store/group/CAT/%s'%(requestName) 
+        #outLFNDirBase = '/store/group/CAT/%s'%(requestName) 
+	outLFNDirBase = '/store/group/CAT/%s'%(requestName) 
 
     if submit:
         sendjob = "crab submit -c crab.py Data.outputDatasetTag='%s' General.requestName='%s' Data.inputDataset='%s' Data.outLFNDirBase='%s'"%(outputDatasetTag,dataRequestName,dataset,outLFNDirBase) + dataSplitting + dataUnitsPerJob + dataLumiMask
