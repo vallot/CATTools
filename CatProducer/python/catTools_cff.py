@@ -46,9 +46,9 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
 #        process.es_prefer_jec = cms.ESPrefer("PoolDBESSource","jec")
 #        print "JEC based on", process.jec.connect
     
-#    if useMiniAOD: ## corrections when using miniAOD
-#        from CATTools.CatProducer.patTools.metFilters_cff import enableAdditionalMETFilters
-#        process = enableAdditionalMETFilters(process, runOnMC)
+    if useMiniAOD: ## corrections when using miniAOD
+        from CATTools.CatProducer.patTools.metFilters_cff import enableAdditionalMETFilters
+        process = enableAdditionalMETFilters(process, runOnMC)
 
         #######################################################################
         # puppi https://twiki.cern.ch/twiki/bin/view/CMS/PUPPI

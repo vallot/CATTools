@@ -1,0 +1,314 @@
+#!/usr/bin/env python2.6
+
+doGUI = True
+import sys, os
+import BaseHTTPServer
+import urlparse
+
+try:
+    from Tkinter import *
+except:
+    print "Cannot load Tkinter. fall back to http server"
+    doGUI = False
+
+def println(msg, char):
+    termW = 80
+    bannerW = len(msg)+2
+    filler = char*((termW-bannerW)/2)
+    print filler, msg, filler
+
+def log_status(dirName):
+    fName = dirName+"/crab.log"
+    retVal = (-1,-1,-1)
+    if not os.path.exists(fName): return retVal
+
+    jobstatus = {}
+    logs = open(fName).readlines()
+    for i, l in enumerate(reversed(logs)):
+        l = l.strip()
+        if 'Got information from status cache file' not in l: continue
+        jobstatus = logs[len(logs)-i-1].strip()
+        if not jobstatus.startswith('DEBUG'): continue
+        jobstatus = eval('{'+jobstatus.split('{',1)[-1].strip())
+        break
+    if jobstatus == {}: return retVal
+
+    nSuccess, nFail = 0,0
+    nTotal = len(jobstatus)
+    for jobIdx, status in jobstatus.iteritems():
+        state = status['State']
+        if state == 'finished': nSuccess += 1
+        elif state == 'failed': nFail += 1
+
+    return (nSuccess, nFail, nTotal)
+
+##### For the crabmon with HTTP interface
+crabItems = {}
+commands = ("status", "resubmit", "kill", "finish")
+def run_command(cmd, crabdir):
+    if crabdir not in crabItems:
+        print "Cannot find crab dir", crabdir
+        return
+    if cmd not in commands:
+        print "Invalid command", cmd
+        return
+
+    nSuccess, nFail, nTotal = log_status(crabdir)
+
+    if cmd == 'status':
+        os.system('crab status %s' % crabdir)
+        crabItems[crabdir] = log_status(crabdir)
+
+    elif cmd == 'resubmit':
+        if nFail <= 0: return
+        os.system('crab resubmit %s' % crabdir)
+    elif cmd == 'kill':
+        if (nTotal-nSuccess-nFail) <= 0: return
+        os.system('crab kill %s' % crabdir)
+    elif cmd == 'finish':
+        if nSuccess != nTotal or nTotal <= 0: return
+        os.system('crab report %s' % crabdir)
+        if not os.path.isdir('done'): os.mkdir('done')
+        os.system('mv %s done/' % crabdir)
+
+        del crabItems[crabdir]
+
+class CrabMonHTTP(BaseHTTPServer.BaseHTTPRequestHandler):
+    def html_header(s):
+        s.send_response(200)
+        s.send_header("Content-type", "text/html")
+        s.end_headers()
+
+        s.wfile.write("""<html>
+<head>
+<title>Crab Monitor</title>
+<style>
+table th { text-align:left; color:white; background-color:black;}
+</style>
+<script>
+function disable_all() {
+    var inputs = document.getElementsByTagName('input');
+    console.log(inputs.Length);
+    for ( var i=0; i<inputs.Length; ++i ) {
+      console.log(i);
+      if ( inputs[i].type != 'submit' ) continue;
+      console.log('submit');
+      inputs[i].disabled = true;
+    }
+}
+</script>
+</head>
+<body>""")
+        s.wfile.write('<h1><a href="/">Crab monitoring</a></h1>')
+        s.wfile.write('<p>from working directory %s</p>' % os.environ['PWD'])
+
+    def html_footer(s):
+        s.wfile.write("</body></html>")
+
+    def html_showtable(s):
+        s.wfile.write('<form action="/" method="post">\n')
+        s.wfile.write("<table><tr><th>Name</th><th>nSuccess/nFail/nTotal</th><th>Actions</th></tr>\n")
+        for item in sorted(crabItems.keys()):
+            crabItems[item] = log_status(item)
+            nSuccess, nFail, nTotal = crabItems[item]
+            s.wfile.write('<tr><td><!--<input type="checkbox" name="{0}" />-->{0}</td>'.format(item))
+            s.wfile.write("<td>%d/%d/%d</td><td>" % (nSuccess, nFail, nTotal))
+            if nSuccess == nTotal and nTotal > 0 and nFail == 0:
+                s.wfile.write('<input type="submit" name="%s" value="finish" onclick="disable_all();" />' % (item))
+            elif nSuccess == nTotal and nTotal > 0 and nFail == -1:
+                s.wfile.write('Finished')
+            else:
+                s.wfile.write('<input type="submit" name="%s" value="status" onclick="disable_all();"/>' % (item))
+                if (nTotal-nSuccess-nFail) > 0:
+                    s.wfile.write('<input type="submit" name="%s" value="kill" onclick="disable_all();" />' % (item))
+                if nFail > 0:
+                    s.wfile.write('<input type="submit" name="%s" value="resubmit" onclick="disable_all();" />' % (item))
+            s.wfile.write('</td></tr>\n')
+        s.wfile.write('<tr><td colspan="3">')
+        s.wfile.write('<input type="submit" name="*" value="status all" onclick="disable_all();"/>')
+        s.wfile.write('<input type="submit" name="*" value="kill all" onclick="disable_all();"/>')
+        s.wfile.write('<input type="submit" name="*" value="resubmit all" onclick="disable_all();"/></td></tr>')
+        s.wfile.write("</table>\n")
+        s.wfile.write("</form>\n")
+
+    def do_HEAD(s):
+        s.send_response(200)
+        s.send_header("Content-type", "text/html")
+        s.end_headers()
+
+    def do_POST(s):
+        println("Processing request", "v")
+        len = int(s.headers['Content-Length'])
+        data = urlparse.parse_qs(s.rfile.read(len).decode('utf-8'))
+        reqs = {}
+        for key, val in data.iteritems(): reqs[key] = val[0]
+
+        if '*' in reqs:
+            cmd = str(reqs['*'].split()[0])
+            print "Run", reqs['*'], "for all subdirs"
+            for item in crabItems:
+                run_command(cmd, item)
+        else:
+            print "Run one by one"
+            for req in reqs:
+                req = str(req)
+                print req, reqs[req]
+                if req not in crabItems:
+                    print "Cannot find dir", req
+                    continue
+                cmd = str(reqs[req])
+                if cmd not in commands:
+                    print "Invalid command", cmd
+                    continue
+
+                print cmd, req
+                run_command(cmd, req)
+
+        s.html_header()
+        s.html_showtable()
+        s.html_footer()
+        println("Done", "^")
+
+    def do_GET(s):
+        s.html_header()
+        s.html_showtable()
+        s.html_footer()
+        print "@@@ page done"
+
+## For the crabmon with Tkinter
+class CrabMonTkLine:
+    def __init__(self, frame, name, size):
+        nRow = size % 25 + 1
+        nCol = (size / 25)*6
+        self.name = name
+        self.label = Label(frame, text=name)
+        self.label.grid(row=nRow, column=nCol, sticky=W)
+        self.statLabel = Label(frame, text="?/?")
+        self.statLabel.grid(row=nRow, column=nCol+1, sticky=E)
+        self.statusBtn = Button(frame, text="status", command=self.status)
+        self.statusBtn.grid(row=nRow, column=nCol+2, sticky=EW)
+        self.getBtn = Button(frame, text="get", command=self.get, state=DISABLED)
+        self.getBtn.grid(row=nRow, column=nCol+3, sticky=EW)
+        self.resubmitBtn = Button(frame, text="resubmit", command=self.resubmit, state=DISABLED)
+        self.resubmitBtn.grid(row=nRow, column=nCol+4, sticky=EW)
+        self.finishBtn = Button(frame, text="finish", command=self.finish, state=DISABLED)
+        self.finishBtn.grid(row=nRow, column=nCol+5, sticky=EW)
+
+        self.status()
+
+    def status(self):
+        if not os.path.exists("%s/.requestcache" % self.name): return
+        print "@ checking status", self.name
+        run_command('status', self.name)
+        nSuccess, nFail, nJobs = log_status(self.name)
+        self.statLabel.configure(text="%d/%d/%d" % (nSuccess, nFail, nJobs))
+
+        if nSuccess > 0:
+            self.getBtn['state'] = 'normal'
+        if nSuccess > 0 and nSuccess == nJobs:
+            self.finishBtn['state'] = 'normal'
+        if nFail > 0:
+            self.resubmitBtn['state'] = 'normal'
+        else:
+            self.resubmitBtn['state'] = 'disabled'
+
+        print "@ status(%s) done" % self.name
+
+    def get(self):
+        if not os.path.exists("%s/.requestcache" % self.name): return
+        self.getBtn['state'] = "disabled"
+        run_command('get', self.name)
+        self.getBtn.configure(text="get")
+        self.status()
+        print "@ get(%s) done" % self.name
+
+    def resubmit(self):
+        if not os.path.exists("%s/.requestcache" % self.name): return
+        self.resubmitBtn['state'] = 'disabled'
+        run_command('resubmit', self.name)
+        self.status()
+        print "@ resubmit(%s) done" % self.name
+
+    def finish(self):
+        if not os.path.exists("%s/.requestcache" % self.name): return
+        run_command('finish', self.name)
+        if not os.path.isdir('done'): os.mkdir('done')
+        os.system("mv %s done/" % self.name)
+        self.statusBtn['state'] = 'disabled'
+        self.resubmitBtn['state'] = 'disabled'
+        self.getBtn['state'] = 'disabled'
+        self.finishBtn['state'] = 'disabled'
+        self.label.configure(fg='gray')
+        self.statLabel.configure(fg='gray')
+        print "@ finish(%s) done" % self.name
+
+objs = []
+def status_all():
+    for obj in objs:
+        obj.status()
+
+def resubmit_all():
+    for obj in objs:
+        obj.resubmit()
+
+if __name__ == '__main__':
+    from optparse import OptionParser
+    parser = OptionParser()
+    parser.add_option("-p", "--port", dest="port", type="int",
+                      help="port number", metavar="PORT", default=49152)
+    parser.add_option("-n", "--nogui", dest="nogui", action="store_true",
+                      default=False, help="do not use Tkinter GUI")
+    (options, args) = parser.parse_args()
+    options = options.__dict__
+
+    ## Build GUI
+
+    if options["nogui"]: doGUI = False
+
+    if len(args) == 0:
+        for d in sorted(os.listdir(".")):
+            if not d.startswith("crab_"): continue
+            if not os.path.isdir(d): continue
+            if not os.path.exists(d+"/.requestcache"): continue
+
+            crabItems[d] = [-1,-1,-1]
+    else:
+        for d in args:
+            if not d.startswith("crab_"): continue
+            if not os.path.isdir(d): continue
+            if not os.path.exists(d+"/.requestcache"): continue
+
+            crabItems[d] = [-1,-1,-1]
+
+    if doGUI:
+        root = Tk()
+
+        lFrame = Frame(root)
+        for i, d in enumerate(sorted(crabItems.keys())):
+            line = CrabMonTkLine(lFrame, d, i)
+            objs.append(line)
+        lFrame.pack()
+
+        dFrame = Frame(root)
+        allStatusBtn = Button(dFrame, text="status_all", command=status_all)
+        allResubmitBtn = Button(dFrame, text="resubmit_all", command=resubmit_all)
+        allStatusBtn.pack(side=RIGHT)
+        allResubmitBtn.pack(side=RIGHT)
+        dFrame.pack()
+
+        root.mainloop()
+    else:
+        PORT = options["port"]
+
+        print "Starting crabmon web GUI..."
+        server = BaseHTTPServer.HTTPServer(("", PORT), CrabMonHTTP)
+        print "open http://%s:%d with your web browser" % (os.environ["HOSTNAME"], server.server_address[1])
+        print " if you have a firewall problem, use ssh tunnel:"
+        print " ex) ssh %s -D10000\n     and configure your web browser to use SOCKS proxy 127.0.0.1:10000" % os.environ["HOSTNAME"]
+        try:
+            server.serve_forever()
+        except KeyboardInterrupt:
+            pass
+
+        server.server_close()
+        print "Terminate by user"
