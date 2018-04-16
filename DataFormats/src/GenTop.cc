@@ -117,7 +117,26 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
       }
     }
 
-    if ( ntop == 2 ) continue; 
+    if ( ntop == 2 ) continue;
+
+    // Singletop FCNH decay side, comment out for other MCs
+    if ( abs(p.pdgId()) == 25 ) {
+      Higgs_[0] = p.p4();
+      const unsigned int nHDaughters = p.numberOfDaughters();
+      int nHbquarkDaughters = 0;
+      for ( unsigned iHDaughter=0; iHDaughter<nHDaughters; ++iHDaughter ) {
+        if( nHbquarkDaughters == 2) break;
+        const reco::Candidate* decay = p.daughter(iHDaughter);
+        int decayId = abs(decay->pdgId());
+        if ( decayId == 5 ) {
+          Hbquarks_[nHbquarkDaughters] = decay->p4();
+          nHbquarkDaughters++;
+        }
+      }
+      continue;
+    }
+    // end of Singletop FCNH side
+
     if ( abs(p.pdgId()) != 6 ) continue;
 
     bool isLast = isLastParton(p);
@@ -137,8 +156,9 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     for ( unsigned iDaughter=0; iDaughter<nDaughters; ++iDaughter ) {
       if ( nW == 1 ) break;
  
-      // FCNH decay side 
       const reco::Candidate* daugh = p.daughter(iDaughter);
+/*
+      // FCNH decay side 
       if ( abs(daugh->pdgId()) == 25 ) {
         Higgs_[0] = daugh->p4();
         daugh = getLast(*daugh);
@@ -159,7 +179,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
         upquark_[0] = daugh->p4();
       }
       // end of FCNH side
-
+*/
       if ( abs(daugh->pdgId()) != 24 ) continue;
       daugh = getLast(*daugh);
       const unsigned int nWDaughters = daugh->numberOfDaughters();
