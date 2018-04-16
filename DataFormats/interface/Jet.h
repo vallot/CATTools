@@ -47,6 +47,9 @@ namespace cat {
   const double WP_BTAG_DeepCSVM = 0.4941; //0.6324
   const double WP_BTAG_DeepCSVT = 0.8001; //0.8958
   // DeepCSV CvsL
+  const std::string CTAG_DeepCSVc = "pfDeepCSVJetTags:probc";
+  const std::string CTAG_DeepCSVcc = "pfDeepCSVJetTags:probcc";
+  const std::string JTAG_DeepCSVudsg = "pfDeepCSVJetTags:probudsg";
   const std::string CTAG_DeepCSV_CvsL = "pfDeepCSVDiscriminatorsJetTags:CvsL";
   //                                   2017
   const double WP_CTAG_DeepCSV_CvsLL = 0.05;
