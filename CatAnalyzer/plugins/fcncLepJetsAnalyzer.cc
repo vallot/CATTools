@@ -96,6 +96,8 @@ private:
   edm::EDGetTokenT<edm::TriggerResults> triggerBits_;
   edm::EDGetTokenT<edm::TriggerResults> triggerBits2_;
   edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjects_;
+  // PU = 0 prescription
+  edm::EDGetTokenT<int>                          nTrueVertToken_;
 
 // ----------member data ---------------------------
 
@@ -282,7 +284,9 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   triggerBits_       = consumes<edm::TriggerResults>                    (edm::InputTag(triggerLabel.label(),"","HLT"));
   triggerBits2_      = consumes<edm::TriggerResults>                    (edm::InputTag(triggerLabel.label(),"","HLT2"));
   triggerObjects_    = consumes<pat::TriggerObjectStandAloneCollection> (iConfig.getParameter<edm::InputTag>("triggerObjects"));
-  
+  // PU = 0 prescription
+  nTrueVertToken_    = consumes<int>                           (iConfig.getParameter<edm::InputTag>("nTrueVertLabel"));
+ 
   b_PUWeight     = new std::vector<float>;
   b_PDFWeight    = new std::vector<float>;  
   b_ScaleWeight  = new std::vector<float>;  
@@ -636,6 +640,10 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     //---------------------------------------------------------------------------
     // PU Info
     //---------------------------------------------------------------------------
+    //edm::Handle<int> nTrueVertHandle;
+    //iEvent.getByToken( nTrueVertToken_, nTrueVertHandle );
+    //if( *nTrueVertHandle < 1 ) return;
+
     edm::Handle<float> PUWeight;
     iEvent.getByToken(puWeightToken_, PUWeight);
     b_PUWeight->push_back(*PUWeight); // Central
@@ -658,7 +666,7 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     b_GenWeight = *genWeight;
 
     EventInfo->Fill(1.5, b_GenWeight); // Sum of aMC@NLO Weights
-/*
+
     //-----------------
     //add b jets from H
     //-----------------
@@ -675,14 +683,13 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     b_addHbjet2_phi = genttbarConeCat->begin()->HbJets2().Phi();
     b_addHbjet2_e = genttbarConeCat->begin()->HbJets2().E();
     b_dRHbb = genttbarConeCat->begin()->dRbJetsFromHiggs();
-*/
-  }
 
+  }
   else{
     b_PUWeight->push_back(1.0);
     b_GenWeight = 1.0;
   }
-
+/*
   //---------------------------------------------------------------------------
   // Weights for Syst. Scale and PDF: ttbar
   //---------------------------------------------------------------------------
@@ -698,7 +705,7 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     b_ScaleWeight->push_back(scaleUpWeightsHandle  ->at(2)); // muR=Up   muF=Up
     b_ScaleWeight->push_back(scaleDownWeightsHandle->at(1)); // muR=Down muF=Nom
     b_ScaleWeight->push_back(scaleDownWeightsHandle->at(2)); // muR=Down muF=Down
-    
+
     // Sum of muR/muF Scale Weights
     for(unsigned int iscale = 0; iscale< b_ScaleWeight->size(); iscale++)
       ScaleWeights->Fill(iscale, b_ScaleWeight->at(iscale)); 
@@ -708,13 +715,12 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
     for ( auto& w : *PDFWeightsHandle ) b_PDFWeight->push_back(w);
   }
-
+*/
   //---------------------------------------------------------------------------
   // Generated Particles (For Pythia8)
   //---------------------------------------------------------------------------
   int nGenLep  = 999;
   bool IsCat = false;
-
   if(TTbarMC_ > 0) {
     //---------------------------------------------------------------------------
     // Event Categorization Using Higgs Code
