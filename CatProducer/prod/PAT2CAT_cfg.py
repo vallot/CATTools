@@ -40,14 +40,14 @@ print "process.GlobalTag.globaltag =",process.GlobalTag.globaltag
 #### cat tools output
 ####################################################################
 from CATTools.CatProducer.catCandidates_cff import *
-#process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
+process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
 
 process = addCatCommonObjects(process)
 if runOnMC: process = addCatCommonMCObjects(process)
+if runGenTop     : process = addCatGenTopObjects(process)
 if runParticleTop: process = addCatParticleTopObjects(process)
 if doSecVertex   : process = addCatSecVertexObjects(process)
 if doDstar       : process = addCatDstarObjects(process)
-if runGenTop     : process = addCatGenTopObjects(process)
 if isMCSignal:
     process.genWeight.keepFirstOnly = False
     process.catOut.outputCommands.extend(catEventContentMCSignal)
@@ -100,8 +100,8 @@ if options.maxEvents < 0:
     process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
 process.options.wantSummary = True
-process.MessageLogger.cerr.threshold = 'ERROR'
-process.MessageLogger.suppressWarning = cms.untracked.vstring(["JetPtMismatchAtLowPt", "NullTransverseMomentum"])
+#process.MessageLogger.cerr.threshold = 'ERROR'
+#process.MessageLogger.suppressWarning = cms.untracked.vstring(["JetPtMismatchAtLowPt", "NullTransverseMomentum"])
 
 ## for debugging
 #process.source.skipEvents = cms.untracked.uint32(3000)
