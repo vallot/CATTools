@@ -38,7 +38,7 @@ process.source = cms.Source("PoolSource",
         #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/V9_1/SingleMuon/V9_1_Run2017F-17Nov2017-v1/180403_143240/0000/catTuple_983.root'
         #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/V9_1/TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8/V9_1_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/180403_113925/0000/catTuple_989.root'
         #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/V9_1/SingleElectron/V9_1_Run2017B-17Nov2017-v1/180411_101622/0000/catTuple_130.root'
-        'file:/afs/cern.ch/user/j/jipark/work/public/catTuple_testData.root'
+        'file:/afs/cern.ch/user/j/jipark/work/private/catTools/CMSSW_9_4_5_cand1/src/CATTools/CatProducer/prod/catTuple.root'
         )
 )
 
@@ -60,7 +60,7 @@ if options.UserJSON:
 
 
 # Lepton Scale Factors
-#from CATTools.CatAnalyzer.leptonSF_cff import *
+from CATTools.CatAnalyzer.leptonSF_cff import *
 # GEN Weights
 process.load("CATTools.CatAnalyzer.flatGenWeights_cfi")
 # CSV Scale Factors
@@ -87,9 +87,9 @@ process.fcncLepJets = cms.EDAnalyzer('fcncLepJetsAnalyzer',
                                      genHiggsCatLabel  = cms.InputTag("GenTtbarCategories:genTtbarId"),
                                      genttbarCatLabel  = cms.InputTag("catGenTops"),
                                      muonLabel         = cms.InputTag("catMuons"),
-                                     #muonSF            = muonSFTight,
+                                     muonSF            = muonSFTight94X,
                                      electronLabel     = cms.InputTag("catElectrons"),
-                                     #elecSF            = electronSFCutBasedIDMediumWP,
+                                     elecSF            = electronSFMVAWP8094X,
                                      jetLabel          = cms.InputTag("catJets"),
                                      metLabel          = cms.InputTag("catMETs"),
                                      pvLabel           = cms.InputTag("catVertex:nGoodPV"),
@@ -97,6 +97,7 @@ process.fcncLepJets = cms.EDAnalyzer('fcncLepJetsAnalyzer',
                                      triggerBits       = cms.InputTag("TriggerResults"), 
                                      triggerObjects    = cms.InputTag("catTrigger"), 
                                      JetMother         = cms.InputTag("genJetHadronFlavour:ancestors"),
+                                     nTrueVertLabel    = cms.InputTag("pileupWeight:nTrueInteraction")
                                      )
 
 """
