@@ -361,6 +361,17 @@ electronSFMVAWP80IsoIdOnly94X = cms.PSet(
         ),
 )
 
+electronSFHLTZvtx94X = cms.PSet(
+    pt_bins = cms.vdouble(10, 500,),
+    eta_bins = cms.vdouble(-2.5, 2.5,),
+    values = cms.vdouble(
+        0.991,
+        ),
+    errors = cms.vdouble(
+        0.001, 
+        ),
+)
+
 
 ## Electron SF from https://twiki.cern.ch/twiki/bin/viewauth/CMS/EgammaIDRecipesRun2#Efficiencies_and_scale_factors
 ## root file is retrieved from 
@@ -761,6 +772,6 @@ electronSFCutBasedIDTightWP = combineSF(electronSFRecoOnly, electronSFCutBasedID
 trigSF_IsoMu24_OR_IsoTkMu24 = computeAverageSF(trigSF_IsoMu24_OR_IsoTkMu24_BtoF, 20.4, trigSF_IsoMu24_OR_IsoTkMu24_GtoH, 16.7)
 #2017 SF - ongoing
 muonSFTight94X = combineSF(muonSFTightIdOnly94X, muonSFTightIsoOnly94X, (0.01**2+0.005**2)**0.5, 0.01)
-electronSFMVAWP8094X = combineSF( electronSFMVAWP80IsoIdOnly94X, electronSFMVAWP80RecoOnly94X )
+electronSFMVAWP8094X = combineSF( combineSF( electronSFMVAWP80IsoIdOnly94X, electronSFMVAWP80RecoOnly94X ), electronSFHLTZvtx94X)
 #trigSF_IsoMu27 = trigSF_IsoMu27
 #ELe35_WPTight - no SF yet
