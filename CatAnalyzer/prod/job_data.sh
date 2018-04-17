@@ -1,17 +1,19 @@
-create-batch --jobName V1_SingleElectron_Run2016B  --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_SingleElectron_Run2016B.txt  --cfg topAnalyzer_RD_cfg.py --transferDest /store/user/tjkim/ntuples/hep2017/V1/SingleElectron_Run2016B --maxFiles 50
-create-batch --jobName V1_SingleElectron_Run2016C  --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_SingleElectron_Run2016C.txt  --cfg topAnalyzer_RD_cfg.py --transferDest /store/user/tjkim/ntuples/hep2017/V1/SingleElectron_Run2016C --maxFiles 50
-create-batch --jobName V1_SingleElectron_Run2016D  --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_SingleElectron_Run2016D.txt  --cfg topAnalyzer_RD_cfg.py --transferDest /store/user/tjkim/ntuples/hep2017/V1/SingleElectron_Run2016D --maxFiles 50
-create-batch --jobName V1_SingleElectron_Run2016E  --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_SingleElectron_Run2016E.txt  --cfg topAnalyzer_RD_cfg.py --transferDest /store/user/tjkim/ntuples/hep2017/V1/SingleElectron_Run2016E --maxFiles 50
-create-batch --jobName V1_SingleElectron_Run2016F  --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_SingleElectron_Run2016F.txt  --cfg topAnalyzer_RD_cfg.py --transferDest /store/user/tjkim/ntuples/hep2017/V1/SingleElectron_Run2016F --maxFiles 50
-create-batch --jobName V1_SingleElectron_Run2016G  --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_SingleElectron_Run2016G.txt  --cfg topAnalyzer_RD_cfg.py --transferDest /store/user/tjkim/ntuples/hep2017/V1/SingleElectron_Run2016G --maxFiles 50
-create-batch --jobName V1_SingleElectron_Run2016H_v2  --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_SingleElectron_Run2016H_v2.txt  --cfg topAnalyzer_RD_cfg.py --transferDest /store/user/tjkim/ntuples/hep2017/V1/SingleElectron_Run2016H_v2 --maxFiles 50
-create-batch --jobName V1_SingleElectron_Run2016H_v3  --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_SingleElectron_Run2016H_v3.txt  --cfg topAnalyzer_RD_cfg.py --transferDest /store/user/tjkim/ntuples/hep2017/V1/SingleElectron_Run2016H_v3 --maxFiles 50
-create-batch --jobName V1_SingleMuon_Run2016B  --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_SingleMuon_Run2016B.txt  --cfg topAnalyzer_RD_cfg.py --transferDest /store/user/tjkim/ntuples/hep2017/V1/SingleMuon_Run2016B --maxFiles 50
-create-batch --jobName V1_SingleMuon_Run2016C  --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_SingleMuon_Run2016C.txt  --cfg topAnalyzer_RD_cfg.py --transferDest /store/user/tjkim/ntuples/hep2017/V1/SingleMuon_Run2016C --maxFiles 50
-create-batch --jobName V1_SingleMuon_Run2016D  --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_SingleMuon_Run2016D.txt  --cfg topAnalyzer_RD_cfg.py --transferDest /store/user/tjkim/ntuples/hep2017/V1/SingleMuon_Run2016D --maxFiles 50
-create-batch --jobName V1_SingleMuon_Run2016E  --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_SingleMuon_Run2016E.txt  --cfg topAnalyzer_RD_cfg.py --transferDest /store/user/tjkim/ntuples/hep2017/V1/SingleMuon_Run2016E --maxFiles 50
-create-batch --jobName V1_SingleMuon_Run2016F  --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_SingleMuon_Run2016F.txt  --cfg topAnalyzer_RD_cfg.py --transferDest /store/user/tjkim/ntuples/hep2017/V1/SingleMuon_Run2016F --maxFiles 50
-create-batch --jobName V1_SingleMuon_Run2016G  --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_SingleMuon_Run2016G.txt  --cfg topAnalyzer_RD_cfg.py --transferDest /store/user/tjkim/ntuples/hep2017/V1/SingleMuon_Run2016G --maxFiles 50
-create-batch --jobName V1_SingleMuon_Run2016H_v2  --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_SingleMuon_Run2016H_v2.txt  --cfg topAnalyzer_RD_cfg.py --transferDest /store/user/tjkim/ntuples/hep2017/V1/SingleMuon_Run2016H_v2 --maxFiles 50
-create-batch --jobName V1_SingleMuon_Run2016H_v3  --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_SingleMuon_Run2016H_v3.txt  --cfg topAnalyzer_RD_cfg.py --transferDest /store/user/tjkim/ntuples/hep2017/V1/SingleMuon_Run2016H_v3 --maxFiles 50
+./create-batch --jobName SingleMuon_Run2017B  --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_SingleMuon_Run2017B.txt  --cfg fcncAnalyzer_RD_cfg.py --transferDest /store/user/minerva1993/ntuple_jw/2017/V9_2/production/SingleMuon_Run2017B --maxFiles 30
 
+./create-batch --jobName SingleMuon_Run2017C  --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_SingleMuon_Run2017C.txt  --cfg fcncAnalyzer_RD_cfg.py --transferDest /store/user/minerva1993/ntuple_jw/2017/V9_2/production/SingleMuon_Run2017C --maxFiles 30
+
+./create-batch --jobName SingleMuon_Run2017D  --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_SingleMuon_Run2017D.txt  --cfg fcncAnalyzer_RD_cfg.py --transferDest /store/user/minerva1993/ntuple_jw/2017/V9_2/production/SingleMuon_Run2017D --maxFiles 30
+
+./create-batch --jobName SingleMuon_Run2017E  --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_SingleMuon_Run2017E.txt  --cfg fcncAnalyzer_RD_cfg.py --transferDest /store/user/minerva1993/ntuple_jw/2017/V9_2/production/SingleMuon_Run2017E --maxFiles 30
+
+./create-batch --jobName SingleMuon_Run2017F  --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_SingleMuon_Run2017F.txt  --cfg fcncAnalyzer_RD_cfg.py --transferDest /store/user/minerva1993/ntuple_jw/2017/V9_2/production/SingleMuon_Run2017F --maxFiles 30
+
+./create-batch --jobName SingleElectron_Run2017B  --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_SingleElectron_Run2017B.txt  --cfg fcncAnalyzer_RD_cfg.py --transferDest /store/user/minerva1993/ntuple_jw/2017/V9_2/production/SingleElectron_Run2017B --maxFiles 30
+
+./create-batch --jobName SingleElectron_Run2017C  --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_SingleElectron_Run2017C.txt  --cfg fcncAnalyzer_RD_cfg.py --transferDest /store/user/minerva1993/ntuple_jw/2017/V9_2/production/SingleElectron_Run2017C --maxFiles 30
+
+./create-batch --jobName SingleElectron_Run2017D  --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_SingleElectron_Run2017D.txt  --cfg fcncAnalyzer_RD_cfg.py --transferDest /store/user/minerva1993/ntuple_jw/2017/V9_2/production/SingleElectron_Run2017D --maxFiles 30
+
+./create-batch --jobName SingleElectron_Run2017E  --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_SingleElectron_Run2017E.txt  --cfg fcncAnalyzer_RD_cfg.py --transferDest /store/user/minerva1993/ntuple_jw/2017/V9_2/production/SingleElectron_Run2017E --maxFiles 30
+
+./create-batch --jobName SingleElectron_Run2017F  --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_SingleElectron_Run2017F.txt  --cfg fcncAnalyzer_RD_cfg.py --transferDest /store/user/minerva1993/ntuple_jw/2017/V9_2/production/SingleElectron_Run2017F --maxFiles 30

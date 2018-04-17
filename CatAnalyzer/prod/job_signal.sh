@@ -1,1 +1,3 @@
-create-batch --jobName V1_TT_TopLeptonicDecay_TH_1L3B_Eta_Hct --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TT_TopLeptonicDecay_TH_1L3B_Eta_Hct.txt --cfg ttbbLepJetsAnalyzer_cfg.py --transferDest /store/user/tjkim/toptree/V1/TT_TopLeptonicDecay_TH_1L3B_Eta_Hct --maxFiles 10
+./create-batch --jobName ST_TH_1L3B_Hct --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_ST_TH_1L3B_Hct.txt --cfg fcncAnalyzer_MC_cfg.py --transferDest /xrootd/store/user/minerva1993/ntuple_jw/ --maxFiles 20
+
+./create-batch --jobName ST_TH_1L3B_Hut --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_ST_TH_1L3B_Hut.txt --cfg fcncAnalyzer_MC_cfg.py --transferDest /xrootd/store/user/minerva1993/ntuple_jw/ --maxFiles 20
