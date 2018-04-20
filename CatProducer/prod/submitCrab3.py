@@ -28,7 +28,7 @@ def submitjob(requestName, dataset, globalTag, lumiMask, submit):
     dataLumiMask    = ''    
     ## Special option for TTbar signal samples
     doGenTop = False
-    if (dataset.startswith('/TT') or dataset.startswith('/tt')):
+    if (dataset.startswith('/TT') or dataset.startswith('/tt') or dataset.startswith('/ST_FCNC')):
         doGenTop = True
     ### dirty way for now since crab3 doesnt allow lists to be passed by cmd line
     pyCfgParams     = "config.JobType.pyCfgParams = ['runOnMC=True','useMiniAOD=%s','globalTag=%s','runGenTop=%s']"%(isMiniAOD,globalTag,doGenTop)
