@@ -1,21 +1,26 @@
 import FWCore.ParameterSet.Config as cms
 # https://twiki.cern.ch/twiki/bin/view/CMS/DeepFlavour
-
 from CondCore.DBCommon.CondDBSetup_cfi import *
-def enableDeepFlavour(process):
-    process.load("RecoBTag.Combined.deepFlavour_cff")
+from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
 
-    process.catJets.flavTagLabels.extend([
-        cms.InputTag("pfDeepFlavourJetTags:probudsg"),
-        cms.InputTag("pfDeepFlavourJetTags:probb"),
-        cms.InputTag("pfDeepFlavourJetTags:probc"),
-        cms.InputTag("pfDeepFlavourJetTags:probbb"),
-        cms.InputTag("pfDeepFlavourJetTags:probcc"),
-        cms.InputTag("pfDeepFlavourCMVAJetTags:probudsg"),
-        cms.InputTag("pfDeepFlavourCMVAJetTags:probb"),
-        cms.InputTag("pfDeepFlavourCMVAJetTags:probc"),
-        cms.InputTag("pfDeepFlavourCMVAJetTags:probbb"),
-        cms.InputTag("pfDeepFlavourCMVAJetTags:probcc"),
-    ])
+def enableDeepFlavour(process):
+    updateJetCollection(
+        process,
+        jetSource = cms.InputTag('slimmedJets'),
+        jetCorrections = ('AK4PFchs', cms.vstring(['L1FastJet', 'L2Relative', 'L3Absolute']), 'None'),
+        btagDiscriminators = ["pfDeepCSVJetTags:probudsg",
+                              "pfDeepCSVJetTags:probb",
+                              "pfDeepCSVJetTags:probc",
+                              "pfDeepCSVJetTags:probbb",
+                              "pfDeepCSVJetTags:probcc",
+                              "pfDeepCMVAJetTags:probudsg",
+                              "pfDeepCMVAJetTags:probb",
+                              "pfDeepCMVAJetTags:probc",
+                              "pfDeepCMVAJetTags:probbb",
+                              "pfDeepCMVAJetTags:probcc",
+                             ]
+    )
+
+    process.catJets.src = "updatedPatJetsTransientCorrected"
 
     return process
