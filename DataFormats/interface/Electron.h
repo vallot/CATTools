@@ -48,7 +48,10 @@ namespace cat {
     
     int snuID() const {return snuID_;}
     bool isTrigMVAValid() const { return isTrigMVAValid_; }
-    
+
+    //https://github.com/Sam-Harper/usercode/blob/100XNtup/TrigTools/plugins/Ele32DoubleL1ToSingleL1Example.cc
+    bool isHLT_Ele32_WPTight() const{ return isHLTEle32WPTight_;}
+
     void setElectronIDs(const std::vector<pat::Electron::IdPair> & ids) { electronIDs_ = ids; }
     void setElectronID(pat::Electron::IdPair ids) { electronIDs_.push_back(ids); }
 
@@ -70,6 +73,8 @@ namespace cat {
 
     void setSmearedScale(const float scale) { smearedScale_ = scale; }
 
+    void setIsHLT_Ele32_WPTight(bool h) { isHLTEle32WPTight_ = h; }
+
     float scaleFactor(const std::string& name, int sign = 0) const;
     
   private:
@@ -87,6 +92,7 @@ namespace cat {
     
     int snuID_;
     bool isTrigMVAValid_;
+    bool isHLTEle32WPTight_;
   };
 }
 
