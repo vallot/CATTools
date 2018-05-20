@@ -84,6 +84,7 @@ if not options.inputFiles:
     if useMiniAOD:
         process.source.fileNames = cms.untracked.vstring('file:/afs/cern.ch/user/j/jipark/work/public/catToolsSamples/TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8_MiniAODv2_10BE32E3-EE42-E811-AF24-0025905A6080.root')
         #process.source.fileNames = cms.untracked.vstring('file:/afs/cern.ch/user/j/jipark/work/public/catToolsSamples/SingleElectronRun2017E_31Mar2018-v1_000D53C5-9D39-E811-A39C-0025905B85A0.root')
+        #process.source.fileNames = cms.untracked.vstring('file:/afs/cern.ch/user/j/jipark/work/public/catToolsSamples/SingleMuonRun2017E_31Mar2018-v1_0681EC03-A139-E811-9316-0CC47A7C3422.root')
         # out of date for 94X below: 
         #from CATTools.Validation.commonTestInput_cff import commonTestMiniAODs
         #if runOnMC and runGenTop: process.source.fileNames = commonTestMiniAODs["sig"]
