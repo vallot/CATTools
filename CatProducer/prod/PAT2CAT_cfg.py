@@ -6,12 +6,12 @@ doDstar=False     # for Dstar meson.
 ## setting up arguements
 from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing ('python')
-options.register('runOnMC', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runOnMC: 1  default")
+options.register('runOnMC', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runOnMC: 1  default")
 options.register('useMiniAOD', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "useMiniAOD: 1  default")
 options.register('globalTag', '', VarParsing.multiplicity.singleton, VarParsing.varType.string, "globalTag: 1  default")
-options.register('runGenTop', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runGenTop: 1  default")
-options.register('runParticleTop', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runParticleTop: 0  default")
-options.register('isSignal', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "isSignal: 1 default")
+options.register('runGenTop', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runGenTop: 1  default")
+options.register('runParticleTop', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runParticleTop: 0  default")
+options.register('isSignal', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "isSignal: 1 default")
 options.register('doSkim', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "doSkim: 0 default")
 
 options.parseArguments()
@@ -82,9 +82,9 @@ process.maxEvents.input = options.maxEvents
 # Default file here for test purpose
 if not options.inputFiles:
     if useMiniAOD:
-        process.source.fileNames = cms.untracked.vstring('file:/afs/cern.ch/user/j/jipark/work/public/catToolsSamples/TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8_MiniAODv2_10BE32E3-EE42-E811-AF24-0025905A6080.root')
-        #process.source.fileNames = cms.untracked.vstring('file:/afs/cern.ch/user/j/jipark/work/public/catToolsSamples/SingleElectronRun2017E_31Mar2018-v1_000D53C5-9D39-E811-A39C-0025905B85A0.root')
-        #process.source.fileNames = cms.untracked.vstring('file:/afs/cern.ch/user/j/jipark/work/public/catToolsSamples/SingleMuonRun2017E_31Mar2018-v1_0681EC03-A139-E811-9316-0CC47A7C3422.root')
+        #process.source.fileNames = cms.untracked.vstring('file:/afs/cern.ch/user/j/jipark/work/public/catToolsSamples/TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8_MiniAODv2_10BE32E3-EE42-E811-AF24-0025905A6080.root')
+        #process.source.fileNames = cms.untracked.vstring('file:/afs/cern.ch/user/j/jipark/work/public/catToolsSamples/SingleMuonRun2017E_31Mar2018-v1_000D53C5-9D39-E811-A39C-0025905B85A0.root')
+        process.source.fileNames = cms.untracked.vstring('file:/afs/cern.ch/user/j/jipark/work/public/catToolsSamples/SingleElectronRun2017E_31Mar2018-v1_0241A01E-5537-E811-9416-0CC47A0AD792.root')
         # out of date for 94X below: 
         #from CATTools.Validation.commonTestInput_cff import commonTestMiniAODs
         #if runOnMC and runGenTop: process.source.fileNames = commonTestMiniAODs["sig"]

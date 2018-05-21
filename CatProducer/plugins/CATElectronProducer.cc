@@ -352,7 +352,7 @@ void cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetu
       unpackedTrigObjs.push_back(trigObj);
       unpackedTrigObjs.back().unpackFilterLabels(iEvent,*trigResultsHandle);
     }
-    for(auto& ele : *unsmearedElecHandle){
+    for(auto& ele : *src){
       const float eta = ele.superCluster()->eta();
       const float phi = ele.superCluster()->phi();
       
