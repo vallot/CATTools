@@ -5,7 +5,7 @@ import FWCore.ParameterSet.Config as cms
 from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing ('analysis')
 # JSON
-options.register('UserJSON', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "UserJSON: Fault  default")
+options.register('UserJSON', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "UserJSON: Fault  default")
 # runOnTTbarMC ==> 0->No ttbar, 1->ttbar Signal, 2->ttbar Background
 options.register('runOnTTbarMC', 0, VarParsing.multiplicity.singleton, VarParsing.varType.int, "runOnTTbarMC: 0  default No ttbar sample")
 # TTbarCatMC   ==> 0->All ttbar, 1->ttbb, 2->ttbj, 3->ttcc, 4->ttLF, 5->tt, 6->ttjj
@@ -23,11 +23,11 @@ process = cms.Process("fcncLepJets")
 # initialize MessageLogger and output report
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.FwkReport.reportEvery = 5000
-process.MessageLogger.cerr.threshold = 'INFO'
-process.MessageLogger.categories.append('fcncLepJets')
-process.MessageLogger.cerr.INFO = cms.untracked.PSet(
-     limit = cms.untracked.int32(-1)
-)
+#process.MessageLogger.cerr.threshold = 'INFO'
+#process.MessageLogger.categories.append('fcncLepJets')
+#process.MessageLogger.cerr.INFO = cms.untracked.PSet(
+#     limit = cms.untracked.int32(-1)
+#)
 process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10000) )
@@ -74,10 +74,10 @@ process.fcncLepJets = cms.EDAnalyzer('fcncLepJetsAnalyzer',
                                      # Skim: Cut in number of (gen) jets 
                                      Skim_N_Jets       = cms.untracked.uint32(0),
                                      # TriggerNames
-                                     triggerNameDataEl = cms.untracked.vstring("HLT_Ele35_WPTight_Gsf_v"), 
-                                     triggerNameDataMu = cms.untracked.vstring("HLT_IsoMu27_v"), 
-                                     triggerNameMCEl   = cms.untracked.vstring("HLT_Ele35_WPTight_Gsf_v"), 
-                                     triggerNameMCMu   = cms.untracked.vstring("HLT_IsoMu27_v"), 
+                                     triggerNameDataEl = cms.untracked.vstring("HLT_Ele32_WPTight_Gsf_L1DoubleEG_v"),
+                                     triggerNameDataMu = cms.untracked.vstring("HLT_IsoMu27_v"),
+                                     triggerNameMCEl   = cms.untracked.vstring("HLT_Ele32_WPTight_Gsf_L1DoubleEG_v"),
+                                     triggerNameMCMu   = cms.untracked.vstring("HLT_IsoMu27_v"),
                                      # Input Tags
                                      genWeightLabel    = cms.InputTag("flatGenWeights"),
                                      genLabel          = cms.InputTag("prunedGenParticles"),
