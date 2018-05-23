@@ -1031,12 +1031,12 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     }
   }
   else if ( !electrons->empty() ) {
-    if ( !(electrons->at(0)).isHLT_Ele32_WPTight() ) continue;
-
-    if ( IsSelectElectron(electrons->at(0)) ) selectedElectrons.push_back( electrons->at(0) );
-    for (unsigned int i = 1; i < electrons->size() ; i++) {
-      const cat::Electron & electron = electrons->at(i);
-      if ( IsVetoElectron(electron) ) vetoElectrons.push_back(electron);
+    if ( !(electrons->at(0)).isHLT_Ele32_WPTight() ){
+      if ( IsSelectElectron(electrons->at(0)) ) selectedElectrons.push_back( electrons->at(0) );
+      for (unsigned int i = 1; i < electrons->size() ; i++) {
+        const cat::Electron & electron = electrons->at(i);
+        if ( IsVetoElectron(electron) ) vetoElectrons.push_back(electron);
+      }
     }
   }
 
