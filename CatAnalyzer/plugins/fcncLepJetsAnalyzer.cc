@@ -1020,23 +1020,23 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   Handle<cat::ElectronCollection> electrons;
   iEvent.getByToken(electronToken_, electrons);
 
+  //int ele32 = 0;
+
   if ( !doLooseLepton_ ) {
     for (unsigned int i = 0; i < electrons->size() ; i++) {
       const cat::Electron & electron = electrons->at(i);
 
-      if ( !electron.isHLT_Ele32_WPTight() ) continue;
+      //if ( electron.isHLT_Ele32_WPTight() ) ele32 += 1;
 
       if ( IsSelectElectron( electron ) ) selectedElectrons.push_back( electron );
       else if ( IsVetoElectron( electron ) ) vetoElectrons.push_back( electron ); // does not Include selected electrons
     }
   }
   else if ( !electrons->empty() ) {
-    if ( !(electrons->at(0)).isHLT_Ele32_WPTight() ){
-      if ( IsSelectElectron(electrons->at(0)) ) selectedElectrons.push_back( electrons->at(0) );
-      for (unsigned int i = 1; i < electrons->size() ; i++) {
-        const cat::Electron & electron = electrons->at(i);
-        if ( IsVetoElectron(electron) ) vetoElectrons.push_back(electron);
-      }
+    if ( IsSelectElectron(electrons->at(0)) ) selectedElectrons.push_back( electrons->at(0) );
+    for (unsigned int i = 1; i < electrons->size() ; i++) {
+      const cat::Electron & electron = electrons->at(i);
+      if ( IsVetoElectron(electron) ) vetoElectrons.push_back(electron);
     }
   }
 
@@ -1156,6 +1156,9 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     if(*TrEl_it == "notrigger") IsTriggerEl = true;
     if (IsTriggerEl) break;
   }
+
+  //if(ele32 > 0) IsTriggerEl = true;
+  //else IsTriggerEl = false;
 
   if ( (ch_tag == 0 && IsTriggerMu) ||
        (ch_tag == 1 && IsTriggerEl)) {

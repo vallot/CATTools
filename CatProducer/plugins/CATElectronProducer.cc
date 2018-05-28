@@ -91,7 +91,6 @@ namespace cat {
     std::vector<std::string> pathsToPass_;
     edm::EDGetTokenT<edm::TriggerResults> trigResultsToken_;
     edm::EDGetTokenT<std::vector<pat::TriggerObjectStandAlone> > trigObjsToken_;
-
   };
 
 } // namespace
@@ -211,6 +210,19 @@ void cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetu
   for (size_t i = 0; i < elecIDSrcs_.size(); ++i) {
     iEvent.getByToken(elecIDTokens_[i], idhandles[i]);
     ids[i].first = elecIDSrcs_[i].first;
+  }
+
+  //HLT_Ele32
+  edm::Handle<edm::TriggerResults > trigResultsHandle;
+  iEvent.getByToken(trigResultsToken_, trigResultsHandle);
+
+  edm::Handle<std::vector<pat::TriggerObjectStandAlone> > trigObjsHandle;
+  iEvent.getByToken(trigObjsToken_, trigObjsHandle);
+
+  std::vector<pat::TriggerObjectStandAlone> unpackedTrigObjs;
+  for(auto& trigObj : *trigObjsHandle){
+    unpackedTrigObjs.push_back(trigObj);
+    unpackedTrigObjs.back().unpackFilterLabels(iEvent,*trigResultsHandle);
   }
 
   std::unique_ptr<cat::ElectronCollection>  out(new cat::ElectronCollection());
@@ -340,28 +352,21 @@ void cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetu
     aElectron.setTrigMVAValid(isTrigMVAValid);
 
     //HLT_Ele32
-    bool ele32bit = false;
     edm::Handle<edm::TriggerResults > trigResultsHandle;
     iEvent.getByToken(trigResultsToken_, trigResultsHandle);
 
     edm::Handle<std::vector<pat::TriggerObjectStandAlone> > trigObjsHandle;
     iEvent.getByToken(trigObjsToken_, trigObjsHandle);
 
-    std::vector<pat::TriggerObjectStandAlone> unpackedTrigObjs;
-    for(auto& trigObj : *trigObjsHandle){
-      unpackedTrigObjs.push_back(trigObj);
-      unpackedTrigObjs.back().unpackFilterLabels(iEvent,*trigResultsHandle);
-    }
-    for(auto& ele : *src){
-      const float eta = ele.superCluster()->eta();
-      const float phi = ele.superCluster()->phi();
-      
-      std::vector<const pat::TriggerObjectStandAlone*> matchedTrigObjs = getMatchedObjs(eta,phi,unpackedTrigObjs,0.1);
-      for(const auto trigObj : matchedTrigObjs){
-        if(trigObj->hasFilterLabel("hltEle32L1DoubleEGWPTightGsfTrackIsoFilter") &&
-           trigObj->hasFilterLabel("hltEGL1SingleEGOrFilter") ) {
-          ele32bit = true;
-        }
+    const float eta = aPatElectron.superCluster()->eta();
+    const float phi = aPatElectron.superCluster()->phi();
+
+    bool ele32bit = false;    
+    std::vector<const pat::TriggerObjectStandAlone*> matchedTrigObjs = getMatchedObjs(eta,phi,unpackedTrigObjs,0.2);
+    for(const auto trigObj : matchedTrigObjs){
+      if(trigObj->hasFilterLabel("hltEle32L1DoubleEGWPTightGsfTrackIsoFilter") &&
+         trigObj->hasFilterLabel("hltEGL1SingleEGOrFilter") ) {
+        ele32bit = true;
       }
     }
     aElectron.setIsHLT_Ele32_WPTight( ele32bit );
