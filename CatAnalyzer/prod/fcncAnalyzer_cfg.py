@@ -30,7 +30,7 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 5000
 #)
 process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10000) )
+#process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10000) )
 
 process.source = cms.Source("PoolSource",
 
@@ -38,7 +38,6 @@ process.source = cms.Source("PoolSource",
         #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/V9_1/SingleMuon/V9_1_Run2017F-17Nov2017-v1/180403_143240/0000/catTuple_983.root'
         #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/V9_1/TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8/V9_1_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/180403_113925/0000/catTuple_989.root'
         #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/V9_1/SingleElectron/V9_1_Run2017B-17Nov2017-v1/180411_101622/0000/catTuple_130.root'
-        'file:/afs/cern.ch/user/j/jipark/work/private/catTools/CMSSW_9_4_5_cand1/src/CATTools/CatProducer/prod/catTuple.root'
         )
 )
 
