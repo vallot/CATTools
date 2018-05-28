@@ -118,7 +118,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     }
 
     if ( ntop == 2 ) continue;
-
+    /*
     // Singletop FCNH decay side, comment out for other MCs
     if ( abs(p.pdgId()) == 25 ) {
       Higgs_[0] = p.p4();
@@ -136,6 +136,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
       continue;
     }
     // end of Singletop FCNH side
+    */
 
     if ( abs(p.pdgId()) != 6 ) continue;
 
@@ -157,7 +158,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
       if ( nW == 1 ) break;
  
       const reco::Candidate* daugh = p.daughter(iDaughter);
-/*
+
       // FCNH decay side 
       if ( abs(daugh->pdgId()) == 25 ) {
         Higgs_[0] = daugh->p4();
@@ -179,7 +180,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
         upquark_[0] = daugh->p4();
       }
       // end of FCNH side
-*/
+
       if ( abs(daugh->pdgId()) != 24 ) continue;
       daugh = getLast(*daugh);
       const unsigned int nWDaughters = daugh->numberOfDaughters();
