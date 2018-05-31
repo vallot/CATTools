@@ -7,7 +7,7 @@ git checkout -b cat80x
 git-cms-addpkg RecoEgamma/ElectronIdentification
 git-cms-addpkg EgammaAnalysis/ElectronTools
 git-cms-addpkg RecoMET/METFilters
-git-cms-addpkg RecoBTag/DeepFlavour
+git-cms-addpkg RecoBTag/Combined
 
 sed -i 's/badGlobalMuonTagger.clone/badGlobalMuonTaggerMAOD.clone/g' RecoMET/METFilters/python/badGlobalMuonTaggersMiniAOD_cff.py
 
@@ -27,9 +27,9 @@ wget https://github.com/cms-egamma/RegressionDatabase/blob/master/SQLiteFiles/GE
 git clone -b Moriond17_gainSwitch_unc https://github.com/ECALELFS/ScalesSmearings.git
 cd ../../..
 
-mkdir -p RecoBTag/DeepFlavour/data
-wget http://home.fnal.gov/~verzetti//DeepFlavour/training/DeepFlavourNoSL.json -O  RecoBTag/DeepFlavour/data/DeepFlavourNoSL.json
-wget http://mon.iihe.ac.be/~smoortga/DeepFlavour/CMSSW_implementation_DeepCMVA/Model_DeepCMVA.json -O RecoBTag/DeepFlavour/data/Model_DeepCMVA.json
+mkdir -p RecoBTag/Combined/data
+wget http://home.fnal.gov/~verzetti//DeepFlavour/training/DeepFlavourNoSL.json -O  RecoBTag/Combined/data/DeepFlavourNoSL.json
+wget http://mon.iihe.ac.be/~smoortga/DeepFlavour/CMSSW_implementation_DeepCMVA/Model_DeepCMVA.json -O RecoBTag/Combined/data/Model_DeepCMVA.json
 
 git clone -b egm_id_80X_v1 https://github.com/ikrav/RecoEgamma-ElectronIdentification.git data1 
 git clone -b egm_id_80X_v1 https://github.com/ikrav/RecoEgamma-PhotonIdentification.git data2
