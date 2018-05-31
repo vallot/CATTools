@@ -138,7 +138,7 @@ for d in ds:
     if len(dataSetName) < 4: continue
 
     pdName, sdName = dataSetName[1], dataSetName[2]
-    if [int(x) for x in era[1:].split('-')] >= [8,0,8]:
+    if [int(x) for x in era[1:].replace('_', '-').split('-')] >= [8,0,8]:
         path = "%s/%s/%s/%s" % (storageprefix, era, pdName, sdName)
     else:
         path = "%s/%s/%s_%s" % (storageprefix, pdName, era, sdName)

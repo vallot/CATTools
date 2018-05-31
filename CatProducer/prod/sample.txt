@@ -1,2 +1,0 @@
-/ST_FCNC-TH_Tleptonic_HTobb_eta_hct-MadGraph5-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v11-v1/MINIAODSIM
-/ST_FCNC-TH_Tleptonic_HTobb_eta_hut-MadGraph5-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v11-v1/MINIAODSIM

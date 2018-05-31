@@ -34,10 +34,25 @@
 
 #include "CATTools/CommonTools/interface/GenParticleHelper.h"
 
+#include "DataFormats/Common/interface/TriggerResults.h"
+#include "DataFormats/PatCandidates/interface/TriggerObjectStandAlone.h"
+#include "FWCore/Common/interface/TriggerNames.h"
+
 using namespace edm;
 using namespace std;
 
 namespace cat {
+
+  //the functions which actually match the trigger objects and see if it passes
+  std::vector<const pat::TriggerObjectStandAlone*> getMatchedObjs(const float eta,const float phi,const std::vector<pat::TriggerObjectStandAlone>& trigObjs,const float maxDeltaR=0.1) {
+    std::vector<const pat::TriggerObjectStandAlone*> matchedObjs;
+    const float maxDR2 = maxDeltaR*maxDeltaR;
+    for(auto& trigObj : trigObjs){
+      const float dR2 = reco::deltaR2(eta,phi,trigObj.eta(),trigObj.phi());
+      if(dR2<maxDR2) matchedObjs.push_back(&trigObj);
+    }
+    return matchedObjs;
+  }
 
   class CATElectronProducer : public edm::stream::EDProducer<>
   {
@@ -69,6 +84,13 @@ namespace cat {
     std::vector<edm::EDGetTokenT<edm::ValueMap<bool> > > elecIDTokens_;
     const std::vector<std::string> electronIDs_;
 
+    //HLT_Ele32
+    edm::InputTag trigObjsTag_;
+    edm::InputTag trigResultsTag_;
+    std::vector<std::string> filtersToPass_;
+    std::vector<std::string> pathsToPass_;
+    edm::EDGetTokenT<edm::TriggerResults> trigResultsToken_;
+    edm::EDGetTokenT<std::vector<pat::TriggerObjectStandAlone> > trigObjsToken_;
   };
 
 } // namespace
@@ -126,7 +148,11 @@ cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig)
   pfSrc_(consumes<pat::PackedCandidateCollection>(iConfig.getParameter<edm::InputTag>("pfSrc"))),
   beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc"))),
   rhoLabel_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoLabel"))),
-  electronIDs_(iConfig.getParameter<std::vector<std::string> >("electronIDs"))
+  electronIDs_(iConfig.getParameter<std::vector<std::string> >("electronIDs")),
+  trigObjsTag_(iConfig.getParameter<edm::InputTag>("trigObjs")),
+  trigResultsTag_(iConfig.getParameter<edm::InputTag>("trigResults")),
+  trigResultsToken_(consumes<edm::TriggerResults>(trigResultsTag_)),
+  trigObjsToken_(consumes<std::vector<pat::TriggerObjectStandAlone> >(trigObjsTag_))
 {
   produces<cat::ElectronCollection>();
 
@@ -184,6 +210,19 @@ void cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetu
   for (size_t i = 0; i < elecIDSrcs_.size(); ++i) {
     iEvent.getByToken(elecIDTokens_[i], idhandles[i]);
     ids[i].first = elecIDSrcs_[i].first;
+  }
+
+  //HLT_Ele32
+  edm::Handle<edm::TriggerResults > trigResultsHandle;
+  iEvent.getByToken(trigResultsToken_, trigResultsHandle);
+
+  edm::Handle<std::vector<pat::TriggerObjectStandAlone> > trigObjsHandle;
+  iEvent.getByToken(trigObjsToken_, trigObjsHandle);
+
+  std::vector<pat::TriggerObjectStandAlone> unpackedTrigObjs;
+  for(auto& trigObj : *trigObjsHandle){
+    unpackedTrigObjs.push_back(trigObj);
+    unpackedTrigObjs.back().unpackFilterLabels(iEvent,*trigResultsHandle);
   }
 
   std::unique_ptr<cat::ElectronCollection>  out(new cat::ElectronCollection());
@@ -311,6 +350,26 @@ void cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetu
       }
     }
     aElectron.setTrigMVAValid(isTrigMVAValid);
+
+    //HLT_Ele32
+    edm::Handle<edm::TriggerResults > trigResultsHandle;
+    iEvent.getByToken(trigResultsToken_, trigResultsHandle);
+
+    edm::Handle<std::vector<pat::TriggerObjectStandAlone> > trigObjsHandle;
+    iEvent.getByToken(trigObjsToken_, trigObjsHandle);
+
+    const float eta = aPatElectron.superCluster()->eta();
+    const float phi = aPatElectron.superCluster()->phi();
+
+    bool hltbit = false;    
+    std::vector<const pat::TriggerObjectStandAlone*> matchedTrigObjs = getMatchedObjs(eta,phi,unpackedTrigObjs,0.2);
+    for(const auto trigObj : matchedTrigObjs){
+      if(trigObj->hasFilterLabel("hltEle32L1DoubleEGWPTightGsfTrackIsoFilter") &&
+         trigObj->hasFilterLabel("hltEGL1SingleEGOrFilter") ) {
+        hltbit = true;
+      }
+    }
+    aElectron.setIsTrgFired( hltbit );
 
     out->push_back(aElectron);
   }

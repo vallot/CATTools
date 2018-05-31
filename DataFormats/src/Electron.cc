@@ -17,7 +17,8 @@ Electron::Electron(const reco::LeafCandidate & aElectron) :
   isGsfCtfScPixChargeConsistent_(false),
   isEB_(false),
   snuID_(0),
-  isTrigMVAValid_(false)
+  isTrigMVAValid_(false),
+  isTrgFired_(false)
 {}
 
 /// destructor

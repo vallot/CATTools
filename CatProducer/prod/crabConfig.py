@@ -23,3 +23,7 @@ config.Site.storageSite = 'T3_KR_KISTI'
 #config.Site.storageSite = 'T3_KR_UOS'
 config.Data.outLFNDirBase = '/store/group/CAT/' 
 #config.Site.storageSite = 'T3_US_FNALLPC'
+#config.Site.blacklist = ['']
+
+#config.section_("Debug")
+#config.Debug.extraJDL = ['+CMS_ALLOW_OVERFLOW=False']

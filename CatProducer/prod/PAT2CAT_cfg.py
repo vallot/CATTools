@@ -1,17 +1,17 @@
 from CATTools.CatProducer.catTemplate_cfg import *
 ## some options
 doSecVertex=False # for jpsi candidates
-doDstar=True      # for Dstar meson.
+doDstar=False     # for Dstar meson.
     
 ## setting up arguements
 from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing ('python')
-options.register('runOnMC', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runOnMC: 1  default")
+options.register('runOnMC', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runOnMC: 1  default")
 options.register('useMiniAOD', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "useMiniAOD: 1  default")
 options.register('globalTag', '', VarParsing.multiplicity.singleton, VarParsing.varType.string, "globalTag: 1  default")
-options.register('runGenTop', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runGenTop: 1  default")
-options.register('runParticleTop', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runParticleTop: 0  default")
-options.register('isSignal', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "isSignal: 1 default")
+options.register('runGenTop', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runGenTop: 1  default")
+options.register('runParticleTop', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runParticleTop: 0  default")
+options.register('isSignal', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "isSignal: 1 default")
 options.register('doSkim', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "doSkim: 0 default")
 
 options.parseArguments()
@@ -40,10 +40,11 @@ print "process.GlobalTag.globaltag =",process.GlobalTag.globaltag
 #### cat tools output
 ####################################################################
 from CATTools.CatProducer.catCandidates_cff import *
-#process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
+process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
 
 process = addCatCommonObjects(process)
 if runOnMC: process = addCatCommonMCObjects(process)
+if runGenTop     : process = addCatGenTopObjects(process)
 if runParticleTop: process = addCatParticleTopObjects(process)
 if doSecVertex   : process = addCatSecVertexObjects(process)
 if doDstar       : process = addCatDstarObjects(process)
@@ -81,8 +82,9 @@ process.maxEvents.input = options.maxEvents
 # Default file here for test purpose
 if not options.inputFiles:
     if useMiniAOD:
-        process.source.fileNames = cms.untracked.vstring('file:/eos/user/t/tjkim/store/MiniAOD/004C666D-C0E0-E711-AADB-0CC47A6C183A.root')
-        #process.source.fileNames = cms.untracked.vstring('root://cms-xrd-global.cern.ch//store/mc/RunIIFall17MiniAOD/TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8/MINIAODSIM/94X_mc2017_realistic_v10-v1/50000/004C666D-C0E0-E711-AADB-0CC47A6C183A.root')
+        #process.source.fileNames = cms.untracked.vstring('file:/afs/cern.ch/user/j/jipark/work/public/catToolsSamples/TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8_MiniAODv2_10BE32E3-EE42-E811-AF24-0025905A6080.root')
+        #process.source.fileNames = cms.untracked.vstring('file:/afs/cern.ch/user/j/jipark/work/public/catToolsSamples/SingleMuonRun2017E_31Mar2018-v1_000D53C5-9D39-E811-A39C-0025905B85A0.root')
+        process.source.fileNames = cms.untracked.vstring('file:/afs/cern.ch/user/j/jipark/work/public/catToolsSamples/SingleElectronRun2017E_31Mar2018-v1_0241A01E-5537-E811-9416-0CC47A0AD792.root')
         # out of date for 94X below: 
         #from CATTools.Validation.commonTestInput_cff import commonTestMiniAODs
         #if runOnMC and runGenTop: process.source.fileNames = commonTestMiniAODs["sig"]
@@ -98,8 +100,8 @@ if options.maxEvents < 0:
     process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
 process.options.wantSummary = True
-process.MessageLogger.cerr.threshold = 'ERROR'
-process.MessageLogger.suppressWarning = cms.untracked.vstring(["JetPtMismatchAtLowPt", "NullTransverseMomentum"])
+#process.MessageLogger.cerr.threshold = 'ERROR'
+#process.MessageLogger.suppressWarning = cms.untracked.vstring(["JetPtMismatchAtLowPt", "NullTransverseMomentum"])
 
 ## for debugging
 #process.source.skipEvents = cms.untracked.uint32(3000)

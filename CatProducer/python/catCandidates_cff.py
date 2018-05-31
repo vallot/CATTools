@@ -66,15 +66,19 @@ def addCatDstarObjects(process):
 
 def addCatGenTopObjects(process):
     process.load("CATTools.CatProducer.producers.genTopProducer_cfi") #please do not remove it.
+    process.load("CATTools.CatProducer.mcTruthTop.mcTruthTop_cff")
     process.load("CATTools.CatProducer.producers.genJetHadronMatch_cfi")
     process.load("TopQuarkAnalysis.TopTools.GenTtbarCategorizer_cfi")
 
     # for GenTtbarCategories
-    from CATTools.CatProducer.Tools.tools import getHFTool
+    from CATTools.CatProducer.Tools.tools import genHFTool
     genHFTool(process, True)
     process.catOut.outputCommands.extend(catEventContentTOPMC)
     process.catObjectTask.add(
-        process.catGenTops
+        process.selectedHadronsAndPartons, process.genJetFlavourInfos,
+        process.matchGenBHadron, process.matchGenCHadron, 
+        process.catGenTops, process.GenTtbarCategories, process.GenTtbarCategories30,
+        process.GenTtbarCategories40, process.genJetHadronFlavour
     )
     return process
 
