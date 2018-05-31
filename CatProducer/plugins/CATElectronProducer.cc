@@ -361,15 +361,15 @@ void cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetu
     const float eta = aPatElectron.superCluster()->eta();
     const float phi = aPatElectron.superCluster()->phi();
 
-    bool ele32bit = false;    
+    bool hltbit = false;    
     std::vector<const pat::TriggerObjectStandAlone*> matchedTrigObjs = getMatchedObjs(eta,phi,unpackedTrigObjs,0.2);
     for(const auto trigObj : matchedTrigObjs){
       if(trigObj->hasFilterLabel("hltEle32L1DoubleEGWPTightGsfTrackIsoFilter") &&
          trigObj->hasFilterLabel("hltEGL1SingleEGOrFilter") ) {
-        ele32bit = true;
+        hltbit = true;
       }
     }
-    aElectron.setIsHLT_Ele32_WPTight( ele32bit );
+    aElectron.setIsTrgFired( hltbit );
 
     out->push_back(aElectron);
   }

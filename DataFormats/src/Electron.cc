@@ -18,7 +18,7 @@ Electron::Electron(const reco::LeafCandidate & aElectron) :
   isEB_(false),
   snuID_(0),
   isTrigMVAValid_(false),
-  isHLTEle32WPTight_(false)
+  isTrgFired_(false)
 {}
 
 /// destructor
