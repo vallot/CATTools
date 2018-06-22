@@ -89,11 +89,11 @@ void BTagWeightEvaluator::init(const int method,
   string csvFileName;
   if      ( btagName == "csvv2" ) {
     btagAlgo_ = BTAG_CSVv2 ;
-    csvFileName = "CSVv2_94XSF_V1_B_F.csv";
+    csvFileName = "CSVv2_94XF_V2_B_F.csv";
   }
   else if ( btagName == "deepcsv" ) {
     btagAlgo_ = BTAG_DeepCSV;
-    csvFileName = "DeepCSV_94XSF_V1_B_F.csv";
+    csvFileName = "DeepCSV_94XSF_V2_B_F.csv";
   }
   else btagAlgo_ = "undefined"; // FIXME: Eventually raise error somewhere?
 

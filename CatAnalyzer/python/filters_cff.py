@@ -18,11 +18,11 @@ filterRECO = cms.EDFilter("CATTriggerBitCombiner",
         "Flag_HBHENoiseIsoFilter",
         "Flag_EcalDeadCellTriggerPrimitiveFilter",
         "Flag_goodVertices",
-        "Flag_eeBadScFilter",
+#        "Flag_eeBadScFilter",
         "Flag_globalTightHalo2016Filter",
-
         "Flag_badPFMuon",
-        "Flag_badChargedHadron",
+        "Flag_BadChargedCandidateFilter",
+        "Flag_ecalBadCalibFilter",
     ),
     doFilter = cms.bool(False),
 )
@@ -34,9 +34,10 @@ filterRECOMC = filterRECO.clone(
         "Flag_goodVertices",
         "Flag_eeBadScFilter",
         "Flag_globalTightHalo2016Filter",
-
+        "Flag_EcalDeadCellTriggerPrimitiveFilter",
         "Flag_badPFMuon",
-        "Flag_badChargedHadron",
+        "Flag_BadChargedCandidateFilter",
+        "Flag_ecalBadCalibFilter",
     ),
 )
 

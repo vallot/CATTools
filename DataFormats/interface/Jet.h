@@ -49,14 +49,14 @@ namespace cat {
   // DeepCSV CvsL
   const std::string CTAG_DeepCSVc = "pfDeepCSVJetTags:probc";
   const std::string CTAG_DeepCSVcc = "pfDeepCSVJetTags:probcc";
-  const std::string JTAG_DeepCSVudsg = "pfDeepCSVJetTags:probudsg";
+  const std::string CTAG_DeepCSVudsg = "pfDeepCSVJetTags:probudsg";
   const std::string CTAG_DeepCSV_CvsL = "pfDeepCSVDiscriminatorsJetTags:CvsL";
   //                                   2017
   const double WP_CTAG_DeepCSV_CvsLL = 0.05;
   const double WP_CTAG_DeepCSV_CvsLM = 0.15;
   const double WP_CTAG_DeepCSV_CvsLT = 0.8;
   // DeepCSV CvsB
-  const std::string CTAG_DeepCSV_CvsB = "pfDeepCSVDiscriminatorsJetTags:CvsL";
+  const std::string CTAG_DeepCSV_CvsB = "pfDeepCSVDiscriminatorsJetTags:CvsB";
   //                                   2017
   const double WP_CTAG_DeepCSV_CvsBL = 0.33;
   const double WP_CTAG_DeepCSV_CvsBM = 0.28;
