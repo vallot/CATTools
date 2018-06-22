@@ -5,10 +5,10 @@ import FWCore.ParameterSet.Config as cms
 from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing ('analysis')
 # JSON
-options.register('UserJSON', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "UserJSON: Fault  default")
+options.register('UserJSON', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "UserJSON: Fault  default")
 # runOnTTbarMC ==> 0->No ttbar, 1->ttbar Signal, 2->ttbar Background
-options.register('runOnTTbarMC', 0, VarParsing.multiplicity.singleton, VarParsing.varType.int, "runOnTTbarMC: 0  default No ttbar sample")
-# TTbarCatMC   ==> 0->All ttbar, 1->ttbb, 2->ttbj, 3->ttcc, 4->ttLF, 5->tt, 6->ttjj
+options.register('runOnTTbarMC', 1, VarParsing.multiplicity.singleton, VarParsing.varType.int, "runOnTTbarMC: 0  default No ttbar sample")
+# TTbarCatMC   ==> 0->All ttbar, 1->ttbb, 2->ttbj, 3->ttcc, 4->ttLF, 5->tt, 6->ttjj, 7->ST FCNC
 options.register('TTbarCatMC', 0, VarParsing.multiplicity.singleton, VarParsing.varType.int, "TTbarCatMC: 0  default All ttbar events")
 options.parseArguments()
 
@@ -35,9 +35,8 @@ process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 process.source = cms.Source("PoolSource",
 
      fileNames = cms.untracked.vstring(
-        #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/V9_1/SingleMuon/V9_1_Run2017F-17Nov2017-v1/180403_143240/0000/catTuple_983.root'
-        #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/V9_1/TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8/V9_1_RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/180403_113925/0000/catTuple_989.root'
-        #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/V9_1/SingleElectron/V9_1_Run2017B-17Nov2017-v1/180411_101622/0000/catTuple_130.root'
+        #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/V9_2/SingleMuon/V9_2_Run2017B-31Mar2018-v1/180601_025245/0000/catTuple_1.root'
+        'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/V9_2/TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8/V9_2_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/180603_161622/0000/catTuple_1.root',
         )
 )
 
@@ -57,7 +56,6 @@ if options.UserJSON:
     import FWCore.PythonUtilities.LumiList as LumiList
     process.source.lumisToProcess = LumiList.LumiList(filename = 'Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt').getVLuminosityBlockRange()
 
-
 # Lepton Scale Factors
 from CATTools.CatAnalyzer.leptonSF_cff import *
 # GEN Weights
@@ -70,12 +68,10 @@ process.deepcsvWeights.maxEta = 2.4
 process.fcncLepJets = cms.EDAnalyzer('fcncLepJetsAnalyzer',
                                      TTbarSampleLabel  = cms.untracked.int32(options.runOnTTbarMC),
                                      TTbarCatLabel     = cms.untracked.int32(options.TTbarCatMC),
-                                     # Skim: Cut in number of (gen) jets 
-                                     Skim_N_Jets       = cms.untracked.uint32(0),
                                      # TriggerNames
-                                     triggerNameDataEl = cms.untracked.vstring("HLT_Ele32_WPTight_Gsf_L1DoubleEG_v"),
+                                     triggerNameDataEl = cms.untracked.vstring("HLT_Ele30_eta2p1_WPTight_Gsf_CentralPFJet35_EleCleaned_v"),
                                      triggerNameDataMu = cms.untracked.vstring("HLT_IsoMu27_v"),
-                                     triggerNameMCEl   = cms.untracked.vstring("HLT_Ele32_WPTight_Gsf_L1DoubleEG_v"),
+                                     triggerNameMCEl   = cms.untracked.vstring("HLT_Ele30_eta2p1_WPTight_Gsf_CentralPFJet35_EleCleaned_v"),
                                      triggerNameMCMu   = cms.untracked.vstring("HLT_IsoMu27_v"),
                                      # Input Tags
                                      genWeightLabel    = cms.InputTag("flatGenWeights"),
