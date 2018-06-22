@@ -95,14 +95,18 @@ void GenWeightsToFlatWeights::beginRun(const edm::Run& run, const edm::EventSetu
                   std::sregex_token_iterator(), std::back_inserter(tokens));
         double muR = 0, muF = 0;
         for ( int iToken=0, nToken=tokens.size(); iToken<nToken; ++iToken) {
-          if ( tokens[iToken] == "MUR" and iToken+1 < nToken ) {
+          if ( (tokens[iToken] == "MUR" or tokens[iToken] == "RENSCFACT") and iToken+1 < nToken ) {
             const double orig = muR;
-            try { muR = boost::lexical_cast<double>(tokens[++iToken]); }
+            std::string val = tokens[++iToken];
+            if ( val.rfind('D') != val.npos ) val = val.replace(val.rfind('D'), 1ul, "E");
+            try { muR = boost::lexical_cast<double>(val); }
             catch ( boost::bad_lexical_cast ) { muR = orig; }
           }
-          if ( tokens[iToken] == "MUF" and iToken+1 < nToken ) {
+          if ( (tokens[iToken] == "MUF" or tokens[iToken] == "FACSCFACT") and iToken+1 < nToken ) {
             const double orig = muF;
-            try { muF = boost::lexical_cast<double>(tokens[++iToken]); }
+            std::string val = tokens[++iToken];
+            if ( val.rfind('D') != val.npos ) val = val.replace(val.rfind('D'), 1ul, "E");
+            try { muF = boost::lexical_cast<double>(val); }
             catch ( boost::bad_lexical_cast ) { muF = orig; }
           }
         }
