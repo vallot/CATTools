@@ -30,7 +30,7 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 5000
 #)
 process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 
-#process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10000) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.source = cms.Source("PoolSource",
 
@@ -54,7 +54,7 @@ if options.UserJSON:
     # /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/ReReco
     print "Running data.... Including JSON File."
     import FWCore.PythonUtilities.LumiList as LumiList
-    process.source.lumisToProcess = LumiList.LumiList(filename = 'Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt').getVLuminosityBlockRange()
+    process.source.lumisToProcess = LumiList.LumiList(filename = '../../CatProducer/data/LumiMask/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt').getVLuminosityBlockRange()
 
 # Lepton Scale Factors
 from CATTools.CatAnalyzer.leptonSF_cff import *
