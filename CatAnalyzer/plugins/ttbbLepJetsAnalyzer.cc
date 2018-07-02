@@ -511,8 +511,12 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
     tree->Branch("addbjet2_phi", &b_addbjet2_phi, "addbjet2_phi/F");
     tree->Branch("addbjet2_e", &b_addbjet2_e, "addbjet2_e/F");  
 
+
     //GEN TREE
     gentree = fs->make<TTree>("gentree", "TopGENTree");
+    
+    gentree->Branch("event",      &b_Event,       "event/I");
+
     gentree->Branch("genweight",     &b_GenWeight,     "genweight/F");
     gentree->Branch("genchannel",    &b_GenChannel,    "genchannel/I");
     gentree->Branch("genhiggscatid", &b_GenHiggsCatID, "genhiggscatid/I");
@@ -528,6 +532,18 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
     gentree->Branch("genjet_E",           "std::vector<float>", &b_GenJet_E);
     gentree->Branch("genjet_mom",         "std::vector<int>",   &b_GenJet_mom);
     gentree->Branch("genjet_gencone_mom", "std::vector<int>",   &b_GenJet_GenConeMom);
+
+    gentree->Branch("addbjet1_pt", &b_addbjet1_pt, "addbjet1_pt/F"); 
+    gentree->Branch("addbjet1_eta", &b_addbjet1_eta, "addbjet1_eta/F"); 
+    gentree->Branch("addbjet1_phi", &b_addbjet1_phi, "addbjet1_phi/F"); 
+    gentree->Branch("addbjet1_e", &b_addbjet1_e, "addbjet1_e/F"); 
+
+    gentree->Branch("addbjet2_pt", &b_addbjet2_pt, "addbjet2_pt/F");
+    gentree->Branch("addbjet2_eta", &b_addbjet2_eta, "addbjet2_eta/F");
+    gentree->Branch("addbjet2_phi", &b_addbjet2_phi, "addbjet2_phi/F");
+    gentree->Branch("addbjet2_e", &b_addbjet2_e, "addbjet2_e/F");  
+
+
   }
 
   EventInfo = fs->make<TH1D>("EventInfo","Event Information",9,0,9);
