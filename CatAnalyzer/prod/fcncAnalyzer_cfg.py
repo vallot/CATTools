@@ -44,7 +44,7 @@ process.source = cms.Source("PoolSource",
 process.load("CATTools.CatProducer.pileupWeight_cff")
 from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
 process.pileupWeight.weightingMethod = "RedoWeight"
-process.pileupWeight.pileupMC = pileupWeightMap["2017_25ns_WinterMC"]
+process.pileupWeight.pileupMC = pileupWeightMap["2017_25ns_WinterMC_v2"]
 process.pileupWeight.pileupRD = pileupWeightMap["Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON"]
 process.pileupWeight.pileupUp = pileupWeightMap["Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON_Up"]
 process.pileupWeight.pileupDn = pileupWeightMap["Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON_Dn"]

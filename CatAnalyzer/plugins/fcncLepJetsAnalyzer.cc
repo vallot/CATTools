@@ -115,15 +115,15 @@ private:
 
   // Channel and Categorization
   int b_GenChannel, b_Channel, b_GenCone_NgJetsW, b_GenHiggsCatID;
-  std::vector<float> *b_GenCone_gJet_pT, *b_GenCone_gJet_eta, *b_GenCone_gJet_phi, *b_GenCone_gJet_E;
+  std::vector<float> *b_GenCone_gJet_pt, *b_GenCone_gJet_eta, *b_GenCone_gJet_phi, *b_GenCone_gJet_e;
   std::vector<int>   *b_GenConeCatID, *b_GenCone_gJetFlavW;
 
   // GEN Lepton and neutrino
-  float b_GenLepton_pT, b_GenLepton_eta, b_GenLepton_phi, b_GenLepton_E;
-  float b_GenNu_pT, b_GenNu_eta, b_GenNu_phi, b_GenNu_E;
+  float b_GenLepton_pt, b_GenLepton_eta, b_GenLepton_phi, b_GenLepton_e;
+  float b_GenNu_pt, b_GenNu_eta, b_GenNu_phi, b_GenNu_e;
 
   // Leptons and MET
-  float b_Lepton_pT, b_Lepton_eta, b_Lepton_phi, b_Lepton_E, b_Lepton_relIso, b_Lepton_LES;
+  float b_Lepton_pt, b_Lepton_eta, b_Lepton_phi, b_Lepton_e, b_Lepton_relIso, b_Lepton_LES;
   float b_MET, b_MET_phi;
   bool  b_Lepton_isIso;
   std::vector<float> *b_Lepton_SF;
@@ -137,7 +137,7 @@ private:
 
   // Jets
   int b_Jet_Number;
-  std::vector<float> *b_Jet_pT, *b_Jet_eta, *b_Jet_phi, *b_Jet_E;
+  std::vector<float> *b_Jet_pt, *b_Jet_eta, *b_Jet_phi, *b_Jet_e;
   std::vector<int>   *b_Jet_Index;
   float               b_DRAddJets;
 
@@ -236,16 +236,16 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   b_Lepton_SF    = new std::vector<float>;  
 
   b_GenConeCatID      = new std::vector<int>;
-  b_GenCone_gJet_pT   = new std::vector<float>;
+  b_GenCone_gJet_pt   = new std::vector<float>;
   b_GenCone_gJet_eta  = new std::vector<float>;
   b_GenCone_gJet_phi  = new std::vector<float>;
-  b_GenCone_gJet_E    = new std::vector<float>;
+  b_GenCone_gJet_e    = new std::vector<float>;
   b_GenCone_gJetFlavW = new std::vector<int>;
 
-  b_Jet_pT   = new std::vector<float>;
+  b_Jet_pt   = new std::vector<float>;
   b_Jet_eta   = new std::vector<float>;
   b_Jet_phi   = new std::vector<float>;
-  b_Jet_E    = new std::vector<float>;
+  b_Jet_e    = new std::vector<float>;
   b_Jet_Index= new std::vector<int>;
   b_Jet_CSV  = new std::vector<float>;
   b_Jet_deepCSV  = new std::vector<float>;
@@ -282,19 +282,19 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
 
   tree->Branch("MET",     &b_MET,     "MET/F");
   tree->Branch("MET_phi", &b_MET_phi, "MET_phi/F");
-  tree->Branch("lepton_pt",  &b_Lepton_pT,  "lepton_pt/F");
+  tree->Branch("lepton_pt",  &b_Lepton_pt,  "lepton_pt/F");
   tree->Branch("lepton_eta", &b_Lepton_eta, "lepton_eta/F");
   tree->Branch("lepton_phi", &b_Lepton_phi, "lepton_phi/F");
-  tree->Branch("lepton_e" ,  &b_Lepton_E,   "lepton_e/F" );
+  tree->Branch("lepton_e" ,  &b_Lepton_e,   "lepton_e/F" );
   tree->Branch("lepton_LES", &b_Lepton_LES, "lepton_LES/F" );
   tree->Branch("lepton_SF",  "std::vector<float>", &b_Lepton_SF );
   tree->Branch("lepton_relIso", &b_Lepton_relIso, "lepton_relIso/F");
   tree->Branch("lepton_isIso",  &b_Lepton_isIso,  "lepton_isIso/O");
 
-  tree->Branch("jet_pt",           "std::vector<float>", &b_Jet_pT);
+  tree->Branch("jet_pt",           "std::vector<float>", &b_Jet_pt);
   tree->Branch("jet_eta",          "std::vector<float>", &b_Jet_eta);
   tree->Branch("jet_phi",          "std::vector<float>", &b_Jet_phi);
-  tree->Branch("jet_e" ,           "std::vector<float>", &b_Jet_E );
+  tree->Branch("jet_e" ,           "std::vector<float>", &b_Jet_e );
   tree->Branch("jet_index" ,       "std::vector<int>",   &b_Jet_Index );
   tree->Branch("jet_CSV" ,         "std::vector<float>", &b_Jet_CSV );
   tree->Branch("jet_deepCSV",      "std::vector<float>", &b_Jet_deepCSV );
@@ -336,24 +336,24 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
     tree->Branch("scaleweight", "std::vector<float>", &b_ScaleWeight );
 
     tree->Branch("genconecatid" ,      "std::vector<int>",   &b_GenConeCatID);
-    tree->Branch("gencone_gjet_pt" ,   "std::vector<float>", &b_GenCone_gJet_pT);
+    tree->Branch("gencone_gjet_pt" ,   "std::vector<float>", &b_GenCone_gJet_pt);
     tree->Branch("gencone_gjet_eta" ,  "std::vector<float>", &b_GenCone_gJet_eta);
     tree->Branch("gencone_gjet_phi" ,  "std::vector<float>", &b_GenCone_gJet_phi);
-    tree->Branch("gencone_gjet_e" ,    "std::vector<float>", &b_GenCone_gJet_E);
+    tree->Branch("gencone_gjet_e" ,    "std::vector<float>", &b_GenCone_gJet_e);
     tree->Branch("gencone_gJetFlavW" , "std::vector<int>",   &b_GenCone_gJetFlavW);
     tree->Branch("gencone_NgjetsW", &b_GenCone_NgJetsW, "gencone_NgjetsW/I");
     tree->Branch("draddjets",       &b_DRAddJets,       "draddjets/F");
     tree->Branch("genhiggscatid",   &b_GenHiggsCatID,   "genhiggscatid/I");
 
     tree->Branch("genchannel",    &b_GenChannel,    "genchannel/I");
-    tree->Branch("genlepton_pt",  &b_GenLepton_pT,  "genlepton_pt/F");
+    tree->Branch("genlepton_pt",  &b_GenLepton_pt,  "genlepton_pt/F");
     tree->Branch("genlepton_eta", &b_GenLepton_eta, "genlepton_eta/F");
     tree->Branch("genlepton_phi", &b_GenLepton_phi, "genlepton_phi/F");
-    tree->Branch("genlepton_e",   &b_GenLepton_E,   "genlepton_e/F");
-    tree->Branch("gennu_pt",      &b_GenNu_pT,      "gennu_pt/F");
+    tree->Branch("genlepton_e",   &b_GenLepton_e,   "genlepton_e/F");
+    tree->Branch("gennu_pt",      &b_GenNu_pt,      "gennu_pt/F");
     tree->Branch("gennu_eta",     &b_GenNu_eta,     "gennu_eta/F");
     tree->Branch("gennu_phi",     &b_GenNu_phi,     "gennu_phi/F");
-    tree->Branch("gennu_e",       &b_GenNu_E,       "gennu_e/F");
+    tree->Branch("gennu_e",       &b_GenNu_e,       "gennu_e/F");
 
     tree->Branch("addbjet1_pt",  &b_addbjet1_pt, "addbjet1_pt/F"); 
     tree->Branch("addbjet1_eta", &b_addbjet1_eta, "addbjet1_eta/F"); 
@@ -396,17 +396,17 @@ fcncLepJetsAnalyzer::~fcncLepJetsAnalyzer()
   delete b_ScaleWeight;
 
   delete b_GenConeCatID;
-  delete b_GenCone_gJet_pT;
+  delete b_GenCone_gJet_pt;
   delete b_GenCone_gJet_eta;
   delete b_GenCone_gJet_phi;
-  delete b_GenCone_gJet_E;
+  delete b_GenCone_gJet_e;
   delete b_GenCone_gJetFlavW;
 
   delete b_Lepton_SF;
-  delete b_Jet_pT;
+  delete b_Jet_pt;
   delete b_Jet_eta;
   delete b_Jet_phi;
-  delete b_Jet_E;
+  delete b_Jet_e;
   delete b_Jet_Index;
 
   delete b_Jet_partonFlavour;
@@ -443,18 +443,18 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   b_PDFWeight  ->clear();
 
   b_GenConeCatID->clear();
-  b_GenCone_gJet_pT->clear();
+  b_GenCone_gJet_pt->clear();
   b_GenCone_gJet_eta->clear();
   b_GenCone_gJet_phi->clear();
-  b_GenCone_gJet_E->clear();
+  b_GenCone_gJet_e->clear();
   b_GenCone_gJetFlavW->clear();
 
   b_Lepton_SF->clear();
 
-  b_Jet_pT    ->clear();
+  b_Jet_pt    ->clear();
   b_Jet_eta   ->clear();
   b_Jet_phi   ->clear();
-  b_Jet_E     ->clear();
+  b_Jet_e     ->clear();
   b_Jet_Index->clear();
 
   b_Jet_partonFlavour->clear();
@@ -628,10 +628,10 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     b_GenCone_gJetFlavW->push_back(genttbarConeCat->begin()-> Wquarkflav2());
 
     for (int ijGT=0; ijGT<6; ijGT++){
-      b_GenCone_gJet_pT  ->push_back(gJetGenCone[ijGT].Pt());
+      b_GenCone_gJet_pt  ->push_back(gJetGenCone[ijGT].Pt());
       b_GenCone_gJet_eta ->push_back(gJetGenCone[ijGT].Eta());
       b_GenCone_gJet_phi ->push_back(gJetGenCone[ijGT].Phi());
-      b_GenCone_gJet_E   ->push_back(gJetGenCone[ijGT].E());
+      b_GenCone_gJet_e   ->push_back(gJetGenCone[ijGT].E());
     }
 
     // adding additional b jet four-momentum
@@ -710,24 +710,24 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         else if (genttbarConeCat->begin()->semiLeptonicEle()) b_GenChannel = 1;
         
         if(genttbarConeCat->begin()->lepton1().pt() != 0.){
-          b_GenLepton_pT  = genttbarConeCat->begin()->lepton1().Pt();
+          b_GenLepton_pt  = genttbarConeCat->begin()->lepton1().Pt();
           b_GenLepton_eta = genttbarConeCat->begin()->lepton1().Eta();
           b_GenLepton_phi = genttbarConeCat->begin()->lepton1().Phi();
-          b_GenLepton_E   = genttbarConeCat->begin()->lepton1().E();
-          b_GenNu_pT      = genttbarConeCat->begin()->nu1().Pt();
+          b_GenLepton_e   = genttbarConeCat->begin()->lepton1().E();
+          b_GenNu_pt      = genttbarConeCat->begin()->nu1().Pt();
           b_GenNu_eta     = genttbarConeCat->begin()->nu1().Eta();
           b_GenNu_phi     = genttbarConeCat->begin()->nu1().Phi();
-          b_GenNu_E       = genttbarConeCat->begin()->nu1().E();
+          b_GenNu_e       = genttbarConeCat->begin()->nu1().E();
         }
         else{
-          b_GenLepton_pT  = genttbarConeCat->begin()->lepton2().Pt();
+          b_GenLepton_pt  = genttbarConeCat->begin()->lepton2().Pt();
           b_GenLepton_eta = genttbarConeCat->begin()->lepton2().Eta();
           b_GenLepton_phi = genttbarConeCat->begin()->lepton2().Phi();
-          b_GenLepton_E   = genttbarConeCat->begin()->lepton2().E();
-          b_GenNu_pT      = genttbarConeCat->begin()->nu2().Pt();
+          b_GenLepton_e   = genttbarConeCat->begin()->lepton2().E();
+          b_GenNu_pt      = genttbarConeCat->begin()->nu2().Pt();
           b_GenNu_eta     = genttbarConeCat->begin()->nu2().Eta();
           b_GenNu_phi     = genttbarConeCat->begin()->nu2().Phi();
-          b_GenNu_E       = genttbarConeCat->begin()->nu2().E();
+          b_GenNu_e       = genttbarConeCat->begin()->nu2().E();
         }
       } // if(nGenLep == 1)
     }// if(GENTTbarMCTree_)
@@ -921,10 +921,10 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
     b_Channel  = ch_tag;
 
-    b_Lepton_pT  = lepton.Pt();
+    b_Lepton_pt  = lepton.Pt();
     b_Lepton_eta = lepton.Eta();
     b_Lepton_phi = lepton.Phi();
-    b_Lepton_E   = lepton.E();
+    b_Lepton_e   = lepton.E();
     b_Lepton_SF  = lepton_SF;
     b_Lepton_LES = lepton_LES;
 
@@ -994,10 +994,10 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       if(goodJet && cleanJet){
         selectedJets.push_back( jet );
         // Basic variables
-        b_Jet_pT ->push_back(jet.pt());
+        b_Jet_pt ->push_back(jet.pt());
         b_Jet_eta->push_back(jet.eta());
         b_Jet_phi->push_back(jet.phi());
-        b_Jet_E  ->push_back(jet.energy());
+        b_Jet_e  ->push_back(jet.energy());
         b_Jet_Index ->push_back(JetIndex[i]);
 	
 	      // Number of Jets (easy cross check)
@@ -1040,7 +1040,7 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
           if(jet.pt() > 40.) for (unsigned int iu=0; iu<19; iu++) Jet_SF_deepCSV[3][iu] *= SF_deepCSV_.getSF(jet, iu);
           // pT_Jets > 38 for first jet, and 30 for the others (e+jet)
           if(i == 0 and jet.pt() > 38.) for (unsigned int iu=0; iu<19; iu++) Jet_SF_deepCSV[4][iu] *= SF_deepCSV_.getSF(jet, iu);
-          else if ( jet.pt() > 38.) for (unsigned int iu=0; iu<19; iu++) Jet_SF_deepCSV[4][iu] *= SF_deepCSV_.getSF(jet, iu);
+          else if ( jet.pt() > 30.) for (unsigned int iu=0; iu<19; iu++) Jet_SF_deepCSV[4][iu] *= SF_deepCSV_.getSF(jet, iu);
         } // if(isMC_)	
       }// if(GoodJets)
     }// for(AllJets)
