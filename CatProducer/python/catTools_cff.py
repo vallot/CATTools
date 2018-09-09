@@ -16,7 +16,7 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
             LumiSections = LumiList('%s/src/CATTools/CatProducer/data/LumiMask/%s.txt'%(os.environ['CMSSW_BASE'], cat.lumiJSON)).getVLuminosityBlockRange())
 
         #process.load("CATTools.CatProducer.eventCleaning.badECALSlewRateMitigationFilter2016_cfi")
-    
+
 #    useJECfile = True
 #    jecFiles = cat.JetEnergyCorrection
 #    if runOnMC:
@@ -103,6 +103,20 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         #process = enableMETMuonRecoMitigation2016(process, runOnMC) ## MET input object is overridden in the modifier function
 
         process.catSkimEvent.electronIdNames = process.catElectrons.electronIDs
+
+    if useMiniAOD:
+      # Instructions for 9_4_X, X >=9 for 2017 data with EE noise mitigation
+      from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
+
+      runMetCorAndUncFromMiniAOD (
+              process,
+              isData = not runOnMC,
+              fixEE2017 = True,
+              postfix = "ModifiedMET"
+      )
+
+      process.p += process.fullPatMetSequenceModifiedMET
+      process.catMETs.src = cms.InputTag("slimmedMETsModifiedMET","","CAT")
 
 def addEgmID(process, runOnMC):
         #######################################################################
