@@ -1,9 +1,10 @@
-scram project -n cattools CMSSW_9_1_14_patch2
+scram project -n cattools CMSSW_9_4_9
 cd cattools/src
 cmsenv
 git-cms-init -q
 git checkout -b cat90x
 
+git cms-merge-topic cms-met:METFixEE2017_949
 #git-cms-addpkg RecoEgamma/ElectronIdentification
 #git-cms-addpkg EgammaAnalysis/ElectronTools
 #git-cms-addpkg RecoMET/METFilters
