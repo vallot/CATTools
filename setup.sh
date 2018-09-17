@@ -11,12 +11,10 @@ git cms-merge-topic cms-met:METFixEE2017_949
 #git-cms-addpkg RecoMET/METFilters
 #git-cms-addpkg RecoBTag/DeepFlavour
 
-git clone https://github.com/vallot/CATTools
-cd CATTools
-git checkout -b cat90x cat90x
-git submodule init
-git submodule update
-cd ..
+git clone https://github.com/vallot/CATTools -b cat90x --recurse-submodules -j8
+cd CATTools/CommonTools/scripts
+git checkout master
+cd ../../..
 
 ## Production only - remove large files because of limitation in crab job file size
 rm -f CATTools/CatAnalyzer/data/KinReco_input.root
