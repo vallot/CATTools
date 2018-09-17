@@ -1,6 +1,6 @@
 #include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
 #include <cassert>
-#include <algorithms>
+#include <algorithm>
 
 using namespace cat;
 
