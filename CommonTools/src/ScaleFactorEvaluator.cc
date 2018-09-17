@@ -1,5 +1,6 @@
 #include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
 #include <cassert>
+#include <algorithms>
 
 using namespace cat;
 
@@ -28,13 +29,8 @@ double ScaleFactorEvaluator::operator()(const double x, const double y, const do
   if ( x < (*xbins_.begin()) or x >= (*(xbins_.end()-1)) ) return 1;
   if ( y < (*ybins_.begin()) or y >= (*(ybins_.end()-1)) ) return 1;
 
-  // Special note: std::lower_bound DOES NOT GIVE lower bound of the bin,
-  // it gives the first element which satiesfiles (x < VECTOR_ELEMENT)
-  // - as it is desigend to properly work on integers
-  auto xbin = std::lower_bound(xbins_.begin(), xbins_.end(), x);
-  auto ybin = std::lower_bound(ybins_.begin(), ybins_.end(), y);
-  if ( (*xbin) != x ) --xbin;
-  if ( (*ybin) != y ) --ybin;
+  auto xbin = std::upper_bound(xbins_.begin(), xbins_.end(), x)-1;
+  auto ybin = std::upper_bound(ybins_.begin(), ybins_.end(), y)-1;
 
   const int column = xbin-xbins_.begin();
   const int row = ybin-ybins_.begin();
