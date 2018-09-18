@@ -1,5 +1,6 @@
 #include "CATTools/CommonTools/interface/ScaleFactorEvaluator.h"
 #include <cassert>
+#include <algorithm>
 
 using namespace cat;
 
@@ -24,10 +25,12 @@ void ScaleFactorEvaluator::set(const std::vector<double>& xbins,
 
 double ScaleFactorEvaluator::operator()(const double x, const double y, const double shift) const
 {
-  auto xbin = std::lower_bound(xbins_.begin(), xbins_.end(), x);
-  if ( xbin == xbins_.end() or xbin+1 == xbins_.end() ) return 1;
-  auto ybin = std::lower_bound(ybins_.begin(), ybins_.end(), y);
-  if ( ybin == ybins_.end() or ybin+1 == ybins_.end() ) return 1;
+  // Filter out UF and OF
+  if ( x < (*xbins_.begin()) or x >= (*(xbins_.end()-1)) ) return 1;
+  if ( y < (*ybins_.begin()) or y >= (*(ybins_.end()-1)) ) return 1;
+
+  auto xbin = std::upper_bound(xbins_.begin(), xbins_.end(), x)-1;
+  auto ybin = std::upper_bound(ybins_.begin(), ybins_.end(), y)-1;
 
   const int column = xbin-xbins_.begin();
   const int row = ybin-ybins_.begin();
@@ -45,10 +48,12 @@ double ScaleFactorEvaluator::getScaleFactor(const cat::Particle& p, const int pi
   if ( aid == pid ) {
     const double x = p.pt(), y = p.eta();
     
-    auto xbin = std::lower_bound(xbins_.begin(), xbins_.end(), x);
-    if ( xbin == xbins_.end() or xbin+1 == xbins_.end() ) return 1;
-    auto ybin = std::lower_bound(ybins_.begin(), ybins_.end(), y);
-    if ( ybin == ybins_.end() or ybin+1 == ybins_.end() ) return 1;
+    // Filter out UF and OF
+    if ( x < (*xbins_.begin()) or x >= (*(xbins_.end()-1)) ) return 1;
+    if ( y < (*ybins_.begin()) or y >= (*(ybins_.end()-1)) ) return 1;
+
+    auto xbin = std::upper_bound(xbins_.begin(), xbins_.end(), x)-1;
+    auto ybin = std::upper_bound(ybins_.begin(), ybins_.end(), y)-1;
 
     const int column = xbin-xbins_.begin();
     const int row = ybin-ybins_.begin();
