@@ -5,7 +5,7 @@ git-cms-init -q
 git checkout -b cat90x
 
 git cms-addpkg PhysicsTools/PatAlgos
-git cms-merge-topic cms-met:METFixEE2017_949
+git cms-merge-topic cms-met:METFixEE2017_949_v2
 #git-cms-addpkg RecoEgamma/ElectronIdentification
 #git-cms-addpkg EgammaAnalysis/ElectronTools
 #git-cms-addpkg RecoMET/METFilters
