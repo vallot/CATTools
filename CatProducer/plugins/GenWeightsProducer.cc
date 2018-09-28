@@ -301,6 +301,7 @@ void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& event
     out_genWeights->setLHEWeight(lheWeight);
     out_genWeights->setGenWeight(genWeight);
     event.put(std::move(out_genWeights));
+    return;
   }
 
   edm::Handle<LHEEventProduct> lheHandle;
@@ -310,7 +311,7 @@ void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& event
 
   // Generator weights
   //   enforceUnitGenWeight == true  : genWeights are scaled to +1 or -1 by themselves
-  //   enforceUnitGenWeight == false : genWeights are scaled by 1/originalWeight.
+  //   enforceUnitGenWeight == false : genWeights are scaled to the originalWeight.
   //                                   do not scale weight if LHE is not available.
   double originalWeight = 1;
   if ( lheHandle.isValid() and !lheHandle->weights().empty() ) {
@@ -318,14 +319,17 @@ void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& event
     originalWeight = std::abs(lheHandle->originalXWGTUP());
   }
   genWeight = genInfoHandle->weight();
-  if ( enforceUnitGenWeight_ ) {
-    lheWeight = lheWeight == 0 ? 0 : lheWeight/std::abs(lheWeight);
-    genWeight = genWeight == 0 ? 0 : genWeight/std::abs(genWeight);
+  double lheRescale = 1, genRescale = 1;
+  if ( enforceUnitGenWeight_ ) { // scale each weights to have +-1
+    lheRescale = lheWeight == 0 ? 0 : 1./std::abs(lheWeight);
+    genRescale = genWeight == 0 ? 0 : 1./std::abs(genWeight);
   }
-  else {
-    lheWeight = originalWeight == 0 ? 0 : lheWeight/originalWeight;
-    genWeight = originalWeight == 0 ? 0 : genWeight/originalWeight;
+  else { // scale each weights to the same size of the originalWeight (TopModGen recommendation)
+    lheRescale = lheWeight == 0 ? 0 : std::abs(originalWeight)/std::abs(lheWeight);
+    genRescale = genWeight == 0 ? 0 : std::abs(originalWeight)/std::abs(genWeight);
   }
+  lheWeight *= lheRescale;
+  genWeight *= genRescale;
 
   const float q = genInfoHandle->pdf()->scalePDF;
   const int id1 = genInfoHandle->pdf()->id.first;
@@ -359,16 +363,14 @@ void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& event
       if ( lheHandle.isValid() ) {
         for ( size_t i=0; i<lheHandle->weights().size(); ++i ) {
           const double w0 = lheHandle->weights().at(i).wgt;
-          const double w = w0/(enforceUnitGenWeight_ ? std::abs(lheWeight) : originalWeight);
+          const double w = w0*lheRescale;
           out_genWeights->addWeight(w);
         }
       }
-      else {
-        for ( size_t i=0; i<genInfoHandle->weights().size(); ++i ) {
-          const double w0 = genInfoHandle->weights().at(i);
-          const double w = w0/(enforceUnitGenWeight_ ? std::abs(genWeight) : originalWeight);
-          out_genWeights->addWeight(w);
-        }
+      for ( size_t i=0; i<genInfoHandle->weights().size(); ++i ) {
+        const double w0 = genInfoHandle->weights().at(i);
+        const double w = w0*genRescale;
+        out_genWeights->addWeight(w);
       }
     }
   }
