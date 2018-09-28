@@ -584,7 +584,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
       double dR = reco::deltaR(gJet, Hbquarks_[i]);
       if( dR < minDR2Hbb ) minDR2Hbb = dR;
     }
-    if( minDR2Hbb < 0.5 ) HbquarkJets_.push_back(gJet.p4());
+    if( minDR2Hbb < 0.4 ) HbquarkJets_.push_back(gJet.p4());
 
     //for( unsigned int i = 0 ; i < HbquarkJets.size() ; i++){
     //  HbquarkJets_[i] = HbquarkJets[i];
