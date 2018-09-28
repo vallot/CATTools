@@ -665,7 +665,6 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
 
     NbJets1           =genTop->at(0).NbJets(1);
     NbJets201         =genTop->at(0).NbJets20(1);
-    NbJets251         =genTop->at(0).NbJets25(1);
     NbJets301         =genTop->at(0).NbJets30(1);
     NbJets401         =genTop->at(0).NbJets40(1);
 
@@ -679,14 +678,11 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
 
     NcJets1           =genTop->at(0).NcJets(1);
     NcJets101         =genTop->at(0).NcJets10(1);
-    NcJets151         =genTop->at(0).NcJets15(1);
     NcJets201         =genTop->at(0).NcJets20(1);
-    NcJets251         =genTop->at(0).NcJets25(1);
     NcJets301         =genTop->at(0).NcJets30(1);
     NcJets401         =genTop->at(0).NcJets40(1);
     NbJets           =genTop->at(0).NbJets(0);
     NbJets20         =genTop->at(0).NbJets20(0);
-    NbJets25         =genTop->at(0).NbJets25(0);
     NbJets30         =genTop->at(0).NbJets30(0);
     NbJets40         =genTop->at(0).NbJets40(0);
 
@@ -700,15 +696,12 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
 
     NcJets           =genTop->at(0).NcJets(0);
     NcJets10         =genTop->at(0).NcJets10(0);
-    NcJets15         =genTop->at(0).NcJets15(0);
     NcJets20         =genTop->at(0).NcJets20(0);
-    NcJets25         =genTop->at(0).NcJets25(0);
     NcJets30         =genTop->at(0).NcJets30(0);
     NcJets40         =genTop->at(0).NcJets40(0);
     NJets            =genTop->at(0).NJets();
     NJets10          =genTop->at(0).NJets10();
     NJets20          =genTop->at(0).NJets20();
-    NJets25          =genTop->at(0).NJets25();
     NJets30          =genTop->at(0).NJets30();
     NJets40          =genTop->at(0).NJets40();
     NaddJets20       =genTop->at(0).NaddJets20();

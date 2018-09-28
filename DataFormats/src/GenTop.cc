@@ -20,6 +20,7 @@ GenTop::GenTop(){
   Hbquarks_ = {null, null};
   upquark_ = {null};
   HbJets_ = {null, null};
+  HbquarkJets_ = {null, null};
   Higgs_ = {null};
   JetsFromW_= {null, null, null, null};
   JetsFlavourFromW_= {0,0,0,0};
@@ -53,6 +54,7 @@ GenTop::GenTop(const reco::Candidate & aGenTop) : reco::LeafCandidate(aGenTop) {
   Hbquarks_ = {null, null};
   upquark_ = {null};
   HbJets_ = {null, null};
+  HbquarkJets_ = {null, null};
   Higgs_ = {null};
   JetsFromW_= {null, null, null, null};
   JetsFlavourFromW_= {0,0,0,0};
@@ -430,6 +432,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
   std::vector<math::XYZTLorentzVector> addcJetsCHad;
   std::vector<math::XYZTLorentzVector> addJets;
   std::vector<math::XYZTLorentzVector> HbJets;
+  std::vector<math::XYZTLorentzVector> HbquarkJets;
 
   NJets_ = 0;
   NJets10_ = 0;
@@ -575,6 +578,17 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
       if( dR < minDR2addc ) minDR2addc = dR;
     }
     if( minDR2addc < 0.5 ) addcJets.push_back(gJet.p4());
+
+    double minDR2Hbb = 999;
+    for(unsigned int i=0 ; i < Hbquarks_.size() ; i++){
+      double dR = reco::deltaR(gJet, Hbquarks_[i]);
+      if( dR < minDR2Hbb ) minDR2Hbb = dR;
+    }
+    if( minDR2Hbb < 0.5 ) HbquarkJets_.push_back(gJet.p4());
+
+    //for( unsigned int i = 0 ; i < HbquarkJets.size() ; i++){
+    //  HbquarkJets_[i] = HbquarkJets[i];
+    //}
 
     NJets_++;
     if( gJet.pt() > 40 && std::abs(gJet.eta()) < 2.5 ) NJets40_++;
