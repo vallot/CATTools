@@ -7,8 +7,10 @@
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Utilities/interface/InputTag.h"
+#include "FWCore/Framework/interface/getProducerParameterSet.h"
 
 #include "SimDataFormats/GeneratorProducts/interface/LHERunInfoProduct.h"
+#include "SimDataFormats/GeneratorProducts/interface/GenRunInfoProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 #include "DataFormats/Common/interface/View.h"
@@ -46,6 +48,7 @@ private:
   const bool doSaveOthers_, doKeepFirstOnly_;
 
   std::set<size_t> key_sup_, key_sdn_, key_pdf_, key_oth_;
+  std::set<size_t> key_ps_;
 };
 
 GenWeightsToFlatWeights::GenWeightsToFlatWeights(const edm::ParameterSet& pset):
@@ -59,6 +62,7 @@ GenWeightsToFlatWeights::GenWeightsToFlatWeights(const edm::ParameterSet& pset):
   produces<float>();
   produces<vfloat>("scaleup");
   produces<vfloat>("scaledown");
+  produces<vfloat>("ps");
   produces<vfloat>("pdf");
   if ( doSaveOthers_ ) produces<vfloat>("others");
 }
@@ -126,6 +130,13 @@ void GenWeightsToFlatWeights::beginRun(const edm::Run& run, const edm::EventSetu
         }
       }
     }
+    else if ( name.find("ps") != string::npos ) {
+       if ( doKeepFirstOnly_ and !key_pdf_.empty() ) {
+        cout << "@@@ Skipping PDF weight " << name << " since the first weight group is already set " << endl;
+        continue;
+      }
+      key_ps_.insert(keys.begin(), keys.end());
+    }
     else if ( name.find("PDF") != string::npos ) {
       if ( doKeepFirstOnly_ and !key_pdf_.empty() ) {
         cout << "@@@ Skipping PDF weight " << name << " since the first weight group is already set " << endl;
@@ -144,6 +155,7 @@ void GenWeightsToFlatWeights::produce(edm::Event& event, const edm::EventSetup&)
   std::unique_ptr<float> out_weight(new float(1));
   std::unique_ptr<vfloat> out_sup(new vfloat);
   std::unique_ptr<vfloat> out_sdn(new vfloat);
+  std::unique_ptr<vfloat> out_ps(new vfloat);
   std::unique_ptr<vfloat> out_pdf(new vfloat);
   std::unique_ptr<vfloat> out_oth(new vfloat);
 
@@ -157,6 +169,7 @@ void GenWeightsToFlatWeights::produce(edm::Event& event, const edm::EventSetup&)
       const auto& w = weights[i];
       if      ( key_sup_.find(i) != key_sup_.end() ) out_sup->push_back(w);
       else if ( key_sdn_.find(i) != key_sdn_.end() ) out_sdn->push_back(w);
+      else if ( key_ps_.find(i)  != key_ps_.end()  ) out_ps->push_back(w);
       else if ( key_pdf_.find(i) != key_pdf_.end() ) out_pdf->push_back(w);
       else if ( key_oth_.find(i) != key_oth_.end() ) out_oth->push_back(w);
     }
@@ -165,6 +178,7 @@ void GenWeightsToFlatWeights::produce(edm::Event& event, const edm::EventSetup&)
   event.put(std::move(out_weight));
   event.put(std::move(out_sup), "scaleup");
   event.put(std::move(out_sdn), "scaledown");
+  event.put(std::move(out_ps), "ps");
   event.put(std::move(out_pdf), "pdf");
   if ( doSaveOthers_ ) event.put(std::move(out_oth), "others");
 }
@@ -181,7 +195,7 @@ public:
   typedef std::vector<unsigned short> vushort;
 
 private:
-  const edm::InputTag lheLabel_;
+  const edm::InputTag lheLabel_, genLabel_;
 
   const bool enforceUnitGenWeight_;
   const bool doLOPDFReweight_;
@@ -194,6 +208,7 @@ private:
 
 GenWeightsProducer::GenWeightsProducer(const edm::ParameterSet& pset):
   lheLabel_(pset.getParameter<edm::InputTag>("lheEvent")),
+  genLabel_(pset.getParameter<edm::InputTag>("genEventInfo")),
   enforceUnitGenWeight_(pset.getParameter<bool>("enforceUnitGenWeight")),
   doLOPDFReweight_(pset.getParameter<bool>("doLOPDFReweight")),
   doKeepFirstOnly_(pset.getParameter<bool>("keepFirstOnly")),
@@ -201,6 +216,7 @@ GenWeightsProducer::GenWeightsProducer(const edm::ParameterSet& pset):
   genInfoToken_(consumes<GenEventInfoProduct>(pset.getParameter<edm::InputTag>("genEventInfo")))
 {
   consumes<LHERunInfoProduct, edm::InRun>(lheLabel_);
+  consumes<GenRunInfoProduct, edm::InRun>(genLabel_);
   produces<cat::GenWeightInfo, edm::InRun>();
   produces<cat::GenWeights>();
 
@@ -225,6 +241,12 @@ void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
 {
   std::unique_ptr<cat::GenWeightInfo> out_genWeightInfo(new cat::GenWeightInfo);
 
+  auto strip = [](std::string str) {
+    auto first = str.find_first_not_of(' ');
+    auto last = str.find_last_not_of(' ');
+    return str.substr(first, last);
+  };
+  int weightTotalSize = 0;
   do {
     // Workaround found in HN, physicstools #3437
     edm::Handle<LHERunInfoProduct> lheHandle;
@@ -263,7 +285,6 @@ void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
 
     // XML is ready. Browser the xmldoc and find nodes with weight information
     TXMLNode* topNode = xmlParser.GetXMLDocument()->GetRootNode();
-    int weightTotalSize = 0;
     for ( TXMLNode* grpNode = topNode->GetChildren(); grpNode != 0; grpNode = grpNode->GetNextNode() )
     {
       if ( string(grpNode->GetNodeName()) != "weightgroup" ) continue;
@@ -277,15 +298,55 @@ void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
       for ( TXMLNode* weightNode = grpNode->GetChildren(); weightNode != 0; weightNode = weightNode->GetNextNode() )
       {
         if ( string(weightNode->GetNodeName()) != "weight" ) continue;
-        ++weightTotalSize;
-        params.push_back(weightNode->GetText());
-        keys.push_back(weightTotalSize-1);
+        params.push_back(strip(weightNode->GetText()));
+        keys.push_back(weightTotalSize++);
       }
 
       auto weightCombineByObj = (TXMLAttr*)grpNode->GetAttributes()->FindObject("combine");
       string combineBy = weightCombineByObj ? weightCombineByObj->GetValue() : "";
       out_genWeightInfo->addWeightGroup(weightTypeStr, combineBy, params, keys);
     }
+  } while ( false );
+
+  do {
+    // Continue to collect information from the parton shower generators
+    edm::Handle<GenRunInfoProduct> genHandle;
+    run.getByLabel(genLabel_, genHandle);
+    if ( !genHandle.isValid() ) break;
+
+    // Obtain provenance from the genRunInfoProduct
+    const auto& prov = *genHandle.provenance();
+    if ( prov.moduleLabel() != "generator" ) break;
+
+    // Then obtain the configuration parameter and check that the module was pythia8
+    const edm::ParameterSet& pset = *edm::getProducerParameterSet(*genHandle.provenance());
+    if ( pset.getParameter<std::string>("@module_type") != "Pythia8HadronizerFilter" ) break;
+
+    // Find PythiaParameters.processParameters and collect uncertainty bands from the UncertaintyBand list
+    if ( not pset.exists("PythiaParameters") ) break;
+    const auto& pythiaPSet = pset.getParameter<edm::ParameterSet>("PythiaParameters");
+    if ( not pythiaPSet.exists("processParameters") ) break;
+
+    bool doVariations = false;
+    vstring variations;
+    vushort keys;
+    const std::string uncBancListCfg = "UncertaintyBands:List = ";
+    for ( auto par : pythiaPSet.getParameter<vstring>("processParameters") ) {
+      if ( par == "UncertaintyBands:doVariations = on" ) doVariations = true;
+      if ( par.compare(0, uncBancListCfg.length(), uncBancListCfg) == 0 ) {
+        const auto line = par.substr(uncBancListCfg.length()+1, par.length()-uncBancListCfg.length()-2);
+        std::istringstream in(line);
+        std::string item;
+        while ( getline(in, item, ',') ) {
+          variations.push_back(strip(item));
+          keys.push_back(weightTotalSize++);
+        }
+      }
+    }
+    if ( not doVariations or variations.size() == 0 ) break;
+
+    // Now we have all names and meanings of the variations. Put into the GenWeightInfo object
+    out_genWeightInfo->addWeightGroup("PSWeight", "gaussian", variations, keys);
 
   } while ( false );
 
