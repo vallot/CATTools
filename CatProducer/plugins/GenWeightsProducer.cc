@@ -346,7 +346,7 @@ void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
     if ( not doVariations or variations.size() == 0 ) break;
 
     // Now we have all names and meanings of the variations. Put into the GenWeightInfo object
-    out_genWeightInfo->addWeightGroup("PSWeight", "gaussian", variations, keys);
+    out_genWeightInfo->addWeightGroup("PSWeight", "pick_one_set__Def_is_recommended", variations, keys);
 
   } while ( false );
 
@@ -428,7 +428,9 @@ void GenWeightsProducer::produce(edm::Event& event, const edm::EventSetup& event
           out_genWeights->addWeight(w);
         }
       }
-      for ( size_t i=0; i<genInfoHandle->weights().size(); ++i ) {
+      // NOTE: loop starts from 2, weight0 and 1 are central ME and replica
+      //       see https://twiki.cern.ch/twiki/bin/viewauth/CMS/TopModGen
+      for ( size_t i=2; i<genInfoHandle->weights().size(); ++i ) {
         const double w0 = genInfoHandle->weights().at(i);
         const double w = w0*genRescale;
         out_genWeights->addWeight(w);
