@@ -22,6 +22,7 @@ GenTop::GenTop(){
   HbJets_ = {null, null};
   HbquarkJets_ = {null, null};
   Higgs_ = {null};
+  FCNCupJet_ = {null};
   JetsFromW_= {null, null, null, null};
   JetsFlavourFromW_= {0,0,0,0};
   addbJets_ = {null, null};
@@ -56,6 +57,7 @@ GenTop::GenTop(const reco::Candidate & aGenTop) : reco::LeafCandidate(aGenTop) {
   HbJets_ = {null, null};
   HbquarkJets_ = {null, null};
   Higgs_ = {null};
+  FCNCupJet_ = {null};
   JetsFromW_= {null, null, null, null};
   JetsFlavourFromW_= {0,0,0,0};
   addbJetsHad_ = {null, null};
@@ -179,6 +181,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
         continue;
       }
       if ( abs(daugh->pdgId()) == 2 || abs(daugh->pdgId()) ==  4 ) {
+        daugh = getLast(*daugh);
         upquark_[0] = daugh->p4();
       }
       // end of FCNH side
@@ -433,6 +436,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
   std::vector<math::XYZTLorentzVector> addJets;
   std::vector<math::XYZTLorentzVector> HbJets;
   std::vector<math::XYZTLorentzVector> HbquarkJets;
+  std::vector<math::XYZTLorentzVector> FCNCupJet;
 
   NJets_ = 0;
   NJets10_ = 0;
@@ -584,11 +588,14 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
       double dR = reco::deltaR(gJet, Hbquarks_[i]);
       if( dR < minDR2Hbb ) minDR2Hbb = dR;
     }
-    if( minDR2Hbb < 0.4 ) HbquarkJets_.push_back(gJet.p4());
+    if( minDR2Hbb < 0.4 ) HbquarkJets.push_back(gJet.p4());
 
-    //for( unsigned int i = 0 ; i < HbquarkJets.size() ; i++){
-    //  HbquarkJets_[i] = HbquarkJets[i];
-    //}
+    double minDRFCNCupJet = 999;
+    for(unsigned int i=0 ; i < upquark_.size() ; i++){
+      double dR = reco::deltaR(gJet, upquark_[i]);
+      if( dR < minDRFCNCupJet ) minDRFCNCupJet = dR;
+    }
+    if( minDRFCNCupJet < 0.4 ) FCNCupJet.push_back(gJet.p4());
 
     NJets_++;
     if( gJet.pt() > 40 && std::abs(gJet.eta()) < 2.5 ) NJets40_++;
@@ -794,6 +801,18 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     HbJets_[i] = HbJets[i];
   }
 
+  for( unsigned int i = 0 ; i < HbquarkJets.size(); i++){
+    if( i < 2 ){
+      HbquarkJets_[i] = HbquarkJets[i];
+    }
+  }
+
+  for( unsigned int i = 0 ; i < FCNCupJet.size(); i++){
+    if( i < 1){
+      FCNCupJet_[i] = FCNCupJet[i];
+    }
+  }
+
   for( unsigned int i = 0 ; i < JetsFromW.size() ; i++){
     if (i>3) break;
     JetsFromW_[i] = JetsFromW[i];
@@ -899,7 +918,6 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     if( addcJets[i].pt() > 40 && std::abs(addcJets[i].eta()) < 2.5) NaddcJets40_++;
   }
 
-
   NaddJets20_ = 0;
   NaddJets40_ = 0;
 
@@ -930,7 +948,6 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
   //debug
   //cout << "NJetsW = " << JetsFromW.size() << endl;
   //for (unsigned int iW =0; iW < JetsFromW.size(); iW ++) cout << iW << " " << JetsFromW[iW].pt() << " - " << JetsFlavourFromW[iW] << endl;
-
 }
 
 std::vector<const reco::Candidate *> GenTop::getAncestors(const reco::Candidate &c)
