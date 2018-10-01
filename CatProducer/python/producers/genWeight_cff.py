@@ -6,7 +6,7 @@ genWeight = cms.EDProducer("GenWeightsProducer",
     keepFirstOnly = cms.bool(True),
     lheEvent = cms.InputTag("externalLHEProducer"),
     genEventInfo = cms.InputTag("generator"),
-    pdfName = cms.string("NNPDF31_nnlo_as_0118"),
-    generatedPdfName = cms.string("NNPDF31_nnlo_as_0118"),
+    pdfName = cms.string("NNPDF31_nnlo_hessian_pdfas"),
+    generatedPdfName = cms.string("NNPDF31_nnlo_hessian_pdfas"),
 )
 

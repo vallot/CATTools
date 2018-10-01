@@ -5,8 +5,9 @@ catJets = cms.EDProducer('CATJetProducer',
     rho = cms.InputTag('fixedGridRhoFastjetAll'),
     btagNames = cms.vstring('pfCombinedInclusiveSecondaryVertexV2BJetTags',"pfDeepCSVDiscriminatorsJetTags:BvsAll","pfDeepCSVJetTags:probb","pfDeepCSVJetTags:probbb","pfDeepCSVJetTags:probc","pfDeepCSVJetTags:probcc", "pfDeepCSVJetTags:probudsg", "pfDeepCSVDiscriminatorsJetTags:CvsB","pfDeepCSVDiscriminatorsJetTags:CvsL","pfCombinedCvsLJetTags","pfCombinedCvsBJetTags"),
     payloadName = cms.string('AK4PFchs'),
-    jetResFile   = cms.string("CATTools/CatProducer/data/JER/Spring16_25nsV6_MC_PtResolution_AK4PFchs.txt"),
-    jetResSFFile = cms.string("CATTools/CatProducer/data/JER/Spring16_25nsV6_MC_SF_AK4PFchs.txt"),
+    jetResFile   = cms.string("CATTools/CatProducer/data/JER/Summer16_25nsV1_MC_PtResolution_AK4PFchs.txt"),
+    jetResSFFile = cms.string("CATTools/CatProducer/data/JER/Summer16_25nsV1_MC_SF_AK4PFchs.txt"),
+
     setGenParticle = cms.bool(True),
 
     qgLikelihood = cms.InputTag(""), ## Keep this to be invalid and let it to be controlled by patTools/jetsQGLikelihood_cff.py
@@ -17,7 +18,7 @@ catJetsPuppi = catJets.clone(
     src = cms.InputTag('slimmedJetsPuppi'),
     btagNames = cms.vstring('pfCombinedInclusiveSecondaryVertexV2BJetTagsAK4PFPuppi','pfCombinedMVAV2BJetTagsAK4PFPuppi'),
     payloadName = cms.string('AK4PFPuppi'),
-    jetResFile   = cms.string("CATTools/CatProducer/data/JER/Spring16_25nsV6_MC_PtResolution_AK4PFPuppi.txt"),
-    jetResSFFile = cms.string("CATTools/CatProducer/data/JER/Spring16_25nsV6_MC_SF_AK4PFPuppi.txt"),
+    jetResFile   = cms.string("CATTools/CatProducer/data/JER/Summer16_25nsV1_MC_PtResolution_AK4PFPuppi.txt"),
+    jetResSFFile = cms.string("CATTools/CatProducer/data/JER/Summer16_25nsV1_MC_SF_AK4PFPuppi.txt"),
 )
 #There is a CMS rule that we are supposed to use one module per cfi file.  
