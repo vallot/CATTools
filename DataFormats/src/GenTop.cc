@@ -793,11 +793,11 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     if( addbJetsBHad[i].pt() > 40 && std::abs(addbJetsBHad[i].eta()) < 2.5) NaddbJets40BHad_++;
   }
 
-  for( unsigned int i = 0 ; i < bJetsFromTop.size() ; i++){
+  for( unsigned int i = 0, n = std::min(bJetsFromTop_.size(), bJetsFromTop.size()) ; i < n ; i++){
     bJetsFromTop_[i] = bJetsFromTop[i];
   }
 
-  for( unsigned int i = 0 ; i < HbJets.size() ; i++){
+  for( unsigned int i = 0, n = std::min(HbJets_.size(), HbJets.size()) ; i < n ; i++){
     HbJets_[i] = HbJets[i];
   }
 
