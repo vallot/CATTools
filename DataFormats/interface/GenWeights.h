@@ -32,7 +32,7 @@ public:
 
   void addWeightGroup(const std::string name, const std::string combineBy, const vstring params, const vushort keys);
 
-  enum KnownTypes { NONE=-1, Nominal, PDF, ScaleUp, ScaleDown };
+  enum KnownTypes { NONE=-1, Nominal, PDF, ScaleUp, ScaleDown, PS };
   static KnownTypes toKnownType(std::string typeName);
 
 private:
