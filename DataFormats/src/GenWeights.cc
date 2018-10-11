@@ -44,6 +44,7 @@ GenWeightInfo::KnownTypes GenWeightInfo::toKnownType(string typeName)
   else if ( typeName == "pdf" ) return PDF;
   else if ( typeName == "scaleup" ) return ScaleUp;
   else if ( typeName == "scaledown" ) return ScaleDown;
+  else if ( typeName == "ps" ) return PS;
 
   return NONE;
 }
