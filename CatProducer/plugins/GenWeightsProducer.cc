@@ -130,8 +130,8 @@ void GenWeightsToFlatWeights::beginRun(const edm::Run& run, const edm::EventSetu
         }
       }
     }
-    else if ( name.find("ps") != string::npos ) {
-       if ( doKeepFirstOnly_ and !key_pdf_.empty() ) {
+    else if ( name.find("PS") != string::npos ) {
+      if ( doKeepFirstOnly_ and !key_ps_.empty() ) {
         cout << "@@@ Skipping PDF weight " << name << " since the first weight group is already set " << endl;
         continue;
       }
