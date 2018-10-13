@@ -63,10 +63,13 @@ filterTrigMUMU = filterTrigMUEL.clone(triggersToMatch = cms.vstring(
     "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",))
 
 filterTrigMU = filterTrigMUEL.clone(triggersToMatch = cms.vstring(
-    "HLT_IsoMu24_v", "HLT_IsoTkMu24_v",))
+    "HLT_IsoMu27_v",))
 
 filterTrigEL = filterTrigMUEL.clone(triggersToMatch = cms.vstring(
-    "HLT_Ele32_eta2p1_WPTight_Gsf_v",))
+    "HLT_Ele32_WPTight_Gsf_L1DoubleEG_v",))
+
+filterTrigELJET = filterTrigMUEL.clone(triggersToMatch = cms.vstring(
+    "HLT_Ele30_eta2p1_WPTight_Gsf_CentralPFJet35_EleCleaned_v",))
 
 removeLumisWithL1TCert = cms.EDFilter("LumiMaskFilter",
     LumiSections = cms.untracked.VLuminosityBlockRange(
