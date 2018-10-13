@@ -58,22 +58,11 @@ private:
   int TTbarCatMC_;
   bool IsPowheg_;
 
-  // Trigger Names
-  std::vector<string> triggerNameDataEl_;
-  std::vector<string> triggerNameDataMu_;
-  std::vector<string> triggerNameMCEl_;
-  std::vector<string> triggerNameMCMu_;
-  
   // Event Weights
   edm::EDGetTokenT<float>                   genWeightToken_;
-  edm::EDGetTokenT<std::vector<float>>      pdfWeightToken_;
-  edm::EDGetTokenT<std::vector<float>>      scaleUpWeightToken_;
-  edm::EDGetTokenT<std::vector<float>>      scaleDownWeightToken_;
-  edm::EDGetTokenT<float>                   puWeightToken_;
-  edm::EDGetTokenT<float>                   puUpWeightToken_;
-  edm::EDGetTokenT<float>                   puDownWeightToken_;
-  edm::EDGetTokenT<float>                   deepCSVWeightToken_;
-  edm::EDGetTokenT<std::vector<float>>      deepCSVSysWeightToken_;
+  edm::EDGetTokenT<std::vector<float>>      scaleUpWeightToken_, scaleDownWeightToken_;
+  edm::EDGetTokenT<std::vector<float>>      psWeightToken_, pdfWeightToken_;
+  edm::EDGetTokenT<float>                   puWeightToken_, puUpWeightToken_, puDownWeightToken_;
   // Object Collections
   edm::EDGetTokenT<int>                     genttbarHiggsCatToken_;
   edm::EDGetTokenT<cat::GenTopCollection>   genttbarCatToken_;
@@ -81,13 +70,8 @@ private:
   edm::EDGetTokenT<cat::ElectronCollection> electronToken_;
   edm::EDGetTokenT<cat::JetCollection>      jetToken_;
   edm::EDGetTokenT<cat::METCollection>      metToken_;
-  edm::EDGetTokenT<int>                     pvToken_;
-  edm::EDGetTokenT<int>                     nTrueVertToken_;
-  // Trigger
-  edm::EDGetTokenT<edm::TriggerResults> triggerBits_;
-  edm::EDGetTokenT<edm::TriggerResults> triggerBits2_;
-  edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjects_;
-
+  edm::EDGetTokenT<int>                     pvToken_, nTrueVertToken_, recoFiltersToken_;
+  edm::EDGetTokenT<int>                     trigMuFiltersToken_, trigElFiltersToken_, trigElJFiltersToken_;
 // ----------member data ---------------------------
 
   TTree *tree;
@@ -95,7 +79,7 @@ private:
   // Event info
   int b_Event, b_Run, b_Lumi_Number;
   float b_GenWeight;
-  std::vector<float> *b_ScaleWeight, *b_PDFWeight;
+  std::vector<float> *b_ScaleWeight, *b_PDFWeight, *b_PSWeight;
 
   // PU/Vertices
   std::vector<float> *b_PUWeight;
@@ -143,23 +127,19 @@ private:
 
   // b-Jet discriminant
   std::vector<float> *b_Jet_CSV, *b_Jet_deepCSV;
-  std::vector<float> *b_Jet_SF_deepCSV_25;
   std::vector<float> *b_Jet_SF_deepCSV_30;
-  std::vector<float> *b_Jet_SF_deepCSV_35;
-  std::vector<float> *b_Jet_SF_deepCSV_40;
   std::vector<float> *b_Jet_SF_deepCSV_38;
-  std::vector<float> *b_Jet_SF_deepCSV;
 
   // c-Jet discriminant
   std::vector<float> *b_Jet_CvsL, *b_Jet_CvsB;
   std::vector<float> *b_Jet_deepCvsL, *b_Jet_deepCvsB;
 
   // Histograms: Number of Events and Weights
-  TH1D *EventInfo, *ScaleWeights;
+  TH1D *EventInfo, *ScaleWeights, *PDFWeights, *PSWeights;
 
   // Scale factor evaluators
   BTagWeightEvaluator SF_deepCSV_;
-  ScaleFactorEvaluator SF_muon_, SF_elec_;
+  ScaleFactorEvaluator SF_muonId_, SF_muonIso_, SF_muonTrg_, SF_elecId_, SF_elecReco_, SF_elecZvtx_;
   
 };
 
@@ -167,31 +147,49 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   doLooseLepton_(iConfig.getUntrackedParameter<bool>("doLooseLepton", false)),
   TTbarMC_    (iConfig.getUntrackedParameter<int>("TTbarSampleLabel", 0)),
   TTbarCatMC_ (iConfig.getUntrackedParameter<int>("TTbarCatLabel", 0)),
-  IsPowheg_   (iConfig.getUntrackedParameter<bool>("IsPowheg", false)),
-  triggerNameDataEl_(iConfig.getUntrackedParameter<std::vector<string>>("triggerNameDataEl")),
-  triggerNameDataMu_(iConfig.getUntrackedParameter<std::vector<string>>("triggerNameDataMu")),
-  triggerNameMCEl_  (iConfig.getUntrackedParameter<std::vector<string>>("triggerNameMCEl")),
-  triggerNameMCMu_  (iConfig.getUntrackedParameter<std::vector<string>>("triggerNameMCMu"))
+  IsPowheg_   (iConfig.getUntrackedParameter<bool>("IsPowheg", false))
 {
-  const auto elecSFSet = iConfig.getParameter<edm::ParameterSet>("elecSF");
-  SF_elec_.set(elecSFSet.getParameter<std::vector<double>>("pt_bins"),
-	       elecSFSet.getParameter<std::vector<double>>("eta_bins"),
-	       elecSFSet.getParameter<std::vector<double>>("values"),
-	       elecSFSet.getParameter<std::vector<double>>("errors"));
-  const auto muonSFSet = iConfig.getParameter<edm::ParameterSet>("muonSF");
-  SF_muon_.set(muonSFSet.getParameter<std::vector<double>>("pt_bins"),
-	       muonSFSet.getParameter<std::vector<double>>("abseta_bins"),
-	       muonSFSet.getParameter<std::vector<double>>("values"),
-	       muonSFSet.getParameter<std::vector<double>>("errors"));
+  const auto elecIdSFSet = iConfig.getParameter<edm::ParameterSet>("elecIdSF");
+  SF_elecId_.set(elecIdSFSet.getParameter<std::vector<double>>("pt_bins"),
+                 elecIdSFSet.getParameter<std::vector<double>>("eta_bins"),
+                 elecIdSFSet.getParameter<std::vector<double>>("values"),
+                 elecIdSFSet.getParameter<std::vector<double>>("errors"));
+  const auto elecRecoSFSet = iConfig.getParameter<edm::ParameterSet>("elecRecoSF");
+  SF_elecReco_.set(elecRecoSFSet.getParameter<std::vector<double>>("pt_bins"),
+                   elecRecoSFSet.getParameter<std::vector<double>>("eta_bins"),
+                   elecRecoSFSet.getParameter<std::vector<double>>("values"),
+                   elecRecoSFSet.getParameter<std::vector<double>>("errors"));
+  const auto elecZvtxSFSet = iConfig.getParameter<edm::ParameterSet>("elecZvtxSF");
+  SF_elecZvtx_.set(elecZvtxSFSet.getParameter<std::vector<double>>("pt_bins"),
+                   elecZvtxSFSet.getParameter<std::vector<double>>("eta_bins"),
+                   elecZvtxSFSet.getParameter<std::vector<double>>("values"),
+                   elecZvtxSFSet.getParameter<std::vector<double>>("errors"));
+  const auto muonIdSFSet = iConfig.getParameter<edm::ParameterSet>("muonIdSF");
+  SF_muonId_.set(muonIdSFSet.getParameter<std::vector<double>>("pt_bins"),
+                 muonIdSFSet.getParameter<std::vector<double>>("abseta_bins"),
+                 muonIdSFSet.getParameter<std::vector<double>>("values"),
+                 muonIdSFSet.getParameter<std::vector<double>>("errors"));
+  const auto muonIsoSFSet = iConfig.getParameter<edm::ParameterSet>("muonIsoSF");
+  SF_muonIso_.set(muonIsoSFSet.getParameter<std::vector<double>>("pt_bins"),
+                  muonIsoSFSet.getParameter<std::vector<double>>("abseta_bins"),
+                  muonIsoSFSet.getParameter<std::vector<double>>("values"),
+                  muonIsoSFSet.getParameter<std::vector<double>>("errors"));
+  const auto muonTrgSFSet = iConfig.getParameter<edm::ParameterSet>("muonTrgSF");
+  SF_muonTrg_.set(muonTrgSFSet.getParameter<std::vector<double>>("pt_bins"),
+                  muonTrgSFSet.getParameter<std::vector<double>>("abseta_bins"),
+                  muonTrgSFSet.getParameter<std::vector<double>>("values"),
+                  muonTrgSFSet.getParameter<std::vector<double>>("errors"));
+
   SF_deepCSV_.initCSVWeight(false, "deepcsv");
 
   // Weights
   auto genWeightLabel = iConfig.getParameter<edm::InputTag>("genWeightLabel");
   genWeightToken_       = consumes<float>             (edm::InputTag(genWeightLabel.label()));
-  // PDF, Scale
+  // PDF, Scale, PS
   pdfWeightToken_       = consumes<std::vector<float>>(edm::InputTag(genWeightLabel.label(), "pdf"));
   scaleUpWeightToken_   = consumes<std::vector<float>>(edm::InputTag(genWeightLabel.label(), "scaleup"));
   scaleDownWeightToken_ = consumes<std::vector<float>>(edm::InputTag(genWeightLabel.label(), "scaledown"));
+  psWeightToken_        = consumes<std::vector<float>>(edm::InputTag(genWeightLabel.label(), "ps"));
   // PileUp
   auto puWeightLabel    = iConfig.getParameter<edm::InputTag>("puWeightLabel");
   puWeightToken_        = consumes<float>(edm::InputTag(puWeightLabel.label()));
@@ -199,8 +197,6 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   puDownWeightToken_    = consumes<float>(edm::InputTag(puWeightLabel.label(),"dn"));
   // CSV Weights
   auto deepcsvWeightLabel = iConfig.getParameter<edm::InputTag>("deepcsvWeightLabel");
-  deepCSVWeightToken_     = consumes<float>             (edm::InputTag(deepcsvWeightLabel.label()));
-  deepCSVSysWeightToken_  = consumes<std::vector<float>>(edm::InputTag(deepcsvWeightLabel.label(), "syst"));
   // GEN and ttbar Categorization
   genttbarCatToken_      = consumes<cat::GenTopCollection>(iConfig.getParameter<edm::InputTag>("genttbarCatLabel"));
   genttbarHiggsCatToken_ = consumes<int>                  (iConfig.getParameter<edm::InputTag>("genHiggsCatLabel"));
@@ -210,17 +206,19 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   jetToken_         = consumes<cat::JetCollection>     (iConfig.getParameter<edm::InputTag>("jetLabel"));
   metToken_         = consumes<cat::METCollection>     (iConfig.getParameter<edm::InputTag>("metLabel"));
   pvToken_          = consumes<int>                    (iConfig.getParameter<edm::InputTag>("pvLabel"));
-  // Trigger  
-  auto triggerLabel = iConfig.getParameter<edm::InputTag>("triggerBits");
-  triggerBits_      = consumes<edm::TriggerResults>(edm::InputTag(triggerLabel.label(),"","HLT"));
-  triggerBits2_     = consumes<edm::TriggerResults>(edm::InputTag(triggerLabel.label(),"","HLT2"));
-  triggerObjects_   = consumes<pat::TriggerObjectStandAloneCollection> (iConfig.getParameter<edm::InputTag>("triggerObjects"));
+  // Trigger
+  recoFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("recoFilters"));
+  trigMuFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigMuFilters"));
+  trigElFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigElFilters"));
+  trigElJFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigElJFilters"));
+
   // PU = 0 prescription
   nTrueVertToken_    = consumes<int>(iConfig.getParameter<edm::InputTag>("nTrueVertLabel"));
  
   b_PUWeight     = new std::vector<float>;
-  b_PDFWeight    = new std::vector<float>;  
-  b_ScaleWeight  = new std::vector<float>;  
+  b_PDFWeight    = new std::vector<float>;
+  b_ScaleWeight  = new std::vector<float>;
+  b_PSWeight  = new std::vector<float>;
   b_Lepton_SF    = new std::vector<float>;  
 
   b_GenConeCatID      = new std::vector<int>;
@@ -237,12 +235,8 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   b_Jet_Index         = new std::vector<int>;
   b_Jet_CSV           = new std::vector<float>;
   b_Jet_deepCSV       = new std::vector<float>;
-  b_Jet_SF_deepCSV_25 = new std::vector<float>;
   b_Jet_SF_deepCSV_30 = new std::vector<float>;
-  b_Jet_SF_deepCSV_35 = new std::vector<float>;
-  b_Jet_SF_deepCSV_40 = new std::vector<float>;
   b_Jet_SF_deepCSV_38 = new std::vector<float>;
-  b_Jet_SF_deepCSV    = new std::vector<float>;
   b_Jet_CvsL          = new std::vector<float>;
   b_Jet_CvsB          = new std::vector<float>;
   b_Jet_deepCvsL      = new std::vector<float>;
@@ -269,6 +263,7 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("PUWeight",   "std::vector<float>", &b_PUWeight);
   tree->Branch("pdfweight",  "std::vector<float>", &b_PDFWeight );
   tree->Branch("scaleweight","std::vector<float>", &b_ScaleWeight );
+  tree->Branch("psweight",   "std::vector<float>", &b_PSWeight );
 
   tree->Branch("MET",           &b_MET,        "MET/F");
   tree->Branch("MET_phi",       &b_MET_phi,    "MET_phi/F");
@@ -290,12 +285,8 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("jet_index" ,        "std::vector<int>",   &b_Jet_Index );
   tree->Branch("jet_CSV" ,          "std::vector<float>", &b_Jet_CSV );
   tree->Branch("jet_deepCSV",       "std::vector<float>", &b_Jet_deepCSV );
-  tree->Branch("jet_SF_deepCSV_25", "std::vector<float>", &b_Jet_SF_deepCSV_25 );
   tree->Branch("jet_SF_deepCSV_30", "std::vector<float>", &b_Jet_SF_deepCSV_30 );
-  tree->Branch("jet_SF_deepCSV_35", "std::vector<float>", &b_Jet_SF_deepCSV_35 );
-  tree->Branch("jet_SF_deepCSV_40", "std::vector<float>", &b_Jet_SF_deepCSV_40 );
   tree->Branch("jet_SF_deepCSV_38", "std::vector<float>", &b_Jet_SF_deepCSV_38 );
-  tree->Branch("jet_SF_deepCSV",    "std::vector<float>", &b_Jet_SF_deepCSV );
   tree->Branch("jet_CvsL",          "std::vector<float>", &b_Jet_CvsL );
   tree->Branch("jet_CvsB",          "std::vector<float>", &b_Jet_CvsB );
   tree->Branch("jet_deepCvsL",      "std::vector<float>", &b_Jet_deepCvsL );
@@ -375,14 +366,21 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   EventInfo->GetXaxis()->SetBinLabel(8,"ttjj Lep (tau lep decay) Events pT>20");
   EventInfo->GetXaxis()->SetBinLabel(9,"Sum of PU Weights");
 
-  ScaleWeights = fs->make<TH1D>("ScaleWeights","Event Weights:",6,0,6);
+  ScaleWeights = fs->make<TH1D>("ScaleWeights","Event Weights",6,0,6);
   ScaleWeights->GetXaxis()->SetBinLabel(1,"muR=Nom  muF=Up");
   ScaleWeights->GetXaxis()->SetBinLabel(2,"muR=Nom  muF=Down");
   ScaleWeights->GetXaxis()->SetBinLabel(3,"muR=Up   muF=Nom");
-  ScaleWeights->GetXaxis()->SetBinLabel(4,"muR=Up   muF=Up");
-  ScaleWeights->GetXaxis()->SetBinLabel(5,"muR=Down muF=Nom");
+  ScaleWeights->GetXaxis()->SetBinLabel(4,"muR=Down muF=Nom");
+  ScaleWeights->GetXaxis()->SetBinLabel(5,"muR=Up   muF=Up");
   ScaleWeights->GetXaxis()->SetBinLabel(6,"muR=Down muF=Down");
 
+  PSWeights = fs->make<TH1D>("PSWeights","PS Weights",4,0,4);
+  PSWeights->GetXaxis()->SetBinLabel(1,"isrDefHi isr:muRfac=0.5");
+  PSWeights->GetXaxis()->SetBinLabel(2,"fsrDefHi fsr:muRfac=0.5");
+  PSWeights->GetXaxis()->SetBinLabel(3,"isrDefLo isr:muRfac=2.0");
+  PSWeights->GetXaxis()->SetBinLabel(4,"fsrDefLo fsr:muRfac=2.0");
+
+  PDFWeights = fs->make<TH1D>("PDFWeights","PDF4LHC15_nnlo_100_pdfas (91200)",103,0,103);
 }
 
 
@@ -393,6 +391,7 @@ fcncLepJetsAnalyzer::~fcncLepJetsAnalyzer()
   delete b_PUWeight;
   delete b_PDFWeight;
   delete b_ScaleWeight;
+  delete b_PSWeight;
 
   delete b_GenConeCatID;
   delete b_GenCone_gJet_pt;
@@ -416,12 +415,8 @@ fcncLepJetsAnalyzer::~fcncLepJetsAnalyzer()
   delete b_Jet_JER_Nom;
   delete b_Jet_JER_Down;
 
-  delete b_Jet_SF_deepCSV_25;
   delete b_Jet_SF_deepCSV_30;
-  delete b_Jet_SF_deepCSV_35;
-  delete b_Jet_SF_deepCSV_40;
   delete b_Jet_SF_deepCSV_38;
-  delete b_Jet_SF_deepCSV;
 
   delete b_Jet_CSV;
   delete b_Jet_CvsL;
@@ -439,6 +434,7 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
   b_PUWeight   ->clear();
   b_ScaleWeight->clear();
+  b_PSWeight   ->clear();
   b_PDFWeight  ->clear();
 
   b_GenConeCatID->clear();
@@ -466,12 +462,8 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
   b_Jet_CSV          ->clear();
   b_Jet_deepCSV      ->clear();
-  b_Jet_SF_deepCSV_25->clear();
   b_Jet_SF_deepCSV_30->clear();
-  b_Jet_SF_deepCSV_35->clear();
-  b_Jet_SF_deepCSV_40->clear();
   b_Jet_SF_deepCSV_38->clear();
-  b_Jet_SF_deepCSV   ->clear();
   b_Jet_CvsL         ->clear();
   b_Jet_CvsB         ->clear();
   b_Jet_deepCvsL     ->clear();
@@ -499,10 +491,9 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
   EventInfo->Fill(0.5, 1.0);         // Number of Events
 
+  bool METfiltered = false;
   if( isMC_ ) {
-    //---------------------------------------------------------------------------
-    // PU Info
-    //---------------------------------------------------------------------------
+
     edm::Handle<int> nTrueVertHandle;
     iEvent.getByToken( nTrueVertToken_, nTrueVertHandle );
     b_nTruePV = *nTrueVertHandle;
@@ -525,11 +516,20 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     if( IsPowheg_ ) b_GenWeight = std::abs(*genWeight);//Powheg should give +1 weighe
     else            b_GenWeight = *genWeight;
     EventInfo->Fill(1.5, b_GenWeight); // Sum of aMC@NLO Weights
+
+    //---------------------------------------------------------------------------
+    // MET optional filters 
+    //---------------------------------------------------------------------------
+    edm::Handle<int> recoFiltersHandle;
+    iEvent.getByToken(recoFiltersToken_, recoFiltersHandle);
+    METfiltered = *recoFiltersHandle == 0 ? true : false;
+
   }
   else{
     b_PUWeight->push_back(1.0);
     b_ScaleWeight->push_back(1.0);
     b_PDFWeight->push_back(1.0);
+    b_PSWeight->push_back(1.0);
     b_GenWeight = 1.0;
     b_nTruePV = 0;
   }
@@ -537,33 +537,51 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   //---------------------------------------------------------------------------
   // Weights for Syst. Scale and PDF: ttbar
   //---------------------------------------------------------------------------
+  if( TTbarMC_ == 1 && TTbarCatMC_ < 8 ) {
 
-  if( TTbarMC_ == 1 && TTbarCatMC_ != 7 ) {
-
+    // muR/muF Scale Weights, exclude nan, empty or crazy valuesa
     edm::Handle<std::vector<float>> scaleUpWeightsHandle, scaleDownWeightsHandle;
     iEvent.getByToken(scaleUpWeightToken_,   scaleUpWeightsHandle);
     iEvent.getByToken(scaleDownWeightToken_, scaleDownWeightsHandle);
 
-    // muR/muF Scale Weights, exclude nan, empty or crazy valuesa
     b_ScaleWeight->push_back( weight_valid(scaleUpWeightsHandle  ->at(0)) ); // muR=Nom  muF=Up
     b_ScaleWeight->push_back( weight_valid(scaleDownWeightsHandle->at(0)) ); // muR=Nom  muF=Down
     b_ScaleWeight->push_back( weight_valid(scaleUpWeightsHandle  ->at(1)) ); // muR=Up   muF=Nom
-    b_ScaleWeight->push_back( weight_valid(scaleUpWeightsHandle  ->at(2)) ); // muR=Up   muF=Up
     b_ScaleWeight->push_back( weight_valid(scaleDownWeightsHandle->at(1)) ); // muR=Down muF=Nom
+    b_ScaleWeight->push_back( weight_valid(scaleUpWeightsHandle  ->at(2)) ); // muR=Up   muF=Up
     b_ScaleWeight->push_back( weight_valid(scaleDownWeightsHandle->at(2)) ); // muR=Down muF=Down
 
-    // Sum of muR/muF Scale Weights
     for( unsigned int iscale = 0; iscale< b_ScaleWeight->size(); iscale++ )
       ScaleWeights->Fill(iscale, b_ScaleWeight->at(iscale)); 
 
+    // PDF weight
     edm::Handle<std::vector<float>> PDFWeightsHandle;
-    iEvent.getByToken(pdfWeightToken_,   PDFWeightsHandle);
+    iEvent.getByToken(pdfWeightToken_, PDFWeightsHandle);
 
-    for( auto& w : *PDFWeightsHandle ) b_PDFWeight->push_back(w);
+    std::vector<float> tmp_PDFWeight;
+    for( auto& w : *PDFWeightsHandle ) tmp_PDFWeight.push_back(w);
+    for( unsigned int i = 569; i < 672; i++)
+      b_PDFWeight->push_back(tmp_PDFWeight.at(i));
+
+    for( unsigned int iscale = 0; iscale< b_PDFWeight->size(); iscale++ ) // 578~680: PDF4LHC15_nnlo_100_pdfas, and 0~8 is scale weight
+      PDFWeights->Fill(iscale, b_PDFWeight->at(iscale));
+
+    // PS weight
+    edm::Handle<std::vector<float>> PSWeightsHandle;
+    iEvent.getByToken(psWeightToken_, PSWeightsHandle);
+
+    b_PSWeight->push_back( weight_valid(PSWeightsHandle->at(4)) ); //isrDefHi
+    b_PSWeight->push_back( weight_valid(PSWeightsHandle->at(5)) ); //fsrDefHi
+    b_PSWeight->push_back( weight_valid(PSWeightsHandle->at(6)) ); //isrDefLo
+    b_PSWeight->push_back( weight_valid(PSWeightsHandle->at(7)) ); //fsrDefLo
+
+    for( unsigned int iscale = 0; iscale< b_PSWeight->size(); iscale++ )
+      PSWeights->Fill(iscale, b_PSWeight->at(iscale));
   }
   else{
     b_ScaleWeight->push_back(1.0);
     b_PDFWeight->push_back(1.0);
+    b_PSWeight->push_back(1.0);
   }
 
   //---------------------------------------------------------------------------
@@ -683,7 +701,7 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     else if( Isttjj && genttbarConeCat->begin()->NaddJets20()  > 1 ) IsttLF = true;
     else Istt = true;
 
-    if( TTbarCatMC_ == 0 || TTbarCatMC_ == 7 ) IsCat = true;
+    if( TTbarCatMC_ == 0 || TTbarCatMC_ > 6 ) IsCat = true;
     if( Isttbb && TTbarCatMC_ == 1 ) IsCat = true;
     if( Isttb  && TTbarCatMC_ == 2 ) IsCat = true;
     if( Isttcc && TTbarCatMC_ == 3 ) IsCat = true;
@@ -811,10 +829,16 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     b_Lepton_isIso = (b_Lepton_relIso < 0.15);
 
     if( isMC_ ){
-      // Lepton SF (ID/ISO)
-      lepton_SF->push_back( SF_muon_( selectedMuons[0].pt(), selectedMuons[0].eta() ) );       // [0]-> SF
-      lepton_SF->push_back( SF_muon_( selectedMuons[0].pt(), selectedMuons[0].eta(),  1.0 ) ); // [1]-> SF+Error
-      lepton_SF->push_back( SF_muon_( selectedMuons[0].pt(), selectedMuons[0].eta(), -1.0 ) ); // [2]-> SF-Error
+      // Muon SF (Id/Iso/Trg)
+      lepton_SF->push_back( SF_muonId_( selectedMuons[0].pt(), std::abs(selectedMuons[0].eta()) ) );        // [0]-> IdSF
+      lepton_SF->push_back( SF_muonId_( selectedMuons[0].pt(), std::abs(selectedMuons[0].eta()),  1.0 ) );  // [1]-> IdSF+Error
+      lepton_SF->push_back( SF_muonId_( selectedMuons[0].pt(), std::abs(selectedMuons[0].eta()), -1.0 ) );  // [2]-> IdSF-Error
+      lepton_SF->push_back( SF_muonIso_( selectedMuons[0].pt(), std::abs(selectedMuons[0].eta()) ) );       // [3]-> IsoSF
+      lepton_SF->push_back( SF_muonIso_( selectedMuons[0].pt(), std::abs(selectedMuons[0].eta()),  1.0 ) ); // [4]-> IsoSF+Error
+      lepton_SF->push_back( SF_muonIso_( selectedMuons[0].pt(), std::abs(selectedMuons[0].eta()), -1.0 ) ); // [5]-> IsoSF-Error
+      lepton_SF->push_back( SF_muonTrg_( selectedMuons[0].pt(), std::abs(selectedMuons[0].eta()) ) );       // [6]-> TrgSF
+      lepton_SF->push_back( SF_muonTrg_( selectedMuons[0].pt(), std::abs(selectedMuons[0].eta()),  1.0 ) ); // [7]-> TrgSF+Error
+      lepton_SF->push_back( SF_muonTrg_( selectedMuons[0].pt(), std::abs(selectedMuons[0].eta()), -1.0 ) ); // [8]-> TrgSF-Error
       //LES
       lepton_LES = selectedMuons[0].shiftedEn();
     }
@@ -831,10 +855,16 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     b_Lepton_isIso = true;//FIXME ISO ID -> iso??
 
     if( isMC_ ){
-      // Lepton SF (ID/ISO)
-      lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), selectedElectrons[0].scEta() ) );       // [0]-> SF
-      lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(),  1.0 ) ); // [1]-> SF+Error
-      lepton_SF->push_back( SF_elec_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(), -1.0 ) ); // [2]-> SF-Error
+      // Lepton SF (Id/Reco/Zvtx)
+      lepton_SF->push_back( SF_elecId_( selectedElectrons[0].pt(), selectedElectrons[0].scEta() ) );         // [0]-> IdSF
+      lepton_SF->push_back( SF_elecId_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(),  1.0 ) );   // [1]-> IdSF+Error
+      lepton_SF->push_back( SF_elecId_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(), -1.0 ) );   // [2]-> IdSF-Error
+      lepton_SF->push_back( SF_elecReco_( selectedElectrons[0].pt(), selectedElectrons[0].scEta() ) );       // [3]-> IdSF
+      lepton_SF->push_back( SF_elecReco_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(),  1.0 ) ); // [4]-> RecoSF+Error
+      lepton_SF->push_back( SF_elecReco_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(), -1.0 ) ); // [5]-> RecoSF-Error
+      lepton_SF->push_back( SF_elecZvtx_( selectedElectrons[0].pt(), selectedElectrons[0].scEta() ) );       // [6]-> RecoSF
+      lepton_SF->push_back( SF_elecZvtx_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(),  1.0 ) ); // [7]-> ZvtxSF+Error
+      lepton_SF->push_back( SF_elecZvtx_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(), -1.0 ) ); // [8]-> ZvtxSF-Error
       //LES
       lepton_LES = selectedElectrons[0].shiftedEn();
       //b_Lepton_scEta = selectedElectrons[0].scEta();
@@ -844,53 +874,29 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   //---------------------------------------------------------------------------
   // HLTrigger
   //---------------------------------------------------------------------------
-  std::vector<string> triggerNameEl_, triggerNameMu_;
-  if( isMC_ ){
-    triggerNameEl_ = triggerNameMCEl_;
-    triggerNameMu_ = triggerNameMCMu_;
-  } 
-  else{
-    triggerNameEl_ = triggerNameDataEl_;
-    triggerNameMu_ = triggerNameDataMu_;  
-  }  
-  
-  bool EvTrigger = false; 
-  edm::Handle<edm::TriggerResults> triggerBits;
-  edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
-  iEvent.getByToken(triggerBits_, triggerBits);
-  if( !iEvent.getByToken(triggerBits_, triggerBits) ){
-    iEvent.getByToken(triggerBits2_, triggerBits);
-  } 
-  iEvent.getByToken(triggerObjects_, triggerObjects);
-  const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
-  AnalysisHelper trigHelper = AnalysisHelper(triggerNames, triggerBits, triggerObjects);
-
+  bool EvTrigger = false;
   bool IsTriggerMu = false;
   bool IsTriggerEl = false;
+  bool IsTriggerElJ = false;
   
-  // DEBUG: Print all triggers
-  // trigHelper.listFiredTriggers();
 
-  for( std::vector<string>::iterator TrMu_it = triggerNameMu_.begin(); TrMu_it != triggerNameMu_.end(); TrMu_it++ ){
-    IsTriggerMu = trigHelper.triggerFired(*TrMu_it);
-    // No trigger
-    if( *TrMu_it == "notrigger" ) IsTriggerMu = true; 
-    if( IsTriggerMu ) break;
-  }
-  
-  for( std::vector<string>::iterator TrEl_it = triggerNameEl_.begin(); TrEl_it != triggerNameEl_.end(); TrEl_it++ ){
-    IsTriggerEl = trigHelper.triggerFired(*TrEl_it);
-    if( *TrEl_it == "HLT_Ele32_WPTight_Gsf_L1DoubleEG_v" and !trg_emul ) IsTriggerEl = false;
-   // No trigger
-    if( *TrEl_it == "notrigger" ) IsTriggerEl = true;
-    if( IsTriggerEl ) break;
-  }
+  edm::Handle<int> trigMuFiltersHandle;
+  iEvent.getByToken(trigMuFiltersToken_, trigMuFiltersHandle);
+  IsTriggerMu = *trigMuFiltersHandle == 0 ? false : true;
 
-  if( trigHelper.triggerFired("HLT_Ele32_WPTight_Gsf_L1DoubleEG_v") and trg_emul ) b_ele_trg += 1;
-  if( trigHelper.triggerFired("HLT_Ele30_eta2p1_WPTight_Gsf_CentralPFJet35_EleCleaned_v") ) b_ele_trg += 10;
+  edm::Handle<int> trigElFiltersHandle;
+  iEvent.getByToken(trigElFiltersToken_, trigElFiltersHandle);
+  bool tmp_elecTrg = *trigElFiltersHandle == 0 ? false : true;
+  if( tmp_elecTrg && trg_emul ) IsTriggerEl = true;
+  if( IsTriggerEl ) b_ele_trg += 10;
+
+  edm::Handle<int> trigElJFiltersHandle;
+  iEvent.getByToken(trigElJFiltersToken_, trigElJFiltersHandle);
+  IsTriggerElJ = *trigElJFiltersHandle == 0 ? false : true;
+  if( IsTriggerElJ ) b_ele_trg += 1;
 
   if( (ch_tag == 0 && IsTriggerMu) ||
-      (ch_tag == 1 && IsTriggerEl) ){
+      (ch_tag == 1 && (IsTriggerEl || IsTriggerElJ) ) ){
     EvTrigger = true;
   }
 
@@ -900,14 +906,14 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   // Check Gen Level for ttbar sample
   if( TTbarMC_ >0 ){
     // Signal ttbar event
-    if( TTbarMC_ == 1 && nGenLep != 1 && TTbarCatMC_ != 7 ) ch_tag = 999;
+    if( TTbarMC_ == 1 && nGenLep != 1 && TTbarCatMC_ < 7 ) ch_tag = 999;
     // Background ttbar event
     if( TTbarMC_ == 2 && nGenLep == 1 ) ch_tag = 999;
     // ttbar Category
     if( !IsCat ) ch_tag = 999;
   } // if(TTbarMC_ >0)
 
-  if( ch_tag<2 && EvTrigger ){ // Single lepton event
+  if( ch_tag<2 && EvTrigger && !METfiltered ){ // Single lepton event
     b_Channel  = ch_tag;
 
     b_Lepton_pt  = lepton.Pt();
@@ -932,22 +938,13 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
     // Initialize SF_btag
     // Jet_SF_CSV[Scenario][SystVariations];
-    float Jet_SF_deepCSV[6][19];
-    for( unsigned int ipTj=0; ipTj<6; ipTj++ ){
+    float Jet_SF_deepCSV[2][19];
+    for( unsigned int ipTj=0; ipTj<2; ipTj++ ){
       for( unsigned int iu=0; iu<19; iu++ ){
         Jet_SF_deepCSV[ipTj][iu] = 1.0;
       }
     }
 
-    Handle<float> rSF_deepCSV;
-    iEvent.getByToken(deepCSVWeightToken_, rSF_deepCSV);
-    Jet_SF_deepCSV[5][0] = *rSF_deepCSV;
-
-    Handle<std::vector<float>> rsysSF_deepCSV;
-    iEvent.getByToken(deepCSVSysWeightToken_, rsysSF_deepCSV);
-    for( unsigned int idcsv = 0; idcsv < rsysSF_deepCSV->size() ; idcsv++ ) Jet_SF_deepCSV[5][idcsv+1] = rsysSF_deepCSV->at(idcsv);
-
-    std::vector<cat::Jet> selectedJets;
     int good_jet_count = 0;
     bool elec_bsf = false;
 
@@ -970,7 +967,6 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       if( dr_LepJet > 0.4 ) cleanJet = true;
 
       if( goodJet && cleanJet ){
-        selectedJets.push_back( jet );
         // Basic variables
         b_Jet_pt ->push_back(jet.pt());
         b_Jet_eta->push_back(jet.eta());
@@ -1013,16 +1009,13 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
           // Ref: https://twiki.cern.ch/twiki/bin/view/CMS/BTagShapeCalibration
           // Saving the central SF and the 18 syst. unc. for:
-          if( jet.pt() > 25. ) for( unsigned int iu=0; iu<19; iu++ ) Jet_SF_deepCSV[0][iu] *= SF_deepCSV_.getSF(jet, iu);
-          if( jet.pt() > 30. ) for( unsigned int iu=0; iu<19; iu++ ) Jet_SF_deepCSV[1][iu] *= SF_deepCSV_.getSF(jet, iu);
-          if( jet.pt() > 35. ) for( unsigned int iu=0; iu<19; iu++ ) Jet_SF_deepCSV[2][iu] *= SF_deepCSV_.getSF(jet, iu);
-          if( jet.pt() > 40. ) for( unsigned int iu=0; iu<19; iu++ ) Jet_SF_deepCSV[3][iu] *= SF_deepCSV_.getSF(jet, iu);
+          if( jet.pt() > 30. ) for( unsigned int iu=0; iu<19; iu++ ) Jet_SF_deepCSV[0][iu] *= SF_deepCSV_.getSF(jet, iu);
           // pT_Jets > 38 for first jet, and 30 for the others (e+jet)
           if( good_jet_count == 1 and jet.pt() > 38. ){
-            for( unsigned int iu=0; iu<19; iu++ ) Jet_SF_deepCSV[4][iu] *= SF_deepCSV_.getSF(jet, iu);
+            for( unsigned int iu=0; iu<19; iu++ ) Jet_SF_deepCSV[1][iu] *= SF_deepCSV_.getSF(jet, iu);
             elec_bsf = true;
           }
-          else if( elec_bsf == true and good_jet_count > 1 and jet.pt() > 30. ) for( unsigned int iu=0; iu<19; iu++ ) Jet_SF_deepCSV[4][iu] *= SF_deepCSV_.getSF(jet, iu);
+          else if( elec_bsf == true and good_jet_count > 1 and jet.pt() > 30. ) for( unsigned int iu=0; iu<19; iu++ ) Jet_SF_deepCSV[1][iu] *= SF_deepCSV_.getSF(jet, iu);
         } // if(isMC_)	
       }// if(GoodJets)
     }// for(AllJets)
@@ -1032,27 +1025,15 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     b_Jet_NBJetM = N_BJetsM;
 
     for( unsigned int iu=0; iu<19; iu++ ){
-      b_Jet_SF_deepCSV_25->push_back(1.0);
       b_Jet_SF_deepCSV_30->push_back(1.0);
-      b_Jet_SF_deepCSV_35->push_back(1.0);
-      b_Jet_SF_deepCSV_40->push_back(1.0);
       b_Jet_SF_deepCSV_38->push_back(1.0);
-      b_Jet_SF_deepCSV   ->push_back(1.0);
     }
-    (*b_Jet_SF_deepCSV_25)[0] = Jet_SF_deepCSV[0][0]; //Central
-    (*b_Jet_SF_deepCSV_30)[0] = Jet_SF_deepCSV[1][0]; //Central
-    (*b_Jet_SF_deepCSV_35)[0] = Jet_SF_deepCSV[2][0]; //Central
-    (*b_Jet_SF_deepCSV_40)[0] = Jet_SF_deepCSV[3][0]; //Central
-    (*b_Jet_SF_deepCSV_38)[0] = Jet_SF_deepCSV[4][0]; //Central
-    (*b_Jet_SF_deepCSV   )[0] = Jet_SF_deepCSV[5][0]; //Central
+    (*b_Jet_SF_deepCSV_30)[0] = Jet_SF_deepCSV[0][0]; //Central
+    (*b_Jet_SF_deepCSV_38)[0] = Jet_SF_deepCSV[1][0]; //Central
     // To save only the error
     for( unsigned int iu=1; iu<19; iu++ ){
-      (*b_Jet_SF_deepCSV_25)[iu] = std::abs(Jet_SF_deepCSV[0][iu] - Jet_SF_deepCSV[0][0]); // Syst. Unc.
-      (*b_Jet_SF_deepCSV_30)[iu] = std::abs(Jet_SF_deepCSV[1][iu] - Jet_SF_deepCSV[1][0]); // Syst. Unc.
-      (*b_Jet_SF_deepCSV_35)[iu] = std::abs(Jet_SF_deepCSV[2][iu] - Jet_SF_deepCSV[2][0]); // Syst. Unc.
-      (*b_Jet_SF_deepCSV_40)[iu] = std::abs(Jet_SF_deepCSV[3][iu] - Jet_SF_deepCSV[3][0]); // Syst. Unc.
-      (*b_Jet_SF_deepCSV_38)[iu] = std::abs(Jet_SF_deepCSV[4][iu] - Jet_SF_deepCSV[4][0]); // Syst. Unc.
-      (*b_Jet_SF_deepCSV   )[iu] = std::abs(Jet_SF_deepCSV[5][iu] - Jet_SF_deepCSV[5][0]); // Syst. Unc.
+      (*b_Jet_SF_deepCSV_30)[iu] = std::abs(Jet_SF_deepCSV[0][iu] - Jet_SF_deepCSV[0][0]); // Syst. Unc.
+      (*b_Jet_SF_deepCSV_38)[iu] = std::abs(Jet_SF_deepCSV[1][iu] - Jet_SF_deepCSV[1][0]); // Syst. Unc.
     }
    
     tree->Fill();
@@ -1070,7 +1051,7 @@ bool fcncLepJetsAnalyzer::IsSelectMuon(const cat::Muon & i_muon_candidate){
 
   GoodMuon &= (i_muon_candidate.isPFMuon());           // PF
   GoodMuon &= (i_muon_candidate.pt()> 20);             // pT
-  GoodMuon &= (std::abs(i_muon_candidate.eta())< 2.1); // eta
+  GoodMuon &= (std::abs(i_muon_candidate.eta())< 2.4); // eta
 
   //------------- The Relative Isolation is already calculated in the CAT object -----------------------
   // relIso( R ) already includes PU subtraction
@@ -1107,7 +1088,7 @@ bool fcncLepJetsAnalyzer::IsSelectElectron(const cat::Electron & i_electron_cand
 
   GoodElectron &= (i_electron_candidate.isPF() );                // PF
   GoodElectron &= (i_electron_candidate.pt() > 20);              // pT
-  GoodElectron &= (std::abs(i_electron_candidate.eta()) < 2.1);  // eta
+  GoodElectron &= (std::abs(i_electron_candidate.eta()) < 2.4);  // eta
   GoodElectron &= (std::abs(i_electron_candidate.scEta()) < 1.4442 || // eta Super-Cluster
                    std::abs(i_electron_candidate.scEta()) > 1.566);
 
