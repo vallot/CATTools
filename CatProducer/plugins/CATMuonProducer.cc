@@ -197,6 +197,8 @@ void cat::CATMuonProducer::produce(edm::Event & iEvent, const edm::EventSetup & 
       aMuon.setIpSignficance(muSignificanceIP);
     }
 
+    aMuon.setSelectors( aPatMuon.selectors() );
+
     out->push_back(aMuon);
   }
 
