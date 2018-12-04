@@ -59,7 +59,7 @@ void BTagWeightEvaluator::initCSVWeight(const bool useCSVHelper, const string bt
     }
     else if ( btagName == "deepcsv" ) {
       btagAlgo_ = BTAG_DeepCSV;
-      csvFileName = "DeepCSV_94XSF_V2_B_F.csv";
+      csvFileName = "DeepCSV_94XSF_V3_B_F.csv";
     }
     else btagAlgo_ = "undefined"; // FIXME: Eventually raise error somewhere?
 
@@ -93,7 +93,7 @@ void BTagWeightEvaluator::init(const int method,
   }
   else if ( btagName == "deepcsv" ) {
     btagAlgo_ = BTAG_DeepCSV;
-    csvFileName = "DeepCSV_94XSF_V2_B_F.csv";
+    csvFileName = "DeepCSV_94XSF_V3_B_F.csv";
   }
   else btagAlgo_ = "undefined"; // FIXME: Eventually raise error somewhere?
 
