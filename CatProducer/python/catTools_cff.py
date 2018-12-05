@@ -112,7 +112,7 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         #from CATTools.CatProducer.patTools.metMuonRecoMitigation2016_cff import enableMETMuonRecoMitigation2016
         #process = enableMETMuonRecoMitigation2016(process, runOnMC) ## MET input object is overridden in the modifier function
 
-        process.catSkimEvent.electronIdNames = process.catElectrons.electronIDs
+#        process.catSkimEvent.electronIdNames = process.catElectrons.electronIDs
 
     if useMiniAOD:
       # Instructions for 9_4_X, X >=9 for 2017 data with EE noise mitigation

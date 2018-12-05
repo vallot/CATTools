@@ -52,9 +52,9 @@ if isMCSignal:
     process.genWeight.keepFirstOnly = False
     process.catOut.outputCommands.extend(catEventContentMCSignal)
 
-if options.doSkim:
-    process.catSkimEvent.minNJets = 2
-    process.catSkimEvent.minNLeptons = 1
+#if options.doSkim:
+#    process.catSkimEvent.minNJets = 2
+#    process.catSkimEvent.minNLeptons = 1
 
 from PhysicsTools.PatAlgos.slimming.miniAOD_tools import miniAOD_customizeOutput
 miniAOD_customizeOutput(process.catOut)
