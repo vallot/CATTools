@@ -12,7 +12,6 @@ options.register('globalTag', '', VarParsing.multiplicity.singleton, VarParsing.
 options.register('runGenTop', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runGenTop: 1  default")
 options.register('runParticleTop', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "runParticleTop: 0  default")
 options.register('isSignal', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "isSignal: 1 default")
-options.register('doSkim', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "doSkim: 0 default")
 
 options.parseArguments()
 runOnMC = options.runOnMC
@@ -51,10 +50,6 @@ if doDstar       : process = addCatDstarObjects(process)
 if isMCSignal:
     process.genWeight.keepFirstOnly = False
     process.catOut.outputCommands.extend(catEventContentMCSignal)
-
-#if options.doSkim:
-#    process.catSkimEvent.minNJets = 2
-#    process.catSkimEvent.minNLeptons = 1
 
 from PhysicsTools.PatAlgos.slimming.miniAOD_tools import miniAOD_customizeOutput
 miniAOD_customizeOutput(process.catOut)
