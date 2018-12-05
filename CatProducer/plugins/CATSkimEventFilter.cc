@@ -26,35 +26,35 @@ public:
 private:
   edm::EDGetTokenT<cat::ElectronCollection> electronsToken_;
   edm::EDGetTokenT<cat::MuonCollection> muonsToken_;
-  edm::EDGetTokenT<cat::JetCollection> jetsToken_;
+//  edm::EDGetTokenT<cat::JetCollection> jetsToken_;
   
   const double minLeptonPt_, maxLeptonAbseta_;
   const unsigned int minNLeptons_;
   const std::vector<std::string> electronIdNames_;
 
-  const double minJetPt_, maxJetAbseta_;
-  const unsigned int minNJets_;
+//  const double minJetPt_, maxJetAbseta_;
+//  const unsigned int minNJets_;
 };
 
 CATSkimEventFilter::CATSkimEventFilter(const edm::ParameterSet& pset):
   minLeptonPt_(pset.getParameter<double>("minLeptonPt")),
   maxLeptonAbseta_(pset.getParameter<double>("maxLeptonAbseta")),
   minNLeptons_(pset.getParameter<unsigned int>("minNLeptons")),
-  electronIdNames_(pset.getParameter<std::vector<std::string>>("electronIdNames")),
-  minJetPt_(pset.getParameter<double>("minJetPt")),
-  maxJetAbseta_(pset.getParameter<double>("maxJetAbseta")),
-  minNJets_(pset.getParameter<unsigned int>("minNJets"))
+  electronIdNames_(pset.getParameter<std::vector<std::string>>("electronIdNames"))//,
+//  minJetPt_(pset.getParameter<double>("minJetPt")),
+//  maxJetAbseta_(pset.getParameter<double>("maxJetAbseta")),
+//  minNJets_(pset.getParameter<unsigned int>("minNJets"))
 {
   electronsToken_ = consumes<cat::ElectronCollection>(pset.getParameter<edm::InputTag>("electrons"));
   muonsToken_ = consumes<cat::MuonCollection>(pset.getParameter<edm::InputTag>("muons"));
-  jetsToken_ = consumes<cat::JetCollection>(pset.getParameter<edm::InputTag>("jets"));
+//  jetsToken_ = consumes<cat::JetCollection>(pset.getParameter<edm::InputTag>("jets"));
 }
 
 using namespace std;
 
 bool CATSkimEventFilter::filter(edm::Event& event, const edm::EventSetup&)
 {
-  if ( minNLeptons_ == 0 and minNJets_ == 0 ) return true;
+  if ( minNLeptons_ == 0 /*and minNJets_ == 0*/ ) return true;
 
   edm::Handle<cat::ElectronCollection> electronsHandle;
   event.getByToken(electronsToken_, electronsHandle);
@@ -62,8 +62,8 @@ bool CATSkimEventFilter::filter(edm::Event& event, const edm::EventSetup&)
   edm::Handle<cat::MuonCollection> muonsHandle;
   event.getByToken(muonsToken_, muonsHandle);
 
-  edm::Handle<cat::JetCollection> jetsHandle;
-  event.getByToken(jetsToken_, jetsHandle);
+//  edm::Handle<cat::JetCollection> jetsHandle;
+//  event.getByToken(jetsToken_, jetsHandle);
 
   unsigned int nLeptons = 0, nJets = 0;
 
@@ -101,6 +101,7 @@ bool CATSkimEventFilter::filter(edm::Event& event, const edm::EventSetup&)
     ++nLeptons;
   }
 
+/*
   for ( auto& jet : *jetsHandle ) {
     const double abseta = std::abs(jet.eta());
     if ( abseta > maxLeptonAbseta_ ) continue;
@@ -113,9 +114,10 @@ bool CATSkimEventFilter::filter(edm::Event& event, const edm::EventSetup&)
     if ( !passId ) continue;
     ++nJets;
   }
+*/
 
   if ( nLeptons < minNLeptons_ ) return false;
-  if ( nJets < minNJets_ ) return false;
+//  if ( nJets < minNJets_ ) return false;
 
   return true;
 }
