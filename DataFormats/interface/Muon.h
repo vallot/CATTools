@@ -5,6 +5,7 @@
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "CATTools/DataFormats/interface/Lepton.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
+#include "DataFormats/MuonReco/interface/MuonSelectors.h"
 
 // Define typedefs for convenience
 namespace cat {
@@ -58,6 +59,15 @@ namespace cat {
     void setIpSignficance(float ipsig) {ipsig_ = ipsig;}
 
     float scaleFactor(const std::string& name, int sign = 0) const;
+
+    bool passed( unsigned int selection ) const { return (selectors_ & selection)==selection; }
+    bool passed( reco::Muon::Selector selection ) const { return passed(static_cast<unsigned int>(selection)); }
+    unsigned int selectors() const { return selectors_; }
+    void setSelectors( unsigned int selectors ){ selectors_ = selectors; }
+    void setSelector(reco::Muon::Selector selector, bool passed){ 
+      if (passed) selectors_ |= selector;
+      else selectors_ &= ~selector;
+    }
     
   private:
 
@@ -73,6 +83,8 @@ namespace cat {
     int numberOfMatchedStations_;
     int numberOfValidPixelHits_;
     int trackerLayersWithMeasurement_;
+
+    unsigned int selectors_;
   };
 }
 

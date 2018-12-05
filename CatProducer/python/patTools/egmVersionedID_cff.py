@@ -6,20 +6,21 @@ def enableElectronVID(process):
     switchOnVIDElectronIdProducer(process, DataFormat.MiniAOD)
 
     electron_ids = [
-        'mvaElectronID_Fall17_noIso_V1_cff', 
-        'mvaElectronID_Fall17_iso_V1_cff',
+        'mvaElectronID_Fall17_noIso_V2_cff',
+        'mvaElectronID_Fall17_iso_V2_cff',
     ]
     for idmod in electron_ids:
         idmod = "RecoEgamma.ElectronIdentification.Identification."+idmod
         setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
 
     electron_idNames = [
-        "egmGsfElectronIDs:mvaEleID-Fall17-iso-V1-wp90",
-        "egmGsfElectronIDs:mvaEleID-Fall17-iso-V1-wp80",
-        "egmGsfElectronIDs:mvaEleID-Fall17-iso-V1-wpLoose",        
-        "egmGsfElectronIDs:mvaEleID-Fall17-noIso-V1-wp90",
-        "egmGsfElectronIDs:mvaEleID-Fall17-noIso-V1-wp80",
-        "egmGsfElectronIDs:mvaEleID-Fall17-noIso-V1-wpLoose",
+        "egmGsfElectronIDs:mvaEleID-Fall17-noIso-V2-wp90",
+        "egmGsfElectronIDs:mvaEleID-Fall17-noIso-V2-wp80",
+        "egmGsfElectronIDs:mvaEleID-Fall17-noIso-V2-wpLoose",
+        "egmGsfElectronIDs:mvaEleID-Fall17-iso-V2-wp90",
+        "egmGsfElectronIDs:mvaEleID-Fall17-iso-V2-wp80",
+        "egmGsfElectronIDs:mvaEleID-Fall17-iso-V2-wpLoose",
+        "egmGsfElectronIDs:mvaEleID-Fall17-iso-V2-wpHZZ",
     ]
     process.catElectrons.electronIDSources = cms.PSet()
     for idName in electron_idNames:
@@ -39,19 +40,15 @@ def enablePhotonVID(process):
 
     #Use IDs from https://github.com/cms-sw/cmssw/blob/CMSSW_7_4_X/RecoEgamma/PhotonIdentification/python/Identification/ 
     photon_ids = [
-        'cutBasedPhotonID_Spring16_V2p2_cff',
-        'mvaPhotonID_Spring16_nonTrig_V1_cff',
+        'mvaPhotonID_Fall17_94X_V2_cff',
     ]
     for idmod in photon_ids:
         idmod = 'RecoEgamma.PhotonIdentification.Identification.'+idmod
         setupAllVIDIdsInModule(process,idmod,setupVIDPhotonSelection)
 
     photon_idNames = [
-        "egmPhotonIDs:cutBasedPhotonID-Spring16-V2p2-loose",
-        "egmPhotonIDs:cutBasedPhotonID-Spring16-V2p2-medium",
-        "egmPhotonIDs:cutBasedPhotonID-Spring16-V2p2-tight",
-        "egmPhotonIDs:mvaPhoID-Spring16-nonTrig-V1-wp80",
-        "egmPhotonIDs:mvaPhoID-Spring16-nonTrig-V1-wp90",
+        "egmPhotonIDs:mvaPhoID-RunIIFall17-v2-wp80",
+        "egmPhotonIDs:mvaPhoID-RunIIFall17-v2-wp90",
     ]
     process.catPhotons.photonIDSources = cms.PSet()
     for idName in photon_idNames:

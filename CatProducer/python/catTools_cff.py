@@ -17,36 +17,53 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
 
         #process.load("CATTools.CatProducer.eventCleaning.badECALSlewRateMitigationFilter2016_cfi")
 
-#    useJECfile = True
-#    jecFiles = cat.JetEnergyCorrection
-#    if runOnMC:
-#        jecFile = jecFiles[1]
-#    else:
-#        jecFile = jecFiles[0]
-#    if useJECfile:
-#        from CondCore.CondDB.CondDB_cfi import CondDB
-#        if hasattr(CondDB, 'connect'): delattr(CondDB, 'connect')
-#        process.jec = cms.ESSource("PoolDBESSource",CondDB,
-#            connect = cms.string('sqlite_fip:CATTools/CatProducer/data/JEC/%s.db'%jecFile),            
-#            toGet = cms.VPSet(
-#                cms.PSet(
-#                    record = cms.string("JetCorrectionsRecord"),
-#                    tag = cms.string("JetCorrectorParametersCollection_%s_AK4PF"%jecFile),
-#                    label= cms.untracked.string("AK4PF")),
-#                cms.PSet(
-#                    record = cms.string("JetCorrectionsRecord"),
-#                    tag = cms.string("JetCorrectorParametersCollection_%s_AK4PFchs"%jecFile),
-#                    label= cms.untracked.string("AK4PFchs")),
-#                cms.PSet(
-#                    record = cms.string("JetCorrectionsRecord"),
-#                    tag = cms.string("JetCorrectorParametersCollection_%s_AK4PFPuppi"%jecFile),
-#                    label= cms.untracked.string("AK4PFPuppi")),
-#            )
-#        )
-#        process.es_prefer_jec = cms.ESPrefer("PoolDBESSource","jec")
-#        print "JEC based on", process.jec.connect
-    
-#    if useMiniAOD: ## corrections when using miniAOD
+    useJECfile = True
+    jecFiles = cat.JetEnergyCorrection
+    if runOnMC:
+        jecFile = jecFiles[1]
+    else:
+        jecFile = jecFiles[0]
+    if useJECfile:
+        from CondCore.CondDB.CondDB_cfi import CondDB
+        if hasattr(CondDB, 'connect'): delattr(CondDB, 'connect')
+        process.jec = cms.ESSource("PoolDBESSource",CondDB,
+            connect = cms.string('sqlite_fip:CATTools/CatProducer/data/JEC/%s.db'%jecFile),            
+            toGet = cms.VPSet(
+                cms.PSet(
+                    record = cms.string("JetCorrectionsRecord"),
+                    tag = cms.string("JetCorrectorParametersCollection_%s_AK4PF"%jecFile),
+                    label= cms.untracked.string("AK4PF")),
+                cms.PSet(
+                    record = cms.string("JetCorrectionsRecord"),
+                    tag = cms.string("JetCorrectorParametersCollection_%s_AK4PFchs"%jecFile),
+                    label= cms.untracked.string("AK4PFchs")),
+                cms.PSet(
+                    record = cms.string("JetCorrectionsRecord"),
+                    tag = cms.string("JetCorrectorParametersCollection_%s_AK4PFPuppi"%jecFile),
+                    label= cms.untracked.string("AK4PFPuppi")),
+            )
+        )
+        process.es_prefer_jec = cms.ESPrefer("PoolDBESSource","jec")
+        print "JEC based on", process.jec.connect
+
+        ## applying new jec on the fly
+#        process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
+#        process.updatedPatJetCorrFactors.levels = cms.vstring('L1FastJet','L2Relative','L3Absolute','L2L3Residual')
+#        process.patJetCorrFactors.primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices")
+#        process.catJets.src = cms.InputTag("updatedPatJets")
+
+        from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
+        updateJetCollection(
+           process,
+           jetSource = cms.InputTag('slimmedJets'),
+           labelName = 'UpdatedJEC',
+           jetCorrections = ('AK4PFchs', cms.vstring(['L1FastJet', 'L2Relative', 'L3Absolute', 'L2L3Residual']), 'None')
+        )
+        process.p += process.patJetCorrFactorsUpdatedJEC
+        process.p += process.updatedPatJetsUpdatedJEC
+        process.catJets.src = cms.InputTag("updatedPatJetsUpdatedJEC","","CAT")
+
+#    if useMiniAOD: ## corrections when using miniAOD #This is stored in miniAOD as flag, in 2017
 #        from CATTools.CatProducer.patTools.metFilters_cff import enableAdditionalMETFilters
 #        process = enableAdditionalMETFilters(process, runOnMC)
 
@@ -54,13 +71,6 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         # puppi https://twiki.cern.ch/twiki/bin/view/CMS/PUPPI
         # using default
         #######################################################################
-        ## applying new jec on the fly
-#        process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
-#        if not runOnMC:
-#            process.updatedPatJetCorrFactors.levels = cms.vstring('L1FastJet','L2Relative','L3Absolute','L2L3Residual')
-            
-#        process.patJetCorrFactors.primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices")
-#        process.catJets.src = cms.InputTag("updatedPatJets")
         ### updating puppi jet jec
 #        process.patJetPuppiCorrFactorsUpdated = process.updatedPatJetCorrFactors.clone(
 #            src = process.catJetsPuppi.src,
@@ -102,7 +112,7 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         #from CATTools.CatProducer.patTools.metMuonRecoMitigation2016_cff import enableMETMuonRecoMitigation2016
         #process = enableMETMuonRecoMitigation2016(process, runOnMC) ## MET input object is overridden in the modifier function
 
-        process.catSkimEvent.electronIdNames = process.catElectrons.electronIDs
+#        process.catSkimEvent.electronIdNames = process.catElectrons.electronIDs
 
     if useMiniAOD:
       # Instructions for 9_4_X, X >=9 for 2017 data with EE noise mitigation
@@ -112,7 +122,7 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
               process,
               isData = not runOnMC,
               fixEE2017 = True,
-              fixEE2017Params = {'userawPt': True, 'PtThreshold':50.0, 'MinEtaThreshold':2.65, 'MaxEtaThreshold': 3.139},
+              fixEE2017Params = {'userawPt': True, 'ptThreshold':50.0, 'minEtaThreshold':2.65, 'maxEtaThreshold': 3.139},
               postfix = "ModifiedMET"
       )
 

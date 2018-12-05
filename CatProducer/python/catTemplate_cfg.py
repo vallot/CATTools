@@ -29,8 +29,8 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(100))
 
 ## total event counter
 process.nEventsTotal = cms.EDProducer("EventCountProducer")
-process.load("CATTools.CatProducer.catSkimEvent_cfi")
-process.p = cms.Path(process.nEventsTotal*process.catSkimEvent)
+#process.load("CATTools.CatProducer.catSkimEvent_cfi")
+process.p = cms.Path(process.nEventsTotal)#*process.catSkimEvent)
 
 ## Output Module Configuration (expects a path 'p')
 process.catOut = cms.OutputModule("PoolOutputModule",

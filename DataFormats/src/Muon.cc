@@ -15,7 +15,8 @@ Muon::Muon(const reco::LeafCandidate & aMuon) :
   numberOfValidMuonHits_(0),
   numberOfMatchedStations_(0),
   numberOfValidPixelHits_(0),
-  trackerLayersWithMeasurement_(0)
+  trackerLayersWithMeasurement_(0),
+  selectors_(0)
 {}
 
 /// destructor
