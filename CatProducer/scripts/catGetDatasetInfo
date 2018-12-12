@@ -121,10 +121,15 @@ prefix = ""
 hostname = os.environ["HOSTNAME"]
 if "sdfarm" in hostname:
     prefix = "root://cms-xrdr.sdfarm.kr:1094//"+xrdbase
-##
+elif "knu.ac.kr" in hostname:
+    prefix = "root://cluster142.knu.ac.kr:1094//"+xrdbase
+    print "@@ Checking grid certificate to access files..."
+    if os.system("voms-proxy-info -exists --valid 8:00") != 0:
+        os.system("voms-proxy-init -voms cms --valid 144:00")
 
 # since all files are at kisti
-if not "sdfarm" in hostname:    
+#if not "sdfarm" in hostname:
+else:
     sys.exit()
 
 storageprefix = "/store/group/CAT"
