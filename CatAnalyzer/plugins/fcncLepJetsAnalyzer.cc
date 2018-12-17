@@ -50,11 +50,12 @@ private:
   bool IsSelectElectron(const cat::Electron & i_electron_candidate);
   bool IsVetoElectron  (const cat::Electron & i_electron_candidate);
   float weight_valid   (float weight);
+  float jer_valid   (float weight);
 
   bool isMC_;
   bool doLooseLepton_;
 
-  int TTbarMC_; // 0->No ttbar, 1->ttbar Signal, 2->ttbar Background
+  int TTbarMC_; // 0->No ttbar, 1->ttbar Signal
   int TTbarCatMC_;
   bool IsPowheg_;
 
@@ -537,7 +538,7 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   //---------------------------------------------------------------------------
   // Weights for Syst. Scale and PDF: ttbar
   //---------------------------------------------------------------------------
-  if( TTbarMC_ == 1 && TTbarCatMC_ < 8 ) {
+  if( TTbarMC_ == 1 && TTbarCatMC_ < 8 ) { //0~7 for powheg TT, 8 for ST/TT FCNC
 
     // muR/muF Scale Weights, exclude nan, empty or crazy valuesa
     edm::Handle<std::vector<float>> scaleUpWeightsHandle, scaleDownWeightsHandle;
@@ -701,7 +702,7 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     else if( Isttjj && genttbarConeCat->begin()->NaddJets20()  > 1 ) IsttLF = true;
     else Istt = true;
 
-    if( TTbarCatMC_ == 0 || TTbarCatMC_ > 6 ) IsCat = true;
+    if( TTbarCatMC_ == 0 || TTbarCatMC_ > 6 ) IsCat = true;//no cat. for LL, Had, fcnc
     if( Isttbb && TTbarCatMC_ == 1 ) IsCat = true;
     if( Isttb  && TTbarCatMC_ == 2 ) IsCat = true;
     if( Isttcc && TTbarCatMC_ == 3 ) IsCat = true;
@@ -736,7 +737,7 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         }
       } // if(nGenLep == 1)
     }// if(GENTTbarMCTree_)
-  } // if(TTbarMC>0)
+  } // if(TTbarMC==0)
 
   //---------------------------------------------------------------------------
   // Primary Vertex Info
@@ -904,14 +905,14 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   // Fill Tree with events that have ONLY one lepton
   //---------------------------------------------------------------------------
   // Check Gen Level for ttbar sample
-  if( TTbarMC_ >0 ){
-    // Signal ttbar event
-    if( TTbarMC_ == 1 && nGenLep != 1 && TTbarCatMC_ < 7 ) ch_tag = 999;
-    // Background ttbar event
-    if( TTbarMC_ == 2 && nGenLep == 1 ) ch_tag = 999;
+  if( TTbarMC_ == 1 ){
+    // ttbar event
+    if( nGenLep != 1 && TTbarCatMC_ < 7 ) ch_tag = 999;
+    if( nGenLep == 1 && TTbarCatMC_ == 7 ) ch_tag = 999;
     // ttbar Category
     if( !IsCat ) ch_tag = 999;
-  } // if(TTbarMC_ >0)
+  }
+  if( b_nGoodPV < 1 ) ch_tag = 999; 
 
   if( ch_tag<2 && EvTrigger && !METfiltered ){ // Single lepton event
     b_Channel  = ch_tag;
@@ -1003,9 +1004,9 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
           b_Jet_JES_Down->push_back(jet.shiftedEnDown());
 
           // Ref: https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution
-          b_Jet_JER_Up   ->push_back(jet.smearedResUp());
-          b_Jet_JER_Nom  ->push_back(jet.smearedRes());
-          b_Jet_JER_Down ->push_back(jet.smearedResDown());
+          b_Jet_JER_Up   ->push_back( jer_valid(jet.smearedResUp()) );
+          b_Jet_JER_Nom  ->push_back( jer_valid(jet.smearedRes()) );
+          b_Jet_JER_Down ->push_back( jer_valid(jet.smearedResDown()) );
 
           // Ref: https://twiki.cern.ch/twiki/bin/view/CMS/BTagShapeCalibration
           // Saving the central SF and the 18 syst. unc. for:
@@ -1047,16 +1048,10 @@ bool fcncLepJetsAnalyzer::IsSelectMuon(const cat::Muon & i_muon_candidate){
   bool GoodMuon=true;
 
   // Tight selection already defined into CAT::Muon
-  GoodMuon &= (i_muon_candidate.isTightMuon());
-
+  GoodMuon &= (i_muon_candidate.passed(reco::Muon::CutBasedIdTight|reco::Muon::PFIsoTight));
   GoodMuon &= (i_muon_candidate.isPFMuon());           // PF
   GoodMuon &= (i_muon_candidate.pt()> 20);             // pT
   GoodMuon &= (std::abs(i_muon_candidate.eta())< 2.4); // eta
-
-  //------------- The Relative Isolation is already calculated in the CAT object -----------------------
-  // relIso( R ) already includes PU subtraction
-  // float relIso = ( chIso + std::max(0.0, nhIso + phIso - 0.5*PUIso) )/ ecalpt;
-  if( !doLooseLepton_ ) GoodMuon &=( i_muon_candidate.relIso( 0.4 ) < 0.15 );
 
   return GoodMuon;
 }
@@ -1067,16 +1062,10 @@ bool fcncLepJetsAnalyzer::IsVetoMuon(const cat::Muon & i_muon_candidate){
   bool GoodMuon=true;
 
   // Loose selection already defined into CAT::Muon
-  GoodMuon &= (i_muon_candidate.isLooseMuon());
+  GoodMuon &= (i_muon_candidate.passed(reco::Muon::CutBasedIdLoose|reco::Muon::PFIsoLoose));
   GoodMuon &= (i_muon_candidate.isPFMuon());           // PF
   GoodMuon &= (i_muon_candidate.pt()> 10);             // pT
   GoodMuon &= (std::abs(i_muon_candidate.eta())< 2.4); // eta
-
-  //------------- The Relative Isolation is already calculated in the CAT object -----------------------
-  // relIso( R ) already includes PU subtraction
-  // float relIso = ( chIso + std::max(0.0, nhIso + phIso - 0.5*PUIso) )/ ecalpt;
-
-  GoodMuon &=( i_muon_candidate.relIso( 0.4 ) < 0.25 );
 
   return GoodMuon;
 }
@@ -1094,19 +1083,8 @@ bool fcncLepJetsAnalyzer::IsSelectElectron(const cat::Electron & i_electron_cand
 
   // Electron cut based selection, wp80 is tight
   // https://twiki.cern.ch/twiki/bin/view/CMS/MultivariateElectronIdentificationRun2#Recommended_MVA_Recipe_for_regul
-  if( !doLooseLepton_ ) GoodElectron &= i_electron_candidate.electronID("mvaEleID-Fall17-iso-V1-wp80") > 0.0;
-  else                  GoodElectron &= i_electron_candidate.electronID("mvaEleID-Fall17-noIso-V1-wp80") > 0.0;
-
-  //------------- The Relative Isolation is already calculated in the CAT object -----------------------
-  // relIso( R ) already includes AEff and RhoIso
-  // float relIso = ( chIso + std::max(0.0, nhIso + phIso - rhoIso*AEff) )/ ecalpt;
-
-  // Isolation is already included in the cut-based cuts, it is not needed 
-  // if ( !doLooseLepton_ ) {
-  //   if ( std::abs(i_electron_candidate.scEta()) <= 1.479)   GoodElectron &=( i_electron_candidate.relIso( 0.3 ) < 0.0695 );
-  //   else GoodElectron &= ( i_electron_candidate.relIso( 0.3 ) < 0.0821 );
-  // }
-  //----------------------------------------------------------------------------------------------------
+  if( !doLooseLepton_ ) GoodElectron &= i_electron_candidate.electronID("mvaEleID-Fall17-iso-V2-wp80") > 0.0;
+  else                  GoodElectron &= i_electron_candidate.electronID("mvaEleID-Fall17-noIso-V2-wp80") > 0.0;
 
   return GoodElectron;
 
@@ -1124,13 +1102,7 @@ bool fcncLepJetsAnalyzer::IsVetoElectron(const cat::Electron & i_electron_candid
                    std::abs(i_electron_candidate.scEta()) > 1.566);
 
   // https://twiki.cern.ch/twiki/bin/view/CMS/MultivariateElectronIdentificationRun2#Recommended_MVA_Recipe_for_regul
-  // the Iso ID has a better fake rejection at the working point with the same name.
-  GoodElectron &= i_electron_candidate.electronID("mvaEleID-Fall17-iso-V1-wpLoose") > 0.0;
-
-  //------------- The Relative Isolation is already calculated in the CAT object -----------------------
-  // if ( std::abs(i_electron_candidate.scEta()) <= 1.479) GoodElectron &= ( i_electron_candidate.relIso( 0.3 ) < 0.175 );
-  // else GoodElectron &= ( i_electron_candidate.relIso( 0.3 ) < 0.159 );
-  //----------------------------------------------------------------------------------------------------
+  GoodElectron &= i_electron_candidate.electronID("mvaEleID-Fall17-iso-V2-wpLoose") > 0.0;
 
   return GoodElectron;
 }
@@ -1138,6 +1110,12 @@ bool fcncLepJetsAnalyzer::IsVetoElectron(const cat::Electron & i_electron_candid
 float fcncLepJetsAnalyzer::weight_valid(float weight){
   if( std::isnan(weight) or std::isinf(weight) ) return 1.0;
   if( (weight < 0.01) or (weight > 100) )        return 1.0;
+  return weight;
+};
+
+float fcncLepJetsAnalyzer::jer_valid(float weight){
+  if( std::isnan(weight) or std::isinf(weight) ) return 0.0;
+  if( weight < 0.0 )                             return 0.0;
   return weight;
 };
 

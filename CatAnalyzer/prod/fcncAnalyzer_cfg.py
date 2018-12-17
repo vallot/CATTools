@@ -6,21 +6,21 @@ from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing ('analysis')
 # JSON
 options.register('UserJSON', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "UserJSON: Fault  default")
-# runOnTTbarMC ==> 0->No ttbar, 1->ttbar Signal, 2->ttbar Background
+# runOnTTbarMC ==> 0->No ttbar, 1->ttbar Signal
 options.register('runOnTTbarMC', 1, VarParsing.multiplicity.singleton, VarParsing.varType.int, "runOnTTbarMC: 0  default No ttbar sample")
 # TTbarCatMC   ==> 0->All ttbar, 1->ttbb, 2->ttbj, 3->ttcc, 4->ttLF, 5->tt, 6->ttjj, 7->TTLL and TTHad, 8->FCNC
 options.register('TTbarCatMC', 0, VarParsing.multiplicity.singleton, VarParsing.varType.int, "TTbarCatMC: 0  default All ttbar events")
 # Powheg samples ==> True
 options.register('Powheg', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "True for powheg samples")
 # PU Map samples
-options.register('PUMap', '2017_25ns_WinterMC', VarParsing.multiplicity.singleton, VarParsing.varType.string, "True for PU reshaping")
+#options.register('PUMap', '2017_25ns_WinterMC', VarParsing.multiplicity.singleton, VarParsing.varType.string, "True for PU reshaping")
 options.parseArguments()
 
 print "User JSON file: " + str(options.UserJSON)
 print "runOnTTbarMC: "   + str(options.runOnTTbarMC)
 print "TTbarCatMC: "     + str(options.TTbarCatMC)
 print "run on Powheg: "  + str(options.Powheg)
-print "PU Map: "         + str(options.PUMap)
+#print "PU Map: "         + str(options.PUMap)
 #------------------------------------------------------------------
 #------------------------------------------------------------------
 
@@ -39,13 +39,8 @@ process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.source = cms.Source("PoolSource",
-
      fileNames = cms.untracked.vstring(
-        #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/V9_3/SingleElectron/V9_3_Run2017B-31Mar2018-v1/181004_060345/0000/catTuple_100.root'
-        'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/V9_3/TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8/V9_3_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/181003_045559/0000/catTuple_175.root'
-        #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/V9_3/TTTo2L2Nu_TuneCP5_PSweights_13TeV-powheg-pythia8/V9_3_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/181003_015116/0000/catTuple_1.root'
-        #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/V9_3/ST_FCNC-TH_Tleptonic_HTobb_eta_hct-MadGraph5-pythia8/V9_3_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/181005_173301/0000/catTuple_1.root'
-        #'root://cms-xrdr.sdfarm.kr:1094///xrd/store/group/CAT/V9_3/TT_FCNC-aTtoHJ_Tleptonic_HTobb_eta_hct-MadGraph5-pythia8/V9_3_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v3/181004_152606/0000/catTuple_10.root'
+        'root://cluster142.knu.ac.kr//store/group/CAT/V9_4/TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8/V9_4_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v2/181206_104220/0000/catTuple_100.root'
         )
 )
 
@@ -53,7 +48,8 @@ process.source = cms.Source("PoolSource",
 process.load("CATTools.CatProducer.pileupWeight_cff")
 from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
 process.pileupWeight.weightingMethod = "RedoWeight"
-process.pileupWeight.pileupMC = pileupWeightMap[options.PUMap]
+#process.pileupWeight.pileupMC = pileupWeightMap[options.PUMap]
+process.pileupWeight.pileupMC = pileupWeightMap["2017_25ns_WinterMC"]
 process.pileupWeight.pileupRD = pileupWeightMap["Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON"]
 process.pileupWeight.pileupUp = pileupWeightMap["Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON_Up"]
 process.pileupWeight.pileupDn = pileupWeightMap["Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON_Dn"]
@@ -94,8 +90,8 @@ process.fcncLepJets = cms.EDAnalyzer('fcncLepJetsAnalyzer',
                                      muonIsoSF         = muonSFTightIsoOnly94X,
                                      muonTrgSF         = trigSF_IsoMu27,
                                      electronLabel     = cms.InputTag("catElectrons"),
-                                     elecIdSF          = electronSFMVAWP80IsoIdOnly94X,
-                                     elecRecoSF        = electronSFMVAWP80RecoOnly94X,
+                                     elecIdSF          = electronSFMVAWP80IsoIdOnly94Xv2,
+                                     elecRecoSF        = electronSFMVAWP80RecoOnly94Xv2,
                                      elecZvtxSF        = electronSFHLTZvtx94X,
                                      jetLabel          = cms.InputTag("catJets"),
                                      metLabel          = cms.InputTag("catMETs"),
