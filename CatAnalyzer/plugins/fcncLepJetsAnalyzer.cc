@@ -71,7 +71,7 @@ private:
   edm::EDGetTokenT<cat::JetCollection>      jetToken_;
   edm::EDGetTokenT<cat::METCollection>      metToken_;
   edm::EDGetTokenT<int>                     pvToken_, nTrueVertToken_, recoFiltersToken_;
-  edm::EDGetTokenT<int>                     trigMuFiltersToken_, trigElFiltersToken_, trigElJFiltersToken_;
+  edm::EDGetTokenT<int>                     trigMuFiltersToken_, trigElFiltersToken_, trigElJFiltersToken_, trigElHTFiltersToken_;
 // ----------member data ---------------------------
 
   TTree *tree;
@@ -217,6 +217,7 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   trigMuFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigMuFilters"));
   trigElFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigElFilters"));
   trigElJFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigElJFilters"));
+  trigElHTFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigElHTFilters"));
 
   // PU = 0 prescription
   nTrueVertToken_    = consumes<int>(iConfig.getParameter<edm::InputTag>("nTrueVertLabel"));
@@ -766,7 +767,7 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   Handle<cat::ElectronCollection> electrons;
   iEvent.getByToken(electronToken_, electrons);
 
-  bool trg_emul = false;
+  //bool trg_emul = false;
 
   if( !doLooseLepton_ ){
     for( unsigned int i = 0; i < electrons->size() ; i++ ){
@@ -784,9 +785,9 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     }
   }
 
-  if ( selectedElectrons.size() == 1 ){
-    if ( (selectedElectrons.at(0)).isTrgFired() ) trg_emul = true;
-  }
+  //if ( selectedElectrons.size() == 1 ){
+  //  if ( (selectedElectrons.at(0)).isTrgFired() ) trg_emul = true;
+  //}
 
   //---------------------------------------------------------------------------
   // Muons
@@ -883,6 +884,7 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   bool EvTrigger = false;
   bool IsTriggerMu = false;
   bool IsTriggerEl = false;
+  bool IsTriggerElHT = false;
   bool IsTriggerElJ = false;
   
 
@@ -892,9 +894,15 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
   edm::Handle<int> trigElFiltersHandle;
   iEvent.getByToken(trigElFiltersToken_, trigElFiltersHandle);
-  bool tmp_elecTrg = *trigElFiltersHandle == 0 ? false : true;
-  if( tmp_elecTrg && trg_emul ) IsTriggerEl = true;
-  if( IsTriggerEl ) b_ele_trg += 10;
+  //bool tmp_elecTrg = *trigElFiltersHandle == 0 ? false : true; // For Ele32 L1DoubleEG
+  //if( tmp_elecTrg && trg_emul ) IsTriggerEl = true;
+  IsTriggerEl = *trigElFiltersHandle == 0 ? false : true;
+  if( IsTriggerEl ) b_ele_trg += 100;
+
+  edm::Handle<int> trigElHTFiltersHandle;
+  iEvent.getByToken(trigElHTFiltersToken_, trigElHTFiltersHandle);
+  IsTriggerElHT = *trigElHTFiltersHandle == 0 ? false : true;
+  if( IsTriggerElHT ) b_ele_trg += 10;
 
   edm::Handle<int> trigElJFiltersHandle;
   iEvent.getByToken(trigElJFiltersToken_, trigElJFiltersHandle);
@@ -902,7 +910,7 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   if( IsTriggerElJ ) b_ele_trg += 1;
 
   if( (ch_tag == 0 && IsTriggerMu) ||
-      (ch_tag == 1 && (IsTriggerEl || IsTriggerElJ) ) ){
+      (ch_tag == 1 && (IsTriggerEl || IsTriggerElJ || IsTriggerElHT) ) ){
     EvTrigger = true;
   }
 
@@ -1091,8 +1099,8 @@ bool fcncLepJetsAnalyzer::IsSelectElectron(const cat::Electron & i_electron_cand
 
   // Electron cut based selection, wp80 is tight
   // https://twiki.cern.ch/twiki/bin/view/CMS/MultivariateElectronIdentificationRun2#Recommended_MVA_Recipe_for_regul
-  if( !doLooseLepton_ ) GoodElectron &= i_electron_candidate.electronID("mvaEleID-Fall17-iso-V2-wp80") > 0.0;
-  else                  GoodElectron &= i_electron_candidate.electronID("mvaEleID-Fall17-noIso-V2-wp80") > 0.0;
+  if( !doLooseLepton_ ) GoodElectron &= i_electron_candidate.electronID("cutBasedElectronID-Fall17-94X-V2-tight") > 0.0;
+  else                  GoodElectron &= i_electron_candidate.electronID("cutBasedElectronID-Fall17-94X-V2-tight-noiso") > 0.0;
 
   return GoodElectron;
 
@@ -1110,7 +1118,7 @@ bool fcncLepJetsAnalyzer::IsVetoElectron(const cat::Electron & i_electron_candid
                    std::abs(i_electron_candidate.scEta()) > 1.566);
 
   // https://twiki.cern.ch/twiki/bin/view/CMS/MultivariateElectronIdentificationRun2#Recommended_MVA_Recipe_for_regul
-  GoodElectron &= i_electron_candidate.electronID("mvaEleID-Fall17-iso-V2-wpLoose") > 0.0;
+  GoodElectron &= i_electron_candidate.electronID("cutBasedElectronID-Fall17-94X-V2-veto") > 0.0;
 
   return GoodElectron;
 }
