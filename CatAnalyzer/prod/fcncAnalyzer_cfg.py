@@ -74,6 +74,7 @@ process.fcncLepJets = cms.EDAnalyzer('fcncLepJetsAnalyzer',
                                      trigMuFilters     = cms.InputTag("filterTrigMU"),
                                      trigElFilters     = cms.InputTag("filterTrigEL"),
                                      trigElJFilters    = cms.InputTag("filterTrigELJET"),
+                                     trigElHTFilters   = cms.InputTag("filterTrigELHT"),
                                      recoFilters       = cms.InputTag("filterRECOMC"),
                                      # Input Tags
                                      genWeightLabel    = cms.InputTag("flatGenWeights"),
@@ -101,11 +102,16 @@ process.fcncLepJets = cms.EDAnalyzer('fcncLepJetsAnalyzer',
                                      nTrueVertLabel    = cms.InputTag("pileupWeight:nTrueInteraction")
                                      )
 
+process.fcncLepJetsQCD = process.fcncLepJets.clone(
+    doLooseLepton = cms.untracked.bool(True),
+)
+
 process.TFileService = cms.Service("TFileService",
                                    fileName = cms.string('Tree_fcncLepJets.root')
                                    )
 
-process.p = cms.Path(process.filterRECOMC + process.filterTrigMU + process.filterTrigEL + process.filterTrigELJET +
+process.p = cms.Path(process.filterRECOMC +
+                     process.filterTrigMU + process.filterTrigEL + process.filterTrigELJET + process.filterTrigELHT +
                      process.flatGenWeights +
                      process.pileupWeight +
                      process.fcncLepJets) #+ process.fcncLepJetsQCD)
