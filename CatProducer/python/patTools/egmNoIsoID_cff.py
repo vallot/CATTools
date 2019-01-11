@@ -14,7 +14,8 @@ def enableElectronNoIsoID(process):
 
         for cut in idSet.idDefinition.cutFlow:
             newCut = cut.clone()
-            if newCut.cutName.value().endswith('IsoCut'): newCut.isIgnored = True
+            #configureVIDCutBasedEleID_V5 for 2017 90x V2 iD
+            if newCut.cutName.value().endswith('IsoScaledCut'): newCut.isIgnored = True
             newCutFlow.append(newCut)
 
         newIdSet = cms.PSet(
