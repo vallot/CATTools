@@ -57,7 +57,6 @@ private:
 
   int TTbarMC_; // 0->No ttbar, 1->ttbar Signal
   int TTbarCatMC_;
-  bool IsPowheg_;
 
   // Event Weights
   edm::EDGetTokenT<float>                   genWeightToken_;
@@ -140,15 +139,16 @@ private:
 
   // Scale factor evaluators
   BTagWeightEvaluator SF_deepCSV_;
-  ScaleFactorEvaluator SF_muonId_, SF_muonIso_, SF_muonTrg_, SF_elecId_, SF_elecReco_, SF_elecZvtx_;
+  ScaleFactorEvaluator SF_muonId_, SF_muonIso_, SF_muonTrg_, SF_elecId_, SF_elecReco_, SF_elecZvtx_, SF_elecTrg_;
+
+  int b_eeprefire;
   
 };
 
 fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   doLooseLepton_(iConfig.getUntrackedParameter<bool>("doLooseLepton", false)),
   TTbarMC_    (iConfig.getUntrackedParameter<int>("TTbarSampleLabel", 0)),
-  TTbarCatMC_ (iConfig.getUntrackedParameter<int>("TTbarCatLabel", 0)),
-  IsPowheg_   (iConfig.getUntrackedParameter<bool>("IsPowheg", false))
+  TTbarCatMC_ (iConfig.getUntrackedParameter<int>("TTbarCatLabel", 0))
 {
   const auto elecIdSFSet = iConfig.getParameter<edm::ParameterSet>("elecIdSF");
   SF_elecId_.set(elecIdSFSet.getParameter<std::vector<double>>("pt_bins"),
@@ -165,6 +165,11 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
                    elecZvtxSFSet.getParameter<std::vector<double>>("eta_bins"),
                    elecZvtxSFSet.getParameter<std::vector<double>>("values"),
                    elecZvtxSFSet.getParameter<std::vector<double>>("errors"));
+  const auto elecTrgSFSet = iConfig.getParameter<edm::ParameterSet>("elecTrgSF");
+  SF_elecTrg_.set(elecTrgSFSet.getParameter<std::vector<double>>("pt_bins"),
+                  elecTrgSFSet.getParameter<std::vector<double>>("eta_bins"),
+                  elecTrgSFSet.getParameter<std::vector<double>>("values"),
+                  elecTrgSFSet.getParameter<std::vector<double>>("errors"));
   const auto muonIdSFSet = iConfig.getParameter<edm::ParameterSet>("muonIdSF");
   SF_muonId_.set(muonIdSFSet.getParameter<std::vector<double>>("pt_bins"),
                  muonIdSFSet.getParameter<std::vector<double>>("abseta_bins"),
@@ -356,6 +361,8 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
     tree->Branch("addbjet2_e",   &b_addbjet2_e,   "addbjet2_e/F");
   }
 
+  tree->Branch("eeprefire", &b_eeprefire, "eeprefire/I");
+
   EventInfo = fs->make<TH1D>("EventInfo","Event Information",9,0,9);
   EventInfo->GetXaxis()->SetBinLabel(1,"Number of Events");
   EventInfo->GetXaxis()->SetBinLabel(2,"Sum of Weights");
@@ -478,6 +485,7 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   b_Hbquarkjet1_eta = b_Hbquarkjet1_phi = b_Hbquarkjet2_eta = b_Hbquarkjet2_phi = -10.0;
   b_dRHbb = -1.0;
   b_ele_trg = 0;
+  b_eeprefire = 0;
 
   //---------------------------------------------------------------------------
   // Event Info
@@ -514,8 +522,7 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
     edm::Handle<float> genWeight;
     iEvent.getByToken(genWeightToken_, genWeight);
-    if( IsPowheg_ ) b_GenWeight = std::abs(*genWeight);//Powheg should give +1 weighe
-    else            b_GenWeight = *genWeight;
+    b_GenWeight = *genWeight;
     EventInfo->Fill(1.5, b_GenWeight); // Sum of aMC@NLO Weights
 
     //---------------------------------------------------------------------------
@@ -588,7 +595,6 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   //---------------------------------------------------------------------------
   // Generated Particles (For Pythia8)
   //---------------------------------------------------------------------------
-  int nGenLep  = 999;
   bool IsCat = false;
   if( TTbarMC_ > 0 ) {
     //---------------------------------------------------------------------------
@@ -682,8 +688,6 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     //---------------------------------------------------------------------------
     // Using the GenChannel from GenTop categorization
     //---------------------------------------------------------------------------
-    nGenLep = genttbarConeCat->begin()->semiLeptonic(0); // semiLeptonic(0) includes tau leptonic decay
-
     // Category
     bool Isttjj = false;
     bool Isttbb = false;
@@ -711,31 +715,29 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     if( Isttjj && TTbarCatMC_ == 6 ) IsCat = true;
 
     if( isMC_ && TTbarMC_== 1 && IsCat ){
-      if( nGenLep == 1 ){
-        if     ( genttbarConeCat->begin()->semiLeptonicMuo() ) b_GenChannel = 0;
-        else if( genttbarConeCat->begin()->semiLeptonicEle() ) b_GenChannel = 1;
-        
-        if( genttbarConeCat->begin()->lepton1().pt() != 0. ){
-          b_GenLepton_pt  = genttbarConeCat->begin()->lepton1().Pt();
-          b_GenLepton_eta = genttbarConeCat->begin()->lepton1().Eta();
-          b_GenLepton_phi = genttbarConeCat->begin()->lepton1().Phi();
-          b_GenLepton_e   = genttbarConeCat->begin()->lepton1().E();
-          b_GenNu_pt      = genttbarConeCat->begin()->nu1().Pt();
-          b_GenNu_eta     = genttbarConeCat->begin()->nu1().Eta();
-          b_GenNu_phi     = genttbarConeCat->begin()->nu1().Phi();
-          b_GenNu_e       = genttbarConeCat->begin()->nu1().E();
-        }
-        else{
-          b_GenLepton_pt  = genttbarConeCat->begin()->lepton2().Pt();
-          b_GenLepton_eta = genttbarConeCat->begin()->lepton2().Eta();
-          b_GenLepton_phi = genttbarConeCat->begin()->lepton2().Phi();
-          b_GenLepton_e   = genttbarConeCat->begin()->lepton2().E();
-          b_GenNu_pt      = genttbarConeCat->begin()->nu2().Pt();
-          b_GenNu_eta     = genttbarConeCat->begin()->nu2().Eta();
-          b_GenNu_phi     = genttbarConeCat->begin()->nu2().Phi();
-          b_GenNu_e       = genttbarConeCat->begin()->nu2().E();
-        }
-      } // if(nGenLep == 1)
+      if     ( genttbarConeCat->begin()->semiLeptonicMuo() ) b_GenChannel = 0;
+      else if( genttbarConeCat->begin()->semiLeptonicEle() ) b_GenChannel = 1;
+
+      if( genttbarConeCat->begin()->lepton1().pt() != 0. ){
+        b_GenLepton_pt  = genttbarConeCat->begin()->lepton1().Pt();
+        b_GenLepton_eta = genttbarConeCat->begin()->lepton1().Eta();
+        b_GenLepton_phi = genttbarConeCat->begin()->lepton1().Phi();
+        b_GenLepton_e   = genttbarConeCat->begin()->lepton1().E();
+        b_GenNu_pt      = genttbarConeCat->begin()->nu1().Pt();
+        b_GenNu_eta     = genttbarConeCat->begin()->nu1().Eta();
+        b_GenNu_phi     = genttbarConeCat->begin()->nu1().Phi();
+        b_GenNu_e       = genttbarConeCat->begin()->nu1().E();
+      }
+      else{
+        b_GenLepton_pt  = genttbarConeCat->begin()->lepton2().Pt();
+        b_GenLepton_eta = genttbarConeCat->begin()->lepton2().Eta();
+        b_GenLepton_phi = genttbarConeCat->begin()->lepton2().Phi();
+        b_GenLepton_e   = genttbarConeCat->begin()->lepton2().E();
+        b_GenNu_pt      = genttbarConeCat->begin()->nu2().Pt();
+        b_GenNu_eta     = genttbarConeCat->begin()->nu2().Eta();
+        b_GenNu_phi     = genttbarConeCat->begin()->nu2().Phi();
+        b_GenNu_e       = genttbarConeCat->begin()->nu2().E();
+      }
     }// if(GENTTbarMCTree_)
   } // if(TTbarMC==0)
 
@@ -863,9 +865,12 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       lepton_SF->push_back( SF_elecReco_( selectedElectrons[0].pt(), selectedElectrons[0].scEta() ) );       // [3]-> IdSF
       lepton_SF->push_back( SF_elecReco_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(),  1.0 ) ); // [4]-> RecoSF+Error
       lepton_SF->push_back( SF_elecReco_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(), -1.0 ) ); // [5]-> RecoSF-Error
-      lepton_SF->push_back( SF_elecZvtx_( selectedElectrons[0].pt(), selectedElectrons[0].scEta() ) );       // [6]-> RecoSF
+      lepton_SF->push_back( SF_elecZvtx_( selectedElectrons[0].pt(), selectedElectrons[0].scEta() ) );       // [6]-> ZvtxSF
       lepton_SF->push_back( SF_elecZvtx_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(),  1.0 ) ); // [7]-> ZvtxSF+Error
       lepton_SF->push_back( SF_elecZvtx_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(), -1.0 ) ); // [8]-> ZvtxSF-Error
+      lepton_SF->push_back( SF_elecTrg_( selectedElectrons[0].pt(), selectedElectrons[0].scEta() ) );        // [9]-> TrgSF, ttH v5
+      lepton_SF->push_back( SF_elecTrg_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(),  1.0 ) );  // [10]-> TrgSF+Error
+      lepton_SF->push_back( SF_elecTrg_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(), -1.0 ) );  // [11]-> TrgSF-Error
       //LES
       lepton_LES = selectedElectrons[0].shiftedEn();
       //b_Lepton_scEta = selectedElectrons[0].scEta();
@@ -906,9 +911,6 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   //---------------------------------------------------------------------------
   // Check Gen Level for ttbar sample
   if( TTbarMC_ == 1 ){
-    // ttbar event
-    if( nGenLep != 1 && TTbarCatMC_ < 7 ) ch_tag = 999;
-    if( nGenLep == 1 && TTbarCatMC_ == 7 ) ch_tag = 999;
     // ttbar Category
     if( !IsCat ) ch_tag = 999;
   }
@@ -952,6 +954,12 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     // Run again over all Jets
     for( unsigned int i = 0; i < JetIndex.size() ; i++ ){
       const cat::Jet & jet = jets->at(JetIndex[i]);
+
+      // EE L1 Pre-firing bit, pT > 100 and 2.25 < |eta| < 3.0
+      if( isMC_ && (std::abs(jet.eta()) > 2.25 and std::abs(jet.eta()) < 3.0) and jet.pt() > 100.
+        && jet.tightLepVetoJetID() and b_eeprefire == 0 ){
+        b_eeprefire = 1;
+      }
 
       bool goodJet  = false;
       bool cleanJet = false;
@@ -1050,7 +1058,7 @@ bool fcncLepJetsAnalyzer::IsSelectMuon(const cat::Muon & i_muon_candidate){
   // Tight selection already defined into CAT::Muon
   GoodMuon &= (i_muon_candidate.passed(reco::Muon::CutBasedIdTight|reco::Muon::PFIsoTight));
   GoodMuon &= (i_muon_candidate.isPFMuon());           // PF
-  GoodMuon &= (i_muon_candidate.pt()> 20);             // pT
+  GoodMuon &= (i_muon_candidate.pt()> 25);             // pT
   GoodMuon &= (std::abs(i_muon_candidate.eta())< 2.4); // eta
 
   return GoodMuon;
@@ -1064,7 +1072,7 @@ bool fcncLepJetsAnalyzer::IsVetoMuon(const cat::Muon & i_muon_candidate){
   // Loose selection already defined into CAT::Muon
   GoodMuon &= (i_muon_candidate.passed(reco::Muon::CutBasedIdLoose|reco::Muon::PFIsoLoose));
   GoodMuon &= (i_muon_candidate.isPFMuon());           // PF
-  GoodMuon &= (i_muon_candidate.pt()> 10);             // pT
+  GoodMuon &= (i_muon_candidate.pt()> 15);             // pT
   GoodMuon &= (std::abs(i_muon_candidate.eta())< 2.4); // eta
 
   return GoodMuon;
@@ -1076,7 +1084,7 @@ bool fcncLepJetsAnalyzer::IsSelectElectron(const cat::Electron & i_electron_cand
   bool GoodElectron=true;
 
   GoodElectron &= (i_electron_candidate.isPF() );                // PF
-  GoodElectron &= (i_electron_candidate.pt() > 20);              // pT
+  GoodElectron &= (i_electron_candidate.pt() > 25);              // pT
   GoodElectron &= (std::abs(i_electron_candidate.eta()) < 2.4);  // eta
   GoodElectron &= (std::abs(i_electron_candidate.scEta()) < 1.4442 || // eta Super-Cluster
                    std::abs(i_electron_candidate.scEta()) > 1.566);

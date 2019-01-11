@@ -8,10 +8,8 @@ options = VarParsing ('analysis')
 options.register('UserJSON', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "UserJSON: Fault  default")
 # runOnTTbarMC ==> 0->No ttbar, 1->ttbar Signal
 options.register('runOnTTbarMC', 1, VarParsing.multiplicity.singleton, VarParsing.varType.int, "runOnTTbarMC: 0  default No ttbar sample")
-# TTbarCatMC   ==> 0->All ttbar, 1->ttbb, 2->ttbj, 3->ttcc, 4->ttLF, 5->tt, 6->ttjj, 7->TTLL and TTHad, 8->FCNC
+# TTbarCatMC   ==> 0->All ttbar, 1->ttbb, 2->ttbj, 3->ttcc, 4->ttLF, 5->tt, 6->ttjj, 7->TTLL and TTHad, 8->FCNC, ttV
 options.register('TTbarCatMC', 0, VarParsing.multiplicity.singleton, VarParsing.varType.int, "TTbarCatMC: 0  default All ttbar events")
-# Powheg samples ==> True
-options.register('Powheg', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "True for powheg samples")
 # PU Map samples
 #options.register('PUMap', '2017_25ns_WinterMC', VarParsing.multiplicity.singleton, VarParsing.varType.string, "True for PU reshaping")
 options.parseArguments()
@@ -19,7 +17,6 @@ options.parseArguments()
 print "User JSON file: " + str(options.UserJSON)
 print "runOnTTbarMC: "   + str(options.runOnTTbarMC)
 print "TTbarCatMC: "     + str(options.TTbarCatMC)
-print "run on Powheg: "  + str(options.Powheg)
 #print "PU Map: "         + str(options.PUMap)
 #------------------------------------------------------------------
 #------------------------------------------------------------------
@@ -41,6 +38,7 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 process.source = cms.Source("PoolSource",
      fileNames = cms.untracked.vstring(
         'root://cluster142.knu.ac.kr//store/group/CAT/V9_4/TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8/V9_4_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v2/181206_104220/0000/catTuple_100.root'
+#        'root://cluster142.knu.ac.kr//store/group/CAT/V9_4/SingleMuon/V9_4_Run2017C-31Mar2018-v1/181206_151733/0000/catTuple_100.root'
         )
 )
 
@@ -73,7 +71,6 @@ process.flatGenWeights.keepFirstOnly = False
 process.fcncLepJets = cms.EDAnalyzer('fcncLepJetsAnalyzer',
                                      TTbarSampleLabel  = cms.untracked.int32(options.runOnTTbarMC),
                                      TTbarCatLabel     = cms.untracked.int32(options.TTbarCatMC),
-                                     IsPowheg          = cms.untracked.bool(options.Powheg),
                                      trigMuFilters     = cms.InputTag("filterTrigMU"),
                                      trigElFilters     = cms.InputTag("filterTrigEL"),
                                      trigElJFilters    = cms.InputTag("filterTrigELJET"),
@@ -93,6 +90,7 @@ process.fcncLepJets = cms.EDAnalyzer('fcncLepJetsAnalyzer',
                                      elecIdSF          = electronSFMVAWP80IsoIdOnly94Xv2,
                                      elecRecoSF        = electronSFMVAWP80RecoOnly94Xv2,
                                      elecZvtxSF        = electronSFHLTZvtx94X,
+                                     elecTrgSF         = trigSF_El35_El28HT150_ttH_v5,
                                      jetLabel          = cms.InputTag("catJets"),
                                      metLabel          = cms.InputTag("catMETs"),
                                      pvLabel           = cms.InputTag("catVertex:nGoodPV"),
