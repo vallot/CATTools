@@ -833,7 +833,6 @@ electronSFCutBasedIDTightWP = combineSF(electronSFRecoOnly, electronSFCutBasedID
 trigSF_IsoMu24_OR_IsoTkMu24 = computeAverageSF(trigSF_IsoMu24_OR_IsoTkMu24_BtoF, 20.4, trigSF_IsoMu24_OR_IsoTkMu24_GtoH, 16.7)
 #2017 SF - ongoing
 muonSFTight94X = combineSF(muonSFTightIdOnly94X, muonSFTightIsoOnly94X)
-electronSFMVAWP8094X = combineSF( combineSF( electronSFMVAWP80IsoIdOnly94X, electronSFMVAWP80RecoOnly94X ), electronSFHLTZvtx94X)
 electronSFMVAWP8094Xv2 = combineSF( combineSF( electronSFMVAWP80IsoIdOnly94Xv2, electronSFMVAWP80RecoOnly94Xv2 ), electronSFHLTZvtx94X)
 #trigSF_IsoMu27 = trigSF_IsoMu27
 #ELe35_WPTight - no SF yet
