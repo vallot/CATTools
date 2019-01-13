@@ -25,6 +25,9 @@ def guessxrd():
     elif "lxplus" in hostname:
         xrdhost = 'cms-xrd-global.cern.ch'
         xrdbase = ''
+    elif "knu" in hostname:
+        xrdhost = 'cluster142.knu.ac.kr'
+        xrdbase = ''
     else:
         print "Hostname", hostname, "not supported"
         sys.exit()
