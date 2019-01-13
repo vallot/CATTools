@@ -145,6 +145,5 @@ def addEgmID(process, runOnMC):
         #process = enablePhotonVID(process)
 
         ## Electron ID without isolation cuts
-        #from CATTools.CatProducer.patTools.egmNoIsoID_cff import enableElectronNoIsoID
-        #process = enableElectronNoIsoID(process)
-
+        from CATTools.CatProducer.patTools.egmNoIsoID_cff import enableElectronNoIsoID
+        process = enableElectronNoIsoID(process)

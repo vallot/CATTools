@@ -8,6 +8,7 @@ def enableElectronVID(process):
     electron_ids = [
         'mvaElectronID_Fall17_noIso_V2_cff',
         'mvaElectronID_Fall17_iso_V2_cff',
+        'cutBasedElectronID_Fall17_94X_V2_cff',
     ]
     for idmod in electron_ids:
         idmod = "RecoEgamma.ElectronIdentification.Identification."+idmod
@@ -21,6 +22,10 @@ def enableElectronVID(process):
         "egmGsfElectronIDs:mvaEleID-Fall17-iso-V2-wp80",
         "egmGsfElectronIDs:mvaEleID-Fall17-iso-V2-wpLoose",
         "egmGsfElectronIDs:mvaEleID-Fall17-iso-V2-wpHZZ",
+        "egmGsfElectronIDs:cutBasedElectronID-Fall17-94X-V2-veto",
+        "egmGsfElectronIDs:cutBasedElectronID-Fall17-94X-V2-loose",
+        "egmGsfElectronIDs:cutBasedElectronID-Fall17-94X-V2-medium",
+        "egmGsfElectronIDs:cutBasedElectronID-Fall17-94X-V2-tight",
     ]
     process.catElectrons.electronIDSources = cms.PSet()
     for idName in electron_idNames:

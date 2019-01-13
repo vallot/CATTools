@@ -290,9 +290,9 @@ void cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetu
     }
 
     aElectron.setIsPF( aPatElectron.isPF() );
-    aElectron.setIsTight( aElectron.electronID("mvaEleID-Fall17-iso-V2-wp80") );
-    aElectron.setIsMedium( aElectron.electronID("mvaEleID-Fall17-iso-V2-wp90") );
-    aElectron.setIsLoose( aElectron.electronID("mvaEleID-Fall17-iso-V2-wpLoose") );
+    aElectron.setIsTight( aElectron.electronID("cutBasedElectronID-Fall17-94X-V2-tight") );
+    aElectron.setIsMedium( aElectron.electronID("cutBasedElectronID-Fall17-94X-V2-medium") );
+    aElectron.setIsLoose( aElectron.electronID("cutBasedElectronID-Fall17-94X-V2-loose") );
 
     reco::GsfTrackRef theTrack = aPatElectron.gsfTrack();
     aElectron.setDxy( theTrack->dxy(pv.position()) );
@@ -433,23 +433,15 @@ int cat::CATElectronProducer::getSNUID(float full5x5_sigmaIetaIeta, float deltaE
 float
 cat::CATElectronProducer::getEffArea( float dR, float scEta)
 {
-  // ElectronEffectiveArea::ElectronEffectiveAreaTarget electronEATarget;
-  // if ( runOnMC_ ) electronEATarget = ElectronEffectiveArea::kEleEAFall11MC;
-  // else electronEATarget = ElectronEffectiveArea::kEleEAData2012;
-  // if( dR < 0.35)
-  //   return ElectronEffectiveArea::GetElectronEffectiveArea( ElectronEffectiveArea::kEleGammaAndNeutralHadronIso03, scEta, electronEATarget);
-  // else
-  //   return ElectronEffectiveArea::GetElectronEffectiveArea( ElectronEffectiveArea::kEleGammaAndNeutralHadronIso04, scEta, electronEATarget);
-
-  // new effArea  https://github.com/ikrav/cmssw/blob/egm_id_80X_v1/RecoEgamma/ElectronIdentification/data/Summer16/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_80X.txt
+  // https://github.com/guitargeek/cmssw/blob/EgammaID_949/RecoEgamma/ElectronIdentification/data/Fall17/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_92X.txt
   float absEta = std::abs(scEta);
-  if ( 0.0000 >= absEta && absEta < 1.0000 ) return 0.1703;
-  if ( 1.0000 >= absEta && absEta < 1.4790 ) return 0.1715;
-  if ( 1.4790 >= absEta && absEta < 2.0000 ) return 0.1213;
-  if ( 2.0000 >= absEta && absEta < 2.2000 ) return 0.1230;
-  if ( 2.2000 >= absEta && absEta < 2.3000 ) return 0.1635;
-  if ( 2.3000 >= absEta && absEta < 2.4000 ) return 0.1937;
-  if ( 2.4000 >= absEta && absEta < 5.0000 ) return 0.2393;
+  if ( 0.0000 >= absEta && absEta < 1.0000 ) return 0.1566;
+  if ( 1.0000 >= absEta && absEta < 1.4790 ) return 0.1626;
+  if ( 1.4790 >= absEta && absEta < 2.0000 ) return 0.1073;
+  if ( 2.0000 >= absEta && absEta < 2.2000 ) return 0.0854;
+  if ( 2.2000 >= absEta && absEta < 2.3000 ) return 0.1051;
+  if ( 2.3000 >= absEta && absEta < 2.4000 ) return 0.1204;
+  if ( 2.4000 >= absEta && absEta < 5.0000 ) return 0.1524;
   return 0;
 }
 
