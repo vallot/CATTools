@@ -792,7 +792,7 @@ void TtbarBbbarDiLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     int is_partonInPhaseLep=0;
     for ( auto  aParticle = genParticles->begin(),end = genParticles->end(); aParticle != end; ++aParticle ) {
       const reco::GenParticle& p = *aParticle;
-      if ( !(abs(p.pdgId()) > 21 && abs(p.pdgId()) << 26)  ) continue;
+      if ( !(abs(p.pdgId()) > 21 && abs(p.pdgId()) < 26)  ) continue;
       if ( !cat::isLast(p) ) continue;
       unsigned int nDaughters = p.numberOfDaughters();
       for ( unsigned iDaughter=0; iDaughter<nDaughters; ++iDaughter ) {
