@@ -433,15 +433,15 @@ int cat::CATElectronProducer::getSNUID(float full5x5_sigmaIetaIeta, float deltaE
 float
 cat::CATElectronProducer::getEffArea( float dR, float scEta)
 {
-  // https://github.com/guitargeek/cmssw/blob/EgammaID_949/RecoEgamma/ElectronIdentification/data/Fall17/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_92X.txt
+  // https://github.com/cms-egamma/cmssw/blob/EgammaID_949/RecoEgamma/ElectronIdentification/data/Fall17/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_94X.txt
   float absEta = std::abs(scEta);
-  if ( 0.0000 >= absEta && absEta < 1.0000 ) return 0.1566;
-  if ( 1.0000 >= absEta && absEta < 1.4790 ) return 0.1626;
-  if ( 1.4790 >= absEta && absEta < 2.0000 ) return 0.1073;
-  if ( 2.0000 >= absEta && absEta < 2.2000 ) return 0.0854;
-  if ( 2.2000 >= absEta && absEta < 2.3000 ) return 0.1051;
-  if ( 2.3000 >= absEta && absEta < 2.4000 ) return 0.1204;
-  if ( 2.4000 >= absEta && absEta < 5.0000 ) return 0.1524;
+  if ( 0.0000 >= absEta && absEta < 1.0000 ) return 0.1440;
+  if ( 1.0000 >= absEta && absEta < 1.4790 ) return 0.1562;
+  if ( 1.4790 >= absEta && absEta < 2.0000 ) return 0.1032;
+  if ( 2.0000 >= absEta && absEta < 2.2000 ) return 0.0859;
+  if ( 2.2000 >= absEta && absEta < 2.3000 ) return 0.1116;
+  if ( 2.3000 >= absEta && absEta < 2.4000 ) return 0.1321;
+  if ( 2.4000 >= absEta && absEta < 5.0000 ) return 0.1654;
   return 0;
 }
 
