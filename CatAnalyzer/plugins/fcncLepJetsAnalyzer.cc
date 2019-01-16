@@ -575,6 +575,7 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     for( unsigned int iscale = 0; iscale< b_PDFWeight->size(); iscale++ ) // 578~680: PDF4LHC15_nnlo_100_pdfas, and 0~8 is scale weight
       PDFWeights->Fill(iscale, b_PDFWeight->at(iscale));
 
+/*
     // PS weight
     edm::Handle<std::vector<float>> PSWeightsHandle;
     iEvent.getByToken(psWeightToken_, PSWeightsHandle);
@@ -586,6 +587,8 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
     for( unsigned int iscale = 0; iscale< b_PSWeight->size(); iscale++ )
       PSWeights->Fill(iscale, b_PSWeight->at(iscale));
+*/
+    b_PSWeight->push_back(1.0);
   }
   else{
     b_ScaleWeight->push_back(1.0);

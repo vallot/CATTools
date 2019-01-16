@@ -37,7 +37,8 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.source = cms.Source("PoolSource",
      fileNames = cms.untracked.vstring(
-        'root://cluster142.knu.ac.kr//store/group/CAT/V9_4/TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8/V9_4_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v2/181206_104220/0000/catTuple_100.root'
+	'file:/u/user/jichoi/CAT/CMSSW_10_4_0_patch1/src/CATTools/CatProducer/prod/catTuple.root'
+#        'root://cluster142.knu.ac.kr//store/group/CAT/V9_4/TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8/V9_4_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v2/181206_104220/0000/catTuple_100.root'
 #        'root://cluster142.knu.ac.kr//store/group/CAT/V9_4/SingleMuon/V9_4_Run2017C-31Mar2018-v1/181206_151733/0000/catTuple_100.root'
         )
 )
@@ -47,17 +48,17 @@ process.load("CATTools.CatProducer.pileupWeight_cff")
 from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
 process.pileupWeight.weightingMethod = "RedoWeight"
 #process.pileupWeight.pileupMC = pileupWeightMap[options.PUMap]
-process.pileupWeight.pileupMC = pileupWeightMap["2017_25ns_WinterMC"]
-process.pileupWeight.pileupRD = pileupWeightMap["Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON"]
-process.pileupWeight.pileupUp = pileupWeightMap["Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON_Up"]
-process.pileupWeight.pileupDn = pileupWeightMap["Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON_Dn"]
+process.pileupWeight.pileupMC = pileupWeightMap["2018_25ns_MC"]
+process.pileupWeight.pileupRD = pileupWeightMap["Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON"]
+process.pileupWeight.pileupUp = pileupWeightMap["Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON_Up"]
+process.pileupWeight.pileupDn = pileupWeightMap["Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON_Dn"]
 
 # json file (Only Data)
 if options.UserJSON:
     # /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/ReReco
     print "Running data.... Including JSON File."
     import FWCore.PythonUtilities.LumiList as LumiList
-    process.source.lumisToProcess = LumiList.LumiList(filename = '../../CatProducer/data/LumiMask/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt').getVLuminosityBlockRange()
+    process.source.lumisToProcess = LumiList.LumiList(filename = '../../CatProducer/data/LumiMask/Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt').getVLuminosityBlockRange()
 
 #Load MET filters for MC
 process.load("CATTools.CatAnalyzer.filters_cff")

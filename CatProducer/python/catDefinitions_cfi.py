@@ -1,10 +1,10 @@
 import FWCore.ParameterSet.Config as cms
 
 bunchCrossing  = 25
-globalTag_mc   = '94X_mc2017_realistic_v17'
-globalTag_rd   = '94X_dataRun2_v11'
-lumiJSON       = 'Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON'
-pileupMCmap    = '2017_25ns_WinterMC'
+globalTag_mc   = '103X_upgrade2018_realistic_v8'
+globalTag_rd   = '103X_dataRun2_Prompt_v3'
+lumiJSON       = 'Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON'
+pileupMCmap    = '2018_25ns_MC'
 
 JetEnergyCorrection = ('Fall17_17Nov2017_V32_94X_DATA', 'Fall17_17Nov2017_V32_94X_MC')
 JECUncertaintyFile  = 'CATTools/CatProducer/data/JEC/%s_UncertaintySources_AK4PFchs.txt'%JetEnergyCorrection[1]
