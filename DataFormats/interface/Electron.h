@@ -46,11 +46,11 @@ namespace cat {
     float shiftedEnDown() const {return 1-shiftedEn();}
     float shiftedEnUp() const {return  1+shiftedEn();}
     
-    int snuID() const {return snuID_;}
-    bool isTrigMVAValid() const { return isTrigMVAValid_; }
+//    int snuID() const {return snuID_;}
+//    bool isTrigMVAValid() const { return isTrigMVAValid_; }
 
     //https://github.com/Sam-Harper/usercode/blob/100XNtup/TrigTools/plugins/Ele32DoubleL1ToSingleL1Example.cc
-    bool isTrgFired() const{ return isTrgFired_;}
+//    bool isTrgFired() const{ return isTrgFired_;}
 
     void setElectronIDs(const std::vector<pat::Electron::IdPair> & ids) { electronIDs_ = ids; }
     void setElectronID(pat::Electron::IdPair ids) { electronIDs_.push_back(ids); }
@@ -67,15 +67,15 @@ namespace cat {
     void setIsGsfCtfScPixChargeConsistent(bool d) { isGsfCtfScPixChargeConsistent_ = d ; }
     void setIsEB(bool d) { isEB_ = d ; }
 
-    void setSNUID(int id) {snuID_ = id;}
-    void setTrigMVAValid(bool val) { isTrigMVAValid_ = val; }
+//    void setSNUID(int id) {snuID_ = id;}
+//    void setTrigMVAValid(bool val) { isTrigMVAValid_ = val; }
     void setIpSignficance(float ipsig) {ipsig_ = ipsig;}
 
     void setSmearedScale(const float scale) { smearedScale_ = scale; }
 
-    void setIsTrgFired(bool h) { isTrgFired_ = h; }
+//    void setIsTrgFired(bool h) { isTrgFired_ = h; }
 
-    float scaleFactor(const std::string& name, int sign = 0) const;
+    //float scaleFactor(const std::string& name, int sign = 0) const;
     
   private:
 
@@ -90,9 +90,9 @@ namespace cat {
     bool isGsfCtfScPixChargeConsistent_;
     bool isEB_;
     
-    int snuID_;
-    bool isTrigMVAValid_;
-    bool isTrgFired_;
+//    int snuID_;
+//    bool isTrigMVAValid_;
+//    bool isTrgFired_;
   };
 }
 

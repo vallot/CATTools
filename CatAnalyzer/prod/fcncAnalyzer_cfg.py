@@ -37,7 +37,7 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.source = cms.Source("PoolSource",
      fileNames = cms.untracked.vstring(
-	'file:/u/user/jichoi/CAT/CMSSW_10_4_0_patch1/src/CATTools/CatProducer/prod/catTuple.root'
+	'file:../../CatProducer/prod/catTuple.root'
 #        'root://cluster142.knu.ac.kr//store/group/CAT/V9_4/TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8/V9_4_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v2/181206_104220/0000/catTuple_100.root'
 #        'root://cluster142.knu.ac.kr//store/group/CAT/V9_4/SingleMuon/V9_4_Run2017C-31Mar2018-v1/181206_151733/0000/catTuple_100.root'
         )
@@ -74,7 +74,6 @@ process.fcncLepJets = cms.EDAnalyzer('fcncLepJetsAnalyzer',
                                      TTbarCatLabel     = cms.untracked.int32(options.TTbarCatMC),
                                      trigMuFilters     = cms.InputTag("filterTrigMU"),
                                      trigElFilters     = cms.InputTag("filterTrigEL"),
-                                     trigElJFilters    = cms.InputTag("filterTrigELJET"),
                                      trigElHTFilters   = cms.InputTag("filterTrigELHT"),
                                      recoFilters       = cms.InputTag("filterRECOMC"),
                                      # Input Tags

@@ -308,7 +308,7 @@ void cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetu
       aElectron.setIpSignficance(eleSignificanceIP);
     }
 
-
+/*
     // |1/E-1/p| = |1/E - EoverPinner/E| is computed below
     // The if protects against ecalEnergy == inf or zero
     // (always the case for miniAOD for electrons <5 GeV)
@@ -370,13 +370,13 @@ void cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetu
       }
     }
     aElectron.setIsTrgFired( hltbit );
-
+*/
     out->push_back(aElectron);
   }
   iEvent.put(std::move(out));
 }
 
-
+/*
 int cat::CATElectronProducer::getSNUID(float full5x5_sigmaIetaIeta, float deltaEtaSuperClusterTrackAtVtx, float deltaPhiSuperClusterTrackAtVtx, float hoverE, float eoverp, float dz, int exp_miss_innerhits, bool pass_conversion_veto, float sceta){
 
   //----------------------------------------------------------------------
@@ -429,10 +429,10 @@ int cat::CATElectronProducer::getSNUID(float full5x5_sigmaIetaIeta, float deltaE
 
   return flag_id;
 }
-
+*/
 float
 cat::CATElectronProducer::getEffArea( float dR, float scEta)
-{
+{ //To be updated FIXME
   // https://github.com/guitargeek/cmssw/blob/EgammaID_949/RecoEgamma/ElectronIdentification/data/Fall17/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_92X.txt
   float absEta = std::abs(scEta);
   if ( 0.0000 >= absEta && absEta < 1.0000 ) return 0.1566;

@@ -15,10 +15,10 @@ Electron::Electron(const reco::LeafCandidate & aElectron) :
   scEta_(0),
   passConversionVeto_(false),
   isGsfCtfScPixChargeConsistent_(false),
-  isEB_(false),
-  snuID_(0),
-  isTrigMVAValid_(false),
-  isTrgFired_(false)
+  isEB_(false)//,
+//  snuID_(0),
+//  isTrigMVAValid_(false),
+//  isTrgFired_(false)
 {}
 
 /// destructor
@@ -39,7 +39,7 @@ float Electron::electronID(const std::string& name) const {
   ex << ".\n";
   throw ex;
 }
-
+/*
 float Electron::scaleFactor(const std::string& name, int sign) const {
   if (name == "mvaEleID-Spring15-25ns-Trig-V1-wp90"){
     if (this->pt()>15. && this->pt() <= 25.){
@@ -90,3 +90,4 @@ float Electron::scaleFactor(const std::string& name, int sign) const {
   }
   return 1.;
 }
+*/
