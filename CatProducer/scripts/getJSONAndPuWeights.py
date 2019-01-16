@@ -2,13 +2,19 @@
 import sys, os
 from getopt import getopt
 
-year = 17
+year = 18
 
 baseAFS = "/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification"
 baseURL = "https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification"
 baseCAT = "%s/src/CATTools/CatProducer/data/LumiMask" % os.environ["CMSSW_BASE"]
 
 configs = {
+    18:{
+        "lumiJSON":"Collisions18/13TeV/PromptReco",
+        "pileupJSON":"Collisions18/13TeV/PileUp/pileup_latest.txt",
+        "minBiasXsec":69200.,
+        "minBiasXsecUnc":0.046,
+    },
     17:{
         "lumiJSON":"Collisions17/13TeV/ReReco",
         "pileupJSON":"Collisions17/13TeV/PileUp/pileup_latest.txt",

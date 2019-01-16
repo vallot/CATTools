@@ -63,10 +63,9 @@ filterTrigMUMU = filterTrigMUEL.clone(triggersToMatch = cms.vstring(
     "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",))
 
 filterTrigMU = filterTrigMUEL.clone(triggersToMatch = cms.vstring(
-    "HLT_IsoMu27_v",))
+    "HLT_IsoMu24_v",))
 
 filterTrigEL = filterTrigMUEL.clone(triggersToMatch = cms.vstring(
-#    "HLT_Ele32_WPTight_Gsf_L1DoubleEG_v",))
     "HLT_Ele35_WPTight_Gsf_v",))
 
 filterTrigELJET = filterTrigMUEL.clone(triggersToMatch = cms.vstring(
