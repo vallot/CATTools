@@ -46,24 +46,6 @@ def addCatCommonMCObjects(process):
 
     return process
 
-def addCatSecVertexObjects(process):
-    process.load("CATTools.CatProducer.producers.secondaryVertexProducer_cfi")
-
-    process.catOut.outputCommands.extend(catEventContentSecVertexs)
-    process.catObjectTask.add(
-        process.catSecVertexs
-    )
-    return process
-
-def addCatDstarObjects(process):
-    process.load("CATTools.CatProducer.producers.dstarProducer_cfi")
-
-    process.catOut.outputCommands.extend(['keep *_catDstars_*_*',])
-    process.catObjectTask.add(
-        process.catDstars
-    )
-    return process
-
 def addCatGenTopObjects(process):
     process.load("CATTools.CatProducer.producers.genTopProducer_cfi") #please do not remove it.
     process.load("CATTools.CatProducer.mcTruthTop.mcTruthTop_cff")

@@ -1,7 +1,4 @@
 from CATTools.CatProducer.catTemplate_cfg import *
-## some options
-doSecVertex=False # for jpsi candidates
-doDstar=False     # for Dstar meson.
     
 ## setting up arguements
 from FWCore.ParameterSet.VarParsing import VarParsing
@@ -45,8 +42,6 @@ process = addCatCommonObjects(process)
 if runOnMC: process = addCatCommonMCObjects(process)
 if runGenTop     : process = addCatGenTopObjects(process)
 if runParticleTop: process = addCatParticleTopObjects(process)
-if doSecVertex   : process = addCatSecVertexObjects(process)
-if doDstar       : process = addCatDstarObjects(process)
 if isMCSignal:
     process.genWeight.keepFirstOnly = False
     process.catOut.outputCommands.extend(catEventContentMCSignal)

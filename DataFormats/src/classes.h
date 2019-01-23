@@ -12,7 +12,6 @@
 #include "CATTools/DataFormats/interface/GenJet.h"
 #include "CATTools/DataFormats/interface/GenTop.h"
 #include "CATTools/DataFormats/interface/MCParticle.h"
-#include "CATTools/DataFormats/interface/SecVertex.h"
 #include "CATTools/DataFormats/interface/GenWeights.h"
 #include "CATTools/DataFormats/interface/Trigger.h"
 #include "DataFormats/Common/interface/ValueMap.h"
@@ -106,12 +105,6 @@ namespace {
     edm::Wrapper<cat::GenTop> tgjw;
     edm::Wrapper<std::vector<cat::GenTop> > tgjvw;
     edm::Ptr<cat::GenTop> tgjPtr;
-
-    cat::SecVertex sv_;
-    std::vector<cat::SecVertex> svv;
-    edm::Wrapper<cat::SecVertex> svw;
-    edm::Wrapper<std::vector<cat::SecVertex> > svvw;
-    edm::Ptr<cat::SecVertex> svPtr;
 
     edm::Wrapper<reco::CompositePtrCandidateCollection> a1;
     edm::reftobase::Holder<reco::Candidate, reco::CompositePtrCandidateRef> a2;

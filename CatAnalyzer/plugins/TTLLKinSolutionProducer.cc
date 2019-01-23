@@ -6,7 +6,6 @@
 #include "CATTools/DataFormats/interface/Electron.h"
 #include "CATTools/DataFormats/interface/Jet.h"
 #include "CATTools/DataFormats/interface/MET.h"
-#include "CATTools/DataFormats/interface/SecVertex.h"
 
 #include "CATTools/CatAnalyzer/interface/KinematicSolvers.h"
 #include "DataFormats/Candidate/interface/LeafCandidate.h"

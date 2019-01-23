@@ -5,7 +5,6 @@ catEventContentMC = cms.untracked.vstring()
 catEventContentRD = cms.untracked.vstring()
 catEventContentMCSignal = cms.untracked.vstring()
 catEventContentTOPMC = cms.untracked.vstring()
-catEventContentSecVertexs = cms.untracked.vstring()
 catEventContentTOPParticleLevel = cms.untracked.vstring()
 
 catEventContent.extend([
@@ -55,6 +54,3 @@ catEventContentTOPParticleLevel.extend([
     #'drop *_particleLevel_fatjets_*',
 ])
 
-catEventContentSecVertexs.extend([
-    #'keep *_catSecVertexs_*_*',
-    ])

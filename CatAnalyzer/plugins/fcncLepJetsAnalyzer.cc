@@ -199,8 +199,6 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   puWeightToken_        = consumes<float>(edm::InputTag(puWeightLabel.label()));
   puUpWeightToken_      = consumes<float>(edm::InputTag(puWeightLabel.label(),"up"));
   puDownWeightToken_    = consumes<float>(edm::InputTag(puWeightLabel.label(),"dn"));
-  // CSV Weights
-  auto deepcsvWeightLabel = iConfig.getParameter<edm::InputTag>("deepcsvWeightLabel");
   // GEN and ttbar Categorization
   genttbarCatToken_      = consumes<cat::GenTopCollection>(iConfig.getParameter<edm::InputTag>("genttbarCatLabel"));
   genttbarHiggsCatToken_ = consumes<int>                  (iConfig.getParameter<edm::InputTag>("genHiggsCatLabel"));
