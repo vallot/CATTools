@@ -4,7 +4,6 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "CATTools/CatAnalyzer/interface/BTagCalibrationStandalone.h"
 #include "CATTools/DataFormats/interface/Jet.h"
-#include "CATTools/CatAnalyzer/interface/CSVHelper.h"
 
 #include <string>
 #include <vector>
@@ -48,7 +47,6 @@ private:
   std::map<int, BTagCalibrationReader> readers_;
 
   int minNbjet_;
-  std::unique_ptr<CSVHelper> csvHelper_;
 };
 
 }

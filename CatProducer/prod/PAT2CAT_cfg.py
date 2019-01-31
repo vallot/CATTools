@@ -1,7 +1,4 @@
 from CATTools.CatProducer.catTemplate_cfg import *
-## some options
-doSecVertex=False # for jpsi candidates
-doDstar=False     # for Dstar meson.
     
 ## setting up arguements
 from FWCore.ParameterSet.VarParsing import VarParsing
@@ -45,8 +42,6 @@ process = addCatCommonObjects(process)
 if runOnMC: process = addCatCommonMCObjects(process)
 if runGenTop     : process = addCatGenTopObjects(process)
 if runParticleTop: process = addCatParticleTopObjects(process)
-if doSecVertex   : process = addCatSecVertexObjects(process)
-if doDstar       : process = addCatDstarObjects(process)
 if isMCSignal:
     process.genWeight.keepFirstOnly = False
     process.catOut.outputCommands.extend(catEventContentMCSignal)
@@ -77,18 +72,9 @@ process.maxEvents.input = options.maxEvents
 # Default file here for test purpose
 if not options.inputFiles:
     if useMiniAOD:
-        #FCNC signal
-        #process.source.fileNames = cms.untracked.vstring('file:/afs/cern.ch/user/j/jipark/work/public/catToolsSamples/TT_FCNC-TtoHJ_aTleptonic_HTobb_eta_hut-MadGraph5-pythia8_72C7A562-7EAA-E811-9C0E-AC1F6B0DE454.root')
-        #process.source.fileNames = cms.untracked.vstring('file:/afs/cern.ch/user/j/jipark/work/public/catToolsSamples/ST_FCNC-TH_Tleptonic_HTobb_eta_hut-MadGraph5-pythia8_F2349380-0242-E811-BB4E-44A842BE8F71.root')
-        # ttbar sample
-        process.source.fileNames = cms.untracked.vstring('file:/afs/cern.ch/user/j/jipark/work/public/catToolsSamples/TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8_MiniAODv2_10BE32E3-EE42-E811-AF24-0025905A6080.root')
-        #process.source.fileNames = cms.untracked.vstring('file:/afs/cern.ch/user/j/jipark/work/public/catToolsSamples/SingleMuonRun2017E_31Mar2018-v1_000D53C5-9D39-E811-A39C-0025905B85A0.root')
-        #process.source.fileNames = cms.untracked.vstring('file:/afs/cern.ch/user/j/jipark/work/public/catToolsSamples/SingleElectronRun2017E_31Mar2018-v1_0241A01E-5537-E811-9416-0CC47A0AD792.root')
-        # out of date for 94X below: 
-        #from CATTools.Validation.commonTestInput_cff import commonTestMiniAODs
-        #if runOnMC and runGenTop: process.source.fileNames = commonTestMiniAODs["sig"]
-        #elif runOnMC: process.source.fileNames = commonTestMiniAODs["bkg"]
-        #elif not runOnMC: process.source.fileNames = commonTestMiniAODs["data"]
+#        process.source.fileNames = cms.untracked.vstring('file:/pnfs/knu.ac.kr/data/cms/store/user/jichoi/v10_0/SingleMuon/D0F4E8DD-E184-E811-8E44-FA163EED34EC.root')
+        process.source.fileNames = cms.untracked.vstring('file:/pnfs/knu.ac.kr/data/cms/store/user/jichoi/v10_0/ttLJ/48303D32-5F5E-4C4E-885D-0DD6CBEA9189.root')
+
 else:
     process.source.fileNames = options.inputFiles
 

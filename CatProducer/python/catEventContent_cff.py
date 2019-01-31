@@ -5,7 +5,6 @@ catEventContentMC = cms.untracked.vstring()
 catEventContentRD = cms.untracked.vstring()
 catEventContentMCSignal = cms.untracked.vstring()
 catEventContentTOPMC = cms.untracked.vstring()
-catEventContentSecVertexs = cms.untracked.vstring()
 catEventContentTOPParticleLevel = cms.untracked.vstring()
 
 catEventContent.extend([
@@ -14,7 +13,7 @@ catEventContent.extend([
     'keep *_catMuons_*_*',
     'keep *_catElectrons_*_*',
     # turning off since no one uses photon and taus
-    'keep *_catPhotons_*_*',
+    #'keep *_catPhotons_*_*',
     #'keep *_catTaus_*_*', 
     'keep *_catJets*_*_*',
     #'keep *_catFatJets*_*_*', //not working with 94X 
@@ -35,8 +34,8 @@ catEventContentMC.extend([
     ])
 
 catEventContentMCSignal.extend([
-    'keep *_slimmedGenJets_*_*',
-    'keep recoGenParticles_prunedGenParticles_*_*',
+    #'keep *_slimmedGenJets_*_*',
+    #'keep recoGenParticles_prunedGenParticles_*_*',
     #'keep *_matchGenBHadron_*_*',
     #'keep *_matchGenCHadron_*_*',
     ])
@@ -49,12 +48,9 @@ catEventContentTOPMC.extend([
 
 catEventContentTOPParticleLevel.extend([
     #'keep *_partonTop_*_*', ## Can be built on the fly from prunedGenParticles
-    'keep *_particleLevel_*_*',
-    'drop *_particleLevel_consts_*',
-    'drop *_particleLevel_photons_*',
-    'drop *_particleLevel_fatjets_*',
+    #'keep *_particleLevel_*_*',
+    #'drop *_particleLevel_consts_*',
+    #'drop *_particleLevel_photons_*',
+    #'drop *_particleLevel_fatjets_*',
 ])
 
-catEventContentSecVertexs.extend([
-    'keep *_catSecVertexs_*_*',
-    ])

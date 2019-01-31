@@ -34,25 +34,10 @@
 
 #include "CATTools/CommonTools/interface/GenParticleHelper.h"
 
-#include "DataFormats/Common/interface/TriggerResults.h"
-#include "DataFormats/PatCandidates/interface/TriggerObjectStandAlone.h"
-#include "FWCore/Common/interface/TriggerNames.h"
-
 using namespace edm;
 using namespace std;
 
 namespace cat {
-
-  //the functions which actually match the trigger objects and see if it passes
-  std::vector<const pat::TriggerObjectStandAlone*> getMatchedObjs(const float eta,const float phi,const std::vector<pat::TriggerObjectStandAlone>& trigObjs,const float maxDeltaR=0.1) {
-    std::vector<const pat::TriggerObjectStandAlone*> matchedObjs;
-    const float maxDR2 = maxDeltaR*maxDeltaR;
-    for(auto& trigObj : trigObjs){
-      const float dR2 = reco::deltaR2(eta,phi,trigObj.eta(),trigObj.phi());
-      if(dR2<maxDR2) matchedObjs.push_back(&trigObj);
-    }
-    return matchedObjs;
-  }
 
   class CATElectronProducer : public edm::stream::EDProducer<>
   {
@@ -66,7 +51,6 @@ namespace cat {
   private:
 
     float getEffArea( float dR, float scEta );
-    int getSNUID(float, float, float, float, float, float, int, bool, float);
     edm::EDGetTokenT<edm::View<pat::Electron> > src_;
     edm::EDGetTokenT<edm::View<pat::Electron> > unsmearedElecToken_;
     edm::EDGetTokenT<reco::VertexCollection> vertexLabel_;
@@ -84,13 +68,6 @@ namespace cat {
     std::vector<edm::EDGetTokenT<edm::ValueMap<bool> > > elecIDTokens_;
     const std::vector<std::string> electronIDs_;
 
-    //HLT_Ele32
-    edm::InputTag trigObjsTag_;
-    edm::InputTag trigResultsTag_;
-    std::vector<std::string> filtersToPass_;
-    std::vector<std::string> pathsToPass_;
-    edm::EDGetTokenT<edm::TriggerResults> trigResultsToken_;
-    edm::EDGetTokenT<std::vector<pat::TriggerObjectStandAlone> > trigObjsToken_;
   };
 
 } // namespace
@@ -148,11 +125,7 @@ cat::CATElectronProducer::CATElectronProducer(const edm::ParameterSet & iConfig)
   pfSrc_(consumes<pat::PackedCandidateCollection>(iConfig.getParameter<edm::InputTag>("pfSrc"))),
   beamLineSrc_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamLineSrc"))),
   rhoLabel_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoLabel"))),
-  electronIDs_(iConfig.getParameter<std::vector<std::string> >("electronIDs")),
-  trigObjsTag_(iConfig.getParameter<edm::InputTag>("trigObjs")),
-  trigResultsTag_(iConfig.getParameter<edm::InputTag>("trigResults")),
-  trigResultsToken_(consumes<edm::TriggerResults>(trigResultsTag_)),
-  trigObjsToken_(consumes<std::vector<pat::TriggerObjectStandAlone> >(trigObjsTag_))
+  electronIDs_(iConfig.getParameter<std::vector<std::string> >("electronIDs"))
 {
   produces<cat::ElectronCollection>();
 
@@ -210,19 +183,6 @@ void cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetu
   for (size_t i = 0; i < elecIDSrcs_.size(); ++i) {
     iEvent.getByToken(elecIDTokens_[i], idhandles[i]);
     ids[i].first = elecIDSrcs_[i].first;
-  }
-
-  //HLT_Ele32
-  edm::Handle<edm::TriggerResults > trigResultsHandle;
-  iEvent.getByToken(trigResultsToken_, trigResultsHandle);
-
-  edm::Handle<std::vector<pat::TriggerObjectStandAlone> > trigObjsHandle;
-  iEvent.getByToken(trigObjsToken_, trigObjsHandle);
-
-  std::vector<pat::TriggerObjectStandAlone> unpackedTrigObjs;
-  for(auto& trigObj : *trigObjsHandle){
-    unpackedTrigObjs.push_back(trigObj);
-    unpackedTrigObjs.back().unpackFilterLabels(iEvent,*trigResultsHandle);
   }
 
   std::unique_ptr<cat::ElectronCollection>  out(new cat::ElectronCollection());
@@ -307,132 +267,14 @@ void cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetu
       float eleSignificanceIP = eleIPpair.second.significance();
       aElectron.setIpSignficance(eleSignificanceIP);
     }
-
-
-    // |1/E-1/p| = |1/E - EoverPinner/E| is computed below
-    // The if protects against ecalEnergy == inf or zero
-    // (always the case for miniAOD for electrons <5 GeV)
-    float eoverp = 1e30;
-    if( aPatElectron.ecalEnergy() != 0 and std::isfinite(aPatElectron.ecalEnergy()) ) {
-      eoverp = std::abs(1.0/aPatElectron.ecalEnergy() - aPatElectron.eSuperClusterOverP()/aPatElectron.ecalEnergy() ) ;
-    }
-
-    int snu_id = getSNUID(aPatElectron.full5x5_sigmaIetaIeta(), abs(aPatElectron.deltaEtaSuperClusterTrackAtVtx() ), abs(aPatElectron.deltaPhiSuperClusterTrackAtVtx() ), aPatElectron.hcalOverEcal(), eoverp, abs(aElectron.dz()) , aPatElectron.gsfTrack()->hitPattern().numberOfAllHits(reco::HitPattern::MISSING_INNER_HITS), aPatElectron.passConversionVeto(),scEta);
-    aElectron.setSNUID(snu_id);
-
-    // Fill the validity flag of triggered MVA
-    bool isTrigMVAValid = false;
-    const double pt = aElectron.pt();
-    if ( pt > 15 ) {
-      const double abseta = std::abs(scEta);
-      const double full5x5_sigmaIetaIeta = aPatElectron.full5x5_sigmaIetaIeta();
-      const double hcalOverEcal =  aPatElectron.hcalOverEcal();
-      const double ecalPFClusterIso = aPatElectron.ecalPFClusterIso();
-      const double hcalPFClusterIso = aPatElectron.hcalPFClusterIso();
-      const double dr03TkSumPt = aPatElectron.dr03TkSumPt();
-      if ( abseta < 1.479 ) { // Barrel
-        const double deltaEtaSuperClusterTrackAtVtx = aPatElectron.deltaEtaSuperClusterTrackAtVtx();
-        const double deltaPhiSuperClusterTrackAtVtx = aPatElectron.deltaPhiSuperClusterTrackAtVtx();
-        if ( full5x5_sigmaIetaIeta < 0.012 and
-             hcalOverEcal < 0.09 and
-             ecalPFClusterIso < 0.37*pt and
-             hcalPFClusterIso < 0.25*pt and
-             dr03TkSumPt < 0.18*pt and
-             std::abs(deltaEtaSuperClusterTrackAtVtx) < 0.0095 and
-             std::abs(deltaPhiSuperClusterTrackAtVtx) < 0.065 ) isTrigMVAValid = true;
-      }
-      else { // Endcap
-        if ( full5x5_sigmaIetaIeta < 0.033 and
-             hcalOverEcal < 0.09 and
-             ecalPFClusterIso < 0.45*pt and
-             hcalPFClusterIso < 0.28*pt and
-             dr03TkSumPt < 0.18*pt ) isTrigMVAValid = true;
-      }
-    }
-    aElectron.setTrigMVAValid(isTrigMVAValid);
-
-    //HLT_Ele32
-    edm::Handle<edm::TriggerResults > trigResultsHandle;
-    iEvent.getByToken(trigResultsToken_, trigResultsHandle);
-
-    edm::Handle<std::vector<pat::TriggerObjectStandAlone> > trigObjsHandle;
-    iEvent.getByToken(trigObjsToken_, trigObjsHandle);
-
-    const float eta = aPatElectron.superCluster()->eta();
-    const float phi = aPatElectron.superCluster()->phi();
-
-    bool hltbit = false;    
-    std::vector<const pat::TriggerObjectStandAlone*> matchedTrigObjs = getMatchedObjs(eta,phi,unpackedTrigObjs,0.2);
-    for(const auto trigObj : matchedTrigObjs){
-      if(trigObj->hasFilterLabel("hltEle32L1DoubleEGWPTightGsfTrackIsoFilter") &&
-         trigObj->hasFilterLabel("hltEGL1SingleEGOrFilter") ) {
-        hltbit = true;
-      }
-    }
-    aElectron.setIsTrgFired( hltbit );
-
     out->push_back(aElectron);
   }
   iEvent.put(std::move(out));
 }
 
-
-int cat::CATElectronProducer::getSNUID(float full5x5_sigmaIetaIeta, float deltaEtaSuperClusterTrackAtVtx, float deltaPhiSuperClusterTrackAtVtx, float hoverE, float eoverp, float dz, int exp_miss_innerhits, bool pass_conversion_veto, float sceta){
-
-  //----------------------------------------------------------------------
-  // Barrel electron cut values
-  //----------------------------------------------------------------------
-  //Spring15 selection, 25ns selection
-  //string id [4] = {"veto", "loose","medium", "tight" };
-
-  double l_b_sieie   [4] = { 0.0115, 0.011, 0.00998, 0.00998};
-  double l_b_dEtaIn  [4] = { 0.00749,0.00477, 0.00311, 0.00308};
-  double l_b_dPhiIn  [4] = { 0.228, 0.222, 0.103, 0.0816};
-  double l_b_hoe     [4] = { 0.356, 0.298, 0.253, 0.0414};
-  double l_b_ep      [4] = { 0.299, 0.241, 0.134, 0.0129};
-  int    l_b_missHits[4] = { 2, 1, 1, 1};
-
-  //----------------------------------------------------------------------
-  // Endcap electron cut values
-  //----------------------------------------------------------------------
-
-  double l_e_sieie   [4] = { 0.037, 0.0314, 0.0298, 0.0292};
-  double l_e_dEtaIn  [4] = { 0.00895, 0.00868, 0.00609, 0.00605};
-  double l_e_dPhiIn  [4] = { 0.213, 0.213, 0.045, 0.0394};
-  double l_e_hoe     [4] = { 0.211, 0.101, 0.0878, 0.0641};
-  double l_e_ep      [4] = { 0.15, 0.14, 0.13,0.0129};
-  int    l_e_missHits[4] = { 3, 1, 1, 1};
-
-  int flag_id=0;
-  for(int i=0; i < 4; i++){
-    bool pass_id=true;
-    if ( std::abs(sceta) < 1.479 ){
-      if(full5x5_sigmaIetaIeta >= l_b_sieie[i])pass_id = false;
-      if(deltaEtaSuperClusterTrackAtVtx >= l_b_dEtaIn[i])pass_id = false;
-      if(deltaPhiSuperClusterTrackAtVtx >= l_b_dPhiIn[i])pass_id = false;
-      if(hoverE >= l_b_hoe[i])pass_id = false;
-      if(eoverp >= l_b_ep[i])pass_id = false;
-      if(exp_miss_innerhits > l_b_missHits[i])pass_id = false;
-      if(!pass_conversion_veto) pass_id = false;
-    }
-    else   if ( std::abs(sceta) < 2.5 ){
-      if(full5x5_sigmaIetaIeta >= l_e_sieie[i])pass_id = false;
-      if(deltaEtaSuperClusterTrackAtVtx >= l_e_dEtaIn[i])pass_id = false;
-      if(deltaPhiSuperClusterTrackAtVtx>= l_e_dPhiIn[i])pass_id = false;
-      if(hoverE>= l_e_hoe[i])pass_id = false;
-      if(eoverp>= l_e_ep[i])pass_id = false;
-      if(exp_miss_innerhits > l_e_missHits[i])pass_id = false;
-      if(!pass_conversion_veto) pass_id = false;
-    }
-    if(pass_id)flag_id += pow(10,i);
-  }
-
-  return flag_id;
-}
-
 float
 cat::CATElectronProducer::getEffArea( float dR, float scEta)
-{
+{ //To be updated FIXME
   // https://github.com/guitargeek/cmssw/blob/EgammaID_949/RecoEgamma/ElectronIdentification/data/Fall17/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_92X.txt
   float absEta = std::abs(scEta);
   if ( 0.0000 >= absEta && absEta < 1.0000 ) return 0.1566;

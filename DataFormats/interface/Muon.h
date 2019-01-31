@@ -27,9 +27,12 @@ namespace cat {
     bool isSoftMuon() const { return isSoftMuon_; }
     bool isPFMuon() const { return this->isPF(); }
     bool isTrackerMuon() const { return isTrackerMuon_; }
-    bool isTightMuon() const { return this->isTight(); }
-    bool isMediumMuon() const { return this->isMedium(); }
-    bool isLooseMuon() const { return this->isLoose(); }
+//    bool isTightMuon() const { return this->isTight(); }
+//    bool isMediumMuon() const { return this->isMedium(); }
+//    bool isLooseMuon() const { return this->isLoose(); }
+    bool isTightMuon() const { return this->passed(reco::Muon::CutBasedIdTight); }
+    bool isMediumMuon() const { return this->passed(reco::Muon::CutBasedIdMedium); }
+    bool isLooseMuon() const { return this->passed(reco::Muon::CutBasedIdLoose); }
 
     float normalizedChi2() const { return normalizedChi2_; }
     int numberOfValidHits() const { return numberOfValidHits_; }
