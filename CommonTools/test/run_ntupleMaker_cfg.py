@@ -136,24 +136,6 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
                 isPFId = cms.string("pileupJetId"),
             ),
         ),
-        jetsPuppi = cms.PSet(
-            src = cms.InputTag("catJetsPuppi"),
-            exprs = cms.untracked.PSet(
-                pt  = cms.string("pt"),
-                eta = cms.string("eta"),
-                phi = cms.string("phi"),
-                m   = cms.string("mass"),
-                vtxMass = cms.string("vtxMass"),
-                CSVInclV2 = cms.string("bDiscriminator('pfCombinedInclusiveSecondaryVertexV2BJetTags')"),
-                #CSVInclV2 = cms.string("bDiscriminator('combinedInclusiveSecondaryVertexV2BJetTags')"),
-                partonFlavour = cms.string("partonFlavour"),
-                hadronFlavour = cms.string("hadronFlavour"),
-            ),
-            boolexprs = cms.untracked.PSet(
-                isLoose = cms.string("LooseId"),
-                isPFId = cms.string("pileupJetId"),
-            ),
-        ),
         met = cms.PSet(
             src = cms.InputTag("catMETs"),
             exprs = cms.untracked.PSet(
@@ -170,13 +152,6 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
         ),
         metPfMva = cms.PSet(
             src = cms.InputTag("catMETsPfMva"),
-            exprs = cms.untracked.PSet(
-                pt  = cms.string("pt"),
-                phi = cms.string("phi"),
-            ),
-        ),
-        metPuppi = cms.PSet(
-            src = cms.InputTag("catMETsPuppi"),
             exprs = cms.untracked.PSet(
                 pt  = cms.string("pt"),
                 phi = cms.string("phi"),
