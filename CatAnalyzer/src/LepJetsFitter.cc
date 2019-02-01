@@ -10,7 +10,7 @@ namespace ttbb
   TLorentzVector tmplep, tmpnu, tmpbl, tmpbj, tmpj1, tmpj2;
   float blres, bjres, j1res, j2res, metres;
 
-  const float CSVWP = cat::WP_BTAG_CSVv2T;
+  const float CSVWP = cat::WP_DeepCSVT;
 }
 
 // full solution

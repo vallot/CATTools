@@ -42,7 +42,7 @@ private:
   int type_; // Measurement type
   int method_; // Combination method
 
-  std::string btagAlgo_;
+  std::vector<std::string> btagAlgo_;
   std::vector<std::string> uncNames_;
   std::map<int, BTagCalibrationReader> readers_;
 

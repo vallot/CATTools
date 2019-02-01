@@ -54,15 +54,18 @@ throw std::exception();
     type_ = ITERATIVEFIT;
 
     string csvFileName;
-    if      ( btagName == "csvv2" ) {
-      btagAlgo_ = BTAG_CSVv2 ;
-      csvFileName = "CSVv2_94XSF_V2_B_F.csv";
-    }
-    else if ( btagName == "deepcsv" ) {
-      btagAlgo_ = BTAG_DeepCSV;
+    if      ( btagName == "deepcsv" ) {
+      btagAlgo_.push_back(BTAG_DeepCSVb);
+      btagAlgo_.push_back(BTAG_DeepCSVbb);
       csvFileName = "DeepCSV_94XSF_V3_B_F.csv";
     }
-    else btagAlgo_ = "undefined"; // FIXME: Eventually raise error somewhere?
+    else if ( btagName == "deepjet" ) {
+      btagAlgo_.push_back(BTAG_DeepJetb);
+      btagAlgo_.push_back(BTAG_DeepJetbb);
+      btagAlgo_.push_back(BTAG_DeepJetlepb);
+      csvFileName = "CSVv2_94XSF_V2_B_F.csv";
+    }
+    else btagAlgo_.push_back("undefined"); // FIXME: Eventually raise error somewhere?
 
     const auto csvFile = edm::FileInPath("CATTools/CatAnalyzer/data/scaleFactors/"+csvFileName).fullPath();
     BTagCalibration calib(btagName, csvFile);
@@ -88,15 +91,18 @@ void BTagWeightEvaluator::init(const int method,
   method_ = method;
 
   string csvFileName;
-  if      ( btagName == "csvv2" ) {
-    btagAlgo_ = BTAG_CSVv2 ;
-    csvFileName = "CSVv2_94XF_V2_B_F.csv";
-  }
-  else if ( btagName == "deepcsv" ) {
-    btagAlgo_ = BTAG_DeepCSV;
+  if      ( btagName == "deepcsv" ) {
+    btagAlgo_.push_back(BTAG_DeepCSVb);
+    btagAlgo_.push_back(BTAG_DeepCSVbb);
     csvFileName = "DeepCSV_94XSF_V3_B_F.csv";
   }
-  else btagAlgo_ = "undefined"; // FIXME: Eventually raise error somewhere?
+  else if ( btagName == "deepjet" ) {
+    btagAlgo_.push_back(BTAG_DeepJetb);
+    btagAlgo_.push_back(BTAG_DeepJetbb);
+    btagAlgo_.push_back(BTAG_DeepJetlepb);
+    csvFileName = "CSVv2_94XF_V2_B_F.csv";
+  }
+  else btagAlgo_.push_back("undefined"); // FIXME: Eventually raise error somewhere?
 
   const auto csvFile = edm::FileInPath("CATTools/CatAnalyzer/data/scaleFactors/"+csvFileName).fullPath();
   BTagCalibration calib(btagName, csvFile);
@@ -118,7 +124,8 @@ double BTagWeightEvaluator::getSF(const cat::Jet& jet, const int unc) const
   const double aeta = std::abs(eta);
   if ( pt <= 20 or aeta >= 2.4 ) return 1.0;
 
-  double discr = jet.bDiscriminator(btagAlgo_);
+  double discr = 0;
+  for ( unsigned int i; i < btagAlgo_.size(); i++) discr += jet.bDiscriminator( btagAlgo_.at(i) );
   const int flav = std::abs(jet.hadronFlavour());
 
   if ( type_ == ITERATIVEFIT ) {
