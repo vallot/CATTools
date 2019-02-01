@@ -48,9 +48,6 @@ public:
 private:
   edm::EDGetTokenT<pat::JetCollection> src_;
   edm::EDGetTokenT<double> rhoToken_;
-  edm::EDGetTokenT<edm::ValueMap<float>> qgToken_;
-  std::vector<std::string> flavTagNames_;
-  std::vector<edm::EDGetTokenT<edm::ValueMap<float>>> flavTagTokens_;
 
   const std::vector<std::string> btagNames_;
   std::string uncertaintyTag_, payloadName_;
@@ -68,19 +65,12 @@ private:
 cat::CATJetProducer::CATJetProducer(const edm::ParameterSet & iConfig) :
   src_(consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("src"))),
   rhoToken_(consumes<double>(iConfig.getParameter<edm::InputTag>("rho"))),
-  qgToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("qgLikelihood"))),
   btagNames_(iConfig.getParameter<std::vector<std::string> >("btagNames")),
   payloadName_(iConfig.getParameter<std::string>("payloadName")),
   jetResFilePath_(edm::FileInPath(iConfig.getParameter<std::string>("jetResFile")).fullPath()),
   jetResSFFilePath_(edm::FileInPath(iConfig.getParameter<std::string>("jetResSFFile")).fullPath()),
   setGenParticle_(iConfig.getParameter<bool>("setGenParticle"))
 {
-  for ( auto label : iConfig.getParameter<std::vector<edm::InputTag>>("flavTagLabels") ) {
-    const std::string name = label.label() + ":" + label.instance();
-    flavTagNames_.push_back(name);
-    flavTagTokens_.push_back(consumes<edm::ValueMap<float>>(label));
-  }
-
   produces<cat::JetCollection>();
 }
 
@@ -116,18 +106,6 @@ void cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
   iEvent.getByToken(rhoToken_, rhoHandle);
   const double rho = *rhoHandle;
 
-  // for quark gluon likelihood calculation
-  edm::Handle<edm::ValueMap<float>> qgHandle; 
-  iEvent.getByToken(qgToken_, qgHandle);
-
-  // for the different flavours
-  std::vector<std::string> flavTagNames;
-  std::vector<edm::Handle<edm::ValueMap<float>>> flavTagHandles;
-  for ( auto token : flavTagTokens_ ) {
-    flavTagHandles.push_back(edm::Handle<edm::ValueMap<float>>());
-    iEvent.getByToken(token, flavTagHandles.back());
-  }
-
   std::unique_ptr<cat::JetCollection>  out(new cat::JetCollection());
 
   for (auto aPatJetPointer = src->begin(); aPatJetPointer != src->end(); ++aPatJetPointer) {
@@ -149,23 +127,19 @@ void cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     float eta = aPatJet.eta();
 
     aJet.setChargedEmEnergyFraction(aPatJet.chargedEmEnergyFraction());
-    bool looseJetID = (NHF<0.99 && NEMF<0.99 && NumConst>1) && ((abs(eta)<=2.4 && CHF>0 && CHM>0 && CEMF<0.99) || abs(eta)>2.4) && abs(eta)<=2.7;//deprecated
     bool tightJetID = (NHF<0.90 && NEMF<0.90 && NumConst>1) && ((abs(eta)<=2.4 && CHF>0 && CHM>0) || abs(eta)>2.4) && abs(eta)<=2.7;
     bool tightLepVetoJetID = (NHF<0.90 && NEMF<0.90 && NumConst>1 && MUF<0.8) && ((abs(eta)<=2.4 && CHF>0 && CHM>0 && CEMF<0.80) || abs(eta)>2.4) && abs(eta)<=2.7;
 
 
     if ( std::abs(eta) > 3.0 ) {
-      looseJetID = (NEMF<0.90 && NumNeutralParticle>10 && abs(eta)>3.0 );//deprecated
       tightJetID = (NEMF<0.90 && NHF>0.02 && NumNeutralParticle>10 && abs(eta)>3.0 );
       tightLepVetoJetID = false;
     }
     else if (std::abs(eta) > 2.7){
-      looseJetID = (NHF<0.98 && NEMF>0.01 && NumNeutralParticle>2 && abs(eta)>2.7 && abs(eta)<=3.0 );//deprecated
       tightJetID = (NHF<0.99 && NEMF>0.02 && NumNeutralParticle>2 && abs(eta)>2.7 && abs(eta)<=3.0 );
       tightLepVetoJetID = false;
     }
 
-    aJet.setLooseJetID( looseJetID );
     aJet.setTightJetID( tightJetID );
     aJet.setTightLepVetoJetID( tightLepVetoJetID );
 
@@ -187,12 +161,6 @@ void cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
         aJet.addBDiscriminatorPair(std::make_pair(btagName, aPatJet.bDiscriminator(btagName) ));
       }
     }
-    for ( int i=0, n=flavTagNames_.size(); i<n; ++i ) {
-      const auto name = flavTagNames_[i];
-      auto handle = flavTagHandles[i];
-      const double value = handle.isValid() ? (*handle)[jetRef] : -999;
-      aJet.addBDiscriminatorPair(std::make_pair(name, value));
-    }
     //cout << "jet pt " << aJet.pt() <<" eta " << aJet.eta() <<endl;
 
     //secondary vertex b-tagging information
@@ -205,15 +173,6 @@ void cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     aJet.setPartonFlavour(aPatJet.partonFlavour());
     int partonPdgId = aPatJet.genParton() ? aPatJet.genParton()->pdgId() : 0;
     aJet.setPartonPdgId(partonPdgId);
-
-    // calculate quark/gluon likelihood but only for AK4
-    aJet.setQGLikelihood(-2.0);
-    if ( qgHandle.isValid() ) {
-      edm::RefToBase<pat::Jet> jetRef(edm::Ref<pat::JetCollection>(src, aPatJetPointer - src->begin()));
-      float qgLikelihood = (*qgHandle)[jetRef];
-      aJet.setQGLikelihood(qgLikelihood);
-      //aJet.setQGLikelihood(aPatJet.userFloat("QGTaggerAK4PFCHS:qgLikelihood"));
-    }
 
     // setting JEC uncertainty
     if (!payloadName_.empty()){

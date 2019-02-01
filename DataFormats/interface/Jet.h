@@ -19,47 +19,45 @@ namespace cat {
 }
 
 namespace cat {
-
-  // pfCombinedInclusiveSecondaryVertexV2BJetTags
-  const std::string BTAG_CSVv2 = "pfCombinedInclusiveSecondaryVertexV2BJetTags";
-  //                            2017// 
-  const double WP_BTAG_CSVv2L = 0.5803;
-  const double WP_BTAG_CSVv2M = 0.8838;
-  const double WP_BTAG_CSVv2T = 0.9693;
-  // pfCombinedCvsLJetTags
-  const std::string CTAG_CvsL = "pfCombinedCvsLJetTags";
-  //                           2017//
-  const double WP_CTAG_CvsLL = -0.53;
-  const double WP_CTAG_CvsLM =  0.07;
-  const double WP_CTAG_CvsLT =  0.87;
-  // pfCombinedCvsBJetTags
-  const std::string CTAG_CvsB = "pfCombinedCvsBJetTags";
-  //                           2017//
-  const double WP_CTAG_CvsBL = -0.26;
-  const double WP_CTAG_CvsBM = -0.10;
-  const double WP_CTAG_CvsBT = -0.3; 
-  // DeepCSV BvsAll
-  const std::string BTAG_DeepCSV = "pfDeepCSVDiscriminatorsJetTags:BvsAll";
+  // 2018 WP only
+  // DeepCSV
   const std::string BTAG_DeepCSVb = "pfDeepCSVJetTags:probb";
   const std::string BTAG_DeepCSVbb = "pfDeepCSVJetTags:probbb";
-  //                              2017// 
-  const double WP_BTAG_DeepCSVM = 0.4941;
-  const double WP_BTAG_DeepCSVT = 0.8001;
-  // DeepCSV CvsL
-  const std::string CTAG_DeepCSVc = "pfDeepCSVJetTags:probc";
-  const std::string CTAG_DeepCSVcc = "pfDeepCSVJetTags:probcc";
-  const std::string CTAG_DeepCSVudsg = "pfDeepCSVJetTags:probudsg";
-  const std::string CTAG_DeepCSV_CvsL = "pfDeepCSVDiscriminatorsJetTags:CvsL";
-  //                                   2017
-  const double WP_CTAG_DeepCSV_CvsLL = 0.05;
-  const double WP_CTAG_DeepCSV_CvsLM = 0.15;
-  const double WP_CTAG_DeepCSV_CvsLT = 0.8;
-  // DeepCSV CvsB
-  const std::string CTAG_DeepCSV_CvsB = "pfDeepCSVDiscriminatorsJetTags:CvsB";
-  //                                   2017
-  const double WP_CTAG_DeepCSV_CvsBL = 0.33;
-  const double WP_CTAG_DeepCSV_CvsBM = 0.28;
-  const double WP_CTAG_DeepCSV_CvsBT = 0.1;
+  const std::string BTAG_DeepCSVc = "pfDeepCSVJetTags:probc";
+  const std::string BTAG_DeepCSVcc = "pfDeepCSVJetTags:probcc";
+  const std::string BTAG_DeepCSVudsg = "pfDeepCSVJetTags:probudsg";
+  // DeepCSV BvsAll: pfDeepCSVJetTags:probb + pfDeepCSVJetTags:probbb
+  const double WP_DeepCSVL = 0.1241;
+  const double WP_DeepCSVM = 0.4184;
+  const double WP_DeepCSVT = 0.7527;
+  // DeepCSV CvsL: pfDeepCSVJetTags:probc/(pfDeepCSVJetTags:probc + pfDeepCSVJetTags:probudsg)
+  const double WP_DeepCSV_CvsLL = 0.04;
+  const double WP_DeepCSV_CvsLM = 0.137;
+  const double WP_DeepCSV_CvsLT = 0.66;
+  // DeepCSV CvsB: pfDeepCSVJetTags:probc/(pfDeepCSVJetTags:probc + pfDeepCSVJetTags:probb + pfDeepCSVJetTags:probbb)
+  const double WP_DeepCSV_CvsBL = 0.35;
+  const double WP_DeepCSV_CvsBM = 0.29;
+  const double WP_DeepCSV_CvsBT = 0.10;
+
+  // DeepJet
+  const std::string BTAG_DeepJetb = "pfDeepFlavourJetTags:probb";
+  const std::string BTAG_DeepJetbb = "pfDeepFlavourJetTags:probbb";
+  const std::string BTAG_DeepJetlepb = "pfDeepFlavourJetTags:problepb";
+  const std::string BTAG_DeepJetc = "pfDeepFlavourJetTags:probc";
+  const std::string BTAG_DeepJetuds = "pfDeepFlavourJetTags:probuds";
+  const std::string BTAG_DeepJetg = "pfDeepFlavourJetTags:probg";
+  // DeepJet B: pfDeepFlavourJetTags:probb + pfDeepFlavourJetTags:probbb + pfDeepFlavourJetTags:problepb
+  const double WP_DeepJetL = 0.0494;
+  const double WP_DeepJetM = 0.2770;
+  const double WP_DeepJetT = 0.7264;
+  // DeepJet CvsL: pfDeepFlavourJetTags:probc/(pfDeepFlavourJetTags:probc+ pfDeepFlavourJetTags:probuds + pfDeepFlavourJetTags:probg)
+  const double WP_DeepJet_CvsLL = 0.03;
+  const double WP_DeepJet_CvsLM = 0.085;
+  const double WP_DeepJet_CvsLT = 0.48;
+  // DeepJet CvsB:  pfDeepFlavourJetTags:probc/(pfDeepFlavourJetTags:probc+ pfDeepFlavourJetTags:probb + pfDeepFlavourJetTags:probbb + pfDeepFlavourJetTags:problepb)
+  const double WP_DeepJet_CvsBL = 0.4;
+  const double WP_DeepJet_CvsBM = 0.29;
+  const double WP_DeepJet_CvsBT = 0.05;
 
   class Jet : public Particle{
   public:
@@ -67,9 +65,6 @@ namespace cat {
     Jet(const reco::LeafCandidate & aJet);
     virtual ~Jet();
 
-    bool LooseId() const { return looseJetID_; }// temp for backward comp
-    bool TightId() const { return tightJetID_; }// temp for backward comp
-    bool looseJetID() const { return looseJetID_; }
     bool tightJetID() const { return tightJetID_; }
     bool tightLepVetoJetID() const { return tightLepVetoJetID_; }
 
@@ -85,19 +80,8 @@ namespace cat {
 
     float bDiscriminator(const std::string &theLabel) const;
     const std::vector<std::pair<std::string, float> > & getPairDiscri() const {return pairDiscriVector_; }
-
-    bool CSVv2L(){ return (bDiscriminator(BTAG_CSVv2) > WP_BTAG_CSVv2L);}
-    bool CSVv2M(){ return (bDiscriminator(BTAG_CSVv2) > WP_BTAG_CSVv2M);}
-    bool CSVv2T(){ return (bDiscriminator(BTAG_CSVv2) > WP_BTAG_CSVv2T);}
-
-    enum BTAGCSV_CUT { BTAGCSV_LOOSE=0, BTAGCSV_MEDIUM, BTAGCSV_TIGHT };
-    //float scaleFactorCSVv2(BTAGCSV_CUT op, int systDir) const;
-    // op 0 = loose, 1 = medium, 2 = tight
-    // sys 0 = central, 1 = up, -1 = down
-    // flav 0 = b, 1 = c, 2 = light
     
     int bDiscriminatorPrint() const;
-    // combinedSecondaryVertexBJetTags
     float vtxMass() const { return vtxMass_ ; }
     int vtxNtracks() const { return vtxNtracks_ ; }
     float vtx3DVal() const { return vtx3DVal_; }
@@ -109,9 +93,6 @@ namespace cat {
     float smearedResUp(int era = 0) const { return smearedRes(+1, era); };
     float smearedResDown(int era = 0) const { return smearedRes(-1, era); };
 
-    float qgLikelihood() const { return qgLikelihood_; }
-    
-    void setLooseJetID(bool id) { looseJetID_ = id; }
     void setTightJetID(bool id) { tightJetID_ = id; }
     void setTightLepVetoJetID(bool id) { tightLepVetoJetID_ = id; }
 

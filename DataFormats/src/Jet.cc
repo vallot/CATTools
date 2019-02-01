@@ -11,7 +11,6 @@ Jet::Jet():
 
 Jet::Jet(const reco::LeafCandidate & aJet) :
   Particle( aJet ),
-  looseJetID_(false),
   tightJetID_(false),
   tightLepVetoJetID_(false),
   pileupJetId_(0),

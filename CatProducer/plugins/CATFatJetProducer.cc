@@ -120,17 +120,14 @@ void cat::CATFatJetProducer::produce(edm::Event & iEvent, const edm::EventSetup 
     float eta = aPatJet.eta();
 
     aJet.setChargedEmEnergyFraction(aPatJet.chargedEmEnergyFraction());
-    bool looseJetID = (NHF<0.99 && NEMF<0.99 && NumConst>1) && ((abs(eta)<=2.4 && CHF>0 && CHM>0 && CEMF<0.99) || abs(eta)>2.4) && abs(eta)<=3.0;
     bool tightJetID = (NHF<0.90 && NEMF<0.90 && NumConst>1) && ((abs(eta)<=2.4 && CHF>0 && CHM>0 && CEMF<0.99) || abs(eta)>2.4) && abs(eta)<=3.0;
     bool tightLepVetoJetID = (NHF<0.90 && NEMF<0.90 && NumConst>1 && MUF<0.8) && ((abs(eta)<=2.4 && CHF>0 && CHM>0 && CEMF<0.90) || abs(eta)>2.4) && abs(eta)<=3.0;
 
     if (std::abs(eta) > 3.){
-      looseJetID = (NEMF<0.90 && NumNeutralParticle>10 && abs(eta)>3.0 );
       tightJetID = (NEMF<0.90 && NumNeutralParticle>10 && abs(eta)>3.0 );
       tightLepVetoJetID = false;
     }
 
-    aJet.setLooseJetID( looseJetID );
     aJet.setTightJetID( tightJetID );
     aJet.setTightLepVetoJetID( tightLepVetoJetID );
 
