@@ -127,16 +127,20 @@ void cat::CATJetProducer::produce(edm::Event & iEvent, const edm::EventSetup & i
     float eta = aPatJet.eta();
 
     aJet.setChargedEmEnergyFraction(aPatJet.chargedEmEnergyFraction());
-    bool tightJetID = (NHF<0.90 && NEMF<0.90 && NumConst>1) && ((abs(eta)<=2.4 && CHF>0 && CHM>0) || abs(eta)>2.4) && abs(eta)<=2.7;
-    bool tightLepVetoJetID = (NHF<0.90 && NEMF<0.90 && NumConst>1 && MUF<0.8) && ((abs(eta)<=2.4 && CHF>0 && CHM>0 && CEMF<0.80) || abs(eta)>2.4) && abs(eta)<=2.7;
+    bool tightJetID = (abs(eta)<=2.6 && CHM>0 && CHF>0 && NumConst>1 && NEMF<0.9 && NHF < 0.9 );
+    bool tightLepVetoJetID = (abs(eta)<=2.6 && CEMF<0.8 && CHM>0 && CHF>0 && NumConst>1 && NEMF<0.9 && MUF <0.8 && NHF < 0.9 );
 
 
-    if ( std::abs(eta) > 3.0 ) {
-      tightJetID = (NEMF<0.90 && NHF>0.02 && NumNeutralParticle>10 && abs(eta)>3.0 );
+    if ( std::abs(eta) > 2.6 && std::abs(eta) <= 2.7 ) {
+      tightJetID = ( abs(eta)>2.6 && abs(eta)<=2.7 && CHM>0 && NEMF<0.99 && NHF < 0.9 );
+      tightLepVetoJetID = ( abs(eta)>2.6 && abs(eta)<=2.7 && CEMF<0.8 && CHM>0 && NEMF<0.99 && MUF <0.8 && NHF < 0.9 );
+    }
+    else if (std::abs(eta) > 2.7 && std::abs(eta) <= 3.0){
+      tightJetID = ( NEMF>0.02 && NEMF<0.99 && NumNeutralParticle>2 && abs(eta)>2.7 && abs(eta)<=3.0 );
       tightLepVetoJetID = false;
     }
-    else if (std::abs(eta) > 2.7){
-      tightJetID = (NHF<0.99 && NEMF>0.02 && NumNeutralParticle>2 && abs(eta)>2.7 && abs(eta)<=3.0 );
+    else if (std::abs(eta) > 3.0){
+      tightJetID = (NEMF<0.90 && NHF>0.2 && NumNeutralParticle>10 && abs(eta)>3.0 );
       tightLepVetoJetID = false;
     }
 
