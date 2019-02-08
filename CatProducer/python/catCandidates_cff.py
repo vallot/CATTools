@@ -12,17 +12,8 @@ def addCatCommonObjects(process):
 
     process.load("CATTools.CatProducer.producers.photonProducer_cfi")
     process.load("CATTools.CatProducer.producers.tauProducer_cfi")
-    process.load("CATTools.CatProducer.producers.fatjetProducer_cfi")
 
     process.RandomNumberGeneratorService.catJets = cms.PSet(
-        engineName = cms.untracked.string('TRandom3'),
-        initialSeed = cms.untracked.uint32(1),
-    )
-    process.RandomNumberGeneratorService.catFatJets = cms.PSet(
-        engineName = cms.untracked.string('TRandom3'),
-        initialSeed = cms.untracked.uint32(1),
-    )
-    process.RandomNumberGeneratorService.catJetsPuppi = cms.PSet(
         engineName = cms.untracked.string('TRandom3'),
         initialSeed = cms.untracked.uint32(1),
     )
@@ -31,7 +22,7 @@ def addCatCommonObjects(process):
     process.catObjectTask.add(
         process.catTrigger, process.catVertex,
         process.catMuons, process.catElectrons, process.catJets, process.catMETs,
-        process.catPhotons, process.catTaus, process.catFatJets,
+        process.catPhotons, process.catTaus,
     )
     return process
 

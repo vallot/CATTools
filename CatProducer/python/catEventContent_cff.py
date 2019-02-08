@@ -16,7 +16,6 @@ catEventContent.extend([
     #'keep *_catPhotons_*_*',
     #'keep *_catTaus_*_*', 
     'keep *_catJets*_*_*',
-    #'keep *_catFatJets*_*_*', //not working with 94X 
     'keep *_catMETs*_*_*',
     'keep *_catVertex_*_*',
     'keep *_catTrigger_*_*',
@@ -25,7 +24,6 @@ catEventContent.extend([
     'keep patPackedTriggerPrescales_patTrigger__*', ## do we need this collection, where?
     'keep *_lumiMask*_*_*',
     'keep *_fixedGridRhoAll_*_', 'keep *_fixedGridRhoFastjetAll_*_*',
-    #'keep *_BadChargedCandidateFilter_*_*', 'keep *_BadPFMuonFilter_*_*',
     ])
 
 catEventContentMC.extend([

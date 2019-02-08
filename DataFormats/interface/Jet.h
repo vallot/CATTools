@@ -81,7 +81,7 @@ namespace cat {
     float bDiscriminator(const std::string &theLabel) const;
     const std::vector<std::pair<std::string, float> > & getPairDiscri() const {return pairDiscriVector_; }
     
-    int bDiscriminatorPrint() const;
+    int printBDiscriminator() const;
     float vtxMass() const { return vtxMass_ ; }
     int vtxNtracks() const { return vtxNtracks_ ; }
     float vtx3DVal() const { return vtx3DVal_; }
