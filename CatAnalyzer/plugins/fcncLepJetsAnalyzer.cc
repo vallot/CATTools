@@ -125,18 +125,18 @@ private:
   std::vector<float> *b_Jet_JER_Up, *b_Jet_JER_Nom, *b_Jet_JER_Down;
 
   // b-Jet discriminant
-  std::vector<float> *b_Jet_CSV, *b_Jet_deepCSV;
-  std::vector<float> *b_Jet_SF_deepCSV_30;
+  std::vector<float> *b_Jet_deepCSV, *b_Jet_deepJet;
+  std::vector<float> *b_Jet_SF_deepCSV_30, *b_Jet_SF_deepJet_30;
 
   // c-Jet discriminant
-  std::vector<float> *b_Jet_CvsL, *b_Jet_CvsB;
   std::vector<float> *b_Jet_deepCvsL, *b_Jet_deepCvsB;
+  std::vector<float> *b_Jet_deepJetCvsL, *b_Jet_deepJetCvsB;
 
   // Histograms: Number of Events and Weights
   TH1D *EventInfo, *ScaleWeights, *PDFWeights, *PSWeights;
 
   // Scale factor evaluators
-  BTagWeightEvaluator SF_deepCSV_;
+  BTagWeightEvaluator SF_deepCSV_, SF_deepJet_;
   ScaleFactorEvaluator SF_muonId_, SF_muonIso_, SF_muonTrg_, SF_elecId_, SF_elecReco_, SF_elecZvtx_, SF_elecTrg_;
 
   int b_eeprefire;
@@ -185,6 +185,7 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
                   muonTrgSFSet.getParameter<std::vector<double>>("errors"));
 
   SF_deepCSV_.initCSVWeight(false, "deepcsv");
+  SF_deepJet_.initCSVWeight(false, "deepjet");
 
   // Weights
   auto genWeightLabel = iConfig.getParameter<edm::InputTag>("genWeightLabel");
@@ -235,13 +236,14 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   b_Jet_phi           = new std::vector<float>;
   b_Jet_e             = new std::vector<float>;
   b_Jet_Index         = new std::vector<int>;
-  b_Jet_CSV           = new std::vector<float>;
   b_Jet_deepCSV       = new std::vector<float>;
+  b_Jet_deepJet       = new std::vector<float>;
   b_Jet_SF_deepCSV_30 = new std::vector<float>;
-  b_Jet_CvsL          = new std::vector<float>;
-  b_Jet_CvsB          = new std::vector<float>;
+  b_Jet_SF_deepJet_30 = new std::vector<float>;
   b_Jet_deepCvsL      = new std::vector<float>;
   b_Jet_deepCvsB      = new std::vector<float>;
+  b_Jet_deepJetCvsL      = new std::vector<float>;
+  b_Jet_deepJetCvsB      = new std::vector<float>;
   b_Jet_partonFlavour = new std::vector<int>;
   b_Jet_hadronFlavour = new std::vector<int>;
   b_Jet_JES_Up        = new std::vector<float>;
@@ -283,13 +285,14 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("jet_phi",           "std::vector<float>", &b_Jet_phi);
   tree->Branch("jet_e" ,            "std::vector<float>", &b_Jet_e );
   tree->Branch("jet_index" ,        "std::vector<int>",   &b_Jet_Index );
-  tree->Branch("jet_CSV" ,          "std::vector<float>", &b_Jet_CSV );
   tree->Branch("jet_deepCSV",       "std::vector<float>", &b_Jet_deepCSV );
+  tree->Branch("jet_deepJet",       "std::vector<float>", &b_Jet_deepJet );
   tree->Branch("jet_SF_deepCSV_30", "std::vector<float>", &b_Jet_SF_deepCSV_30 );
-  tree->Branch("jet_CvsL",          "std::vector<float>", &b_Jet_CvsL );
-  tree->Branch("jet_CvsB",          "std::vector<float>", &b_Jet_CvsB );
+  tree->Branch("jet_SF_deepJet_30", "std::vector<float>", &b_Jet_SF_deepJet_30 );
   tree->Branch("jet_deepCvsL",      "std::vector<float>", &b_Jet_deepCvsL );
   tree->Branch("jet_deepCvsB",      "std::vector<float>", &b_Jet_deepCvsB );
+  tree->Branch("jet_deepJetCvsL",   "std::vector<float>", &b_Jet_deepJetCvsL );
+  tree->Branch("jet_deepJetCvsB",   "std::vector<float>", &b_Jet_deepJetCvsB );
 
   tree->Branch("jet_njet",          &b_Jet_NJet,          "jet_njet/I" );
   tree->Branch("jet_nbjetm",        &b_Jet_NBJetM,        "jet_nbjetm/I" );
@@ -416,14 +419,14 @@ fcncLepJetsAnalyzer::~fcncLepJetsAnalyzer()
   delete b_Jet_JER_Nom;
   delete b_Jet_JER_Down;
 
-  delete b_Jet_SF_deepCSV_30;
-
-  delete b_Jet_CSV;
-  delete b_Jet_CvsL;
-  delete b_Jet_CvsB;
+  delete b_Jet_SF_deepCSV_30; 
+  delete b_Jet_SF_deepJet_30; 
   delete b_Jet_deepCSV;
+  delete b_Jet_deepJet;
   delete b_Jet_deepCvsL;
   delete b_Jet_deepCvsB;
+  delete b_Jet_deepJetCvsL;
+  delete b_Jet_deepJetCvsB;
 
 }
 
@@ -460,13 +463,14 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   b_Jet_JER_Nom ->clear();
   b_Jet_JER_Down->clear();
 
-  b_Jet_CSV          ->clear();
   b_Jet_deepCSV      ->clear();
+  b_Jet_deepJet      ->clear();
   b_Jet_SF_deepCSV_30->clear();
-  b_Jet_CvsL         ->clear();
-  b_Jet_CvsB         ->clear();
+  b_Jet_SF_deepJet_30->clear();
   b_Jet_deepCvsL     ->clear();
   b_Jet_deepCvsB     ->clear();
+  b_Jet_deepJetCvsL  ->clear();
+  b_Jet_deepJetCvsB  ->clear();
 
   b_addbjet1_pt  = b_addbjet1_e   = b_addbjet2_pt  = b_addbjet2_e   = -1.0 ;
   b_addbjet1_eta = b_addbjet1_phi = b_addbjet2_eta = b_addbjet2_phi = -10.0;
@@ -563,7 +567,7 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
     for( unsigned int iscale = 0; iscale< b_PDFWeight->size(); iscale++ ) // 578~680: PDF4LHC15_nnlo_100_pdfas, and 0~8 is scale weight
       PDFWeights->Fill(iscale, b_PDFWeight->at(iscale));
-/*
+
     // PS weight
     edm::Handle<std::vector<float>> PSWeightsHandle;
     iEvent.getByToken(psWeightToken_, PSWeightsHandle);
@@ -575,7 +579,7 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
     for( unsigned int iscale = 0; iscale< b_PSWeight->size(); iscale++ )
       PSWeights->Fill(iscale, b_PSWeight->at(iscale));
-*/
+
     b_PSWeight->push_back(1.0);
   }
   else{
@@ -922,13 +926,10 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     int N_BJetsM = 0;
 
     // Initialize SF_btag
-    // Jet_SF_CSV[Scenario][SystVariations];
-    float Jet_SF_deepCSV[1][19];
-    for( unsigned int ipTj=0; ipTj<1; ipTj++ ){
-      for( unsigned int iu=0; iu<19; iu++ ){
-        Jet_SF_deepCSV[ipTj][iu] = 1.0;
-      }
-    }
+    float Jet_SF_deepCSV[19];
+    float Jet_SF_deepJet[19];
+    for( unsigned int iu=0; iu<19; iu++ ) Jet_SF_deepCSV[iu] = 1.0;
+    for( unsigned int iu=0; iu<19; iu++ ) Jet_SF_deepJet[iu] = 1.0;
 
     int good_jet_count = 0;
 
@@ -972,21 +973,19 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         b_Jet_hadronFlavour->push_back(jet.hadronFlavour());
 
         // b-tag discriminant
-        float jet_btagDis_CSV = jet.bDiscriminator(BTAG_CSVv2);
-        b_Jet_CSV ->push_back(jet_btagDis_CSV);
-        float jet_btagDis_deepCSVb = jet.bDiscriminator(BTAG_DeepCSVb);
-        float jet_btagDis_deepCSVbb = jet.bDiscriminator(BTAG_DeepCSVbb);
-        b_Jet_deepCSV ->push_back(jet_btagDis_deepCSVb+jet_btagDis_deepCSVbb);
+        b_Jet_deepCSV ->push_back( jet.bDiscriminator(BTAG_DeepCSVb)+jet.bDiscriminator(BTAG_DeepCSVbb) );
+        b_Jet_deepJet ->push_back( jet.bDiscriminator(BTAG_DeepJetb)+jet.bDiscriminator(BTAG_DeepJetbb)+jet.bDiscriminator(BTAG_DeepJetlepb) );
         // c-tag discriminant
-        float jet_btagDis_CvsL = jet.bDiscriminator(CTAG_CvsL);
-        b_Jet_CvsL ->push_back(jet_btagDis_CvsL);
-        float jet_btagDis_CvsB = jet.bDiscriminator(CTAG_CvsB);
-        b_Jet_CvsB ->push_back(jet_btagDis_CvsB);
-        float jet_btagDis_deepCvsL = jet.bDiscriminator(CTAG_DeepCSVc)/(jet.bDiscriminator(CTAG_DeepCSVc)+jet.bDiscriminator(CTAG_DeepCSVudsg));
-        b_Jet_deepCvsL ->push_back(jet_btagDis_deepCvsL);
-        float jet_btagDis_deepCvsB = jet.bDiscriminator(CTAG_DeepCSVc)/(jet.bDiscriminator(CTAG_DeepCSVc)+jet.bDiscriminator(BTAG_DeepCSVb)+jet.bDiscriminator(BTAG_DeepCSVbb));
-        b_Jet_deepCvsB ->push_back(jet_btagDis_deepCvsB);
-        if( jet_btagDis_deepCSVb+jet_btagDis_deepCSVbb > WP_BTAG_DeepCSVM ) N_BJetsM++;
+        float deepCvsL = jet.bDiscriminator(BTAG_DeepCSVc)/(jet.bDiscriminator(BTAG_DeepCSVc)+jet.bDiscriminator(BTAG_DeepCSVudsg));
+        float deepCvsB = jet.bDiscriminator(BTAG_DeepCSVc)/(jet.bDiscriminator(BTAG_DeepCSVc)+jet.bDiscriminator(BTAG_DeepCSVb)+jet.bDiscriminator(BTAG_DeepCSVbb));
+        float deepJetCvsL = jet.bDiscriminator(BTAG_DeepJetc)/(jet.bDiscriminator(BTAG_DeepJetc)+jet.bDiscriminator(BTAG_DeepJetuds)+jet.bDiscriminator(BTAG_DeepJetg));
+        float deepJetCvsB = jet.bDiscriminator(BTAG_DeepJetc)/(jet.bDiscriminator(BTAG_DeepJetc)+jet.bDiscriminator(BTAG_DeepJetb)+jet.bDiscriminator(BTAG_DeepJetbb)+jet.bDiscriminator(BTAG_DeepJetlepb));
+        b_Jet_deepCvsL ->push_back(deepCvsL);
+        b_Jet_deepCvsB ->push_back(deepCvsB);
+        b_Jet_deepJetCvsL ->push_back(deepJetCvsL);
+        b_Jet_deepJetCvsB ->push_back(deepJetCvsB);
+
+        if( jet.bDiscriminator(BTAG_DeepCSVb)+jet.bDiscriminator(BTAG_DeepCSVbb) > WP_DeepCSVM ) N_BJetsM++;
 
         if( isMC_ ){
           b_Jet_JES_Up  ->push_back(jet.shiftedEnUp());
@@ -999,7 +998,10 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
           // Ref: https://twiki.cern.ch/twiki/bin/view/CMS/BTagShapeCalibration
           // Saving the central SF and the 18 syst. unc. for:
-          if( jet.pt() > 30. ) for( unsigned int iu=0; iu<19; iu++ ) Jet_SF_deepCSV[0][iu] *= SF_deepCSV_.getSF(jet, iu);
+          if( jet.pt() > 30. ) {
+            for( unsigned int iu=0; iu<19; iu++ ) Jet_SF_deepCSV[iu] *= SF_deepCSV_.getSF(jet, iu);
+            for( unsigned int iu=0; iu<19; iu++ ) Jet_SF_deepJet[iu] *= SF_deepJet_.getSF(jet, iu);
+          }
         } // if(isMC_)	
       }// if(GoodJets)
     }// for(AllJets)
@@ -1008,11 +1010,16 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     b_Jet_NJet = N_GoodJets;
     b_Jet_NBJetM = N_BJetsM;
 
-    for( unsigned int iu=0; iu<19; iu++ ) b_Jet_SF_deepCSV_30->push_back(1.0);
-    (*b_Jet_SF_deepCSV_30)[0] = Jet_SF_deepCSV[0][0]; //Central
+    for( unsigned int iu=0; iu<19; iu++ ) {
+      b_Jet_SF_deepCSV_30->push_back(1.0);
+      b_Jet_SF_deepJet_30->push_back(1.0);
+    }
+    (*b_Jet_SF_deepCSV_30)[0] = Jet_SF_deepCSV[0]; //Central
+    (*b_Jet_SF_deepJet_30)[0] = Jet_SF_deepJet[0]; //Central
     // To save only the error
     for( unsigned int iu=1; iu<19; iu++ ){
-      (*b_Jet_SF_deepCSV_30)[iu] = std::abs(Jet_SF_deepCSV[0][iu] - Jet_SF_deepCSV[0][0]); // Syst. Unc.
+      (*b_Jet_SF_deepCSV_30)[iu] = std::abs(Jet_SF_deepCSV[iu] - Jet_SF_deepCSV[0]); // Syst. Unc.
+      (*b_Jet_SF_deepJet_30)[iu] = std::abs(Jet_SF_deepJet[iu] - Jet_SF_deepJet[0]); // Syst. Unc.
     }
    
     tree->Fill();
