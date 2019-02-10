@@ -44,11 +44,3 @@ catEventContentTOPMC.extend([
     'keep *_genJetHadronFlavour_*_*',
 ])
 
-catEventContentTOPParticleLevel.extend([
-    #'keep *_partonTop_*_*', ## Can be built on the fly from prunedGenParticles
-    #'keep *_particleLevel_*_*',
-    #'drop *_particleLevel_consts_*',
-    #'drop *_particleLevel_photons_*',
-    #'drop *_particleLevel_fatjets_*',
-])
-

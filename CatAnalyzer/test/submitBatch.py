@@ -9,7 +9,6 @@ username = os.environ['USER']
 analysis = 'TtbarDiLeptonAnalyzer'
 
 pythonCfg = 'run_'+analysis+'_cfg.py'
-#analysis=analysis+'Silver'
 
 import os,json
 datadir = os.environ["CMSSW_BASE"]+'/src/CATTools/CatAnalyzer/data/dataset/'
