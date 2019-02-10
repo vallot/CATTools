@@ -11,7 +11,6 @@ Jet::Jet():
 
 Jet::Jet(const reco::LeafCandidate & aJet) :
   Particle( aJet ),
-  looseJetID_(false),
   tightJetID_(false),
   tightLepVetoJetID_(false),
   pileupJetId_(0),
@@ -46,7 +45,7 @@ float Jet::bDiscriminator(const std::string & aLabel) const {
 }
 
 /// print all bjet Discriminators
-int Jet::bDiscriminatorPrint() const {
+int Jet::printBDiscriminator() const {
   for(unsigned int i=0; i!=pairDiscriVector_.size(); i++){
     std::cout << pairDiscriVector_[i].first << " = " << pairDiscriVector_[i].second << std::endl;
   }

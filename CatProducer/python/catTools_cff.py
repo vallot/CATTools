@@ -37,21 +37,12 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
                     record = cms.string("JetCorrectionsRecord"),
                     tag = cms.string("JetCorrectorParametersCollection_%s_AK4PFchs"%jecFile),
                     label= cms.untracked.string("AK4PFchs")),
-                cms.PSet(
-                    record = cms.string("JetCorrectionsRecord"),
-                    tag = cms.string("JetCorrectorParametersCollection_%s_AK4PFPuppi"%jecFile),
-                    label= cms.untracked.string("AK4PFPuppi")),
             )
         )
         process.es_prefer_jec = cms.ESPrefer("PoolDBESSource","jec")
         print "JEC based on", process.jec.connect
 
         ## applying new jec on the fly
-#        process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
-#        process.updatedPatJetCorrFactors.levels = cms.vstring('L1FastJet','L2Relative','L3Absolute','L2L3Residual')
-#        process.patJetCorrFactors.primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices")
-#        process.catJets.src = cms.InputTag("updatedPatJets")
-
         from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
         updateJetCollection(
            process,
@@ -63,24 +54,10 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         process.p += process.updatedPatJetsUpdatedJEC
         process.catJets.src = cms.InputTag("updatedPatJetsUpdatedJEC","","CAT")
 
-#    if useMiniAOD: ## corrections when using miniAOD #This is stored in miniAOD as flag, in 2017
-#        from CATTools.CatProducer.patTools.metFilters_cff import enableAdditionalMETFilters
-#        process = enableAdditionalMETFilters(process, runOnMC)
-
         #######################################################################
         # puppi https://twiki.cern.ch/twiki/bin/view/CMS/PUPPI
         # using default
         #######################################################################
-        ### updating puppi jet jec
-#        process.patJetPuppiCorrFactorsUpdated = process.updatedPatJetCorrFactors.clone(
-#            src = process.catJetsPuppi.src,
-#            payload = cms.string('AK4PFPuppi'),
-#            levels = cms.vstring('L2Relative','L3Absolute'),
-#            useRho = cms.bool(False))
-        
-#        process.patJetsPuppiUpdated = process.updatedPatJets.clone(
-#            jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetPuppiCorrFactorsUpdated")),
-#            jetSource = process.catJetsPuppi.src )
         ### updating pile Jet.
 #        process.load("RecoJets.JetProducers.PileupJetID_cfi")
 #        process.pileupJetIdUpdated = process.pileupJetId.clone(
@@ -91,27 +68,9 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
 #        )
         #process.patJetsUpdated.userData.userFloats.src +=['pileupJetIdUpdated:fullDiscriminant']
 
-#        process.catJetsPuppi.src = cms.InputTag("patJetsPuppiUpdated")
-#        process.catJetsPuppi.setGenParticle = cms.bool(False)
-        ## #######################################################################
-        ## qg-likelihood
-        # check https://twiki.cern.ch/twiki/bin/viewauth/CMS/QGDataBaseVersion
-#        from CATTools.CatProducer.patTools.jetQGLikelihood_cff import enableQGLikelihood
-#        process = enableQGLikelihood(process, qgDatabaseVersion="v2b", runOnMC=runOnMC, useMiniAOD=useMiniAOD)
 
-        ## DeepFlavour
-        from CATTools.CatProducer.patTools.jetDeepFlavour_cff import enableDeepFlavour
-        process = enableDeepFlavour(process)
-
-        ## #######################################################################
-        ## # MET corrections from https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
-#       from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
-#       runMetCorAndUncFromMiniAOD(process, isData= not runOnMC, electronColl=cms.InputTag('calibratedPatElectrons'))
-#       process.catMETs.src = cms.InputTag("slimmedMETs","","CAT")
-
-        #from CATTools.CatProducer.patTools.metMuonRecoMitigation2016_cff import enableMETMuonRecoMitigation2016
-        #process = enableMETMuonRecoMitigation2016(process, runOnMC) ## MET input object is overridden in the modifier function
-
+    ## #######################################################################
+    ## # MET corrections from https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
     if useMiniAOD:
       # Instructions for 9_4_X, X >=9 for 2017 data with EE noise mitigation
       from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD

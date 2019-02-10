@@ -325,13 +325,13 @@ void GenWeightsProducer::beginRunProduce(edm::Run& run, const edm::EventSetup&)
     // Find PythiaParameters.processParameters and collect uncertainty bands from the UncertaintyBand list
     if ( not pset.exists("PythiaParameters") ) break;
     const auto& pythiaPSet = pset.getParameter<edm::ParameterSet>("PythiaParameters");
-    if ( not pythiaPSet.exists("processParameters") ) break;
+    if ( not pythiaPSet.exists("pythia8PSweightsSettings") ) break;
 
     bool doVariations = false;
     vstring variations;
     vushort keys;
     const std::string uncBancListCfg = "UncertaintyBands:List = ";
-    for ( auto par : pythiaPSet.getParameter<vstring>("processParameters") ) {
+    for ( auto par : pythiaPSet.getParameter<vstring>("pythia8PSweightsSettings") ) {
       if ( par == "UncertaintyBands:doVariations = on" ) doVariations = true;
       if ( par.compare(0, uncBancListCfg.length(), uncBancListCfg) == 0 ) {
         const auto line = par.substr(uncBancListCfg.length()+1, par.length()-uncBancListCfg.length()-2);
