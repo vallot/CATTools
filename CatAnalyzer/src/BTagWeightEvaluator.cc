@@ -57,13 +57,13 @@ throw std::exception();
     if      ( btagName == "deepcsv" ) {
       btagAlgos_.push_back(BTAG_DeepCSVb);
       btagAlgos_.push_back(BTAG_DeepCSVbb);
-      csvFileName = "DeepCSV_94XSF_V3_B_F.csv";
+      csvFileName = "DeepCSV_102XSF_V1.csv";
     }
     else if ( btagName == "deepjet" ) {
       btagAlgos_.push_back(BTAG_DeepJetb);
       btagAlgos_.push_back(BTAG_DeepJetbb);
       btagAlgos_.push_back(BTAG_DeepJetlepb);
-      csvFileName = "CSVv2_94XSF_V2_B_F.csv";
+      csvFileName = "DeepJet_102XSF_V1.csv";
     }
     else btagAlgos_.push_back("undefined"); // FIXME: Eventually raise error somewhere?
 
@@ -94,13 +94,13 @@ void BTagWeightEvaluator::init(const int method,
   if      ( btagName == "deepcsv" ) {
     btagAlgos_.push_back(BTAG_DeepCSVb);
     btagAlgos_.push_back(BTAG_DeepCSVbb);
-    csvFileName = "DeepCSV_94XSF_V3_B_F.csv";
+    csvFileName = "DeepCSV_102XSF_V1.csv";
   }
   else if ( btagName == "deepjet" ) {
     btagAlgos_.push_back(BTAG_DeepJetb);
     btagAlgos_.push_back(BTAG_DeepJetbb);
     btagAlgos_.push_back(BTAG_DeepJetlepb);
-    csvFileName = "CSVv2_94XF_V2_B_F.csv";
+    csvFileName = "DeepJet_102XSF_V1.csv";
   }
   else btagAlgos_.push_back("undefined"); // FIXME: Eventually raise error somewhere?
 
