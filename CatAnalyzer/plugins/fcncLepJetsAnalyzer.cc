@@ -75,6 +75,7 @@ private:
 // ----------member data ---------------------------
 
   TTree *tree;
+  TTree *gentree;
 
   // Event info
   int b_Event, b_Run, b_Lumi_Number;
@@ -92,6 +93,7 @@ private:
 
   // GEN Lepton and neutrino
   float b_GenLepton_pt, b_GenLepton_eta, b_GenLepton_phi, b_GenLepton_e;
+  float b_GenLepton2_pt, b_GenLepton2_eta, b_GenLepton2_phi, b_GenLepton2_e;
   float b_GenNu_pt, b_GenNu_eta, b_GenNu_phi, b_GenNu_e;
 
   // Leptons and MET
@@ -263,6 +265,7 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("TruePV",     &b_nTruePV,     "TruePV/I");
   tree->Branch("GoodPV",     &b_nGoodPV,     "GoodPV/I");
   tree->Branch("channel",    &b_Channel,     "channel/I");
+  tree->Branch("eeprefire",  &b_eeprefire,   "eeprefire/I");
   tree->Branch("PUWeight",   "std::vector<float>", &b_PUWeight);
   tree->Branch("pdfweight",  "std::vector<float>", &b_PDFWeight );
   tree->Branch("scaleweight","std::vector<float>", &b_ScaleWeight );
@@ -355,9 +358,35 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
     tree->Branch("addbjet2_eta", &b_addbjet2_eta, "addbjet2_eta/F");
     tree->Branch("addbjet2_phi", &b_addbjet2_phi, "addbjet2_phi/F");
     tree->Branch("addbjet2_e",   &b_addbjet2_e,   "addbjet2_e/F");
-  }
 
-  tree->Branch("eeprefire", &b_eeprefire, "eeprefire/I");
+    //gen tree
+    if( TTbarCatMC_ == 1 ){
+      gentree = fs->make<TTree>("gentree", "TopGENTree");
+      
+      gentree->Branch("genweight",     &b_GenWeight,     "genweight/F");
+      gentree->Branch("scaleweight",   "std::vector<float>", &b_ScaleWeight );
+      gentree->Branch("genconecatid",  "std::vector<int>",   &b_GenConeCatID);
+      gentree->Branch("genchannel",    &b_GenChannel,    "genchannel/I");
+      gentree->Branch("draddjets",     &b_DRAddJets,     "draddjets/F");
+      gentree->Branch("genlepton_pt",  &b_GenLepton_pt,  "genlepton_pt/F");
+      gentree->Branch("genlepton_eta", &b_GenLepton_eta, "genlepton_eta/F");
+      gentree->Branch("genlepton_phi", &b_GenLepton_phi, "genlepton_phi/F");
+      gentree->Branch("genlepton_e",   &b_GenLepton_e,   "genlepton_e/F");
+      gentree->Branch("genlepton2_pt", &b_GenLepton2_pt, "genlepton2_pt/F");
+      gentree->Branch("genlepton2_eta",&b_GenLepton2_eta,"genlepton2_eta/F");
+      gentree->Branch("genlepton2_phi",&b_GenLepton2_phi,"genlepton2_phi/F");
+      gentree->Branch("genlepton2_e",  &b_GenLepton2_e,  "genlepton2_e/F");
+
+      gentree->Branch("addbjet1_pt",  &b_addbjet1_pt,  "addbjet1_pt/F");
+      gentree->Branch("addbjet1_eta", &b_addbjet1_eta, "addbjet1_eta/F");
+      gentree->Branch("addbjet1_phi", &b_addbjet1_phi, "addbjet1_phi/F");
+      gentree->Branch("addbjet1_e",   &b_addbjet1_e,   "addbjet1_e/F");
+      gentree->Branch("addbjet2_pt",  &b_addbjet2_pt,  "addbjet2_pt/F");
+      gentree->Branch("addbjet2_eta", &b_addbjet2_eta, "addbjet2_eta/F");
+      gentree->Branch("addbjet2_phi", &b_addbjet2_phi, "addbjet2_phi/F");
+      gentree->Branch("addbjet2_e",   &b_addbjet2_e,   "addbjet2_e/F");
+    }
+  }
 
   EventInfo = fs->make<TH1D>("EventInfo","Event Information",9,0,9);
   EventInfo->GetXaxis()->SetBinLabel(1,"Number of Events");
@@ -579,8 +608,6 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
     for( unsigned int iscale = 0; iscale< b_PSWeight->size(); iscale++ )
       PSWeights->Fill(iscale, b_PSWeight->at(iscale));
-
-    b_PSWeight->push_back(1.0);
   }
   else{
     b_ScaleWeight->push_back(1.0);
@@ -723,6 +750,13 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         b_GenNu_eta     = genttbarConeCat->begin()->nu1().Eta();
         b_GenNu_phi     = genttbarConeCat->begin()->nu1().Phi();
         b_GenNu_e       = genttbarConeCat->begin()->nu1().E();
+
+        if( genttbarConeCat->begin()->lepton2().pt() != 0. ){
+          b_GenLepton2_pt = genttbarConeCat->begin()->lepton2().Pt();
+          b_GenLepton2_eta= genttbarConeCat->begin()->lepton2().Eta();
+          b_GenLepton2_phi= genttbarConeCat->begin()->lepton2().Phi();
+          b_GenLepton2_e  = genttbarConeCat->begin()->lepton2().E();
+        }
       }
       else{
         b_GenLepton_pt  = genttbarConeCat->begin()->lepton2().Pt();
@@ -734,6 +768,8 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         b_GenNu_phi     = genttbarConeCat->begin()->nu2().Phi();
         b_GenNu_e       = genttbarConeCat->begin()->nu2().E();
       }
+
+      if( TTbarCatMC_ == 1 ) gentree->Fill();
     }// if(GENTTbarMCTree_)
   } // if(TTbarMC==0)
 
@@ -928,8 +964,10 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     // Initialize SF_btag
     float Jet_SF_deepCSV[19];
     float Jet_SF_deepJet[19];
-    for( unsigned int iu=0; iu<19; iu++ ) Jet_SF_deepCSV[iu] = 1.0;
-    for( unsigned int iu=0; iu<19; iu++ ) Jet_SF_deepJet[iu] = 1.0;
+    for( unsigned int iu=0; iu<19; iu++ ){
+      Jet_SF_deepCSV[iu] = 1.0;
+      Jet_SF_deepJet[iu] = 1.0;
+    }
 
     int good_jet_count = 0;
 
@@ -999,8 +1037,10 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
           // Ref: https://twiki.cern.ch/twiki/bin/view/CMS/BTagShapeCalibration
           // Saving the central SF and the 18 syst. unc. for:
           if( jet.pt() > 30. ) {
-            for( unsigned int iu=0; iu<19; iu++ ) Jet_SF_deepCSV[iu] *= SF_deepCSV_.getSF(jet, iu);
-            for( unsigned int iu=0; iu<19; iu++ ) Jet_SF_deepJet[iu] *= SF_deepJet_.getSF(jet, iu);
+            for( unsigned int iu=0; iu<19; iu++ ) {
+              Jet_SF_deepCSV[iu] *= SF_deepCSV_.getSF(jet, iu);
+              Jet_SF_deepJet[iu] *= SF_deepJet_.getSF(jet, iu);
+            }
           }
         } // if(isMC_)	
       }// if(GoodJets)
