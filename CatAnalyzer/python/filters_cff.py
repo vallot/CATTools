@@ -7,7 +7,6 @@ filterLumi = cms.EDFilter("EventWeightThresholdFilter",
     src = cms.InputTag("lumiMask"),
 )
 
-filterLumiSilver = filterLumi.clone(src = cms.InputTag("lumiMaskSilver"))
 
 # https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2
 filterRECO = cms.EDFilter("CATTriggerBitCombiner",
