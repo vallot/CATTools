@@ -274,16 +274,16 @@ void cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetu
 
 float
 cat::CATElectronProducer::getEffArea( float dR, float scEta)
-{ //To be updated FIXME
-  // https://github.com/guitargeek/cmssw/blob/EgammaID_949/RecoEgamma/ElectronIdentification/data/Fall17/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_92X.txt
+{
+  // https://github.com/cms-sw/cmssw/blob/CMSSW_10_2_X/RecoEgamma/ElectronIdentification/data/Fall17/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_94X.txt
   float absEta = std::abs(scEta);
-  if ( 0.0000 >= absEta && absEta < 1.0000 ) return 0.1566;
-  if ( 1.0000 >= absEta && absEta < 1.4790 ) return 0.1626;
-  if ( 1.4790 >= absEta && absEta < 2.0000 ) return 0.1073;
-  if ( 2.0000 >= absEta && absEta < 2.2000 ) return 0.0854;
-  if ( 2.2000 >= absEta && absEta < 2.3000 ) return 0.1051;
-  if ( 2.3000 >= absEta && absEta < 2.4000 ) return 0.1204;
-  if ( 2.4000 >= absEta && absEta < 5.0000 ) return 0.1524;
+  if ( 0.0000 >= absEta && absEta < 1.0000 ) return 0.1440;
+  if ( 1.0000 >= absEta && absEta < 1.4790 ) return 0.1562;
+  if ( 1.4790 >= absEta && absEta < 2.0000 ) return 0.1032;
+  if ( 2.0000 >= absEta && absEta < 2.2000 ) return 0.0859;
+  if ( 2.2000 >= absEta && absEta < 2.3000 ) return 0.1116;
+  if ( 2.3000 >= absEta && absEta < 2.4000 ) return 0.1321;
+  if ( 2.4000 >= absEta && absEta < 5.0000 ) return 0.1654;
   return 0;
 }
 

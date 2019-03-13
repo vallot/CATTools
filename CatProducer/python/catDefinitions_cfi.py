@@ -9,7 +9,7 @@ globalTag_rd   = '102X_dataRun2_Sep2018Rereco_v1'
 lumiJSON       = 'Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON'
 pileupMCmap    = '2018_25ns_MC'
 
-JetEnergyCorrection = ('Fall17_17Nov2017_V32_94X_DATA', 'Fall17_17Nov2017_V32_94X_MC')
+JetEnergyCorrection = ('Autumn18_RunABCD_V8_DATA', 'Autumn18_V8_MC')
 JECUncertaintyFile  = 'CATTools/CatProducer/data/JEC/%s_UncertaintySources_AK4PFchs.txt'%JetEnergyCorrection[1]
 #JECUncertaintyFile  = 'CATTools/CatProducer/data/JEC/%s_Uncertainty_AK4PFchs.txt'%JetEnergyCorrection[1]
 
