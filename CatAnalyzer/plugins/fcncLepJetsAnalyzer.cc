@@ -888,7 +888,7 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       lepton_SF->push_back( SF_elecId_( selectedElectrons[0].pt(), selectedElectrons[0].scEta() ) );         // [0]-> IdSF
       lepton_SF->push_back( SF_elecId_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(),  1.0 ) );   // [1]-> IdSF+Error
       lepton_SF->push_back( SF_elecId_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(), -1.0 ) );   // [2]-> IdSF-Error
-      lepton_SF->push_back( SF_elecReco_( selectedElectrons[0].pt(), selectedElectrons[0].scEta() ) );       // [3]-> IdSF
+      lepton_SF->push_back( SF_elecReco_( selectedElectrons[0].pt(), selectedElectrons[0].scEta() ) );       // [3]-> RecoSF
       lepton_SF->push_back( SF_elecReco_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(),  1.0 ) ); // [4]-> RecoSF+Error
       lepton_SF->push_back( SF_elecReco_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(), -1.0 ) ); // [5]-> RecoSF-Error
       lepton_SF->push_back( SF_elecZvtx_( selectedElectrons[0].pt(), selectedElectrons[0].scEta() ) );       // [6]-> ZvtxSF

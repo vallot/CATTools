@@ -49,9 +49,9 @@ from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
 process.pileupWeight.weightingMethod = "RedoWeight"
 #process.pileupWeight.pileupMC = pileupWeightMap[options.PUMap]
 process.pileupWeight.pileupMC = pileupWeightMap["2018_25ns_MC"]
-process.pileupWeight.pileupRD = pileupWeightMap["Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON"]
-process.pileupWeight.pileupUp = pileupWeightMap["Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON_Up"]
-process.pileupWeight.pileupDn = pileupWeightMap["Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON_Dn"]
+process.pileupWeight.pileupRD = pileupWeightMap["Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON"]
+process.pileupWeight.pileupUp = pileupWeightMap["Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON_Up"]
+process.pileupWeight.pileupDn = pileupWeightMap["Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON_Dn"]
 
 # json file (Only Data)
 if options.UserJSON:
@@ -83,12 +83,12 @@ process.fcncLepJets = cms.EDAnalyzer('fcncLepJetsAnalyzer',
                                      genHiggsCatLabel  = cms.InputTag("GenTtbarCategories:genTtbarId"),
                                      genttbarCatLabel  = cms.InputTag("catGenTops"),
                                      muonLabel         = cms.InputTag("catMuons"),
-                                     muonIdSF          = muonSFTightIdOnly94X,
-                                     muonIsoSF         = muonSFTightIsoOnly94X,
-                                     muonTrgSF         = trigSF_IsoMu27,
+                                     muonIdSF          = muonSFTightId102X,
+                                     muonIsoSF         = muonSFTightIso102X,
+                                     muonTrgSF         = trigSF_IsoMu24,
                                      electronLabel     = cms.InputTag("catElectrons"),
-                                     elecIdSF          = electronSFCutBasedTight102Xv2,
-                                     elecRecoSF        = electronSFReco102Xv2,
+                                     elecIdSF          = electronSFCutBasedTight102X,
+                                     elecRecoSF        = electronSFReco102X,
                                      elecZvtxSF        = electronSFHLTZvtx102X,
                                      elecTrgSF         = trigSF_El35_El28HT150_ttH_v5,
                                      jetLabel          = cms.InputTag("catJets"),

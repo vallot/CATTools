@@ -10,7 +10,7 @@ baseCAT = "%s/src/CATTools/CatProducer/data/LumiMask" % os.environ["CMSSW_BASE"]
 
 configs = {
     18:{
-        "lumiJSON":"Collisions18/13TeV/PromptReco",
+        "lumiJSON":"Collisions18/13TeV/ReReco",
         "pileupJSON":"Collisions18/13TeV/PileUp/pileup_latest.txt",
         "minBiasXsec":69200.,
         "minBiasXsecUnc":0.046,
