@@ -29,22 +29,20 @@ create-batch --jobName W4JetsToLNu --fileList $CMSSW_BASE/src/CATTools/CatAnalyz
 
 create-batch --jobName WJetsToLNu --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_WJetsToLNu.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/WJetsToLNu --maxFiles 30 --args 'UserJSON=false runOnTTbarMC=0 TTbarCatMC=0'
 
-create-batch --jobName WJetsToLNu_part2 --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_WJetsToLNu_part2.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/WJetsToLNu_part2 --maxFiles 30 --args 'UserJSON=false runOnTTbarMC=0 TTbarCatMC=0'
-
 #TT
-create-batch --jobName TT_powheg_ttbb --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTLJ_powheg_PSweight.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_powheg_ttbb --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=1'
+create-batch --jobName TT_powheg_ttbb --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTLJ_powheg.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_powheg_ttbb --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=1'
 
-create-batch --jobName TT_powheg_ttbj --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTLJ_powheg_PSweight.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_powheg_ttbj --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=2'
+create-batch --jobName TT_powheg_ttbj --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTLJ_powheg.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_powheg_ttbj --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=2'
 
-create-batch --jobName TT_powheg_ttcc --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTLJ_powheg_PSweight.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_powheg_ttcc --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=3'
+create-batch --jobName TT_powheg_ttcc --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTLJ_powheg.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_powheg_ttcc --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=3'
 
-create-batch --jobName TT_powheg_ttlf --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTLJ_powheg_PSweight.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_powheg_ttlf --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=4'
+create-batch --jobName TT_powheg_ttlf --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTLJ_powheg.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_powheg_ttlf --maxFiles 5 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=4'
 
-create-batch --jobName TT_powheg_ttother --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTLJ_powheg_PSweight.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_powheg_ttother --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=5'
+create-batch --jobName TT_powheg_ttother --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTLJ_powheg.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_powheg_ttother --maxFiles 5 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=5'
 
-create-batch --jobName TTLL_powheg --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTTo2L2Nu_PSWeight.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TTLL_powheg  --maxFiles 10 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=7'
+create-batch --jobName TTLL_powheg --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTTo2L2Nu.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TTLL_powheg  --maxFiles 10 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=7'
 
-create-batch --jobName TTHad_powheg --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTToHadronic_PSWeight.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TTHad_powheg --maxFiles 30 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=7'
+create-batch --jobName TTHad_powheg --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTToHadronic.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TTHad_powheg --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=7'
 
 #TT hdamp
 create-batch --jobName TT_powheg_ttbb_hdampup --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTLJ_powheg_hdampUP.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_powheg_ttbb_hdampup --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=1'
@@ -53,11 +51,11 @@ create-batch --jobName TT_powheg_ttbj_hdampup --fileList $CMSSW_BASE/src/CATTool
 
 create-batch --jobName TT_powheg_ttcc_hdampup --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTLJ_powheg_hdampUP.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_powheg_ttcc_hdampup --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=3'
 
-create-batch --jobName TT_powheg_ttlf_hdampup --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTLJ_powheg_hdampUP.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_powheg_ttlf_hdampup --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=4'
+create-batch --jobName TT_powheg_ttlf_hdampup --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTLJ_powheg_hdampUP.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_powheg_ttlf_hdampup --maxFiles 5 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=4'
 
-create-batch --jobName TT_powheg_ttother_hdampup --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTLJ_powheg_hdampUP.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_powheg_ttother_hdampup --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=5'
+create-batch --jobName TT_powheg_ttother_hdampup --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTLJ_powheg_hdampUP.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_powheg_ttother_hdampup --maxFiles 5 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=5'
 
-create-batch --jobName TTLL_powheg_hdampup --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTTo2L2Nu_hdampUP.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TTLL_powheg_hdampup --maxFiles 10 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=7'
+create-batch --jobName TTLL_powheg_hdampup --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTTo2L2Nu_hdampUP.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TTLL_powheg_hdampup --maxFiles 5 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=7'
 
 create-batch --jobName TTHad_powheg_hdampup --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTToHadronic_hdampUP.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TTHad_powheg_hdampup --maxFiles 30 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=7'
 
@@ -67,11 +65,11 @@ create-batch --jobName TT_powheg_ttbj_hdampdown --fileList $CMSSW_BASE/src/CATTo
 
 create-batch --jobName TT_powheg_ttcc_hdampdown --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTLJ_powheg_hdampDOWN.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_powheg_ttcc_hdampdown --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=3'
 
-create-batch --jobName TT_powheg_ttlf_hdampdown --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTLJ_powheg_hdampDOWN.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_powheg_ttlf_hdampdown --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=4'
+create-batch --jobName TT_powheg_ttlf_hdampdown --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTLJ_powheg_hdampDOWN.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_powheg_ttlf_hdampdown --maxFiles 5 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=4'
 
-create-batch --jobName TT_powheg_ttother_hdampdown --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTLJ_powheg_hdampDOWN.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_powheg_ttother_hdampdown --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=5'
+create-batch --jobName TT_powheg_ttother_hdampdown --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTLJ_powheg_hdampDOWN.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_powheg_ttother_hdampdown --maxFiles 5 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=5'
 
-create-batch --jobName TTLL_powheg_hdampdown --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTTo2L2Nu_hdampDOWN.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TTLL_powheg_hdampdown --maxFiles 10 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=7'
+create-batch --jobName TTLL_powheg_hdampdown --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTTo2L2Nu_hdampDOWN.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TTLL_powheg_hdampdown --maxFiles 5 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=7'
 
 create-batch --jobName TTHad_powheg_hdampdown --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTToHadronic_hdampDOWN.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TTHad_powheg_hdampdown --maxFiles 30 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=7'
 
@@ -82,11 +80,11 @@ create-batch --jobName TT_powheg_ttbj_TuneCP5up --fileList $CMSSW_BASE/src/CATTo
 
 create-batch --jobName TT_powheg_ttcc_TuneCP5up --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTLJ_powheg_TuneCP5up.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_powheg_ttcc_TuneCP5up --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=3'
 
-create-batch --jobName TT_powheg_ttlf_TuneCP5up --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTLJ_powheg_TuneCP5up.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_powheg_ttlf_TuneCP5up --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=4'
+create-batch --jobName TT_powheg_ttlf_TuneCP5up --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTLJ_powheg_TuneCP5up.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_powheg_ttlf_TuneCP5up --maxFiles 5 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=4'
 
-create-batch --jobName TT_powheg_ttother_TuneCP5up --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTLJ_powheg_TuneCP5up.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_powheg_ttother_TuneCP5up --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=5'
+create-batch --jobName TT_powheg_ttother_TuneCP5up --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTLJ_powheg_TuneCP5up.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_powheg_ttother_TuneCP5up --maxFiles 5 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=5'
 
-create-batch --jobName TTLL_powheg_TuneCP5up --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTTo2L2Nu_TuneCP5up.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TTLL_powheg_TuneCP5up --maxFiles 10 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=7'
+create-batch --jobName TTLL_powheg_TuneCP5up --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTTo2L2Nu_TuneCP5up.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TTLL_powheg_TuneCP5up --maxFiles 5 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=7'
 
 create-batch --jobName TTHad_powheg_TuneCP5up --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTToHadronic_TuneCP5up.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TTHad_powheg_TuneCP5up --maxFiles 30 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=7'
 
@@ -96,11 +94,11 @@ create-batch --jobName TT_powheg_ttbj_TuneCP5down --fileList $CMSSW_BASE/src/CAT
 
 create-batch --jobName TT_powheg_ttcc_TuneCP5down --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTLJ_powheg_TuneCP5down.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_powheg_ttcc_TuneCP5down --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=3'
 
-create-batch --jobName TT_powheg_ttlf_TuneCP5down --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTLJ_powheg_TuneCP5down.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_powheg_ttlf_TuneCP5down --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=4'
+create-batch --jobName TT_powheg_ttlf_TuneCP5down --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTLJ_powheg_TuneCP5down.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_powheg_ttlf_TuneCP5down --maxFiles 5 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=4'
 
-create-batch --jobName TT_powheg_ttother_TuneCP5down --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTLJ_powheg_TuneCP5down.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_powheg_ttother_TuneCP5down --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=5'
+create-batch --jobName TT_powheg_ttother_TuneCP5down --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTLJ_powheg_TuneCP5down.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_powheg_ttother_TuneCP5down --maxFiles 5 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=5'
 
-create-batch --jobName TTLL_powheg_TuneCP5down --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTTo2L2Nu_TuneCP5down.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TTLL_powheg_TuneCP5down --maxFiles 10 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=7'
+create-batch --jobName TTLL_powheg_TuneCP5down --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTTo2L2Nu_TuneCP5down.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TTLL_powheg_TuneCP5down --maxFiles 5 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=7'
 
 create-batch --jobName TTHad_powheg_TuneCP5down --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTToHadronic_TuneCP5down.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TTHad_powheg_TuneCP5down --maxFiles 30 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=7'
 
@@ -120,21 +118,21 @@ create-batch --jobName WZ --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/d
 
 create-batch --jobName ZZ --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_ZZ.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/ZZ --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=0 TTbarCatMC=0'
 
-create-batch --jobName TTWJetsToLNu_PSweight --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTWJetsToLNu_PSweight.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TTWJetsToLNu_PSweight --maxFiles 5 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=8'
+create-batch --jobName TTWJetsToLNu --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTWJetsToLNu.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TTWJetsToLNu --maxFiles 2 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=8'
 
-create-batch --jobName TTWJetsToQQ --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTWJetsToQQ.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TTWJetsToQQ --maxFiles 5 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=8'
+create-batch --jobName TTWJetsToQQ --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTWJetsToQQ.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TTWJetsToQQ --maxFiles 2 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=8'
 
-create-batch --jobName TTZToLLNuNu --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTZToLLNuNu.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TTZToLLNuNu --maxFiles 5 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=8'
+create-batch --jobName TTZToLLNuNu --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTZToLLNuNu.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TTZToLLNuNu --maxFiles 2 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=8'
 
-create-batch --jobName TTZToQQ --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTZToQQ.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TTZToQQ --maxFiles 5 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=8'
+create-batch --jobName TTZToQQ --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTZToQQ.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TTZToQQ --maxFiles 2 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=8'
 
-create-batch --jobName ttHTobb --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_ttHTobb.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/ttHTobb --maxFiles 5 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=8'
+create-batch --jobName ttHTobb --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_ttHTobb.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/ttHTobb --maxFiles 2 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=8'
 
-create-batch --jobName ttHToNonbb --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_ttHToNonbb.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/ttHToNonbb --maxFiles 5 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=8'
+create-batch --jobName ttHToNonbb --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_ttHToNonbb.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/ttHToNonbb --maxFiles 2 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=8'
 
-create-batch --jobName ST_TH_1L3B_Hct --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_ST_TH_1L3B_Hct.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/ST_TH_1L3B_Hct --maxFiles 10 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=8'
+create-batch --jobName ST_TH_1L3B_Hct --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_ST_TH_1L3B_Hct.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/ST_TH_1L3B_Hct --maxFiles 5 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=8'
 
-create-batch --jobName ST_TH_1L3B_Hut --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_ST_TH_1L3B_Hut.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/ST_TH_1L3B_Hut --maxFiles 10 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=8'
+create-batch --jobName ST_TH_1L3B_Hut --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_ST_TH_1L3B_Hut.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/ST_TH_1L3B_Hut --maxFiles 5 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=8'
 
 create-batch --jobName TT_TH_1L3B_aTLep_Hut --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TT_TH_1L3B_aTLep_Hut.txt --cfg fcncAnalyzer_cfg.py --transferDest /store/user/jipark/ntuple_jw/2018/V10_1/190318/production/TT_TH_1L3B_aTLep_Hut --maxFiles 4 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=8'
 

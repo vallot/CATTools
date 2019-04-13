@@ -37,9 +37,10 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.source = cms.Source("PoolSource",
      fileNames = cms.untracked.vstring(
-	'file:../../CatProducer/prod/catTuple.root'
+#'file:../../CatProducer/prod/catTuple.root'
 #        'root://cluster142.knu.ac.kr//store/group/CAT/V9_4/TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8/V9_4_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v2/181206_104220/0000/catTuple_100.root'
 #        'root://cluster142.knu.ac.kr//store/group/CAT/V9_4/SingleMuon/V9_4_Run2017C-31Mar2018-v1/181206_151733/0000/catTuple_100.root'
+        'root://cluster142.knu.ac.kr//store/group/CAT/V10_1/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/V10_1_RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/190316_000711/0000/catTuple_212.root'
         )
 )
 
@@ -58,7 +59,7 @@ if options.UserJSON:
     # /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/ReReco
     print "Running data.... Including JSON File."
     import FWCore.PythonUtilities.LumiList as LumiList
-    process.source.lumisToProcess = LumiList.LumiList(filename = '../../CatProducer/data/LumiMask/Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt').getVLuminosityBlockRange()
+    process.source.lumisToProcess = LumiList.LumiList(filename = '../../CatProducer/data/LumiMask/Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON.txt').getVLuminosityBlockRange()
 
 #Load MET filters for MC
 process.load("CATTools.CatAnalyzer.filters_cff")
