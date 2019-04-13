@@ -32,11 +32,12 @@ catEventContent.extend([
 catEventContentMC.extend([
     'keep *_genWeight_*_*',
     'keep *_pileupWeight*_*_*',
+    'keep *_prefiringweight*_*_*',
     ])
 
 catEventContentMCSignal.extend([
-    'keep *_slimmedGenJets_*_*',
-    'keep recoGenParticles_prunedGenParticles_*_*',
+    #'keep *_slimmedGenJets_*_*',
+    #'keep recoGenParticles_prunedGenParticles_*_*',
     #'keep *_matchGenBHadron_*_*',
     #'keep *_matchGenCHadron_*_*',
     ])
@@ -49,12 +50,12 @@ catEventContentTOPMC.extend([
 
 catEventContentTOPParticleLevel.extend([
     #'keep *_partonTop_*_*', ## Can be built on the fly from prunedGenParticles
-    'keep *_particleLevel_*_*',
-    'drop *_particleLevel_consts_*',
-    'drop *_particleLevel_photons_*',
-    'drop *_particleLevel_fatjets_*',
+    #'keep *_particleLevel_*_*',
+    #'drop *_particleLevel_consts_*',
+    #'drop *_particleLevel_photons_*',
+    #'drop *_particleLevel_fatjets_*',
 ])
 
 catEventContentSecVertexs.extend([
-    'keep *_catSecVertexs_*_*',
+    #'keep *_catSecVertexs_*_*',
     ])

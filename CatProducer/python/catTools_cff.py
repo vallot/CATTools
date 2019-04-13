@@ -127,6 +127,17 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
       process.p += process.fullPatMetSequenceModifiedMET
       process.catMETs.src = cms.InputTag("slimmedMETsModifiedMET","","CAT")
 
+      # https://twiki.cern.ch/twiki/bin/viewauth/CMS/L1ECALPrefiringWeightRecipe
+      from PhysicsTools.PatUtils.l1ECALPrefiringWeightProducer_cfi import l1ECALPrefiringWeightProducer
+      process.prefiringweight = l1ECALPrefiringWeightProducer.clone(
+          DataEra = cms.string("2017BtoF"), #Use 2016BtoH for 2016
+          UseJetEMPt = cms.bool(False),
+          PrefiringRateSystematicUncty = cms.double(0.2),
+          SkipWarnings = False)
+
+      process.p += process.prefiringweight
+
+
 def addEgmID(process, runOnMC):
         #######################################################################
         ## Electron regression
