@@ -85,6 +85,7 @@ private:
   // PU/Vertices
   std::vector<float> *b_PUWeight;
   int b_nGoodPV, b_nTruePV;
+  std::vector<double> *b_PrefireWeight;
 
   // Channel and Categorization
   int b_GenChannel, b_Channel, b_GenCone_NgJetsW, b_GenHiggsCatID;
@@ -221,9 +222,10 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   nTrueVertToken_    = consumes<int>(iConfig.getParameter<edm::InputTag>("nTrueVertLabel"));
  
   b_PUWeight     = new std::vector<float>;
+  b_PrefireWeight= new std::vector<double>;
   b_PDFWeight    = new std::vector<float>;
   b_ScaleWeight  = new std::vector<float>;
-  b_PSWeight  = new std::vector<float>;
+  b_PSWeight     = new std::vector<float>;
   b_Lepton_SF    = new std::vector<float>;  
 
   b_GenConeCatID      = new std::vector<int>;
@@ -266,10 +268,11 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("GoodPV",     &b_nGoodPV,     "GoodPV/I");
   tree->Branch("channel",    &b_Channel,     "channel/I");
   tree->Branch("eeprefire",  &b_eeprefire,   "eeprefire/I");
-  tree->Branch("PUWeight",   "std::vector<float>", &b_PUWeight);
-  tree->Branch("pdfweight",  "std::vector<float>", &b_PDFWeight );
-  tree->Branch("scaleweight","std::vector<float>", &b_ScaleWeight );
-  tree->Branch("psweight",   "std::vector<float>", &b_PSWeight );
+  tree->Branch("PUWeight",      "std::vector<float>", &b_PUWeight);
+  tree->Branch("prefireweight", "std::vector<double>",&b_PrefireWeight);
+  tree->Branch("pdfweight",     "std::vector<float>", &b_PDFWeight );
+  tree->Branch("scaleweight",   "std::vector<float>", &b_ScaleWeight );
+  tree->Branch("psweight",      "std::vector<float>", &b_PSWeight );
 
   tree->Branch("MET",           &b_MET,        "MET/F");
   tree->Branch("MET_phi",       &b_MET_phi,    "MET_phi/F");
@@ -422,6 +425,7 @@ fcncLepJetsAnalyzer::~fcncLepJetsAnalyzer()
    // do anything here that needs to be done at desctruction time
    // (e.g. close files, deallocate resources etc.)
   delete b_PUWeight;
+  delete b_PrefireWeight;
   delete b_PDFWeight;
   delete b_ScaleWeight;
   delete b_PSWeight;
@@ -464,24 +468,25 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 {
   using namespace edm;
 
-  b_PUWeight   ->clear();
-  b_ScaleWeight->clear();
-  b_PSWeight   ->clear();
-  b_PDFWeight  ->clear();
+  b_PUWeight     ->clear();
+  b_PrefireWeight->clear();
+  b_ScaleWeight  ->clear();
+  b_PSWeight     ->clear();
+  b_PDFWeight    ->clear();
 
-  b_GenConeCatID->clear();
-  b_GenCone_gJet_pt->clear();
-  b_GenCone_gJet_eta->clear();
-  b_GenCone_gJet_phi->clear();
-  b_GenCone_gJet_e->clear();
+  b_GenConeCatID     ->clear();
+  b_GenCone_gJet_pt  ->clear();
+  b_GenCone_gJet_eta ->clear();
+  b_GenCone_gJet_phi ->clear();
+  b_GenCone_gJet_e   ->clear();
   b_GenCone_gJetFlavW->clear();
 
   b_Lepton_SF->clear();
 
-  b_Jet_pt    ->clear();
-  b_Jet_eta   ->clear();
-  b_Jet_phi   ->clear();
-  b_Jet_e     ->clear();
+  b_Jet_pt   ->clear();
+  b_Jet_eta  ->clear();
+  b_Jet_phi  ->clear();
+  b_Jet_e    ->clear();
   b_Jet_Index->clear();
 
   b_Jet_partonFlavour->clear();
