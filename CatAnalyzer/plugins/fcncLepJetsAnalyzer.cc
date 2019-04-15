@@ -63,6 +63,7 @@ private:
   edm::EDGetTokenT<std::vector<float>>      scaleUpWeightToken_, scaleDownWeightToken_;
   edm::EDGetTokenT<std::vector<float>>      psWeightToken_, pdfWeightToken_;
   edm::EDGetTokenT<float>                   puWeightToken_, puUpWeightToken_, puDownWeightToken_;
+  edm::EDGetTokenT<double>                  prefweightToken_, prefweightupToken_, prefweightdownToken_;
   // Object Collections
   edm::EDGetTokenT<int>                     genttbarHiggsCatToken_;
   edm::EDGetTokenT<cat::GenTopCollection>   genttbarCatToken_;
@@ -85,6 +86,7 @@ private:
   // PU/Vertices
   std::vector<float> *b_PUWeight;
   int b_nGoodPV, b_nTruePV;
+  std::vector<double> *b_PrefireWeight;
 
   // Channel and Categorization
   int b_GenChannel, b_Channel, b_GenCone_NgJetsW, b_GenHiggsCatID;
@@ -127,12 +129,12 @@ private:
   std::vector<float> *b_Jet_JER_Up, *b_Jet_JER_Nom, *b_Jet_JER_Down;
 
   // b-Jet discriminant
-  std::vector<float> *b_Jet_CSV, *b_Jet_deepCSV;
-  std::vector<float> *b_Jet_SF_deepCSV_30;
+  std::vector<float> *b_Jet_deepCSV, *b_Jet_deepJet;
+  std::vector<float> *b_Jet_SF_deepCSV_30, *b_Jet_SF_deepJet_30;
 
   // c-Jet discriminant
-  std::vector<float> *b_Jet_CvsL, *b_Jet_CvsB;
   std::vector<float> *b_Jet_deepCvsL, *b_Jet_deepCvsB;
+  std::vector<float> *b_Jet_deepJetCvsL, *b_Jet_deepJetCvsB;
 
   // Histograms: Number of Events and Weights
   TH1D *EventInfo, *ScaleWeights, *PDFWeights, *PSWeights;
@@ -201,6 +203,10 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   puWeightToken_        = consumes<float>(edm::InputTag(puWeightLabel.label()));
   puUpWeightToken_      = consumes<float>(edm::InputTag(puWeightLabel.label(),"up"));
   puDownWeightToken_    = consumes<float>(edm::InputTag(puWeightLabel.label(),"dn"));
+  // Prefire (16 and 17 only)
+  prefweightToken_      = consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProb"));
+  prefweightupToken_    = consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProbUp"));
+  prefweightdownToken_  = consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProbDown"));
   // CSV Weights
   auto deepcsvWeightLabel = iConfig.getParameter<edm::InputTag>("deepcsvWeightLabel");
   // GEN and ttbar Categorization
@@ -222,9 +228,10 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   nTrueVertToken_    = consumes<int>(iConfig.getParameter<edm::InputTag>("nTrueVertLabel"));
  
   b_PUWeight     = new std::vector<float>;
+  b_PrefireWeight= new std::vector<double>;
   b_PDFWeight    = new std::vector<float>;
   b_ScaleWeight  = new std::vector<float>;
-  b_PSWeight  = new std::vector<float>;
+  b_PSWeight     = new std::vector<float>;
   b_Lepton_SF    = new std::vector<float>;  
 
   b_GenConeCatID      = new std::vector<int>;
@@ -239,13 +246,14 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   b_Jet_phi           = new std::vector<float>;
   b_Jet_e             = new std::vector<float>;
   b_Jet_Index         = new std::vector<int>;
-  b_Jet_CSV           = new std::vector<float>;
   b_Jet_deepCSV       = new std::vector<float>;
+  b_Jet_deepJet       = new std::vector<float>;
   b_Jet_SF_deepCSV_30 = new std::vector<float>;
-  b_Jet_CvsL          = new std::vector<float>;
-  b_Jet_CvsB          = new std::vector<float>;
+  b_Jet_SF_deepJet_30 = new std::vector<float>;
   b_Jet_deepCvsL      = new std::vector<float>;
   b_Jet_deepCvsB      = new std::vector<float>;
+  b_Jet_deepJetCvsL      = new std::vector<float>;
+  b_Jet_deepJetCvsB      = new std::vector<float>;
   b_Jet_partonFlavour = new std::vector<int>;
   b_Jet_hadronFlavour = new std::vector<int>;
   b_Jet_JES_Up        = new std::vector<float>;
@@ -266,10 +274,11 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("GoodPV",     &b_nGoodPV,     "GoodPV/I");
   tree->Branch("channel",    &b_Channel,     "channel/I");
   tree->Branch("eeprefire",  &b_eeprefire,   "eeprefire/I");
-  tree->Branch("PUWeight",   "std::vector<float>", &b_PUWeight);
-  tree->Branch("pdfweight",  "std::vector<float>", &b_PDFWeight );
-  tree->Branch("scaleweight","std::vector<float>", &b_ScaleWeight );
-  tree->Branch("psweight",   "std::vector<float>", &b_PSWeight );
+  tree->Branch("PUWeight",      "std::vector<float>", &b_PUWeight);
+  tree->Branch("prefireweight", "std::vector<double>",&b_PrefireWeight);
+  tree->Branch("pdfweight",     "std::vector<float>", &b_PDFWeight );
+  tree->Branch("scaleweight",   "std::vector<float>", &b_ScaleWeight );
+  tree->Branch("psweight",      "std::vector<float>", &b_PSWeight );
 
   tree->Branch("MET",           &b_MET,        "MET/F");
   tree->Branch("MET_phi",       &b_MET_phi,    "MET_phi/F");
@@ -288,13 +297,14 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("jet_phi",           "std::vector<float>", &b_Jet_phi);
   tree->Branch("jet_e" ,            "std::vector<float>", &b_Jet_e );
   tree->Branch("jet_index" ,        "std::vector<int>",   &b_Jet_Index );
-  tree->Branch("jet_CSV" ,          "std::vector<float>", &b_Jet_CSV );
   tree->Branch("jet_deepCSV",       "std::vector<float>", &b_Jet_deepCSV );
+  tree->Branch("jet_deepJet",       "std::vector<float>", &b_Jet_deepJet );
   tree->Branch("jet_SF_deepCSV_30", "std::vector<float>", &b_Jet_SF_deepCSV_30 );
-  tree->Branch("jet_CvsL",          "std::vector<float>", &b_Jet_CvsL );
-  tree->Branch("jet_CvsB",          "std::vector<float>", &b_Jet_CvsB );
+  tree->Branch("jet_SF_deepJet_30", "std::vector<float>", &b_Jet_SF_deepJet_30 );
   tree->Branch("jet_deepCvsL",      "std::vector<float>", &b_Jet_deepCvsL );
   tree->Branch("jet_deepCvsB",      "std::vector<float>", &b_Jet_deepCvsB );
+  tree->Branch("jet_deepJetCvsL",   "std::vector<float>", &b_Jet_deepJetCvsL );
+  tree->Branch("jet_deepJetCvsB",   "std::vector<float>", &b_Jet_deepJetCvsB );
 
   tree->Branch("jet_njet",          &b_Jet_NJet,          "jet_njet/I" );
   tree->Branch("jet_nbjetm",        &b_Jet_NBJetM,        "jet_nbjetm/I" );
@@ -421,6 +431,7 @@ fcncLepJetsAnalyzer::~fcncLepJetsAnalyzer()
    // do anything here that needs to be done at desctruction time
    // (e.g. close files, deallocate resources etc.)
   delete b_PUWeight;
+  delete b_PrefireWeight;
   delete b_PDFWeight;
   delete b_ScaleWeight;
   delete b_PSWeight;
@@ -448,13 +459,13 @@ fcncLepJetsAnalyzer::~fcncLepJetsAnalyzer()
   delete b_Jet_JER_Down;
 
   delete b_Jet_SF_deepCSV_30;
-
-  delete b_Jet_CSV;
-  delete b_Jet_CvsL;
-  delete b_Jet_CvsB;
+  delete b_Jet_SF_deepJet_30;
   delete b_Jet_deepCSV;
+  delete b_Jet_deepJet;
   delete b_Jet_deepCvsL;
   delete b_Jet_deepCvsB;
+  delete b_Jet_deepJetCvsL;
+  delete b_Jet_deepJetCvsB;
 
 }
 
@@ -463,24 +474,25 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 {
   using namespace edm;
 
-  b_PUWeight   ->clear();
-  b_ScaleWeight->clear();
-  b_PSWeight   ->clear();
-  b_PDFWeight  ->clear();
+  b_PUWeight     ->clear();
+  b_PrefireWeight->clear();
+  b_ScaleWeight  ->clear();
+  b_PSWeight     ->clear();
+  b_PDFWeight    ->clear();
 
-  b_GenConeCatID->clear();
-  b_GenCone_gJet_pt->clear();
-  b_GenCone_gJet_eta->clear();
-  b_GenCone_gJet_phi->clear();
-  b_GenCone_gJet_e->clear();
+  b_GenConeCatID     ->clear();
+  b_GenCone_gJet_pt  ->clear();
+  b_GenCone_gJet_eta ->clear();
+  b_GenCone_gJet_phi ->clear();
+  b_GenCone_gJet_e   ->clear();
   b_GenCone_gJetFlavW->clear();
 
   b_Lepton_SF->clear();
 
-  b_Jet_pt    ->clear();
-  b_Jet_eta   ->clear();
-  b_Jet_phi   ->clear();
-  b_Jet_e     ->clear();
+  b_Jet_pt   ->clear();
+  b_Jet_eta  ->clear();
+  b_Jet_phi  ->clear();
+  b_Jet_e    ->clear();
   b_Jet_Index->clear();
 
   b_Jet_partonFlavour->clear();
@@ -491,13 +503,14 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   b_Jet_JER_Nom ->clear();
   b_Jet_JER_Down->clear();
 
-  b_Jet_CSV          ->clear();
   b_Jet_deepCSV      ->clear();
+  b_Jet_deepJet      ->clear();
   b_Jet_SF_deepCSV_30->clear();
-  b_Jet_CvsL         ->clear();
-  b_Jet_CvsB         ->clear();
+  b_Jet_SF_deepJet_30->clear();
   b_Jet_deepCvsL     ->clear();
   b_Jet_deepCvsB     ->clear();
+  b_Jet_deepJetCvsL  ->clear();
+  b_Jet_deepJetCvsB  ->clear();
 
   b_addbjet1_pt  = b_addbjet1_e   = b_addbjet2_pt  = b_addbjet2_e   = -1.0 ;
   b_addbjet1_eta = b_addbjet1_phi = b_addbjet2_eta = b_addbjet2_phi = -10.0;
@@ -545,6 +558,18 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     iEvent.getByToken(genWeightToken_, genWeight);
     b_GenWeight = *genWeight;
     EventInfo->Fill(1.5, b_GenWeight); // Sum of aMC@NLO Weights
+
+    edm::Handle<double> prefweight;
+    iEvent.getByToken(prefweightToken_, prefweight );
+    b_PrefireWeight->push_back(*prefweight);
+
+    edm::Handle<double> prefweight_up;
+    iEvent.getByToken(prefweightupToken_, prefweight_up );
+    b_PrefireWeight->push_back(*prefweight_up);
+
+    edm::Handle<double> prefweight_down;
+    iEvent.getByToken(prefweightdownToken_, prefweight_down );
+    b_PrefireWeight->push_back(*prefweight_down);
 
     //---------------------------------------------------------------------------
     // MET optional filters 
@@ -1010,16 +1035,10 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         b_Jet_hadronFlavour->push_back(jet.hadronFlavour());
 
         // b-tag discriminant
-        float jet_btagDis_CSV = jet.bDiscriminator(BTAG_CSVv2);
-        b_Jet_CSV ->push_back(jet_btagDis_CSV);
         float jet_btagDis_deepCSVb = jet.bDiscriminator(BTAG_DeepCSVb);
         float jet_btagDis_deepCSVbb = jet.bDiscriminator(BTAG_DeepCSVbb);
         b_Jet_deepCSV ->push_back(jet_btagDis_deepCSVb+jet_btagDis_deepCSVbb);
         // c-tag discriminant
-        float jet_btagDis_CvsL = jet.bDiscriminator(CTAG_CvsL);
-        b_Jet_CvsL ->push_back(jet_btagDis_CvsL);
-        float jet_btagDis_CvsB = jet.bDiscriminator(CTAG_CvsB);
-        b_Jet_CvsB ->push_back(jet_btagDis_CvsB);
         float jet_btagDis_deepCvsL = jet.bDiscriminator(CTAG_DeepCSVc)/(jet.bDiscriminator(CTAG_DeepCSVc)+jet.bDiscriminator(CTAG_DeepCSVudsg));
         b_Jet_deepCvsL ->push_back(jet_btagDis_deepCvsL);
         float jet_btagDis_deepCvsB = jet.bDiscriminator(CTAG_DeepCSVc)/(jet.bDiscriminator(CTAG_DeepCSVc)+jet.bDiscriminator(BTAG_DeepCSVb)+jet.bDiscriminator(BTAG_DeepCSVbb));
