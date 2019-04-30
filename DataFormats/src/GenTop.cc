@@ -726,30 +726,6 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
   std::sort(addbJetsBHad.begin(), addbJetsBHad.end(), GreaterByPt<reco::Candidate::LorentzVector>());
   std::sort(addcJetsCHad.begin(), addcJetsCHad.end(), GreaterByPt<reco::Candidate::LorentzVector>());
 
-  /*
-  double mindR = 999;
-  unsigned int index1 = 0;
-  unsigned int index2 = 0;
-  for( unsigned int i=0; i < bJetsBHad.size(); ++i ){
-    //if( bJetsBHad[i].pt() < 20 || std::abs(bJetsBHad[i].eta()) > 2.5 ) continue;
-    for( unsigned int j=0; j < bJetsBHad.size(); ++j ){
-      if( i == j ) continue;
-      //if( bJetsBHad[j].pt() < 20 || std::abs(bJetsBHad[j].eta()) > 2.5 ) continue;
-      double tmp = reco::deltaR(bJetsBHad[i],bJetsBHad[j]);
-      if( tmp < mindR ){
-        mindR = tmp;
-	index1 = i;
-	index2 = j;
-      }
-    }
-  }
-  if( index1 == 0 && index1 != index2 ){
-    mindRbJets_.push_back(bJetsBHad[index1]);
-    mindRbJets_.push_back(bJetsBHad[index2]);
-    std::sort(mindRbJets_.begin(), mindRbJets_.end(), GreaterByPt<reco::Candidate::LorentzVector>());
-  }
-  */
-
   NbJetsBHad_ = 0;
   NbJets10BHad_ = 0;
   NbJets20BHad_ = 0;

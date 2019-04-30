@@ -789,17 +789,6 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     b_DRAddJets = genttbarConeCat->begin()->dRaddJets();
 
     // adding b jet four-momentum having minimum deltaR
-    /*
-    b_mindRbjet1_pt  = genttbarConeCat->begin()->mindRbJets1().Pt();
-    b_mindRbjet1_eta = genttbarConeCat->begin()->mindRbJets1().Eta();
-    b_mindRbjet1_phi = genttbarConeCat->begin()->mindRbJets1().Phi();
-    b_mindRbjet1_e   = genttbarConeCat->begin()->mindRbJets1().E();
-
-    b_mindRbjet2_pt  = genttbarConeCat->begin()->mindRbJets2().Pt();
-    b_mindRbjet2_eta = genttbarConeCat->begin()->mindRbJets2().Eta();
-    b_mindRbjet2_phi = genttbarConeCat->begin()->mindRbJets2().Phi();
-    b_mindRbjet2_e   = genttbarConeCat->begin()->mindRbJets2().E();
-    */
     std::vector<math::XYZTLorentzVector> genbjets = genttbarConeCat->begin()->bJets();
     tmp2->Fill(genbjets.size());
     double mindR=999;
