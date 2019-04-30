@@ -168,6 +168,19 @@ private:
   float b_addbjet2_phi;
   float b_addbjet2_e; 
 
+  // two gen bjets having minimum deltaR 
+  float b_mindRbjet1_pt;
+  float b_mindRbjet1_eta;
+  float b_mindRbjet1_phi;
+  float b_mindRbjet1_e;
+
+  float b_mindRbjet2_pt;
+  float b_mindRbjet2_eta;
+  float b_mindRbjet2_phi;
+  float b_mindRbjet2_e;
+
+  float b_mindR;
+
   // Jets
   int b_Jet_Number;
   std::vector<float> *b_Jet_pT;
@@ -203,6 +216,7 @@ private:
 
   // Histograms: Number of Events and Weights
   TH1D *EventInfo, *ScaleWeights;
+  TH1D *tmp1, *tmp2;
   // Scale factor evaluators
   BTagWeightEvaluator SF_CSV_;
   ScaleFactorEvaluator SF_muon_, SF_muonTrg_,
@@ -409,15 +423,27 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
     tree->Branch("gennu_phi",     &b_GenNu_phi,     "gennu_phi/F");
     tree->Branch("gennu_E",       &b_GenNu_E,       "gennu_E/F");
 
-    tree->Branch("addbjet1_pt", &b_addbjet1_pt, "addbjet1_pt/F"); 
+    tree->Branch("addbjet1_pt",  &b_addbjet1_pt,  "addbjet1_pt/F"); 
     tree->Branch("addbjet1_eta", &b_addbjet1_eta, "addbjet1_eta/F"); 
     tree->Branch("addbjet1_phi", &b_addbjet1_phi, "addbjet1_phi/F"); 
-    tree->Branch("addbjet1_e", &b_addbjet1_e, "addbjet1_e/F"); 
+    tree->Branch("addbjet1_e",   &b_addbjet1_e,   "addbjet1_e/F"); 
 
-    tree->Branch("addbjet2_pt", &b_addbjet2_pt, "addbjet2_pt/F");
+    tree->Branch("addbjet2_pt",  &b_addbjet2_pt,  "addbjet2_pt/F");
     tree->Branch("addbjet2_eta", &b_addbjet2_eta, "addbjet2_eta/F");
     tree->Branch("addbjet2_phi", &b_addbjet2_phi, "addbjet2_phi/F");
-    tree->Branch("addbjet2_e", &b_addbjet2_e, "addbjet2_e/F");  
+    tree->Branch("addbjet2_e",   &b_addbjet2_e,   "addbjet2_e/F");  
+
+    tree->Branch("mindRbjet1_pt",  &b_mindRbjet1_pt,  "mindRbjet1_pt/F");
+    tree->Branch("mindRbjet1_eta", &b_mindRbjet1_eta, "mindRbjet1_eta/F");
+    tree->Branch("mindRbjet1_phi", &b_mindRbjet1_phi, "mindRbjet1_phi/F");
+    tree->Branch("mindRbjet1_e",   &b_mindRbjet1_e,   "mindRbjet1_e/F");
+
+    tree->Branch("mindRbjet2_pt",  &b_mindRbjet2_pt,  "mindRbjet2_pt/F");
+    tree->Branch("mindRbjet2_eta", &b_mindRbjet2_eta, "mindRbjet2_eta/F");
+    tree->Branch("mindRbjet2_phi", &b_mindRbjet2_phi, "mindRbjet2_phi/F");
+    tree->Branch("mindRbjet2_e",   &b_mindRbjet2_e,   "mindRbjet2_e/F");
+
+    tree->Branch("mindR", &b_mindR, "mindR/F");
 
     //GEN TREE
     gentree = fs->make<TTree>("gentree", "TopGENTree");
@@ -444,6 +470,17 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
     gentree->Branch("addbjet2_phi", &b_addbjet2_phi, "addbjet2_phi/F");
     gentree->Branch("addbjet2_e", &b_addbjet2_e, "addbjet2_e/F");  
 
+    gentree->Branch("mindRbjet1_pt",  &b_mindRbjet1_pt,  "mindRbjet1_pt/F");
+    gentree->Branch("mindRbjet1_eta", &b_mindRbjet1_eta, "mindRbjet1_eta/F");
+    gentree->Branch("mindRbjet1_phi", &b_mindRbjet1_phi, "mindRbjet1_phi/F");
+    gentree->Branch("mindRbjet1_e",   &b_mindRbjet1_e,   "mindRbjet1_e/F");
+
+    gentree->Branch("mindRbjet2_pt",  &b_mindRbjet2_pt,  "mindRbjet2_pt/F");
+    gentree->Branch("mindRbjet2_eta", &b_mindRbjet2_eta, "mindRbjet2_eta/F");
+    gentree->Branch("mindRbjet2_phi", &b_mindRbjet2_phi, "mindRbjet2_phi/F");
+    gentree->Branch("mindRbjet2_e",   &b_mindRbjet2_e,   "mindRbjet2_e/F");
+
+    gentree->Branch("mindR", &b_mindR, "mindR/F");
   }
 
   EventInfo = fs->make<TH1D>("EventInfo","Event Information",9,0,9);
@@ -465,6 +502,14 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   ScaleWeights->GetXaxis()->SetBinLabel(5,"muR=Down muF=Nom");
   ScaleWeights->GetXaxis()->SetBinLabel(6,"muR=Down muF=Down");
 
+  tmp1 = fs->make<TH1D>("tmp","tmp",4,0,4);
+  tmp1->GetXaxis()->SetBinLabel(1,"From eventinfo");
+  tmp1->GetXaxis()->SetBinLabel(2,"From gentree");
+  tmp1->GetXaxis()->SetBinLabel(3, "ttjj && ttbb");
+  tmp1->GetXaxis()->SetBinLabel(4, "NaddJet20() < 1 && NaddbJet20() > 1");
+
+  tmp2 = fs->make<TH1D>("tmp2","tmp2",10,0,10);
+  tmp2->GetXaxis()->SetTitle("b jet multiplicity");
 }
 
 
@@ -560,16 +605,27 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   b_Jet_CvsL     ->clear();
   b_Jet_CvsB     ->clear();
   
-  b_addbjet1_pt = -1.0;
+  b_addbjet1_pt  = -1.0;
   b_addbjet1_eta = -1.0;
   b_addbjet1_phi = -1.0;
-  b_addbjet1_e = -1.0;
+  b_addbjet1_e   = -1.0;
 
-  b_addbjet2_pt = -1.0;
+  b_addbjet2_pt  = -1.0;
   b_addbjet2_eta = -1.0;
   b_addbjet2_phi = -1.0;
-  b_addbjet2_e = -1.0;
+  b_addbjet2_e   = -1.0;
 
+  b_mindRbjet1_pt  = -1.0;
+  b_mindRbjet1_eta = -1.0;
+  b_mindRbjet1_phi = -1.0;
+  b_mindRbjet1_e   = -1.0;
+
+  b_mindRbjet2_pt  = -1.0;
+  b_mindRbjet2_eta = -1.0;
+  b_mindRbjet2_phi = -1.0;
+  b_mindRbjet2_e   = -1.0;
+
+  b_mindR = 999;
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   // Event Info
@@ -732,10 +788,55 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     // DR 
     b_DRAddJets = genttbarConeCat->begin()->dRaddJets();
 
+    // adding b jet four-momentum having minimum deltaR
+    /*
+    b_mindRbjet1_pt  = genttbarConeCat->begin()->mindRbJets1().Pt();
+    b_mindRbjet1_eta = genttbarConeCat->begin()->mindRbJets1().Eta();
+    b_mindRbjet1_phi = genttbarConeCat->begin()->mindRbJets1().Phi();
+    b_mindRbjet1_e   = genttbarConeCat->begin()->mindRbJets1().E();
+
+    b_mindRbjet2_pt  = genttbarConeCat->begin()->mindRbJets2().Pt();
+    b_mindRbjet2_eta = genttbarConeCat->begin()->mindRbJets2().Eta();
+    b_mindRbjet2_phi = genttbarConeCat->begin()->mindRbJets2().Phi();
+    b_mindRbjet2_e   = genttbarConeCat->begin()->mindRbJets2().E();
+    */
+    std::vector<math::XYZTLorentzVector> genbjets = genttbarConeCat->begin()->bJets();
+    tmp2->Fill(genbjets.size());
+    double mindR=999;
+    int index1=0, index2=0;
+    for(unsigned int i=0; i < genbjets.size(); ++i){
+      if( genbjets[i].Pt() < 20 || std::abs(genbjets[i].Eta()) > 2.5 ) continue;
+      for(unsigned int j=0; j < genbjets.size(); ++j){
+	if( genbjets[j].Pt() < 20 || std::abs(genbjets[j].Eta()) > 2.5 ) continue;
+	if( i == j ) continue;
+	double tmp = reco::deltaR(genbjets[i], genbjets[j]);
+	if( tmp < mindR ){
+	  mindR = tmp;
+	  index1 = i;
+	  index2 = j;
+	}
+      }
+    }
+
+    b_mindRbjet1_pt = genbjets[index1].Pt();
+    b_mindRbjet1_eta = genbjets[index1].Eta();
+    b_mindRbjet1_phi = genbjets[index1].Phi();
+    b_mindRbjet1_e = genbjets[index1].E();
+
+    b_mindRbjet2_pt = genbjets[index2].Pt();
+    b_mindRbjet2_eta = genbjets[index2].Eta();
+    b_mindRbjet2_phi = genbjets[index2].Phi();
+    b_mindRbjet2_e = genbjets[index2].E();
+
+    b_mindR = mindR;
+
     if(genttbarConeCat->begin()-> NaddbJets20() > 1){
       EventInfo->Fill(2.5, 1.0); // Number of ttbb Events	
       if(genttbarConeCat->begin()->semiLeptonic(-1)) EventInfo->Fill(3.5, 1.0); // Number of ttbb Events (Includes tau) 
-      if(genttbarConeCat->begin()->semiLeptonic(0)) EventInfo->Fill(4.5, 1.0); // Number of ttbb Events (Includes tau leptonic decay)
+      if(genttbarConeCat->begin()->semiLeptonic(0)){
+	  EventInfo->Fill(4.5, 1.0); // Number of ttbb Events (Includes tau leptonic decay)
+          tmp1->Fill(0.5,1.0);  
+      }
     }
     if(genttbarConeCat->begin()-> NaddJets20() > 1){
       EventInfo->Fill(5.5, 1.0); // Number of ttjj Events	
@@ -767,6 +868,10 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     else if (Isttjj && genttbarConeCat->begin()->NaddJets20()  > 1) IsttLF = true;
     else Istt = true;
 
+    if(nGenLep == 1){
+      if(Isttjj && Isttbb) tmp1->Fill(2.5,1.0);
+      if((!Isttjj) && genttbarConeCat->begin()->NaddbJets20() > 1) tmp1->Fill(3.5,1.0);
+    }
     // Categorization based in the Visible Ph-Sp
     // if(genttbarConeCat->begin()->NbJets20() > 1 && 
     //    genttbarConeCat->begin()->NJets20()  > 5) Isttjj = true;
@@ -817,6 +922,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 	  b_GenNu_E       = genttbarConeCat->begin()->nu2().e();
 	}
 
+	tmp1->Fill(1.5, 1.0);
 	gentree->Fill();
 
       } // if(nGenLep == 1)
