@@ -797,14 +797,13 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         }
       }
 
-      if( index1 > -1 ){
+      if( index1 > -1 && index2 > -1){
         b_mindRbjet1_pt = genbjets[index1].Pt();
         b_mindRbjet1_eta = genbjets[index1].Eta();
         b_mindRbjet1_phi = genbjets[index1].Phi();
         b_mindRbjet1_e = genbjets[index1].E();
-      }
-      if( index2 > -1 ){
-        b_mindRbjet2_pt = genbjets[index2].Pt();
+        
+	b_mindRbjet2_pt = genbjets[index2].Pt();
         b_mindRbjet2_eta = genbjets[index2].Eta();
         b_mindRbjet2_phi = genbjets[index2].Phi();
         b_mindRbjet2_e = genbjets[index2].E();
