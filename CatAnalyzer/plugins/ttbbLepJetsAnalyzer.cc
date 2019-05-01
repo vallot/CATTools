@@ -216,7 +216,6 @@ private:
 
   // Histograms: Number of Events and Weights
   TH1D *EventInfo, *ScaleWeights;
-  TH1D *tmp1, *tmp2;
   // Scale factor evaluators
   BTagWeightEvaluator SF_CSV_;
   ScaleFactorEvaluator SF_muon_, SF_muonTrg_,
@@ -501,15 +500,6 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   ScaleWeights->GetXaxis()->SetBinLabel(4,"muR=Up   muF=Up");
   ScaleWeights->GetXaxis()->SetBinLabel(5,"muR=Down muF=Nom");
   ScaleWeights->GetXaxis()->SetBinLabel(6,"muR=Down muF=Down");
-
-  tmp1 = fs->make<TH1D>("tmp","tmp",4,0,4);
-  tmp1->GetXaxis()->SetBinLabel(1,"From eventinfo");
-  tmp1->GetXaxis()->SetBinLabel(2,"From gentree");
-  tmp1->GetXaxis()->SetBinLabel(3, "ttjj && ttbb");
-  tmp1->GetXaxis()->SetBinLabel(4, "NaddJet20() < 1 && NaddbJet20() > 1");
-
-  tmp2 = fs->make<TH1D>("tmp2","tmp2",10,0,10);
-  tmp2->GetXaxis()->SetTitle("b jet multiplicity");
 }
 
 
@@ -789,42 +779,45 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     b_DRAddJets = genttbarConeCat->begin()->dRaddJets();
 
     // adding b jet four-momentum having minimum deltaR
+
     std::vector<math::XYZTLorentzVector> genbjets = genttbarConeCat->begin()->bJets();
-    tmp2->Fill(genbjets.size());
-    double mindR=999;
-    int index1=0, index2=0;
-    for(unsigned int i=0; i < genbjets.size(); ++i){
-      if( genbjets[i].Pt() < 20 || std::abs(genbjets[i].Eta()) > 2.5 ) continue;
-      for(unsigned int j=0; j < genbjets.size(); ++j){
-	if( genbjets[j].Pt() < 20 || std::abs(genbjets[j].Eta()) > 2.5 ) continue;
-	if( i == j ) continue;
-	double tmp = reco::deltaR(genbjets[i], genbjets[j]);
-	if( tmp < mindR ){
-	  mindR = tmp;
-	  index1 = i;
-	  index2 = j;
-	}
+    if( genbjets.size() > 0 ){
+      double mindR=999;
+      int index1=-1, index2=-1;
+      for( unsigned int i=0; i < genbjets.size(); ++i ){
+        if( genbjets[i].Pt() < 20 || std::abs(genbjets[i].Eta()) > 2.5 ) continue;
+        for( unsigned int j=i+1; j < genbjets.size(); ++j ){
+	  if( genbjets[j].Pt() < 20 || std::abs(genbjets[j].Eta()) > 2.5 ) continue;
+	  double tmp = reco::deltaR(genbjets[i], genbjets[j]);
+	  if( tmp < mindR ){
+	    mindR = tmp;
+	    index1 = i;
+	    index2 = j;
+	  }
+        }
+      }
+
+      if( index1 > -1 ){
+        b_mindRbjet1_pt = genbjets[index1].Pt();
+        b_mindRbjet1_eta = genbjets[index1].Eta();
+        b_mindRbjet1_phi = genbjets[index1].Phi();
+        b_mindRbjet1_e = genbjets[index1].E();
+      }
+      if( index2 > -1 ){
+        b_mindRbjet2_pt = genbjets[index2].Pt();
+        b_mindRbjet2_eta = genbjets[index2].Eta();
+        b_mindRbjet2_phi = genbjets[index2].Phi();
+        b_mindRbjet2_e = genbjets[index2].E();
+        
+	b_mindR = mindR;
       }
     }
-
-    b_mindRbjet1_pt = genbjets[index1].Pt();
-    b_mindRbjet1_eta = genbjets[index1].Eta();
-    b_mindRbjet1_phi = genbjets[index1].Phi();
-    b_mindRbjet1_e = genbjets[index1].E();
-
-    b_mindRbjet2_pt = genbjets[index2].Pt();
-    b_mindRbjet2_eta = genbjets[index2].Eta();
-    b_mindRbjet2_phi = genbjets[index2].Phi();
-    b_mindRbjet2_e = genbjets[index2].E();
-
-    b_mindR = mindR;
 
     if(genttbarConeCat->begin()-> NaddbJets20() > 1){
       EventInfo->Fill(2.5, 1.0); // Number of ttbb Events	
       if(genttbarConeCat->begin()->semiLeptonic(-1)) EventInfo->Fill(3.5, 1.0); // Number of ttbb Events (Includes tau) 
       if(genttbarConeCat->begin()->semiLeptonic(0)){
 	  EventInfo->Fill(4.5, 1.0); // Number of ttbb Events (Includes tau leptonic decay)
-          tmp1->Fill(0.5,1.0);  
       }
     }
     if(genttbarConeCat->begin()-> NaddJets20() > 1){
@@ -857,10 +850,6 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     else if (Isttjj && genttbarConeCat->begin()->NaddJets20()  > 1) IsttLF = true;
     else Istt = true;
 
-    if(nGenLep == 1){
-      if(Isttjj && Isttbb) tmp1->Fill(2.5,1.0);
-      if((!Isttjj) && genttbarConeCat->begin()->NaddbJets20() > 1) tmp1->Fill(3.5,1.0);
-    }
     // Categorization based in the Visible Ph-Sp
     // if(genttbarConeCat->begin()->NbJets20() > 1 && 
     //    genttbarConeCat->begin()->NJets20()  > 5) Isttjj = true;
@@ -911,7 +900,6 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 	  b_GenNu_E       = genttbarConeCat->begin()->nu2().e();
 	}
 
-	tmp1->Fill(1.5, 1.0);
 	gentree->Fill();
 
       } // if(nGenLep == 1)
