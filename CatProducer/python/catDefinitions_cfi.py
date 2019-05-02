@@ -1,8 +1,8 @@
 import FWCore.ParameterSet.Config as cms
 
 bunchCrossing  = 25
-globalTag_mc   = '80X_mcRun2_asymptotic_2016_TrancheIV_v8'
-globalTag_rd   = '80X_dataRun2_2016SeptRepro_v7'
+globalTag_mc   = '80X_mcRun2_asymptotic_2016_TrancheIV_v9'
+globalTag_rd   = '80X_dataRun2_2016SeptRepro_v8'
 lumiJSON       = 'Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON'
 pileupMCmap    = '2016_25ns_Moriond17MC'
 

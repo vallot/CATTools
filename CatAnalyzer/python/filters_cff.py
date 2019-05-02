@@ -14,29 +14,30 @@ filterRECO = cms.EDFilter("CATTriggerBitCombiner",
     src = cms.InputTag("catTrigger"),
     combineBy = cms.string("and"),
     triggersToMatch = cms.vstring(
+        "Flag_goodVertices",
         "Flag_HBHENoiseFilter",
         "Flag_HBHENoiseIsoFilter",
         "Flag_EcalDeadCellTriggerPrimitiveFilter",
-        "Flag_goodVertices",
         "Flag_eeBadScFilter",
-        "Flag_globalTightHalo2016Filter",
+        "Flag_globalSuperTightHalo2016Filter",
 
         "Flag_badPFMuon",
-        "Flag_badChargedHadron",
+        #"Flag_badChargedHadron",
     ),
     doFilter = cms.bool(False),
 )
 
 filterRECOMC = filterRECO.clone(
     triggersToMatch = cms.vstring(
+        "Flag_goodVertices",
         "Flag_HBHENoiseFilter",
         "Flag_HBHENoiseIsoFilter",
-        "Flag_goodVertices",
-        "Flag_eeBadScFilter",
-        "Flag_globalTightHalo2016Filter",
+        "Flag_EcalDeadCellTriggerPrimitiveFilter",
+        #"Flag_eeBadScFilter",
+        "Flag_globalSuperTightHalo2016Filter",
 
         "Flag_badPFMuon",
-        "Flag_badChargedHadron",
+        #"Flag_badChargedHadron",
     ),
 )
 
