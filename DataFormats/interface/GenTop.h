@@ -79,12 +79,12 @@ namespace cat {
     
 
     const math::XYZTLorentzVector addbJets1(int i = 0) const {
-      if( i == 0) return addbJetsHad_[0];
+      if( i == 0 ) return addbJetsHad_[0];
       else return addbJets_[0];
     }
 
     const math::XYZTLorentzVector addbJets2(int i = 0) const {
-      if( i == 0) return addbJetsHad_[1];
+      if( i == 0 ) return addbJetsHad_[1];
       else return addbJets_[1];
     }
 
@@ -103,6 +103,8 @@ namespace cat {
 
     const math::XYZTLorentzVector addJets1() const { return addJets_[0]; }
     const math::XYZTLorentzVector addJets2() const { return addJets_[1]; }
+
+    const std::vector<math::XYZTLorentzVector> bJets() const { return bJets_; }
 
     //void building( const std::vector<reco::GenJet>* genJets, const std::vector<reco::GenParticle>* genParticles );
     void building( Handle<reco::GenJetCollection> genJets, Handle<reco::GenParticleCollection> genParticles, Handle<std::vector<int> > genBHadFlavour, Handle<std::vector<int> > genBHadJetIndex, Handle<std::vector<int> > genCHadFlavour, Handle<std::vector<int> > genCHadJetIndex  );
