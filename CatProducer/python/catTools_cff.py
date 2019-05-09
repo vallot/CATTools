@@ -10,6 +10,8 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         process.pileupWeight.pileupRD = pileupWeightMap["%s"%cat.lumiJSON]
         process.pileupWeight.pileupUp = pileupWeightMap["%s_Up"%cat.lumiJSON]
         process.pileupWeight.pileupDn = pileupWeightMap["%s_Dn"%cat.lumiJSON]
+        from CATTools.CatProducer.prefireWeight_cff import prefiringweight
+        process.prefiringweight = prefiringweight
     else:
         from FWCore.PythonUtilities.LumiList import LumiList
         process.lumiMask = cms.EDFilter("LumiMaskFilter",

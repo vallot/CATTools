@@ -33,6 +33,7 @@ catEventContent.extend([
 catEventContentMC.extend([
     'keep *_genWeight_*_*',
     'keep *_pileupWeight*_*_*',
+    'keep *_prefiringweight*_*_*',
     ])
 
 catEventContentMCSignal.extend([
