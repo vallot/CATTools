@@ -5,8 +5,8 @@ catFatJets = cms.EDProducer('CATFatJetProducer',
     rho = cms.InputTag('fixedGridRhoFastjetAll'),
     btagNames = cms.vstring('pfCombinedInclusiveSecondaryVertexV2BJetTags','pfCombinedMVAV2BJetTags',"inclusiveCandidateSecondaryVerticesCvsL","pfCombinedCvsLJetTags","pfCombinedCvsBJetTags"),
     payloadName = cms.string('AK8PFchs'),
-    jetResFile   = cms.string("CATTools/CatProducer/data/JER/Spring16_25nsV6_MC_PtResolution_AK8PFchs.txt"),
-    jetResSFFile = cms.string("CATTools/CatProducer/data/JER/Spring16_25nsV6_MC_SF_AK8PFchs.txt"),
+    jetResFile   = cms.string("CATTools/CatProducer/data/JER/Summer16_25nsV1_MC_PtResolution_AK8PFchs.txt"),
+    jetResSFFile = cms.string("CATTools/CatProducer/data/JER/Summer16_25nsV1_MC_SF_AK8PFchs.txt"),
     setGenParticle = cms.bool(False),
 )
 
