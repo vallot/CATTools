@@ -75,19 +75,16 @@ namespace cat {
     const math::XYZTLorentzVector Hbquarks2() const { return Hbquarks_[1]; }
     const math::XYZTLorentzVector HbJets1() const { return HbJets_[0]; }
     const math::XYZTLorentzVector HbJets2() const { return HbJets_[1]; }
-    const math::XYZTLorentzVector HbquarkJets1() const { return HbquarkJets_[0]; }
-    const math::XYZTLorentzVector HbquarkJets2() const { return HbquarkJets_[1]; }
     const math::XYZTLorentzVector Higgs() const { return Higgs_[0]; }
-    const math::XYZTLorentzVector FCNCupJet() const { return FCNCupJet_[0]; }
     
 
     const math::XYZTLorentzVector addbJets1(int i = 0) const {
-      if( i == 0) return addbJetsHad_[0];
+      if( i == 0 ) return addbJetsHad_[0];
       else return addbJets_[0];
     }
 
     const math::XYZTLorentzVector addbJets2(int i = 0) const {
-      if( i == 0) return addbJetsHad_[1];
+      if( i == 0 ) return addbJetsHad_[1];
       else return addbJets_[1];
     }
 
@@ -106,6 +103,8 @@ namespace cat {
 
     const math::XYZTLorentzVector addJets1() const { return addJets_[0]; }
     const math::XYZTLorentzVector addJets2() const { return addJets_[1]; }
+
+    const std::vector<math::XYZTLorentzVector> bJets() const { return bJets_; }
 
     //void building( const std::vector<reco::GenJet>* genJets, const std::vector<reco::GenParticle>* genParticles );
     void building( Handle<reco::GenJetCollection> genJets, Handle<reco::GenParticleCollection> genParticles, Handle<std::vector<int> > genBHadFlavour, Handle<std::vector<int> > genBHadJetIndex, Handle<std::vector<int> > genCHadFlavour, Handle<std::vector<int> > genCHadJetIndex  );
@@ -186,9 +185,17 @@ namespace cat {
       if( i == 0 ) return NbJets10BHad_;
       else return NbJets10_ ;
     }
+    int NbJets15(int i=0) const {
+      if( i == 0 ) return NbJets15BHad_;
+      else return NbJets15_ ;
+    }
     int NbJets20(int i=0) const {
       if( i == 0 ) return NbJets20BHad_;
       else return NbJets20_ ;
+    }
+    int NbJets25(int i=0) const {
+      if( i == 0 ) return NbJets25BHad_;
+      else return NbJets25_ ;
     }
     int NbJets30(int i=0) const {
       if( i == 0 ) return NbJets30BHad_;
@@ -237,9 +244,17 @@ namespace cat {
       if( i == 0 ) return NcJets10CHad_;
       else return NcJets10_ ;
     }
+    int NcJets15(int i=0) const {
+      if( i == 0 ) return NcJets15CHad_;
+      else return NcJets15_ ;
+    }
     int NcJets20(int i=0) const {
       if( i == 0 ) return NcJets20CHad_;
       else return NcJets20_ ;
+    }
+    int NcJets25(int i=0) const {
+      if( i == 0 ) return NcJets25CHad_;
+      else return NcJets25_ ;
     }
     int NcJets30(int i=0) const {
       if( i == 0 ) return NcJets30CHad_;
@@ -251,12 +266,16 @@ namespace cat {
     }
 
     int NbJetsNoTop() const { return NbJetsNoTop_ ; }
+    int NbJets15NoTop() const { return NbJets15NoTop_ ; }
     int NbJets20NoTop() const { return NbJets20NoTop_ ; }
+    int NbJets25NoTop() const { return NbJets25NoTop_ ; }
     int NbJets30NoTop() const { return NbJets30NoTop_ ; }
 
     int NJets() const { return NJets_ ;}
     int NJets10() const { return NJets10_ ;}
+    int NJets15() const { return NJets15_ ;}
     int NJets20() const { return NJets20_ ;}
+    int NJets25() const { return NJets25_ ;}
     int NJets30() const { return NJets30_ ;}
     int NJets40() const { return NJets40_ ;}
 
@@ -296,10 +315,7 @@ namespace cat {
     LorentzVectors upquark_;
     LorentzVectors Hbquarks_;
     LorentzVectors HbJets_;
-    LorentzVectors HbquarkJets_;
     LorentzVectors Higgs_;
-    LorentzVectors FCNCupJet_;
-
     LorentzVectors JetsFromW_;
     std::vector<int> JetsFlavourFromW_;
     LorentzVectors addbJets_;
@@ -332,13 +348,17 @@ namespace cat {
 
     int NbJets_;
     int NbJets10_;
+    int NbJets15_;
     int NbJets20_;
+    int NbJets25_;
     int NbJets30_;
     int NbJets40_;
 
     int NbJetsBHad_;
     int NbJets10BHad_;
+    int NbJets15BHad_;
     int NbJets20BHad_;
+    int NbJets25BHad_;
     int NbJets30BHad_;
     int NbJets40BHad_;
 
@@ -352,14 +372,18 @@ namespace cat {
 
     int NbJetsNoTop_;
     int NbJets10NoTop_;
+    int NbJets15NoTop_;
     int NbJets20NoTop_;
+    int NbJets25NoTop_;
     int NbJets30NoTop_;
     int NbJets40NoTop_;
 
 
     int NcJets_;
     int NcJets10_;
+    int NcJets15_;
     int NcJets20_;
+    int NcJets25_;
     int NcJets30_;
     int NcJets40_;
 
@@ -371,7 +395,9 @@ namespace cat {
 
     int NcJetsCHad_;
     int NcJets10CHad_;
+    int NcJets15CHad_;
     int NcJets20CHad_;
+    int NcJets25CHad_;
     int NcJets30CHad_;
     int NcJets40CHad_;
 
@@ -390,7 +416,9 @@ namespace cat {
 
     int NJets_;
     int NJets10_;
+    int NJets15_;
     int NJets20_;
+    int NJets25_;
     int NJets30_;
     int NJets40_;
 
