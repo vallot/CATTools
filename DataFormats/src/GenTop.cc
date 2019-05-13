@@ -782,6 +782,9 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     if( i < 4 ){
       bJets_[i] = bJetsBHad[i];
     }
+    else{
+      bJets_.push_back(bJetsBHad[i]);
+    }
     NbJetsBHad_++;
     if( bJetsBHad[i].pt() > 10 && std::abs(bJetsBHad[i].eta()) < 2.5) NbJets10BHad_++;
     if( bJetsBHad[i].pt() > 20 && std::abs(bJetsBHad[i].eta()) < 2.5) NbJets20BHad_++;
