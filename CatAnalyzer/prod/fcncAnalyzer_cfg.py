@@ -8,10 +8,8 @@ options = VarParsing ('analysis')
 options.register('UserJSON', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "UserJSON: Fault  default")
 # runOnTTbarMC ==> 0->No ttbar, 1->ttbar Signal
 options.register('runOnTTbarMC', 1, VarParsing.multiplicity.singleton, VarParsing.varType.int, "runOnTTbarMC: 0  default No ttbar sample")
-# TTbarCatMC   ==> 0->All ttbar, 1->ttbb, 2->ttbj, 3->ttcc, 4->ttLF, 5->tt, 6->ttjj, 7->TTLL and TTHad, 8->FCNC, ttV
+# TTbarCatMC   ==> 0->All ttbar, 1->ttbb, 2->ttcc, 3->ttLF, 4->FCNC, ttV
 options.register('TTbarCatMC', 0, VarParsing.multiplicity.singleton, VarParsing.varType.int, "TTbarCatMC: 0  default All ttbar events")
-# PU Map samples
-#options.register('PUMap', '2017_25ns_WinterMC', VarParsing.multiplicity.singleton, VarParsing.varType.string, "True for PU reshaping")
 options.parseArguments()
 
 print "User JSON file: " + str(options.UserJSON)
@@ -37,10 +35,10 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.source = cms.Source("PoolSource",
      fileNames = cms.untracked.vstring(
-#'file:../../CatProducer/prod/catTuple.root'
+'file:../../CatProducer/prod/catTuple.root'
 #        'root://cluster142.knu.ac.kr//store/group/CAT/V9_4/TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8/V9_4_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v2/181206_104220/0000/catTuple_100.root'
 #        'root://cluster142.knu.ac.kr//store/group/CAT/V9_4/SingleMuon/V9_4_Run2017C-31Mar2018-v1/181206_151733/0000/catTuple_100.root'
-        'root://cluster142.knu.ac.kr//store/group/CAT/V10_1/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/V10_1_RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/190316_000711/0000/catTuple_212.root'
+#        'root://cluster142.knu.ac.kr//store/group/CAT/V10_1/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/V10_1_RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/190316_000711/0000/catTuple_212.root'
         )
 )
 
