@@ -19,9 +19,9 @@ filterRECO = cms.EDFilter("CATTriggerBitCombiner",
         "Flag_HBHENoiseIsoFilter",
         "Flag_EcalDeadCellTriggerPrimitiveFilter",
         "Flag_BadPFMuonFilter",
-        "Flag_BadChargedCandidateFilter",
+        #"Flag_BadChargedCandidateFilter", #Not recommended
         "Flag_eeBadScFilter",
-        "Flag_ecalBadCalibFilter",
+        "Flag_ecalBadCalibReducedMINIAODFilter", #Newly added, run when CATtuple production
     ),
     doFilter = cms.bool(False),
 )
@@ -34,8 +34,8 @@ filterRECOMC = filterRECO.clone(
         "Flag_HBHENoiseIsoFilter",
         "Flag_EcalDeadCellTriggerPrimitiveFilter",
         "Flag_BadPFMuonFilter",
-        "Flag_BadChargedCandidateFilter",
-        "Flag_ecalBadCalibFilter",
+        #"Flag_BadChargedCandidateFilter", #Not recommended
+        "Flag_ecalBadCalibReducedMINIAODFilter", #Newly added, run when CATtuple production
     ),
 )
 

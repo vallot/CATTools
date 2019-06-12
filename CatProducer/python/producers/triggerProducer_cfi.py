@@ -35,6 +35,7 @@ catTrigger = cms.EDProducer("CATTriggerProducer",
             "Flag_ecalBadCalibFilter",
         ),
         bools = cms.VInputTag(
+            cms.InputTag("ecalBadCalibReducedMINIAODFilter"),
         ),
     ),
 )
