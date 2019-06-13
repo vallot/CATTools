@@ -197,8 +197,12 @@ void cat::CATElectronProducer::produce(edm::Event & iEvent, const edm::EventSetu
     if (runOnMC_){
       aElectron.setGenParticleRef(aPatElectron.genParticleRef());
       aElectron.setMCMatched( mcMatch( aElectron.p4(), genElectrons ) );
-      aElectron.setSmearedScale(aElectron.pt()/unsmearedElecRef->pt());
     }
+    aElectron.setSmearedScale( aPatElectron.userFloat("ecalTrkEnergyPostCorr") / aPatElectron.energy());
+    aElectron.setSmearedScaleUnc( aPatElectron.userFloat("energyScaleUp"),
+                                  aPatElectron.userFloat("energyScaleDown"),
+                                  aPatElectron.userFloat("energySigmaUp"),
+                                  aPatElectron.userFloat("energySigmaDown"));
     aElectron.setIsGsfCtfScPixChargeConsistent( aPatElectron.isGsfCtfScPixChargeConsistent() );
     aElectron.setIsEB( aPatElectron.isEB() );
 

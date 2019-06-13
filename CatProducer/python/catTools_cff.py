@@ -100,6 +100,11 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
           debug = cms.bool(False))
       process.p += process.ecalBadCalibReducedMINIAODFilter
 
+      from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
+      setupEgammaPostRecoSeq(process,
+                             runVID=False,
+                             era='2018-Prompt')
+      process.p += process.egammaPostRecoSeq
 
 def addEgmID(process, runOnMC):
         #######################################################################
