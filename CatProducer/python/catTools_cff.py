@@ -153,6 +153,12 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
           debug = cms.bool(False))
       process.p += process.ecalBadCalibReducedMINIAODFilter
 
+      # Egamma post reco tools: https://twiki.cern.ch/twiki/bin/view/CMS/EgammaPostRecoRecipes#Running_on_2017_MiniAOD_V2
+      from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
+      setupEgammaPostRecoSeq(process,
+                             runVID=False, #if you want the Fall17V2 IDs, set this to True or remove (default is True)
+                             era='2017-Nov17ReReco')  #era is new to select between 2016 / 2017,  it defaults to 2017
+      process.p += process.egammaPostRecoSeq
 
 def addEgmID(process, runOnMC):
         #######################################################################

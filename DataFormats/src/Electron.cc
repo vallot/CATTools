@@ -8,7 +8,7 @@ Electron::Electron() {
 
 Electron::Electron(const reco::LeafCandidate & aElectron) :
   Lepton( aElectron ),
-  smearedScale_(1),
+  smearedScale_{1,0,0,0,0},
   relIso03_(0),
   relIso04_(0),
   ipsig_(0),

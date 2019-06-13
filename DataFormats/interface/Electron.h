@@ -41,10 +41,14 @@ namespace cat {
 
     float ipsignificance() const { return ipsig_;}
 
-    float smearedScale() const { return smearedScale_; }
-    float shiftedEn() const { if (this->isEB()) return 0.006; else return 0.015; }
-    float shiftedEnDown() const {return 1-shiftedEn();}
-    float shiftedEnUp() const {return  1+shiftedEn();}
+    float smearedScale() const { return smearedScale_[0]; }
+    float shiftedEn() const { return 0.0; } //Put dummy number
+    float shiftedEnDown( int i = 0 ) const {
+      if ( i == 0 ) return smearedScale_[2];   // userFloat("energyScaleDown")
+      else          return smearedScale_[4]; } // userFloat("energySigmaDown")
+    float shiftedEnUp( int i = 0 ) const {
+      if ( i == 0 ) return smearedScale_[1];   // userFloat("energyScaleUp")
+      else          return smearedScale_[3]; } // userFloat("energySigmaUp")
     
     int snuID() const {return snuID_;}
     bool isTrigMVAValid() const { return isTrigMVAValid_; }
@@ -71,7 +75,13 @@ namespace cat {
     void setTrigMVAValid(bool val) { isTrigMVAValid_ = val; }
     void setIpSignficance(float ipsig) {ipsig_ = ipsig;}
 
-    void setSmearedScale(const float scale) { smearedScale_ = scale; }
+    void setSmearedScale(const float scale) {
+      smearedScale_[0] = scale; } //userFloat("ecalTrkEnergyPostCorr") / energy()
+    void setSmearedScaleUnc(const float up1, const float dn1, const float up2, const float dn2) {
+      smearedScale_[1] = up1;   // userFloat("energyScaleUp")
+      smearedScale_[2] = dn1;   // userFloat("energyScaleDown")
+      smearedScale_[3] = up2;   // userFloat("energySigmaUp")
+      smearedScale_[4] = dn2; } // userFloat("energySigmaDown")
 
     void setIsTrgFired(bool h) { isTrgFired_ = h; }
 
@@ -81,7 +91,7 @@ namespace cat {
 
     std::vector<pat::Electron::IdPair> electronIDs_;
 
-    float smearedScale_; // smearedScale = (pt_smeared)/(pt_original). Undo smearing by pt()/smearedScale()
+    float smearedScale_[5];
     float relIso03_;
     float relIso04_;
     float ipsig_;
