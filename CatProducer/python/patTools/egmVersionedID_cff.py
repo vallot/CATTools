@@ -6,8 +6,8 @@ def enableElectronVID(process):
     switchOnVIDElectronIdProducer(process, DataFormat.MiniAOD)
 
     electron_ids = [
-        'mvaElectronID_Fall17_noIso_V2_cff',
-        'mvaElectronID_Fall17_iso_V2_cff',
+        #'mvaElectronID_Fall17_noIso_V2_cff',
+        #'mvaElectronID_Fall17_iso_V2_cff',
         'cutBasedElectronID_Fall17_94X_V2_cff',
     ]
     for idmod in electron_ids:
@@ -15,13 +15,13 @@ def enableElectronVID(process):
         setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
 
     electron_idNames = [
-        "egmGsfElectronIDs:mvaEleID-Fall17-noIso-V2-wp90",
-        "egmGsfElectronIDs:mvaEleID-Fall17-noIso-V2-wp80",
-        "egmGsfElectronIDs:mvaEleID-Fall17-noIso-V2-wpLoose",
-        "egmGsfElectronIDs:mvaEleID-Fall17-iso-V2-wp90",
-        "egmGsfElectronIDs:mvaEleID-Fall17-iso-V2-wp80",
-        "egmGsfElectronIDs:mvaEleID-Fall17-iso-V2-wpLoose",
-        "egmGsfElectronIDs:mvaEleID-Fall17-iso-V2-wpHZZ",
+        #"egmGsfElectronIDs:mvaEleID-Fall17-noIso-V2-wp90",
+        #"egmGsfElectronIDs:mvaEleID-Fall17-noIso-V2-wp80",
+        #"egmGsfElectronIDs:mvaEleID-Fall17-noIso-V2-wpLoose",
+        #"egmGsfElectronIDs:mvaEleID-Fall17-iso-V2-wp90",
+        #"egmGsfElectronIDs:mvaEleID-Fall17-iso-V2-wp80",
+        #"egmGsfElectronIDs:mvaEleID-Fall17-iso-V2-wpLoose",
+        #"egmGsfElectronIDs:mvaEleID-Fall17-iso-V2-wpHZZ",
         "egmGsfElectronIDs:cutBasedElectronID-Fall17-94X-V2-veto",
         "egmGsfElectronIDs:cutBasedElectronID-Fall17-94X-V2-loose",
         "egmGsfElectronIDs:cutBasedElectronID-Fall17-94X-V2-medium",
@@ -35,7 +35,7 @@ def enableElectronVID(process):
         process.catElectrons.electronIDs.append(idName.split(':',1)[1])
 
     process.egmGsfElectronIDs.physicsObjectSrc = process.catElectrons.unsmaredElectrons
-    process.electronMVAValueMapProducer.srcMiniAOD = process.catElectrons.unsmaredElectrons
+    #process.electronMVAValueMapProducer.srcMiniAOD = process.catElectrons.unsmaredElectrons
 
     return process
 
