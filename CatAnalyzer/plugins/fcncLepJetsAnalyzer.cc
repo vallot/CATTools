@@ -75,7 +75,7 @@ private:
 // ----------member data ---------------------------
 
   TTree *tree;
-  TTree *gentree;
+  //TTree *gentree;
 
   // Event info
   int b_Event, b_Run, b_Lumi_Number;
@@ -96,13 +96,15 @@ private:
   float b_GenLepton_pt, b_GenLepton_eta, b_GenLepton_phi, b_GenLepton_e;
   float b_GenLepton2_pt, b_GenLepton2_eta, b_GenLepton2_phi, b_GenLepton2_e;
   float b_GenNu_pt, b_GenNu_eta, b_GenNu_phi, b_GenNu_e;
+  float b_GenTop1_pt, b_GenTop2_pt, b_TopPtWeight;
 
   // Leptons and MET
-  float b_Lepton_pt, b_Lepton_eta, b_Lepton_phi, b_Lepton_e, b_Lepton_relIso, b_Lepton_LES;
+  float b_Lepton_pt, b_Lepton_eta, b_Lepton_phi, b_Lepton_e, b_Lepton_relIso;
   //float b_Lepton_scEta = -99.0;
   float b_MET, b_MET_phi;
   bool  b_Lepton_isIso;
   std::vector<float> *b_Lepton_SF;
+  std::vector<float> *b_Electron_Scale;
 
   //additional jets 
   float b_addbjet1_pt, b_addbjet1_eta, b_addbjet1_phi, b_addbjet1_e; 
@@ -136,7 +138,7 @@ private:
   std::vector<float> *b_Jet_deepJetCvsL, *b_Jet_deepJetCvsB;
 
   // Histograms: Number of Events and Weights
-  TH1D *EventInfo, *ScaleWeights, *PDFWeights, *PSWeights;
+  TH1D *EventInfo, *ScaleWeights, *PDFWeights, *PSWeights, *TopPtWeight;
 
   // Scale factor evaluators
   BTagWeightEvaluator SF_deepCSV_, SF_deepJet_;
@@ -219,12 +221,13 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   // PU = 0 prescription
   nTrueVertToken_    = consumes<int>(iConfig.getParameter<edm::InputTag>("nTrueVertLabel"));
  
-  b_PUWeight     = new std::vector<float>;
-  b_PrefireWeight= new std::vector<double>;
-  b_PDFWeight    = new std::vector<float>;
-  b_ScaleWeight  = new std::vector<float>;
-  b_PSWeight     = new std::vector<float>;
-  b_Lepton_SF    = new std::vector<float>;  
+  b_PUWeight       = new std::vector<float>;
+  b_PrefireWeight  = new std::vector<double>;
+  b_PDFWeight      = new std::vector<float>;
+  b_ScaleWeight    = new std::vector<float>;
+  b_PSWeight       = new std::vector<float>;
+  b_Lepton_SF      = new std::vector<float>;
+  b_Electron_Scale = new std::vector<float>;
 
   b_GenConeCatID      = new std::vector<int>;
   b_GenCone_gJet_pt   = new std::vector<float>;
@@ -270,6 +273,7 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("pdfweight",     "std::vector<float>", &b_PDFWeight );
   tree->Branch("scaleweight",   "std::vector<float>", &b_ScaleWeight );
   tree->Branch("psweight",      "std::vector<float>", &b_PSWeight );
+  tree->Branch("topptweight",   &b_TopPtWeight,       "topptweight/F");
 
   tree->Branch("MET",           &b_MET,        "MET/F");
   tree->Branch("MET_phi",       &b_MET_phi,    "MET_phi/F");
@@ -277,8 +281,8 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("lepton_eta",    &b_Lepton_eta, "lepton_eta/F");
   tree->Branch("lepton_phi",    &b_Lepton_phi, "lepton_phi/F");
   tree->Branch("lepton_e" ,     &b_Lepton_e,   "lepton_e/F" );
-  tree->Branch("lepton_LES",    &b_Lepton_LES, "lepton_LES/F" );
   tree->Branch("lepton_SF",     "std::vector<float>", &b_Lepton_SF );
+  tree->Branch("lepton_scale",  "std::vector<float>", &b_Electron_Scale );
   tree->Branch("lepton_relIso", &b_Lepton_relIso, "lepton_relIso/F");
   tree->Branch("lepton_isIso",  &b_Lepton_isIso,  "lepton_isIso/O");
   //tree->Branch("lepton_scEta",  &b_Lepton_scEta,  "lepton_scEta/F");
@@ -316,7 +320,7 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("Hbjet2_eta", &b_Hbjet2_eta, "Hbjet2_eta/F");
   tree->Branch("Hbjet2_phi", &b_Hbjet2_phi, "Hbjet2_phi/F");
   tree->Branch("Hbjet2_e",   &b_Hbjet2_e,   "Hbjet2_e/F");
-  tree->Branch("dRHbb",         &b_dRHbb,         "dRHbb/F");
+  tree->Branch("dRHbb",      &b_dRHbb,      "dRHbb/F");
 
   tree->Branch("Hbquarkjet1_pt",  &b_Hbquarkjet1_pt,  "Hbquarkjet1_pt/F");
   tree->Branch("Hbquarkjet1_eta", &b_Hbquarkjet1_eta, "Hbquarkjet1_eta/F");
@@ -348,6 +352,8 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
     tree->Branch("gennu_eta",     &b_GenNu_eta,     "gennu_eta/F");
     tree->Branch("gennu_phi",     &b_GenNu_phi,     "gennu_phi/F");
     tree->Branch("gennu_e",       &b_GenNu_e,       "gennu_e/F");
+    tree->Branch("gentop1_pt",    &b_GenTop1_pt,    "gentop1_pt/F");
+    tree->Branch("gentop2_pt",    &b_GenTop2_pt,    "gentop2_pt/F");
 
     tree->Branch("addbjet1_pt",  &b_addbjet1_pt,  "addbjet1_pt/F");
     tree->Branch("addbjet1_eta", &b_addbjet1_eta, "addbjet1_eta/F");
@@ -358,6 +364,7 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
     tree->Branch("addbjet2_phi", &b_addbjet2_phi, "addbjet2_phi/F");
     tree->Branch("addbjet2_e",   &b_addbjet2_e,   "addbjet2_e/F");
 
+    /*
     //gen tree
     if( TTbarCatMC_ == 1 ){
       gentree = fs->make<TTree>("gentree", "TopGENTree");
@@ -384,6 +391,7 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
       gentree->Branch("addbjet2_phi", &b_addbjet2_phi, "addbjet2_phi/F");
       gentree->Branch("addbjet2_e",   &b_addbjet2_e,   "addbjet2_e/F");
     }
+    */
   }
 
   EventInfo = fs->make<TH1D>("EventInfo","Event Information",3,0,3);
@@ -406,6 +414,7 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   PSWeights->GetXaxis()->SetBinLabel(4,"fsrDefLo fsr:muRfac=2.0");
 
   PDFWeights = fs->make<TH1D>("PDFWeights","PDF4LHC15_nnlo_100_pdfas (91200)",103,0,103);
+  TopPtWeight = fs->make<TH1D>("TopPtWeight","Top Pt Reweight",1,0,1);
 }
 
 
@@ -427,6 +436,7 @@ fcncLepJetsAnalyzer::~fcncLepJetsAnalyzer()
   delete b_GenCone_gJetFlavW;
 
   delete b_Lepton_SF;
+  delete b_Electron_Scale;
   delete b_Jet_pt;
   delete b_Jet_eta;
   delete b_Jet_phi;
@@ -471,6 +481,7 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   b_GenCone_gJetFlavW->clear();
 
   b_Lepton_SF->clear();
+  b_Electron_Scale->clear();
 
   b_Jet_pt   ->clear();
   b_Jet_eta  ->clear();
@@ -502,6 +513,7 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   b_Hbquarkjet1_pt  = b_Hbquarkjet1_e   = b_Hbquarkjet2_pt  = b_Hbquarkjet2_e   = -1.0;
   b_Hbquarkjet1_eta = b_Hbquarkjet1_phi = b_Hbquarkjet2_eta = b_Hbquarkjet2_phi = -10.0;
   b_dRHbb = -1.0;
+  b_TopPtWeight = 1.0;
 
   //---------------------------------------------------------------------------
   // Event Info
@@ -667,15 +679,29 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     gJetGenCone[5] = genttbarConeCat->begin()->addJets2();
     gJetGenCone[6] = genttbarConeCat->begin()->FCNCupJet();
 
-    b_GenCone_NgJetsW = genttbarConeCat->begin()-> NWJets();
-    b_GenCone_gJetFlavW->push_back(genttbarConeCat->begin()-> Wquarkflav1());
-    b_GenCone_gJetFlavW->push_back(genttbarConeCat->begin()-> Wquarkflav2());
+    b_GenCone_NgJetsW = genttbarConeCat->begin()->NWJets();
+    b_GenCone_gJetFlavW->push_back(genttbarConeCat->begin()->Wquarkflav1());
+    b_GenCone_gJetFlavW->push_back(genttbarConeCat->begin()->Wquarkflav2());
 
     for( int ijGT=0; ijGT<7; ijGT++ ){
       b_GenCone_gJet_pt  ->push_back(gJetGenCone[ijGT].Pt());
       b_GenCone_gJet_eta ->push_back(gJetGenCone[ijGT].Eta());
       b_GenCone_gJet_phi ->push_back(gJetGenCone[ijGT].Phi());
       b_GenCone_gJet_e   ->push_back(gJetGenCone[ijGT].E());
+    }
+
+    b_GenTop1_pt = genttbarConeCat->begin()->topquark1().Pt();
+    b_GenTop2_pt = genttbarConeCat->begin()->topquark2().Pt();
+    float topPtWeight1 = 1.0;
+    float topPtWeight2 = 1.0;
+    if( b_GenTop1_pt > 0 and b_GenTop1_pt < 800 ){
+      topPtWeight1 = TMath::Exp(0.0615-0.0005*b_GenTop1_pt);
+    }
+    if( b_GenTop2_pt > 0 and b_GenTop2_pt < 800 ){
+      topPtWeight1 = TMath::Exp(0.0615-0.0005*b_GenTop2_pt);
+    }
+    if( TTbarCatMC_ < 4 ){
+      b_TopPtWeight = topPtWeight1 * topPtWeight2;
     }
 
     // adding additional b jet four-momentum
@@ -738,9 +764,11 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         b_GenNu_e       = genttbarConeCat->begin()->nu2().E();
       }
 
-      if( TTbarCatMC_ == 1 ) gentree->Fill();
+      //if( TTbarCatMC_ == 1 ) gentree->Fill();
     }// if(GENTTbarMCTree_)
   } // if(TTbarMC==0)
+
+  TopPtWeight->Fill(0.5, b_TopPtWeight);
 
   //---------------------------------------------------------------------------
   // Primary Vertex Info
@@ -770,7 +798,6 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   if( !doLooseLepton_ ){
     for( unsigned int i = 0; i < electrons->size() ; i++ ){
       const cat::Electron & electron = electrons->at(i);
-
       if     ( IsSelectElectron( electron ) ) selectedElectrons.push_back( electron );
       else if( IsVetoElectron( electron ) ) vetoElectrons.push_back( electron ); // does not Include selected electrons
     }
@@ -814,9 +841,7 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   std::vector<float> *lepton_SF;
   lepton_SF = new std::vector<float>;
 
-  float lepton_LES = 0.0;
   int ch_tag  = 999;
-
   if( selectedMuons.size()     == 1 &&
       vetoMuons.size()         == 0 &&
       selectedElectrons.size() == 0 &&
@@ -837,9 +862,12 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       lepton_SF->push_back( SF_muonTrg_( selectedMuons[0].pt(), std::abs(selectedMuons[0].eta()) ) );       // [6]-> TrgSF
       lepton_SF->push_back( SF_muonTrg_( selectedMuons[0].pt(), std::abs(selectedMuons[0].eta()),  1.0 ) ); // [7]-> TrgSF+Error
       lepton_SF->push_back( SF_muonTrg_( selectedMuons[0].pt(), std::abs(selectedMuons[0].eta()), -1.0 ) ); // [8]-> TrgSF-Error
-      //LES
-      lepton_LES = selectedMuons[0].shiftedEn();
     }
+    b_Electron_Scale->push_back( 1.0 ); // Dummy for muon
+    b_Electron_Scale->push_back( 0.0 );
+    b_Electron_Scale->push_back( 0.0 );
+    b_Electron_Scale->push_back( 0.0 );
+    b_Electron_Scale->push_back( 0.0 );
   }
 
   if( selectedMuons.size()     == 0 &&
@@ -866,10 +894,13 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       lepton_SF->push_back( SF_elecTrg_( selectedElectrons[0].pt(), selectedElectrons[0].scEta() ) );        // [9]-> TrgSF, ttH v5
       lepton_SF->push_back( SF_elecTrg_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(),  1.0 ) );  // [10]-> TrgSF+Error
       lepton_SF->push_back( SF_elecTrg_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(), -1.0 ) );  // [11]-> TrgSF-Error
-      //LES
-      lepton_LES = selectedElectrons[0].shiftedEn();
       //b_Lepton_scEta = selectedElectrons[0].scEta();
     }
+    b_Electron_Scale->push_back( selectedElectrons[0].smearedScale() );   // [0]-> Scale and smearing
+    b_Electron_Scale->push_back( selectedElectrons[0].shiftedEnUp(0) );   // [1]-> energyScaleUp
+    b_Electron_Scale->push_back( selectedElectrons[0].shiftedEnUp(1) );   // [2]-> energySigmaUp
+    b_Electron_Scale->push_back( selectedElectrons[0].shiftedEnDown(0) ); // [3]-> energyScaleDown
+    b_Electron_Scale->push_back( selectedElectrons[0].shiftedEnDown(1) ); // [4]-> energySigmaDown
   }
 
   //---------------------------------------------------------------------------
@@ -915,7 +946,6 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     b_Lepton_phi = lepton.Phi();
     b_Lepton_e   = lepton.E();
     b_Lepton_SF  = lepton_SF;
-    b_Lepton_LES = lepton_LES;
 
     //---------------------------------------------------------------------------
     // Jets
