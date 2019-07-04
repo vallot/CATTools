@@ -268,4 +268,5 @@ trigSF_IsoMu24BCD = cms.PSet(
 ## Combined Scale factors
 muonSFTight102X = combineSF(muonSFTightId102X, muonSFTightIso102X)
 electronSFCutTight102X = combineSF(electronSFReco102X, electronSFCutBasedTight102X)
+electronCombinedSFCutTight102X = combineSF(electronSFCutTight102X, electronSFHLTZvtx102X)
 trigSF_IsoMu24 = computeAverageSF(trigSF_IsoMu24A, 8.951, trigSF_IsoMu24BCD, 50.811)
