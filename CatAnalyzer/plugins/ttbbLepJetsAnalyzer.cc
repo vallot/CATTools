@@ -85,8 +85,6 @@ private:
   edm::EDGetTokenT<double>                       prefWeightUpToken_;
   edm::EDGetTokenT<double>                       prefWeightDownToken_;
   // Object Collections
-  edm::EDGetTokenT<reco::GenParticleCollection>  genToken_;
-  edm::EDGetTokenT<reco::GenJetCollection>       genJetToken_;
   edm::EDGetTokenT<int>                          genttbarHiggsCatToken_;
   edm::EDGetTokenT<cat::GenTopCollection>        genttbarCatToken_;
   edm::EDGetTokenT<cat::MuonCollection>          muonToken_;
@@ -218,7 +216,6 @@ private:
   ScaleFactorEvaluator SF_muon_, SF_muonTrg_,
                        SF_elec_, SF_elecTrg_;
  
-  int b_eeprefire;
 };
 
 //
@@ -288,8 +285,6 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   // CSV Weights
   auto deepcsvWeightLabel = iConfig.getParameter<edm::InputTag>("deepcsvWeightLabel");
   // GEN and ttbar Categorization
-  genToken_              = consumes<reco::GenParticleCollection>  (iConfig.getParameter<edm::InputTag>("genLabel"));
-  genJetToken_           = consumes<reco::GenJetCollection>       (iConfig.getParameter<edm::InputTag>("genJetLabel"));  
   genttbarCatToken_      = consumes<cat::GenTopCollection>        (iConfig.getParameter<edm::InputTag>("genttbarCatLabel"));
   genttbarHiggsCatToken_ = consumes<int>                          (iConfig.getParameter<edm::InputTag>("genHiggsCatLabel"));
   // Object Collections
@@ -352,7 +347,6 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("TruePV",     &b_nTruePV,     "TruePV/I");
   tree->Branch("GoodPV",     &b_nGoodPV,     "GoodPV/I");
   tree->Branch("channel",    &b_Channel,     "channel/I");
-  tree->Branch("eeprefire",  &b_eeprefire, "eeprefire/I");
 
   tree->Branch("PUWeight",      "std::vector<float>", &b_PUWeight);
   tree->Branch("prefireweight", "std::vector<double>", &b_PrefireWeight);
@@ -386,7 +380,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("jet_deepCvsL",      "std::vector<float>", &b_Jet_deepCvsL);
   tree->Branch("jet_deepCvsB",      "std::vector<float>", &b_Jet_deepCvsB);
   tree->Branch("jet_deepJetCvsL",   "std::vector<float>", &b_Jet_deepJetCvsL);
-  tree->Branch("jet_deepCvsB",      "std::vector<float>", &b_Jet_deepJetCvsB);
+  tree->Branch("jet_deepJetCvsB",   "std::vector<float>", &b_Jet_deepJetCvsB);
 
   tree->Branch("jet_number" , &b_Jet_Number, "jet_number/I" );
 
@@ -614,7 +608,6 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   b_mindRjet2_e   = -1.0;
 
   b_mindR = 999;
-  b_eeprefire = 0;
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -1061,7 +1054,8 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     ch_tag = 1; //electron + jets
     lepton.SetPtEtaPhiE(selectedElectrons[0].pt(), selectedElectrons[0].eta(), selectedElectrons[0].phi(), selectedElectrons[0].energy());
     b_Lepton_relIso = selectedElectrons.at(0).relIso(0.3);
-    b_Lepton_isIso = (b_Lepton_relIso < (std::abs(selectedElectrons[0].scEta()) <= 1.479 ? 0.0766 : 0.0678) );
+    if( std::abs(selectedElectrons[0].scEta()) <= 1.479 && b_Lepton_relIso < 0.0287+0.506/static_cast<double>(lepton.Pt())) b_Lepton_isIso = true;
+    else if( std::abs(selectedElectrons[0].scEta()) > 1.479 && b_Lepton_relIso < 0.0445+0.963/static_cast<double>(lepton.Pt())) b_Lepton_isIso = true;
 
     if(isMC_) {
       // Lepton SF (ID/ISO/Trigger)
@@ -1182,12 +1176,6 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     for (unsigned int i = 0; i < JetIndex.size() ; i++) {
       const cat::Jet & jet = jets->at(JetIndex[i]);
 
-      // EE L1. Pre-firing bit, pT > 100 and 2.25 < |eta| < 3.0
-      if( isMC_ && (std::abs(jet.eta()) > 2.25 and std::abs(jet.eta()) < 3.0)
-          && jet.pt() > 100. && jet.tightLepVetoJetID() && b_eeprefire == 0 ){
-        b_eeprefire = 1;
-      }
-
       bool goodJet  = false;
       bool cleanJet = false;
 
@@ -1275,7 +1263,7 @@ bool ttbbLepJetsAnalyzer::IsSelectMuon(const cat::Muon & i_muon_candidate)
   bool GoodMuon=true;
 
   // Tight selection already defined into CAT::Muon
-  GoodMuon &= (i_muon_candidate.isTightMuon());
+  GoodMuon &= (i_muon_candidate.passed(reco::Muon::CutBasedIdTight|reco::Muon::PFIsoTight));
 
   GoodMuon &= (i_muon_candidate.isPFMuon());           // PF
   GoodMuon &= (i_muon_candidate.pt()> 30);             // pT

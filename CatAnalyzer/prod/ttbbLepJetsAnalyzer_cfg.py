@@ -64,9 +64,7 @@ from CATTools.CatAnalyzer.leptonSF_cff import *
 # GEN Weights
 process.load("CATTools.CatAnalyzer.flatGenWeights_cfi")
 # CSV Scale Factors
-process.load("CATTools.CatAnalyzer.csvWeights_cfi")
-process.csvWeights.minPt = 30   # Same cuts than jet selection
-process.csvWeights.maxEta = 2.4
+process.load("CATTools.CatAnalyzer.deepcsvWeights_cfi")
 
 process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      TTbarSampleLabel  = cms.untracked.int32(options.runOnTTbarMC),
@@ -87,7 +85,7 @@ process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      muonSF            = muonSFTight94X,
 				     muonTrgSF         = trigSF_IsoMu27,
                                      electronLabel     = cms.InputTag("catElectrons"),
-                                     elecSF            = electronSFCutBasedIDTightWP94X,
+                                     elecSF            = electronCombinedSFTightWP94X,
 				     elecTrgSF         = trigSF_El35_El28HT150_ttH_legacy17_v1,
                                      jetLabel          = cms.InputTag("catJets"),
                                      metLabel          = cms.InputTag("catMETs"),
@@ -114,6 +112,6 @@ process.TFileService = cms.Service("TFileService",
 # process.p = cms.Path(process.pileupWeight*
 #                      process.ttbarSingleLepton)
 process.p = cms.Path(process.flatGenWeights +
-                     process.csvWeights +
+                     process.deepcsvWeights +
                      process.pileupWeight +
                      process.ttbbLepJets + process.ttbbLepJetsQCD)
