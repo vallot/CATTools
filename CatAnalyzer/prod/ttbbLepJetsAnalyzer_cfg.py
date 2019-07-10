@@ -63,8 +63,6 @@ if options.UserJSON:
 from CATTools.CatAnalyzer.leptonSF_cff import *
 # GEN Weights
 process.load("CATTools.CatAnalyzer.flatGenWeights_cfi")
-# CSV Scale Factors
-process.load("CATTools.CatAnalyzer.deepcsvWeights_cfi")
 
 process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      TTbarSampleLabel  = cms.untracked.int32(options.runOnTTbarMC),
@@ -112,6 +110,5 @@ process.TFileService = cms.Service("TFileService",
 # process.p = cms.Path(process.pileupWeight*
 #                      process.ttbarSingleLepton)
 process.p = cms.Path(process.flatGenWeights +
-                     process.deepcsvWeights +
                      process.pileupWeight +
                      process.ttbbLepJets + process.ttbbLepJetsQCD)
