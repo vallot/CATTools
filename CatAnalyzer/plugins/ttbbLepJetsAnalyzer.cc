@@ -1267,7 +1267,7 @@ bool ttbbLepJetsAnalyzer::IsSelectMuon(const cat::Muon & i_muon_candidate)
 
   GoodMuon &= (i_muon_candidate.isPFMuon());           // PF
   GoodMuon &= (i_muon_candidate.pt()> 30);             // pT
-  GoodMuon &= (std::abs(i_muon_candidate.eta())< 2.1); // eta
+  GoodMuon &= (std::abs(i_muon_candidate.eta())< 2.4); // eta
 
   //----------------------------------------------------------------------------------------------------
   //------------- The Relative Isolation is already calculated in the CAT object -----------------------
@@ -1315,7 +1315,7 @@ bool ttbbLepJetsAnalyzer::IsSelectElectron(const cat::Electron & i_electron_cand
 
   GoodElectron &= (i_electron_candidate.isPF() );                // PF
   GoodElectron &= (i_electron_candidate.pt() > 30);              // pT
-  GoodElectron &= (std::abs(i_electron_candidate.eta()) < 2.1);  // eta
+  GoodElectron &= (std::abs(i_electron_candidate.eta()) < 2.4);  // eta
   GoodElectron &= (std::abs(i_electron_candidate.scEta()) < 1.4442 || // eta Super-Cluster
                    std::abs(i_electron_candidate.scEta()) > 1.566);
 
