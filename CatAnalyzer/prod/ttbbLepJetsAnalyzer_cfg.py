@@ -63,15 +63,17 @@ if options.UserJSON:
 from CATTools.CatAnalyzer.leptonSF_cff import *
 # GEN Weights
 process.load("CATTools.CatAnalyzer.flatGenWeights_cfi")
+# Filters
+process.load("CATTools.CatAnalyzer.filters_cff")
 
 process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      TTbarSampleLabel  = cms.untracked.int32(options.runOnTTbarMC),
                                      TTbarCatLabel     = cms.untracked.int32(options.TTbarCatMC),
-                                     # TriggerNames
-                                     triggerNameDataEl = cms.untracked.vstring("HLT_Ele35_WPTight_Gsf_v", "HLT_Ele28_eta2p1_WPTight_Gsf_HT150_v"), 
-                                     triggerNameDataMu = cms.untracked.vstring("HLT_IsoMu27_v"), 
-                                     triggerNameMCEl   = cms.untracked.vstring("HLT_Ele35_WPTight_Gsf_v", "HLT_Ele28_eta2p1_WPTight_Gsf_HT150_v"), 
-                                     triggerNameMCMu   = cms.untracked.vstring("HLT_IsoMu27_v"), 
+                                     
+                                     trigMuFilters     = cms.InputTag("filterTrigMU"),
+                                     trigElFilters     = cms.InputTag("filterTrigEL"),
+                                     trigElHTFilters   = cms.InputTag("filterTrigELHT"),
+                                     recoFilters       = cms.InputTag("filterRECOMC"),
                                      # Input Tags
                                      genWeightLabel    = cms.InputTag("flatGenWeights"),
                                      genLabel          = cms.InputTag("prunedGenParticles"),
@@ -80,10 +82,13 @@ process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      genHiggsCatLabel  = cms.InputTag("GenTtbarCategories:genTtbarId"),
                                      genttbarCatLabel  = cms.InputTag("catGenTops"),
                                      muonLabel         = cms.InputTag("catMuons"),
-                                     muonSF            = muonSFTight94X,
+                                     muonIdSF          = muonSFTightIdOnly94X,
+                                     muonIsoSF         = muonSFTightIsoOnly94X,
 				     muonTrgSF         = trigSF_IsoMu27,
                                      electronLabel     = cms.InputTag("catElectrons"),
-                                     elecSF            = electronCombinedSFTightWP94X,
+                                     elecIdSF          = electronSFCutBasedTightIDOnly94Xv2,
+                                     elecRecoSF        = electronSFMVAWP80RecoOnly94Xv2,
+                                     elecZvtxSF        = electronSFHLTZvtx94X,
 				     elecTrgSF         = trigSF_El35_El28HT150_ttH_legacy17_v1,
                                      jetLabel          = cms.InputTag("catJets"),
                                      metLabel          = cms.InputTag("catMETs"),
@@ -110,5 +115,7 @@ process.TFileService = cms.Service("TFileService",
 # process.p = cms.Path(process.pileupWeight*
 #                      process.ttbarSingleLepton)
 process.p = cms.Path(process.flatGenWeights +
+                     process.filterRECOMC + 
+		     process.filterTrigMU + process.filterTrigEL + process.filterTrigELHT +
                      process.pileupWeight +
                      process.ttbbLepJets + process.ttbbLepJetsQCD)
