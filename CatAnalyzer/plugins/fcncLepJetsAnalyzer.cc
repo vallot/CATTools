@@ -968,8 +968,6 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       Jet_SF_deepJet[iu] = 1.0;
     }
 
-    int good_jet_count = 0;
-
     // Run again over all Jets
     for( unsigned int i = 0; i < JetIndex.size() ; i++ ){
       const cat::Jet & jet = jets->at(JetIndex[i]);
@@ -978,10 +976,8 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       bool cleanJet = false;
 
       // Jet Selection (pT>20GeV to take into account SYST Variations)
-      if( std::abs(jet.eta()) < 2.4 && jet.pt() > 20. && jet.tightLepVetoJetID() ){
-        goodJet = true;
-        good_jet_count += 1;
-      }
+      if( std::abs(jet.eta()) < 2.4 && jet.pt() > 20. && jet.tightLepVetoJetID() ) goodJet = true;
+
       // Jet Cleaning
       TLorentzVector vjet;
       vjet.SetPtEtaPhiE(jet.pt(), jet.eta(), jet.phi(), jet.energy());
