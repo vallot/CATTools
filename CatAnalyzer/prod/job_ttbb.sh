@@ -4,10 +4,10 @@ save_loc=/store/user/san/ntuple/Run2018/V10_2
 
 # 2017 Run2 data
 ### EG
-create-batch --jobName DataSingleEGA --fileList $dataset_loc/dataset_SingleElectron_Run2018A.txt --cfg $cfg --transferDest $save_loc/DataSingleEGA --maxFiles 50 --args 'UserJSON=true runOnTTbarMC=0 TTbarCatMC=0'
-create-batch --jobName DataSingleEGB --fileList $dataset_loc/dataset_SingleElectron_Run2018B.txt --cfg $cfg --transferDest $save_loc/DataSingleEGB --maxFiles 50 --args 'UserJSON=true runOnTTbarMC=0 TTbarCatMC=0'
-create-batch --jobName DataSingleEGC --fileList $dataset_loc/dataset_SingleElectron_Run2018C.txt --cfg $cfg --transferDest $save_loc/DataSingleEGC --maxFiles 50 --args 'UserJSON=true runOnTTbarMC=0 TTbarCatMC=0'
-create-batch --jobName DataSingleEGD --fileList $dataset_loc/dataset_SingleElectron_Run2018D.txt --cfg $cfg --transferDest $save_loc/DataSingleEGD --maxFiles 50 --args 'UserJSON=true runOnTTbarMC=0 TTbarCatMC=0'
+create-batch --jobName DataSingleEGA --fileList $dataset_loc/dataset_EGamma_Run2018A.txt --cfg $cfg --transferDest $save_loc/DataSingleEGA --maxFiles 50 --args 'UserJSON=true runOnTTbarMC=0 TTbarCatMC=0'
+create-batch --jobName DataSingleEGB --fileList $dataset_loc/dataset_EGamma_Run2018B.txt --cfg $cfg --transferDest $save_loc/DataSingleEGB --maxFiles 50 --args 'UserJSON=true runOnTTbarMC=0 TTbarCatMC=0'
+create-batch --jobName DataSingleEGC --fileList $dataset_loc/dataset_EGamma_Run2018C.txt --cfg $cfg --transferDest $save_loc/DataSingleEGC --maxFiles 50 --args 'UserJSON=true runOnTTbarMC=0 TTbarCatMC=0'
+create-batch --jobName DataSingleEGD --fileList $dataset_loc/dataset_EGamma_Run2018D.txt --cfg $cfg --transferDest $save_loc/DataSingleEGD --maxFiles 50 --args 'UserJSON=true runOnTTbarMC=0 TTbarCatMC=0'
 ### Mu
 create-batch --jobName DataSingleMuA --fileList $dataset_loc/dataset_SingleMuon_Run2018A.txt --cfg $cfg --transferDest $save_loc/DataSingleMuB --maxFiles 50 --args 'UserJSON=true runOnTTbarMC=0 TTbarCatMC=0'
 create-batch --jobName DataSingleMuB --fileList $dataset_loc/dataset_SingleMuon_Run2018B.txt --cfg $cfg --transferDest $save_loc/DataSingleMuB --maxFiles 50 --args 'UserJSON=true runOnTTbarMC=0 TTbarCatMC=0'
