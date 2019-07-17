@@ -60,19 +60,13 @@ private:
   bool IsSelectElectron(const cat::Electron & i_electron_candidate);
   bool IsVetoElectron  (const cat::Electron & i_electron_candidate);
   float weight_valid   (float weight);
-  float jer_valid      (float weight);
 
   bool isMC_ ;
   bool doLooseLepton_;
 
   int TTbarMC_; // 0->No ttbar, 1->ttbar Signal, 2->ttbar Background
   int TTbarCatMC_;
-  // Trigger Names
-  std::vector<string> triggerNameDataEl_;
-  std::vector<string> triggerNameDataMu_;
-  std::vector<string> triggerNameMCEl_;
-  std::vector<string> triggerNameMCMu_;
-  
+    
   // Event Weights
   edm::EDGetTokenT<float>                        genWeightToken_;
   edm::EDGetTokenT<std::vector<float>>           pdfWeightToken_;
@@ -83,8 +77,6 @@ private:
   edm::EDGetTokenT<float>                        puUpWeightToken_;
   edm::EDGetTokenT<float>                        puDownWeightToken_;
   // Object Collections
-  edm::EDGetTokenT<reco::GenParticleCollection>  genToken_;
-  edm::EDGetTokenT<reco::GenJetCollection>       genJetToken_;
   edm::EDGetTokenT<int>                          genttbarHiggsCatToken_;
   edm::EDGetTokenT<cat::GenTopCollection>        genttbarCatToken_;
   edm::EDGetTokenT<cat::MuonCollection>          muonToken_;
@@ -93,10 +85,11 @@ private:
   edm::EDGetTokenT<cat::METCollection>           metToken_;
   edm::EDGetTokenT<int>                          pvToken_;
   edm::EDGetTokenT<int>                          nTrueVertToken_;
+  edm::EDGetTokenT<int>                          recoFiltersToken_;
   // Trigger
-  edm::EDGetTokenT<edm::TriggerResults>                    triggerBits_;
-  edm::EDGetTokenT<edm::TriggerResults>                    triggerBits2_;
-  edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjects_;
+  edm::EDGetTokenT<int>                          trigMuFiltersToken_;
+  edm::EDGetTokenT<int>                          trigElFiltersToken_;
+  edm::EDGetTokenT<int>                          trigElHTFiltersToken_;
 
 // ----------member data ---------------------------
 
@@ -150,7 +143,6 @@ private:
   float b_Lepton_relIso;
   bool b_Lepton_isIso;
   std::vector<float> *b_Lepton_SF;
-  float b_Lepton_LES;
 
   // additional b jets 
   float b_addbjet1_pt; 
@@ -212,8 +204,8 @@ private:
   TH1D *EventInfo, *ScaleWeights, *PDFWeights, *PSWeights;
   // Scale factor evaluators
   BTagWeightEvaluator SF_deepCSV_;
-  ScaleFactorEvaluator SF_muon_, SF_muonTrg_,
-                       SF_elec_, SF_elecTrg_;
+  ScaleFactorEvaluator SF_muonId_, SF_muonIso_, SF_muonTrg_,
+                       SF_elecId_, SF_elecReco_, SF_elecZvtx_, SF_elecTrg_;
  
 };
 
@@ -231,30 +223,39 @@ private:
 ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   doLooseLepton_(iConfig.getUntrackedParameter<bool>("doLooseLepton", false)),
   TTbarMC_    (iConfig.getUntrackedParameter<int>("TTbarSampleLabel", 0)),
-  TTbarCatMC_ (iConfig.getUntrackedParameter<int>("TTbarCatLabel", 0)),
-  triggerNameDataEl_(iConfig.getUntrackedParameter<std::vector<string>>("triggerNameDataEl")),
-  triggerNameDataMu_(iConfig.getUntrackedParameter<std::vector<string>>("triggerNameDataMu")),
-  triggerNameMCEl_  (iConfig.getUntrackedParameter<std::vector<string>>("triggerNameMCEl")),
-  triggerNameMCMu_  (iConfig.getUntrackedParameter<std::vector<string>>("triggerNameMCMu"))
+  TTbarCatMC_ (iConfig.getUntrackedParameter<int>("TTbarCatLabel", 0))
 {
-  const auto elecSFSet = iConfig.getParameter<edm::ParameterSet>("elecSF");
-  SF_elec_.set(elecSFSet.getParameter<std::vector<double>>("pt_bins" ),
-	       elecSFSet.getParameter<std::vector<double>>("eta_bins"),
-	       elecSFSet.getParameter<std::vector<double>>("values"  ),
-	       elecSFSet.getParameter<std::vector<double>>("errors"  ));
-  
+  const auto elecIdSFSet = iConfig.getParameter<edm::ParameterSet>("elecIdSF");
+  SF_elecId_.set(elecIdSFSet.getParameter<std::vector<double>>("pt_bins" ),
+	         elecIdSFSet.getParameter<std::vector<double>>("eta_bins"),
+	         elecIdSFSet.getParameter<std::vector<double>>("values"  ),
+	         elecIdSFSet.getParameter<std::vector<double>>("errors"  ));
+  const auto elecRecoSFSet = iConfig.getParameter<edm::ParameterSet>("elecRecoSF");
+  SF_elecReco_.set(elecRecoSFSet.getParameter<std::vector<double>>("pt_bins" ),
+	           elecRecoSFSet.getParameter<std::vector<double>>("eta_bins"),
+	           elecRecoSFSet.getParameter<std::vector<double>>("values"  ),
+	           elecRecoSFSet.getParameter<std::vector<double>>("errors"  ));
+  const auto elecZvtxSet = iConfig.getParameter<edm::ParameterSet>("elecZvtxSF");
+  SF_elecZvtx_.set(elecZvtxSet.getParameter<std::vector<double>>("pt_bins" ),
+	           elecZvtxSet.getParameter<std::vector<double>>("eta_bins"),
+	           elecZvtxSet.getParameter<std::vector<double>>("values"  ),
+	           elecZvtxSet.getParameter<std::vector<double>>("errors"  ));
   const auto elecTrgSFSet = iConfig.getParameter<edm::ParameterSet>("elecTrgSF");
-  SF_elecTrg_.set(elecTrgSFSet.getParameter<std::vector<double>>("pt_bins"    ),
+  SF_elecTrg_.set(elecTrgSFSet.getParameter<std::vector<double>>("pt_bins" ),
 	          elecTrgSFSet.getParameter<std::vector<double>>("eta_bins"),
-	          elecTrgSFSet.getParameter<std::vector<double>>("values"     ),
-	          elecTrgSFSet.getParameter<std::vector<double>>("errors"     ));
-  
-  const auto muonSFSet = iConfig.getParameter<edm::ParameterSet>("muonSF");
-  SF_muon_.set(muonSFSet.getParameter<std::vector<double>>("pt_bins"    ),
-	       muonSFSet.getParameter<std::vector<double>>("abseta_bins"),
-	       muonSFSet.getParameter<std::vector<double>>("values"     ),
-	       muonSFSet.getParameter<std::vector<double>>("errors"     ));
+	          elecTrgSFSet.getParameter<std::vector<double>>("values"  ),
+	          elecTrgSFSet.getParameter<std::vector<double>>("errors"  ));
 
+  const auto muonIdSFSet = iConfig.getParameter<edm::ParameterSet>("muonIdSF");
+  SF_muonId_.set(muonIdSFSet.getParameter<std::vector<double>>("pt_bins"    ),
+	         muonIdSFSet.getParameter<std::vector<double>>("abseta_bins"),
+	         muonIdSFSet.getParameter<std::vector<double>>("values"     ),
+	         muonIdSFSet.getParameter<std::vector<double>>("errors"     ));
+  const auto muonIsoSFSet = iConfig.getParameter<edm::ParameterSet>("muonIsoSF");
+  SF_muonIso_.set(muonIsoSFSet.getParameter<std::vector<double>>("pt_bins"    ),
+	       muonIsoSFSet.getParameter<std::vector<double>>("abseta_bins"),
+	       muonIsoSFSet.getParameter<std::vector<double>>("values"     ),
+	       muonIsoSFSet.getParameter<std::vector<double>>("errors"     ));
   const auto muonTrgSFSet = iConfig.getParameter<edm::ParameterSet>("muonTrgSF");
   SF_muonTrg_.set(muonTrgSFSet.getParameter<std::vector<double>>("pt_bins"    ),
 	          muonTrgSFSet.getParameter<std::vector<double>>("abseta_bins"),
@@ -282,8 +283,6 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   // CSV Weights
   auto deepcsvWeightLabel = iConfig.getParameter<edm::InputTag>("deepcsvWeightLabel");
   // GEN and ttbar Categorization
-  //genToken_              = consumes<reco::GenParticleCollection>  (iConfig.getParameter<edm::InputTag>("genLabel"));
-  genJetToken_           = consumes<reco::GenJetCollection>       (iConfig.getParameter<edm::InputTag>("genJetLabel"));  
   genttbarCatToken_      = consumes<cat::GenTopCollection>        (iConfig.getParameter<edm::InputTag>("genttbarCatLabel"));
   genttbarHiggsCatToken_ = consumes<int>                          (iConfig.getParameter<edm::InputTag>("genHiggsCatLabel"));
   // Object Collections
@@ -292,11 +291,11 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   jetToken_          = consumes<cat::JetCollection>           (iConfig.getParameter<edm::InputTag>("jetLabel"));
   metToken_          = consumes<cat::METCollection>           (iConfig.getParameter<edm::InputTag>("metLabel"));
   pvToken_           = consumes<int>                          (iConfig.getParameter<edm::InputTag>("pvLabel"));
-  // Trigger  
-  auto triggerLabel  = iConfig.getParameter<edm::InputTag>("triggerBits");
-  triggerBits_       = consumes<edm::TriggerResults>(edm::InputTag(triggerLabel.label(),"","HLT"));
-  triggerBits2_      = consumes<edm::TriggerResults>(edm::InputTag(triggerLabel.label(),"","HLT2"));
-  triggerObjects_    = consumes<pat::TriggerObjectStandAloneCollection>(iConfig.getParameter<edm::InputTag>("triggerObjects"));
+  // Trigger 
+  recoFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("recoFilters"));
+  trigMuFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigMuFilters"));
+  trigElFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigElFilters"));
+  trigElHTFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigElHTFilters"));
   // PU = 0 prescription
   nTrueVertToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("nTrueVertLabel"));
 
@@ -358,7 +357,6 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("lepton_eta", &b_Lepton_eta, "lepton_eta/F");
   tree->Branch("lepton_phi", &b_Lepton_phi, "lepton_phi/F");
   tree->Branch("lepton_e" ,  &b_Lepton_e,   "lepton_e/F" );
-  tree->Branch("lepton_LES", &b_Lepton_LES, "lepton_LES/F" );
 
   tree->Branch("lepton_SF",  "std::vector<float>", &b_Lepton_SF );
 
@@ -377,7 +375,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("jet_deepCvsL",      "std::vector<float>", &b_Jet_deepCvsL);
   tree->Branch("jet_deepCvsB",      "std::vector<float>", &b_Jet_deepCvsB);
   tree->Branch("jet_deepJetCvsL",   "std::vector<float>", &b_Jet_deepJetCvsL);
-  tree->Branch("jet_deepCvsB",      "std::vector<float>", &b_Jet_deepJetCvsB);
+  tree->Branch("jet_deepJetCvsB",   "std::vector<float>", &b_Jet_deepJetCvsB);
 
   tree->Branch("jet_number" , &b_Jet_Number, "jet_number/I" );
 
@@ -621,6 +619,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
   EventInfo->Fill(0.5, 1.0);         // Number of Events
 
+  bool METfiltered = false;
   if(isMC_) {
 
     edm::Handle<int> nTrueVertHandle;
@@ -655,6 +654,13 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     b_GenWeight = *genWeight;
 
     EventInfo->Fill(1.5, b_GenWeight); // Sum of aMC@NLO Weights
+
+    //---------------------------------------------------------------------------
+    // MET optional filters
+    //---------------------------------------------------------------------------
+    edm::Handle<int> recoFiltersHandle;
+    iEvent.getByToken(recoFiltersToken_, recoFiltersHandle);
+    METfiltered = *recoFiltersHandle == 0 ? true : false;
   }
 
   else{
@@ -710,6 +716,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   // Generated Particles (For Pythia8)
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
+
   int nGenLep  = 999;
 
   bool IsCat = false;
@@ -1000,8 +1007,8 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   std::vector<float> *lepton_SF;
   lepton_SF = new std::vector<float>;
 
-  float lepton_LES = 0.0;
   int ch_tag  = 999;
+
   if(selectedMuons.size()     == 1 &&
      vetoMuons.size()         == 0 &&
      selectedElectrons.size() == 0 &&
@@ -1013,14 +1020,15 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
     if(isMC_) {
       // Lepton SF (ID/ISO/Trigger)
-      lepton_SF->push_back( SF_muon_   ( selectedMuons[0].pt(), selectedMuons[0].eta()       )); // [0]-> SF
-      lepton_SF->push_back( SF_muon_   ( selectedMuons[0].pt(), selectedMuons[0].eta(),  1.0 )); // [1]-> SF+Error
-      lepton_SF->push_back( SF_muon_   ( selectedMuons[0].pt(), selectedMuons[0].eta(), -1.0 )); // [2]-> SF-Error
-      lepton_SF->push_back( SF_muonTrg_( selectedMuons[0].pt(), selectedMuons[0].eta()       )); // [3]-> TrgSF
-      lepton_SF->push_back( SF_muonTrg_( selectedMuons[0].pt(), selectedMuons[0].eta(),  1.0 )); // [4]-> TrgSF+Error
-      lepton_SF->push_back( SF_muonTrg_( selectedMuons[0].pt(), selectedMuons[0].eta(), -1.0 )); // [5]-> TrgSF-Error
-      //LES
-      lepton_LES = selectedMuons[0].shiftedEn();
+      lepton_SF->push_back( SF_muonId_ ( selectedMuons[0].pt(), selectedMuons[0].eta()       )); // [0]-> IdSF
+      lepton_SF->push_back( SF_muonId_ ( selectedMuons[0].pt(), selectedMuons[0].eta(),  1.0 )); // [1]-> IdSF+Error
+      lepton_SF->push_back( SF_muonId_ ( selectedMuons[0].pt(), selectedMuons[0].eta(), -1.0 )); // [2]-> IdSF-Error
+      lepton_SF->push_back( SF_muonIso_( selectedMuons[0].pt(), selectedMuons[0].eta()       )); // [3]-> IsoSF
+      lepton_SF->push_back( SF_muonIso_( selectedMuons[0].pt(), selectedMuons[0].eta(),  1.0 )); // [4]-> IsoSF+Error
+      lepton_SF->push_back( SF_muonIso_( selectedMuons[0].pt(), selectedMuons[0].eta(), -1.0 )); // [5]-> IsoSF-Error
+      lepton_SF->push_back( SF_muonTrg_( selectedMuons[0].pt(), selectedMuons[0].eta()       )); // [6]-> TrgSF
+      lepton_SF->push_back( SF_muonTrg_( selectedMuons[0].pt(), selectedMuons[0].eta(),  1.0 )); // [7]-> TrgSF+Error
+      lepton_SF->push_back( SF_muonTrg_( selectedMuons[0].pt(), selectedMuons[0].eta(), -1.0 )); // [8]-> TrgSF-Error
     }
   }
 
@@ -1031,18 +1039,23 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     ch_tag = 1; //electron + jets
     lepton.SetPtEtaPhiE(selectedElectrons[0].pt(), selectedElectrons[0].eta(), selectedElectrons[0].phi(), selectedElectrons[0].energy());
     b_Lepton_relIso = selectedElectrons.at(0).relIso(0.3);
-    b_Lepton_isIso = (b_Lepton_relIso < (std::abs(selectedElectrons[0].scEta()) <= 1.479 ? 0.0766 : 0.0678) );
+    if( std::abs(selectedElectrons[0].scEta()) <= 1.479 && b_Lepton_relIso < 0.0287+0.506/static_cast<double>(lepton.Pt())) b_Lepton_isIso = true;
+    else if( std::abs(selectedElectrons[0].scEta()) > 1.479 && b_Lepton_relIso < 0.0445+0.963/static_cast<double>(lepton.Pt())) b_Lepton_isIso = true;
 
     if(isMC_) {
-      // Lepton SF (ID/ISO/Trigger)
-      lepton_SF->push_back( SF_elec_   ( selectedElectrons[0].pt(), selectedElectrons[0].scEta()       )); // [0]-> SF
-      lepton_SF->push_back( SF_elec_   ( selectedElectrons[0].pt(), selectedElectrons[0].scEta(),  1.0 )); // [1]-> SF+Error
-      lepton_SF->push_back( SF_elec_   ( selectedElectrons[0].pt(), selectedElectrons[0].scEta(), -1.0 )); // [2]-> SF-Error
-      lepton_SF->push_back( SF_elecTrg_( selectedElectrons[0].pt(), selectedElectrons[0].scEta()       )); // [3]-> TrgSF
-      lepton_SF->push_back( SF_elecTrg_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(),  1.0 )); // [4]-> TrgSF+Error
-      lepton_SF->push_back( SF_elecTrg_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(), -1.0 )); // [5]-> TrgSF-Error
-      //LES
-      lepton_LES = selectedElectrons[0].shiftedEn();
+      // Lepton SF (ID/Reco/Zvtx/Trigger)
+      lepton_SF->push_back( SF_elecId_  ( selectedElectrons[0].pt(), selectedElectrons[0].scEta()       )); // [0]- > IdSF
+      lepton_SF->push_back( SF_elecId_  ( selectedElectrons[0].pt(), selectedElectrons[0].scEta(),  1.0 )); // [1] -> IdSF+Error
+      lepton_SF->push_back( SF_elecId_  ( selectedElectrons[0].pt(), selectedElectrons[0].scEta(), -1.0 )); // [2] -> IdSF-Error
+      lepton_SF->push_back( SF_elecReco_( selectedElectrons[0].pt(), selectedElectrons[0].scEta()       )); // [3] -> RecoSF
+      lepton_SF->push_back( SF_elecReco_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(),  1.0 )); // [4] -> RecoSF+Error
+      lepton_SF->push_back( SF_elecReco_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(), -1.0 )); // [5] -> RecoSF-Error
+      lepton_SF->push_back( SF_elecZvtx_( selectedElectrons[0].pt(), selectedElectrons[0].scEta()       )); // [6] -> ZvtxSF
+      lepton_SF->push_back( SF_elecZvtx_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(),  1.0 )); // [7] -> ZvtxSF+Error
+      lepton_SF->push_back( SF_elecZvtx_( selectedElectrons[0].pt(), selectedElectrons[0].scEta(), -1.0 )); // [8] -> ZvtxSF-Error
+      lepton_SF->push_back( SF_elecTrg_ ( selectedElectrons[0].pt(), selectedElectrons[0].scEta()       )); // [9] -> TrgSF
+      lepton_SF->push_back( SF_elecTrg_ ( selectedElectrons[0].pt(), selectedElectrons[0].scEta(),  1.0 )); // [10]-> TrgSF+Error
+      lepton_SF->push_back( SF_elecTrg_ ( selectedElectrons[0].pt(), selectedElectrons[0].scEta(), -1.0 )); // [11]-> TrgSF-Error
     }
   }
 
@@ -1051,52 +1064,26 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   // HLTrigger
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  std::vector<string> triggerNameEl_, triggerNameMu_;
-  if(isMC_){
-    triggerNameEl_ = triggerNameMCEl_;
-    triggerNameMu_ = triggerNameMCMu_;
-  } 
-  else{
-    triggerNameEl_ = triggerNameDataEl_;
-    triggerNameMu_ = triggerNameDataMu_;  
-  }  
-  
-  bool EvTrigger = false; 
-  edm::Handle<edm::TriggerResults> triggerBits;
-  edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
-  iEvent.getByToken(triggerBits_, triggerBits);
-  if( !iEvent.getByToken(triggerBits_, triggerBits) ){
-    iEvent.getByToken(triggerBits2_, triggerBits);
-  } 
-  iEvent.getByToken(triggerObjects_, triggerObjects);
-  const edm::TriggerNames &triggerNames = iEvent.triggerNames(*triggerBits);
-  AnalysisHelper trigHelper = AnalysisHelper(triggerNames, triggerBits, triggerObjects);
+  bool EvTrigger     = false;
+  bool IsTriggerMu   = false;
+  bool IsTriggerEl   = false;
+  bool IsTriggerElHT = false;
 
-  bool IsTriggerMu = false;
-  bool IsTriggerEl = false;
-  
-  // DEBUG: Print all triggers
-  // trigHelper.listFiredTriggers();
+  edm::Handle<int> trigMuFiltersHandle;
+  iEvent.getByToken(trigMuFiltersToken_, trigMuFiltersHandle);
+  IsTriggerMu = *trigMuFiltersHandle == 0 ? false : true;
 
-  for(std::vector<string>::iterator TrMu_it = triggerNameMu_.begin(); TrMu_it != triggerNameMu_.end(); TrMu_it++){
-    IsTriggerMu = trigHelper.triggerFired(*TrMu_it);
-    // No trigger
-    if(*TrMu_it == "notrigger") IsTriggerMu = true; 
-    if (IsTriggerMu) break;
-  }
-  
-  for(std::vector<string>::iterator TrEl_it = triggerNameEl_.begin(); TrEl_it != triggerNameEl_.end(); TrEl_it++){
-    IsTriggerEl = trigHelper.triggerFired(*TrEl_it);
-    // No trigger
-    if(*TrEl_it == "notrigger") IsTriggerEl = true;
-    if (IsTriggerEl) break;
-  }
+  edm::Handle<int> trigElFiltersHandle;
+  iEvent.getByToken(trigElFiltersToken_, trigElFiltersHandle);
+  IsTriggerEl = *trigElFiltersHandle == 0 ? false : true;
 
-  if ( (ch_tag == 0 && IsTriggerMu) ||
-       (ch_tag == 1 && IsTriggerEl) 
-       ) {
+  edm::Handle<int> trigElHTFiltersHandle;
+  iEvent.getByToken(trigElHTFiltersToken_, trigElHTFiltersHandle);
+  IsTriggerElHT = *trigElHTFiltersHandle == 0 ? false : true;
+
+  if( (ch_tag == 0 && IsTriggerMu) ||
+      (ch_tag == 1 && (IsTriggerEl || IsTriggerElHT)) )
     EvTrigger = true;
-  }
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -1104,7 +1091,6 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
 
-  //---------------------------------------------------------------------------
   // Check Gen Level for ttbar sample
   if (TTbarMC_ >0){
     // Signal ttbar event
@@ -1115,7 +1101,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     if(!IsCat) ch_tag = 999;
   } // if(TTbarMC_ >0)
 
-  if (ch_tag<2 && EvTrigger){ // Single lepton event
+  if (ch_tag<2 && EvTrigger && !METfiltered){ // Single lepton event
 
     b_Channel  = ch_tag;
 
@@ -1125,7 +1111,6 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     b_Lepton_e   = lepton.E();
 
     b_Lepton_SF  = lepton_SF;
-    b_Lepton_LES = lepton_LES;
 
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
@@ -1180,18 +1165,30 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         b_Jet_hadronFlavour->push_back(jet.hadronFlavour());
 
         // b-tag discriminant
-        float jet_btagDis_deepCSVb  = jet.bDiscriminator(BTAG_DeepCSVb);
-	float jet_btagDis_deepCSVbb = jet.bDiscriminator(BTAG_DeepCSVbb);
-        b_Jet_deepCSV->push_back(jet_btagDis_deepCSVb + jet_btagDis_deepCSVbb);
+        float jet_btagDis_deepCSV = 
+	  jet.bDiscriminator(BTAG_DeepCSVb) + jet.bDiscriminator(BTAG_DeepCSVbb);
+	float jet_btagDis_deepJet = 
+	  jet.bDiscriminator(BTAG_DeepJetb)  + 
+	  jet.bDiscriminator(BTAG_DeepJetbb) + jet.bDiscriminator(BTAG_DeepJetlepb);
+        b_Jet_deepCSV->push_back(jet_btagDis_deepCSV);
+        b_Jet_deepJet->push_back(jet_btagDis_deepJet);
 
         // c-tag discriminant
         float jet_btagDis_deepCvsL = jet.bDiscriminator(BTAG_DeepCSVc)/
 	    (jet.bDiscriminator(BTAG_DeepCSVc) + jet.bDiscriminator(BTAG_DeepCSVudsg));
-        b_Jet_deepCvsL->push_back(jet_btagDis_deepCvsL);
         float jet_btagDis_deepCvsB = jet.bDiscriminator(BTAG_DeepCSVc)/
 	    (jet.bDiscriminator(BTAG_DeepCSVc) +
 	     jet.bDiscriminator(BTAG_DeepCSVb) + jet.bDiscriminator(BTAG_DeepCSVbb));
+	float jet_btagDis_deepJetCvsL = jet.bDiscriminator(BTAG_DeepJetc)/
+	    (jet.bDiscriminator(BTAG_DeepJetc)   +
+	     jet.bDiscriminator(BTAG_DeepJetuds) + jet.bDiscriminator(BTAG_DeepJetg));
+	float jet_btagDis_deepJetCvsB = jet.bDiscriminator(BTAG_DeepJetc)/
+	    (jet.bDiscriminator(BTAG_DeepJetc)  + jet.bDiscriminator(BTAG_DeepJetb) +
+	     jet.bDiscriminator(BTAG_DeepJetbb) + jet.bDiscriminator(BTAG_DeepJetlepb));
+        b_Jet_deepCvsL->push_back(jet_btagDis_deepCvsL);
 	b_Jet_deepCvsB->push_back(jet_btagDis_deepCvsB);
+	b_Jet_deepJetCvsL->push_back(jet_btagDis_deepJetCvsL);
+	b_Jet_deepJetCvsB->push_back(jet_btagDis_deepJetCvsB);
 
         if(isMC_) {
           // JES
@@ -1200,9 +1197,9 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
           // JER
           // Ref: https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution
-          b_Jet_JER_Up   ->push_back(jer_valid(jet.smearedResUp()));
-          b_Jet_JER_Nom  ->push_back(jer_valid(jet.smearedRes()));
-          b_Jet_JER_Down ->push_back(jer_valid(jet.smearedResDown()));
+          b_Jet_JER_Up   ->push_back(jet.smearedResUp());
+          b_Jet_JER_Nom  ->push_back(jet.smearedRes());
+          b_Jet_JER_Down ->push_back(jet.smearedResDown());
 
           // Ref: https://twiki.cern.ch/twiki/bin/view/CMS/BTagShapeCalibration
           // Saving the central SF and the 18 syst. unc. for:
@@ -1231,6 +1228,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     tree->Fill();
         
   }// if(ch_tag)
+  
 }
 
 //------------- Good Muon Selection -----------------------
@@ -1240,9 +1238,10 @@ bool ttbbLepJetsAnalyzer::IsSelectMuon(const cat::Muon & i_muon_candidate)
 
   // Tight selection already defined into CAT::Muon
   GoodMuon &= (i_muon_candidate.passed(reco::Muon::CutBasedIdTight|reco::Muon::PFIsoTight));
+
   GoodMuon &= (i_muon_candidate.isPFMuon());           // PF
   GoodMuon &= (i_muon_candidate.pt()> 30);             // pT
-  GoodMuon &= (std::abs(i_muon_candidate.eta())< 2.1); // eta
+  GoodMuon &= (std::abs(i_muon_candidate.eta())< 2.4); // eta
 
   //----------------------------------------------------------------------------------------------------
   //------------- The Relative Isolation is already calculated in the CAT object -----------------------
@@ -1263,7 +1262,8 @@ bool ttbbLepJetsAnalyzer::IsVetoMuon(const cat::Muon & i_muon_candidate)
   bool GoodMuon=true;
 
   // Loose selection already defined into CAT::Muon
-  GoodMuon &= (i_muon_candidate.passed(reco::Muon::CutBasedIdLoose|reco::Muon::PFIsoLoose));
+  GoodMuon &= (i_muon_candidate.isLooseMuon());
+
   GoodMuon &= (i_muon_candidate.isPFMuon());           // PF
   GoodMuon &= (i_muon_candidate.pt()> 15);             // pT
   GoodMuon &= (std::abs(i_muon_candidate.eta())< 2.4); // eta
@@ -1289,7 +1289,7 @@ bool ttbbLepJetsAnalyzer::IsSelectElectron(const cat::Electron & i_electron_cand
 
   GoodElectron &= (i_electron_candidate.isPF() );                // PF
   GoodElectron &= (i_electron_candidate.pt() > 30);              // pT
-  GoodElectron &= (std::abs(i_electron_candidate.eta()) < 2.1);  // eta
+  GoodElectron &= (std::abs(i_electron_candidate.eta()) < 2.4);  // eta
   GoodElectron &= (std::abs(i_electron_candidate.scEta()) < 1.4442 || // eta Super-Cluster
                    std::abs(i_electron_candidate.scEta()) > 1.566);
 
@@ -1357,12 +1357,5 @@ float ttbbLepJetsAnalyzer::weight_valid(float weight){
   return weight;
 }
 
-float ttbbLepJetsAnalyzer::jer_valid(float weight){
-  if( std::isnan(weight) or std::isinf(weight) ) return 0.0;
-  if( weight < 0.0 ) return 1.0;
-  return weight;
-}
-
 //define this as a plug-in
 DEFINE_FWK_MODULE(ttbbLepJetsAnalyzer);
-

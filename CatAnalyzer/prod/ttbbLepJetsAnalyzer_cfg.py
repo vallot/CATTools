@@ -7,7 +7,7 @@ options = VarParsing ('analysis')
 # JSON
 options.register('UserJSON', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "UserJSON: Fault  default")
 # runOnTTbarMC ==> 0->No ttbar, 1->ttbar Signal, 2->ttbar Background
-options.register('runOnTTbarMC', 0, VarParsing.multiplicity.singleton, VarParsing.varType.int, "runOnTTbarMC: 0  default No ttbar sample")
+options.register('runOnTTbarMC', 1, VarParsing.multiplicity.singleton, VarParsing.varType.int, "runOnTTbarMC: 0  default No ttbar sample")
 # TTbarCatMC   ==> 0->All ttbar, 1->ttbb, 2->ttbj, 3->ttcc, 4->ttLF, 5->tt, 6->ttjj
 options.register('TTbarCatMC', 1, VarParsing.multiplicity.singleton, VarParsing.varType.int, "TTbarCatMC: 0  default All ttbar events")
 options.parseArguments()
@@ -30,7 +30,7 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 50000
 # )
 process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(50000) )
 
 process.source = cms.Source("PoolSource",
 
@@ -62,19 +62,16 @@ if options.UserJSON:
 from CATTools.CatAnalyzer.leptonSF_cff import *
 # GEN Weights
 process.load("CATTools.CatAnalyzer.flatGenWeights_cfi")
-# CSV Scale Factors
-#process.load("CATTools.CatAnalyzer.csvWeights_cfi")
-#process.csvWeights.minPt = 30   # Same cuts than jet selection
-#process.csvWeights.maxEta = 2.4
+process.load("CATTools.CatAnalyzer.filters_cff")
 
 process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      TTbarSampleLabel  = cms.untracked.int32(options.runOnTTbarMC),
                                      TTbarCatLabel     = cms.untracked.int32(options.TTbarCatMC),
                                      # TriggerNames
-                                     triggerNameDataEl = cms.untracked.vstring("HLT_Ele32_WPTight_Gsf_v", "HLT_Ele28_eta2p1_WPTight_Gsf_HT150_v"), 
-                                     triggerNameDataMu = cms.untracked.vstring("HLT_IsoMu24_v"), 
-                                     triggerNameMCEl   = cms.untracked.vstring("HLT_Ele32_WPTight_Gsf_v", "HLT_Ele28_eta2p1_WPTight_Gsf_HT150_v"), 
-                                     triggerNameMCMu   = cms.untracked.vstring("HLT_IsoMu24_v"), 
+				     trigMuFilters     = cms.InputTag("filterTrigMU"),
+				     trigElFilters     = cms.InputTag("filterTrigEL"),
+				     trigElHTFilters   = cms.InputTag("filterTrigELHT"),
+				     recoFilters       = cms.InputTag("filterRECOMC"),
                                      # Input Tags
                                      genWeightLabel    = cms.InputTag("flatGenWeights"),
                                      genLabel          = cms.InputTag("prunedGenParticles"),
@@ -83,10 +80,13 @@ process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      genHiggsCatLabel  = cms.InputTag("GenTtbarCategories:genTtbarId"),
                                      genttbarCatLabel  = cms.InputTag("catGenTops"),
                                      muonLabel         = cms.InputTag("catMuons"),
-                                     muonSF            = muonSFTight102X,
+                                     muonIdSF          = muonSFTightId102X,
+				     muonIsoSF         = muonSFTightIso102X,
 				     muonTrgSF         = trigSF_IsoMu24,
                                      electronLabel     = cms.InputTag("catElectrons"),
-                                     elecSF            = electronCombinedSFCutTight102X,
+				     elecIdSF          = electronSFCutBasedTight102X,
+				     elecRecoSF        = electronSFReco102X,
+				     elecZvtxSF        = electronSFHLTZvtx102X,
 				     elecTrgSF         = trigSF_El32_El28HT150_ttH_legacy18_v1,
                                      jetLabel          = cms.InputTag("catJets"),
                                      metLabel          = cms.InputTag("catMETs"),
@@ -113,6 +113,7 @@ process.TFileService = cms.Service("TFileService",
 # process.p = cms.Path(process.pileupWeight*
 #                      process.ttbarSingleLepton)
 process.p = cms.Path(process.flatGenWeights +
-#                     process.csvWeights +
+                     process.filterRECOMC +
+		     process.filterTrigMU + process.filterTrigEL + process.filterTrigELHT +
                      process.pileupWeight +
                      process.ttbbLepJets + process.ttbbLepJetsQCD)
