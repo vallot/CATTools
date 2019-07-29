@@ -35,7 +35,7 @@ create-batch --jobName SingleTbar_tW_PowhegPythia --fileList $dataset_loc/datase
 ### ttbar + boson
 create-batch --jobName ttHToNonbb_PowhegPythia --fileList $dataset_loc/dataset_ttHToNonbb.txt --cfg $cfg --transferDest $save_loc/ttHToNonbb_PowhegPythia --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
 create-batch --jobName ttHTobb_PowhegPythia --fileList $dataset_loc/dataset_ttHTobb.txt --cfg $cfg --transferDest $save_loc/ttHTobb_PowhegPythia --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
-create-batch --jobName ttWToLNu_aMCatNLOMadspinPythia --fileList $dataset_loc/dataset_TTWJetsToLNu_PSweight.txt --cfg $cfg --transferDest $save_loc/ttWToLNu_aMCatNLOMadspinPythia --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
+create-batch --jobName ttWToLNu_aMCatNLOMadspinPythia --fileList $dataset_loc/dataset_TTWJetsToLNu.txt --cfg $cfg --transferDest $save_loc/ttWToLNu_aMCatNLOMadspinPythia --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
 create-batch --jobName ttWToQQ_aMCatNLOMadspinPythia --fileList $dataset_loc/dataset_TTWJetsToQQ.txt --cfg $cfg --transferDest $save_loc/ttWToQQ_aMCatNLOMadspinPythia --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
 create-batch --jobName ttZToLLNuNu_aMCatNLOMadspinPythia --fileList $dataset_loc/dataset_TTZToLLNuNu.txt --cfg $cfg --transferDest $save_loc/ttZToLLNuNu_aMCatNLOMadspinPythia --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
 create-batch --jobName ttZToQQ_aMCatNLOMadspinPythia --fileList $dataset_loc/dataset_TTZToQQ.txt --cfg $cfg --transferDest $save_loc/ttZToQQ_aMCatNLOMadspinPythia --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
