@@ -17,17 +17,17 @@ create-batch --jobName DataSingleMuE --fileList $dataset_loc/dataset_SingleMuon_
 create-batch --jobName DataSingleMuF --fileList $dataset_loc/dataset_SingleMuon_Run2017F.txt --cfg $cfg --transferDest $save_loc/DataSingleMuF --maxFiles 50 --args 'UserJSON=true runOnTTbarMC=0 TTbarCatMC=0'
 
 # Signal
-create-batch --jobName TTLJ_PowhegPythia_ttbb --fileList $dataset_loc/dataset_TTLJ_powheg_PSweight.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythia_ttbb --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=1'
-create-batch --jobName TTLJ_PowhegPythia_ttbj --fileList $dataset_loc/dataset_TTLJ_powheg_PSweight.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythia_ttbj --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=2'
-create-batch --jobName TTLJ_PowhegPythia_ttcc --fileList $dataset_loc/dataset_TTLJ_powheg_PSweight.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythia_ttcc --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=3'
-create-batch --jobName TTLJ_PowhegPythia_ttLF --fileList $dataset_loc/dataset_TTLJ_powheg_PSweight.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythia_ttLF --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=4'
-create-batch --jobName TTLJ_PowhegPythia_ttother --fileList $dataset_loc/dataset_TTLJ_powheg_PSweight.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythia_ttother --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=5'
+create-batch --jobName TTLJ_PowhegPythia_ttbb --fileList $dataset_loc/dataset_TTLJ_powheg.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythia_ttbb --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=1'
+create-batch --jobName TTLJ_PowhegPythia_ttbj --fileList $dataset_loc/dataset_TTLJ_powheg.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythia_ttbj --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=2'
+create-batch --jobName TTLJ_PowhegPythia_ttcc --fileList $dataset_loc/dataset_TTLJ_powheg.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythia_ttcc --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=3'
+create-batch --jobName TTLJ_PowhegPythia_ttLF --fileList $dataset_loc/dataset_TTLJ_powheg.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythia_ttLF --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=4'
+create-batch --jobName TTLJ_PowhegPythia_ttother --fileList $dataset_loc/dataset_TTLJ_powheg.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythia_ttother --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=5'
 
 # Background
 ### ttbar background
-create-batch --jobName TTLJ_PowhegPythiaBkg --fileList $dataset_loc/dataset_TTLJ_powheg_PSweight.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythiaBkg --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
-create-batch --jobName TTLL_PowhegPythiaBkg --fileList $dataset_loc/dataset_TTTo2L2Nu_PSWeight.txt --cfg $cfg --transferDest $save_loc/TTLL_PowhegPythiaBkg --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
-create-batch --jobName TTJJ_PowhegPythiaBkg --fileList $dataset_loc/dataset_TTToHadronic_PSWeight.txt --cfg $cfg --transferDest $save_loc/TTJJ_PowhegPythiaBkg --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
+create-batch --jobName TTLJ_PowhegPythiaBkg --fileList $dataset_loc/dataset_TTLJ_powheg.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythiaBkg --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
+create-batch --jobName TTLL_PowhegPythiaBkg --fileList $dataset_loc/dataset_TTTo2L2Nu.txt --cfg $cfg --transferDest $save_loc/TTLL_PowhegPythiaBkg --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
+create-batch --jobName TTJJ_PowhegPythiaBkg --fileList $dataset_loc/dataset_TTToHadronic.txt --cfg $cfg --transferDest $save_loc/TTJJ_PowhegPythiaBkg --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
 ### single top
 create-batch --jobName SingleTop_s_aMCatNLOPythia --fileList $dataset_loc/dataset_SingleTop_s.txt --cfg $cfg --transferDest $save_loc/SingleTop_s_aMCatNLOPythia --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=0 TTbarCatMC=0'
 create-batch --jobName SingleTop_t_PowhegPythia --fileList $dataset_loc/dataset_SingleTop_t.txt --cfg $cfg --transferDest $save_loc/SingleTop_t_PowhegPythia --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=0 TTbarCatMC=0'
@@ -37,7 +37,7 @@ create-batch --jobName SingleTbar_tW_PowhegPythia --fileList $dataset_loc/datase
 ### ttbar + boson
 create-batch --jobName ttHToNonbb_PowhegPythia --fileList $dataset_loc/dataset_ttHToNonbb.txt --cfg $cfg --transferDest $save_loc/ttHToNonbb_PowhegPythia --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
 create-batch --jobName ttHTobb_PowhegPythia --fileList $dataset_loc/dataset_ttHTobb.txt --cfg $cfg --transferDest $save_loc/ttHTobb_PowhegPythia --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
-create-batch --jobName ttWToLNu_aMCatNLOMadspinPythia --fileList $dataset_loc/dataset_TTWJetsToLNu_PSweight.txt --cfg $cfg --transferDest $save_loc/ttWToLNu_aMCatNLOMadspinPythia --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
+create-batch --jobName ttWToLNu_aMCatNLOMadspinPythia --fileList $dataset_loc/dataset_TTWJetsToLNu.txt --cfg $cfg --transferDest $save_loc/ttWToLNu_aMCatNLOMadspinPythia --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
 create-batch --jobName ttWToQQ_aMCatNLOMadspinPythia --fileList $dataset_loc/dataset_TTWJetsToQQ.txt --cfg $cfg --transferDest $save_loc/ttWToQQ_aMCatNLOMadspinPythia --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
 create-batch --jobName ttZToLLNuNu_aMCatNLOMadspinPythia --fileList $dataset_loc/dataset_TTZToLLNuNu.txt --cfg $cfg --transferDest $save_loc/ttZToLLNuNu_aMCatNLOMadspinPythia --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
 create-batch --jobName ttZToQQ_aMCatNLOMadspinPythia --fileList $dataset_loc/dataset_TTZToQQ.txt --cfg $cfg --transferDest $save_loc/ttZToQQ_aMCatNLOMadspinPythia --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
@@ -55,3 +55,67 @@ create-batch --jobName W4JetsToLNu_MadgraphPythia  --fileList $dataset_loc/datas
 ### Z + Jets
 create-batch --jobName ZJets_M10to50_MadgraphPythia  --fileList $dataset_loc/dataset_DYJets_10to50.txt --cfg $cfg --transferDest $save_loc/ZJets_M10to50_MadgraphPythia --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=0 TTbarCatMC=0'
 create-batch --jobName ZJets_M50_aMCatNLOPythia  --fileList $dataset_loc/dataset_DYJets.txt --cfg $cfg --transferDest $save_loc/ZJets_M50_aMCatNLOPythia --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=0 TTbarCatMC=0'
+
+#QCD
+### muon
+create-batch --jobName QCD_Pt-1000toInf_MuEnriched --fileList $dataset_loc/dataset_QCD_Pt-1000toInf_MuEnriched.txt --cfg $cfg --transferDest $save_loc/QCD_Pt-1000toInf_MuEnriched --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=0 TTbarCatMC=0'
+create-batch --jobName QCD_Pt-800to1000_MuEnriched --fileList $dataset_loc/dataset_QCD_Pt-800to1000_MuEnriched.txt --cfg $cfg --transferDest $save_loc/QCD_Pt-800to1000_MuEnriched --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=0 TTbarCatMC=0'
+create-batch --jobName QCD_Pt-600to800_MuEnriched --fileList $dataset_loc/dataset_QCD_Pt-600to800_MuEnriched.txt --cfg $cfg --transferDest $save_loc/QCD_Pt-600to800_MuEnriched --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=0 TTbarCatMC=0'
+create-batch --jobName QCD_Pt-470to600_MuEnriched --fileList $dataset_loc/dataset_QCD_Pt-470to600_MuEnriched.txt --cfg $cfg --transferDest $save_loc/QCD_Pt-470to600_MuEnriched --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=0 TTbarCatMC=0'
+create-batch --jobName QCD_Pt-300to470_MuEnriched --fileList $dataset_loc/dataset_QCD_Pt-300to470_MuEnriched.txt --cfg $cfg --transferDest $save_loc/QCD_Pt-300to470_MuEnriched --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=0 TTbarCatMC=0'
+create-batch --jobName QCD_Pt-170to300_MuEnriched --fileList $dataset_loc/dataset_QCD_Pt-170to300_MuEnriched.txt --cfg $cfg --transferDest $save_loc/QCD_Pt-170to300_MuEnriched --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=0 TTbarCatMC=0'
+create-batch --jobName QCD_Pt-120to170_MuEnriched --fileList $dataset_loc/dataset_QCD_Pt-120to170_MuEnriched.txt --cfg $cfg --transferDest $save_loc/QCD_Pt-120to170_MuEnriched --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=0 TTbarCatMC=0'
+create-batch --jobName QCD_Pt-80to120_MuEnriched --fileList $dataset_loc/dataset_QCD_Pt-80to120_MuEnriched.txt --cfg $cfg --transferDest $save_loc/QCD_Pt-80to120_MuEnriched --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=0 TTbarCatMC=0'
+create-batch --jobName QCD_Pt-50to80_MuEnriched --fileList $dataset_loc/dataset_QCD_Pt-50to80_MuEnriched.txt --cfg $cfg --transferDest $save_loc/QCD_Pt-50to80_MuEnriched --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=0 TTbarCatMC=0'
+create-batch --jobName QCD_Pt-30to50_MuEnriched --fileList $dataset_loc/dataset_QCD_Pt-30ot050_MuEnriched.txt --cfg $cfg --transferDest $save_loc/QCD_Pt-30to50_MuEnriched --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=0 TTbarCatMC=0'
+create-batch --jobName QCD_Pt-20to30_MuEnriched --fileList $dataset_loc/dataset_QCD_Pt-20to30_MuEnriched.txt --cfg $cfg --transferDest $save_loc/QCD_Pt-20to30_MuEnriched --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=0 TTbarCatMC=0'
+create-batch --jobName QCD_Pt-15to20_MuEnriched --fileList $dataset_loc/dataset_QCD_Pt-15to20_MuEnriched.txt --cfg $cfg --transferDest $save_loc/QCD_Pt-15to20_MuEnriched --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=0 TTbarCatMC=0'
+
+### electron
+create-batch --jobName QCD_Pt-300toInf_EMEnriched --fileList $dataset_loc/dataset_QCD_Pt-300toInf_EMEnriched.txt --cfg $cfg --transferDest $save_loc/QCD_Pt-300toInf_EMEnriched --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=0 TTbarCatMC=0'
+#create-batch --jobName QCD_Pt-170to300_EMEnriched --fileList $dataset_loc/dataset_QCD_Pt-170to300_EMEnriched.txt --cfg $cfg --transferDest $save_loc/QCD_Pt-170to300_EMEnriched --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=0 TTbarCatMC=0'
+create-batch --jobName QCD_Pt-120to170_EMEnriched --fileList $dataset_loc/dataset_QCD_Pt-120to170_EMEnriched.txt --cfg $cfg --transferDest $save_loc/QCD_Pt-120to170_EMEnriched --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=0 TTbarCatMC=0'
+create-batch --jobName QCD_Pt-80to120_EMEnriched --fileList $dataset_loc/dataset_QCD_Pt-80to120_EMEnriched.txt --cfg $cfg --transferDest $save_loc/QCD_Pt-80to120_EMEnriched --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=0 TTbarCatMC=0'
+create-batch --jobName QCD_Pt-50to80_EMEnriched --fileList $dataset_loc/dataset_QCD_Pt-50to80_EMEnriched.txt --cfg $cfg --transferDest $save_loc/QCD_Pt-50to80_EMEnriched --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=0 TTbarCatMC=0'
+create-batch --jobName QCD_Pt-30to50_EMEnriched --fileList $dataset_loc/dataset_QCD_Pt-30to50_EMEnriched.txt --cfg $cfg --transferDest $save_loc/QCD_Pt-30to50_EMEnriched --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=0 TTbarCatMC=0'
+create-batch --jobName QCD_Pt-20to30_EMEnriched --fileList $dataset_loc/dataset_QCD_Pt-20to30_EMEnriched.txt --cfg $cfg --transferDest $save_loc/QCD_Pt-20to30_EMEnriched --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=0 TTbarCatMC=0'
+create-batch --jobName QCD_Pt-15to20_EMEnriched --fileList $dataset_loc/dataset_QCD_Pt-15to20_EMEnriched.txt --cfg $cfg --transferDest $save_loc/QCD_Pt-15to20_EMEnriched --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=0 TTbarCatMC=0'
+
+
+# Systematics
+### hdamp up
+create-batch --jobName TTLJ_PowhegPythiai_SYS_hdampUp_ttbb --fileList $dataset_loc/dataset_TTLJ_powheg_hdampUP.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythia_SYS_hdampUp_ttbb --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=1'
+create-batch --jobName TTLJ_PowhegPythia_SYS_hdampUp_ttbj --fileList $dataset_loc/dataset_TTLJ_powheg_hdampUP.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythia_SYS_hdampUp_ttbj --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=2'
+create-batch --jobName TTLJ_PowhegPythia_SYS_hdampUp_ttcc --fileList $dataset_loc/dataset_TTLJ_powheg_hdampUP.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythia_SYS_hdampUp_ttcc --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=3'
+create-batch --jobName TTLJ_PowhegPythia_SYS_hdampUp_ttLF --fileList $dataset_loc/dataset_TTLJ_powheg_hdampUP.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythia_SYS_hdampUp_ttLF --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=4'
+create-batch --jobName TTLJ_PowhegPythia_SYS_hdampUp_ttother --fileList $dataset_loc/dataset_TTLJ_powheg_hdampUP.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythia_SYS_hdampUp_ttother --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=5'
+create-batch --jobName TTLJ_PowhegPythiaBkg_SYS_hdampUp --fileList $dataset_loc/dataset_TTLJ_powheg_hdampUP.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythiaBkg_SYS_hdampUp --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
+create-batch --jobName TTLL_PowhegPythiaBkg --fileList $dataset_loc/dataset_TTTo2L2Nu_hdampUP.txt --cfg $cfg --transferDest $save_loc/TTLL_PowhegPythiaBkg_SYS_hdampUp --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
+create-batch --jobName TTJJ_PowhegPythiaBkg_SYS_hdampUp --fileList $dataset_loc/dataset_TTToHadronic_hdampUP.txt --cfg $cfg --transferDest $save_loc/TTJJ_PowhegPythiaBkg_SYS_hdampUp --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
+### hdamp down
+create-batch --jobName TTLJ_PowhegPythiai_SYS_hdampDown_ttbb --fileList $dataset_loc/dataset_TTLJ_powheg_hdampDOWN.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythia_SYS_hdampDown_ttbb --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=1'
+create-batch --jobName TTLJ_PowhegPythia_SYS_hdampDown_ttbj --fileList $dataset_loc/dataset_TTLJ_powheg_hdampDOWN.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythia_SYS_hdampDown_ttbj --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=2'
+create-batch --jobName TTLJ_PowhegPythia_SYS_hdampDown_ttcc --fileList $dataset_loc/dataset_TTLJ_powheg_hdampDOWN.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythia_SYS_hdampDown_ttcc --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=3'
+create-batch --jobName TTLJ_PowhegPythia_SYS_hdampDown_ttLF --fileList $dataset_loc/dataset_TTLJ_powheg_hdampDOWN.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythia_SYS_hdampDown_ttLF --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=4'
+create-batch --jobName TTLJ_PowhegPythia_SYS_hdampDown_ttother --fileList $dataset_loc/dataset_TTLJ_powheg_hdampDOWN.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythia_SYS_hdampDown_ttother --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=5'
+create-batch --jobName TTLJ_PowhegPythiaBkg_SYS_hdampDown --fileList $dataset_loc/dataset_TTLJ_powheg_hdampDOWN.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythiaBkg_SYS_hdampDown --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
+create-batch --jobName TTLL_PowhegPythiaBkg --fileList $dataset_loc/dataset_TTTo2L2Nu_hdampDOWN.txt --cfg $cfg --transferDest $save_loc/TTLL_PowhegPythiaBkg_SYS_hdampDown --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
+create-batch --jobName TTJJ_PowhegPythiaBkg_SYS_hdampDown --fileList $dataset_loc/dataset_TTToHadronic_hdampDOWN.txt --cfg $cfg --transferDest $save_loc/TTJJ_PowhegPythiaBkg_SYS_hdampDown --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
+### TuneCP5 up
+create-batch --jobName TTLJ_PowhegPythiai_SYS_TuneCP5Up_ttbb --fileList $dataset_loc/dataset_TTLJ_powheg_TuneCP5up.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythia_SYS_TuneCP5Up_ttbb --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=1'
+create-batch --jobName TTLJ_PowhegPythia_SYS_TuneCP5Up_ttbj --fileList $dataset_loc/dataset_TTLJ_powheg_TuneCP5up.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythia_SYS_TuneCP5Up_ttbj --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=2'
+create-batch --jobName TTLJ_PowhegPythia_SYS_TuneCP5Up_ttcc --fileList $dataset_loc/dataset_TTLJ_powheg_TuneCP5up.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythia_SYS_TuneCP5Up_ttcc --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=3'
+create-batch --jobName TTLJ_PowhegPythia_SYS_TuneCP5Up_ttLF --fileList $dataset_loc/dataset_TTLJ_powheg_TuneCP5up.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythia_SYS_TuneCP5Up_ttLF --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=4'
+create-batch --jobName TTLJ_PowhegPythia_SYS_TuneCP5Up_ttother --fileList $dataset_loc/dataset_TTLJ_powheg_TuneCP5up.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythia_SYS_TuneCP5Up_ttother --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=5'
+create-batch --jobName TTLJ_PowhegPythiaBkg_SYS_TuneCP5Up --fileList $dataset_loc/dataset_TTLJ_powheg_TuneCP5up.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythiaBkg_SYS_TuneCP5Up --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
+create-batch --jobName TTLL_PowhegPythiaBkg --fileList $dataset_loc/dataset_TTTo2L2Nu_TuneCP5up.txt --cfg $cfg --transferDest $save_loc/TTLL_PowhegPythiaBkg_SYS_TuneCP5Up --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
+create-batch --jobName TTJJ_PowhegPythiaBkg_SYS_TuneCP5Up --fileList $dataset_loc/dataset_TTToHadronic_TuneCP5up.txt --cfg $cfg --transferDest $save_loc/TTJJ_PowhegPythiaBkg_SYS_TuneCP5Up --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
+### TuneCP5 down
+create-batch --jobName TTLJ_PowhegPythiai_SYS_TuneCP5Down_ttbb --fileList $dataset_loc/dataset_TTLJ_powheg_TuneCP5down.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythia_SYS_TuneCP5Down_ttbb --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=1'
+create-batch --jobName TTLJ_PowhegPythia_SYS_TuneCP5Down_ttbj --fileList $dataset_loc/dataset_TTLJ_powheg_TuneCP5down.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythia_SYS_TuneCP5Down_ttbj --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=2'
+create-batch --jobName TTLJ_PowhegPythia_SYS_TuneCP5Down_ttcc --fileList $dataset_loc/dataset_TTLJ_powheg_TuneCP5down.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythia_SYS_TuneCP5Down_ttcc --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=3'
+create-batch --jobName TTLJ_PowhegPythia_SYS_TuneCP5Down_ttLF --fileList $dataset_loc/dataset_TTLJ_powheg_TuneCP5down.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythia_SYS_TuneCP5Down_ttLF --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=4'
+create-batch --jobName TTLJ_PowhegPythia_SYS_TuneCP5Down_ttother --fileList $dataset_loc/dataset_TTLJ_powheg_TuneCP5down.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythia_SYS_TuneCP5Down_ttother --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=1 TTbarCatMC=5'
+create-batch --jobName TTLJ_PowhegPythiaBkg_SYS_TuneCP5Down --fileList $dataset_loc/dataset_TTLJ_powheg_TuneCP5down.txt --cfg $cfg --transferDest $save_loc/TTLJ_PowhegPythiaBkg_SYS_TuneCP5Down --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
+create-batch --jobName TTLL_PowhegPythiaBkg --fileList $dataset_loc/dataset_TTTo2L2Nu_TuneCP5down.txt --cfg $cfg --transferDest $save_loc/TTLL_PowhegPythiaBkg_SYS_TuneCP5Down --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
+create-batch --jobName TTJJ_PowhegPythiaBkg_SYS_TuneCP5Down --fileList $dataset_loc/dataset_TTToHadronic_TuneCP5down.txt --cfg $cfg --transferDest $save_loc/TTJJ_PowhegPythiaBkg_SYS_TuneCP5Down --maxFiles 50 --args 'UserJSON=false runOnTTbarMC=2 TTbarCatMC=0'
