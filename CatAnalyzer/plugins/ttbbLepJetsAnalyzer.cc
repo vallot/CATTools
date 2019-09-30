@@ -501,7 +501,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   PSWeights->GetXaxis()->SetBinLabel(3, "isrDefLo isr:muRfac=2.0");
   PSWeights->GetXaxis()->SetBinLabel(4, "fsrDefLo fsr:muRfac=2.0");
 
-  PDFWeights = fs->make<TH1D>("PDFWeights", "PDF4LHC15_nnlo_100_pdfas (91200)",103,0,103);
+  PDFWeights = fs->make<TH1D>("PDFWeights", "NNPDF31_nnlo_hessian_pdfas (306000)",103,0,103);
 }
 
 
@@ -718,8 +718,11 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     // PDF weight : NEED TO BE UPDATE
     edm::Handle<std::vector<float>> PDFWeightsHandle;
     iEvent.getByToken(pdfWeightToken_,   PDFWeightsHandle);
-
-    for ( auto& w : *PDFWeightsHandle ) b_PDFWeight->push_back(w);
+    
+    std::vector<float> tmp_PDFWeight;
+    for( auto& w : *PDFWeightsHandle ) tmp_PDFWeight.push_back(w);
+    for( unsigned int i = 9; i < 112; ++i) b_PDFWeight->push_back(tmp_PDFWeight.at(i));
+    for( unsigned int i = 0; i < b_PDFWeight->size(); ++i) PDFWeights->Fill(i, b_PDFWeight->at(i));
 
     // PS weight
     edm::Handle<std::vector<float>> PSWeightsHandle;
