@@ -76,8 +76,6 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
       runMetCorAndUncFromMiniAOD (
               process,
               isData = not runOnMC,
-              fixEE2017 = True,
-              fixEE2017Params = {'userawPt': True, 'ptThreshold':50.0, 'minEtaThreshold':2.65, 'maxEtaThreshold': 3.139},
               postfix = "ModifiedMET"
       )
 

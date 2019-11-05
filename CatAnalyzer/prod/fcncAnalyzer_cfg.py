@@ -74,7 +74,8 @@ process.fcncLepJets = cms.EDAnalyzer('fcncLepJetsAnalyzer',
                                      trigMuFilters     = cms.InputTag("filterTrigMU"),
                                      trigElFilters     = cms.InputTag("filterTrigEL"),
                                      trigElHTFilters   = cms.InputTag("filterTrigELHT"),
-                                     recoFilters       = cms.InputTag("filterRECOMC"),
+                                     recoFiltersMC     = cms.InputTag("filterRECOMC"),
+                                     recoFilters       = cms.InputTag("filterRECO"),
                                      # Input Tags
                                      genWeightLabel    = cms.InputTag("flatGenWeights"),
                                      genLabel          = cms.InputTag("prunedGenParticles"),
@@ -108,7 +109,7 @@ process.TFileService = cms.Service("TFileService",
                                    fileName = cms.string('Tree_fcncLepJets.root')
                                    )
 
-process.p = cms.Path(process.filterRECOMC +
+process.p = cms.Path(process.filterRECOMC + process.filterRECO +
                      process.filterTrigMU + process.filterTrigEL + process.filterTrigELJET + process.filterTrigELHT +
                      process.flatGenWeights +
                      process.pileupWeight +
