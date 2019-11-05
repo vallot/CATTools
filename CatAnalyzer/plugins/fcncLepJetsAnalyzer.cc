@@ -71,7 +71,7 @@ private:
   edm::EDGetTokenT<cat::ElectronCollection> electronToken_;
   edm::EDGetTokenT<cat::JetCollection>      jetToken_;
   edm::EDGetTokenT<cat::METCollection>      metToken_;
-  edm::EDGetTokenT<int>                     pvToken_, nTrueVertToken_, recoFiltersToken_;
+  edm::EDGetTokenT<int>                     pvToken_, nTrueVertToken_, recoFiltersToken_, recoFiltersMCToken_;
   edm::EDGetTokenT<int>                     trigMuFiltersToken_, trigElFiltersToken_, trigElHTFiltersToken_;
 // ----------member data ---------------------------
 
@@ -217,6 +217,7 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   metToken_         = consumes<cat::METCollection>     (iConfig.getParameter<edm::InputTag>("metLabel"));
   pvToken_          = consumes<int>                    (iConfig.getParameter<edm::InputTag>("pvLabel"));
   // Trigger
+  recoFiltersMCToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("recoFiltersMC"));
   recoFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("recoFilters"));
   trigMuFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigMuFilters"));
   trigElFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigElFilters"));
@@ -572,9 +573,9 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     //---------------------------------------------------------------------------
     // MET optional filters 
     //---------------------------------------------------------------------------
-    edm::Handle<int> recoFiltersHandle;
-    iEvent.getByToken(recoFiltersToken_, recoFiltersHandle);
-    METfiltered = *recoFiltersHandle == 0 ? true : false;
+    edm::Handle<int> recoFiltersMCHandle;
+    iEvent.getByToken(recoFiltersMCToken_, recoFiltersMCHandle);
+    METfiltered = *recoFiltersMCHandle == 0 ? true : false;
 
   }
   else{
@@ -584,6 +585,10 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     b_PSWeight->push_back(1.0);
     b_GenWeight = 1.0;
     b_nTruePV = 0;
+
+    edm::Handle<int> recoFiltersHandle;
+    iEvent.getByToken(recoFiltersToken_, recoFiltersHandle);
+    METfiltered = *recoFiltersHandle == 0 ? true : false;
   }
 
   //---------------------------------------------------------------------------
@@ -986,8 +991,6 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       }
     }
 
-    int good_jet_count = 0;
-
     // Run again over all Jets
     for( unsigned int i = 0; i < JetIndex.size() ; i++ ){
       const cat::Jet & jet = jets->at(JetIndex[i]);
@@ -996,10 +999,8 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       bool cleanJet = false;
 
       // Jet Selection (pT>20GeV to take into account SYST Variations)
-      if( std::abs(jet.eta()) < 2.4 && jet.pt() > 20. && jet.tightLepVetoJetID() ){
-        goodJet = true;
-        good_jet_count += 1;
-      }
+      if( std::abs(jet.eta()) < 2.4 && jet.pt() > 20. && jet.tightLepVetoJetID() ) goodJet = true;
+
       // Jet Cleaning
       TLorentzVector vjet;
       vjet.SetPtEtaPhiE(jet.pt(), jet.eta(), jet.phi(), jet.energy());
