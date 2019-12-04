@@ -104,6 +104,7 @@ private:
   //float b_Lepton_scEta = -99.0;
   float b_MET, b_MET_phi;
   bool  b_Lepton_isIso;
+  std::vector<float> *b_MET_unc_x, *b_MET_unc_y;
   std::vector<float> *b_Lepton_SF;
   std::vector<float> *b_Electron_Scale;
 
@@ -231,6 +232,8 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   b_PDFWeight      = new std::vector<float>;
   b_ScaleWeight    = new std::vector<float>;
   b_PSWeight       = new std::vector<float>;
+  b_MET_unc_x      = new std::vector<float>;
+  b_MET_unc_y      = new std::vector<float>;
   b_Lepton_SF      = new std::vector<float>;
   b_Electron_Scale = new std::vector<float>;
 
@@ -282,6 +285,8 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
 
   tree->Branch("MET",           &b_MET,        "MET/F");
   tree->Branch("MET_phi",       &b_MET_phi,    "MET_phi/F");
+  tree->Branch("MET_unc_x",     "std::vector<float>", &b_MET_unc_x);
+  tree->Branch("MET_unc_y",     "std::vector<float>", &b_MET_unc_y);
   tree->Branch("lepton_pt",     &b_Lepton_pt,  "lepton_pt/F");
   tree->Branch("lepton_eta",    &b_Lepton_eta, "lepton_eta/F");
   tree->Branch("lepton_phi",    &b_Lepton_phi, "lepton_phi/F");
@@ -440,6 +445,8 @@ fcncLepJetsAnalyzer::~fcncLepJetsAnalyzer()
   delete b_GenCone_gJet_e;
   delete b_GenCone_gJetFlavW;
 
+  delete b_MET_unc_x;
+  delete b_MET_unc_y;
   delete b_Lepton_SF;
   delete b_Electron_Scale;
   delete b_Jet_pt;
@@ -485,6 +492,8 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   b_GenCone_gJet_e   ->clear();
   b_GenCone_gJetFlavW->clear();
 
+  b_MET_unc_x->clear();
+  b_MET_unc_y->clear();
   b_Lepton_SF->clear();
   b_Electron_Scale->clear();
 
@@ -807,6 +816,14 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
   b_MET     = MET->begin()->pt();
   b_MET_phi = MET->begin()->phi();
+  b_MET_unc_x->push_back(MET->begin()->JetEnPx(1));//jec up
+  b_MET_unc_x->push_back(MET->begin()->JetEnPx(-1));//jec down
+  b_MET_unc_x->push_back(MET->begin()->JetResPx(1));//jer up
+  b_MET_unc_x->push_back(MET->begin()->JetResPx(-1));//jer down
+  b_MET_unc_y->push_back(MET->begin()->JetEnPy(1));//jec up
+  b_MET_unc_y->push_back(MET->begin()->JetEnPy(-1));//jec down
+  b_MET_unc_y->push_back(MET->begin()->JetResPy(1));//jer up
+  b_MET_unc_y->push_back(MET->begin()->JetResPy(-1));//jer down
 
   //---------------------------------------------------------------------------
   // Electrons
