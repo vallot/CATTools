@@ -10,12 +10,14 @@ options.register('UserJSON', False, VarParsing.multiplicity.singleton, VarParsin
 options.register('runOnTTbarMC', 1, VarParsing.multiplicity.singleton, VarParsing.varType.int, "runOnTTbarMC: 0  default No ttbar sample")
 # TTbarCatMC   ==> 0->All ttbar, 1->ttbb, 2->ttcc, 3->ttLF, 4->ttV/H, signal (fcnc)
 options.register('TTbarCatMC', 0, VarParsing.multiplicity.singleton, VarParsing.varType.int, "TTbarCatMC: 0  default All ttbar events")
+# PU Map
+options.register('PUMap', '2017_25ns_WinterMC', VarParsing.multiplicity.singleton, VarParsing.varType.string, "PU weight template for MC")
 options.parseArguments()
 
 print "User JSON file: " + str(options.UserJSON)
 print "runOnTTbarMC: "   + str(options.runOnTTbarMC)
 print "TTbarCatMC: "     + str(options.TTbarCatMC)
-#print "PU Map: "         + str(options.PUMap)
+print "PU Map: "         + str(options.PUMap)
 #------------------------------------------------------------------
 #------------------------------------------------------------------
 
@@ -46,8 +48,8 @@ process.source = cms.Source("PoolSource",
 process.load("CATTools.CatProducer.pileupWeight_cff")
 from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
 process.pileupWeight.weightingMethod = "RedoWeight"
-#process.pileupWeight.pileupMC = pileupWeightMap[options.PUMap]
-process.pileupWeight.pileupMC = pileupWeightMap["2017_25ns_WinterMC"]
+process.pileupWeight.pileupMC = pileupWeightMap[options.PUMap]
+#process.pileupWeight.pileupMC = pileupWeightMap["2017_25ns_WinterMC"]
 process.pileupWeight.pileupRD = pileupWeightMap["Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON"]
 process.pileupWeight.pileupUp = pileupWeightMap["Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON_Up"]
 process.pileupWeight.pileupDn = pileupWeightMap["Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON_Dn"]
@@ -90,7 +92,7 @@ process.fcncLepJets = cms.EDAnalyzer('fcncLepJetsAnalyzer',
                                      elecIdSF          = electronSFCutBasedTightIDOnly94Xv2,
                                      elecRecoSF        = electronSFMVAWP80RecoOnly94Xv2,
                                      elecZvtxSF        = electronSFHLTZvtx94X,
-                                     elecTrgSF         = trigSF_El35_El28HT150_ttH_legacy17_v1,
+                                     elecTrgSF         = trigSF_El35_El28HT150_ttHbb2017_v2,
                                      jetLabel          = cms.InputTag("catJets"),
                                      metLabel          = cms.InputTag("catMETs"),
                                      pvLabel           = cms.InputTag("catVertex:nGoodPV"),
