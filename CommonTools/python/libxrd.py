@@ -31,24 +31,33 @@ def guessxrd():
     else:
         print "Hostname", hostname, "not supported"
         sys.exit()
-    cmd = "xrd %s ls " % (xrdhost)
+    if "knu" in hostname: cmd = "xrdfs %s ls " % (xrdhost)
+    else: cmd = "xrd %s ls " % (xrdhost)
     return cmd, xrdbase
 
 def listxrd(path):
+    import os
+    hostname = os.environ["HOSTNAME"]
+    knu = False
+    if "knu" in hostname: knu = True
+
     cmd, xrdbase = guessxrd()
     size = 0
     l = set()
     for x in subprocess.check_output(cmd + xrdbase + path, shell=True).strip().split('\n'):
         xx = x.split()
         if len(xx) == 0: continue
-        if xx[0][0] not in ('d', '-'): continue
+        if not knu:
+          if xx[0][0] not in ('d', '-'): continue
         xpath = xx[-1]
         if len(xpath) == 0: continue
-        xsize = int(xx[1])
+        if not knu:
+          xsize = int(xx[1])
         if xpath.startswith(xrdbase): xpath = xpath[len(xrdbase):]
         if xpath in l: continue
         l.add(xpath)
-        size += xsize
+        if not knu:
+          size += xsize
     return l, size
 
 

@@ -48,6 +48,8 @@ else:
     print eraData
     print "="*80
     url = gdocbase % int(eraData["GID"])
+    do_all = False
+    if len(sys.argv) > 2: do_all = sys.argv[2] == '-f'
 
 print "Using =",era
 
@@ -138,13 +140,18 @@ emptydirectory = []
 print "Listing dataset location"
 print "-"*80
 for d in ds:
+    num_lines = 0
+    if os.path.isfile("%s/dataset/dataset_%s.txt" % (outDir, d['name'])):
+        num_lines = sum(1 for line in open("%s/dataset/dataset_%s.txt" % (outDir, d['name']), "r"))
+    if num_lines > 11 and do_all == False: continue
+
     dataSetName = d['DataSetName']
     dataSetName = dataSetName.split('/')
     if len(dataSetName) < 4: continue
 
     pdName, sdName = dataSetName[1], dataSetName[2]
     if [int(x) for x in era[1:].replace('_', '-').split('-')] >= [8,0,8]:
-        path = "%s/%s/%s/%s" % (storageprefix, era, pdName, sdName)
+        path = "%s/%s/%s/%s_%s" % (storageprefix, era, pdName, era, sdName)
     else:
         path = "%s/%s/%s_%s" % (storageprefix, pdName, era, sdName)
     pathname = ''
@@ -172,7 +179,7 @@ for d in ds:
             d['files'].append(ff)
     d['path'] = prefix + pp
     d['files'].sort()
-    
+
     f = open("%s/dataset/dataset_%s.txt" % (outDir, d['name']), "w")
     for key in d:
         if key == "files": continue
