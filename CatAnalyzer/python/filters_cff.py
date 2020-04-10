@@ -21,7 +21,6 @@ filterRECO = cms.EDFilter("CATTriggerBitCombiner",
         "Flag_BadPFMuonFilter",
         #"Flag_BadChargedCandidateFilter", #Not recommended
         "Flag_eeBadScFilter",
-        "Flag_ecalBadCalibReducedMINIAODFilter", #Newly added, run when CATtuple production
     ),
     doFilter = cms.bool(False),
 )
@@ -35,7 +34,6 @@ filterRECOMC = filterRECO.clone(
         "Flag_EcalDeadCellTriggerPrimitiveFilter",
         "Flag_BadPFMuonFilter",
         #"Flag_BadChargedCandidateFilter", #Not recommended
-        "Flag_ecalBadCalibReducedMINIAODFilter", #Newly added, run when CATtuple production
     ),
 )
 
@@ -62,10 +60,10 @@ filterTrigMUMU = filterTrigMUEL.clone(triggersToMatch = cms.vstring(
     "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",))
 
 filterTrigMU = filterTrigMUEL.clone(triggersToMatch = cms.vstring(
-    "HLT_IsoMu24_v",))
+    "HLT_IsoMu24_v","HLT_IsoTkMu24_v"))
 
 filterTrigEL = filterTrigMUEL.clone(triggersToMatch = cms.vstring(
-    "HLT_Ele32_WPTight_Gsf_v",))
+    "HLT_Ele32_eta2p1_WPTight_Gsf_v",))
 
 filterTrigELJET = filterTrigMUEL.clone(triggersToMatch = cms.vstring(
     "HLT_Ele30_eta2p1_WPTight_Gsf_CentralPFJet35_EleCleaned_v",))

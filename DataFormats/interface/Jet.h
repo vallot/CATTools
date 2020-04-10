@@ -19,7 +19,7 @@ namespace cat {
 }
 
 namespace cat {
-  // 2018 WP only
+  // 2016 WP only
   // DeepCSV
   const std::string BTAG_DeepCSVb = "pfDeepCSVJetTags:probb";
   const std::string BTAG_DeepCSVbb = "pfDeepCSVJetTags:probbb";
@@ -27,17 +27,17 @@ namespace cat {
   const std::string BTAG_DeepCSVcc = "pfDeepCSVJetTags:probcc";
   const std::string BTAG_DeepCSVudsg = "pfDeepCSVJetTags:probudsg";
   // DeepCSV BvsAll: pfDeepCSVJetTags:probb + pfDeepCSVJetTags:probbb
-  const double WP_DeepCSVL = 0.1241;
-  const double WP_DeepCSVM = 0.4184;
-  const double WP_DeepCSVT = 0.7527;
+  const double WP_DeepCSVL = 0.2217;
+  const double WP_DeepCSVM = 0.6321;
+  const double WP_DeepCSVT = 0.8953;
   // DeepCSV CvsL: pfDeepCSVJetTags:probc/(pfDeepCSVJetTags:probc + pfDeepCSVJetTags:probudsg)
-  const double WP_DeepCSV_CvsLL = 0.04;
-  const double WP_DeepCSV_CvsLM = 0.137;
-  const double WP_DeepCSV_CvsLT = 0.66;
+  const double WP_DeepCSV_CvsLL = 0.05;
+  const double WP_DeepCSV_CvsLM = 0.155;
+  const double WP_DeepCSV_CvsLT = 0.59;
   // DeepCSV CvsB: pfDeepCSVJetTags:probc/(pfDeepCSVJetTags:probc + pfDeepCSVJetTags:probb + pfDeepCSVJetTags:probbb)
-  const double WP_DeepCSV_CvsBL = 0.35;
-  const double WP_DeepCSV_CvsBM = 0.29;
-  const double WP_DeepCSV_CvsBT = 0.10;
+  const double WP_DeepCSV_CvsBL = 0.19;
+  const double WP_DeepCSV_CvsBM = 0.14;
+  const double WP_DeepCSV_CvsBT = 0.05;
 
   // DeepJet
   const std::string BTAG_DeepJetb = "pfDeepFlavourJetTags:probb";
@@ -47,9 +47,9 @@ namespace cat {
   const std::string BTAG_DeepJetuds = "pfDeepFlavourJetTags:probuds";
   const std::string BTAG_DeepJetg = "pfDeepFlavourJetTags:probg";
   // DeepJet B: pfDeepFlavourJetTags:probb + pfDeepFlavourJetTags:probbb + pfDeepFlavourJetTags:problepb
-  const double WP_DeepJetL = 0.0494;
-  const double WP_DeepJetM = 0.2770;
-  const double WP_DeepJetT = 0.7264;
+  const double WP_DeepJetL = 0.0614;
+  const double WP_DeepJetM = 0.3093;
+  const double WP_DeepJetT = 0.7221;
   // DeepJet CvsL: pfDeepFlavourJetTags:probc/(pfDeepFlavourJetTags:probc+ pfDeepFlavourJetTags:probuds + pfDeepFlavourJetTags:probg)
   const double WP_DeepJet_CvsLL = 0.03;
   const double WP_DeepJet_CvsLM = 0.085;
@@ -93,6 +93,7 @@ namespace cat {
     float smearedResUp(int era = 0) const { return smearedRes(+1, era); };
     float smearedResDown(int era = 0) const { return smearedRes(-1, era); };
 
+    void setLooseJetID(bool id) { looseJetID_ = id; }
     void setTightJetID(bool id) { tightJetID_ = id; }
     void setTightLepVetoJetID(bool id) { tightLepVetoJetID_ = id; }
 
