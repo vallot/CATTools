@@ -68,7 +68,7 @@ float Jet::smearedRes(int direction, int era) const {
   std::vector<double> cJERs = {1.0};
   std::vector<double> cJERsUp = {1.0};
   std::vector<double> cJERsDn = {1.0};
-  if ( era == 2018 ) { //This need to be updated
+  if ( era == 2016 ) {
     etaBins = {0.5, 0.8, 1.1, 1.3, 1.7, 1.9, 2.1, 2.3, 2.5, 2.8, 3.0, 3.2, 5.0};
     cJERs   = {1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.};
     cJERsUp = {1.109+0.008, 1.138+0.013, 1.114+0.013, 1.123+0.024, 1.084+0.011, 1.082+0.035, 1.140+0.047, 1.067+0.053, 1.177+0.041, 1.364+0.039, 1.857+0.071, 1.328+0.022, 1.16+0.029};
