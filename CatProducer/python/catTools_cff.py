@@ -46,17 +46,17 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
            process,
            jetSource = cms.InputTag('slimmedJets'),
            labelName = 'UpdatedJEC',
-           jetCorrections = ('AK4PFchs', cms.vstring(['L1FastJet', 'L2Relative', 'L3Absolute', 'L2L3Residual']), 'None')
-           pvSource = cms.InputTag('offlineSlimmedPrimaryVertices'),
-           svSource = cms.InputTag('slimmedSecondaryVertices'),
-           btagDiscriminators = [
-              'pfDeepFlavourJetTags:probb',
-              'pfDeepFlavourJetTags:probbb',
-              'pfDeepFlavourJetTags:problepb',
-              'pfDeepFlavourJetTags:probc',
-              'pfDeepFlavourJetTags:probuds',
-              'pfDeepFlavourJetTags:probg'
-              ],
+           jetCorrections = ('AK4PFchs', cms.vstring(['L1FastJet', 'L2Relative', 'L3Absolute', 'L2L3Residual']), 'None'),
+           #pvSource = cms.InputTag('offlineSlimmedPrimaryVertices'),
+           #svSource = cms.InputTag('slimmedSecondaryVertices'),
+           #btagDiscriminators = [ #included in MiniAODv3
+           #   'pfDeepFlavourJetTags:probb',
+           #   'pfDeepFlavourJetTags:probbb',
+           #   'pfDeepFlavourJetTags:problepb',
+           #   'pfDeepFlavourJetTags:probc',
+           #   'pfDeepFlavourJetTags:probuds',
+           #   'pfDeepFlavourJetTags:probg'
+           #   ],
         )
         process.p += process.patJetCorrFactorsUpdatedJEC
         process.p += process.updatedPatJetsUpdatedJEC
@@ -98,12 +98,12 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
           UseJetEMPt = cms.bool(False),
           PrefiringRateSystematicUncty = cms.double(0.2),
           SkipWarnings = False)
-       process.p += process.prefiringweight
+      process.p += process.prefiringweight
 
       # Egamma post reco tools: https://twiki.cern.ch/twiki/bin/view/CMS/EgammaPostRecoRecipes#Running_on_2016_MiniAOD_V2
       from EgammaUser.EgammaPostRecoTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
       setupEgammaPostRecoSeq(process,
-                             runVID=True,
+                             runVID=False, #run in old way, in egmVersionedID_cff.py
                              runEnergyCorrections=False,
                              era='2016-Legacy')
       process.p += process.egammaPostRecoSeq
