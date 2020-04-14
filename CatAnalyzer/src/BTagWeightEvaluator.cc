@@ -57,15 +57,28 @@ throw std::exception();
     if      ( btagName == "deepcsv" ) {
       btagAlgos_.push_back(BTAG_DeepCSVb);
       btagAlgos_.push_back(BTAG_DeepCSVbb);
-      //csvFileName = "DeepCSV_102XSF_V1.csv";
-      csvFileName = "DeepCSV_102XSF_V1_skimmed.csv";
+      //csvFileName = "DeepCSV_2016LegacySF_V1.csv";
+      csvFileName = "DeepCSV_2016LegacySF_V1_skimmed.csv";
     }
     else if ( btagName == "deepjet" ) {
       btagAlgos_.push_back(BTAG_DeepJetb);
       btagAlgos_.push_back(BTAG_DeepJetbb);
       btagAlgos_.push_back(BTAG_DeepJetlepb);
-      //csvFileName = "DeepJet_102XSF_V1.csv";
-      csvFileName = "DeepJet_102XSF_V1_skimmed.csv";
+      //csvFileName = "DeepJet_2016LegacySF_V1.csv";
+      csvFileName = "DeepJet_2016LegacySF_V1_skimmed.csv";
+    }
+    else if ( btagName == "deepcsvCP5" ) {
+      btagAlgos_.push_back(BTAG_DeepCSVb);
+      btagAlgos_.push_back(BTAG_DeepCSVbb);
+      //csvFileName = "DeepCSV_2016LegacySF_V1_TuneCP5.csv";
+      csvFileName = "DeepCSV_2016LegacySF_V1_TuneCP5_skimmed.csv";
+    }
+    else if ( btagName == "deepjetCP5" ) {
+      btagAlgos_.push_back(BTAG_DeepJetb);
+      btagAlgos_.push_back(BTAG_DeepJetbb);
+      btagAlgos_.push_back(BTAG_DeepJetlepb);
+      //csvFileName = "DeepJet_2016LegacySF_V1_TuneCP5.csv";
+      csvFileName = "DeepJet_2016LegacySF_V1_TuneCP5_skimmed.csv";
     }
     else btagAlgos_.push_back("undefined"); // FIXME: Eventually raise error somewhere?
 
@@ -96,16 +109,29 @@ void BTagWeightEvaluator::init(const int method,
   if      ( btagName == "deepcsv" ) {
     btagAlgos_.push_back(BTAG_DeepCSVb);
     btagAlgos_.push_back(BTAG_DeepCSVbb);
-    //csvFileName = "DeepCSV_102XSF_V1.csv";
-    csvFileName = "DeepCSV_102XSF_V1_skimmed.csv";
+      //csvFileName = "DeepCSV_2016LegacySF_V1.csv";
+      csvFileName = "DeepCSV_2016LegacySF_V1_skimmed.csv";
   }
   else if ( btagName == "deepjet" ) {
     btagAlgos_.push_back(BTAG_DeepJetb);
     btagAlgos_.push_back(BTAG_DeepJetbb);
     btagAlgos_.push_back(BTAG_DeepJetlepb);
-    //csvFileName = "DeepJet_102XSF_V1.csv";
-    csvFileName = "DeepJet_102XSF_V1_skimmed.csv";
+    //csvFileName = "DeepJet_2016LegacySF_V1.csv";
+    csvFileName = "DeepJet_2016LegacySF_V1_skimmed.csv";
   }
+  else if ( btagName == "deepcsvCP5" ) {
+    btagAlgos_.push_back(BTAG_DeepCSVb);
+    btagAlgos_.push_back(BTAG_DeepCSVbb);
+    //csvFileName = "DeepCSV_2016LegacySF_V1_TuneCP5.csv";
+    csvFileName = "DeepCSV_2016LegacySF_V1_TuneCP5_skimmed.csv";
+  } 
+  else if ( btagName == "deepjetCP5" ) {
+    btagAlgos_.push_back(BTAG_DeepJetb);
+    btagAlgos_.push_back(BTAG_DeepJetbb);
+    btagAlgos_.push_back(BTAG_DeepJetlepb);
+    //csvFileName = "DeepJet_2016LegacySF_V1_TuneCP5.csv";
+    csvFileName = "DeepJet_2016LegacySF_V1_TuneCP5_skimmed.csv";
+  } 
   else btagAlgos_.push_back("undefined"); // FIXME: Eventually raise error somewhere?
 
   const auto csvFile = edm::FileInPath("CATTools/CatAnalyzer/data/scaleFactors/"+csvFileName).fullPath();
