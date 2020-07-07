@@ -91,6 +91,9 @@ namespace cat {
       else return addbJets_[1];
     }
 
+    const math::XYZTLorentzVector addbJets20Had1() const { return addbJets20Had_[0]; }
+    const math::XYZTLorentzVector addbJets20Had2() const { return addbJets20Had_[1]; }
+
     const math::XYZTLorentzVector bJetsFromTop1() const { return bJetsFromTop_[0]; }
     const math::XYZTLorentzVector bJetsFromTop2() const { return bJetsFromTop_[1]; }
 
@@ -307,6 +310,7 @@ namespace cat {
     LorentzVectors addbJets_;
     LorentzVectors addcJets_;
     LorentzVectors addbJetsHad_;
+    LorentzVectors addbJets20Had_;
     LorentzVectors addcJetsHad_;
     LorentzVectors addJets_;
     LorentzVectors quarksfromW_;
