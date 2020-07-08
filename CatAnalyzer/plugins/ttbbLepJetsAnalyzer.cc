@@ -76,6 +76,9 @@ private:
   edm::EDGetTokenT<float>                        puWeightToken_;
   edm::EDGetTokenT<float>                        puUpWeightToken_;
   edm::EDGetTokenT<float>                        puDownWeightToken_;
+  edm::EDGetTokenT<double>                       prefWeightToken_;
+  edm::EDGetTokenT<double>                       prefWeightUpToken_;
+  edm::EDGetTokenT<double>                       prefWeightDownToken_;
   // Object Collections
   edm::EDGetTokenT<int>                          genttbarHiggsCatToken_;
   edm::EDGetTokenT<cat::GenTopCollection>        genttbarCatToken_;
@@ -111,6 +114,7 @@ private:
   // PU/Vertices
   std::vector<float> *b_PUWeight;
   int b_nGoodPV, b_nTruePV;
+  std::vector<double> *b_PrefireWeight;
   // Channel and Categorization
   int b_GenChannel;
   int b_Channel;
@@ -280,6 +284,10 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   puWeightToken_        = consumes<float>             (edm::InputTag(puWeightLabel.label()));
   puUpWeightToken_      = consumes<float>             (edm::InputTag(puWeightLabel.label(),"up"));
   puDownWeightToken_    = consumes<float>             (edm::InputTag(puWeightLabel.label(),"dn"));
+  // Prefire ( 16 and 17 only)
+  prefWeightToken_      = consumes<double>(edm::InputTag("prefireingweight:nonPrefiringProb"));
+  prefWeightUpToken_    = consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProbUp"));
+  prefWeightDownToken_  = consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProbDown"));
   // CSV Weights
   auto deepcsvWeightLabel = iConfig.getParameter<edm::InputTag>("deepcsvWeightLabel");
   // GEN and ttbar Categorization
@@ -644,6 +652,20 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     iEvent.getByToken(puDownWeightToken_, PUWeight_Down);
     b_PUWeight->push_back(*PUWeight_Down); //Syst. Down 
 
+    //---------------------------------------------------------------------------
+    // Prefire Info 
+    //---------------------------------------------------------------------------
+    edm::Handle<double> prefWeight;
+    iEvent.getByToken(prefWeightToken_, prefWeight);
+    b_PrefireWeight->push_back(*prefWeight);
+     
+    edm::Handle<double> prefWeight_Up;
+    iEvent.getByToken(prefWeightUpToken_, prefWeight_Up);
+    b_PrefireWeight->push_back(*prefWeight_Up);   
+    
+    edm::Handle<double> prefWeight_Down;
+    iEvent.getByToken(prefWeightDownToken_, prefWeight_Down);
+    b_PrefireWeight->push_back(*prefWeight_Down);
     //---------------------------------------------------------------------------
     // Weights at Generation Level: aMC@NLO
     //---------------------------------------------------------------------------

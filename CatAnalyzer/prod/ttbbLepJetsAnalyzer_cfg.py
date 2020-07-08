@@ -46,10 +46,10 @@ process.source = cms.Source("PoolSource",
 process.load("CATTools.CatProducer.pileupWeight_cff")
 from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
 process.pileupWeight.weightingMethod = "RedoWeight"
-process.pileupWeight.pileupMC = pileupWeightMap["2018_25ns_MC"]
-process.pileupWeight.pileupRD = pileupWeightMap["Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON"]
-process.pileupWeight.pileupUp = pileupWeightMap["Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON_Up"]
-process.pileupWeight.pileupDn = pileupWeightMap["Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON_Dn"]
+process.pileupWeight.pileupMC = pileupWeightMap["2016_25ns_Moriond17MC"]
+process.pileupWeight.pileupRD = pileupWeightMap["Cert_271036-284044_13TeV_ReReco_07Aug2017_Collisions16_JSON"]
+process.pileupWeight.pileupUp = pileupWeightMap["Cert_271036-284044_13TeV_ReReco_07Aug2017_Collisions16_JSON_Up"]
+process.pileupWeight.pileupDn = pileupWeightMap["Cert_271036-284044_13TeV_ReReco_07Aug2017_Collisions16_JSON_Dn"]
 
 
 # json file (Only Data)
@@ -57,7 +57,7 @@ if options.UserJSON:
     # ReReco JSON file taken from: https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions15/13TeV/Reprocessing/Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON.txt
     print "Running data.... Including JSON File."
     import FWCore.PythonUtilities.LumiList as LumiList
-    process.source.lumisToProcess = LumiList.LumiList(filename = '../../CatProducer/data/LumiMask/Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON.txt').getVLuminosityBlockRange()
+    process.source.lumisToProcess = LumiList.LumiList(filename = '../../CatProducer/data/LumiMask/Cert_271036-284044_13TeV_ReReco_07Aug2017_Collisions16_JSON.txt').getVLuminosityBlockRange()
 # Lepton Scale Factors
 from CATTools.CatAnalyzer.leptonSF_cff import *
 # GEN Weights
@@ -70,7 +70,6 @@ process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      # TriggerNames
 				     trigMuFilters     = cms.InputTag("filterTrigMU"),
 				     trigElFilters     = cms.InputTag("filterTrigEL"),
-				     trigElHTFilters   = cms.InputTag("filterTrigELHT"),
 				     recoFilters       = cms.InputTag("filterRECOMC"),
                                      # Input Tags
                                      genWeightLabel    = cms.InputTag("flatGenWeights"),
@@ -80,14 +79,14 @@ process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      genHiggsCatLabel  = cms.InputTag("GenTtbarCategories:genTtbarId"),
                                      genttbarCatLabel  = cms.InputTag("catGenTops"),
                                      muonLabel         = cms.InputTag("catMuons"),
-                                     muonIdSF          = muonSFTightId102X,
-				     muonIsoSF         = muonSFTightIso102X,
+                                     muonIdSF          = muonSFTightId80XLegacy,
+				     muonIsoSF         = muonSFTightIso80XLegacy,
 				     muonTrgSF         = trigSF_IsoMu24,
                                      electronLabel     = cms.InputTag("catElectrons"),
-				     elecIdSF          = electronSFCutBasedTight102X,
-				     elecRecoSF        = electronSFReco102X,
-				     elecZvtxSF        = electronSFHLTZvtx102X,
-				     elecTrgSF         = trigSF_El32_El28HT150_ttH_legacy18_v1,
+				     elecIdSF          = electronSFCutBasedTight80XFall17V2,
+				     elecRecoSF        = electronSFReco80XFall17V2,
+				     elecZvtxSF        = electronSFHLTZvtx80X,
+				     elecTrgSF         = trigSF_Ele27,
                                      jetLabel          = cms.InputTag("catJets"),
                                      metLabel          = cms.InputTag("catMETs"),
                                      pvLabel           = cms.InputTag("catVertex:nGoodPV"),
@@ -114,6 +113,6 @@ process.TFileService = cms.Service("TFileService",
 #                      process.ttbarSingleLepton)
 process.p = cms.Path(process.flatGenWeights +
                      process.filterRECOMC +
-		     process.filterTrigMU + process.filterTrigEL + process.filterTrigELHT +
+		     process.filterTrigMU + process.filterTrigEL + 
                      process.pileupWeight +
                      process.ttbbLepJets + process.ttbbLepJetsQCD)
