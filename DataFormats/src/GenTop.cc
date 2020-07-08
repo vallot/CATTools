@@ -797,7 +797,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
       addbJetsHad_[i] = addbJetsBHad[i];
     }
     else{
-      adbJetsHad_.push_back(addbJetsBHad[i]);
+      addbJetsHad_.push_back(addbJetsBHad[i]);
     }
     NaddbJetsBHad_++;
     if( addbJetsBHad[i].pt() > 20 && std::abs(addbJetsBHad[i].eta()) < 2.5) NaddbJets20BHad_++;
