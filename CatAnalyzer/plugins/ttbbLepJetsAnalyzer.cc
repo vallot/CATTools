@@ -207,7 +207,7 @@ private:
   // Histograms: Number of Events and Weights
   TH1D *EventInfo, *ScaleWeights, *PDFWeights, *PSWeights;
   // Scale factor evaluators
-  BTagWeightEvaluator SF_deepCSV_;
+  BTagWeightEvaluator SF_deepCSV_, SF_deepJet_;
   ScaleFactorEvaluator SF_muonId_, SF_muonIso_, SF_muonTrg_,
                        SF_elecId_, SF_elecReco_, SF_elecZvtx_, SF_elecTrg_;
  
@@ -267,6 +267,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
 	          muonTrgSFSet.getParameter<std::vector<double>>("errors"     ));
  
   SF_deepCSV_.initCSVWeight(false, "deepcsv");
+  SF_deepJet_.initCSVWeight(false, "deepjet");
   
   // Weights
   auto genWeightLabel = iConfig.getParameter<edm::InputTag>("genWeightLabel");
@@ -1154,11 +1155,11 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     int N_GoodJets = 0;
 
     // Initialize SF_btag
-    // Jet_SF_CSV[Scenario][SystVariations];
-    float Jet_SF_deepCSV[1][19];
-    for (unsigned int ipTj=0; ipTj<1; ipTj++){
-       for (unsigned int iu=0; iu<19; iu++) Jet_SF_deepCSV[ipTj][iu] = 1.0;
-    }
+    // Jet_SF_CSV[SystVariations];
+    float Jet_SF_deepCSV[19];
+    float Jet_SF_deepJet[19];
+    std::fill_n(Jet_SF_deepCSV, 19, 1.0);
+    std::fill_n(Jet_SF_deepJet, 19, 1.0);
 
     // Run again over all Jets (CSV order)
     for (unsigned int i = 0; i < JetIndex.size() ; i++) {
@@ -1229,7 +1230,12 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
           // Ref: https://twiki.cern.ch/twiki/bin/view/CMS/BTagShapeCalibration
           // Saving the central SF and the 18 syst. unc. for:
-          if(jet.pt() > 30.) for (unsigned int iu=0; iu<19; iu++) Jet_SF_deepCSV[0][iu] *= SF_deepCSV_.getSF(jet, iu);
+          if(jet.pt() > 30.) {
+	    for (unsigned int iu=0; iu<19; iu++){
+	      Jet_SF_deepCSV[iu] *= SF_deepCSV_.getSF(jet, iu);
+	      Jet_SF_deepJet[iu] *= SF_deepJet_.getSF(jet, iu);
+	    }
+	  }
 
         } // if(isMC_)	
       }// if(GoodJets)
@@ -1238,11 +1244,16 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     // Number of Jets (easy cross check)
     b_Jet_Number = N_GoodJets;
 
-    for (unsigned int iu=0; iu<19; iu++) b_Jet_SF_deepCSV_30->push_back(1.0);
-    (*b_Jet_SF_deepCSV_30)[0] = Jet_SF_deepCSV[0][0]; //Central
+    for (unsigned int iu=0; iu<19; iu++){
+      b_Jet_SF_deepCSV_30->push_back(1.0);
+      b_Jet_SF_deepJet_30->push_back(1.0);
+    }
+    (*b_Jet_SF_deepCSV_30)[0] = Jet_SF_deepCSV[0]; //Central
+    (*b_Jet_SF_deepJet_30)[0] = Jet_SF_deepJet[0];
     // To save only the error
     for (unsigned int iu=1; iu<19; iu++){
-      (*b_Jet_SF_deepCSV_30)[iu] = std::abs(Jet_SF_deepCSV[0][iu] - Jet_SF_deepCSV[0][0]) ; // Syst. Unc.
+      (*b_Jet_SF_deepCSV_30)[iu] = std::abs(Jet_SF_deepCSV[iu] - Jet_SF_deepCSV[0]); // Syst. Unc.
+      (*b_Jet_SF_deepJet_30)[iu] = std::abs(Jet_SF_deepJet[iu] - Jet_SF_deepJet[0]); // Syst. Unc.
     }
 
     //---------------------------------------------------------------------------
