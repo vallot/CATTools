@@ -66,6 +66,7 @@ private:
 
   int TTbarMC_; // 0->No ttbar, 1->ttbar Signal, 2->ttbar Background
   int TTbarCatMC_;
+  int is16CP5_;
     
   // Event Weights
   edm::EDGetTokenT<float>                        genWeightToken_;
@@ -92,7 +93,6 @@ private:
   // Trigger
   edm::EDGetTokenT<int>                          trigMuFiltersToken_;
   edm::EDGetTokenT<int>                          trigElFiltersToken_;
-  edm::EDGetTokenT<int>                          trigElHTFiltersToken_;
 
 // ----------member data ---------------------------
 
@@ -227,7 +227,8 @@ private:
 ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   doLooseLepton_(iConfig.getUntrackedParameter<bool>("doLooseLepton", false)),
   TTbarMC_    (iConfig.getUntrackedParameter<int>("TTbarSampleLabel", 0)),
-  TTbarCatMC_ (iConfig.getUntrackedParameter<int>("TTbarCatLabel", 0))
+  TTbarCatMC_ (iConfig.getUntrackedParameter<int>("TTbarCatLabel", 0)),
+  is16CP5_ (iConfig.getUntrackedParameter<bool>("is16CP5Label", false))
 {
   const auto elecIdSFSet = iConfig.getParameter<edm::ParameterSet>("elecIdSF");
   SF_elecId_.set(elecIdSFSet.getParameter<std::vector<double>>("pt_bins" ),
@@ -265,9 +266,15 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
 	          muonTrgSFSet.getParameter<std::vector<double>>("abseta_bins"),
 	          muonTrgSFSet.getParameter<std::vector<double>>("values"     ),
 	          muonTrgSFSet.getParameter<std::vector<double>>("errors"     ));
- 
-  SF_deepCSV_.initCSVWeight(false, "deepcsv");
-  SF_deepJet_.initCSVWeight(false, "deepjet");
+
+  if( is16CP5_ ){
+    SF_deepCSV_.initCSVWeight(false, "deepcsvCP5");
+    SF_deepJet_.initCSVWeight(false, "deepjetCP5");
+  }
+  else{
+    SF_deepCSV_.initCSVWeight(false, "deepcsv");
+    SF_deepJet_.initCSVWeight(false, "deepjet");
+  }
   
   // Weights
   auto genWeightLabel = iConfig.getParameter<edm::InputTag>("genWeightLabel");
@@ -304,7 +311,6 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   recoFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("recoFilters"));
   trigMuFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigMuFilters"));
   trigElFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigElFilters"));
-  trigElHTFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigElHTFilters"));
   // PU = 0 prescription
   nTrueVertToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("nTrueVertLabel"));
 
@@ -500,7 +506,8 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   PSWeights->GetXaxis()->SetBinLabel(3, "isrDefLo isr:muRfac=2.0");
   PSWeights->GetXaxis()->SetBinLabel(4, "fsrDefLo fsr:muRfac=2.0");
 
-  PDFWeights = fs->make<TH1D>("PDFWeights", "NNPDF31_nnlo_hessian_pdfas (3060000)",103,0,103);
+  if( is16CP5_ ) PDFWeights = fs->make<TH1D>("PDFWeights", "NNPDF31_nnlo_hessian_pdfas (306000)",104,0,104);
+  else PDFWeights = fs->make<TH1D>("PDFWeights", "NNPDF30_nlo_as_118 (260000)", 103, 0, 103);
 }
 
 
@@ -710,24 +717,39 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     for(unsigned int iscale = 0; iscale< b_ScaleWeight->size(); iscale++)
       ScaleWeights->Fill(iscale, b_ScaleWeight->at(iscale)); 
 
-    // PDF weight : NEED TO BE UPDATE
+    // PDF weights
     edm::Handle<std::vector<float>> PDFWeightsHandle;
     iEvent.getByToken(pdfWeightToken_,   PDFWeightsHandle);
 
     std::vector<float> tmp_PDFWeight;
     for( auto& w : *PDFWeightsHandle ) tmp_PDFWeight.push_back(w);
-    // 9~112: NNPDF31_nnlo_hessian_pdfas
-    for( unsigned int i = 9; i < 112; ++i) b_PDFWeight->push_back(tmp_PDFWeight.at(i));
+    // CUETP8M2 - genWeights[9]~[110]: NNPDF30_nnlo_as_0118(260001~260100), as_0117(265000), as_0119(266000)
+    // CP5 - genWeights[10]~[111],[116],[117]: NNPDF31_nnlo_hessian_pdfas(306001~306102), as_0117(323300), as_0119, as_0119(323500)
+    // NOMINAL VALUES(260000, 306000) ARE NOT INSERTED
+    unsigned int minpdf = 0, maxpdf = 102;
+    if( is16CP5_ ){
+      minpdf = 1;
+      maxpdf = 103;
+    }
+    for( unsigned int i = minpdf; i < maxpdf; ++i) b_PDFWeight->push_back(tmp_PDFWeight.at(i));
+    if( is16CP5_ ){
+      b_PDFWeight->push_back(tmp_PDFWeight.at(107));
+      b_PDFWeight->push_back(tmp_PDFWeight.at(108));
+    }
     for( unsigned int i = 0; i < b_PDFWeight->size(); ++i) PDFWeights->Fill(i, b_PDFWeight->at(i));
 
     // PS weight
     edm::Handle<std::vector<float>> PSWeightsHandle;
     iEvent.getByToken(psWeightToken_, PSWeightsHandle);
 
-    b_PSWeight->push_back(weight_valid(PSWeightsHandle->at(4))); // isrDefHigh
-    b_PSWeight->push_back(weight_valid(PSWeightsHandle->at(5))); // fsrDefHigh
-    b_PSWeight->push_back(weight_valid(PSWeightsHandle->at(6))); // isrDefLow
-    b_PSWeight->push_back(weight_valid(PSWeightsHandle->at(7))); // fsrDefLow
+    if( is16CP5_ ){
+      b_PSWeight->push_back(weight_valid(PSWeightsHandle->at(4))); // isrDefHigh
+      b_PSWeight->push_back(weight_valid(PSWeightsHandle->at(5))); // fsrDefHigh
+      b_PSWeight->push_back(weight_valid(PSWeightsHandle->at(6))); // isrDefLow
+      b_PSWeight->push_back(weight_valid(PSWeightsHandle->at(7))); // fsrDefLow
+    }
+    else 
+      b_PSWeight->push_back(1.0); // Dummy for CUETP8M2 
 
     for(unsigned int iscale = 0; iscale< b_PSWeight->size(); iscale++)
       PSWeights->Fill(iscale, b_PSWeight->at(iscale));
@@ -1094,7 +1116,6 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   bool EvTrigger     = false;
   bool IsTriggerMu   = false;
   bool IsTriggerEl   = false;
-  bool IsTriggerElHT = false;
 
   edm::Handle<int> trigMuFiltersHandle;
   iEvent.getByToken(trigMuFiltersToken_, trigMuFiltersHandle);
@@ -1104,12 +1125,9 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   iEvent.getByToken(trigElFiltersToken_, trigElFiltersHandle);
   IsTriggerEl = *trigElFiltersHandle == 0 ? false : true;
 
-  edm::Handle<int> trigElHTFiltersHandle;
-  iEvent.getByToken(trigElHTFiltersToken_, trigElHTFiltersHandle);
-  IsTriggerElHT = *trigElHTFiltersHandle == 0 ? false : true;
 
   if( (ch_tag == 0 && IsTriggerMu) ||
-      (ch_tag == 1 && (IsTriggerEl || IsTriggerElHT)) )
+      (ch_tag == 1 && IsTriggerEl) )
     EvTrigger = true;
 
   //---------------------------------------------------------------------------

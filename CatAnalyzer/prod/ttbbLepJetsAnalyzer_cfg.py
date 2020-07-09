@@ -10,11 +10,13 @@ options.register('UserJSON', False, VarParsing.multiplicity.singleton, VarParsin
 options.register('runOnTTbarMC', 1, VarParsing.multiplicity.singleton, VarParsing.varType.int, "runOnTTbarMC: 0  default No ttbar sample")
 # TTbarCatMC   ==> 0->All ttbar, 1->ttbb, 2->ttbj, 3->ttcc, 4->ttLF, 5->tt, 6->ttjj
 options.register('TTbarCatMC', 1, VarParsing.multiplicity.singleton, VarParsing.varType.int, "TTbarCatMC: 0  default All ttbar events")
+options.register('is16CP5', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "is16CP5: False default")
 options.parseArguments()
 
 print "User JSON file: " + str(options.UserJSON)
 print "runOnTTbarMC: "   + str(options.runOnTTbarMC)
 print "TTbarCatMC: "     + str(options.TTbarCatMC)
+print "is16CP5: "        + str(options.is16CP5)
 #------------------------------------------------------------------
 #------------------------------------------------------------------
 
@@ -67,6 +69,7 @@ process.load("CATTools.CatAnalyzer.filters_cff")
 process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      TTbarSampleLabel  = cms.untracked.int32(options.runOnTTbarMC),
                                      TTbarCatLabel     = cms.untracked.int32(options.TTbarCatMC),
+				     is16CP5Label      = cms.untracked.bool(options.is16CP5),
                                      # TriggerNames
 				     trigMuFilters     = cms.InputTag("filterTrigMU"),
 				     trigElFilters     = cms.InputTag("filterTrigEL"),
