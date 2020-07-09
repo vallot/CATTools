@@ -38,7 +38,7 @@ process.source = cms.Source("PoolSource",
 
      # fileNames = cms.untracked.vstring()
      fileNames = cms.untracked.vstring(
-         'root://cluster142.knu.ac.kr:1094///store/group/CAT/V10_2/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/V10_2_RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/190622_161201/0000/catTuple_1.root'
+         'root://cluster142.knu.ac.kr:1094///store/group/CAT/V8_1/TTToSemilepton_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8/V8_1_RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/200415_005229/0000/catTuple_1.root'
         )
 )
 # from CATTools.Validation.commonTestInput_cff import commonTestCATTuples
