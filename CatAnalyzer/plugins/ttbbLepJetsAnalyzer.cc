@@ -520,6 +520,7 @@ ttbbLepJetsAnalyzer::~ttbbLepJetsAnalyzer()
   delete b_PDFWeight;
   delete b_ScaleWeight;
   delete b_PSWeight;
+  delete b_PrefireWeight;
 
   delete b_GenConeCatID;
   delete b_GenCone_gJet_pt;
@@ -563,7 +564,8 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   b_ScaleWeight  ->clear();
   b_PDFWeight    ->clear();
   b_PSWeight     ->clear();
-
+  b_PrefireWeight->clear();
+  
   b_GenConeCatID    ->clear();
   b_GenCone_gJet_pt ->clear();
   b_GenCone_gJet_eta->clear();
@@ -725,7 +727,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     std::vector<float> tmp_PDFWeight;
     for( auto& w : *PDFWeightsHandle ) tmp_PDFWeight.push_back(w);
     // CUETP8M2 - genWeights[9]~[110]: NNPDF30_nnlo_as_0118(260001~260100), as_0117(265000), as_0119(266000)
-    // CP5 - genWeights[10]~[111],[116],[117]: NNPDF31_nnlo_hessian_pdfas(306001~306102), as_0117(323300), as_0119, as_0119(323500)
+    // CP5 - genWeights[10]~[111],[116],[117]: NNPDF31_nnlo_hessian_pdfas(306001~306102), as_0117(323300), as_0119(323500)
     // NOMINAL VALUES(260000, 306000) ARE NOT INSERTED
     unsigned int minpdf = 0, maxpdf = 102;
     if( is16CP5_ ){
