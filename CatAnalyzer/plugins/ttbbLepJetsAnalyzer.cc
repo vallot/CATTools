@@ -253,12 +253,12 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
 
   const auto muonIdSFSet = iConfig.getParameter<edm::ParameterSet>("muonIdSF");
   SF_muonId_.set(muonIdSFSet.getParameter<std::vector<double>>("pt_bins"    ),
-	         muonIdSFSet.getParameter<std::vector<double>>("abseta_bins"),
+	         muonIdSFSet.getParameter<std::vector<double>>("eta_bins"),
 	         muonIdSFSet.getParameter<std::vector<double>>("values"     ),
 	         muonIdSFSet.getParameter<std::vector<double>>("errors"     ));
   const auto muonIsoSFSet = iConfig.getParameter<edm::ParameterSet>("muonIsoSF");
   SF_muonIso_.set(muonIsoSFSet.getParameter<std::vector<double>>("pt_bins"    ),
-	       muonIsoSFSet.getParameter<std::vector<double>>("abseta_bins"),
+	       muonIsoSFSet.getParameter<std::vector<double>>("eta_bins"),
 	       muonIsoSFSet.getParameter<std::vector<double>>("values"     ),
 	       muonIsoSFSet.getParameter<std::vector<double>>("errors"     ));
   const auto muonTrgSFSet = iConfig.getParameter<edm::ParameterSet>("muonTrgSF");
@@ -293,7 +293,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   puUpWeightToken_      = consumes<float>             (edm::InputTag(puWeightLabel.label(),"up"));
   puDownWeightToken_    = consumes<float>             (edm::InputTag(puWeightLabel.label(),"dn"));
   // Prefire ( 16 and 17 only)
-  prefWeightToken_      = consumes<double>(edm::InputTag("prefireingweight:nonPrefiringProb"));
+  prefWeightToken_      = consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProb"));
   prefWeightUpToken_    = consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProbUp"));
   prefWeightDownToken_  = consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProbDown"));
   // CSV Weights
@@ -364,6 +364,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("pdfweight",     "std::vector<float>", &b_PDFWeight);
   tree->Branch("scaleweight",   "std::vector<float>", &b_ScaleWeight);
   tree->Branch("psweight",      "std::vector<float>", &b_PSWeight);
+  tree->Branch("prefireweigt",  "std::vector<double>", &b_PrefireWeight);
 
   tree->Branch("MET",     &b_MET,     "MET/F");
   tree->Branch("MET_phi", &b_MET_phi, "MET_phi/F");
