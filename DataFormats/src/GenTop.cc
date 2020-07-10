@@ -632,8 +632,8 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
       if( minDRWquarks > 0.4 ){
         addJets.push_back( gJet.p4() );
       }
-      else if ( minDRWquarks <= 0.4 ) { // Only for Light Quarks
-        if( bJetAdditionalIds.count(idx) > 0 || cJetAdditionalIds.count(idx) > 0 ) continue;
+      else if ( minDRWquarks <= 0.4 && bJetAdditionalIds.count(idx) < 1 && cJetAdditionalIds.count(idx) < 1){ 
+        // Only for Light Quarks
 	JetsFromW.push_back( gJet.p4() );
 	JetsFlavourFromW.push_back( FlavCand );
 	//debug
