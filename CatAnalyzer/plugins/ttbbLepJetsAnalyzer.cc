@@ -66,6 +66,7 @@ private:
 
   int TTbarMC_; // 0->No ttbar, 1->ttbar Signal, 2->ttbar Background
   int TTbarCatMC_;
+  int is16CP5_;
     
   // Event Weights
   edm::EDGetTokenT<float>                        genWeightToken_;
@@ -76,6 +77,9 @@ private:
   edm::EDGetTokenT<float>                        puWeightToken_;
   edm::EDGetTokenT<float>                        puUpWeightToken_;
   edm::EDGetTokenT<float>                        puDownWeightToken_;
+  edm::EDGetTokenT<double>                       prefWeightToken_;
+  edm::EDGetTokenT<double>                       prefWeightUpToken_;
+  edm::EDGetTokenT<double>                       prefWeightDownToken_;
   // Object Collections
   edm::EDGetTokenT<int>                          genttbarHiggsCatToken_;
   edm::EDGetTokenT<cat::GenTopCollection>        genttbarCatToken_;
@@ -89,7 +93,6 @@ private:
   // Trigger
   edm::EDGetTokenT<int>                          trigMuFiltersToken_;
   edm::EDGetTokenT<int>                          trigElFiltersToken_;
-  edm::EDGetTokenT<int>                          trigElHTFiltersToken_;
 
 // ----------member data ---------------------------
 
@@ -111,6 +114,7 @@ private:
   // PU/Vertices
   std::vector<float> *b_PUWeight;
   int b_nGoodPV, b_nTruePV;
+  std::vector<double> *b_PrefireWeight;
   // Channel and Categorization
   int b_GenChannel;
   int b_Channel;
@@ -203,7 +207,7 @@ private:
   // Histograms: Number of Events and Weights
   TH1D *EventInfo, *ScaleWeights, *PDFWeights, *PSWeights;
   // Scale factor evaluators
-  BTagWeightEvaluator SF_deepCSV_;
+  BTagWeightEvaluator SF_deepCSV_, SF_deepJet_;
   ScaleFactorEvaluator SF_muonId_, SF_muonIso_, SF_muonTrg_,
                        SF_elecId_, SF_elecReco_, SF_elecZvtx_, SF_elecTrg_;
  
@@ -223,7 +227,8 @@ private:
 ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   doLooseLepton_(iConfig.getUntrackedParameter<bool>("doLooseLepton", false)),
   TTbarMC_    (iConfig.getUntrackedParameter<int>("TTbarSampleLabel", 0)),
-  TTbarCatMC_ (iConfig.getUntrackedParameter<int>("TTbarCatLabel", 0))
+  TTbarCatMC_ (iConfig.getUntrackedParameter<int>("TTbarCatLabel", 0)),
+  is16CP5_ (iConfig.getUntrackedParameter<bool>("is16CP5Label", false))
 {
   const auto elecIdSFSet = iConfig.getParameter<edm::ParameterSet>("elecIdSF");
   SF_elecId_.set(elecIdSFSet.getParameter<std::vector<double>>("pt_bins" ),
@@ -248,12 +253,12 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
 
   const auto muonIdSFSet = iConfig.getParameter<edm::ParameterSet>("muonIdSF");
   SF_muonId_.set(muonIdSFSet.getParameter<std::vector<double>>("pt_bins"    ),
-	         muonIdSFSet.getParameter<std::vector<double>>("abseta_bins"),
+	         muonIdSFSet.getParameter<std::vector<double>>("eta_bins"),
 	         muonIdSFSet.getParameter<std::vector<double>>("values"     ),
 	         muonIdSFSet.getParameter<std::vector<double>>("errors"     ));
   const auto muonIsoSFSet = iConfig.getParameter<edm::ParameterSet>("muonIsoSF");
   SF_muonIso_.set(muonIsoSFSet.getParameter<std::vector<double>>("pt_bins"    ),
-	       muonIsoSFSet.getParameter<std::vector<double>>("abseta_bins"),
+	       muonIsoSFSet.getParameter<std::vector<double>>("eta_bins"),
 	       muonIsoSFSet.getParameter<std::vector<double>>("values"     ),
 	       muonIsoSFSet.getParameter<std::vector<double>>("errors"     ));
   const auto muonTrgSFSet = iConfig.getParameter<edm::ParameterSet>("muonTrgSF");
@@ -261,8 +266,15 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
 	          muonTrgSFSet.getParameter<std::vector<double>>("abseta_bins"),
 	          muonTrgSFSet.getParameter<std::vector<double>>("values"     ),
 	          muonTrgSFSet.getParameter<std::vector<double>>("errors"     ));
- 
-  SF_deepCSV_.initCSVWeight(false, "deepcsv");
+
+  if( is16CP5_ ){
+    SF_deepCSV_.initCSVWeight(false, "deepcsvCP5");
+    SF_deepJet_.initCSVWeight(false, "deepjetCP5");
+  }
+  else{
+    SF_deepCSV_.initCSVWeight(false, "deepcsv");
+    SF_deepJet_.initCSVWeight(false, "deepjet");
+  }
   
   // Weights
   auto genWeightLabel = iConfig.getParameter<edm::InputTag>("genWeightLabel");
@@ -280,6 +292,10 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   puWeightToken_        = consumes<float>             (edm::InputTag(puWeightLabel.label()));
   puUpWeightToken_      = consumes<float>             (edm::InputTag(puWeightLabel.label(),"up"));
   puDownWeightToken_    = consumes<float>             (edm::InputTag(puWeightLabel.label(),"dn"));
+  // Prefire ( 16 and 17 only)
+  prefWeightToken_      = consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProb"));
+  prefWeightUpToken_    = consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProbUp"));
+  prefWeightDownToken_  = consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProbDown"));
   // CSV Weights
   auto deepcsvWeightLabel = iConfig.getParameter<edm::InputTag>("deepcsvWeightLabel");
   // GEN and ttbar Categorization
@@ -295,7 +311,6 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   recoFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("recoFilters"));
   trigMuFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigMuFilters"));
   trigElFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigElFilters"));
-  trigElHTFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigElHTFilters"));
   // PU = 0 prescription
   nTrueVertToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("nTrueVertLabel"));
 
@@ -349,6 +364,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("pdfweight",     "std::vector<float>", &b_PDFWeight);
   tree->Branch("scaleweight",   "std::vector<float>", &b_ScaleWeight);
   tree->Branch("psweight",      "std::vector<float>", &b_PSWeight);
+  tree->Branch("prefireweigt",  "std::vector<double>", &b_PrefireWeight);
 
   tree->Branch("MET",     &b_MET,     "MET/F");
   tree->Branch("MET_phi", &b_MET_phi, "MET_phi/F");
@@ -491,7 +507,8 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   PSWeights->GetXaxis()->SetBinLabel(3, "isrDefLo isr:muRfac=2.0");
   PSWeights->GetXaxis()->SetBinLabel(4, "fsrDefLo fsr:muRfac=2.0");
 
-  PDFWeights = fs->make<TH1D>("PDFWeights", "NNPDF31_nnlo_hessian_pdfas (3060000)",103,0,103);
+  if( is16CP5_ ) PDFWeights = fs->make<TH1D>("PDFWeights", "NNPDF31_nnlo_hessian_pdfas (306000)",104,0,104);
+  else PDFWeights = fs->make<TH1D>("PDFWeights", "NNPDF30_nlo_as_118 (260000)", 103, 0, 103);
 }
 
 
@@ -503,6 +520,7 @@ ttbbLepJetsAnalyzer::~ttbbLepJetsAnalyzer()
   delete b_PDFWeight;
   delete b_ScaleWeight;
   delete b_PSWeight;
+  delete b_PrefireWeight;
 
   delete b_GenConeCatID;
   delete b_GenCone_gJet_pt;
@@ -546,7 +564,8 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   b_ScaleWeight  ->clear();
   b_PDFWeight    ->clear();
   b_PSWeight     ->clear();
-
+  b_PrefireWeight->clear();
+  
   b_GenConeCatID    ->clear();
   b_GenCone_gJet_pt ->clear();
   b_GenCone_gJet_eta->clear();
@@ -645,6 +664,20 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     b_PUWeight->push_back(*PUWeight_Down); //Syst. Down 
 
     //---------------------------------------------------------------------------
+    // Prefire Info 
+    //---------------------------------------------------------------------------
+    edm::Handle<double> prefWeight;
+    iEvent.getByToken(prefWeightToken_, prefWeight);
+    b_PrefireWeight->push_back(*prefWeight);
+     
+    edm::Handle<double> prefWeight_Up;
+    iEvent.getByToken(prefWeightUpToken_, prefWeight_Up);
+    b_PrefireWeight->push_back(*prefWeight_Up);   
+    
+    edm::Handle<double> prefWeight_Down;
+    iEvent.getByToken(prefWeightDownToken_, prefWeight_Down);
+    b_PrefireWeight->push_back(*prefWeight_Down);
+    //---------------------------------------------------------------------------
     // Weights at Generation Level: aMC@NLO
     //---------------------------------------------------------------------------
 
@@ -687,24 +720,39 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     for(unsigned int iscale = 0; iscale< b_ScaleWeight->size(); iscale++)
       ScaleWeights->Fill(iscale, b_ScaleWeight->at(iscale)); 
 
-    // PDF weight : NEED TO BE UPDATE
+    // PDF weights
     edm::Handle<std::vector<float>> PDFWeightsHandle;
     iEvent.getByToken(pdfWeightToken_,   PDFWeightsHandle);
 
     std::vector<float> tmp_PDFWeight;
     for( auto& w : *PDFWeightsHandle ) tmp_PDFWeight.push_back(w);
-    // 9~112: NNPDF31_nnlo_hessian_pdfas
-    for( unsigned int i = 9; i < 112; ++i) b_PDFWeight->push_back(tmp_PDFWeight.at(i));
+    // CUETP8M2 - genWeights[9]~[110]: NNPDF30_nnlo_as_0118(260001~260100), as_0117(265000), as_0119(266000)
+    // CP5 - genWeights[10]~[111],[116],[117]: NNPDF31_nnlo_hessian_pdfas(306001~306102), as_0117(323300), as_0119(323500)
+    // NOMINAL VALUES(260000, 306000) ARE NOT INSERTED
+    unsigned int minpdf = 0, maxpdf = 102;
+    if( is16CP5_ ){
+      minpdf = 1;
+      maxpdf = 103;
+    }
+    for( unsigned int i = minpdf; i < maxpdf; ++i) b_PDFWeight->push_back(tmp_PDFWeight.at(i));
+    if( is16CP5_ ){
+      b_PDFWeight->push_back(tmp_PDFWeight.at(107));
+      b_PDFWeight->push_back(tmp_PDFWeight.at(108));
+    }
     for( unsigned int i = 0; i < b_PDFWeight->size(); ++i) PDFWeights->Fill(i, b_PDFWeight->at(i));
 
     // PS weight
     edm::Handle<std::vector<float>> PSWeightsHandle;
     iEvent.getByToken(psWeightToken_, PSWeightsHandle);
 
-    b_PSWeight->push_back(weight_valid(PSWeightsHandle->at(4))); // isrDefHigh
-    b_PSWeight->push_back(weight_valid(PSWeightsHandle->at(5))); // fsrDefHigh
-    b_PSWeight->push_back(weight_valid(PSWeightsHandle->at(6))); // isrDefLow
-    b_PSWeight->push_back(weight_valid(PSWeightsHandle->at(7))); // fsrDefLow
+    if( is16CP5_ ){
+      b_PSWeight->push_back(weight_valid(PSWeightsHandle->at(4))); // isrDefHigh
+      b_PSWeight->push_back(weight_valid(PSWeightsHandle->at(5))); // fsrDefHigh
+      b_PSWeight->push_back(weight_valid(PSWeightsHandle->at(6))); // isrDefLow
+      b_PSWeight->push_back(weight_valid(PSWeightsHandle->at(7))); // fsrDefLow
+    }
+    else 
+      b_PSWeight->push_back(1.0); // Dummy for CUETP8M2 
 
     for(unsigned int iscale = 0; iscale< b_PSWeight->size(); iscale++)
       PSWeights->Fill(iscale, b_PSWeight->at(iscale));
@@ -1071,7 +1119,6 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   bool EvTrigger     = false;
   bool IsTriggerMu   = false;
   bool IsTriggerEl   = false;
-  bool IsTriggerElHT = false;
 
   edm::Handle<int> trigMuFiltersHandle;
   iEvent.getByToken(trigMuFiltersToken_, trigMuFiltersHandle);
@@ -1081,12 +1128,9 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   iEvent.getByToken(trigElFiltersToken_, trigElFiltersHandle);
   IsTriggerEl = *trigElFiltersHandle == 0 ? false : true;
 
-  edm::Handle<int> trigElHTFiltersHandle;
-  iEvent.getByToken(trigElHTFiltersToken_, trigElHTFiltersHandle);
-  IsTriggerElHT = *trigElHTFiltersHandle == 0 ? false : true;
 
   if( (ch_tag == 0 && IsTriggerMu) ||
-      (ch_tag == 1 && (IsTriggerEl || IsTriggerElHT)) )
+      (ch_tag == 1 && IsTriggerEl) )
     EvTrigger = true;
 
   //---------------------------------------------------------------------------
@@ -1132,11 +1176,11 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     int N_GoodJets = 0;
 
     // Initialize SF_btag
-    // Jet_SF_CSV[Scenario][SystVariations];
-    float Jet_SF_deepCSV[1][19];
-    for (unsigned int ipTj=0; ipTj<1; ipTj++){
-       for (unsigned int iu=0; iu<19; iu++) Jet_SF_deepCSV[ipTj][iu] = 1.0;
-    }
+    // Jet_SF_CSV[SystVariations];
+    float Jet_SF_deepCSV[19];
+    float Jet_SF_deepJet[19];
+    std::fill_n(Jet_SF_deepCSV, 19, 1.0);
+    std::fill_n(Jet_SF_deepJet, 19, 1.0);
 
     // Run again over all Jets (CSV order)
     for (unsigned int i = 0; i < JetIndex.size() ; i++) {
@@ -1207,7 +1251,12 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
           // Ref: https://twiki.cern.ch/twiki/bin/view/CMS/BTagShapeCalibration
           // Saving the central SF and the 18 syst. unc. for:
-          if(jet.pt() > 30.) for (unsigned int iu=0; iu<19; iu++) Jet_SF_deepCSV[0][iu] *= SF_deepCSV_.getSF(jet, iu);
+          if(jet.pt() > 30.) {
+	    for (unsigned int iu=0; iu<19; iu++){
+	      Jet_SF_deepCSV[iu] *= SF_deepCSV_.getSF(jet, iu);
+	      Jet_SF_deepJet[iu] *= SF_deepJet_.getSF(jet, iu);
+	    }
+	  }
 
         } // if(isMC_)	
       }// if(GoodJets)
@@ -1216,11 +1265,16 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     // Number of Jets (easy cross check)
     b_Jet_Number = N_GoodJets;
 
-    for (unsigned int iu=0; iu<19; iu++) b_Jet_SF_deepCSV_30->push_back(1.0);
-    (*b_Jet_SF_deepCSV_30)[0] = Jet_SF_deepCSV[0][0]; //Central
+    for (unsigned int iu=0; iu<19; iu++){
+      b_Jet_SF_deepCSV_30->push_back(1.0);
+      b_Jet_SF_deepJet_30->push_back(1.0);
+    }
+    (*b_Jet_SF_deepCSV_30)[0] = Jet_SF_deepCSV[0]; //Central
+    (*b_Jet_SF_deepJet_30)[0] = Jet_SF_deepJet[0];
     // To save only the error
     for (unsigned int iu=1; iu<19; iu++){
-      (*b_Jet_SF_deepCSV_30)[iu] = std::abs(Jet_SF_deepCSV[0][iu] - Jet_SF_deepCSV[0][0]) ; // Syst. Unc.
+      (*b_Jet_SF_deepCSV_30)[iu] = std::abs(Jet_SF_deepCSV[iu] - Jet_SF_deepCSV[0]); // Syst. Unc.
+      (*b_Jet_SF_deepJet_30)[iu] = std::abs(Jet_SF_deepJet[iu] - Jet_SF_deepJet[0]); // Syst. Unc.
     }
 
     //---------------------------------------------------------------------------
