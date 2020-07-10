@@ -76,8 +76,6 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
       runMetCorAndUncFromMiniAOD (
               process,
               isData = not runOnMC,
-              fixEE2017 = True,
-              fixEE2017Params = {'userawPt': True, 'ptThreshold':50.0, 'minEtaThreshold':2.65, 'maxEtaThreshold': 3.139},
               postfix = "ModifiedMET"
       )
 
@@ -100,7 +98,7 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
           debug = cms.bool(False))
       process.p += process.ecalBadCalibReducedMINIAODFilter
 
-      from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
+      from EgammaUser.EgammaPostRecoTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
       setupEgammaPostRecoSeq(process,
                              runVID=False,
                              era='2018-Prompt')
