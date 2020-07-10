@@ -633,6 +633,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
         addJets.push_back( gJet.p4() );
       }
       else if ( minDRWquarks <= 0.4 ) { // Only for Light Quarks
+        if( bJetAdditionalIds.count(idx) > 0 || cJetAdditionalIds.count(idx) > 0 ) continue;
 	JetsFromW.push_back( gJet.p4() );
 	JetsFlavourFromW.push_back( FlavCand );
 	//debug
@@ -658,7 +659,12 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     
     if( cJetIds.count(idx) > 0 ){
       cJetsCHad.push_back( gJet.p4() );
-      if( cJetAdditionalIds.count(idx) > 0 ) addcJetsCHad.push_back( gJet.p4() ); 
+      if( cJetAdditionalIds.count(idx) > 0 ){
+        addcJetsCHad.push_back( gJet.p4() ); 
+      
+        auto itr = std::find(addJets.begin(), addJets.end(), gJet.p4());
+        if( itr == addJets.end() ) addJets.push_back( gJet.p4() );
+      }
       if( cJetFromWIds.count(idx) > 0 ){
 	JetsFromW.push_back( gJet.p4() );
 	JetsFlavourFromW.push_back( 4 );
