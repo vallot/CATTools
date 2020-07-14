@@ -28,6 +28,7 @@ GenTop::GenTop(){
   addbJets_ = {null, null};
   addcJets_ = {null, null};
   addbJetsHad_ = {null, null};
+  addbJets20Had_ = {null, null};
   addcJetsHad_ = {null, null};
   addJets_ = {null, null};
 }
@@ -796,8 +797,14 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
     if( i < 2 ){
       addbJetsHad_[i] = addbJetsBHad[i];
     }
+    else{
+      addbJetsHad_.push_back(addbJetsBHad[i]);
+    }
     NaddbJetsBHad_++;
-    if( addbJetsBHad[i].pt() > 20 && std::abs(addbJetsBHad[i].eta()) < 2.5) NaddbJets20BHad_++;
+    if( addbJetsBHad[i].pt() > 20 && std::abs(addbJetsBHad[i].eta()) < 2.5) {
+      if ( NaddbJets20BHad_ < 2 ) addbJets20Had_[ NaddbJets20BHad_ ] = addbJetsBHad[i];
+      NaddbJets20BHad_++;
+    }
     if( addbJetsBHad[i].pt() > 40 && std::abs(addbJetsBHad[i].eta()) < 2.5) NaddbJets40BHad_++;
   }
 
