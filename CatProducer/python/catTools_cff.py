@@ -56,12 +56,23 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         updateJetCollection(
            process,
            jetSource = cms.InputTag('slimmedJets'),
+           pvSource = cms.InputTag('offlineSlimmedPrimaryVertices'),
+           svSource = cms.InputTag('slimmedSecondaryVertices'),
            labelName = 'UpdatedJEC',
-           jetCorrections = ('AK4PFchs', cms.vstring(['L1FastJet', 'L2Relative', 'L3Absolute', 'L2L3Residual']), 'None')
+           jetCorrections = ('AK4PFchs', cms.vstring(['L1FastJet', 'L2Relative', 'L3Absolute', 'L2L3Residual']), 'None'),
+           btagDiscriminators = [
+              'pfDeepFlavourJetTags:probb',
+              'pfDeepFlavourJetTags:probbb',
+              'pfDeepFlavourJetTags:problepb',
+              'pfDeepFlavourJetTags:probc',
+              'pfDeepFlavourJetTags:probuds',
+              'pfDeepFlavourJetTags:probg'
+              ],
+            postfix='NewDFTraining'
         )
-        process.p += process.patJetCorrFactorsUpdatedJEC
-        process.p += process.updatedPatJetsUpdatedJEC
-        process.catJets.src = cms.InputTag("updatedPatJetsUpdatedJEC","","CAT")
+        process.p += process.patJetCorrFactorsUpdatedJECNewDFTraining
+        process.p += process.updatedPatJetsUpdatedJECNewDFTraining
+        process.catJets.src = cms.InputTag("updatedPatJetsUpdatedJECNewDFTraining","","CAT")
 
 #    if useMiniAOD: ## corrections when using miniAOD #This is stored in miniAOD as flag, in 2017
 #        from CATTools.CatProducer.patTools.metFilters_cff import enableAdditionalMETFilters
@@ -100,8 +111,8 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
 #        process = enableQGLikelihood(process, qgDatabaseVersion="v2b", runOnMC=runOnMC, useMiniAOD=useMiniAOD)
 
         ## DeepFlavour
-        from CATTools.CatProducer.patTools.jetDeepFlavour_cff import enableDeepFlavour
-        process = enableDeepFlavour(process)
+        #from CATTools.CatProducer.patTools.jetDeepFlavour_cff import enableDeepFlavour
+        #process = enableDeepFlavour(process)
 
         ## #######################################################################
         ## # MET corrections from https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
