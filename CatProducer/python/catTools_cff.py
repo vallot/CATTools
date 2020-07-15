@@ -58,8 +58,7 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
            jetSource = cms.InputTag('slimmedJets'),
            pvSource = cms.InputTag('offlineSlimmedPrimaryVertices'),
            svSource = cms.InputTag('slimmedSecondaryVertices'),
-           labelName = 'UpdatedJEC',
-           jetCorrections = ('AK4PFchs', cms.vstring(['L1FastJet', 'L2Relative', 'L3Absolute', 'L2L3Residual']), 'None'),
+           jetCorrections = ('AK4PFchs', cms.vstring([]), 'None'),
            btagDiscriminators = [
               'pfDeepFlavourJetTags:probb',
               'pfDeepFlavourJetTags:probbb',
@@ -68,11 +67,22 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
               'pfDeepFlavourJetTags:probuds',
               'pfDeepFlavourJetTags:probg'
               ],
-            postfix='NewDFTraining'
+           postfix='NewDFTraining'
         )
-        process.p += process.patJetCorrFactorsUpdatedJECNewDFTraining
-        process.p += process.updatedPatJetsUpdatedJECNewDFTraining
-        process.catJets.src = cms.InputTag("updatedPatJetsUpdatedJECNewDFTraining","","CAT")
+        process.p += process.patJetCorrFactorsNewDFTraining
+        process.p += process.updatedPatJetsNewDFTraining
+
+        updateJetCollection(
+           process,
+           jetSource = cms.InputTag('slimmedJets'),
+           pvSource = cms.InputTag('offlineSlimmedPrimaryVertices'),
+           svSource = cms.InputTag('slimmedSecondaryVertices'),
+           labelName = 'UpdatedJEC',
+           jetCorrections = ('AK4PFchs', cms.vstring(['L1FastJet', 'L2Relative', 'L3Absolute', 'L2L3Residual']), 'None'),
+        )
+        process.p += process.patJetCorrFactorsUpdatedJEC
+        process.p += process.updatedPatJetsUpdatedJEC
+        process.catJets.src = cms.InputTag("updatedPatJetsUpdatedJEC","","CAT")
 
 #    if useMiniAOD: ## corrections when using miniAOD #This is stored in miniAOD as flag, in 2017
 #        from CATTools.CatProducer.patTools.metFilters_cff import enableAdditionalMETFilters
