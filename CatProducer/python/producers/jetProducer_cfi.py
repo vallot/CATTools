@@ -3,7 +3,7 @@ import FWCore.ParameterSet.Config as cms
 catJets = cms.EDProducer('CATJetProducer',
     src = cms.InputTag('slimmedJets'),
     rho = cms.InputTag('fixedGridRhoFastjetAll'),
-    btagNames = cms.vstring('pfCombinedInclusiveSecondaryVertexV2BJetTags',"pfDeepCSVDiscriminatorsJetTags:BvsAll","pfDeepCSVJetTags:probb","pfDeepCSVJetTags:probbb","pfDeepCSVJetTags:probc","pfDeepCSVJetTags:probcc", "pfDeepCSVJetTags:probudsg", "pfDeepCSVDiscriminatorsJetTags:CvsB","pfDeepCSVDiscriminatorsJetTags:CvsL","pfCombinedCvsLJetTags","pfCombinedCvsBJetTags"),
+    btagNames = cms.vstring('pfCombinedInclusiveSecondaryVertexV2BJetTags',"pfDeepCSVDiscriminatorsJetTags:BvsAll","pfDeepCSVJetTags:probb","pfDeepCSVJetTags:probbb","pfDeepCSVJetTags:probc","pfDeepCSVJetTags:probcc", "pfDeepCSVJetTags:probudsg", "pfDeepCSVDiscriminatorsJetTags:CvsB","pfDeepCSVDiscriminatorsJetTags:CvsL","pfCombinedCvsLJetTags","pfCombinedCvsBJetTags","pfDeepFlavourJetTags:probb","pfDeepFlavourJetTags:probbb","pfDeepFlavourJetTags:problepb","pfDeepFlavourJetTags:probc","pfDeepFlavourJetTags:probuds","pfDeepFlavourJetTags:probg"),
     payloadName = cms.string('AK4PFchs'),
     jetResFile   = cms.string("CATTools/CatProducer/data/JER/Fall17_V3_MC_PtResolution_AK4PFchs.txt"),
     jetResSFFile = cms.string("CATTools/CatProducer/data/JER/Fall17_V3_MC_SF_AK4PFchs.txt"),

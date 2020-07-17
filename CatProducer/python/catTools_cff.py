@@ -56,8 +56,29 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
         updateJetCollection(
            process,
            jetSource = cms.InputTag('slimmedJets'),
+           pvSource = cms.InputTag('offlineSlimmedPrimaryVertices'),
+           svSource = cms.InputTag('slimmedSecondaryVertices'),
+           jetCorrections = ('AK4PFchs', cms.vstring([]), 'None'),
+           btagDiscriminators = [
+              'pfDeepFlavourJetTags:probb',
+              'pfDeepFlavourJetTags:probbb',
+              'pfDeepFlavourJetTags:problepb',
+              'pfDeepFlavourJetTags:probc',
+              'pfDeepFlavourJetTags:probuds',
+              'pfDeepFlavourJetTags:probg'
+              ],
+           postfix='NewDFTraining'
+        )
+        process.p += process.patJetCorrFactorsNewDFTraining
+        process.p += process.updatedPatJetsNewDFTraining
+
+        updateJetCollection(
+           process,
+           jetSource = cms.InputTag('slimmedJets'),
+           pvSource = cms.InputTag('offlineSlimmedPrimaryVertices'),
+           svSource = cms.InputTag('slimmedSecondaryVertices'),
            labelName = 'UpdatedJEC',
-           jetCorrections = ('AK4PFchs', cms.vstring(['L1FastJet', 'L2Relative', 'L3Absolute', 'L2L3Residual']), 'None')
+           jetCorrections = ('AK4PFchs', cms.vstring(['L1FastJet', 'L2Relative', 'L3Absolute', 'L2L3Residual']), 'None'),
         )
         process.p += process.patJetCorrFactorsUpdatedJEC
         process.p += process.updatedPatJetsUpdatedJEC
@@ -100,8 +121,8 @@ def catTool(process, runOnMC=True, useMiniAOD=True):
 #        process = enableQGLikelihood(process, qgDatabaseVersion="v2b", runOnMC=runOnMC, useMiniAOD=useMiniAOD)
 
         ## DeepFlavour
-        from CATTools.CatProducer.patTools.jetDeepFlavour_cff import enableDeepFlavour
-        process = enableDeepFlavour(process)
+        #from CATTools.CatProducer.patTools.jetDeepFlavour_cff import enableDeepFlavour
+        #process = enableDeepFlavour(process)
 
         ## #######################################################################
         ## # MET corrections from https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
