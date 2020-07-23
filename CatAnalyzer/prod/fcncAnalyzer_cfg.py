@@ -5,17 +5,19 @@ import FWCore.ParameterSet.Config as cms
 from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing ('analysis')
 # JSON
-options.register('UserJSON', True, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "UserJSON: Fault  default")
+options.register('UserJSON', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "UserJSON: Fault  default")
 # runOnTTbarMC ==> 0->No ttbar, 1->ttbar Signal
 options.register('runOnTTbarMC', 1, VarParsing.multiplicity.singleton, VarParsing.varType.int, "runOnTTbarMC: 0  default No ttbar sample")
 # TTbarCatMC   ==> 0->All ttbar, 1->ttbb, 2->ttcc, 3->ttLF, 4->ttV/H, signal (fcnc)
-options.register('TTbarCatMC', 4, VarParsing.multiplicity.singleton, VarParsing.varType.int, "TTbarCatMC: 0  default All ttbar events")
+options.register('TTbarCatMC', 0, VarParsing.multiplicity.singleton, VarParsing.varType.int, "TTbarCatMC: 0  default All ttbar events")
+# PU Map
+options.register('PUMap', '2017_25ns_WinterMC', VarParsing.multiplicity.singleton, VarParsing.varType.string, "PU weight template for MC")
 options.parseArguments()
 
 print "User JSON file: " + str(options.UserJSON)
 print "runOnTTbarMC: "   + str(options.runOnTTbarMC)
 print "TTbarCatMC: "     + str(options.TTbarCatMC)
-#print "PU Map: "         + str(options.PUMap)
+print "PU Map: "         + str(options.PUMap)
 #------------------------------------------------------------------
 #------------------------------------------------------------------
 
@@ -36,6 +38,7 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 process.source = cms.Source("PoolSource",
      fileNames = cms.untracked.vstring(
         'root://cluster142.knu.ac.kr:1094///store/group/CAT/V9_6/TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8/V9_6_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v2/190614_023405/0000/catTuple_1.root'
+        #'root://cluster142.knu.ac.kr:1094///store/group/CAT/V9_6/SingleMuon/V9_6_Run2017B-31Mar2018-v1/190613_095358/0000/catTuple_1.root'
         #'root://cluster142.knu.ac.kr:1094///store/group/CAT/V9_6/SingleElectron/V9_6_Run2017B-31Mar2018-v1/190613_142713/0000/catTuple_1.root'
         #'file:../../CatProducer/prod/catTuple.root'
         )
@@ -45,8 +48,8 @@ process.source = cms.Source("PoolSource",
 process.load("CATTools.CatProducer.pileupWeight_cff")
 from CATTools.CatProducer.pileupWeight_cff import pileupWeightMap
 process.pileupWeight.weightingMethod = "RedoWeight"
-#process.pileupWeight.pileupMC = pileupWeightMap[options.PUMap]
-process.pileupWeight.pileupMC = pileupWeightMap["2017_25ns_WinterMC"]
+process.pileupWeight.pileupMC = pileupWeightMap[options.PUMap]
+#process.pileupWeight.pileupMC = pileupWeightMap["2017_25ns_WinterMC"]
 process.pileupWeight.pileupRD = pileupWeightMap["Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON"]
 process.pileupWeight.pileupUp = pileupWeightMap["Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON_Up"]
 process.pileupWeight.pileupDn = pileupWeightMap["Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON_Dn"]
@@ -73,12 +76,12 @@ process.fcncLepJets = cms.EDAnalyzer('fcncLepJetsAnalyzer',
                                      trigMuFilters     = cms.InputTag("filterTrigMU"),
                                      trigElFilters     = cms.InputTag("filterTrigEL"),
                                      trigElHTFilters   = cms.InputTag("filterTrigELHT"),
-                                     recoFilters       = cms.InputTag("filterRECOMC"),
+                                     recoFiltersMC     = cms.InputTag("filterRECOMC"),
+                                     recoFilters       = cms.InputTag("filterRECO"),
                                      # Input Tags
                                      genWeightLabel    = cms.InputTag("flatGenWeights"),
                                      genLabel          = cms.InputTag("prunedGenParticles"),
                                      genJetLabel       = cms.InputTag("slimmedGenJets"),
-                                     deepcsvWeightLabel= cms.InputTag("deepcsvWeights"),
                                      genHiggsCatLabel  = cms.InputTag("GenTtbarCategories:genTtbarId"),
                                      genttbarCatLabel  = cms.InputTag("catGenTops"),
                                      muonLabel         = cms.InputTag("catMuons"),
@@ -89,7 +92,7 @@ process.fcncLepJets = cms.EDAnalyzer('fcncLepJetsAnalyzer',
                                      elecIdSF          = electronSFCutBasedTightIDOnly94Xv2,
                                      elecRecoSF        = electronSFMVAWP80RecoOnly94Xv2,
                                      elecZvtxSF        = electronSFHLTZvtx94X,
-                                     elecTrgSF         = trigSF_El35_El28HT150_ttH_legacy17_v1,
+                                     elecTrgSF         = trigSF_El35_El28HT150_ttHbb2017_v2,
                                      jetLabel          = cms.InputTag("catJets"),
                                      metLabel          = cms.InputTag("catMETs"),
                                      pvLabel           = cms.InputTag("catVertex:nGoodPV"),
@@ -108,7 +111,7 @@ process.TFileService = cms.Service("TFileService",
                                    fileName = cms.string('Tree_fcncLepJets.root')
                                    )
 
-process.p = cms.Path(process.filterRECOMC +
+process.p = cms.Path(process.filterRECOMC + process.filterRECO +
                      process.filterTrigMU + process.filterTrigEL + process.filterTrigELJET + process.filterTrigELHT +
                      process.flatGenWeights +
                      process.pileupWeight +
