@@ -52,7 +52,7 @@ def addCatGenTopObjects(process):
         process.matchGenBHadron, process.matchGenCHadron, 
         process.catGenTops, process.GenTtbarCategories, process.GenTtbarCategories30,
         process.GenTtbarCategories40, process.GenTtbarCategoriesEta2p5,
-	process.genJetHadronFlavour
+        process.genJetHadronFlavour
     )
     return process
 
