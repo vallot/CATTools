@@ -68,6 +68,7 @@ def genHFTool(process, useMiniAOD = True):
     )
     process.GenTtbarCategoriesEta2p5 = process.categorizeGenTtbar.clone(
        genJets = cms.InputTag(genJetCollection),
+       genJetPtMin = cms.double(20.),
        genJetAbsEtaMax = cms.double(2.5)
     )
 

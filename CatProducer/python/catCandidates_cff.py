@@ -50,7 +50,7 @@ def addCatGenTopObjects(process):
     process.catObjectTask.add(
         process.selectedHadronsAndPartons, process.genJetFlavourInfos,
         process.matchGenBHadron, process.matchGenCHadron, 
-        process.catGenTops, process.GenTtbarCategories, process.GenTtbarCategories30,
+        process.catGenTops, process.GenTtbarCategories, process.GenTtbarCategories30, process.GenTtbarCategoriesEta2p5,
         process.GenTtbarCategories40, process.genJetHadronFlavour
     )
     return process
