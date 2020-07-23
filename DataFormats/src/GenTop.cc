@@ -631,7 +631,7 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
 	  FlavCand = qflavourfromW_[i];
 	}
       }
-      if( minDRWquarks > 0.4 && bJetAdditionalIds.count(idx) < 1 && cJetAdditionalIds.count(idx) < 1 ){
+      if( minDRWquarks > 0.4 ){
         addJets.push_back( gJet.p4() );
       }
       else if ( minDRWquarks <= 0.4 && bJetAdditionalIds.count(idx) < 1 && cJetAdditionalIds.count(idx) < 1){ 
