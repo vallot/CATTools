@@ -627,18 +627,19 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
         if( quarksfromW_[i] == null ) continue;
         double dR = reco::deltaR(gJet, quarksfromW_[i]);
         if( dR < minDRWquarks ){
-	  minDRWquarks = dR;
-	  FlavCand = qflavourfromW_[i];
-	}
+          minDRWquarks = dR;
+          FlavCand = qflavourfromW_[i];
+        }
       }
       if( minDRWquarks > 0.4 ){
         addJets.push_back( gJet.p4() );
       }
-      else if ( minDRWquarks <= 0.4 && bJetAdditionalIds.count(idx) < 1 && cJetAdditionalIds.count(idx) < 1 ) { // Only for Light Quarks
-	JetsFromW.push_back( gJet.p4() );
-	JetsFlavourFromW.push_back( FlavCand );
-	//debug
-	//cout << "jet from W " << gJet.pt() << " Flavour " << FlavCand << endl; 
+      else if ( minDRWquarks <= 0.4 && bJetAdditionalIds.count(idx) < 1 && cJetAdditionalIds.count(idx) < 1 ) {
+        // Only for Light Quarks
+        JetsFromW.push_back( gJet.p4() );
+        JetsFlavourFromW.push_back( FlavCand );
+        //debug
+        //cout << "jet from W " << gJet.pt() << " Flavour " << FlavCand << endl; 
       }
     }
 
@@ -652,8 +653,8 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
         if( itr == addJets.end() ) addJets.push_back( gJet.p4() );
       }
       if( bJetFromWIds.count(idx) > 0 ){
-	JetsFromW.push_back( gJet.p4() );
-	JetsFlavourFromW.push_back( 5 );
+        JetsFromW.push_back( gJet.p4() );
+        JetsFlavourFromW.push_back( 5 );
       }    
       if( bJetFromHiggsIds.count(idx) > 0 ) HbJets.push_back( gJet.p4() );
     }
@@ -663,12 +664,12 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
       if( cJetAdditionalIds.count(idx) > 0 ){
         addcJetsCHad.push_back( gJet.p4() ); 
 
-	auto itr = std::find(addJets.begin(), addJets.end(), gJet.p4());
-	if( itr == addJets.end() ) addJets.push_back( gJet.p4() );
+        auto itr = std::find(addJets.begin(), addJets.end(), gJet.p4());
+        if( itr == addJets.end() ) addJets.push_back( gJet.p4() );
       }
       if( cJetFromWIds.count(idx) > 0 ){
-	JetsFromW.push_back( gJet.p4() );
-	JetsFlavourFromW.push_back( 4 );
+        JetsFromW.push_back( gJet.p4() );
+        JetsFlavourFromW.push_back( 4 );
       }
     }
 
