@@ -1201,11 +1201,11 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         b_Jet_deepCSV->push_back(jet_btagDis_deepCSVb + jet_btagDis_deepCSVbb);
 
         // c-tag discriminant
-        float jet_btagDis_deepCvsL = jet.bDiscriminator(CTAG_DeepCSVc)/
-	    (jet.bDiscriminator(CTAG_DeepCSVc) + jet.bDiscriminator(CTAG_DeepCSVudsg));
+        float jet_btagDis_deepCvsL = jet.bDiscriminator(BTAG_DeepCSVc)/
+	    (jet.bDiscriminator(BTAG_DeepCSVc) + jet.bDiscriminator(BTAG_DeepCSVudsg));
         b_Jet_deepCvsL->push_back(jet_btagDis_deepCvsL);
-        float jet_btagDis_deepCvsB = jet.bDiscriminator(CTAG_DeepCSVc)/
-	    (jet.bDiscriminator(CTAG_DeepCSVc) +
+        float jet_btagDis_deepCvsB = jet.bDiscriminator(BTAG_DeepCSVc)/
+	    (jet.bDiscriminator(BTAG_DeepCSVc) +
 	     jet.bDiscriminator(BTAG_DeepCSVb) + jet.bDiscriminator(BTAG_DeepCSVbb));
 	b_Jet_deepCvsB->push_back(jet_btagDis_deepCvsB);
 

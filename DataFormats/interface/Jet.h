@@ -22,52 +22,62 @@ namespace cat {
 
   // pfCombinedInclusiveSecondaryVertexV2BJetTags
   const std::string BTAG_CSVv2 = "pfCombinedInclusiveSecondaryVertexV2BJetTags";
-  //                            2017//Moriond17//ICHEP16//2015
-  const double WP_BTAG_CSVv2L = 0.5803; // 0.5426 // 0.460 // 0.605
-  const double WP_BTAG_CSVv2M = 0.8838; // 0.8484 // 0.800 // 0.89
-  const double WP_BTAG_CSVv2T = 0.9693; // 0.9535 // 0.935 // 0.97
+  const double WP_BTAG_CSVv2L = 0.5803;
+  const double WP_BTAG_CSVv2M = 0.8838;
+  const double WP_BTAG_CSVv2T = 0.9693;
   // pfCombinedCvsLJetTags
   const std::string CTAG_CvsL = "pfCombinedCvsLJetTags";
-  //                           2017//Moriond17=ICHEP16
-  const double WP_CTAG_CvsLL = -0.53; // -0.48 // -
-  const double WP_CTAG_CvsLM =  0.07; // -0.1 // -
-  const double WP_CTAG_CvsLT =  0.87; // 0.69 // -
+  const double WP_CTAG_CvsLL = -0.53;
+  const double WP_CTAG_CvsLM =  0.07;
+  const double WP_CTAG_CvsLT =  0.87;
   // pfCombinedCvsBJetTags
   const std::string CTAG_CvsB = "pfCombinedCvsBJetTags";
-  //                           2017//Moriond17=ICHEP16
-  const double WP_CTAG_CvsBL = -0.26; // -0.17 // -
-  const double WP_CTAG_CvsBM = -0.10; // 0.08 // -
-  const double WP_CTAG_CvsBT = -0.3; // -0.45 // -
+  const double WP_CTAG_CvsBL = -0.26;
+  const double WP_CTAG_CvsBM = -0.10;
+  const double WP_CTAG_CvsBT = -0.3;
   // DeepCSV BvsAll
-  const std::string BTAG_DeepCSV = "pfDeepCSVDiscriminatorsJetTags:BvsAll";
   const std::string BTAG_DeepCSVb = "pfDeepCSVJetTags:probb";
   const std::string BTAG_DeepCSVbb = "pfDeepCSVJetTags:probbb";
-  //                              2017//80xRereco
-  const double WP_BTAG_DeepCSVL = 0.1522; //0.2219
-  const double WP_BTAG_DeepCSVM = 0.4941; //0.6324
-  const double WP_BTAG_DeepCSVT = 0.8001; //0.8958
-  // DeepCSV CvsL
-  const std::string CTAG_DeepCSVc = "pfDeepCSVJetTags:probc";
-  const std::string CTAG_DeepCSVcc = "pfDeepCSVJetTags:probcc";
-  const std::string CTAG_DeepCSVudsg = "pfDeepCSVJetTags:probudsg";
-  const std::string CTAG_DeepCSV_CvsL = "pfDeepCSVDiscriminatorsJetTags:CvsL";
-  //                                   2017
-  const double WP_CTAG_DeepCSV_CvsLL = 0.05;
-  const double WP_CTAG_DeepCSV_CvsLM = 0.15;
-  const double WP_CTAG_DeepCSV_CvsLT = 0.8;
-  // DeepCSV CvsB
-  const std::string CTAG_DeepCSV_CvsB = "pfDeepCSVDiscriminatorsJetTags:CvsB";
-  //                                   2017
-  const double WP_CTAG_DeepCSV_CvsBL = 0.33;
-  const double WP_CTAG_DeepCSV_CvsBM = 0.28;
-  const double WP_CTAG_DeepCSV_CvsBT = 0.1;
+  const std::string BTAG_DeepCSVc = "pfDeepCSVJetTags:probc";
+  const std::string BTAG_DeepCSVcc = "pfDeepCSVJetTags:probcc";
+  const std::string BTAG_DeepCSVudsg = "pfDeepCSVJetTags:probudsg";
+  // DeepCSV BvsAll: pfDeepCSVJetTags:probb + pfDeepCSVJetTags:probbb
+  const double WP_DeepCSVL = 0.1522;
+  const double WP_DeepCSVM = 0.4941;
+  const double WP_DeepCSVT = 0.8001;
+  // DeepCSV CvsL: pfDeepCSVJetTags:probc/(pfDeepCSVJetTags:probc + pfDeepCSVJetTags:probudsg)
+  const double WP_DeepCSV_CvsLL = 0.05;
+  const double WP_DeepCSV_CvsLM = 0.15;
+  const double WP_DeepCSV_CvsLT = 0.8;
+  // DeepCSV CvsB: pfDeepCSVJetTags:probc/(pfDeepCSVJetTags:probc + pfDeepCSVJetTags:probb + pfDeepCSVJetTags:probbb)
+  const double WP_DeepCSV_CvsBL = 0.33;
+  const double WP_DeepCSV_CvsBM = 0.28;
+  const double WP_DeepCSV_CvsBT = 0.1;
+  // DeepJet
+  const std::string BTAG_DeepJetb = "pfDeepFlavourJetTags:probb";
+  const std::string BTAG_DeepJetbb = "pfDeepFlavourJetTags:probbb";
+  const std::string BTAG_DeepJetlepb = "pfDeepFlavourJetTags:problepb";
+  const std::string BTAG_DeepJetc = "pfDeepFlavourJetTags:probc";
+  const std::string BTAG_DeepJetuds = "pfDeepFlavourJetTags:probuds";
+  const std::string BTAG_DeepJetg = "pfDeepFlavourJetTags:probg";
+  // DeepJet B: pfDeepFlavourJetTags:probb + pfDeepFlavourJetTags:probbb + pfDeepFlavourJetTags:problepb
+  const double WP_DeepJetL = 0.0521;
+  const double WP_DeepJetM = 0.3033;
+  const double WP_DeepJetT = 0.7489;
+  // DeepJet C tagger WP is not defined!
+  /// DeepJet CvsL: pfDeepFlavourJetTags:probc/(pfDeepFlavourJetTags:probc+ pfDeepFlavourJetTags:probuds + pfDeepFlavourJetTags:probg)
+  //const double WP_DeepJet_CvsLL = 0.03;
+  //const double WP_DeepJet_CvsLM = 0.085;
+  //const double WP_DeepJet_CvsLT = 0.48;
+  //// DeepJet CvsB:  pfDeepFlavourJetTags:probc/(pfDeepFlavourJetTags:probc+ pfDeepFlavourJetTags:probb + pfDeepFlavourJetTags:probbb + pfDeepFlavourJetTags:problepb)
+  //const double WP_DeepJet_CvsBL = 0.4;
+  //const double WP_DeepJet_CvsBM = 0.29;
+  //const double WP_DeepJet_CvsBT = 0.05;
   // pfCombinedMVAV2BJetTags
   const std::string BTAG_cMVAv2 = "pfCombinedMVAV2BJetTags";
-  //                             Moriond17//ICHEP16
-  const double WP_BTAG_cMVAv2L = -0.5884; // -0.715; // -
-  const double WP_BTAG_cMVAv2M =  0.4432; //  0.185; // -
-  const double WP_BTAG_cMVAv2T =  0.9432; //  0.875; // -
-
+  const double WP_BTAG_cMVAv2L = -0.5884;
+  const double WP_BTAG_cMVAv2M =  0.4432;
+  const double WP_BTAG_cMVAv2T =  0.9432;
 
   class Jet : public Particle{
   public:
