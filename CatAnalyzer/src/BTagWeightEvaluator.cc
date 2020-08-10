@@ -35,7 +35,8 @@ double BTagWeightEvaluator::eventWeight(const cat::JetCollection& jets, const in
       return weight;
     }
     else if ( type_ == CSVWEIGHT ) {
-      csvHelper_->getCSVWeight(jets, unc == 0 ? 0 : unc+7);
+      std::cerr << "We don't support csv weight from root files. Use bPOG recipe";
+      throw std::exception();
     }
   }
   return 1.0;
@@ -46,8 +47,8 @@ void BTagWeightEvaluator::initCSVWeight(const bool useCSVHelper, const string bt
   method_ = 4;
 
   if ( useCSVHelper ) {
-    type_ = CSVWEIGHT;
-    csvHelper_.reset(new CSVHelper());
+    std::cerr << "We don't support csv weight from root files. Use bPOG recipe";
+    throw std::exception();
   }
   else {
     type_ = ITERATIVEFIT;
@@ -58,6 +59,13 @@ void BTagWeightEvaluator::initCSVWeight(const bool useCSVHelper, const string bt
       btagAlgos_.push_back(BTAG_DeepCSVbb);
       //csvFileName = "DeepCSV_94XSF_V5_B_F.csv";
       csvFileName = "DeepCSV_94XSF_V5_B_F_skimmed.csv";
+    }
+    else if ( btagName == "deepjet" ) {
+      btagAlgos_.push_back(BTAG_DeepJetb);
+      btagAlgos_.push_back(BTAG_DeepJetbb);
+      btagAlgos_.push_back(BTAG_DeepJetlepb);
+      //csvFileName = "DeepFlavour_94XSF_V4_B_F_skimmed??.csv ";
+      csvFileName = "DeepFlavour_94XSF_V4_B_F.csv";
     }
     else btagAlgos_.push_back("undefined"); // FIXME: Eventually raise error somewhere?
 
@@ -90,6 +98,13 @@ void BTagWeightEvaluator::init(const int method,
     btagAlgos_.push_back(BTAG_DeepCSVbb);
     //csvFileName = "DeepCSV_94XSF_V5_B_F.csv";
     csvFileName = "DeepCSV_94XSF_V5_B_F_skimmed.csv";
+  }
+  else if ( btagName == "deepjet" ) {
+    btagAlgos_.push_back(BTAG_DeepJetb);
+    btagAlgos_.push_back(BTAG_DeepJetbb);
+    btagAlgos_.push_back(BTAG_DeepJetlepb);
+    //csvFileName = "DeepFlavour_94XSF_V4_B_F.csv ";
+    csvFileName = "DeepFlavour_94XSF_V4_B_F.csv";
   }
   else btagAlgos_.push_back("undefined"); // FIXME: Eventually raise error somewhere?
 
@@ -162,4 +177,5 @@ double BTagWeightEvaluator::getSF(const cat::Jet& jet, const int unc) const
 
   return 1.;
 };
+
 
