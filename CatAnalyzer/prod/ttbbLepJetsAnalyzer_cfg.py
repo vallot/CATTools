@@ -6,7 +6,7 @@ from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing ('analysis')
 # JSON
 options.register('UserJSON', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "UserJSON: Fault  default")
-# runOnTTbarMC ==> 0->No ttbar, 1->ttbar Signal, 2->ttbar Background
+# runOnTTbarMC ==> 0->No ttbar, 1->ttbar Signal, 2->ttbar Background 3->ttX
 options.register('runOnTTbarMC', 1, VarParsing.multiplicity.singleton, VarParsing.varType.int, "runOnTTbarMC: 0  default No ttbar sample")
 # TTbarCatMC   ==> 0->All ttbar, 1->ttbb, 2->ttbj, 3->ttcc, 4->ttLF, 5->tt, 6->ttjj
 options.register('TTbarCatMC', 1, VarParsing.multiplicity.singleton, VarParsing.varType.int, "TTbarCatMC: 0  default All ttbar events")
@@ -38,7 +38,7 @@ process.source = cms.Source("PoolSource",
 
      # fileNames = cms.untracked.vstring()
      fileNames = cms.untracked.vstring(
-         'root://cluster142.knu.ac.kr:1094///store/group/CAT/V8_1/TTToSemilepton_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8/V8_1_RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/200415_005229/0000/catTuple_1.root'
+         'root://cluster142.knu.ac.kr:1094///store/group/CAT/V8_1/TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8/V8_1_RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v1/200725_154813/0000/catTuple_1.root',
         )
 )
 # from CATTools.Validation.commonTestInput_cff import commonTestCATTuples
@@ -73,31 +73,33 @@ process.ttbbLepJets = cms.EDAnalyzer('ttbbLepJetsAnalyzer',
                                      # TriggerNames
 				     trigMuFilters     = cms.InputTag("filterTrigMU"),
 				     trigElFilters     = cms.InputTag("filterTrigEL"),
-				     recoFilters       = cms.InputTag("filterRECOMC"),
+				     recoFiltersMC     = cms.InputTag("filterRECOMC"),
+				     recoFilters       = cms.InputTag("filterRECO"),
                                      # Input Tags
-                                     genWeightLabel    = cms.InputTag("flatGenWeights"),
-                                     genLabel          = cms.InputTag("prunedGenParticles"),
-                                     genJetLabel       = cms.InputTag("slimmedGenJets"),
-                                     deepcsvWeightLabel= cms.InputTag("deepcsvWeights"),
-                                     genHiggsCatLabel  = cms.InputTag("GenTtbarCategories:genTtbarId"),
-                                     genttbarCatLabel  = cms.InputTag("catGenTops"),
-                                     muonLabel         = cms.InputTag("catMuons"),
-                                     muonIdSF          = muonSFTightId80XLegacy,
-				     muonIsoSF         = muonSFTightIso80XLegacy,
-				     muonTrgSF         = trigSF_IsoMu24,
-                                     electronLabel     = cms.InputTag("catElectrons"),
-				     elecIdSF          = electronSFCutBasedTight80XFall17V2,
-				     elecRecoSF        = electronSFReco80XFall17V2,
-				     elecZvtxSF        = electronSFHLTZvtx80X,
-				     elecTrgSF         = trigSF_Ele27,
-                                     jetLabel          = cms.InputTag("catJets"),
-                                     metLabel          = cms.InputTag("catMETs"),
-                                     pvLabel           = cms.InputTag("catVertex:nGoodPV"),
-                                     puWeightLabel     = cms.InputTag("pileupWeight"),
-                                     triggerBits       = cms.InputTag("TriggerResults"), 
-                                     triggerObjects    = cms.InputTag("catTrigger"), 
-                                     JetMother         = cms.InputTag("genJetHadronFlavour:ancestors"),
-				     nTrueVertLabel    = cms.InputTag("pileupWeight:nTrueInteraction")
+                                     genWeightLabel         = cms.InputTag("flatGenWeights"),
+                                     genLabel               = cms.InputTag("prunedGenParticles"),
+                                     genJetLabel            = cms.InputTag("slimmedGenJets"),
+                                     deepcsvWeightLabel     = cms.InputTag("deepcsvWeights"),
+                                     genHiggsCatLabel       = cms.InputTag("GenTtbarCategories:genTtbarId"),
+				     genEta2p5HiggsCatLabel = cms.InputTag("GenTtbarCategoriesEta2p5:genTtbarId"),
+                                     genttbarCatLabel       = cms.InputTag("catGenTops"),
+                                     muonLabel              = cms.InputTag("catMuons"),
+                                     muonIdSF               = muonSFTightId80XLegacy,
+				     muonIsoSF              = muonSFTightIso80XLegacy,
+				     muonTrgSF              = trigSF_IsoMu24,
+                                     electronLabel          = cms.InputTag("catElectrons"),
+				     elecIdSF               = electronSFCutBasedTight80XFall17V2,
+				     elecRecoSF             = electronSFReco80XFall17V2,
+				     elecZvtxSF             = electronSFHLTZvtx80X,
+				     elecTrgSF              = trigSF_Ele27,
+                                     jetLabel               = cms.InputTag("catJets"),
+                                     metLabel               = cms.InputTag("catMETs"),
+                                     pvLabel                = cms.InputTag("catVertex:nGoodPV"),
+                                     puWeightLabel          = cms.InputTag("pileupWeight"),
+                                     triggerBits            = cms.InputTag("TriggerResults"), 
+                                     triggerObjects         = cms.InputTag("catTrigger"), 
+                                     JetMother              = cms.InputTag("genJetHadronFlavour:ancestors"),
+				     nTrueVertLabel         = cms.InputTag("pileupWeight:nTrueInteraction")
                                      )
 
 process.ttbbLepJetsQCD = process.ttbbLepJets.clone(
@@ -115,7 +117,7 @@ process.TFileService = cms.Service("TFileService",
 # process.p = cms.Path(process.pileupWeight*
 #                      process.ttbarSingleLepton)
 process.p = cms.Path(process.flatGenWeights +
-                     process.filterRECOMC +
+                     process.filterRECOMC + process.filterRECO + 
 		     process.filterTrigMU + process.filterTrigEL + 
                      process.pileupWeight +
                      process.ttbbLepJets + process.ttbbLepJetsQCD)
