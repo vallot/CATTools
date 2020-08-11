@@ -59,6 +59,13 @@ void BTagWeightEvaluator::initCSVWeight(const bool useCSVHelper, const string bt
       //csvFileName = "DeepCSV_94XSF_V5_B_F.csv";
       csvFileName = "DeepCSV_94XSF_V5_B_F_skimmed.csv";
     }
+    else if ( btagName == "deepjet" ) {
+      btagAlgos_.push_back(BTAG_DeepJetb);
+      btagAlgos_.push_back(BTAG_DeepJetbb);
+      btagAlgos_.push_back(BTAG_DeepJetlepb);
+      //csvFileName = "DeepFlavour_94XSF_V4_B_F.csv";
+      csvFileName = "DeepFlavour_94XSF_V4_B_F_skimmed.csv";
+    }
     else btagAlgos_.push_back("undefined"); // FIXME: Eventually raise error somewhere?
 
     const auto csvFile = edm::FileInPath("CATTools/CatAnalyzer/data/scaleFactors/"+csvFileName).fullPath();
@@ -90,6 +97,13 @@ void BTagWeightEvaluator::init(const int method,
     btagAlgos_.push_back(BTAG_DeepCSVbb);
     //csvFileName = "DeepCSV_94XSF_V5_B_F.csv";
     csvFileName = "DeepCSV_94XSF_V5_B_F_skimmed.csv";
+  }
+  else if ( btagName == "deepjet" ) {
+    btagAlgos_.push_back(BTAG_DeepJetb);
+    btagAlgos_.push_back(BTAG_DeepJetbb);
+    btagAlgos_.push_back(BTAG_DeepJetlepb);
+    //csvFileName = "DeepFlavour_94XSF_V4_B_F.csv";
+    csvFileName = "DeepFlavour_94XSF_V4_B_F_skimmed.csv";
   }
   else btagAlgos_.push_back("undefined"); // FIXME: Eventually raise error somewhere?
 
