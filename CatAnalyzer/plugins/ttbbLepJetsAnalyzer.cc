@@ -64,7 +64,7 @@ private:
   bool isMC_ ;
   bool doLooseLepton_;
 
-  int TTbarMC_; // 0->No ttbar, 1->ttbar Signal, 2->ttbar Background
+  int TTbarMC_; // 0->No ttbar, 1->ttbar Signal, 2->ttbar Background, 3->ttX
   int TTbarCatMC_;
   int is16CP5_;
     
@@ -82,6 +82,7 @@ private:
   edm::EDGetTokenT<double>                       prefWeightDownToken_;
   // Object Collections
   edm::EDGetTokenT<int>                          genttbarHiggsCatToken_;
+  edm::EDGetTokenT<int>                          genttbarEta2p5HiggsCatToken_;
   edm::EDGetTokenT<cat::GenTopCollection>        genttbarCatToken_;
   edm::EDGetTokenT<cat::MuonCollection>          muonToken_;
   edm::EDGetTokenT<cat::ElectronCollection>      electronToken_;
@@ -89,6 +90,7 @@ private:
   edm::EDGetTokenT<cat::METCollection>           metToken_;
   edm::EDGetTokenT<int>                          pvToken_;
   edm::EDGetTokenT<int>                          nTrueVertToken_;
+  edm::EDGetTokenT<int>                          recoFiltersMCToken_;
   edm::EDGetTokenT<int>                          recoFiltersToken_;
   // Trigger
   edm::EDGetTokenT<int>                          trigMuFiltersToken_;
@@ -126,6 +128,7 @@ private:
   std::vector<int>   *b_GenCone_gJetFlavW;
   int b_GenCone_NgJetsW;
   int b_GenHiggsCatID;
+  int b_GenEta2p5HiggsCatID;
   // MET
   float b_MET, b_MET_phi;
   // GEN Leptons
@@ -299,8 +302,9 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   // CSV Weights
   auto deepcsvWeightLabel = iConfig.getParameter<edm::InputTag>("deepcsvWeightLabel");
   // GEN and ttbar Categorization
-  genttbarCatToken_      = consumes<cat::GenTopCollection>        (iConfig.getParameter<edm::InputTag>("genttbarCatLabel"));
-  genttbarHiggsCatToken_ = consumes<int>                          (iConfig.getParameter<edm::InputTag>("genHiggsCatLabel"));
+  genttbarCatToken_            = consumes<cat::GenTopCollection>  (iConfig.getParameter<edm::InputTag>("genttbarCatLabel"));
+  genttbarHiggsCatToken_       = consumes<int>                    (iConfig.getParameter<edm::InputTag>("genHiggsCatLabel"));
+  genttbarEta2p5HiggsCatToken_ = consumes<int>                    (iConfig.getParameter<edm::InputTag>("genEta2p5HiggsCatLabel"));
   // Object Collections
   muonToken_         = consumes<cat::MuonCollection>          (iConfig.getParameter<edm::InputTag>("muonLabel"));
   electronToken_     = consumes<cat::ElectronCollection>      (iConfig.getParameter<edm::InputTag>("electronLabel"));
@@ -308,7 +312,8 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   metToken_          = consumes<cat::METCollection>           (iConfig.getParameter<edm::InputTag>("metLabel"));
   pvToken_           = consumes<int>                          (iConfig.getParameter<edm::InputTag>("pvLabel"));
   // Trigger 
-  recoFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("recoFilters"));
+  recoFiltersMCToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("recoFiltersMC"));
+  recoFiltersToken_   = consumes<int>(iConfig.getParameter<edm::InputTag>("recoFilters"));
   trigMuFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigMuFilters"));
   trigElFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("trigElFilters"));
   // PU = 0 prescription
@@ -319,6 +324,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   b_ScaleWeight   = new std::vector<float>;  
   b_Lepton_SF     = new std::vector<float>;
   b_PSWeight      = new std::vector<float>;
+  b_PrefireWeight = new std::vector<double>;
 
   b_GenConeCatID      = new std::vector<int>;
   b_GenCone_gJet_pt   = new std::vector<float>;
@@ -364,7 +370,7 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("pdfweight",     "std::vector<float>", &b_PDFWeight);
   tree->Branch("scaleweight",   "std::vector<float>", &b_ScaleWeight);
   tree->Branch("psweight",      "std::vector<float>", &b_PSWeight);
-  tree->Branch("prefireweigt",  "std::vector<double>", &b_PrefireWeight);
+  tree->Branch("prefireweight",  "std::vector<double>", &b_PrefireWeight);
 
   tree->Branch("MET",     &b_MET,     "MET/F");
   tree->Branch("MET_phi", &b_MET_phi, "MET_phi/F");
@@ -415,9 +421,10 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
     tree->Branch("gencone_gjet_e" ,    "std::vector<float>", &b_GenCone_gJet_e);
     tree->Branch("gencone_gJetFlavW" , "std::vector<int>",   &b_GenCone_gJetFlavW);
 
-    tree->Branch("gencone_NgjetsW", &b_GenCone_NgJetsW, "gencone_NgjetsW/I");
-    tree->Branch("draddjets",       &b_DRAddJets,       "draddjets/F");
-    tree->Branch("genhiggscatid",   &b_GenHiggsCatID,   "genhiggscatid/I");
+    tree->Branch("gencone_NgjetsW",     &b_GenCone_NgJetsW, "gencone_NgjetsW/I");
+    tree->Branch("draddjets",           &b_DRAddJets,       "draddjets/F");
+    tree->Branch("genhiggscatid",       &b_GenHiggsCatID,   "genhiggscatid/I");
+    tree->Branch("geneta2p5higgscatid", &b_GenEta2p5HiggsCatID,   "geneta2p5higgscatid/I");
 
     tree->Branch("genchannel",    &b_GenChannel,    "genchannel/I");
     tree->Branch("genlepton_pt",  &b_GenLepton_pt,  "genlepton_pt/F");
@@ -451,12 +458,13 @@ ttbbLepJetsAnalyzer::ttbbLepJetsAnalyzer(const edm::ParameterSet& iConfig):
 
     //GEN TREE
     gentree = fs->make<TTree>("gentree", "TopGENTree");
-    gentree->Branch("genweight",     &b_GenWeight,     "genweight/F");
-    gentree->Branch("genchannel",    &b_GenChannel,    "genchannel/I");
-    gentree->Branch("genhiggscatid", &b_GenHiggsCatID, "genhiggscatid/I");
-    gentree->Branch("draddjets",     &b_DRAddJets,     "draddjets/F");
-    gentree->Branch("genlepton_pt",  &b_GenLepton_pt,  "genlepton_pt/F");
-    gentree->Branch("genlepton_eta", &b_GenLepton_eta, "genlepton_eta/F");
+    gentree->Branch("genweight",           &b_GenWeight,           "genweight/F");
+    gentree->Branch("genchannel",          &b_GenChannel,          "genchannel/I");
+    gentree->Branch("genhiggscatid",       &b_GenHiggsCatID,       "genhiggscatid/I");
+    gentree->Branch("geneta2p5higgscatid", &b_GenEta2p5HiggsCatID, "geneta2p5higgscatid/I");
+    gentree->Branch("draddjets",           &b_DRAddJets,           "draddjets/F");
+    gentree->Branch("genlepton_pt",        &b_GenLepton_pt,        "genlepton_pt/F");
+    gentree->Branch("genlepton_eta",       &b_GenLepton_eta,       "genlepton_eta/F");
 
     gentree->Branch("scaleweight",        "std::vector<float>", &b_ScaleWeight );
     gentree->Branch("genconecatid" ,      "std::vector<int>",   &b_GenConeCatID);
@@ -691,20 +699,25 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     //---------------------------------------------------------------------------
     // MET optional filters
     //---------------------------------------------------------------------------
+    edm::Handle<int> recoFiltersMCHandle;
+    iEvent.getByToken(recoFiltersMCToken_, recoFiltersMCHandle);
+    METfiltered = *recoFiltersMCHandle == 0 ? true : false;
+  }
+  else{
+    b_PUWeight->push_back(1.0);
+    b_PrefireWeight ->push_back(1.0);
+    b_nTruePV = 0;
+    b_GenWeight = 1.0;
+
     edm::Handle<int> recoFiltersHandle;
     iEvent.getByToken(recoFiltersToken_, recoFiltersHandle);
     METfiltered = *recoFiltersHandle == 0 ? true : false;
   }
 
-  else{
-    b_PUWeight  ->push_back(1.0);
-    b_GenWeight = 1.0;
-  }
-
   //---------------------------------------------------------------------------
   // Weights for Syst. Scale and PDF: ttbar
   //---------------------------------------------------------------------------
-  if(TTbarMC_ == 1 ) {
+  if( TTbarMC_ == 1 && TTbarMC_ == 2) {
     // Scale weights
     edm::Handle<std::vector<float>> scaleUpWeightsHandle, scaleDownWeightsHandle;
     iEvent.getByToken(scaleUpWeightToken_,   scaleUpWeightsHandle);
@@ -773,7 +786,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
   bool IsCat = false;
 
-  if(TTbarMC_ > 0) {
+  if(TTbarMC_ > 0 && TTbarMC_ < 3) {
 
     //---------------------------------------------------------------------------
     // Event Categorization Using Higgs Code
@@ -783,6 +796,9 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     iEvent.getByToken( genttbarHiggsCatToken_, genttbarHiggsCatHandle );
     b_GenHiggsCatID = *genttbarHiggsCatHandle;
 
+    edm::Handle<int> genttbarEta2p5HiggsCatHandle;
+    iEvent.getByToken( genttbarEta2p5HiggsCatToken_, genttbarEta2p5HiggsCatHandle );
+    b_GenEta2p5HiggsCatID = *genttbarEta2p5HiggsCatHandle;
     //---------------------------------------------------------------------------
     // Event Categorization Using Cone
     //---------------------------------------------------------------------------
@@ -1295,7 +1311,7 @@ bool ttbbLepJetsAnalyzer::IsSelectMuon(const cat::Muon & i_muon_candidate)
   bool GoodMuon=true;
 
   // Tight selection already defined into CAT::Muon
-  GoodMuon &= (i_muon_candidate.passed(reco::Muon::CutBasedIdTight|reco::Muon::PFIsoTight));
+  GoodMuon &= (i_muon_candidate.passed(reco::Muon::CutBasedIdTight));
 
   GoodMuon &= (i_muon_candidate.isPFMuon());           // PF
   GoodMuon &= (i_muon_candidate.pt()> 30);             // pT
@@ -1307,7 +1323,7 @@ bool ttbbLepJetsAnalyzer::IsSelectMuon(const cat::Muon & i_muon_candidate)
   // relIso( R ) already includes PU subtraction
   // float relIso = ( chIso + std::max(0.0, nhIso + phIso - 0.5*PUIso) )/ ecalpt;
 
-  if ( !doLooseLepton_ ) GoodMuon &=( i_muon_candidate.relIso( 0.4 ) < 0.15 );
+  if ( !doLooseLepton_ ) GoodMuon &=( i_muon_candidate.passed(reco::Muon::PFIsoTight) );
 
   //----------------------------------------------------------------------------------------------------
   //----------------------------------------------------------------------------------------------------
