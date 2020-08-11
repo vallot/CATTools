@@ -717,7 +717,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   //---------------------------------------------------------------------------
   // Weights for Syst. Scale and PDF: ttbar
   //---------------------------------------------------------------------------
-  if( TTbarMC_ == 1 || TTbarMC_ == 2) {
+  if( TTbarMC_ == 1 || TTbarMC_ == 2 ){
     // Scale weights
     edm::Handle<std::vector<float>> scaleUpWeightsHandle, scaleDownWeightsHandle;
     iEvent.getByToken(scaleUpWeightToken_,   scaleUpWeightsHandle);
@@ -786,8 +786,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
   bool IsCat = false;
 
-  if(TTbarMC_ > 0 && TTbarMC_ < 3) {
-
+  if(TTbarMC_ > 0) {
     //---------------------------------------------------------------------------
     // Event Categorization Using Higgs Code
     // // Twiki: https://twiki.cern.ch/twiki/bin/view/CMSPublic/GenHFHadronMatcher
@@ -940,7 +939,6 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     // else if (genttbarConeCat->begin()->NbJets20() > 1  && 
     // 	     genttbarConeCat->begin()->NJets20()  > 5) IsttLF = true;
     // else Istt = true;
-
 
     if (TTbarCatMC_ == 0)           IsCat = true;
     if (Isttbb && TTbarCatMC_ == 1) IsCat = true;
@@ -1156,7 +1154,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   //---------------------------------------------------------------------------
 
   // Check Gen Level for ttbar sample
-  if (TTbarMC_ >0){
+  if (TTbarMC_ > 0){
     // Signal ttbar event
     if(TTbarMC_ == 1 && nGenLep != 1) ch_tag = 999;
     // Background ttbar event
