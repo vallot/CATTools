@@ -717,7 +717,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   //---------------------------------------------------------------------------
   // Weights for Syst. Scale and PDF: ttbar
   //---------------------------------------------------------------------------
-  if( TTbarMC_ == 1 || TTbarMC_ == 2 ){
+  if( TTbarMC_ > 0 ){
     // Scale weights
     edm::Handle<std::vector<float>> scaleUpWeightsHandle, scaleDownWeightsHandle;
     iEvent.getByToken(scaleUpWeightToken_,   scaleUpWeightsHandle);
@@ -786,7 +786,7 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
   bool IsCat = false;
 
-  if(TTbarMC_ > 0) {
+  if( TTbarMC_ > 0 ) {
     //---------------------------------------------------------------------------
     // Event Categorization Using Higgs Code
     // // Twiki: https://twiki.cern.ch/twiki/bin/view/CMSPublic/GenHFHadronMatcher
