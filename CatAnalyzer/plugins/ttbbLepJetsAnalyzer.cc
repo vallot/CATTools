@@ -1287,8 +1287,8 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     (*b_Jet_SF_deepJet_30)[0] = Jet_SF_deepJet[0];
     // To save only the error
     for (unsigned int iu=1; iu<19; iu++){
-      (*b_Jet_SF_deepCSV_30)[iu] = std::abs(Jet_SF_deepCSV[iu] - Jet_SF_deepCSV[0]); // Syst. Unc.
-      (*b_Jet_SF_deepJet_30)[iu] = std::abs(Jet_SF_deepJet[iu] - Jet_SF_deepJet[0]); // Syst. Unc.
+      (*b_Jet_SF_deepCSV_30)[iu] = Jet_SF_deepCSV[iu]; // Syst. Unc.
+      (*b_Jet_SF_deepJet_30)[iu] = Jet_SF_deepJet[iu]; // Syst. Unc.
     }
 
     //---------------------------------------------------------------------------
