@@ -716,13 +716,16 @@ void ttbbLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     for(unsigned int iscale = 0; iscale< b_ScaleWeight->size(); iscale++)
       ScaleWeights->Fill(iscale, b_ScaleWeight->at(iscale)); 
 
-    // PDF weight : NEED TO BE UPDATE
     edm::Handle<std::vector<float>> PDFWeightsHandle;
     iEvent.getByToken(pdfWeightToken_,   PDFWeightsHandle);
     
     std::vector<float> tmp_PDFWeight;
     for( auto& w : *PDFWeightsHandle ) tmp_PDFWeight.push_back(w);
-    for( unsigned int i = 9; i < 112; ++i) b_PDFWeight->push_back(tmp_PDFWeight.at(i));
+    // CP5 - genWeights[10]~[111],[116],[117]: NNPDF31_nnlo_hessian_pdfas(306001~306102),as_0117(323300), as_0119, as_0119(323500)
+    // NOMINAL VALUES(306000) IS NOT INSERTED
+    for( unsigned int i = 1; i < 103; ++i) b_PDFWeight->push_back(tmp_PDFWeight.at(i));
+    b_PDFWeight->push_back(tmp_PDFWeight.at(107));
+    b_PDFWeight->push_back(tmp_PDFWeight.at(108));
     for( unsigned int i = 0; i < b_PDFWeight->size(); ++i) PDFWeights->Fill(i, b_PDFWeight->at(i));
 
     // PS weight
@@ -1279,7 +1282,7 @@ bool ttbbLepJetsAnalyzer::IsSelectMuon(const cat::Muon & i_muon_candidate)
   bool GoodMuon=true;
 
   // Tight selection already defined into CAT::Muon
-  GoodMuon &= (i_muon_candidate.passed(reco::Muon::CutBasedIdTight|reco::Muon::PFIsoTight));
+  GoodMuon &= (i_muon_candidate.passed(reco::Muon::CutBasedIdTight));
 
   GoodMuon &= (i_muon_candidate.isPFMuon());           // PF
   GoodMuon &= (i_muon_candidate.pt()> 30);             // pT
@@ -1291,7 +1294,7 @@ bool ttbbLepJetsAnalyzer::IsSelectMuon(const cat::Muon & i_muon_candidate)
   // relIso( R ) already includes PU subtraction
   // float relIso = ( chIso + std::max(0.0, nhIso + phIso - 0.5*PUIso) )/ ecalpt;
 
-  if ( !doLooseLepton_ ) GoodMuon &=( i_muon_candidate.relIso( 0.4 ) < 0.15 );
+  if ( !doLooseLepton_ ) GoodMuon &=( i_muon_candidate.passed(reco::Muon::PFIsoTight) );
 
   //----------------------------------------------------------------------------------------------------
   //----------------------------------------------------------------------------------------------------
