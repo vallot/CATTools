@@ -6,6 +6,7 @@
   <use name="CATTools/CatAnalyzer"/>
   <use name="CATTools/CommonTools"/>
   <use name="CommonTools/UtilAlgos"/>
+  <use name="CondFormats/JetMETObjects"/>
 
   <use name="root"/>
 </library>

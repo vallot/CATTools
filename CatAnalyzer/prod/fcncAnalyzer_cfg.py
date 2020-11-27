@@ -9,7 +9,7 @@ options.register('UserJSON', False, VarParsing.multiplicity.singleton, VarParsin
 # runOnTTbarMC ==> 0->No ttbar, 1->ttbar Signal
 options.register('runOnTTbarMC', 1, VarParsing.multiplicity.singleton, VarParsing.varType.int, "runOnTTbarMC: 0  default No ttbar sample")
 # TTbarCatMC   ==> 0->All ttbar, 1->ttbb, 2->ttcc, 3->ttLF, 4->ttV/H, signal (fcnc)
-options.register('TTbarCatMC', 4, VarParsing.multiplicity.singleton, VarParsing.varType.int, "TTbarCatMC: 0  default All ttbar events")
+options.register('TTbarCatMC', 0, VarParsing.multiplicity.singleton, VarParsing.varType.int, "TTbarCatMC: 0  default All ttbar events")
 options.parseArguments()
 
 print "User JSON file: " + str(options.UserJSON)
@@ -36,7 +36,7 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 process.source = cms.Source("PoolSource",
      fileNames = cms.untracked.vstring(
         'root://cluster142.knu.ac.kr:1094///store/group/CAT/V10_3/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/V10_3_RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/200725_030313/0000/catTuple_1.root'
-        #'root://cluster142.knu.ac.kr:1094///store/group/CAT/V10_3/SingleMuon/V10_3_Run2018B-17Sep2018-v1/191228_195656/0000/catTuple_1.root'
+        #'root://cluster142.knu.ac.kr:1094///store/group/CAT/V10_3/SingleMuon/V10_3_Run2018B-17Sep2018-v1/191228_195656/0000/catTuple_2.root'
         )
 )
 
@@ -74,6 +74,8 @@ process.fcncLepJets = cms.EDAnalyzer('fcncLepJetsAnalyzer',
                                      trigElHTFilters   = cms.InputTag("filterTrigELHT"),
                                      recoFiltersMC     = cms.InputTag("filterRECOMC"),
                                      recoFilters       = cms.InputTag("filterRECO"),
+                                     # JES file
+                                     JESUncFile        = cms.untracked.string("RegroupedV2_Autumn18_V19_MC_UncertaintySources_AK4PFchs.txt"),
                                      # Input Tags
                                      genWeightLabel    = cms.InputTag("flatGenWeights"),
                                      genLabel          = cms.InputTag("prunedGenParticles"),
@@ -111,4 +113,4 @@ process.p = cms.Path(process.filterRECOMC + process.filterRECO +
                      process.filterTrigMU + process.filterTrigEL + process.filterTrigELJET + process.filterTrigELHT +
                      process.flatGenWeights +
                      process.pileupWeight +
-                     process.fcncLepJets) #+ process.fcncLepJetsQCD)
+                     process.fcncLepJets)#+ process.fcncLepJetsQCD)

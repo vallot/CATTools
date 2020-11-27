@@ -30,6 +30,12 @@
 
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
+// JES Components
+#include "CondFormats/JetMETObjects/interface/Utilities.h"
+#include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
+#include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
+#include "CondFormats/JetMETObjects/interface/SimpleJetCorrectionUncertainty.h"
+
 #include "TH1.h"
 #include "TTree.h"
 #include "TLorentzVector.h"
@@ -57,6 +63,9 @@ private:
 
   int TTbarMC_; // 0->No ttbar, 1->ttbar Signal
   int TTbarCatMC_;
+
+  // JES File
+  string JESUncFile_;
 
   // Event Weights
   edm::EDGetTokenT<float>                   genWeightToken_;
@@ -129,6 +138,7 @@ private:
   // JES and JER
   std::vector<float> *b_Jet_JES_Up, *b_Jet_JES_Down;
   std::vector<float> *b_Jet_JER_Up, *b_Jet_JER_Nom, *b_Jet_JER_Down;
+  std::vector< std::vector<float> > *b_Jet_JESCom_Up, *b_Jet_JESCom_Down;
 
   // b-Jet discriminant
   std::vector<float> *b_Jet_deepCSV, *b_Jet_deepJet;
@@ -147,10 +157,27 @@ private:
 
 };
 
+// JES components - reduced v2
+// BB: |eta|<1.3; EC1: 1.3<|eta|<2.5; -> to use
+// EC2: 2.5<|eta|<3.0; HF: |eta|>3 -> ignore
+//const int nsrc = 20;
+//const char* srcnames[nsrc] =
+//  {"AbsoluteMPFBias", "AbsoluteScale", "AbsoluteStat",
+//   "FlavorQCD", "Fragmentation",
+//   "PileUpDataMC", "PileUpPtBB", "PileUpPtEC1", "PileUpPtRef",
+//   "RelativeFSR", "RelativeJEREC1", "RelativePtBB", "RelativePtEC1",
+//   "RelativeBal", "RelativeSample", "RelativeStatEC", "RelativeStatFSR",
+//   "SinglePionECAL", "SinglePionHCAL", "TimePtEta"};
+const int nsrc = 7;
+const char* srcnames[nsrc] =
+  {"Absolute", "Absolute_2018", "BBEC1", "BBEC1_2018",
+   "FlavorQCD", "RelativeBal", "RelativeSample_2018"};
+
 fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   doLooseLepton_(iConfig.getUntrackedParameter<bool>("doLooseLepton", false)),
   TTbarMC_    (iConfig.getUntrackedParameter<int>("TTbarSampleLabel", 0)),
-  TTbarCatMC_ (iConfig.getUntrackedParameter<int>("TTbarCatLabel", 0))
+  TTbarCatMC_ (iConfig.getUntrackedParameter<int>("TTbarCatLabel", 0)),
+  JESUncFile_ (iConfig.getUntrackedParameter<string>("JESUncFile"))
 {
   const auto elecIdSFSet = iConfig.getParameter<edm::ParameterSet>("elecIdSF");
   SF_elecId_.set(elecIdSFSet.getParameter<std::vector<double>>("pt_bins"),
@@ -251,8 +278,8 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   b_Jet_SF_deepJet_30 = new std::vector<float>;
   b_Jet_deepCvsL      = new std::vector<float>;
   b_Jet_deepCvsB      = new std::vector<float>;
-  b_Jet_deepJetCvsL      = new std::vector<float>;
-  b_Jet_deepJetCvsB      = new std::vector<float>;
+  b_Jet_deepJetCvsL   = new std::vector<float>;
+  b_Jet_deepJetCvsB   = new std::vector<float>;
   b_Jet_partonFlavour = new std::vector<int>;
   b_Jet_hadronFlavour = new std::vector<int>;
   b_Jet_JES_Up        = new std::vector<float>;
@@ -260,6 +287,8 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   b_Jet_JER_Up        = new std::vector<float>;
   b_Jet_JER_Nom       = new std::vector<float>;
   b_Jet_JER_Down      = new std::vector<float>;
+  b_Jet_JESCom_Up     = new std::vector< std::vector<float> >;
+  b_Jet_JESCom_Down   = new std::vector< std::vector<float> >;
 
   usesResource("TFileService");
   edm::Service<TFileService> fs;
@@ -316,6 +345,8 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("jet_JER_Up",        "std::vector<float>", &b_Jet_JER_Up );
   tree->Branch("jet_JER_Nom",       "std::vector<float>", &b_Jet_JER_Nom );
   tree->Branch("jet_JER_Down",      "std::vector<float>", &b_Jet_JER_Down );
+  tree->Branch("jet_JESCom_Up",     "std::vector< std::vector<float> >", &b_Jet_JESCom_Up );
+  tree->Branch("jet_JESCom_Down",   "std::vector< std::vector<float> >", &b_Jet_JESCom_Down );
 
   //add bjets from Higgs
   tree->Branch("Hbjet1_pt",  &b_Hbjet1_pt,  "Hbjet1_pt/F");
@@ -458,6 +489,8 @@ fcncLepJetsAnalyzer::~fcncLepJetsAnalyzer()
   delete b_Jet_JER_Up;
   delete b_Jet_JER_Nom;
   delete b_Jet_JER_Down;
+  delete b_Jet_JESCom_Up;
+  delete b_Jet_JESCom_Down;
 
   delete b_Jet_SF_deepCSV_30;
   delete b_Jet_SF_deepJet_30;
@@ -506,6 +539,8 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   b_Jet_JER_Up  ->clear();
   b_Jet_JER_Nom ->clear();
   b_Jet_JER_Down->clear();
+  b_Jet_JESCom_Up  ->clear();
+  b_Jet_JESCom_Down->clear();
 
   b_Jet_deepCSV      ->clear();
   b_Jet_deepJet      ->clear();
@@ -728,8 +763,8 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     b_addbjet2_phi = genttbarConeCat->begin()->addbJets2().Phi();
     b_addbjet2_e   = genttbarConeCat->begin()->addbJets2().E();
     b_DRAddJets    = genttbarConeCat->begin()->dRaddJets();
-    
-    
+
+
     //---------------------------------------------------------------------------
     // Using the GenChannel from GenTop categorization
     //---------------------------------------------------------------------------
@@ -1014,7 +1049,7 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         b_Jet_phi->push_back(jet.phi());
         b_Jet_e  ->push_back(jet.energy());
         b_Jet_Index ->push_back(JetIndex[i]);
-	
+
 	      // Number of Jets (easy cross check)
         if( jet.pt() > 30. ) N_GoodJets++;
 
@@ -1041,6 +1076,27 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
           b_Jet_JES_Up  ->push_back(jet.shiftedEnUp());
           b_Jet_JES_Down->push_back(jet.shiftedEnDown());
 
+          // Full set of components
+          std::vector<float> jesCom_Up, jesCom_Down;
+          for (int isrc = 0; isrc < nsrc; isrc++) {
+            const char *name = srcnames[isrc];
+            JetCorrectorParameters *p = new JetCorrectorParameters(edm::FileInPath("CATTools/CatProducer/data/JEC/" + JESUncFile_).fullPath(), name);
+            JetCorrectionUncertainty *jetunc = new JetCorrectionUncertainty(*p);
+            jetunc->setJetPt(jet.pt());
+            jetunc->setJetEta(jet.eta());
+            float jesUp = jetunc->getUncertainty(true);
+            jesCom_Up.push_back(jesUp);
+            jetunc->setJetPt(jet.pt());
+            jetunc->setJetEta(jet.eta());
+            float jesDown = jetunc->getUncertainty(false);
+            jesCom_Down.push_back(jesDown);
+
+            delete p;
+            delete jetunc;
+          }
+          b_Jet_JESCom_Up->push_back(jesCom_Up);
+          b_Jet_JESCom_Down->push_back(jesCom_Down);
+
           // Ref: https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution
           b_Jet_JER_Up   ->push_back( jer_valid(jet.smearedResUp()) );
           b_Jet_JER_Nom  ->push_back( jer_valid(jet.smearedRes()) );
@@ -1057,7 +1113,7 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         } // if(isMC_)	
       }// if(GoodJets)
     }// for(AllJets)
-    
+ 
     // Number of Jets (easy cross check)
     b_Jet_NJet = N_GoodJets;
     b_Jet_NBJetM = N_BJetsM;
@@ -1070,10 +1126,10 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     (*b_Jet_SF_deepJet_30)[0] = Jet_SF_deepJet[0]; //Central
     // To save only the error
     for( unsigned int iu=1; iu<19; iu++ ){
-      (*b_Jet_SF_deepCSV_30)[iu] = std::abs(Jet_SF_deepCSV[iu] - Jet_SF_deepCSV[0]); // Syst. Unc.
-      (*b_Jet_SF_deepJet_30)[iu] = std::abs(Jet_SF_deepJet[iu] - Jet_SF_deepJet[0]); // Syst. Unc.
+      (*b_Jet_SF_deepCSV_30)[iu] = Jet_SF_deepCSV[iu]; // Syst. Unc.
+      (*b_Jet_SF_deepJet_30)[iu] = Jet_SF_deepJet[iu]; // Syst. Unc.
     }
-   
+ 
     tree->Fill();
         
   }// if(ch_tag)

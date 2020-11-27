@@ -78,29 +78,29 @@ create-batch --jobName WZ --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/d
 
 create-batch --jobName ZZ --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_ZZ.txt --cfg testAnalyzer_cfg.py --transferDest /store/user/jipark/cat_test_V10_3/ZZ --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=0'
 
-create-batch --jobName TTWJetsToLNu --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTWJetsToLNu.txt --cfg testAnalyzer_cfg.py --transferDest /store/user/jipark/cat_test_V10_3/TTWJetsToLNu --maxFiles 2 --args 'UserJSON=false runOnTTbarMC=1'
+create-batch --jobName TTWJetsToLNu --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTWJetsToLNu.txt --cfg testAnalyzer_cfg.py --transferDest /store/user/jipark/cat_test_V10_3/TTWJetsToLNu --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=2'
 
-create-batch --jobName TTWJetsToQQ --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTWJetsToQQ.txt --cfg testAnalyzer_cfg.py --transferDest /store/user/jipark/cat_test_V10_3/TTWJetsToQQ --maxFiles 2 --args 'UserJSON=false runOnTTbarMC=1'
+create-batch --jobName TTWJetsToQQ --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTWJetsToQQ.txt --cfg testAnalyzer_cfg.py --transferDest /store/user/jipark/cat_test_V10_3/TTWJetsToQQ --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=2'
 
-create-batch --jobName TTZToLLNuNu --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTZToLLNuNu.txt --cfg testAnalyzer_cfg.py --transferDest /store/user/jipark/cat_test_V10_3/TTZToLLNuNu --maxFiles 2 --args 'UserJSON=false runOnTTbarMC=1'
+create-batch --jobName TTZToLLNuNu --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTZToLLNuNu.txt --cfg testAnalyzer_cfg.py --transferDest /store/user/jipark/cat_test_V10_3/TTZToLLNuNu --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=2'
 
-create-batch --jobName TTZToQQ --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTZToQQ.txt --cfg testAnalyzer_cfg.py --transferDest /store/user/jipark/cat_test_V10_3/TTZToQQ --maxFiles 2 --args 'UserJSON=false runOnTTbarMC=1'
+create-batch --jobName TTZToQQ --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TTZToQQ.txt --cfg testAnalyzer_cfg.py --transferDest /store/user/jipark/cat_test_V10_3/TTZToQQ --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=2'
 
-create-batch --jobName ttHTobb --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_ttHTobb.txt --cfg testAnalyzer_cfg.py --transferDest /store/user/jipark/cat_test_V10_3/ttHTobb --maxFiles 2 --args 'UserJSON=false runOnTTbarMC=1'
+create-batch --jobName ttHTobb --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_ttHTobb.txt --cfg testAnalyzer_cfg.py --transferDest /store/user/jipark/cat_test_V10_3/ttHTobb --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=2'
 
-create-batch --jobName ttHToNonbb --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_ttHToNonbb.txt --cfg testAnalyzer_cfg.py --transferDest /store/user/jipark/cat_test_V10_3/ttHToNonbb --maxFiles 2 --args 'UserJSON=false runOnTTbarMC=1'
+create-batch --jobName ttHToNonbb --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_ttHToNonbb.txt --cfg testAnalyzer_cfg.py --transferDest /store/user/jipark/cat_test_V10_3/ttHToNonbb --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=2'
 
-create-batch --jobName ST_TH_1L3B_Hct --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_ST_TH_1L3B_Hct.txt --cfg testAnalyzer_cfg.py --transferDest /store/user/jipark/cat_test_V10_3/ST_TH_1L3B_Hct --maxFiles 5 --args 'UserJSON=false runOnTTbarMC=1'
+create-batch --jobName ST_TH_1L3B_Hct --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_ST_TH_1L3B_Hct.txt --cfg testAnalyzer_cfg.py --transferDest /store/user/jipark/cat_test_V10_3/ST_TH_1L3B_Hct --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=2'
 
-create-batch --jobName ST_TH_1L3B_Hut --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_ST_TH_1L3B_Hut.txt --cfg testAnalyzer_cfg.py --transferDest /store/user/jipark/cat_test_V10_3/ST_TH_1L3B_Hut --maxFiles 5 --args 'UserJSON=false runOnTTbarMC=1'
+create-batch --jobName ST_TH_1L3B_Hut --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_ST_TH_1L3B_Hut.txt --cfg testAnalyzer_cfg.py --transferDest /store/user/jipark/cat_test_V10_3/ST_TH_1L3B_Hut --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=2'
 
-create-batch --jobName TT_TH_1L3B_aTLep_Hut --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TT_TH_1L3B_aTLep_Hut.txt --cfg testAnalyzer_cfg.py --transferDest /store/user/jipark/cat_test_V10_3/TT_TH_1L3B_aTLep_Hut --maxFiles 4 --args 'UserJSON=false runOnTTbarMC=1'
+create-batch --jobName TT_TH_1L3B_aTLep_Hut --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TT_TH_1L3B_aTLep_Hut.txt --cfg testAnalyzer_cfg.py --transferDest /store/user/jipark/cat_test_V10_3/TT_TH_1L3B_aTLep_Hut --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=2'
 
-create-batch --jobName TT_TH_1L3B_TLep_Hut --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TT_TH_1L3B_TLep_Hut.txt --cfg testAnalyzer_cfg.py --transferDest /store/user/jipark/cat_test_V10_3/TT_TH_1L3B_TLep_Hut --maxFiles 4 --args 'UserJSON=false runOnTTbarMC=1'
+create-batch --jobName TT_TH_1L3B_TLep_Hut --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TT_TH_1L3B_TLep_Hut.txt --cfg testAnalyzer_cfg.py --transferDest /store/user/jipark/cat_test_V10_3/TT_TH_1L3B_TLep_Hut --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=2'
 
-create-batch --jobName TT_TH_1L3B_aTLep_Hct --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TT_TH_1L3B_aTLep_Hct.txt --cfg testAnalyzer_cfg.py --transferDest /store/user/jipark/cat_test_V10_3/TT_TH_1L3B_aTLep_Hct --maxFiles 4 --args 'UserJSON=false runOnTTbarMC=1'
+create-batch --jobName TT_TH_1L3B_aTLep_Hct --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TT_TH_1L3B_aTLep_Hct.txt --cfg testAnalyzer_cfg.py --transferDest /store/user/jipark/cat_test_V10_3/TT_TH_1L3B_aTLep_Hct --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=2'
 
-create-batch --jobName TT_TH_1L3B_TLep_Hct --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TT_TH_1L3B_TLep_Hct.txt --cfg testAnalyzer_cfg.py --transferDest /store/user/jipark/cat_test_V10_3/TT_TH_1L3B_TLep_Hct --maxFiles 4 --args 'UserJSON=false runOnTTbarMC=1'
+create-batch --jobName TT_TH_1L3B_TLep_Hct --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_TT_TH_1L3B_TLep_Hct.txt --cfg testAnalyzer_cfg.py --transferDest /store/user/jipark/cat_test_V10_3/TT_TH_1L3B_TLep_Hct --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=2'
 
 create-batch --jobName QCD_EM15to20 --fileList $CMSSW_BASE/src/CATTools/CatAnalyzer/data/dataset/dataset_QCD_Pt-15to20_EMEnriched.txt --cfg testAnalyzer_cfg.py --transferDest /store/user/jipark/cat_test_V10_3/QCD_EM15to20 --maxFiles 20 --args 'UserJSON=false runOnTTbarMC=0'
 
