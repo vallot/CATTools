@@ -27,8 +27,8 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.source = cms.Source("PoolSource",
      fileNames = cms.untracked.vstring(
-        'file:/pnfs/knu.ac.kr/data/cms/store/group/CAT/V9_7/TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8/V9_7_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v2/200723_184504/0000/catTuple_1.root'
-        #'file:/pnfs/knu.ac.kr/data/cms/store/group/CAT/V9_7/SingleMuon/V9_7_Run2017B-31Mar2018-v1/200723_112209/0000/catTuple_1.root'
+        'root://cluster142.knu.ac.kr:1094//store/group/CAT/V9_7/TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8/V9_7_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v2/200723_184504/0000/catTuple_1.root'
+        #'root://cluster142.knu.ac.kr:1094//store/group/CAT/V9_7/SingleMuon/V9_7_Run2017B-31Mar2018-v1/200723_112209/0000/catTuple_1.root'
         )
 )
 
