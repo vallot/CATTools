@@ -288,12 +288,12 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
             }
           }
         } else if( decayId < 6 ){
-	  hadronic[ntop] = true;
-	  //debug
-	  //cout << "W daugther = " << decayId << endl;
+          hadronic[ntop] = true;
+          //debug
+          //cout << "W daugther = " << decayId << endl;
           if(nWquarkDaughters == 2) break;
           quarksfromW_[ntop*2+nWquarkDaughters] = decay->p4();  
-	  qflavourfromW_[ntop*2+nWquarkDaughters] = decayId;
+          qflavourfromW_[ntop*2+nWquarkDaughters] = decayId;
           nWquarkDaughters++;
         } else {
           continue;
@@ -310,6 +310,14 @@ void GenTop::building(Handle<reco::GenJetCollection> genJets, Handle<reco::GenPa
      tops_[1] = topquarks[1];
      is2tops_=true;
   } else is2tops_ =false;
+  /*
+  //top pt need to be stored for ST fcnc
+  } else {
+    is2tops_ =false;
+    if(topquarks[0].pt() > 0) tops_[0] = topquarks[0];
+    else if(topquarks[1].pt() > 0) tops_[0] = topquarks[1];
+  }
+  */
 
   allHadronic_ = false;
   semiLeptonic_ = false;

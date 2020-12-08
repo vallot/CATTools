@@ -72,7 +72,7 @@ process.maxEvents.input = options.maxEvents
 # Default file here for test purpose
 if not options.inputFiles:
     if useMiniAOD:
-        process.source.fileNames = cms.untracked.vstring('file:/pnfs/knu.ac.kr/data/cms/store/user/jipark/public/cat10x_samples/TTToSemiLeptonic_062A981D-4A57-664A-A583-E803A658594B.root')
+        process.source.fileNames = cms.untracked.vstring('root://cluster142.knu.ac.kr//store/user/jipark/public/cat10x_samples/TTToSemiLeptonic_062A981D-4A57-664A-A583-E803A658594B.root')
 
 else:
     process.source.fileNames = options.inputFiles
