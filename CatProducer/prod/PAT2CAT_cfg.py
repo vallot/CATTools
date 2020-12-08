@@ -77,7 +77,7 @@ process.maxEvents.input = options.maxEvents
 # Default file here for test purpose
 if not options.inputFiles:
     if useMiniAOD:
-        process.source.fileNames = cms.untracked.vstring('file:/pnfs/knu.ac.kr/data/cms/store/user/jipark/public/cat90x_samples/TTToSemiLeptonic_AC59F8FF-BAAC-E811-95AF-002590E7DF2A.root')
+        process.source.fileNames = cms.untracked.vstring('root://cluster142.knu.ac.kr//store/user/jipark/public/cat90x_samples/TTToSemiLeptonic_AC59F8FF-BAAC-E811-95AF-002590E7DF2A.root')
         # out of date for 94X below: 
         #from CATTools.Validation.commonTestInput_cff import commonTestMiniAODs
         #if runOnMC and runGenTop: process.source.fileNames = commonTestMiniAODs["sig"]

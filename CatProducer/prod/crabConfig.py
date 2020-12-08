@@ -17,7 +17,7 @@ config.Data.allowNonValidInputDataset = True
 
 config.section_("Site")
 # Where the output files will be transmitted to
-config.Site.storageSite = 'T2_KR_KNU'
+config.Site.storageSite = 'T3_KR_KNU'
 #crab checkwrite --site=T3_KR_KISTI --lfn=/store/group/CAT/
 #config.Site.storageSite = 'T3_KR_KISTI'
 #config.Site.storageSite = 'T3_KR_UOS'
