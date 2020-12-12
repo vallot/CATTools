@@ -106,7 +106,7 @@ private:
   float b_GenLepton_pt, b_GenLepton_eta, b_GenLepton_phi, b_GenLepton_e;
   float b_GenLepton2_pt, b_GenLepton2_eta, b_GenLepton2_phi, b_GenLepton2_e;
   float b_GenNu_pt, b_GenNu_eta, b_GenNu_phi, b_GenNu_e;
-  float b_GenTop1_pt, b_GenTop2_pt, b_TopPtWeight;
+  float b_GenTop1_pt, b_GenTop2_pt;
 
   // Leptons and MET
   float b_Lepton_pt, b_Lepton_eta, b_Lepton_phi, b_Lepton_e, b_Lepton_relIso;
@@ -150,7 +150,7 @@ private:
   std::vector<float> *b_Jet_deepJetCvsL, *b_Jet_deepJetCvsB;
 
   // Histograms: Number of Events and Weights
-  TH1D *EventInfo, *ScaleWeights, *PDFWeights, *PSWeights, *TopPtWeight;
+  TH1D *EventInfo, *ScaleWeights, *PDFWeights, *PSWeights;
 
   // Scale factor evaluators
   BTagWeightEvaluator SF_deepCSV_, SF_deepJet_;
@@ -217,7 +217,7 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
                   muonTrgSFSet.getParameter<std::vector<double>>("errors"));
 
   SF_deepCSV_.initCSVWeight(false, "deepcsv");
-  SF_deepJet_.initCSVWeight(false, "deepjet");
+  //SF_deepJet_.initCSVWeight(false, "deepjet");
 
   // Weights
   auto genWeightLabel = iConfig.getParameter<edm::InputTag>("genWeightLabel");
@@ -311,7 +311,6 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("pdfweight",     "std::vector<float>", &b_PDFWeight );
   tree->Branch("scaleweight",   "std::vector<float>", &b_ScaleWeight );
   tree->Branch("psweight",      "std::vector<float>", &b_PSWeight );
-  tree->Branch("topptweight",   &b_TopPtWeight,       "topptweight/F");
 
   tree->Branch("MET",           &b_MET,        "MET/F");
   tree->Branch("MET_phi",       &b_MET_phi,    "MET_phi/F");
@@ -373,6 +372,9 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   tree->Branch("Hbquarkjet2_phi", &b_Hbquarkjet2_phi, "Hbquarkjet2_phi/F");
   tree->Branch("Hbquarkjet2_e",   &b_Hbquarkjet2_e,   "Hbquarkjet2_e/F");
 
+  tree->Branch("gentop1_pt",    &b_GenTop1_pt,    "gentop1_pt/F");
+  tree->Branch("gentop2_pt",    &b_GenTop2_pt,    "gentop2_pt/F");
+
   // GEN Variables (only ttbarSignal)
   if(TTbarMC_ == 1){
  
@@ -394,8 +396,6 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
     tree->Branch("gennu_eta",     &b_GenNu_eta,     "gennu_eta/F");
     tree->Branch("gennu_phi",     &b_GenNu_phi,     "gennu_phi/F");
     tree->Branch("gennu_e",       &b_GenNu_e,       "gennu_e/F");
-    tree->Branch("gentop1_pt",    &b_GenTop1_pt,    "gentop1_pt/F");
-    tree->Branch("gentop2_pt",    &b_GenTop2_pt,    "gentop2_pt/F");
 
     tree->Branch("addbjet1_pt",  &b_addbjet1_pt,  "addbjet1_pt/F");
     tree->Branch("addbjet1_eta", &b_addbjet1_eta, "addbjet1_eta/F");
@@ -456,7 +456,6 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   PSWeights->GetXaxis()->SetBinLabel(4,"fsrDefLo fsr:muRfac=2.0");
 
   PDFWeights = fs->make<TH1D>("PDFWeights","PDF4LHC15_nnlo_100_pdfas (91200)",103,0,103);
-  TopPtWeight = fs->make<TH1D>("TopPtWeight","Top Pt Reweight",1,0,1);
 }
 
 
@@ -563,7 +562,7 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   b_Hbquarkjet1_pt  = b_Hbquarkjet1_e   = b_Hbquarkjet2_pt  = b_Hbquarkjet2_e   = -1.0;
   b_Hbquarkjet1_eta = b_Hbquarkjet1_phi = b_Hbquarkjet2_eta = b_Hbquarkjet2_phi = -10.0;
   b_dRHbb = -1.0;
-  b_TopPtWeight = 1.0;
+  b_GenTop1_pt = b_GenTop2_pt = -1.0;
 
   //---------------------------------------------------------------------------
   // Event Info
@@ -758,17 +757,6 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
     b_GenTop1_pt = genttbarConeCat->begin()->topquark1().Pt();
     b_GenTop2_pt = genttbarConeCat->begin()->topquark2().Pt();
-    float topPtWeight1 = 1.0;
-    float topPtWeight2 = 1.0;
-    if( b_GenTop1_pt > 0 and b_GenTop1_pt < 800 ){
-      topPtWeight1 = TMath::Exp(0.0615-0.0005*b_GenTop1_pt);
-    }
-    if( b_GenTop2_pt > 0 and b_GenTop2_pt < 800 ){
-      topPtWeight1 = TMath::Exp(0.0615-0.0005*b_GenTop2_pt);
-    }
-    if( TTbarCatMC_ < 4 ){
-      b_TopPtWeight = topPtWeight1 * topPtWeight2;
-    }
 
     // adding additional b jet four-momentum
     b_addbjet1_pt  = genttbarConeCat->begin()->addbJets1().Pt();
@@ -834,8 +822,6 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       //if( TTbarCatMC_ == 1 ) gentree->Fill();
     }// if(GENTTbarMCTree_)
   } // if(TTbarMC==0)
-
-  TopPtWeight->Fill(0.5, b_TopPtWeight);
 
   //---------------------------------------------------------------------------
   // Primary Vertex Info
@@ -1037,10 +1023,10 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
     // Initialize SF_btag
     float Jet_SF_deepCSV[19];
-    float Jet_SF_deepJet[19];
+    //float Jet_SF_deepJet[19];
     for( unsigned int iu=0; iu<19; iu++ ){
       Jet_SF_deepCSV[iu] = 1.0;
-      Jet_SF_deepJet[iu] = 1.0;
+      //Jet_SF_deepJet[iu] = 1.0;
     }
 
     // Run again over all Jets
@@ -1076,16 +1062,16 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
         // b-tag discriminant
         b_Jet_deepCSV ->push_back( jet.bDiscriminator(BTAG_DeepCSVb)+jet.bDiscriminator(BTAG_DeepCSVbb) );
-        b_Jet_deepJet ->push_back( jet.bDiscriminator(BTAG_DeepJetb)+jet.bDiscriminator(BTAG_DeepJetbb)+jet.bDiscriminator(BTAG_DeepJetlepb) );
+        //b_Jet_deepJet ->push_back( jet.bDiscriminator(BTAG_DeepJetb)+jet.bDiscriminator(BTAG_DeepJetbb)+jet.bDiscriminator(BTAG_DeepJetlepb) );
         // c-tag discriminant
         float deepCvsL = jet.bDiscriminator(BTAG_DeepCSVc)/(jet.bDiscriminator(BTAG_DeepCSVc)+jet.bDiscriminator(BTAG_DeepCSVudsg));
         float deepCvsB = jet.bDiscriminator(BTAG_DeepCSVc)/(jet.bDiscriminator(BTAG_DeepCSVc)+jet.bDiscriminator(BTAG_DeepCSVb)+jet.bDiscriminator(BTAG_DeepCSVbb));
-        float deepJetCvsL = jet.bDiscriminator(BTAG_DeepJetc)/(jet.bDiscriminator(BTAG_DeepJetc)+jet.bDiscriminator(BTAG_DeepJetuds)+jet.bDiscriminator(BTAG_DeepJetg));
-        float deepJetCvsB = jet.bDiscriminator(BTAG_DeepJetc)/(jet.bDiscriminator(BTAG_DeepJetc)+jet.bDiscriminator(BTAG_DeepJetb)+jet.bDiscriminator(BTAG_DeepJetbb)+jet.bDiscriminator(BTAG_DeepJetlepb));
+        //float deepJetCvsL = jet.bDiscriminator(BTAG_DeepJetc)/(jet.bDiscriminator(BTAG_DeepJetc)+jet.bDiscriminator(BTAG_DeepJetuds)+jet.bDiscriminator(BTAG_DeepJetg));
+        //float deepJetCvsB = jet.bDiscriminator(BTAG_DeepJetc)/(jet.bDiscriminator(BTAG_DeepJetc)+jet.bDiscriminator(BTAG_DeepJetb)+jet.bDiscriminator(BTAG_DeepJetbb)+jet.bDiscriminator(BTAG_DeepJetlepb));
         b_Jet_deepCvsL ->push_back(deepCvsL);
         b_Jet_deepCvsB ->push_back(deepCvsB);
-        b_Jet_deepJetCvsL ->push_back(deepJetCvsL);
-        b_Jet_deepJetCvsB ->push_back(deepJetCvsB);
+        //b_Jet_deepJetCvsL ->push_back(deepJetCvsL);
+        //b_Jet_deepJetCvsB ->push_back(deepJetCvsB);
 
         if( jet.bDiscriminator(BTAG_DeepCSVb)+jet.bDiscriminator(BTAG_DeepCSVbb) > WP_DeepCSVM ) N_BJetsM++;
 
@@ -1124,7 +1110,7 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
           if( jet.pt() > 30. ) {
             for( unsigned int iu=0; iu<19; iu++ ) {
               Jet_SF_deepCSV[iu] *= SF_deepCSV_.getSF(jet, iu);
-              Jet_SF_deepJet[iu] *= SF_deepJet_.getSF(jet, iu);
+              //Jet_SF_deepJet[iu] *= SF_deepJet_.getSF(jet, iu);
             }
           }
         } // if(isMC_)	
@@ -1137,14 +1123,14 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
     for( unsigned int iu=0; iu<19; iu++ ) {
       b_Jet_SF_deepCSV_30->push_back(1.0);
-      b_Jet_SF_deepJet_30->push_back(1.0);
+      //b_Jet_SF_deepJet_30->push_back(1.0);
     }
     (*b_Jet_SF_deepCSV_30)[0] = Jet_SF_deepCSV[0]; //Central
-    (*b_Jet_SF_deepJet_30)[0] = Jet_SF_deepJet[0]; //Central
+    //(*b_Jet_SF_deepJet_30)[0] = Jet_SF_deepJet[0]; //Central
     // To save only the error
     for( unsigned int iu=1; iu<19; iu++ ){
       (*b_Jet_SF_deepCSV_30)[iu] = Jet_SF_deepCSV[iu]; // Syst. Unc.
-      (*b_Jet_SF_deepJet_30)[iu] = Jet_SF_deepJet[iu]; // Syst. Unc.
+      //(*b_Jet_SF_deepJet_30)[iu] = Jet_SF_deepJet[iu]; // Syst. Unc.
     }
  
     tree->Fill();
