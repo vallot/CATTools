@@ -41,6 +41,11 @@
 #include "TLorentzVector.h"
 
 using namespace cat;
+namespace cat {
+  class GenWeights;
+  //typedef std::vector<GenWeights> GenWeightsCollection;
+  typedef GenWeights GenWeightsCollection;
+}
 
 class fcncLepJetsAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
@@ -80,6 +85,7 @@ private:
   edm::EDGetTokenT<cat::ElectronCollection> electronToken_;
   edm::EDGetTokenT<cat::JetCollection>      jetToken_;
   edm::EDGetTokenT<cat::METCollection>      metToken_;
+  edm::EDGetTokenT<cat::GenWeightsCollection> allweightToken_;
   edm::EDGetTokenT<int>                     pvToken_, nTrueVertToken_, recoFiltersToken_, recoFiltersMCToken_;
   edm::EDGetTokenT<int>                     trigMuFiltersToken_, trigElFiltersToken_, trigElHTFiltersToken_;
 // ----------member data ---------------------------
@@ -245,6 +251,7 @@ fcncLepJetsAnalyzer::fcncLepJetsAnalyzer(const edm::ParameterSet& iConfig):
   jetToken_         = consumes<cat::JetCollection>     (iConfig.getParameter<edm::InputTag>("jetLabel"));
   metToken_         = consumes<cat::METCollection>     (iConfig.getParameter<edm::InputTag>("metLabel"));
   pvToken_          = consumes<int>                    (iConfig.getParameter<edm::InputTag>("pvLabel"));
+  allweightToken_   = consumes<cat::GenWeightsCollection> (iConfig.getParameter<edm::InputTag>("allweightLabel"));
   // Trigger
   recoFiltersMCToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("recoFiltersMC"));
   recoFiltersToken_ = consumes<int>(iConfig.getParameter<edm::InputTag>("recoFilters"));
@@ -638,7 +645,10 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   //---------------------------------------------------------------------------
   // Weights for Syst. Scale and PDF: ttbar
   //---------------------------------------------------------------------------
-  if( TTbarMC_ == 1 && TTbarCatMC_ < 4 ) { //0~3 for powheg TT, 4 for ST/TT FCNC
+  edm::Handle<cat::GenWeightsCollection> allweightHandle;
+  iEvent.getByToken( allweightToken_, allweightHandle );
+
+  if( TTbarMC_ == 1 && TTbarCatMC_ < 4 ) { //0~3 for powheg TT, 4 for tt+X
 
     // muR/muF Scale Weights, exclude nan, empty or crazy valuesa
     edm::Handle<std::vector<float>> scaleUpWeightsHandle, scaleDownWeightsHandle;
@@ -655,7 +665,7 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     for( unsigned int iscale = 0; iscale< b_ScaleWeight->size(); iscale++ )
       ScaleWeights->Fill(iscale, b_ScaleWeight->at(iscale)); 
 
-    // PDF weight
+    // PDF weight - 578~680: PDF4LHC15_nnlo_100_pdfas, and 0~8 is scale weight
     edm::Handle<std::vector<float>> PDFWeightsHandle;
     iEvent.getByToken(pdfWeightToken_, PDFWeightsHandle);
 
@@ -664,7 +674,7 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     for( unsigned int i = 569; i < 672; i++)
       b_PDFWeight->push_back(tmp_PDFWeight.at(i));
 
-    for( unsigned int iscale = 0; iscale< b_PDFWeight->size(); iscale++ ) // 578~680: PDF4LHC15_nnlo_100_pdfas, and 0~8 is scale weight
+    for( unsigned int iscale = 0; iscale< b_PDFWeight->size(); iscale++ )
       PDFWeights->Fill(iscale, b_PDFWeight->at(iscale));
 
     // PS weight
@@ -675,6 +685,64 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     b_PSWeight->push_back( weight_valid(PSWeightsHandle->at(5)) ); //fsrDefHi
     b_PSWeight->push_back( weight_valid(PSWeightsHandle->at(6)) ); //isrDefLo
     b_PSWeight->push_back( weight_valid(PSWeightsHandle->at(7)) ); //fsrDefLo
+
+    for( unsigned int iscale = 0; iscale< b_PSWeight->size(); iscale++ )
+      PSWeights->Fill(iscale, b_PSWeight->at(iscale));
+  }
+  else if( TTbarMC_ == 1 && TTbarCatMC_ == 5 ) { // 5 for STFCNC
+
+    //Scale weights
+    b_ScaleWeight->push_back( weight_valid(allweightHandle->weights().at(15)) ); // muR=Nom  muF=Up
+    b_ScaleWeight->push_back( weight_valid(allweightHandle->weights().at(30)) ); // muR=Nom  muF=Down
+    b_ScaleWeight->push_back( weight_valid(allweightHandle->weights().at(5))  ); // muR=Up   muF=Nom
+    b_ScaleWeight->push_back( weight_valid(allweightHandle->weights().at(10)) ); // muR=Down muF=Nom
+    b_ScaleWeight->push_back( weight_valid(allweightHandle->weights().at(20)) ); // muR=Up   muF=Up
+    b_ScaleWeight->push_back( weight_valid(allweightHandle->weights().at(40)) ); // muR=Down muF=Down
+
+    for( unsigned int iscale = 0; iscale< b_ScaleWeight->size(); iscale++ )
+      ScaleWeights->Fill(iscale, b_ScaleWeight->at(iscale));
+
+    //PDF weights - 1478~1508: PDF4LHC15_nlo_nf4_30
+    for( unsigned int i = 477; i < 508; i++)
+      b_PDFWeight->push_back(allweightHandle->weights().at(i));
+
+    for( unsigned int iscale = 0; iscale< b_PDFWeight->size(); iscale++ )
+      PDFWeights->Fill(iscale, b_PDFWeight->at(iscale));
+
+    //PS weights
+    b_PSWeight->push_back( weight_valid(allweightHandle->weights().at(923)) ); //isrDefHi
+    b_PSWeight->push_back( weight_valid(allweightHandle->weights().at(924)) ); //fsrDefHi
+    b_PSWeight->push_back( weight_valid(allweightHandle->weights().at(925)) ); //isrDefLo
+    b_PSWeight->push_back( weight_valid(allweightHandle->weights().at(926)) ); //fsrDefLo
+
+    for( unsigned int iscale = 0; iscale< b_PSWeight->size(); iscale++ )
+      PSWeights->Fill(iscale, b_PSWeight->at(iscale));
+  }
+  else if( TTbarMC_ == 1 && TTbarCatMC_ == 6 ) { // 6 for TTFCNC
+
+    //Scale weights
+    b_ScaleWeight->push_back( weight_valid(allweightHandle->weights().at(1)) ); // muR=Nom  muF=Up
+    b_ScaleWeight->push_back( weight_valid(allweightHandle->weights().at(2)) ); // muR=Nom  muF=Down
+    b_ScaleWeight->push_back( weight_valid(allweightHandle->weights().at(3)) ); // muR=Up   muF=Nom
+    b_ScaleWeight->push_back( weight_valid(allweightHandle->weights().at(6)) ); // muR=Down muF=Nom
+    b_ScaleWeight->push_back( weight_valid(allweightHandle->weights().at(4)) ); // muR=Up   muF=Up
+    b_ScaleWeight->push_back( weight_valid(allweightHandle->weights().at(8)) ); // muR=Down muF=Down
+
+    for( unsigned int iscale = 0; iscale< b_ScaleWeight->size(); iscale++ )
+      ScaleWeights->Fill(iscale, b_ScaleWeight->at(iscale));
+
+    //PDF weights - PDF weight - 1579~1681: PDF4LHC15_nnlo_100_pdfas, and 0~8 is scale weight
+    for( unsigned int i = 578; i < 681; i++)
+      b_PDFWeight->push_back(allweightHandle->weights().at(i));
+
+    for( unsigned int iscale = 0; iscale< b_PDFWeight->size(); iscale++ )
+      PDFWeights->Fill(iscale, b_PDFWeight->at(iscale));
+
+    //PS weights
+    b_PSWeight->push_back( weight_valid(allweightHandle->weights().at(1084)) ); //isrDefHi
+    b_PSWeight->push_back( weight_valid(allweightHandle->weights().at(1085)) ); //fsrDefHi
+    b_PSWeight->push_back( weight_valid(allweightHandle->weights().at(1086)) ); //isrDefLo
+    b_PSWeight->push_back( weight_valid(allweightHandle->weights().at(1087)) ); //fsrDefLo
 
     for( unsigned int iscale = 0; iscale< b_PSWeight->size(); iscale++ )
       PSWeights->Fill(iscale, b_PSWeight->at(iscale));

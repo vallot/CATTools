@@ -8,8 +8,8 @@ options = VarParsing ('analysis')
 options.register('UserJSON', False, VarParsing.multiplicity.singleton, VarParsing.varType.bool, "UserJSON: Fault  default")
 # runOnTTbarMC ==> 0->No ttbar, 1->ttbar Signal
 options.register('runOnTTbarMC', 1, VarParsing.multiplicity.singleton, VarParsing.varType.int, "runOnTTbarMC: 0  default No ttbar sample")
-# TTbarCatMC   ==> 0->All ttbar, 1->ttbb, 2->ttcc, 3->ttLF, 4->ttV/H, signal (fcnc)
-options.register('TTbarCatMC', 0, VarParsing.multiplicity.singleton, VarParsing.varType.int, "TTbarCatMC: 0  default All ttbar events")
+# TTbarCatMC   ==> 0->All ttbar, 1->ttbb, 2->ttcc, 3->ttLF, 4->ttV/H, 5->STFCNC, 6->TTFCNC
+options.register('TTbarCatMC', 1, VarParsing.multiplicity.singleton, VarParsing.varType.int, "TTbarCatMC: 0  default All ttbar events")
 # PU Map
 options.register('PUMap', '2017_25ns_WinterMC', VarParsing.multiplicity.singleton, VarParsing.varType.string, "PU weight template for MC")
 options.parseArguments()
@@ -38,6 +38,8 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 process.source = cms.Source("PoolSource",
      fileNames = cms.untracked.vstring(
         'root://cluster142.knu.ac.kr//store/group/CAT/V9_7/TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8/V9_7_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v2/200723_184504/0000/catTuple_1.root'
+        #'root://cluster142.knu.ac.kr//store/group/CAT/V9_6/ST_FCNC-TH_Tleptonic_HTobb_eta_hct-MadGraph5-pythia8/V9_6_RunIIFall17MiniAODv2-PU2017_12Apr2018_tauDecays_94X_mc2017_realistic_v14-v1/190724_145525/0000/catTuple_1.root'
+        #'root://cluster142.knu.ac.kr//store/group/CAT/V9_6/TT_FCNC-T2HJ_aTleptonic_HTobb_eta_hct_TuneCP5-MadGraph5-pythia8/V9_6_RunIIFall17MiniAODv2-PU2017_12Apr2018_tauDecays_94X_mc2017_realistic_v14-v1/190722_175324/0000/catTuple_1.root'
         #'root://cluster142.knu.ac.kr//store/group/CAT/V9_7/SingleMuon/V9_7_Run2017B-31Mar2018-v1/200723_112209/0000/catTuple_1.root'
         )
 )
@@ -80,6 +82,7 @@ process.fcncLepJets = cms.EDAnalyzer('fcncLepJetsAnalyzer',
                                      JESUncFile        = cms.untracked.string("RegroupedV2_Fall17_17Nov2017_V32_MC_UncertaintySources_AK4PFchs.txt"),
                                      # Input Tags
                                      genWeightLabel    = cms.InputTag("flatGenWeights"),
+                                     allweightLabel    = cms.InputTag("genWeight"),
                                      genLabel          = cms.InputTag("prunedGenParticles"),
                                      genJetLabel       = cms.InputTag("slimmedGenJets"),
                                      genHiggsCatLabel  = cms.InputTag("GenTtbarCategories:genTtbarId"),
