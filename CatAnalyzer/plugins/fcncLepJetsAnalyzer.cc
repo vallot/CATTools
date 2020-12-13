@@ -853,7 +853,7 @@ void fcncLepJetsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     else if ( ttbarCAT == 41 or ttbarCAT == 42 or ttbarCAT == 43 or ttbarCAT == 44 or ttbarCAT == 45 ) Isttcc = true;
     else    IsttLF = true;
 
-    if( TTbarCatMC_ == 0 || TTbarCatMC_ == 4 ) IsCat = true;//no cat. for fcnc, ttV
+    if( TTbarCatMC_ == 0 || TTbarCatMC_ > 3 ) IsCat = true;//no cat. for fcnc, ttV (4~6)
     if( Isttbb && TTbarCatMC_ == 1 ) IsCat = true;
     if( Isttcc && TTbarCatMC_ == 2 ) IsCat = true;
     if( IsttLF && TTbarCatMC_ == 3 ) IsCat = true;
